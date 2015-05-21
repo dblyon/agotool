@@ -1,0 +1,207 @@
+# min_ratio=None pval=0.05
+id	enrichment	description	ratio_in_study	ratio_in_pop	p_uncorrected	p_bonferroni	p_holm	p_sidak	p_fdr
+...GO:0089713	e	Cbf1-Met4-Met28 complex	2/1159	1/4258	0	0	0	0	n.a.
+.........GO:0033255	e	SAS acetyltransferase complex	3/1159	2/4258	0	0	0	0	n.a.
+...GO:1990527	e	Tec1p-Ste12p-Dig1p complex	3/1159	2/4258	0	0	0	0	n.a.
+.....GO:0010530	e	positive regulation of transposition	2/1159	1/4258	0	0	0	0	n.a.
+....GO:0000788	e	nuclear nucleosome	6/1159	5/4258	0	0	0	0	n.a.
+........GO:0032777	e	Piccolo NuA4 histone acetyltransferase complex	6/1159	4/4258	0	0	0	0	n.a.
+.....GO:0022627	e	cytosolic small ribosomal subunit	36/1159	47/4258	1.64e-11	8.1e-08	8.09e-08	7.89e-08	n.a.
+...GO:0030684	e	preribosome	71/1159	122/4258	6.9e-11	3.41e-07	3.41e-07	3.33e-07	n.a.
+.....GO:0009123	e	nucleoside monophosphate metabolic process	55/1159	88/4258	7.29e-11	3.6e-07	3.6e-07	3.51e-07	n.a.
+......GO:0009161	e	ribonucleoside monophosphate metabolic process	54/1159	85/4258	8.22e-11	4.06e-07	4.05e-07	3.96e-07	n.a.
+.....GO:0009259	e	ribonucleotide metabolic process	56/1159	95/4258	8.83e-11	4.37e-07	4.36e-07	4.26e-07	n.a.
+....GO:0019693	e	ribose phosphate metabolic process	64/1159	110/4258	1.22e-10	6.01e-07	6e-07	5.86e-07	n.a.
+.......GO:0009167	e	purine ribonucleoside monophosphate metabolic process	46/1159	71/4258	1.44e-10	7.13e-07	7.12e-07	6.95e-07	n.a.
+......GO:0009126	e	purine nucleoside monophosphate metabolic process	46/1159	71/4258	1.44e-10	7.13e-07	7.12e-07	6.95e-07	n.a.
+......GO:0016072	e	rRNA metabolic process	132/1159	249/4258	1.47e-10	7.25e-07	7.23e-07	7.07e-07	n.a.
+.....GO:0019752	e	carboxylic acid metabolic process	165/1159	342/4258	1.52e-10	7.49e-07	7.47e-07	7.3e-07	n.a.
+....GO:0044445	e	cytosolic part	123/1159	189/4258	1.54e-10	7.59e-07	7.57e-07	7.4e-07	n.a.
+...GO:0055086	e	nucleobase-containing small molecule metabolic process	103/1159	216/4258	1.64e-10	8.09e-07	8.06e-07	7.89e-07	n.a.
+.......GO:0006364	e	rRNA processing	127/1159	233/4258	1.67e-10	8.26e-07	8.23e-07	8.05e-07	n.a.
+...GO:0006325	e	chromatin organization	110/1159	222/4258	1.72e-10	8.5e-07	8.47e-07	8.29e-07	n.a.
+......GO:0002181	e	cytoplasmic translation	80/1159	123/4258	1.78e-10	8.79e-07	8.75e-07	8.57e-07	n.a.
+.....GO:0009117	e	nucleotide metabolic process	98/1159	190/4258	1.89e-10	9.34e-07	9.3e-07	9.1e-07	n.a.
+....GO:0016568	e	chromatin modification	92/1159	186/4258	1.95e-10	9.64e-07	9.6e-07	9.4e-07	n.a.
+....GO:0005730	e	nucleolus	108/1159	223/4258	2e-10	9.88e-07	9.84e-07	9.63e-07	n.a.
+....GO:0043436	e	oxoacid metabolic process	172/1159	355/4258	2.08e-10	1.03e-06	1.02e-06	1e-06	n.a.
+....GO:0006753	e	nucleoside phosphate metabolic process	98/1159	192/4258	2.13e-10	1.05e-06	1.05e-06	1.03e-06	n.a.
+..GO:0030427	p	site of polarized growth	11/1159	158/4258	2.19e-10	1.08e-06	1.08e-06	1.06e-06	n.a.
+....GO:0003723	e	RNA binding	191/1159	464/4258	2.21e-10	1.09e-06	1.08e-06	1.06e-06	n.a.
+...GO:0043232	e	intracellular non-membrane-bounded organelle	205/1159	492/4258	2.23e-10	1.1e-06	1.09e-06	1.07e-06	n.a.
+..GO:0043228	e	non-membrane-bounded organelle	205/1159	492/4258	2.23e-10	1.1e-06	1.09e-06	1.07e-06	n.a.
+...GO:0006082	e	organic acid metabolic process	172/1159	356/4258	2.27e-10	1.12e-06	1.11e-06	1.09e-06	n.a.
+...GO:0098588	p	bounding membrane of organelle	69/1159	532/4258	2.29e-10	1.13e-06	1.12e-06	1.1e-06	n.a.
+...GO:0006520	e	cellular amino acid metabolic process	114/1159	225/4258	2.31e-10	1.14e-06	1.13e-06	1.11e-06	n.a.
+.....GO:0006163	e	purine nucleotide metabolic process	52/1159	88/4258	2.46e-10	1.21e-06	1.21e-06	1.18e-06	n.a.
+......GO:0034470	e	ncRNA processing	153/1159	329/4258	2.55e-10	1.26e-06	1.25e-06	1.23e-06	n.a.
+...GO:1901564	e	organonitrogen compound metabolic process	212/1159	507/4258	2.78e-10	1.37e-06	1.36e-06	1.34e-06	n.a.
+....GO:1901362	e	organic cyclic compound biosynthetic process	272/1159	686/4258	2.9e-10	1.43e-06	1.42e-06	1.4e-06	n.a.
+....GO:0034654	e	nucleobase-containing compound biosynthetic process	235/1159	581/4258	2.9e-10	1.43e-06	1.42e-06	1.4e-06	n.a.
+.......GO:0006090	e	pyruvate metabolic process	27/1159	34/4258	2.95e-10	1.46e-06	1.45e-06	1.42e-06	n.a.
+...GO:0016021	p	integral component of membrane	69/1159	727/4258	3.1e-10	1.53e-06	1.52e-06	1.49e-06	n.a.
+....GO:0009889	e	regulation of biosynthetic process	266/1159	701/4258	3.11e-10	1.54e-06	1.52e-06	1.5e-06	n.a.
+.....GO:0010556	e	regulation of macromolecule biosynthetic process	261/1159	677/4258	3.16e-10	1.56e-06	1.55e-06	1.52e-06	n.a.
+..GO:0030529	e	ribonucleoprotein complex	252/1159	541/4258	3.18e-10	1.57e-06	1.56e-06	1.53e-06	n.a.
+.....GO:0034660	e	ncRNA metabolic process	194/1159	428/4258	3.19e-10	1.58e-06	1.56e-06	1.54e-06	n.a.
+....GO:0044271	e	cellular nitrogen compound biosynthetic process	252/1159	653/4258	3.23e-10	1.6e-06	1.58e-06	1.56e-06	n.a.
+...GO:0003676	e	nucleic acid binding	331/1159	843/4258	3.24e-10	1.6e-06	1.58e-06	1.56e-06	n.a.
+...GO:0044281	e	small molecule metabolic process	267/1159	618/4258	3.24e-10	1.6e-06	1.59e-06	1.56e-06	n.a.
+.GO:0016020	p	membrane	147/1159	979/4258	3.41e-10	1.68e-06	1.67e-06	1.64e-06	n.a.
+....GO:0018130	e	heterocycle biosynthetic process	256/1159	644/4258	3.47e-10	1.72e-06	1.7e-06	1.67e-06	n.a.
+...GO:1901576	e	organic substance biosynthetic process	487/1159	1261/4258	3.53e-10	1.75e-06	1.73e-06	1.7e-06	n.a.
+.GO:0008152	e	metabolic process	958/1159	2997/4258	3.53e-10	1.75e-06	1.73e-06	1.7e-06	n.a.
+....GO:0019438	e	aromatic compound biosynthetic process	254/1159	633/4258	3.55e-10	1.75e-06	1.74e-06	1.71e-06	n.a.
+.GO:0009987	e	cellular process	1049/1159	3588/4258	3.62e-10	1.79e-06	1.77e-06	1.75e-06	n.a.
+..GO:0031224	p	intrinsic component of membrane	69/1159	747/4258	3.62e-10	1.79e-06	1.77e-06	1.75e-06	n.a.
+......GO:2000112	e	regulation of cellular macromolecule biosynthetic process	260/1159	671/4258	3.68e-10	1.82e-06	1.8e-06	1.77e-06	n.a.
+....GO:0016070	e	RNA metabolic process	376/1159	949/4258	3.71e-10	1.84e-06	1.81e-06	1.79e-06	n.a.
+...GO:0006139	e	nucleobase-containing compound metabolic process	525/1159	1321/4258	3.72e-10	1.84e-06	1.82e-06	1.79e-06	n.a.
+..GO:0031090	p	organelle membrane	115/1159	736/4258	3.76e-10	1.86e-06	1.84e-06	1.81e-06	n.a.
+..GO:0044237	e	cellular metabolic process	899/1159	2692/4258	3.87e-10	1.91e-06	1.89e-06	1.86e-06	n.a.
+...GO:0044249	e	cellular biosynthetic process	465/1159	1221/4258	3.91e-10	1.93e-06	1.91e-06	1.88e-06	n.a.
+....GO:0090304	e	nucleic acid metabolic process	429/1159	1127/4258	3.94e-10	1.95e-06	1.93e-06	1.9e-06	n.a.
+.....GO:0010468	e	regulation of gene expression	254/1159	662/4258	4e-10	1.98e-06	1.95e-06	1.93e-06	n.a.
+....GO:0009059	e	macromolecule biosynthetic process	309/1159	795/4258	4.02e-10	1.99e-06	1.96e-06	1.94e-06	n.a.
+....GO:0034645	e	cellular macromolecule biosynthetic process	267/1159	712/4258	4.04e-10	2e-06	1.97e-06	1.95e-06	n.a.
+.....GO:0031326	e	regulation of cellular biosynthetic process	266/1159	700/4258	4.05e-10	2e-06	1.97e-06	1.95e-06	n.a.
+..GO:0044238	e	primary metabolic process	833/1159	2531/4258	4.07e-10	2.01e-06	1.99e-06	1.96e-06	n.a.
+.GO:0032991	e	macromolecular complex	608/1159	1798/4258	4.14e-10	2.05e-06	2.02e-06	1.99e-06	n.a.
+...GO:0046483	e	heterocycle metabolic process	549/1159	1393/4258	4.16e-10	2.05e-06	2.03e-06	2e-06	n.a.
+.GO:0005488	e	binding	882/1159	2859/4258	4.3e-10	2.13e-06	2.1e-06	2.07e-06	n.a.
+..GO:1901363	e	heterocyclic compound binding	553/1159	1469/4258	4.37e-10	2.16e-06	2.13e-06	2.1e-06	n.a.
+..GO:0009058	e	biosynthetic process	491/1159	1288/4258	4.53e-10	2.24e-06	2.21e-06	2.18e-06	n.a.
+..GO:0097159	e	organic cyclic compound binding	554/1159	1476/4258	4.56e-10	2.25e-06	2.22e-06	2.19e-06	n.a.
+...GO:0044260	e	cellular macromolecule metabolic process	625/1159	1924/4258	4.58e-10	2.26e-06	2.23e-06	2.2e-06	n.a.
+.GO:0044425	p	membrane part	154/1159	1099/4258	4.6e-10	2.27e-06	2.24e-06	2.21e-06	n.a.
+..GO:0006807	e	nitrogen compound metabolic process	619/1159	1600/4258	4.64e-10	2.29e-06	2.26e-06	2.23e-06	n.a.
+...GO:1901360	e	organic cyclic compound metabolic process	565/1159	1448/4258	4.78e-10	2.36e-06	2.33e-06	2.3e-06	n.a.
+...GO:0034641	e	cellular nitrogen compound metabolic process	558/1159	1447/4258	4.78e-10	2.36e-06	2.33e-06	2.3e-06	n.a.
+...GO:0006725	e	cellular aromatic compound metabolic process	545/1159	1385/4258	4.88e-10	2.41e-06	2.37e-06	2.35e-06	n.a.
+...GO:0043170	e	macromolecule metabolic process	634/1159	1985/4258	4.93e-10	2.44e-06	2.4e-06	2.37e-06	n.a.
+..GO:0071704	e	organic substance metabolic process	878/1159	2640/4258	5.05e-10	2.49e-06	2.45e-06	2.43e-06	n.a.
+...GO:0000166	e	nucleotide binding	289/1159	792/4258	5.06e-10	2.5e-06	2.46e-06	2.44e-06	n.a.
+...GO:1901265	e	nucleoside phosphate binding	289/1159	792/4258	5.06e-10	2.5e-06	2.46e-06	2.44e-06	n.a.
+...GO:0044428	e	nuclear part	323/1159	905/4258	5.43e-10	2.69e-06	2.64e-06	2.62e-06	n.a.
+..GO:0036094	e	small molecule binding	300/1159	826/4258	5.47e-10	2.7e-06	2.66e-06	2.63e-06	n.a.
+.....GO:0022625	e	cytosolic large ribosomal subunit	45/1159	73/4258	6.18e-10	3.06e-06	3e-06	2.98e-06	n.a.
+...GO:0043933	e	macromolecular complex subunit organization	257/1159	694/4258	8.77e-10	4.33e-06	4.26e-06	4.23e-06	n.a.
+..GO:0044424	e	intracellular part	1062/1159	3688/4258	1.46e-09	7.2e-06	7.07e-06	7.02e-06	n.a.
+.....GO:0006396	e	RNA processing	179/1159	452/4258	1.72e-09	8.51e-06	8.36e-06	8.29e-06	n.a.
+....GO:1901605	e	alpha-amino acid metabolic process	81/1159	166/4258	2.01e-09	9.93e-06	9.75e-06	9.68e-06	n.a.
+......GO:0009150	e	purine ribonucleotide metabolic process	49/1159	84/4258	2.45e-09	1.21e-05	1.19e-05	1.18e-05	n.a.
+..GO:0098805	p	whole membrane	36/1159	281/4258	2.56e-09	1.27e-05	1.24e-05	1.23e-05	n.a.
+.....GO:0019219	e	regulation of nucleobase-containing compound metabolic process	224/1159	597/4258	3.08e-09	1.52e-05	1.49e-05	1.48e-05	n.a.
+.....GO:0051252	e	regulation of RNA metabolic process	210/1159	553/4258	3.27e-09	1.62e-05	1.59e-05	1.58e-05	n.a.
+......GO:0006355	e	regulation of transcription, DNA-templated	205/1159	537/4258	3.81e-09	1.88e-05	1.85e-05	1.84e-05	n.a.
+......GO:2001141	e	regulation of RNA biosynthetic process	205/1159	538/4258	3.98e-09	1.96e-05	1.93e-05	1.92e-05	n.a.
+.......GO:1903506	e	regulation of nucleic acid-templated transcription	205/1159	538/4258	3.98e-09	1.96e-05	1.93e-05	1.92e-05	n.a.
+...GO:0044432	p	endoplasmic reticulum part	44/1159	319/4258	4.16e-09	2.06e-05	2.02e-05	2e-05	n.a.
+.....GO:0032774	e	RNA biosynthetic process	170/1159	429/4258	4.26e-09	2.11e-05	2.07e-05	2.05e-05	n.a.
+...GO:0005935	p	cellular bud neck	8/1159	123/4258	6.34e-09	3.14e-05	3.07e-05	3.06e-05	n.a.
+....GO:0051171	e	regulation of nitrogen compound metabolic process	226/1159	609/4258	7.73e-09	3.82e-05	3.74e-05	3.72e-05	n.a.
+..GO:0005886	p	plasma membrane	24/1159	213/4258	8.45e-09	4.18e-05	4.09e-05	4.07e-05	n.a.
+...GO:0044391	e	ribosomal subunit	91/1159	198/4258	9.89e-09	4.89e-05	4.79e-05	4.76e-05	n.a.
+..GO:0042645	e	mitochondrial nucleoid	19/1159	22/4258	1.05e-08	5.16e-05	5.06e-05	5.03e-05	n.a.
+...GO:0006096	e	glycolytic process	19/1159	22/4258	1.05e-08	5.16e-05	5.06e-05	5.03e-05	n.a.
+.GO:0009295	e	nucleoid	19/1159	22/4258	1.05e-08	5.16e-05	5.06e-05	5.03e-05	n.a.
+..GO:0003735	e	structural constituent of ribosome	84/1159	180/4258	1.53e-08	7.55e-05	7.39e-05	7.36e-05	n.a.
+....GO:0072521	e	purine-containing compound metabolic process	58/1159	111/4258	1.58e-08	7.81e-05	7.64e-05	7.61e-05	n.a.
+.GO:0043226	e	organelle	606/1159	1925/4258	1.65e-08	8.17e-05	7.99e-05	7.96e-05	n.a.
+..GO:0043229	e	intracellular organelle	605/1159	1924/4258	2.04e-08	0.000101	9.86e-05	9.82e-05	n.a.
+.....GO:0009119	e	ribonucleoside metabolic process	55/1159	104/4258	2.08e-08	0.000103	0.000101	0.0001	n.a.
+.....GO:0006412	e	translation	100/1159	227/4258	2.33e-08	0.000115	0.000112	0.000112	n.a.
+.....GO:0006338	e	chromatin remodeling	43/1159	75/4258	4.55e-08	0.000225	0.00022	0.000219	n.a.
+....GO:0005634	e	nucleus	315/1159	914/4258	4.75e-08	0.000235	0.000229	0.000229	n.a.
+....GO:0060255	e	regulation of macromolecule metabolic process	287/1159	822/4258	6e-08	0.000296	0.00029	0.000289	n.a.
+...GO:0005840	e	ribosome	30/1159	46/4258	7.05e-08	0.000349	0.000341	0.00034	n.a.
+.......GO:0051168	e	nuclear export	56/1159	109/4258	7.67e-08	0.000379	0.00037	0.00037	n.a.
+....GO:0080090	e	regulation of primary metabolic process	291/1159	837/4258	9.17e-08	0.000453	0.000442	0.000442	n.a.
+....GO:0009116	e	nucleoside metabolic process	56/1159	110/4258	9.75e-08	0.000482	0.000471	0.00047	n.a.
+.....GO:0016569	e	covalent chromatin modification	50/1159	94/4258	1.04e-07	0.000512	0.0005	0.000499	n.a.
+...GO:0016570	e	histone modification	50/1159	94/4258	1.04e-07	0.000512	0.0005	0.000499	n.a.
+....GO:0016573	e	histone acetylation	26/1159	38/4258	1.26e-07	0.000621	0.000606	0.000605	n.a.
+........GO:0006475	e	internal protein amino acid acetylation	26/1159	38/4258	1.26e-07	0.000621	0.000606	0.000605	n.a.
+.........GO:0018393	e	internal peptidyl-lysine acetylation	26/1159	38/4258	1.26e-07	0.000621	0.000606	0.000605	n.a.
+........GO:0018394	e	peptidyl-lysine acetylation	26/1159	38/4258	1.26e-07	0.000621	0.000606	0.000605	n.a.
+....GO:0008652	e	cellular amino acid biosynthetic process	62/1159	127/4258	1.46e-07	0.000722	0.000704	0.000704	n.a.
+..GO:0044710	e	single-organism metabolic process	480/1159	1495/4258	1.66e-07	0.000822	0.000801	0.000802	n.a.
+.....GO:1901607	e	alpha-amino acid biosynthetic process	59/1159	120/4258	2.1e-07	0.00104	0.00101	0.00101	n.a.
+....GO:0044283	e	small molecule biosynthetic process	107/1159	256/4258	2.13e-07	0.00105	0.00103	0.00103	n.a.
+....GO:0016192	p	vesicle-mediated transport	48/1159	314/4258	2.37e-07	0.00117	0.00114	0.00114	n.a.
+.....GO:0046394	e	carboxylic acid biosynthetic process	74/1159	161/4258	2.81e-07	0.00139	0.00135	0.00135	n.a.
+....GO:0016053	e	organic acid biosynthetic process	74/1159	161/4258	2.81e-07	0.00139	0.00135	0.00135	n.a.
+....GO:0034728	e	nucleosome organization	36/1159	62/4258	3.24e-07	0.0016	0.00156	0.00156	n.a.
+......GO:0046128	e	purine ribonucleoside metabolic process	48/1159	92/4258	3.27e-07	0.00162	0.00157	0.00157	n.a.
+.....GO:0042278	e	purine nucleoside metabolic process	48/1159	92/4258	3.27e-07	0.00162	0.00157	0.00157	n.a.
+........GO:0004402	e	histone acetyltransferase activity	16/1159	19/4258	3.39e-07	0.00168	0.00163	0.00164	n.a.
+.......GO:0090595	e	acetyl-CoA:L-lysine N6-acetyltransferase	16/1159	19/4258	3.39e-07	0.00168	0.00163	0.00164	n.a.
+...GO:0044440	p	endosomal part	6/1159	94/4258	4.31e-07	0.00213	0.00207	0.00208	n.a.
+...GO:0022613	e	ribonucleoprotein complex biogenesis	50/1159	98/4258	4.43e-07	0.00219	0.00213	0.00213	n.a.
+....GO:0005759	e	mitochondrial matrix	49/1159	95/4258	4.85e-07	0.0024	0.00233	0.00234	n.a.
+...GO:1901657	e	glycosyl compound metabolic process	56/1159	114/4258	5.37e-07	0.00265	0.00258	0.00259	n.a.
+....GO:0031323	e	regulation of cellular metabolic process	291/1159	851/4258	5.59e-07	0.00276	0.00269	0.00269	n.a.
+..GO:0005789	p	endoplasmic reticulum membrane	29/1159	218/4258	6.61e-07	0.00327	0.00317	0.00318	n.a.
+.....GO:0019843	e	rRNA binding	32/1159	54/4258	6.88e-07	0.0034	0.0033	0.00332	n.a.
+......GO:0006418	e	tRNA aminoacylation for protein translation	25/1159	38/4258	7e-07	0.00346	0.00336	0.00337	n.a.
+......GO:0006913	e	nucleocytoplasmic transport	68/1159	148/4258	7.18e-07	0.00355	0.00345	0.00346	n.a.
+.....GO:0019362	e	pyridine nucleotide metabolic process	40/1159	73/4258	7.49e-07	0.0037	0.00359	0.00361	n.a.
+......GO:0019319	e	hexose biosynthetic process	14/1159	16/4258	7.78e-07	0.00384	0.00373	0.00375	n.a.
+.....GO:0046364	e	monosaccharide biosynthetic process	14/1159	16/4258	7.78e-07	0.00384	0.00373	0.00375	n.a.
+....GO:0071826	e	ribonucleoprotein complex subunit organization	66/1159	143/4258	8.05e-07	0.00398	0.00386	0.00388	n.a.
+........GO:0030490	e	maturation of SSU-rRNA	38/1159	69/4258	8.88e-07	0.00439	0.00425	0.00428	n.a.
+..GO:0048037	e	cofactor binding	61/1159	129/4258	9.16e-07	0.00453	0.00439	0.00441	n.a.
+..GO:0043167	e	ion binding	419/1159	1296/4258	9.31e-07	0.0046	0.00446	0.00449	n.a.
+.....GO:0051169	e	nuclear transport	68/1159	149/4258	1.22e-06	0.00603	0.00585	0.00588	n.a.
+......GO:0046496	e	nicotinamide nucleotide metabolic process	39/1159	72/4258	1.36e-06	0.0067	0.00649	0.00653	n.a.
+...GO:0044431	p	Golgi apparatus part	24/1159	188/4258	1.42e-06	0.007	0.00679	0.00683	n.a.
+..GO:0071554	p	cell wall organization or biogenesis	11/1159	119/4258	1.67e-06	0.00826	0.008	0.00805	n.a.
+...GO:0043168	e	anion binding	279/1159	821/4258	1.9e-06	0.00938	0.00909	0.00915	n.a.
+....GO:0007165	p	signal transduction	23/1159	182/4258	2.18e-06	0.0108	0.0104	0.0105	n.a.
+....GO:0032040	e	small-subunit processome	29/1159	49/4258	2.46e-06	0.0121	0.0118	0.0118	n.a.
+....GO:0030687	e	preribosome, large subunit precursor	29/1159	49/4258	2.46e-06	0.0121	0.0118	0.0118	n.a.
+......GO:0042026	e	protein refolding	13/1159	15/4258	2.53e-06	0.0125	0.0121	0.0122	n.a.
+.......GO:0006094	e	gluconeogenesis	13/1159	15/4258	2.53e-06	0.0125	0.0121	0.0122	n.a.
+....GO:0072524	e	pyridine-containing compound metabolic process	42/1159	81/4258	3.08e-06	0.0152	0.0147	0.0148	n.a.
+....GO:0044724	e	single-organism carbohydrate catabolic process	31/1159	54/4258	3.23e-06	0.016	0.0154	0.0156	n.a.
+....GO:0016758	p	transferase activity, transferring hexosyl groups	4/1159	72/4258	3.38e-06	0.0167	0.0162	0.0163	n.a.
+....GO:0016876	e	ligase activity, forming aminoacyl-tRNA and related compounds	24/1159	38/4258	3.49e-06	0.0173	0.0167	0.0168	n.a.
+...GO:0016875	e	ligase activity, forming carbon-oxygen bonds	24/1159	38/4258	3.49e-06	0.0173	0.0167	0.0168	n.a.
+.....GO:0004812	e	aminoacyl-tRNA ligase activity	24/1159	38/4258	3.49e-06	0.0173	0.0167	0.0168	n.a.
+....GO:0005739	e	mitochondrion	122/1159	314/4258	3.51e-06	0.0174	0.0168	0.0169	n.a.
+.....GO:0006733	e	oxidoreduction coenzyme metabolic process	44/1159	87/4258	3.9e-06	0.0193	0.0186	0.0188	n.a.
+....GO:1901566	e	organonitrogen compound biosynthetic process	120/1159	309/4258	4.15e-06	0.0205	0.0198	0.02	n.a.
+....GO:0016616	e	oxidoreductase activity, acting on the CH-OH group of donors, NAD or NADP as acceptor	34/1159	62/4258	4.18e-06	0.0206	0.0199	0.0201	n.a.
+......GO:0008080	e	N-acetyltransferase activity	23/1159	36/4258	4.21e-06	0.0208	0.0201	0.0203	n.a.
+.....GO:0022618	e	ribonucleoprotein complex assembly	61/1159	134/4258	4.25e-06	0.021	0.0203	0.0205	n.a.
+......GO:0009156	e	ribonucleoside monophosphate biosynthetic process	30/1159	52/4258	4.46e-06	0.0221	0.0213	0.0215	n.a.
+.....GO:0009165	e	nucleotide biosynthetic process	51/1159	107/4258	4.78e-06	0.0236	0.0228	0.0231	n.a.
+.....GO:0009124	e	nucleoside monophosphate biosynthetic process	31/1159	55/4258	4.85e-06	0.024	0.0231	0.0234	n.a.
+..GO:0044877	e	macromolecular complex binding	85/1159	203/4258	4.9e-06	0.0242	0.0234	0.0236	n.a.
+......GO:0006468	p	protein phosphorylation	14/1159	130/4258	4.99e-06	0.0246	0.0237	0.024	n.a.
+.........GO:0000463	e	maturation of LSU-rRNA from tricistronic rRNA transcript (SSU-rRNA, 5.8S rRNA, LSU-rRNA)	22/1159	34/4258	5.03e-06	0.0249	0.024	0.0242	n.a.
+.....GO:0004672	p	protein kinase activity	11/1159	113/4258	5.06e-06	0.025	0.0241	0.0244	n.a.
+....GO:1901293	e	nucleoside phosphate biosynthetic process	52/1159	109/4258	5.23e-06	0.0259	0.0249	0.0252	n.a.
+.....GO:0006549	e	isoleucine metabolic process	11/1159	12/4258	5.3e-06	0.0262	0.0252	0.0255	n.a.
+....GO:0006643	p	membrane lipid metabolic process	1/1159	49/4258	5.36e-06	0.0265	0.0255	0.0258	n.a.
+...GO:0051186	e	cofactor metabolic process	75/1159	175/4258	5.36e-06	0.0265	0.0255	0.0258	n.a.
+.GO:0005198	e	structural molecule activity	113/1159	289/4258	5.57e-06	0.0275	0.0265	0.0268	n.a.
+..GO:0016491	e	oxidoreductase activity	110/1159	280/4258	5.67e-06	0.028	0.027	0.0273	n.a.
+....GO:0006732	e	coenzyme metabolic process	69/1159	157/4258	5.8e-06	0.0287	0.0276	0.0279	n.a.
+....GO:0005829	e	cytosol	117/1159	301/4258	5.96e-06	0.0294	0.0283	0.0287	n.a.
+....GO:0015935	e	small ribosomal subunit	41/1159	81/4258	6.63e-06	0.0328	0.0315	0.0319	n.a.
+..GO:0045229	p	external encapsulating structure organization	11/1159	112/4258	7.35e-06	0.0363	0.0349	0.0354	n.a.
+...GO:0071555	p	cell wall organization	11/1159	112/4258	7.35e-06	0.0363	0.0349	0.0354	n.a.
+....GO:0043038	e	amino acid activation	25/1159	41/4258	7.53e-06	0.0372	0.0358	0.0363	n.a.
+.....GO:0043039	e	tRNA aminoacylation	25/1159	41/4258	7.53e-06	0.0372	0.0358	0.0363	n.a.
+........GO:0000470	e	maturation of LSU-rRNA	25/1159	41/4258	7.53e-06	0.0372	0.0358	0.0363	n.a.
+.........GO:0000462	e	maturation of SSU-rRNA from tricistronic rRNA transcript (SSU-rRNA, 5.8S rRNA, LSU-rRNA)	32/1159	58/4258	7.92e-06	0.0392	0.0376	0.0382	n.a.
+....GO:0070085	p	glycosylation	4/1159	69/4258	7.94e-06	0.0393	0.0377	0.0383	n.a.
+.......GO:0006357	e	regulation of transcription from RNA polymerase II promoter	122/1159	319/4258	8.02e-06	0.0396	0.0381	0.0386	n.a.
+.....GO:0009082	e	branched-chain amino acid biosynthetic process	12/1159	14/4258	8.14e-06	0.0402	0.0386	0.0392	n.a.
+.....GO:0032559	e	adenyl ribonucleotide binding	196/1159	556/4258	8.33e-06	0.0412	0.0395	0.0401	n.a.
+....GO:0015031	p	protein transport	92/1159	486/4258	8.44e-06	0.0417	0.04	0.0407	n.a.
+.....GO:0030554	e	adenyl nucleotide binding	197/1159	560/4258	8.93e-06	0.0441	0.0423	0.043	n.a.
+.......GO:0018205	e	peptidyl-lysine modification	38/1159	74/4258	9.04e-06	0.0447	0.0429	0.0436	n.a.
+.....GO:0006457	e	protein folding	47/1159	98/4258	9.44e-06	0.0467	0.0447	0.0455	n.a.
+...GO:0045184	p	establishment of protein localization	97/1159	506/4258	9.52e-06	0.047	0.0451	0.0458	n.a.
