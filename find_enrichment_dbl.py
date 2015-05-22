@@ -121,6 +121,7 @@ if __name__ == "__main__":
     assert 0 < args.alpha < 1, "Test-wise alpha must fall between (0, 1)"
 
     study_fn, pop_fn, assoc_fn = args.filenames
+    #print(study_fn, pop_fn, assoc_fn)
     study, pop = read_geneset(study_fn, pop_fn, compare=args.compare)
     assoc = read_associations(assoc_fn)
 

@@ -1,6 +1,6 @@
 import cPickle as pickle
 import pandas as pd
-import numpy as np
+#import numpy as np
 
 __author__ = 'dblyon'
 
@@ -147,35 +147,57 @@ class UpdateRescources(object):
 class UserInput(object):
     """
     expects 2 arrays,
-    samplefreq: 1D array
+    samplefreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
     def __init__(self):
-        #self.samplefreq = pd.Series()
+        #self.samplefreq = pd.DataFrame()
         #self.backgroundfreq = pd.DataFrame()
         pass
 
     def temp_setup(self):
         #fn=r"C:\Users\dblyon\CloudStation\CPR\Brian_GO\UserInput.txt"
         fn=r"/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt"
-        df = pd.read_csv(fn, sep="\t")
-        cond = pd.isnull(df["sample_an"])
-        self.samplefreq = df.loc[-cond, "sample_an"].drop_duplicates().copy() # copy probably not necessary
-        self.backgroundfreq = df.loc[:, ["backgrnd_int", "backgrnd_an"]].drop_duplicates(subset="backgrnd_an").copy()
+        self.df_orig = pd.read_csv(fn, sep="\t")
+
+    def cleanupforanalysis(self):
+        '''
+        reduce to non-redundant AccessionNumbers for sample and background-frequency (uses first observed row),
+        remove ANs without GO-term(s)
+        remove ANs without intensity-values
+        concat and align data to single DataFrame
+        :return: None
+        '''
+        cond = pd.isnull(self.df_orig["sample_an"])
+        # remove duplicate AccessionNumbers from samplefrequency and backgroundfrequency
+        self.samplefreq_ser = self.df_orig.loc[-cond, "sample_an"].drop_duplicates().copy() # copy probably not necessary
+        self.backgroundfreq_df = self.df_orig.loc[:, ["backgrnd_an", "backgrnd_int"]].drop_duplicates(subset="backgrnd_an").copy()
+        # concatenate data
+        self.df = self.concat_and_align_sample_and_background(self.samplefreq_ser, self.backgroundfreq_df)
+        # remove AccessionNumbers from sample and background-frequency without intensity values
+        self.df  = self.df.loc[pd.notnull(self.df['backgrnd_int']), ]
+        self.set_study(self.df.loc[pd.notnull(self.df['sample_an']), 'sample_an'])
+        self.set_population(self.df[['backgrnd_int', 'backgrnd_an']])
+
+    def set_study(self, series):
+        self.samplefreq_ser =  series
 
     def get_study(self):
         '''
         return sample frequency (termed 'study' in goatools)
         :return: ListOfString
         '''
-        return sorted(self.samplefreq.tolist())
+        return sorted(self.samplefreq_ser.tolist())
+
+    def set_population(self, population):
+        self.backgroundfreq_df = population
 
     def get_population(self):
         '''
         return background frequency (termed 'population' in goatools)
         :return: ListOfString
         '''
-        return sorted(self.backgroundfreq['backgrnd_an'].tolist())
+        return sorted(self.backgroundfreq_df['backgrnd_an'].tolist())
 
     def write_goatools_input2file(self, fn_study, fn_pop):
         '''
@@ -192,6 +214,32 @@ class UserInput(object):
             for an in self.get_population():
                 fh_pop.write(an + '\n')
 
+    def remove_ans_without_go_or_int(self, gor):
+        '''
+        remove AccessionNumbers without GO-term or without intensity value
+        change attributes of UserInput instance
+        :param gor: goretriever instance
+        :return: None
+        '''
+        ans_sample_filtered = []
+        for an in self.get_study():
+            goterm_list = gor.get_goterms_from_an(an)
+            cond = self.backgroundfreq_df['backgrnd_an'] == an
+            intensity_valinlist = self.backgroundfreq_df.loc[cond, 'backgrnd_int'].tolist()
+            if goterm_list != -1 and len(intensity_valinlist) != 0:
+                ans_sample_filtered += an
+
+    def concat_and_align_sample_and_background(self, sample_ser, background_df):
+        '''
+        expects a Series and a DataFrames each containing a column with non-redundant
+        AccessionNumbers, concatenate by producing the union and aligning the ANs in rows
+        :param sample_ser: Pandas.Series
+        :param background_df: Pandas.DataFrame
+        :return: DataFrame
+        '''
+        sample_ser.index = sample_ser.tolist()
+        background_df.index = background_df['backgrnd_an'].tolist()
+        return pd.concat([sample_ser, background_df], axis=1)
 
 
 
