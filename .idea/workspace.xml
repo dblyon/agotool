@@ -4,9 +4,11 @@
     <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled-checkpoint.ipynb" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled-checkpoint.ipynb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Untitled.ipynb" afterPath="$PROJECT_DIR$/Untitled.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/find_enrichment_dbl.py" afterPath="$PROJECT_DIR$/find_enrichment_dbl.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Untitled1.ipynb" afterPath="$PROJECT_DIR$/Untitled1.ipynb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/goretriever.py" afterPath="$PROJECT_DIR$/goretriever.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/summary_test.txt" afterPath="$PROJECT_DIR$/summary_test.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/goterm.iml" afterPath="$PROJECT_DIR$/.idea/goterm.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/summary_test3.txt" afterPath="$PROJECT_DIR$/summary_test3.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="goterm.iws" />
@@ -28,7 +30,54 @@
     <favorites_list name="goterm" />
   </component>
   <component name="FileEditorManager">
-    <leaf />
+    <leaf>
+      <file leaf-file-name="goretriever.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/goretriever.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.13915417">
+              <caret line="154" column="21" selection-start-line="154" selection-start-column="21" selection-end-line="154" selection-end-column="21" />
+              <folding>
+                <element signature="e#0#24#0" expanded="true" />
+                <element signature="e#1253#2172#0" expanded="false" />
+                <element signature="e#2221#2467#0" expanded="false" />
+                <element signature="e#2500#2625#0" expanded="false" />
+                <element signature="e#2659#2780#0" expanded="false" />
+                <element signature="e#2820#2926#0" expanded="false" />
+                <element signature="e#2977#3227#0" expanded="false" />
+                <element signature="e#2977#3118#1" expanded="false" />
+                <element signature="e#3265#3630#0" expanded="false" />
+                <element signature="e#3670#4015#0" expanded="false" />
+                <element signature="e#3670#3796#1" expanded="false" />
+                <element signature="e#4071#4736#0" expanded="false" />
+                <element signature="e#4775#5053#0" expanded="false" />
+                <element signature="e#4775#5015#1" expanded="false" />
+                <element signature="e#5049#5053#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="go_enrichment_dbl.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="192" column="16" selection-start-line="192" selection-start-column="16" selection-end-line="192" selection-end-column="16" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="find_enrichment_dbl.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="113" column="4" selection-start-line="113" selection-start-column="4" selection-end-line="113" selection-end-column="25" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -59,7 +108,7 @@
   </component>
   <component name="ProjectFrameBounds">
     <option name="y" value="23" />
-    <option name="width" value="1393" />
+    <option name="width" value="1402" />
     <option name="height" value="877" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
@@ -101,7 +150,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="goterm" />
+              <option name="myItemId" value="gocode" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -187,6 +236,12 @@
       <method />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <node-options />
+      <gulpfile />
+      <tasks />
+      <arguments />
+      <pass-parent-envs>true</pass-parent-envs>
+      <envs />
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Attests">
@@ -334,29 +389,38 @@
     </task>
     <servers />
   </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1393" height="877" extended-state="6" />
+    <frame x="0" y="23" width="1402" height="877" extended-state="6" />
     <editor active="false" />
     <layout>
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298292" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15721464" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16029412" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -372,7 +436,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="1" />
+      <option name="time" value="3" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -383,21 +447,20 @@
           <caret line="199" column="8" selection-start-line="199" selection-start-column="8" selection-end-line="199" selection-end-column="8" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
-            <element signature="e#549#780#0" expanded="false" />
-            <element signature="e#823#1742#0" expanded="false" />
-            <element signature="e#1791#2037#0" expanded="false" />
-            <element signature="e#2070#2195#0" expanded="false" />
-            <element signature="e#2229#2350#0" expanded="false" />
-            <element signature="e#2390#2496#0" expanded="false" />
-            <element signature="e#2547#2797#0" expanded="false" />
-            <element signature="e#2547#2688#1" expanded="false" />
-            <element signature="e#2835#3200#0" expanded="false" />
-            <element signature="e#3240#3585#0" expanded="false" />
-            <element signature="e#3240#3366#1" expanded="false" />
-            <element signature="e#3641#4306#0" expanded="false" />
-            <element signature="e#4345#4623#0" expanded="false" />
-            <element signature="e#4345#4585#1" expanded="false" />
-            <element signature="e#4619#4623#0" expanded="false" />
+            <element signature="e#1253#2172#0" expanded="false" />
+            <element signature="e#2221#2467#0" expanded="false" />
+            <element signature="e#2500#2625#0" expanded="false" />
+            <element signature="e#2659#2780#0" expanded="false" />
+            <element signature="e#2820#2926#0" expanded="false" />
+            <element signature="e#2977#3227#0" expanded="false" />
+            <element signature="e#2977#3118#1" expanded="false" />
+            <element signature="e#3265#3630#0" expanded="false" />
+            <element signature="e#3670#4015#0" expanded="false" />
+            <element signature="e#3670#3796#1" expanded="false" />
+            <element signature="e#4071#4736#0" expanded="false" />
+            <element signature="e#4775#5053#0" expanded="false" />
+            <element signature="e#4775#5015#1" expanded="false" />
+            <element signature="e#5049#5053#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -439,44 +502,43 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/goretriever.py">
+    <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30769232">
-          <caret line="163" column="11" selection-start-line="163" selection-start-column="11" selection-end-line="163" selection-end-column="11" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-            <element signature="e#549#780#0" expanded="false" />
-            <element signature="e#823#1742#0" expanded="false" />
-            <element signature="e#1791#2037#0" expanded="false" />
-            <element signature="e#2070#2195#0" expanded="false" />
-            <element signature="e#2229#2350#0" expanded="false" />
-            <element signature="e#2390#2496#0" expanded="false" />
-            <element signature="e#2547#2797#0" expanded="false" />
-            <element signature="e#2547#2688#1" expanded="false" />
-            <element signature="e#2835#3200#0" expanded="false" />
-            <element signature="e#3240#3585#0" expanded="false" />
-            <element signature="e#3240#3366#1" expanded="false" />
-            <element signature="e#3641#4306#0" expanded="false" />
-            <element signature="e#4345#4623#0" expanded="false" />
-            <element signature="e#4345#4585#1" expanded="false" />
-            <element signature="e#4619#4623#0" expanded="false" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="192" column="16" selection-start-line="192" selection-start-column="16" selection-end-line="192" selection-end-column="16" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.15384616">
-          <caret line="86" column="62" selection-start-line="86" selection-start-column="62" selection-end-line="86" selection-end-column="62" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="113" column="4" selection-start-line="113" selection-start-column="4" selection-end-line="113" selection-end-column="25" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
+    <entry file="file://$PROJECT_DIR$/goretriever.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.88461536">
-          <caret line="192" column="16" selection-start-line="192" selection-start-column="16" selection-end-line="192" selection-end-column="16" />
-          <folding />
+        <state vertical-scroll-proportion="0.13915417">
+          <caret line="154" column="21" selection-start-line="154" selection-start-column="21" selection-end-line="154" selection-end-column="21" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+            <element signature="e#1253#2172#0" expanded="false" />
+            <element signature="e#2221#2467#0" expanded="false" />
+            <element signature="e#2500#2625#0" expanded="false" />
+            <element signature="e#2659#2780#0" expanded="false" />
+            <element signature="e#2820#2926#0" expanded="false" />
+            <element signature="e#2977#3227#0" expanded="false" />
+            <element signature="e#2977#3118#1" expanded="false" />
+            <element signature="e#3265#3630#0" expanded="false" />
+            <element signature="e#3670#4015#0" expanded="false" />
+            <element signature="e#3670#3796#1" expanded="false" />
+            <element signature="e#4071#4736#0" expanded="false" />
+            <element signature="e#4775#5053#0" expanded="false" />
+            <element signature="e#4775#5015#1" expanded="false" />
+            <element signature="e#5049#5053#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>

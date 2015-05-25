@@ -1,5 +1,7 @@
 import cPickle as pickle
 import pandas as pd
+from os.path import expanduser
+home = expanduser("~")
 #import numpy as np
 
 __author__ = 'dblyon'
@@ -22,6 +24,10 @@ class Goretriever(object):
         self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
         self.date = "not set yet" # generation date
         self.obolibrary = "not yet set" # link to obo-library
+        #fn=r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
+        #fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
+        fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
+        self.parse_goa_ref(fn)
 
     def parse_goa_ref(self, fn):
         """
@@ -151,13 +157,11 @@ class UserInput(object):
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
     def __init__(self):
-        #self.samplefreq = pd.DataFrame()
-        #self.backgroundfreq = pd.DataFrame()
-        pass
+        self.temp_setup()
+        self.cleanupforanalysis()
 
     def temp_setup(self):
-        #fn=r"C:\Users\dblyon\CloudStation\CPR\Brian_GO\UserInput.txt"
-        fn=r"/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt"
+        fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
         self.df_orig = pd.read_csv(fn, sep="\t")
 
     def cleanupforanalysis(self):

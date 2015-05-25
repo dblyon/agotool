@@ -1,4 +1,3 @@
-# min_ratio=None pval=None
 id	enrichment	description	ratio_in_study	ratio_in_pop	p_uncorrected	p_bonferroni	p_holm	p_sidak	p_fdr
 GO:0003713	e	transcription coactivator activity	1/1	23/4258	0.0054	0.454	0.454	0.442	n.a.
 GO:0003712	e	transcription cofactor activity	1/1	47/4258	0.011	0.927	0.916	0.904	n.a.
