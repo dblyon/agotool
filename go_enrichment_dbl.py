@@ -94,9 +94,7 @@ class GOEnrichmentStudy(object):
 
     def run_study(self, study):
         results = self.results
-
         term_study = count_terms(study, self.assoc, self.obo_dag)
-
         pop_n, study_n = len(self.pop), len(study)
 
         # Init study_count and pop_count to handle empty sets
@@ -111,7 +109,6 @@ class GOEnrichmentStudy(object):
                 p_uncorrected=p.two_tail,
                 ratio_in_study=(study_count, study_n),
                 ratio_in_pop=(pop_count, pop_n))
-
             results.append(one_record)
 
         # Calculate multiple corrections
@@ -190,4 +187,5 @@ class GOEnrichmentStudy(object):
                 if rec.is_ratio_different:
                     fh_out.write(rec.__str__(indent=indent) + '\n')
                 
-                
+class GOEnrichmentStudy_dbl(GOEnrichmentStudy):
+    pass

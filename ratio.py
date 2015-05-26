@@ -13,7 +13,6 @@ def count_terms(geneset, assoc, obo_dag):
         for x in assoc[gene]:
             if x in obo_dag:
                 term_cnt[obo_dag[x].id] += 1
-
     return term_cnt
 
 

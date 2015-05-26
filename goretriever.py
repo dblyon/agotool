@@ -1,13 +1,11 @@
 import cPickle as pickle
 import pandas as pd
+import numpy as np
 from os.path import expanduser
 home = expanduser("~")
-#import numpy as np
 
 __author__ = 'dblyon'
 
-# parse UniProt goa_ref files
-# check if all AccessionNumbers have at least one GO-term, if not manual check if true
 
 class Goretriever(object):
     """
@@ -139,17 +137,6 @@ class Goretriever(object):
                 else:
                     fh_out.write(an + '\t' + ';'.join(go_list) + '\n')
 
-
-class UpdateRescources(object):
-    """
-    retrieve updated resources from UniProt FTP and geneontology.org
-    ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/ --> e.g. gene_association.goa_ref_yeast
-    and e.g. http://purl.obolibrary.org/obo/go/releases/2015-04-25/go.owl
-    """
-
-    def __init__(self):
-        pass
-
 class UserInput(object):
     """
     expects 2 arrays,
@@ -188,7 +175,7 @@ class UserInput(object):
 
     def get_study(self):
         '''
-        return sample frequency (termed 'study' in goatools)
+        produce list of AccessionNumbers, sample frequency (termed 'study' in goatools)
         :return: ListOfString
         '''
         return sorted(self.samplefreq_ser.tolist())
@@ -198,10 +185,39 @@ class UserInput(object):
 
     def get_population(self):
         '''
-        return background frequency (termed 'population' in goatools)
+        produce list of AccessionNumbers, background frequency (termed 'population' in goatools)
         :return: ListOfString
         '''
         return sorted(self.backgroundfreq_df['backgrnd_an'].tolist())
+
+    def get_sample_an_int(self):
+        '''
+        produce AccessionNumbers with corresponding Intensity of sample/study
+        :return: DataFrame
+        '''
+        return self.df.loc[pd.notnull(self.df['sample_an']), ['sample_an', 'backgrnd_int']]
+
+    def get_background_an_int(self):
+        '''
+        produce AccessionNumbers with corresponding Intensity of background/population
+        :return: DataFrame
+        '''
+        return self.df[['backgrnd_an', 'backgrnd_int']]
+
+    def get_df(self):
+        '''
+        return cleaned (non-redundant, aligned, no NANs) DataFrame
+        columns: sample_an, backgrnd_an, backgrnd_int
+        :return: DataFrame
+        '''
+        return self.df
+
+    def get_df_orig(self):
+        '''
+        return original user input
+        :return: DataFrame
+        '''
+        return self.df_orig
 
     def write_goatools_input2file(self, fn_study, fn_pop):
         '''
@@ -245,7 +261,63 @@ class UserInput(object):
         background_df.index = background_df['backgrnd_an'].tolist()
         return pd.concat([sample_ser, background_df], axis=1)
 
+    def get_random_background_ans(self, num_bins=100):
+        '''
+        produce a randomly generated set of AccessionNumbers from background-frequency
+        with the same intensity-distribution as sample-frequency
+        :param num_bins: Integer
+        :return: ListOfString
+        '''
+        ans_random_list = []
+        hist, bins = np.histogram(self.get_sample_an_int()['backgrnd_int'], bins=num_bins)
+        # perc_hist = hist / float(sum(hist))
+        for index, numinhist in enumerate(hist):
+            num_ans = numinhist
+            lower = bins[index]
+            upper = bins[index+1]
+            ans_random_list += self.get_random_an_from_bin(lower, upper, num_ans)
+        return sorted(ans_random_list)
 
+    def get_random_an_from_bin(self, lower, upper, num_ans=1, get_all_ans=False):
+        '''
+        produce a random number of AccessionNumbers within given boundaries of Intensity values
+        where intensity >= lower and intensity < upper.
+        option: get_all_ans returns all AccessionNumbers in bin
+        :param lower: Float
+        :param upper: Float
+        :param num_ans: Integer
+        :param get_all_ans: Boolean
+        :return: ListOfString
+        '''
+        df = self.get_background_an_int()
+        cond1 = df['backgrnd_int'] >= lower #!!!
+        cond2 = df['backgrnd_int'] <= upper #!!! can this lead to a larger random sample than population picked from?
+        cond = cond1 & cond2
+        ans_withinBounds = df.loc[cond, 'backgrnd_an']
+        if len(ans_withinBounds) > 0:
+            if get_all_ans:
+                return sorted(ans_withinBounds)
+            else:
+                return sorted(np.random.choice(ans_withinBounds, size=num_ans, replace=False))
+        else:
+            return []
+
+
+
+
+# %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'
+
+
+
+# class UpdateRescources(object):
+#     """
+#     retrieve updated resources from UniProt FTP and geneontology.org
+#     ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/ --> e.g. gene_association.goa_ref_yeast
+#     and e.g. http://purl.obolibrary.org/obo/go/releases/2015-04-25/go.owl
+#     """
+#
+#     def __init__(self):
+#         pass
 
 
 if __name__ == "__main__":

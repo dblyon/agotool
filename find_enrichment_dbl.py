@@ -38,9 +38,7 @@ def read_geneset(study_fn, pop_fn, compare=False):
         print("removed %d overlapping items" % (len(common), ), file=sys.stderr)
         print("Set 1: {0}, Set 2: {1}".\
             format(len(study), len(pop)), file=sys.stderr)
-
     return study, pop
-
 
 def read_associations(assoc_fn):
     assoc = {}
@@ -54,9 +52,7 @@ def read_associations(assoc_fn):
             continue
         b = set(b.split(";"))
         assoc[a] = b
-
     return assoc
-
 
 def check_input_files(ns, p):
     """check filename args. otherwise if one of the 3 filenames is bad
@@ -121,18 +117,20 @@ if __name__ == "__main__":
     assert 0 < args.alpha < 1, "Test-wise alpha must fall between (0, 1)"
 
     study_fn, pop_fn, assoc_fn = args.filenames
-    #print(study_fn, pop_fn, assoc_fn)
-    study, pop = read_geneset(study_fn, pop_fn, compare=args.compare)
+    # print(study_fn, pop_fn, assoc_fn)
+    study, pop = read_geneset(study_fn, pop_fn, compare=args.compare) #!!! compare should be False
     assoc = read_associations(assoc_fn)
 
     methods = ["bonferroni", "sidak", "holm"]
     if args.fdr:
         methods.append("fdr")
 
-    obo_dag = GODag(obo_file=args.obo)
+    obo_dag = GODag(obo_file=args.obo) #!!! don't run this for every analysis, but initialize only once
+    # and run analysis mulitple times
+
     g = GOEnrichmentStudy(pop, assoc, obo_dag, alpha=args.alpha,
                           study=study, methods=methods)
-#     g.print_summary(min_ratio=min_ratio, indent=args.indent, pval=args.pval)
+    # g.print_summary(min_ratio=min_ratio, indent=args.indent, pval=args.pval)
     fn_out = args.fn_out
     g.write_summary2file(fn_out, min_ratio=min_ratio, indent=args.indent, pval=args.pval)
     
