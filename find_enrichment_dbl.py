@@ -117,9 +117,10 @@ if __name__ == "__main__":
     assert 0 < args.alpha < 1, "Test-wise alpha must fall between (0, 1)"
 
     study_fn, pop_fn, assoc_fn = args.filenames
-    # print(study_fn, pop_fn, assoc_fn)
     study, pop = read_geneset(study_fn, pop_fn, compare=args.compare) #!!! compare should be False
+    # study and pop are simply set and frozenset of AccessionNumbers from user input
     assoc = read_associations(assoc_fn)
+    # assoc is a dict: key=AN, val=set of go-terms
 
     methods = ["bonferroni", "sidak", "holm"]
     if args.fdr:
@@ -130,10 +131,10 @@ if __name__ == "__main__":
 
     g = GOEnrichmentStudy(pop, assoc, obo_dag, alpha=args.alpha,
                           study=study, methods=methods)
+    term_study = g.run_study(study)
     # g.print_summary(min_ratio=min_ratio, indent=args.indent, pval=args.pval)
-    fn_out = args.fn_out
-    g.write_summary2file(fn_out, min_ratio=min_ratio, indent=args.indent, pval=args.pval)
-    
+    # fn_out = args.fn_out
+    # g.write_summary2file(fn_out, min_ratio=min_ratio, indent=args.indent, pval=args.pval)
     
     
     

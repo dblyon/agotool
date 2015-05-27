@@ -86,7 +86,7 @@ class GOEnrichmentStudy(object):
         self.methods = methods
         self.results = []
 
-        obo_dag.update_association(assoc)
+        obo_dag.update_association(assoc) # add all parent GO-terms to 'assoc'-object
         self.term_pop = count_terms(pop, assoc, obo_dag)
 
         if study:
@@ -95,7 +95,7 @@ class GOEnrichmentStudy(object):
     def run_study(self, study):
         results = self.results
         term_study = count_terms(study, self.assoc, self.obo_dag)
-        pop_n, study_n = len(self.pop), len(study)
+        pop_n, study_n = len(self.pop), len(study) #!!! set to same length !?
 
         # Init study_count and pop_count to handle empty sets
         study_count = pop_count = 0
@@ -186,6 +186,4 @@ class GOEnrichmentStudy(object):
                     continue
                 if rec.is_ratio_different:
                     fh_out.write(rec.__str__(indent=indent) + '\n')
-                
-class GOEnrichmentStudy_dbl(GOEnrichmentStudy):
-    pass
+

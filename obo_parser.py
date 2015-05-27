@@ -208,7 +208,7 @@ class GODag(dict):
 
     def load_obo_file(self, obo_file):
 
-        print("load obo file %s" % obo_file, file=sys.stderr)
+        print("load obo file %s" % obo_file, file=sys.stderr) #!!! switch off or display somewhere specific at some point
         obo_reader = OBOReader(obo_file)
         for rec in obo_reader:
             self[rec.id] = rec
@@ -216,7 +216,7 @@ class GODag(dict):
                 self[alt] = rec
 
         self.populate_terms()
-        print(len(self), "nodes imported", file=sys.stderr)
+        print(len(self), "nodes imported", file=sys.stderr) #!!! switch off or display somewhere specific at some point
 
     def populate_terms(self):
 
@@ -482,15 +482,19 @@ class GODag(dict):
             G.write_png(lineage_img)
 
     def update_association(self, association):
+        # assoc is a dict: key=AN, val=set of go-terms
         bad_terms = set()
-        for key, terms in list(association.items()):
+        for key, terms in list(association.items()): # ? key unused, why not use 'values' ? # Anders: use itervalues to iterate over dict if not changing keys
             parents = set()
             for term in terms:
                 try:
-                    parents.update(self[term].get_all_parents())
+                    parents.update(self[term].get_all_parents()) # equivalent to parents.update(self.__getitem__(term).get_all_parents())
                 except:
                     bad_terms.add(term.strip())
-            terms.update(parents)
+            terms.update(parents) # updates the association object with all parent GO-terms of given GO-terms
         if bad_terms:
             print("terms not found: %s" % (bad_terms,), file=sys.stderr)
 
+# if __name__ == '__main__':
+#     obo_file = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
+#     godag = GODag(obo_file)
