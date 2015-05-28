@@ -11,7 +11,7 @@ study genes using Fisher's exact test, and corrected for multiple testing
 from __future__ import absolute_import
 import fisher
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, FDR, calc_qval
-import ratio_dbl
+from ratio import count_terms, is_ratio_different
 
 
 class GOEnrichmentRecord(object):
@@ -69,44 +69,49 @@ class GOEnrichmentRecord(object):
         pop_count, pop_n = self.ratio_in_pop
         self.enrichment = 'e' if ((1.0 * study_count / study_n) >
                                   (1.0 * pop_count / pop_n)) else 'p'
-        self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, study_count,
+        self.is_ratio_different = is_ratio_different(min_ratio, study_count,
                                                      study_n, pop_count, pop_n)
 
 
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, study_an_frset, pop_an_set, assoc_dict, obo_dag, ui, alpha, methods):
+    def __init__(self, pop, assoc, obo_dag, alpha=.05, study=None,
+                 methods=["bonferroni", "sidak", "holm"]):
 
-        self.study_an_frset = study_an_frset
-        self.pop = pop_an_set
-        self.assoc_dict = assoc_dict
+        self.pop = pop
+        self.assoc = assoc
         self.obo_dag = obo_dag
-        self.ui = ui
         self.alpha = alpha
         self.methods = methods
         self.results = []
 
-        obo_dag.update_association(assoc_dict) # add all parent GO-terms to assoc_dict
-        self.term_pop = ratio_dbl.count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
+        obo_dag.update_association(assoc)
+        self.term_pop = count_terms(pop, assoc, obo_dag)
 
-    def run_study(self):
-        study_an_frset = self.study_an_frset
+        if study:
+            self.run_study(study)
+
+    def run_study(self, study):
         results = self.results
-        term_study = ratio_dbl.count_terms(study_an_frset, self.assoc_dict, self.obo_dag)
-        pop_n = study_n = len(study_an_frset) #!!! set to same length !?
+
+        term_study = count_terms(study, self.assoc, self.obo_dag)
+
+        pop_n, study_n = len(self.pop), len(study)
 
         # Init study_count and pop_count to handle empty sets
         study_count = pop_count = 0
         for term, study_count in list(term_study.items()):
             pop_count = self.term_pop[term]
-            p = fisher.pvalue_population(study_count, study_n, pop_count, pop_n)
+            p = fisher.pvalue_population(study_count, study_n,
+                                         pop_count, pop_n)
 
             one_record = GOEnrichmentRecord(
                 id=term,
                 p_uncorrected=p.two_tail,
                 ratio_in_study=(study_count, study_n),
                 ratio_in_pop=(pop_count, pop_n))
+
             results.append(one_record)
 
         # Calculate multiple corrections
@@ -125,7 +130,7 @@ class GOEnrichmentStudy(object):
                 # get the empirical p-value distributions for FDR
                 p_val_distribution = calc_qval(study_count, study_n,
                                                pop_count, pop_n,
-                                               self.pop, self.assoc_dict,
+                                               self.pop, self.assoc,
                                                self.term_pop, self.obo_dag)
                 fdr = FDR(p_val_distribution,
                           results, self.alpha).corrected_pvals
@@ -178,8 +183,7 @@ class GOEnrichmentStudy(object):
         with open(fn_out, 'w') as fh_out:
             fh_out.write("# min_ratio={0} pval={1}".format(min_ratio, pval) + '\n')
             fh_out.write("\t".join(GOEnrichmentRecord()._fields) + '\n')
-
-            # for rec in self.results: # sort by record.id, results=[record1, record2, ...]
+            # for rec in self.results:
             results_sorted_by_goterm  = sorted(self.results, key=lambda record: record.id)
             for rec in results_sorted_by_goterm:
                 rec.update_remaining_fields(min_ratio=min_ratio)
@@ -188,4 +192,3 @@ class GOEnrichmentStudy(object):
                 if rec.is_ratio_different:
                     fh_out.write(rec.__str__(indent=indent) + '\n')
         print("DONE :)") #!!!
-

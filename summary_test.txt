@@ -1,222 +1,86 @@
 # min_ratio=None pval=None
 id	enrichment	description	ratio_in_study	ratio_in_pop	p_uncorrected	p_bonferroni	p_holm	p_sidak	p_fdr
-GO:0004365	e	glyceraldehyde-3-phosphate dehydrogenase (NAD+) (phosphorylating) activity	1/3	3/4258	0.00211	0.465	0.465	0.453	n.a.
-GO:0042766	e	nucleosome mobilization	1/3	12/4258	0.00843	1.86	1.85	1.81	n.a.
-GO:0031011	e	Ino80 complex	1/3	14/4258	0.00983	2.16	2.14	2.11	n.a.
-GO:0072593	e	reactive oxygen species metabolic process	1/3	14/4258	0.00983	2.16	2.14	2.11	n.a.
-GO:0033202	e	DNA helicase complex	1/3	15/4258	0.0105	2.32	2.28	2.26	n.a.
-GO:0006094	e	gluconeogenesis	1/3	15/4258	0.0105	2.32	2.28	2.26	n.a.
-GO:0046364	e	monosaccharide biosynthetic process	1/3	16/4258	0.0112	2.47	2.4	2.41	n.a.
-GO:0019319	e	hexose biosynthetic process	1/3	16/4258	0.0112	2.47	2.4	2.41	n.a.
-GO:0050661	e	NADP binding	1/3	17/4258	0.0119	2.63	2.53	2.56	n.a.
-GO:0016620	e	oxidoreductase activity, acting on the aldehyde or oxo group of donors, NAD or NADP as acceptor	1/3	18/4258	0.0126	2.78	2.67	2.71	n.a.
-GO:0016265	e	death	1/3	20/4258	0.014	3.09	2.95	3.01	n.a.
-GO:0012501	e	programmed cell death	1/3	20/4258	0.014	3.09	2.95	3.01	n.a.
-GO:0008219	e	cell death	1/3	20/4258	0.014	3.09	2.95	3.01	n.a.
-GO:0006915	e	apoptotic process	1/3	20/4258	0.014	3.09	2.95	3.01	n.a.
-GO:0097346	e	INO80-type complex	1/3	20/4258	0.014	3.09	2.95	3.01	n.a.
-GO:0000722	e	telomere maintenance via recombination	1/3	22/4258	0.0154	3.39	3.16	3.31	n.a.
-GO:0006096	e	glycolytic process	1/3	22/4258	0.0154	3.39	3.16	3.31	n.a.
-GO:0051287	e	NAD binding	1/3	23/4258	0.0161	3.55	3.27	3.46	n.a.
-GO:0003713	e	transcription coactivator activity	1/3	23/4258	0.0161	3.55	3.27	3.46	n.a.
-GO:0016903	e	oxidoreductase activity, acting on the aldehyde or oxo group of donors	1/3	25/4258	0.0175	3.85	3.52	3.76	n.a.
-GO:0097659	e	nucleic acid-templated transcription	2/3	346/4258	0.0187	4.11	3.74	4.01	n.a.
-GO:0006351	e	transcription, DNA-templated	2/3	346/4258	0.0187	4.11	3.74	4.01	n.a.
-GO:0006312	e	mitotic recombination	1/3	29/4258	0.0203	4.47	4.02	4.35	n.a.
-GO:0006006	e	glucose metabolic process	1/3	34/4258	0.0238	5.23	4.68	5.1	n.a.
-GO:0006090	e	pyruvate metabolic process	1/3	34/4258	0.0238	5.23	4.68	5.1	n.a.
-GO:0009277	e	fungal-type cell wall	1/3	37/4258	0.0258	5.69	5.04	5.54	n.a.
-GO:1901576	e	organic substance biosynthetic process	3/3	1261/4258	0.0259	5.7	5.03	5.56	n.a.
-GO:0030312	e	external encapsulating structure	1/3	39/4258	0.0272	5.99	5.26	5.84	n.a.
-GO:0005618	e	cell wall	1/3	39/4258	0.0272	5.99	5.26	5.84	n.a.
-GO:0009058	e	biosynthetic process	3/3	1288/4258	0.0276	6.08	5.28	5.93	n.a.
-GO:0032774	e	RNA biosynthetic process	2/3	429/4258	0.0284	6.24	5.39	6.08	n.a.
-GO:0006139	e	nucleobase-containing compound metabolic process	3/3	1321/4258	0.0298	6.56	5.63	6.39	n.a.
-GO:0019318	e	hexose metabolic process	1/3	43/4258	0.03	6.6	5.64	6.43	n.a.
-GO:0005811	e	lipid particle	1/3	45/4258	0.0314	6.9	5.87	6.73	n.a.
-GO:0006348	e	chromatin silencing at telomere	1/3	46/4258	0.0321	7.05	5.96	6.88	n.a.
-GO:0003712	e	transcription cofactor activity	1/3	47/4258	0.0328	7.21	6.06	7.03	n.a.
-GO:0005996	e	monosaccharide metabolic process	1/3	48/4258	0.0334	7.36	6.15	7.17	n.a.
-GO:0060249	e	anatomical structure homeostasis	1/3	49/4258	0.0341	7.51	6.25	7.32	n.a.
-GO:0000723	e	telomere maintenance	1/3	49/4258	0.0341	7.51	6.25	7.32	n.a.
-GO:0032200	e	telomere organization	1/3	49/4258	0.0341	7.51	6.25	7.32	n.a.
-GO:0006725	e	cellular aromatic compound metabolic process	3/3	1385/4258	0.0344	7.56	6.19	7.37	n.a.
-GO:0046483	e	heterocycle metabolic process	3/3	1393/4258	0.035	7.69	6.26	7.5	n.a.
-GO:0070603	e	SWI/SNF superfamily-type complex	1/3	52/4258	0.0362	7.96	6.44	7.76	n.a.
-GO:0044724	e	single-organism carbohydrate catabolic process	1/3	54/4258	0.0376	8.27	6.65	8.06	n.a.
-GO:0034641	e	cellular nitrogen compound metabolic process	3/3	1447/4258	0.0392	8.62	6.9	8.41	n.a.
-GO:1901360	e	organic cyclic compound metabolic process	3/3	1448/4258	0.0393	8.64	6.87	8.42	n.a.
-GO:0016051	e	carbohydrate biosynthetic process	1/3	58/4258	0.0403	8.87	7.02	8.65	n.a.
-GO:0016052	e	carbohydrate catabolic process	1/3	59/4258	0.041	9.02	7.09	8.79	n.a.
-GO:0034728	e	nucleosome organization	1/3	62/4258	0.0431	9.47	7.41	9.24	n.a.
-GO:0006355	e	regulation of transcription, DNA-templated	2/3	537/4258	0.0436	9.6	7.46	9.36	n.a.
-GO:2001141	e	regulation of RNA biosynthetic process	2/3	538/4258	0.0438	9.64	7.45	9.39	n.a.
-GO:1903506	e	regulation of nucleic acid-templated transcription	2/3	538/4258	0.0438	9.64	7.45	9.39	n.a.
-GO:0051252	e	regulation of RNA metabolic process	2/3	553/4258	0.0462	10.2	7.76	9.9	n.a.
-GO:0009167	e	purine ribonucleoside monophosphate metabolic process	1/3	71/4258	0.0492	10.8	8.22	10.6	n.a.
-GO:0009126	e	purine nucleoside monophosphate metabolic process	1/3	71/4258	0.0492	10.8	8.22	10.6	n.a.
-GO:0046496	e	nicotinamide nucleotide metabolic process	1/3	72/4258	0.0499	11	8.23	10.7	n.a.
-GO:0019362	e	pyridine nucleotide metabolic process	1/3	73/4258	0.0506	11.1	8.29	10.8	n.a.
-GO:0034654	e	nucleobase-containing compound biosynthetic process	2/3	581/4258	0.0507	11.2	8.27	10.9	n.a.
-GO:0006338	e	chromatin remodeling	1/3	75/4258	0.0519	11.4	8.41	11.1	n.a.
-GO:0006807	e	nitrogen compound metabolic process	3/3	1600/4258	0.053	11.7	8.53	11.4	n.a.
-GO:0019219	e	regulation of nucleobase-containing compound metabolic process	2/3	597/4258	0.0534	11.7	8.54	11.5	n.a.
-GO:0051171	e	regulation of nitrogen compound metabolic process	2/3	609/4258	0.0555	12.2	8.82	11.9	n.a.
-GO:0072524	e	pyridine-containing compound metabolic process	1/3	81/4258	0.056	12.3	8.85	12	n.a.
-GO:0050662	e	coenzyme binding	1/3	83/4258	0.0574	12.6	9.01	12.3	n.a.
-GO:0009150	e	purine ribonucleotide metabolic process	1/3	84/4258	0.058	12.8	9.05	12.4	n.a.
-GO:0009161	e	ribonucleoside monophosphate metabolic process	1/3	85/4258	0.0587	12.9	9.1	12.6	n.a.
-GO:0019438	e	aromatic compound biosynthetic process	2/3	633/4258	0.0597	13.1	9.19	12.8	n.a.
-GO:0006733	e	oxidoreduction coenzyme metabolic process	1/3	87/4258	0.0601	13.2	9.19	12.9	n.a.
-GO:0006163	e	purine nucleotide metabolic process	1/3	88/4258	0.0607	13.4	9.23	13	n.a.
-GO:0009123	e	nucleoside monophosphate metabolic process	1/3	88/4258	0.0607	13.4	9.23	13	n.a.
-GO:0018130	e	heterocycle biosynthetic process	2/3	644/4258	0.0616	13.6	9.25	13.2	n.a.
-GO:0044271	e	cellular nitrogen compound biosynthetic process	2/3	653/4258	0.0633	13.9	9.43	13.6	n.a.
-GO:0046128	e	purine ribonucleoside metabolic process	1/3	92/4258	0.0634	14	9.39	13.6	n.a.
-GO:0042278	e	purine nucleoside metabolic process	1/3	92/4258	0.0634	14	9.39	13.6	n.a.
-GO:0000989	e	transcription factor binding transcription factor activity	1/3	93/4258	0.0641	14.1	9.36	13.8	n.a.
-GO:0010468	e	regulation of gene expression	2/3	662/4258	0.0649	14.3	9.42	13.9	n.a.
-GO:0009259	e	ribonucleotide metabolic process	1/3	95/4258	0.0655	14.4	9.43	14	n.a.
-GO:2000112	e	regulation of cellular macromolecule biosynthetic process	2/3	671/4258	0.0666	14.7	9.53	14.3	n.a.
-GO:0006342	e	chromatin silencing	1/3	98/4258	0.0675	14.8	9.58	14.5	n.a.
-GO:0045814	e	negative regulation of gene expression, epigenetic	1/3	98/4258	0.0675	14.8	9.58	14.5	n.a.
-GO:0010556	e	regulation of macromolecule biosynthetic process	2/3	677/4258	0.0677	14.9	9.48	14.5	n.a.
-GO:1901362	e	organic cyclic compound biosynthetic process	2/3	686/4258	0.0694	15.3	9.65	14.9	n.a.
-GO:0016458	e	gene silencing	1/3	103/4258	0.0708	15.6	9.78	15.2	n.a.
-GO:0009119	e	ribonucleoside metabolic process	1/3	104/4258	0.0715	15.7	9.8	15.3	n.a.
-GO:0031326	e	regulation of cellular biosynthetic process	2/3	700/4258	0.0721	15.9	9.81	15.5	n.a.
-GO:0009889	e	regulation of biosynthetic process	2/3	701/4258	0.0723	15.9	9.76	15.5	n.a.
-GO:0034645	e	cellular macromolecule biosynthetic process	2/3	712/4258	0.0745	16.4	9.98	16	n.a.
-GO:0009116	e	nucleoside metabolic process	1/3	110/4258	0.0755	16.6	10	16.2	n.a.
-GO:0019693	e	ribose phosphate metabolic process	1/3	110/4258	0.0755	16.6	10	16.2	n.a.
-GO:0000988	e	protein binding transcription factor activity	1/3	111/4258	0.0762	16.8	9.98	16.3	n.a.
-GO:0072521	e	purine-containing compound metabolic process	1/3	111/4258	0.0762	16.8	9.98	16.3	n.a.
-GO:1901657	e	glycosyl compound metabolic process	1/3	114/4258	0.0782	17.2	10.1	16.8	n.a.
-GO:0006310	e	DNA recombination	1/3	115/4258	0.0789	17.4	10.1	16.9	n.a.
-GO:0006091	e	generation of precursor metabolites and energy	1/3	115/4258	0.0789	17.4	10.1	16.9	n.a.
-GO:0040029	e	regulation of gene expression, epigenetic	1/3	116/4258	0.0795	17.5	10	17.1	n.a.
-GO:0032787	e	monocarboxylic acid metabolic process	1/3	116/4258	0.0795	17.5	10	17.1	n.a.
-GO:0043565	e	sequence-specific DNA binding	1/3	129/4258	0.0882	19.4	10.9	18.9	n.a.
-GO:0048037	e	cofactor binding	1/3	129/4258	0.0882	19.4	10.9	18.9	n.a.
-GO:0071824	e	protein-DNA complex subunit organization	1/3	130/4258	0.0888	19.5	10.8	19.1	n.a.
-GO:0009059	e	macromolecule biosynthetic process	2/3	795/4258	0.0915	20.1	11.1	19.6	n.a.
-GO:0060255	e	regulation of macromolecule metabolic process	2/3	822/4258	0.0973	21.4	11.7	20.9	n.a.
-GO:0080090	e	regulation of primary metabolic process	2/3	837/4258	0.101	22.1	12	21.6	n.a.
-GO:0031323	e	regulation of cellular metabolic process	2/3	851/4258	0.104	22.8	12.2	22.3	n.a.
-GO:0006732	e	coenzyme metabolic process	1/3	157/4258	0.107	23.5	12.5	22.9	n.a.
-GO:0051276	e	chromosome organization	1/3	172/4258	0.116	25.6	13.5	25	n.a.
-GO:0051186	e	cofactor metabolic process	1/3	175/4258	0.118	26	13.6	25.4	n.a.
-GO:0016568	e	chromatin modification	1/3	186/4258	0.125	27.6	14.3	26.9	n.a.
-GO:0016070	e	RNA metabolic process	2/3	949/4258	0.127	27.9	14.3	27.2	n.a.
-GO:0009117	e	nucleotide metabolic process	1/3	190/4258	0.128	28.2	14.3	27.5	n.a.
-GO:0006753	e	nucleoside phosphate metabolic process	1/3	192/4258	0.129	28.4	14.4	27.7	n.a.
-GO:0045944	e	positive regulation of transcription from RNA polymerase II promoter	1/3	194/4258	0.131	28.7	14.4	28	n.a.
-GO:0044454	e	nuclear chromosome part	1/3	195/4258	0.131	28.9	14.3	28.1	n.a.
-GO:0005737	e	cytoplasm	2/3	972/4258	0.132	29.1	14.3	28.4	n.a.
-GO:0045892	e	negative regulation of transcription, DNA-templated	1/3	202/4258	0.136	29.9	14.5	29.1	n.a.
-GO:1903507	e	negative regulation of nucleic acid-templated transcription	1/3	203/4258	0.136	30	14.5	29.2	n.a.
-GO:1902679	e	negative regulation of RNA biosynthetic process	1/3	203/4258	0.136	30	14.5	29.2	n.a.
-GO:0051253	e	negative regulation of RNA metabolic process	1/3	205/4258	0.138	30.3	14.3	29.5	n.a.
-GO:0019222	e	regulation of metabolic process	2/3	997/4258	0.139	30.5	14.3	29.8	n.a.
-GO:0042592	e	homeostatic process	1/3	207/4258	0.139	30.6	14.2	29.8	n.a.
-GO:0044723	e	single-organism carbohydrate metabolic process	1/3	210/4258	0.141	31	14.2	30.2	n.a.
-GO:0055086	e	nucleobase-containing small molecule metabolic process	1/3	216/4258	0.145	31.8	14.5	31	n.a.
-GO:0006325	e	chromatin organization	1/3	222/4258	0.148	32.7	14.7	31.8	n.a.
-GO:0010629	e	negative regulation of gene expression	1/3	228/4258	0.152	33.5	14.9	32.6	n.a.
-GO:1903508	e	positive regulation of nucleic acid-templated transcription	1/3	230/4258	0.153	33.8	14.9	32.9	n.a.
-GO:0045893	e	positive regulation of transcription, DNA-templated	1/3	230/4258	0.153	33.8	14.9	32.9	n.a.
-GO:1902680	e	positive regulation of RNA biosynthetic process	1/3	230/4258	0.153	33.8	14.9	32.9	n.a.
-GO:1901135	e	carbohydrate derivative metabolic process	1/3	232/4258	0.155	34	14.5	33.2	n.a.
-GO:0045934	e	negative regulation of nucleobase-containing compound metabolic process	1/3	237/4258	0.158	34.7	14.7	33.9	n.a.
-GO:0051254	e	positive regulation of RNA metabolic process	1/3	238/4258	0.159	34.9	14.6	34	n.a.
-GO:2000113	e	negative regulation of cellular macromolecule biosynthetic process	1/3	239/4258	0.159	35	14.5	34.1	n.a.
-GO:0010558	e	negative regulation of macromolecule biosynthetic process	1/3	240/4258	0.16	35.2	14.4	34.3	n.a.
-GO:0051172	e	negative regulation of nitrogen compound metabolic process	1/3	241/4258	0.16	35.3	14.3	34.4	n.a.
-GO:0005975	e	carbohydrate metabolic process	1/3	249/4258	0.165	36.4	14.6	35.5	n.a.
-GO:0045935	e	positive regulation of nucleobase-containing compound metabolic process	1/3	254/4258	0.169	37.1	14.7	36.1	n.a.
-GO:0009890	e	negative regulation of biosynthetic process	1/3	256/4258	0.17	37.4	14.6	36.4	n.a.
-GO:0031327	e	negative regulation of cellular biosynthetic process	1/3	256/4258	0.17	37.4	14.6	36.4	n.a.
-GO:0044712	e	single-organism catabolic process	1/3	257/4258	0.17	37.5	14.3	36.5	n.a.
-GO:0051173	e	positive regulation of nitrogen compound metabolic process	1/3	257/4258	0.17	37.5	14.3	36.5	n.a.
-GO:0010628	e	positive regulation of gene expression	1/3	261/4258	0.173	38	14.2	37.1	n.a.
-GO:0010557	e	positive regulation of macromolecule biosynthetic process	1/3	261/4258	0.173	38	14.2	37.1	n.a.
-GO:0090304	e	nucleic acid metabolic process	2/3	1127/4258	0.173	38.1	13.8	37.1	n.a.
-GO:0009891	e	positive regulation of biosynthetic process	1/3	271/4258	0.179	39.4	14.1	38.4	n.a.
-GO:0031328	e	positive regulation of cellular biosynthetic process	1/3	271/4258	0.179	39.4	14.1	38.4	n.a.
-GO:0044427	e	chromosomal part	1/3	274/4258	0.181	39.8	13.9	38.8	n.a.
-GO:0050794	e	regulation of cellular process	2/3	1159/4258	0.182	40	13.8	39	n.a.
-GO:0016491	e	oxidoreductase activity	1/3	280/4258	0.185	40.6	13.8	39.6	n.a.
-GO:0044249	e	cellular biosynthetic process	2/3	1221/4258	0.199	43.9	14.8	42.8	n.a.
-GO:0019637	e	organophosphate metabolic process	1/3	309/4258	0.202	44.5	14.8	43.4	n.a.
-GO:0010605	e	negative regulation of macromolecule metabolic process	1/3	314/4258	0.205	45.2	14.8	44	n.a.
-GO:0005739	e	mitochondrion	1/3	314/4258	0.205	45.2	14.8	44	n.a.
-GO:0006357	e	regulation of transcription from RNA polymerase II promoter	1/3	319/4258	0.208	45.8	14.6	44.7	n.a.
-GO:0006259	e	DNA metabolic process	1/3	325/4258	0.212	46.6	14.6	45.5	n.a.
-GO:0050789	e	regulation of biological process	2/3	1274/4258	0.215	47.3	14.6	46.1	n.a.
-GO:0010604	e	positive regulation of macromolecule metabolic process	1/3	330/4258	0.215	47.3	14.4	46.1	n.a.
-GO:0031324	e	negative regulation of cellular metabolic process	1/3	334/4258	0.217	47.8	14.3	46.6	n.a.
-GO:0019752	e	carboxylic acid metabolic process	1/3	342/4258	0.222	48.9	14.4	47.7	n.a.
-GO:0031325	e	positive regulation of cellular metabolic process	1/3	345/4258	0.224	49.3	14.3	48	n.a.
-GO:0055114	e	oxidation-reduction process	1/3	348/4258	0.226	49.7	14.2	48.4	n.a.
-GO:0009892	e	negative regulation of metabolic process	1/3	350/4258	0.227	49.9	14.1	48.7	n.a.
-GO:0071822	e	protein complex subunit organization	1/3	353/4258	0.229	50.3	14	49.1	n.a.
-GO:0065008	e	regulation of biological quality	1/3	354/4258	0.229	50.4	13.8	49.2	n.a.
-GO:0043436	e	oxoacid metabolic process	1/3	355/4258	0.23	50.6	13.6	49.3	n.a.
-GO:0006082	e	organic acid metabolic process	1/3	356/4258	0.23	50.7	13.4	49.4	n.a.
-GO:1902494	e	catalytic complex	1/3	380/4258	0.245	53.8	13.9	52.5	n.a.
-GO:0003677	e	DNA binding	1/3	382/4258	0.246	54.1	13.8	52.7	n.a.
-GO:0065007	e	biological regulation	2/3	1430/4258	0.263	57.8	14.4	56.3	n.a.
-GO:0048523	e	negative regulation of cellular process	1/3	415/4258	0.265	58.3	14.3	56.8	n.a.
-GO:0048522	e	positive regulation of cellular process	1/3	420/4258	0.268	58.9	14.2	57.4	n.a.
-GO:1901363	e	heterocyclic compound binding	2/3	1469/4258	0.275	60.5	14.3	59	n.a.
-GO:0044238	e	primary metabolic process	3/3	2531/4258	0.277	60.8	14.1	59.3	n.a.
-GO:0097159	e	organic cyclic compound binding	2/3	1476/4258	0.277	61	13.9	59.4	n.a.
-GO:0048519	e	negative regulation of biological process	1/3	439/4258	0.279	61.3	13.6	59.7	n.a.
-GO:0044710	e	single-organism metabolic process	2/3	1495/4258	0.283	62.3	13.6	60.7	n.a.
-GO:0071704	e	organic substance metabolic process	3/3	2640/4258	0.293	64.5	13.8	62.9	n.a.
-GO:1901575	e	organic substance catabolic process	1/3	465/4258	0.293	64.5	13.5	62.9	n.a.
-GO:0009893	e	positive regulation of metabolic process	1/3	470/4258	0.296	65.1	13.3	63.5	n.a.
-GO:0044237	e	cellular metabolic process	3/3	2692/4258	0.302	66.5	13.3	64.8	n.a.
-GO:0043232	e	intracellular non-membrane-bounded organelle	1/3	492/4258	0.308	67.8	13.3	66.1	n.a.
-GO:0043228	e	non-membrane-bounded organelle	1/3	492/4258	0.308	67.8	13.3	66.1	n.a.
-GO:1901564	e	organonitrogen compound metabolic process	1/3	507/4258	0.316	69.6	13	67.9	n.a.
-GO:0006796	e	phosphate-containing compound metabolic process	1/3	532/4258	0.33	72.6	13.2	70.8	n.a.
-GO:0048518	e	positive regulation of biological process	1/3	541/4258	0.335	73.7	13.1	71.8	n.a.
-GO:0009056	e	catabolic process	1/3	550/4258	0.34	74.7	12.9	72.9	n.a.
-GO:0006793	e	phosphorus metabolic process	1/3	553/4258	0.341	75.1	12.6	73.2	n.a.
-GO:0044281	e	small molecule metabolic process	1/3	618/4258	0.375	82.6	13.5	80.5	n.a.
-GO:0044711	e	single-organism biosynthetic process	1/3	638/4258	0.386	84.8	13.5	82.7	n.a.
-GO:1902589	e	single-organism organelle organization	1/3	664/4258	0.399	87.7	13.6	85.5	n.a.
-GO:0043933	e	macromolecular complex subunit organization	1/3	694/4258	0.414	91	13.7	88.7	n.a.
-GO:0000166	e	nucleotide binding	1/3	792/4258	0.461	101	14.7	98.8	n.a.
-GO:1901265	e	nucleoside phosphate binding	1/3	792/4258	0.461	101	14.7	98.8	n.a.
-GO:0036094	e	small molecule binding	1/3	826/4258	0.476	105	14.3	102	n.a.
-GO:0003676	e	nucleic acid binding	1/3	843/4258	0.484	107	14	104	n.a.
-GO:0006996	e	organelle organization	1/3	874/4258	0.498	110	13.9	107	n.a.
-GO:0044428	e	nuclear part	1/3	905/4258	0.512	113	13.8	110	n.a.
-GO:0005634	e	nucleus	1/3	914/4258	0.516	113	13.4	111	n.a.
-GO:0005488	e	binding	3/3	2859/4258	0.555	122	13.9	119	n.a.
-GO:0008152	e	metabolic process	3/3	2997/4258	0.56	123	13.4	120	n.a.
-GO:0043231	e	intracellular membrane-bounded organelle	2/3	1585/4258	0.56	123	12.9	120	n.a.
-GO:0043227	e	membrane-bounded organelle	2/3	1585/4258	0.56	123	12.9	120	n.a.
-GO:0005515	e	protein binding	2/3	1822/4258	0.58	128	12.2	124	n.a.
-GO:0044260	e	cellular macromolecule metabolic process	2/3	1924/4258	0.593	130	11.9	127	n.a.
-GO:0043229	e	intracellular organelle	2/3	1924/4258	0.593	130	11.9	127	n.a.
-GO:0043226	e	organelle	2/3	1925/4258	0.593	130	10.7	127	n.a.
-GO:0044422	p	organelle part	1/3	2307/4258	0.596	131	10.1	128	n.a.
-GO:0044446	p	intracellular organelle part	1/3	2300/4258	0.597	131	9.56	128	n.a.
-GO:0043170	e	macromolecule metabolic process	2/3	1985/4258	0.601	132	9.02	129	n.a.
-GO:0044444	p	cytoplasmic part	1/3	2147/4258	0.622	137	8.7	133	n.a.
-GO:0043234	e	protein complex	1/3	1315/4258	1	220	1	214	n.a.
-GO:0044763	e	single-organism cellular process	2/3	2338/4258	1	220	1	214	n.a.
-GO:0003674	e	molecular_function	3/3	4242/4258	1	220	1	214	n.a.
-GO:0071840	p	cellular component organization or biogenesis	1/3	1537/4258	1	220	1	214	n.a.
-GO:0003824	p	catalytic activity	1/3	1927/4258	1	220	1	214	n.a.
-GO:0044699	e	single-organism process	2/3	2653/4258	1	220	1	214	n.a.
-GO:0044464	e	cell part	3/3	3853/4258	1	220	1	214	n.a.
-GO:0009987	e	cellular process	3/3	3588/4258	1	220	1	214	n.a.
-GO:0032991	p	macromolecular complex	1/3	1798/4258	1	220	1	214	n.a.
-GO:0008150	e	biological_process	3/3	4248/4258	1	220	1	214	n.a.
-GO:0016043	p	cellular component organization	1/3	1452/4258	1	220	1	214	n.a.
-GO:0044424	e	intracellular part	3/3	3688/4258	1	220	1	214	n.a.
-GO:0005575	e	cellular_component	3/3	4050/4258	1	220	1	214	n.a.
+GO:0019219	p	regulation of nucleobase-containing compound metabolic process	1/1	116/3	0	0	0	0	n.a.
+GO:0032774	p	RNA biosynthetic process	1/1	78/3	0	0	0	0	n.a.
+GO:0019222	p	regulation of metabolic process	1/1	229/3	0	0	0	0	n.a.
+GO:0031328	p	positive regulation of cellular biosynthetic process	1/1	58/3	0	0	0	0	n.a.
+GO:0031326	p	regulation of cellular biosynthetic process	1/1	158/3	0	0	0	0	n.a.
+GO:0031325	p	positive regulation of cellular metabolic process	1/1	74/3	0	0	0	0	n.a.
+GO:0051173	p	positive regulation of nitrogen compound metabolic process	1/1	51/3	0	0	0	0	n.a.
+GO:0031323	p	regulation of cellular metabolic process	1/1	194/3	0	0	0	0	n.a.
+GO:0006139	p	nucleobase-containing compound metabolic process	1/1	356/3	0	0	0	0	n.a.
+GO:0090304	p	nucleic acid metabolic process	1/1	260/3	0	0	0	0	n.a.
+GO:0044249	p	cellular biosynthetic process	1/1	388/3	0	0	0	0	n.a.
+GO:0034641	p	cellular nitrogen compound metabolic process	1/1	393/3	0	0	0	0	n.a.
+GO:0010628	p	positive regulation of gene expression	1/1	55/3	0	0	0	0	n.a.
+GO:0003674	p	molecular_function	1/1	1121/3	0	0	0	0	n.a.
+GO:0005488	p	binding	1/1	788/3	0	0	0	0	n.a.
+GO:0034645	p	cellular macromolecule biosynthetic process	1/1	211/3	0	0	0	0	n.a.
+GO:0003677	p	DNA binding	1/1	78/3	0	0	0	0	n.a.
+GO:0010556	p	regulation of macromolecule biosynthetic process	1/1	153/3	0	0	0	0	n.a.
+GO:1901362	p	organic cyclic compound biosynthetic process	1/1	172/3	0	0	0	0	n.a.
+GO:1901363	p	heterocyclic compound binding	1/1	443/3	0	0	0	0	n.a.
+GO:1901360	p	organic cyclic compound metabolic process	1/1	398/3	0	0	0	0	n.a.
+GO:0080090	p	regulation of primary metabolic process	1/1	192/3	0	0	0	0	n.a.
+GO:0005737	p	cytoplasm	1/1	278/3	0	0	0	0	n.a.
+GO:0043565	p	sequence-specific DNA binding	1/1	23/3	0	0	0	0	n.a.
+GO:0005575	p	cellular_component	1/1	1063/3	0	0	0	0	n.a.
+GO:0010604	p	positive regulation of macromolecule metabolic process	1/1	70/3	0	0	0	0	n.a.
+GO:0044260	p	cellular macromolecule metabolic process	1/1	508/3	0	0	0	0	n.a.
+GO:0043227	p	membrane-bounded organelle	1/1	410/3	0	0	0	0	n.a.
+GO:0005634	p	nucleus	1/1	222/3	0	0	0	0	n.a.
+GO:0009891	p	positive regulation of biosynthetic process	1/1	58/3	0	0	0	0	n.a.
+GO:0003713	p	transcription coactivator activity	1/1	5/3	0	0	0	0	n.a.
+GO:0003712	p	transcription cofactor activity	1/1	9/3	0	0	0	0	n.a.
+GO:0050789	p	regulation of biological process	1/1	301/3	0	0	0	0	n.a.
+GO:0071704	p	organic substance metabolic process	1/1	763/3	0	0	0	0	n.a.
+GO:0006357	p	regulation of transcription from RNA polymerase II promoter	1/1	60/3	0	0	0	0	n.a.
+GO:0065007	p	biological regulation	1/1	339/3	0	0	0	0	n.a.
+GO:0097659	p	nucleic acid-templated transcription	1/1	61/3	0	0	0	0	n.a.
+GO:0000989	p	transcription factor binding transcription factor activity	1/1	16/3	0	0	0	0	n.a.
+GO:0000988	p	protein binding transcription factor activity	1/1	19/3	0	0	0	0	n.a.
+GO:0048518	p	positive regulation of biological process	1/1	120/3	0	0	0	0	n.a.
+GO:0010468	p	regulation of gene expression	1/1	151/3	0	0	0	0	n.a.
+GO:2000112	p	regulation of cellular macromolecule biosynthetic process	1/1	151/3	0	0	0	0	n.a.
+GO:0009893	p	positive regulation of metabolic process	1/1	102/3	0	0	0	0	n.a.
+GO:0003676	p	nucleic acid binding	1/1	236/3	0	0	0	0	n.a.
+GO:0018130	p	heterocycle biosynthetic process	1/1	155/3	0	0	0	0	n.a.
+GO:1903508	p	positive regulation of nucleic acid-templated transcription	1/1	45/3	0	0	0	0	n.a.
+GO:0045935	p	positive regulation of nucleobase-containing compound metabolic process	1/1	50/3	0	0	0	0	n.a.
+GO:0043229	p	intracellular organelle	1/1	506/3	0	0	0	0	n.a.
+GO:1901576	p	organic substance biosynthetic process	1/1	407/3	0	0	0	0	n.a.
+GO:0060255	p	regulation of macromolecule metabolic process	1/1	187/3	0	0	0	0	n.a.
+GO:0009889	p	regulation of biosynthetic process	1/1	158/3	0	0	0	0	n.a.
+GO:0009987	p	cellular process	1/1	984/3	0	0	0	0	n.a.
+GO:0006725	p	cellular aromatic compound metabolic process	1/1	376/3	0	0	0	0	n.a.
+GO:1903506	p	regulation of nucleic acid-templated transcription	1/1	102/3	0	0	0	0	n.a.
+GO:0050794	p	regulation of cellular process	1/1	270/3	0	0	0	0	n.a.
+GO:0009058	p	biosynthetic process	1/1	413/3	0	0	0	0	n.a.
+GO:0009059	p	macromolecule biosynthetic process	1/1	229/3	0	0	0	0	n.a.
+GO:0008150	p	biological_process	1/1	1123/3	0	0	0	0	n.a.
+GO:0045893	p	positive regulation of transcription, DNA-templated	1/1	45/3	0	0	0	0	n.a.
+GO:0008152	p	metabolic process	1/1	862/3	0	0	0	0	n.a.
+GO:2001141	p	regulation of RNA biosynthetic process	1/1	102/3	0	0	0	0	n.a.
+GO:0034654	p	nucleobase-containing compound biosynthetic process	1/1	135/3	0	0	0	0	n.a.
+GO:0046483	p	heterocycle metabolic process	1/1	378/3	0	0	0	0	n.a.
+GO:0016070	p	RNA metabolic process	1/1	223/3	0	0	0	0	n.a.
+GO:0044238	p	primary metabolic process	1/1	725/3	0	0	0	0	n.a.
+GO:0044271	p	cellular nitrogen compound biosynthetic process	1/1	156/3	0	0	0	0	n.a.
+GO:0043231	p	intracellular membrane-bounded organelle	1/1	410/3	0	0	0	0	n.a.
+GO:0097159	p	organic cyclic compound binding	1/1	445/3	0	0	0	0	n.a.
+GO:0051252	p	regulation of RNA metabolic process	1/1	107/3	0	0	0	0	n.a.
+GO:0044464	p	cell part	1/1	1031/3	0	0	0	0	n.a.
+GO:0051254	p	positive regulation of RNA metabolic process	1/1	47/3	0	0	0	0	n.a.
+GO:0044237	p	cellular metabolic process	1/1	783/3	0	0	0	0	n.a.
+GO:0043170	p	macromolecule metabolic process	1/1	524/3	0	0	0	0	n.a.
+GO:1902680	p	positive regulation of RNA biosynthetic process	1/1	45/3	0	0	0	0	n.a.
+GO:0006355	p	regulation of transcription, DNA-templated	1/1	102/3	0	0	0	0	n.a.
+GO:0010557	p	positive regulation of macromolecule biosynthetic process	1/1	56/3	0	0	0	0	n.a.
+GO:0006807	p	nitrogen compound metabolic process	1/1	450/3	0	0	0	0	n.a.
+GO:0045944	p	positive regulation of transcription from RNA polymerase II promoter	1/1	38/3	0	0	0	0	n.a.
+GO:0006351	p	transcription, DNA-templated	1/1	61/3	0	0	0	0	n.a.
+GO:0043226	p	organelle	1/1	507/3	0	0	0	0	n.a.
+GO:0044424	p	intracellular part	1/1	999/3	0	0	0	0	n.a.
+GO:0019438	p	aromatic compound biosynthetic process	1/1	153/3	0	0	0	0	n.a.
+GO:0048522	p	positive regulation of cellular process	1/1	92/3	0	0	0	0	n.a.
+GO:0051171	p	regulation of nitrogen compound metabolic process	1/1	120/3	0	0	0	0	n.a.

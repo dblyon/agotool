@@ -7,15 +7,16 @@ home = expanduser("~")
 __author__ = 'dblyon'
 
 
-class Goretriever(object):
+class Parser_UniProt_goa_ref(object):
     """
+    formerly known as 'Goretriever'
     parse UniProt goa_ref files retrieved from ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/
     # e.g. gene_association.goa_ref_yeast
     # additional info http://www.geneontology.org/doc/GO.references
     produce list of GO-terms associated with given AccessionNumber
     """
 
-    def __init__(self):
+    def __init__(self, goa_ref_fn=None):
         """
         :return: None
         """
@@ -24,8 +25,9 @@ class Goretriever(object):
         self.obolibrary = "not yet set" # link to obo-library
         #fn=r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
         #fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
-        fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
-        self.parse_goa_ref(fn)
+        if not goa_ref_fn:
+            goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
+        self.parse_goa_ref(goa_ref_fn)
 
     def parse_goa_ref(self, fn):
         """
@@ -137,19 +139,21 @@ class Goretriever(object):
                 else:
                     fh_out.write(an + '\t' + ';'.join(go_list) + '\n')
 
+    def get_association_dict(self):
+        pass
+
 class UserInput(object):
     """
     expects 2 arrays,
     samplefreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self):
-        self.temp_setup()
+    def __init__(self, user_input_fn=None, num_bins=100):
+        if not user_input_fn:
+            user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
+        self.df_orig = pd.read_csv(user_input_fn, sep="\t")
+        self.set_num_bins(num_bins)
         self.cleanupforanalysis()
-
-    def temp_setup(self):
-        fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
-        self.df_orig = pd.read_csv(fn, sep="\t")
 
     def cleanupforanalysis(self):
         '''
@@ -189,6 +193,12 @@ class UserInput(object):
         :return: ListOfString
         '''
         return sorted(self.backgroundfreq_df['backgrnd_an'].tolist())
+
+    def set_num_bins(self, num_bins):
+        self.num_bins = num_bins
+
+    def get_num_bins(self):
+        return self.num_bins
 
     def get_sample_an_int(self):
         '''
@@ -269,7 +279,7 @@ class UserInput(object):
         :return: ListOfString
         '''
         ans_random_list = []
-        hist, bins = np.histogram(self.get_sample_an_int()['backgrnd_int'], bins=num_bins)
+        hist, bins = np.histogram(self.get_sample_an_int()['backgrnd_int'], bins=self.get_num_bins())
         # perc_hist = hist / float(sum(hist))
         for index, numinhist in enumerate(hist):
             num_ans = numinhist
@@ -302,8 +312,37 @@ class UserInput(object):
         else:
             return []
 
+    def get_study_an_frset(self):
+        '''
+        produce frozenset of AccessionNumbers of sample frequency (study)
+        :return: FrozenSet of Strings
+        '''
+        pass
 
+    def get_pop_an_set(self):
+        '''
+        produce set of AccessionNumbers of background frequency (population)
+        :return: Set of Strings
+        '''
+        pass
 
+    def iter_bins(self):
+        """
+        for every bin, produce ans-background and weighting-factor of respective bin
+        :return: Tuple(ListOfSting, Float)
+        """
+        hist, bins = np.histogram(self.get_sample_an_int()['backgrnd_int'], bins=self.get_num_bins())
+        for index, numinhist in enumerate(hist):
+            num_ans = numinhist
+            lower = bins[index]
+            upper = bins[index+1]
+            ans_all_from_bin = self.get_random_an_from_bin(lower, upper, num_ans, get_all_ans=True)
+            num_ans_all_from_bin = len(ans_all_from_bin)
+            if not num_ans_all_from_bin == 0:
+                weight_fac = float(numinhist) / len(ans_all_from_bin)
+            else:
+                weight_fac = 0 #!!!
+            yield(ans_all_from_bin, weight_fac)
 
 # %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'
 
@@ -322,13 +361,17 @@ class UserInput(object):
 
 if __name__ == "__main__":
     pass
+
     ##### parse UniProt goa or goa_ref file and create input file for goatools (association-file)
     ##### with AN tab GO-IDs
-    # gor = Goretriever()
-    # #fn=r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_yeast'
+    # gor = Parser_UniProt_goa_ref()
+    # fn=r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_yeast'
     # fn=r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
     # gor.parse_goa_ref(fn)
     # #fn_out = r'/Users/dblyon/CloudStation/CPR/Brian_GO/goatools/data/association_goa_yeast'
     # fn_out = r'/Users/dblyon/CloudStation/CPR/Brian_GO/goatools/data/association_goa_ref_human'
     # gor.write_association2file(fn_out)
+
+    #####
+
 
