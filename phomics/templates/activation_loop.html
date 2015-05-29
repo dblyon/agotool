@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function () {
+              load_activation_loop_page("{{page_type}}");
+          });
+      </script>
+{% endblock head %}
+
+
+{% block content %}
+
+<div class="container-fluid">	
+	<form id="main_form" method="Post" action="activation_loop_{{page_type}}_result" enctype="multipart/form-data">
+        <h4>Phospho {{page_type.capitalize()}}</h4>
+        <p>Perform Activation loop analysis, by pasting in phospho {{page_type}}</p>
+        {% if page_type == "peptides" %}
+            <p>if you would prefere to pase in uniprot phospho sites please go to <a href="/activation_loop_sites">Activation Loop Analysis Sites</a></p>
+        {% else %}
+            <p>if you would prefere to pase in phospopeptides please go to <a href="/activation_loop_peptides">Activation Loop Analysis Peptides</a></p>
+        {% endif %}
+        <div>{{form.organism.label}}: {{form.organism()}}</div>
+        <div>{{form.input_textarea.label}}: {{form.input_textarea(class='form-control', rows='5')}}</div>
+        <div>{{form.input_file.label}}: {{form.input_file(class="filestyle btn-info")}}<br></div>
+		{% if page_type == "peptides" %}
+            <h4>Digestion</h4>
+            <div>{{form.missed_clevages.label}}: {{form.missed_clevages()}}</div>
+            <div>{{form.cleave.label}}: {{form.cleave()}} {{form.cleave_res()}}</div>
+        {% endif %}
+
+        <br>
+        <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
+        <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
+        <button id="example_button" type="button" class="btn btn-primary">Example data</button>
+		<br>
+	</form>
+    {{ form.example_data() }}
+</div>  <!-- /container -->
+	
+{% endblock content %}
