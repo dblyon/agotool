@@ -10,9 +10,9 @@ study genes using Fisher's exact test, and corrected for multiple testing
 """
 from __future__ import absolute_import
 import fisher
-from multiple_testing import Bonferroni, Sidak, HolmBonferroni, FDR, calc_qval
+from multiple_testing import Bonferroni, Sidak, HolmBonferroni, FDR, calc_qval_dbl
 import ratio_dbl
-
+from scipy import stats
 
 class GOEnrichmentRecord(object):
     """Represents one result (from a single GOTerm) in the GOEnrichmentStudy
@@ -91,17 +91,52 @@ class GOEnrichmentStudy(object):
         self.term_pop = ratio_dbl.count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
 
     def run_study(self):
+        """
+        ###################################################
+        # contingency table general variable names:
+        #     sample  background  row-sum
+        # -------------------------------
+        # +   a       b           r1
+        # -------------------------------
+        # -   c       d           r2
+        # -------------------------------
+        #     col_1   col_2       n
+        #
+        # what we've got as input:
+        #     sample            background    row-sum
+        # ----------------------------------------------
+        # +   study_count       pop_count     r1
+        # ----------------------------------------------
+        # -   c                 d             r2
+        # ----------------------------------------------
+        #     study_n           pop_n         n
+        #
+        # fisher.pvalue_population() expects:
+        #  (a, col_1, r1, n)
+        #  (study_count, study_n, study_count + pop_count, study_n + pop_n)
+        #
+        # equivalent results using the following methods:
+        # fisher.pvalue_population(a, col_1, r1, n)
+        # fisher.pvalue(a, b, c, d)
+        # scipy.stats.fisher_exact([[a, b], [c, d]])
+        ###################################################
+        :return: results-object
+        """
         study_an_frset = self.study_an_frset
         results = self.results
         term_study = ratio_dbl.count_terms(study_an_frset, self.assoc_dict, self.obo_dag)
-        pop_n = study_n = len(study_an_frset) #!!! set to same length !?
+        pop_n = study_n = len(study_an_frset)
 
         # Init study_count and pop_count to handle empty sets
         study_count = pop_count = 0
         for term, study_count in list(term_study.items()):
-            pop_count = self.term_pop[term]
-            p = fisher.pvalue_population(study_count, study_n, pop_count, pop_n)
-
+            pop_count = int(round(self.term_pop[term]))
+            # p = fisher.pvalue_population(study_count, study_n, pop_count, pop_n)
+            a = study_count
+            col_1 = study_n
+            r1 = study_count + pop_count
+            n = study_n + pop_n
+            p = fisher.pvalue_population(a, col_1, r1, n)
             one_record = GOEnrichmentRecord(
                 id=term,
                 p_uncorrected=p.two_tail,
@@ -111,7 +146,7 @@ class GOEnrichmentStudy(object):
 
         # Calculate multiple corrections
         pvals = [r.p_uncorrected for r in results]
-        all_methods = ("bonferroni", "sidak", "holm", "fdr")
+        all_methods = ("bonferroni", "sidak", "holm", "benjamini_hochberg", "fdr")
         bonferroni, sidak, holm, fdr = None, None, None, None
 
         for method in self.methods:
@@ -123,12 +158,16 @@ class GOEnrichmentStudy(object):
                 holm = HolmBonferroni(pvals, self.alpha).corrected_pvals
             elif method == "fdr":
                 # get the empirical p-value distributions for FDR
-                p_val_distribution = calc_qval(study_count, study_n,
-                                               pop_count, pop_n,
-                                               self.pop, self.assoc_dict,
-                                               self.term_pop, self.obo_dag)
+                # p_val_distribution = calc_qval(study_count, study_n,
+                #                                pop_count, pop_n,
+                #                                self.pop, self.assoc_dict,
+                #                                self.term_pop, self.obo_dag)
+                p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop, self.assoc_dict, self.term_pop, self.obo_dag)
                 fdr = FDR(p_val_distribution,
                           results, self.alpha).corrected_pvals
+            elif method == "benjamini_hochberg":
+                pass
+
             else:
                 raise Exception("multiple test correction methods must be "
                                 "one of %s" % all_methods)
@@ -178,7 +217,6 @@ class GOEnrichmentStudy(object):
         with open(fn_out, 'w') as fh_out:
             fh_out.write("# min_ratio={0} pval={1}".format(min_ratio, pval) + '\n')
             fh_out.write("\t".join(GOEnrichmentRecord()._fields) + '\n')
-
             # for rec in self.results: # sort by record.id, results=[record1, record2, ...]
             results_sorted_by_goterm  = sorted(self.results, key=lambda record: record.id)
             for rec in results_sorted_by_goterm:
@@ -188,4 +226,54 @@ class GOEnrichmentStudy(object):
                 if rec.is_ratio_different:
                     fh_out.write(rec.__str__(indent=indent) + '\n')
         print("DONE :)") #!!!
+
+############################################################################################
+############ testing goatools original fisher p-value caluculation
+# #GO:0000030	p	mannosyltransferase activity	1/1159	39/4258	8.97e-05	0.443	0.419	0.432	n.a.
+# #GO:0000062	e	fatty-acyl-CoA binding	1/1159	1/4258	0.272	1.35e+03	824	1.31e+03	n.a.
+# #GO:0000075	p	cell cycle checkpoint	14/1159	56/4258	0.765	3.78e+03	749	3.68e+03	n.a.
+#
+# study = '14/1159'
+# pop   = '56/4258'
+# a, col_1 = study.split('/')
+# r1, n = pop.split('/')
+# a = int(a)
+# col_1 = int(col_1)
+# r1 = int(r1)
+# n = int(n)
+# col_2 = n - col_1
+# b = r1 - a
+# c = col_1 - a
+# d = col_2 - b
+# r2 = c + d
+# assert n == col_1 + col_2
+# assert n == r1 + r2
+# print fisher.pvalue_population(a, col_1, r1, n)
+# print fisher.pvalue(a, b, c, d)
+# print scipy.stats.fisher_exact([[a, b], [c, d]])
+############ testing goatools abundance corrected fisher p-value caluculation
+# #GO:0000122	e	negative regulation of transcription from RNA polymerase II promoter
+# #50/1159	21/1159	0.000635	3.14	3.08	3.06	n.a.
+# import scipy, fisher
+# study = '50/1159'
+# pop   = '21/1159'
+# a, col_1 = study.split('/')
+# b, col_2 = pop.split('/')
+# a = int(a)
+# col_1 = int(col_1)
+# b = int(b)
+# col_2 = int(col_2)
+# n = col_1 + col_2
+# col_2 = n - col_1
+# b = r1 - a
+# c = col_1 - a
+# d = col_2 - b
+# r2 = c + d
+# assert n == col_1 + col_2
+# assert n == r1 + r2
+# print fisher.pvalue_population(a, col_1, r1, n)
+# print fisher.pvalue(a, b, c, d)
+# print scipy.stats.fisher_exact([[a, b], [c, d]])
+############################################################################################
+
 

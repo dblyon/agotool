@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # --> generate study_fn, population_fn
 
     userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
-    fn_out = 'SummaryTest_yeast_acetyl_AbCorr.txt'
+    fn_out = 'SummaryTest_yeast_acetyl_AbCorr_v3.txt'
 
     # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test4.txt'
     study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_yeast_acetyl.txt'
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     fdr = False # "Calculate the false discovery rate (alt. to the "
                 # "Bonferroni but slower)"
     indent = False # "indent GO terms"
-    methods = ["bonferroni", "sidak", "holm"]
+    methods = ["bonferroni", "sidak", "holm", "benjamini_hochberg"]
 
     # check parameters
     if min_ratio is not None:

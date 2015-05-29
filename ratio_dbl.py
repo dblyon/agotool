@@ -31,6 +31,7 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     :param ui: UserInput-object
     :param assoc_dict:  Dict with key=AN, val=set of GO-terms
     :param obo_dag: Dict with additional methods
+    :param binom: Boolean
     :return: DefaultDict(Float)
     """
     term_cnt = defaultdict(float)

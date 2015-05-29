@@ -98,30 +98,64 @@ http://www.biomedcentral.com/1471-2105/6/168
 """
 
 
-def calc_qval(study_count, study_n, pop_count, pop_n,
-              pop, assoc, term_pop, obo_dag, T=500): #!!!
+def calc_qval(study_count, study_n, pop_count, pop_n, pop, assoc, term_pop, obo_dag, T=500):
     print(("Generate p-value distribution for FDR "
            "based on resampling (this might take a while)"), file=sys.stderr)
     distribution = []
     for i in range(T):
         new_study = random.sample(pop, study_n)
         new_term_study = count_terms(new_study, assoc, obo_dag)
-
         smallest_p = 1
         for term, study_count in list(new_term_study.items()):
             pop_count = term_pop[term]
-            p = fisher.pvalue_population(study_count,
-                                         study_n,
-                                         pop_count,
-                                         pop_n)
+            p = fisher.pvalue_population(study_count, study_n, pop_count, pop_n)
             if p.two_tail < smallest_p:
                 smallest_p = p.two_tail
-
         distribution.append(smallest_p)
         if i % 10  == 0:
             print("Sample {0} / {1}: p-value {2}".\
                         format(i, T, smallest_p), file=sys.stderr)
     return distribution
+
+def calc_qval_dbl(study_n, pop_n, pop, assoc, term_pop, obo_dag, T=500):
+    """
+    :param study_n: Integer (number of ANs from sample frequency)
+    :param pop_n: Integer (number of ANs from background frequency = sample freq.)
+    :param pop:
+    :param assoc:
+    :param term_pop:
+    :param obo_dag:
+    :param T:
+    :return:
+    """
+    distribution = []
+    for i in range(T):
+        new_study = random.sample(pop, study_n) # add pop and study
+        new_term_study = count_terms(new_study, assoc, obo_dag) #!!!
+        smallest_p = 1
+        for term, study_count in list(new_term_study.items()):
+            pop_count = term_pop[term]
+            a = study_count
+            col_1 = study_n
+            r1 = study_count + pop_count
+            n = study_n + pop_n
+            p = fisher.pvalue_population(a, col_1, r1, n)
+            if p.two_tail < smallest_p:
+                smallest_p = p.two_tail
+        distribution.append(smallest_p)
+        if i % 10  == 0:
+            print("Sample {0} / {1}: p-value {2}".\
+                        format(i, T, smallest_p), file=sys.stderr)
+    return distribution
+
+def calc_benjamini_hochberg(threshold=0.05):
+    """
+    sort by p-values-uncorrected
+    multiply by number n (number of all p-values, num rows, num GO-terms) and divide by rank
+    :param threshold: Float
+    :return:
+    """
+    pass
 
 
 if __name__ == '__main__':
