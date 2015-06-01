@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # --> generate study_fn, population_fn
 
     userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
-    fn_out = 'SummaryTest_yeast_acetyl_AbCorr_v3.txt'
+    fn_out = 'SummaryTest_yeast_acetyl_AbCorr_Slims.txt'
 
     # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test4.txt'
     study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_yeast_acetyl.txt'
@@ -28,7 +28,8 @@ if __name__ == '__main__':
 
     # required, and regularly updated
     goa_ref_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
-    obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
+    # obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
+    obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
 
     num_bins = 100
     alpha = 0.05 # "Test-wise alpha for multiple testing"
@@ -61,6 +62,7 @@ if __name__ == '__main__':
     # option A
     study_an_frset, pop_an_set = find_enrichment_dbl.read_geneset(study_fn, population_fn, compare=compare) # study and pop are set and frozenset of AccessionNumbers from user input
     assoc_dict = find_enrichment_dbl.read_associations(association_fn)  # assoc is a dict: key=AN, val=set of go-terms
+
     # option B # ToDo #!!!
     # without producing additional files: study_fn, population_fn, association_fn
     # goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn)

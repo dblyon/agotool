@@ -18,7 +18,7 @@ class GOEnrichmentRecord(object):
     """Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
     _fields = "id enrichment description ratio_in_study ratio_in_pop"\
-              " p_uncorrected p_bonferroni p_holm p_sidak p_fdr".split()
+              " p_uncorrected p_bonferroni p_holm p_sidak p_fdr ANs_study ANs_pop".split()
 
     def __init__(self, **kwargs):
         for f in self._fields:
@@ -35,7 +35,7 @@ class GOEnrichmentRecord(object):
 
     def __str__(self, indent=False):
         field_data = [self.__dict__[f] for f in self._fields]
-        field_formatter = ["%s"] * 3 + ["%d/%d"] * 2 + ["%.3g"] * 5
+        field_formatter = ["%s"] * 3 + ["%d/%d"] * 2 + ["%.3g"] * 5 + ["%s"] * 2
         assert len(field_data) == len(field_formatter)
 
         # default formatting only works for non-"n.a" data
@@ -80,7 +80,7 @@ class GOEnrichmentStudy(object):
 
         self.study_an_frset = study_an_frset
         self.pop = pop_an_set
-        self.assoc_dict = assoc_dict
+        self.assoc_dict = assoc_dict # dict: key=AN, val=set of go-terms
         self.obo_dag = obo_dag
         self.ui = ui
         self.alpha = alpha
@@ -88,7 +88,19 @@ class GOEnrichmentStudy(object):
         self.results = []
 
         obo_dag.update_association(assoc_dict) # add all parent GO-terms to assoc_dict
-        self.term_pop = ratio_dbl.count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
+        self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
+
+    def get_ans_from_goid(self, goid, study):
+        if study:
+            if self.go2ans_study_dict.has_key(goid):
+                return sorted(self.go2ans_study_dict[goid])
+            else:
+                return ''
+        else:
+            if self.go2ans_pop_dict.has_key(goid):
+                return sorted(self.go2ans_pop_dict[goid])
+            else:
+                return ''
 
     def run_study(self):
         """
@@ -124,13 +136,13 @@ class GOEnrichmentStudy(object):
         """
         study_an_frset = self.study_an_frset
         results = self.results
-        term_study = ratio_dbl.count_terms(study_an_frset, self.assoc_dict, self.obo_dag)
+        term_study, self.go2ans_study_dict = ratio_dbl.count_terms(study_an_frset, self.assoc_dict, self.obo_dag)
         pop_n = study_n = len(study_an_frset)
 
         # Init study_count and pop_count to handle empty sets
         study_count = pop_count = 0
-        for term, study_count in list(term_study.items()):
-            pop_count = int(round(self.term_pop[term]))
+        for goid, study_count in list(term_study.items()):
+            pop_count = int(round(self.term_pop[goid]))
             # p = fisher.pvalue_population(study_count, study_n, pop_count, pop_n)
             a = study_count
             col_1 = study_n
@@ -138,10 +150,12 @@ class GOEnrichmentStudy(object):
             n = study_n + pop_n
             p = fisher.pvalue_population(a, col_1, r1, n)
             one_record = GOEnrichmentRecord(
-                id=term,
+                id=goid,
                 p_uncorrected=p.two_tail,
                 ratio_in_study=(study_count, study_n),
-                ratio_in_pop=(pop_count, pop_n))
+                ratio_in_pop=(pop_count, pop_n),
+                ANs_study = (',').join(self.get_ans_from_goid(goid, study=True)),
+                ANs_pop = (',').join(self.get_ans_from_goid(goid, study=False)))
             results.append(one_record)
 
         # Calculate multiple corrections

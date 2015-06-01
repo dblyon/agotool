@@ -12,16 +12,39 @@ from collections import defaultdict
 #                 term_cnt[obo_dag[x].id] += 1
 #     return term_cnt
 
-def count_terms(ans_set, assoc, obo_dag):
+def count_terms(ans_set, assoc_dict, obo_dag):
     """
     count the number of terms in the study group
+    produces defaultsdict: key=GOid, val=Num of occurrences
+    go2ans_dict: key=GOid, val=ListOfANs
     """
+    go2ans_dict = {}
     term_cnt = defaultdict(int)
-    for an in (acnum for acnum in ans_set if acnum in assoc):
-        for goterm in assoc[an]:
+    for an in (acnum for acnum in ans_set if acnum in assoc_dict):
+        for goterm in assoc_dict[an]:
             if goterm in obo_dag:
                 term_cnt[obo_dag[goterm].id] += 1
-    return term_cnt
+                if not go2ans_dict.has_key(goterm):
+                    go2ans_dict[goterm] = set([an])
+                else:
+                    go2ans_dict[goterm].update([an])
+    return(term_cnt, go2ans_dict)
+
+def get_go2ans_dict(assoc_dict):
+    """
+    produce dictionary with GO-ids as key and List of AccessionNumbers as value
+    :param assoc_dict: Dict: key=AN, val=set of go-terms
+    :return: Dict: key=GOid, val=ListOfANs
+    """
+    go2ans_dict = {}
+    for an in assoc_dict:
+        goid_list = assoc_dict[an]
+        for goid in goid_list:
+            if not go2ans_dict.has_key(goid):
+                go2ans_dict[goid] = set([an])
+            else:
+                go2ans_dict[goid].update([an])
+    return go2ans_dict
 
 def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     """
@@ -34,6 +57,7 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     :param binom: Boolean
     :return: DefaultDict(Float)
     """
+    go2ans_dict = {}
     term_cnt = defaultdict(float)
     for ans, weight_fac in ui.iter_bins(): # for every bin, produce ans-background and weighting-factor
         for an in ans: # for every AccessionNumber
@@ -46,9 +70,18 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
                 for goterm in goterms:
                     if goterm in obo_dag:
                         term_cnt[obo_dag[goterm].id] += weight_fac
+                    if not go2ans_dict.has_key(goterm):
+                        go2ans_dict[goterm] = set([an])
+                    else:
+                        go2ans_dict[goterm].update([an])
     for goterm in term_cnt:
         term_cnt[goterm] = int(round(term_cnt[goterm]))
-    return term_cnt
+    go2ans2return = {}
+    for goterm in term_cnt:
+        count = term_cnt[goterm]
+        if count >=1:
+            go2ans2return[goterm] = go2ans_dict[goterm]
+    return(term_cnt, go2ans2return)
 
 
 
