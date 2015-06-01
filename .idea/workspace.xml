@@ -1,18 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/SummaryTest_yeast_acetyl_AbCorr_slims.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/SummaryTest_yeast_acetyl_AbCorr_v4.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled2-checkpoint.ipynb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Untitled2.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Compare_AbundanceCorrected_vs_goatoolsDefault.ipynb" afterPath="$PROJECT_DIR$/Compare_AbundanceCorrected_vs_goatoolsDefault.ipynb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SummaryTest_yeast_acetyl_AbCorr.txt" afterPath="$PROJECT_DIR$/SummaryTest_yeast_acetyl_AbCorr.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/go_enrichment_dbl.py" afterPath="$PROJECT_DIR$/go_enrichment_dbl.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ratio_dbl.py" afterPath="$PROJECT_DIR$/ratio_dbl.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_goenrichment.py" afterPath="$PROJECT_DIR$/run_goenrichment.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-    </list>
+    <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="" />
     <ignored path="goterm.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -35,115 +24,7 @@
     <favorites_list name="goterm" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="run_goenrichment.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/run_goenrichment.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.34610304">
-              <caret line="20" column="51" selection-start-line="20" selection-start-column="51" selection-end-line="20" selection-end-column="51" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="go_enrichment_dbl.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="148" column="40" selection-start-line="148" selection-start-column="31" selection-end-line="148" selection-end-column="40" />
-              <folding>
-                <element signature="e#47#325#1" expanded="false" />
-                <element signature="e#326#364#0" expanded="true" />
-                <element signature="e#1968#2084#0" expanded="false" />
-                <element signature="e#3459#3792#0" expanded="false" />
-                <element signature="e#3827#5110#1" expanded="false" />
-                <element signature="e#8412#8965#0" expanded="false" />
-                <element signature="e#9058#9129#1" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="multiple_testing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/multiple_testing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="156" column="7" selection-start-line="156" selection-start-column="7" selection-end-line="156" selection-end-column="7" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="find_enrichment_dbl.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="23" column="24" selection-start-line="23" selection-start-column="14" selection-end-line="23" selection-end-column="24" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="obo_parser.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/obo_parser.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="122" column="41" selection-start-line="122" selection-start-column="41" selection-end-line="122" selection-end-column="41" />
-              <folding>
-                <element signature="e#306#387#0" expanded="false" />
-                <element signature="e#425#759#0" expanded="false" />
-                <element signature="e#783#2810#0" expanded="false" />
-                <element signature="e#783#993#1" expanded="false" />
-                <element signature="e#1053#1326#0" expanded="false" />
-                <element signature="e#1361#1531#0" expanded="false" />
-                <element signature="e#1566#2810#0" expanded="false" />
-                <element signature="e#2831#2915#1" expanded="false" />
-                <element signature="e#3547#3772#0" expanded="false" />
-                <element signature="e#3806#3839#0" expanded="false" />
-                <element signature="e#3881#4003#0" expanded="false" />
-                <element signature="e#4044#4166#0" expanded="false" />
-                <element signature="e#4207#4365#0" expanded="false" />
-                <element signature="e#4407#4571#0" expanded="false" />
-                <element signature="e#4617#4811#0" expanded="false" />
-                <element signature="e#4856#5046#0" expanded="false" />
-                <element signature="e#5294#6850#0" expanded="false" />
-                <element signature="e#7009#7444#0" expanded="false" />
-                <element signature="e#7485#8485#0" expanded="false" />
-                <element signature="e#7519#7742#0" expanded="false" />
-                <element signature="e#7786#8009#0" expanded="false" />
-                <element signature="e#8536#8684#0" expanded="false" />
-                <element signature="e#8827#9112#0" expanded="false" />
-                <element signature="e#9314#9511#0" expanded="false" />
-                <element signature="e#9579#9767#0" expanded="false" />
-                <element signature="e#9831#10013#0" expanded="false" />
-                <element signature="e#10077#10241#0" expanded="false" />
-                <element signature="e#10308#11059#0" expanded="false" />
-                <element signature="e#11130#11464#0" expanded="false" />
-                <element signature="e#11511#11550#0" expanded="false" />
-                <element signature="e#12020#13156#0" expanded="false" />
-                <element signature="e#12020#12529#1" expanded="false" />
-                <element signature="e#12755#13078#0" expanded="false" />
-                <element signature="e#13200#13339#0" expanded="false" />
-                <element signature="e#13495#14855#0" expanded="false" />
-                <element signature="e#15016#16425#0" expanded="false" />
-                <element signature="e#16697#17809#0" expanded="false" />
-                <element signature="e#17866#18746#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ratio_dbl.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ratio_dbl.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="61" column="55" selection-start-line="61" selection-start-column="55" selection-end-line="61" selection-end-column="55" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -240,16 +121,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="goterm" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="goterm" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
     </panes>
@@ -260,6 +131,7 @@
     <property name="settings.editor.selected.configurable" value="Errors" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="FullScreen" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../metaprot" />
   </component>
   <component name="RunManager" selected="Python.goterm">
     <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
@@ -496,14 +368,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1393" height="877" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299363" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298292" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24982053" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14211695" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14211695" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3987261" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
@@ -834,22 +706,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/multiple_testing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="156" column="7" selection-start-line="156" selection-start-column="7" selection-end-line="156" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="24" selection-start-line="23" selection-start-column="14" selection-end-line="23" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/find_enrichment.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -875,9 +731,57 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/obo_parser.py">
+    <entry file="file://$PROJECT_DIR$/ratio_dbl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
+          <caret line="61" column="55" selection-start-line="61" selection-start-column="55" selection-end-line="61" selection-end-column="55" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_goenrichment.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.34610304">
+          <caret line="20" column="51" selection-start-line="20" selection-start-column="51" selection-end-line="20" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5957728">
+          <caret line="148" column="40" selection-start-line="148" selection-start-column="31" selection-end-line="148" selection-end-column="40" />
+          <folding>
+            <element signature="e#47#325#1" expanded="false" />
+            <element signature="e#326#364#0" expanded="true" />
+            <element signature="e#1968#2084#0" expanded="false" />
+            <element signature="e#3459#3792#0" expanded="false" />
+            <element signature="e#3827#5110#1" expanded="false" />
+            <element signature="e#8412#8965#0" expanded="false" />
+            <element signature="e#9058#9129#1" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/multiple_testing.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7424042">
+          <caret line="156" column="7" selection-start-line="156" selection-start-column="7" selection-end-line="156" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.32628798">
+          <caret line="23" column="24" selection-start-line="23" selection-start-column="14" selection-end-line="23" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/obo_parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.79260236">
           <caret line="122" column="41" selection-start-line="122" selection-start-column="41" selection-end-line="122" selection-end-column="41" />
           <folding>
             <element signature="e#306#387#0" expanded="false" />
@@ -919,38 +823,6 @@
             <element signature="e#16697#17809#0" expanded="false" />
             <element signature="e#17866#18746#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="148" column="40" selection-start-line="148" selection-start-column="31" selection-end-line="148" selection-end-column="40" />
-          <folding>
-            <element signature="e#47#325#1" expanded="false" />
-            <element signature="e#326#364#0" expanded="true" />
-            <element signature="e#1968#2084#0" expanded="false" />
-            <element signature="e#3459#3792#0" expanded="false" />
-            <element signature="e#3827#5110#1" expanded="false" />
-            <element signature="e#8412#8965#0" expanded="false" />
-            <element signature="e#9058#9129#1" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ratio_dbl.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="61" column="55" selection-start-line="61" selection-start-column="55" selection-end-line="61" selection-end-column="55" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_goenrichment.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.34610304">
-          <caret line="20" column="51" selection-start-line="20" selection-start-column="51" selection-end-line="20" selection-end-column="51" />
-          <folding />
         </state>
       </provider>
     </entry>
