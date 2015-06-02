@@ -366,7 +366,7 @@ class UserInput(object):
 
 
 if __name__ == "__main__":
-    pass
+    # pass
 
     ##### parse UniProt goa or goa_ref file and create input file for goatools (association-file)
     ##### with AN tab GO-IDs
@@ -381,7 +381,7 @@ if __name__ == "__main__":
     #####
     ui = UserInput()
     ans_rand_list = ui.get_random_background_ans()
-    fn_out = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_randomSample.txt'
+    fn_out = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_randomSample_test.txt'
     ui.write_ans2file(ans_rand_list, fn_out)
 
 
