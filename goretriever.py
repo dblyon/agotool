@@ -344,6 +344,12 @@ class UserInput(object):
                 weight_fac = 0 #!!!
             yield(ans_all_from_bin, weight_fac)
 
+    def write_ans2file(self, ans_list, fn):
+        with open(fn, 'w') as fh:
+            for an in ans_list:
+                fh.write(an + '\n')
+
+
 # %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'
 
 
@@ -373,5 +379,9 @@ if __name__ == "__main__":
     # gor.write_association2file(fn_out)
 
     #####
+    ui = UserInput()
+    ans_rand_list = ui.get_random_background_ans()
+    fn_out = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_randomSample.txt'
+    ui.write_ans2file(ans_rand_list, fn_out)
 
 

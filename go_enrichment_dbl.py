@@ -76,7 +76,7 @@ class GOEnrichmentRecord(object):
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, study_an_frset, pop_an_set, assoc_dict, obo_dag, ui, alpha, methods, backtracking):
+    def __init__(self, study_an_frset, pop_an_set, assoc_dict, obo_dag, ui, alpha, methods, backtracking, randomSample):
 
         self.study_an_frset = study_an_frset
         self.pop = pop_an_set
@@ -88,7 +88,10 @@ class GOEnrichmentStudy(object):
         self.results = []
         if backtracking:
             obo_dag.update_association(assoc_dict) # add all parent GO-terms to assoc_dict
-        self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
+        if not randomSample:
+            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
+        else:
+            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop, self.assoc_dict, self.obo_dag)
 
     def get_ans_from_goid(self, goid, study):
         if study:
