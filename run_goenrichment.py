@@ -18,12 +18,13 @@ if __name__ == '__main__':
     # --> generate study_fn, population_fn
 
     userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
-    fn_out = 'SummaryTest_yeast_acetyl_AbCorr_noBacktracking.txt'
+    fn_out = 'SummaryTest_yeast_acetyl_randomSample_indent.txt'
 
     # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test4.txt'
     study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_yeast_acetyl.txt'
     # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_test4.txt'
-    population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_obsProteome.txt'
+    # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_obsProteome.txt'
+    population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_randomSample.txt' #will not work here but in original script
     association_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast'
 
     # required, and regularly updated
@@ -45,9 +46,10 @@ if __name__ == '__main__':
                  # "between 1 and 2. "
     fdr = False # "Calculate the false discovery rate (alt. to the "
                 # "Bonferroni but slower)"
-    indent = False # "indent GO terms"
+    indent = True # "indent GO terms"
     methods = ["bonferroni", "sidak", "holm", "benjamini_hochberg"]
-    backtracking = False
+    backtracking = True
+    randomSample = True
 
     # check parameters
     if min_ratio is not None:
@@ -75,7 +77,7 @@ if __name__ == '__main__':
 
     obo_dag = obo_parser.GODag(obo_file=obo_fn)  #!!! don't run this for every analysis
 
-    gostudy = go_enrichment_dbl.GOEnrichmentStudy(study_an_frset, pop_an_set, assoc_dict, obo_dag, ui, alpha, methods, backtracking)
+    gostudy = go_enrichment_dbl.GOEnrichmentStudy(study_an_frset, pop_an_set, assoc_dict, obo_dag, ui, alpha, methods, backtracking, randomSample)
         # pop_an_set, assoc_dict, obo_dag, ui, alpha=alpha, study_an_frset=study_an_frset, methods=methods)
 
     gostudy.run_study()
