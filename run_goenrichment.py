@@ -18,19 +18,20 @@ if __name__ == '__main__':
     # --> generate study_fn, population_fn
 
     userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
-    fn_out = 'SummaryTest_yeast_acetyl_randomSample_indent.txt'
+    fn_out = 'SummaryTest_yeast_acetyl_randomSample_indent_v2.txt'
 
     # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test4.txt'
     study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_yeast_acetyl.txt'
+
     # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_test4.txt'
-    # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_obsProteome.txt'
-    population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_randomSample.txt' #will not work here but in original script
+    population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_obsProteome.txt'
+
     association_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast'
 
     # required, and regularly updated
     goa_ref_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
     obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
-#     obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
+    # obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
 
     num_bins = 100
     alpha = 0.05 # "Test-wise alpha for multiple testing"
@@ -49,7 +50,15 @@ if __name__ == '__main__':
     indent = True # "indent GO terms"
     methods = ["bonferroni", "sidak", "holm", "benjamini_hochberg"]
     backtracking = True
+
     randomSample = True
+    if randomSample:
+        ui = goretriever.UserInput()
+        ans_rand_list = ui.get_random_background_ans()
+        fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_randomSample_v10.txt'
+        ui.write_ans2file(ans_rand_list, fn)
+        population_fn = fn
+        fn_out = 'SummaryTest_yeast_acetyl_randomSample_indent_v10.txt'
 
     # check parameters
     if min_ratio is not None:
