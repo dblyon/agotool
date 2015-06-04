@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
+<<<<<<< HEAD
+    <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="" />
+=======
     <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/goretriever.py" afterPath="$PROJECT_DIR$/goretriever.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_goenrichment.py" afterPath="$PROJECT_DIR$/run_goenrichment.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
-    <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="" />
+>>>>>>> b79c20cb4c8750e540f6c9dc893382d2bbd1ce82
     <ignored path="goterm.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -29,6 +32,9 @@
     <favorites_list name="goterm" />
   </component>
   <component name="FileEditorManager">
+<<<<<<< HEAD
+    <leaf />
+=======
     <leaf>
       <file leaf-file-name="run_goenrichment.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/run_goenrichment.py">
@@ -112,6 +118,7 @@
         </entry>
       </file>
     </leaf>
+>>>>>>> b79c20cb4c8750e540f6c9dc893382d2bbd1ce82
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -473,7 +480,11 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24982053" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14569001" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+<<<<<<< HEAD
+      <window_info id="Python Console" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20301887" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+=======
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2027129" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+>>>>>>> b79c20cb4c8750e540f6c9dc893382d2bbd1ce82
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299363" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
@@ -882,6 +893,8 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/find_enrichment.py">
+<<<<<<< HEAD
+=======
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.03883495">
           <caret line="74" column="0" selection-start-line="74" selection-start-column="0" selection-end-line="74" selection-end-column="0" />
@@ -889,6 +902,7 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
+>>>>>>> b79c20cb4c8750e540f6c9dc893382d2bbd1ce82
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.03883495">
           <caret line="74" column="0" selection-start-line="74" selection-start-column="0" selection-end-line="74" selection-end-column="0" />
@@ -918,7 +932,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/goretriever.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+        <state vertical-scroll-proportion="0.4474708">
+=======
         <state vertical-scroll-proportion="0.0">
+>>>>>>> b79c20cb4c8750e540f6c9dc893382d2bbd1ce82
           <caret line="281" column="56" selection-start-line="281" selection-start-column="39" selection-end-line="281" selection-end-column="56" />
           <folding>
             <element signature="e#1246#2165#0" expanded="false" />
@@ -960,13 +978,36 @@
         </state>
       </provider>
     </entry>
+<<<<<<< HEAD
+    <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33560312">
+          <caret line="23" column="24" selection-start-line="23" selection-start-column="14" selection-end-line="23" selection-end-column="24" />
+=======
     <entry file="file://$PROJECT_DIR$/run_goenrichment.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.69417477">
           <caret line="77" column="26" selection-start-line="77" selection-start-column="26" selection-end-line="77" selection-end-column="26" />
+>>>>>>> b79c20cb4c8750e540f6c9dc893382d2bbd1ce82
           <folding />
         </state>
       </provider>
     </entry>
+<<<<<<< HEAD
+    <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6857977">
+          <caret line="146" column="48" selection-start-line="146" selection-start-column="38" selection-end-line="146" selection-end-column="48" />
+          <folding>
+            <element signature="e#47#325#1" expanded="false" />
+            <element signature="e#326#364#0" expanded="true" />
+            <element signature="e#1968#2084#0" expanded="false" />
+            <element signature="e#4043#5326#1" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+=======
+>>>>>>> b79c20cb4c8750e540f6c9dc893382d2bbd1ce82
   </component>
 </project>
