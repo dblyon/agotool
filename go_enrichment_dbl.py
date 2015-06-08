@@ -48,8 +48,7 @@ class GOEnrichmentRecord(object):
         if self.goterm is not None and indent:
             dots = "." * self.goterm.level
 
-        return dots + "\t".join(a % b for (a, b) in
-                                zip(field_formatter, field_data))
+        return dots + "\t".join(a % b for (a, b) in zip(field_formatter, field_data))
 
     def __repr__(self):
         return "GOEnrichmentRecord(%s)" % self.id
@@ -76,13 +75,12 @@ class GOEnrichmentRecord(object):
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, study_an_frset, pop_an_set, assoc_dict, obo_dag, ui, alpha, methods, backtracking, randomSample):
-
-        self.study_an_frset = study_an_frset
-        self.pop = pop_an_set
-        self.assoc_dict = assoc_dict # dict: key=AN, val=set of go-terms
-        self.obo_dag = obo_dag
+    def __init__(self, ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample):
         self.ui = ui
+        self.study_an_frset = self.ui.get_study_an_frset()
+        self.pop = self.ui.get_population_an_set()
+        self.assoc_dict = assoc_dict
+        self.obo_dag = obo_dag
         self.alpha = alpha
         self.methods = methods
         self.results = []
@@ -138,7 +136,7 @@ class GOEnrichmentStudy(object):
         :return: results-object
         """
         study_an_frset = self.study_an_frset
-        results = self.results
+        # results = self.results
         term_study, self.go2ans_study_dict = ratio_dbl.count_terms(study_an_frset, self.assoc_dict, self.obo_dag)
         pop_n = study_n = len(study_an_frset)
 
@@ -159,13 +157,14 @@ class GOEnrichmentStudy(object):
                 ratio_in_pop=(pop_count, pop_n),
                 ANs_study = (',').join(self.get_ans_from_goid(goid, study=True)),
                 ANs_pop = (',').join(self.get_ans_from_goid(goid, study=False)))
-            results.append(one_record)
+            self.results.append(one_record)
+        return self.calc_multiple_corrections()
 
+    def calc_multiple_corrections(self):
         # Calculate multiple corrections
-        pvals = [r.p_uncorrected for r in results]
+        pvals = [r.p_uncorrected for r in self.results]
         all_methods = ("bonferroni", "sidak", "holm", "benjamini_hochberg", "fdr")
         bonferroni, sidak, holm, fdr = None, None, None, None
-
         for method in self.methods:
             if method == "bonferroni":
                 bonferroni = Bonferroni(pvals, self.alpha).corrected_pvals
@@ -175,10 +174,6 @@ class GOEnrichmentStudy(object):
                 holm = HolmBonferroni(pvals, self.alpha).corrected_pvals
             elif method == "fdr":
                 # get the empirical p-value distributions for FDR
-                # p_val_distribution = calc_qval(study_count, study_n,
-                #                                pop_count, pop_n,
-                #                                self.pop, self.assoc_dict,
-                #                                self.term_pop, self.obo_dag)
                 p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop, self.assoc_dict, self.term_pop, self.obo_dag)
                 fdr = FDR(p_val_distribution,
                           results, self.alpha).corrected_pvals
@@ -188,20 +183,15 @@ class GOEnrichmentStudy(object):
             else:
                 raise Exception("multiple test correction methods must be "
                                 "one of %s" % all_methods)
-
         all_corrections = (bonferroni, sidak, holm, fdr)
-
         for method, corrected_pvals in zip(all_methods, all_corrections):
             self.update_results(method, corrected_pvals)
-
-        results.sort(key=lambda r: r.p_uncorrected)
-        self.results = results
-
-        for rec in results:
+        self.results.sort(key=lambda r: r.p_uncorrected)
+        # self.results = results
+        for rec in self.results:
             # get go term for description and level
             rec.find_goterm(self.obo_dag)
-
-        return results
+        return self.results
 
     def update_results(self, method, corrected_pvals):
         if corrected_pvals is None:

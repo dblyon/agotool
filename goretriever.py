@@ -23,8 +23,6 @@ class Parser_UniProt_goa_ref(object):
         self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
         self.date = "not set yet" # generation date
         self.obolibrary = "not yet set" # link to obo-library
-        #fn=r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
-        #fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
         if not goa_ref_fn:
             goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
         self.parse_goa_ref(goa_ref_fn)
@@ -140,7 +138,25 @@ class Parser_UniProt_goa_ref(object):
                     fh_out.write(an + '\t' + ';'.join(go_list) + '\n')
 
     def get_association_dict(self):
-        pass
+        '''
+        produce association_dictionary, containing all AccessionNumbers of theoretical proteome and
+        their corresponding GO-IDs (most specific ones)
+        do not report GO-ID without association
+        assoc is a dict: key=AN, val=set of go-terms
+        :return: Dict
+        '''
+        assoc_dict = {}
+        for an in self.get_ans():
+            if not assoc_dict.has_key(an):
+                goterms_list = self.get_goterms_from_an(an)
+                if goterms_list != -1:
+                    assoc_dict[an] = set(goterms_list)
+            else:
+                if assoc_dict[an] != set(self.get_goterms_from_an(an)):
+                    print('Associations-dict: multiple entries of AN with diverging associations:')
+                    print(an + ' ' + self.get_goterms_from_an(an))
+        return assoc_dict
+
 
 class UserInput(object):
     """
@@ -271,11 +287,10 @@ class UserInput(object):
         background_df.index = background_df['backgrnd_an'].tolist()
         return pd.concat([sample_ser, background_df], axis=1)
 
-    def get_random_background_ans(self, num_bins=100):
+    def get_random_background_ans(self):
         '''
         produce a randomly generated set of AccessionNumbers from background-frequency
         with the same intensity-distribution as sample-frequency
-        :param num_bins: Integer
         :return: ListOfString
         '''
         ans_random_list = []
@@ -312,20 +327,6 @@ class UserInput(object):
         else:
             return []
 
-    def get_study_an_frset(self):
-        '''
-        produce frozenset of AccessionNumbers of sample frequency (study)
-        :return: FrozenSet of Strings
-        '''
-        pass
-
-    def get_pop_an_set(self):
-        '''
-        produce set of AccessionNumbers of background frequency (population)
-        :return: Set of Strings
-        '''
-        pass
-
     def iter_bins(self):
         """
         for every bin, produce ans-background and weighting-factor of respective bin
@@ -348,6 +349,29 @@ class UserInput(object):
         with open(fn, 'w') as fh:
             for an in ans_list:
                 fh.write(an + '\n')
+
+    def get_study_an_frset(self):
+        '''
+        produce frozenset of AccessionNumbers of sample frequency (study)
+        :return: FrozenSet of Strings
+        '''
+        return frozenset(self.get_study())
+
+    def get_population_an_set(self):
+        '''
+        produce set of AccessionNumbers of background frequency (population)
+        :return: Set of Strings
+        '''
+        return set(self.get_population())
+
+    def get_population_an_set_random_sample(self):
+        '''
+        produce a randomly generated set of AccessionNumbers from background-frequency
+        with the same intensity-distribution as sample-frequency
+        :return: Set of Strings
+        '''
+        return set(self.get_random_background_ans())
+
 
 
 # %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'
