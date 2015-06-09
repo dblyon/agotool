@@ -12,7 +12,6 @@ from __future__ import absolute_import
 import fisher
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, FDR, calc_qval_dbl
 import ratio_dbl
-from scipy import stats
 
 class GOEnrichmentRecord(object):
     """Represents one result (from a single GOTerm) in the GOEnrichmentStudy
@@ -66,7 +65,6 @@ class GOEnrichmentRecord(object):
         self.enrichment = 'e' if ((1.0 * study_count / study_n) > (1.0 * pop_count / pop_n)) else 'p'
         self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, study_count, study_n, pop_count, pop_n)
 
-
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
@@ -78,16 +76,17 @@ class GOEnrichmentStudy(object):
         self.alpha = alpha
         self.methods = methods
         self.results = []
+
+        self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
         if randomSample:
             self.pop_an_set = ui.get_population_an_set_random_sample()
             self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
         else:
-            self.pop_an_set = ui.get_population_an_set()
             self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+
         if backtracking:
         # add all parent GO-terms to assoc_dict
             self.obo_dag.update_association(self.assoc_dict)
-
 
     def get_ans_from_goid(self, goid, study):
         if study:
@@ -133,16 +132,11 @@ class GOEnrichmentStudy(object):
         ###################################################
         :return: results-object
         """
-        study_an_frset = self.study_an_frset
-        # results = self.results
-        term_study, self.go2ans_study_dict = ratio_dbl.count_terms(study_an_frset, self.assoc_dict, self.obo_dag)
-        pop_n = study_n = len(study_an_frset)
-
+        pop_n = study_n = len(self.study_an_frset)
         # Init study_count and pop_count to handle empty sets
-        # study_count = pop_count = 0
-        for goid, study_count in list(term_study.items()):
-            pop_count = int(round(self.term_pop[goid]))
-            # p = fisher.pvalue_population(study_count, study_n, pop_count, pop_n)
+        study_count = pop_count = 0
+        for goid, study_count in list(self.term_study.items()):
+            pop_count = self.term_pop[goid]
             a = study_count
             col_1 = study_n
             r1 = study_count + pop_count
@@ -152,15 +146,6 @@ class GOEnrichmentStudy(object):
                 fold_en = (float(study_count)/study_n) / (float(pop_count)/pop_n)
             except ZeroDivisionError:
                 fold_en = -1
-                # try:
-                #     study_ratio = float(study_count)/study_n
-                #     pop_ratio = float(pop_count)/pop_n
-                #     if pop_ratio == 0:
-                #         fold_en = +inf
-                #     elif study_ratio == 0:
-                #         fold_en = _inf
-                # except ZeroDivisionError:
-                #     fold_en = -1
             one_record = GOEnrichmentRecord(
                 id=goid,
                 fold_enrichment= fold_en,
@@ -296,3 +281,13 @@ class GOEnrichmentStudy(object):
 ############################################################################################
 
 
+
+                # try:
+                #     study_ratio = float(study_count)/study_n
+                #     pop_ratio = float(pop_count)/pop_n
+                #     if pop_ratio == 0:
+                #         fold_en = +inf
+                #     elif study_ratio == 0:
+                #         fold_en = _inf
+                # except ZeroDivisionError:
+                #     fold_en = -1
