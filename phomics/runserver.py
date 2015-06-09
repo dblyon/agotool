@@ -17,6 +17,8 @@ import activationloop
 import ks
 import pdavid
 import penrichment
+import go_term_enrichment
+
 
 app = flask.Flask(__name__)
 
@@ -29,18 +31,6 @@ logger = logging.getLogger()
 logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
-
-
-
-
-# deleted from layout
-
-    # <!--
-    # <li><a href="{{ url_for('kinase_ks') }}">KS kinase test</a></li>
-    # <li><a href="{{ url_for('phospho_enrichment') }}">Phospho Site Enrichment</a></li>
-    # -->
-    # <li><a href="{{ url_for('citation') }}">How to cite</a></li>
-
 
 ################################################################################
 # Globals
@@ -71,17 +61,7 @@ def index():
     return render_template('index.html')
 
 ################################################################################
-# Activation Loop Analysis
-# add validators later!!!!!
-# add validators later!!!!!
-# add validators later!!!!!
-# example of this:
-# class FourtyTwoForm(Form):
-#     num = IntegerField('Number')
-#
-#     def validate_num(form, field):
-#         if field.data != 42:
-#             raise ValidationError(u'Must be 42')
+
 ################################################################################
 class BaseActivationLoopForm(wtforms.Form):
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
@@ -118,7 +98,6 @@ def get_activation_loop_organism_and_textarea(request):
         textarea = request.files['input_file'].read()
     return organism, textarea
 
-
 @app.route('/activation_loop_sites_result', methods=['POST'])
 def submit_activation_loop_sites():
     organism, textarea = get_activation_loop_organism_and_textarea(request)
@@ -134,7 +113,6 @@ def submit_activation_loop_sites():
     tsv = u'\n'.join(tsv).encode('base64')
     return render_template('result.html', header=header,
                            results=_results, tsv=tsv, errors=errors)
-
 
 @app.route('/activation_loop_peptides_result', methods=['POST'])
 def submit_activation_loop_peptides():
@@ -160,11 +138,9 @@ def submit_activation_loop_peptides():
     return render_template('result.html', header=header,
                            results=_results, tsv=tsv, errors=errors)
 
-
 ################################################################################
 # Kinase Enrichment
 ################################################################################
-
 class EnzymeEnrichmentForm(wtforms.Form):
     forground_file = fields.FileField(u"Forground File")
     background_file = fields.FileField(u"Background File")
@@ -187,13 +163,9 @@ def submit_enzyme_enrichment():
     return render_template('result.html', header=header, results=results, tsv=result_file.read(),
                     errors=[])
 
-    #
-    # return render_template('')
-
 ################################################################################
 # Enrichment
 ################################################################################
-
 class PhosphoEnrichmentForm(wtforms.Form):
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
     foreground_textarea = fields.TextAreaField("Foreground Sites")
@@ -204,96 +176,89 @@ class PhosphoEnrichmentForm(wtforms.Form):
                      ("MF", "Molecular Function")),
             widget = wtforms.widgets.ListWidget(prefix_label=False),
             option_widget = wtforms.widgets.CheckboxInput(),
-            default = ("BP", "CC", "MF")
-    )
+            default = ("BP", "CC", "MF"))
     alpha = fields.IntegerField("Alpha", default=0.05)
     correction_method = fields.SelectField(
         "Correction for multiple testing Method",
         choices = (
             ("fdr", "FDR"), ("bonferroni", "Bonferroni"),
             ("sidak", "Sidak"), ("holm", "Holm"),
-            ("uncorrected", "None")
-        )
-    )
+            ("uncorrected", "None")))
 
 @app.route('/phospho_enrichment')
 def phospho_enrichment():
     return render_template("phospho_enrichment_test.html", form=PhosphoEnrichmentForm())
 
-
 @app.route('/phospho_enrichment_result', methods=['POST'])
 def phospho_enrichment_result():
-
     form = PhosphoEnrichmentForm(request.form)
     print '-----' * 10
     print '-----' * 10
     print form.data
     print '-----' * 10
     print '-----' * 10
-
     results, header = penrichment.run(
             form.organism.data, form.catagories.data,
             form.foreground_textarea.data, form.background_textarea.data,
-            form.alpha.data, form.correction_method.data
-    )
-    # LATER!!!!
-    # LATER!!!!
-    # LATER!!!!
-    # rewrite the results, such that it should not need a description column as the last element pr row
-    # rende_template should take a argument "description" that should be used in the template
-
+            form.alpha.data, form.correction_method.data)
     tsv = '%s\n%s\n' % ('\t'.join(header), '\n'.join(['\t'.join(x) for x in results]))
     tsv.encode('base64')
-
     return render_template('result.html', header=header, results=results, tsv=tsv, errors=[])
 
 ################################################################################
-# david
+# GO term enrichment abundance corrected
 ################################################################################
-#
-# class PhosphoDavidForm(wtforms.Form):
-#     foreground_textarea = fields.TextAreaField("Foreground Sites")
-#     background_textarea = fields.TextAreaField("Background Sites")
-#     foreground_david_file = fields.FileField("David Foreground File")
-#     background_david_file = fields.FileField("David Background File")
-#     fdr = fields.IntegerField("(Estimated) FDR cutoff")
-#
-# @app.route('/phospho_enrichment')
-# def phospho_enrichment():
-#
-#     return render_template("phospho_enrichment.html", form=PhosphoDavidForm())
-#
-#
-# @app.route('/phospho_enrichment_result', methods=['POST'])
-# def phospho_enrichment_result():
-#     errors = []
-#     def count(textarea):
-#         counts = collections.defaultdict(set)
-#         for i, line in enumerate(textarea.split('\n')):
-#             tabs = line.strip().split()
-#             l = len(tabs) == 1
-#             if l == 1:
-#                 count[tabs[0]].append(-i)
-#             elif l == 2:
-#                 count[tab[0]].append(tab[1])
-#             else:
-#                 errors.append("Could not parse line %i: %s" % (i+1, line))
-#
-#         count =  {_id : len(sites) for _id, sites in count.items()}
-#         return count, sum(counts.vaues())
-#
-#     form = PhosphoDavidForm(request.form)
-#
-#     fg_id_counts, fg_total = count(form.forground_textarea.data)
-#     bg_id_counts, bg_total = count(form.background_textarea.data)
-#     result_file = StringIO.StringIO()
-#     pdavid.run(form.fdr.data, fg_id_counts, fg_total, bg_id_counts, bg_total,
-#                result_file, form.files['foreground_david_file'],
-#                form.files['background_david_file'])
-#
-#     results, header = resultfile_to_results(result_file)
-#     return render_template('result.html', header=header, results=results, tsv=result_file.read(),
-#                            errors=[])
+class GOTermEnrichmentForm(wtforms.Form):
+    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+    foreground_textarea = fields.TextAreaField("Foreground Sites")
+    background_textarea = fields.TextAreaField("Background Sites")
+    catagories = fields.SelectMultipleField(
+            "GO Catagories",
+            choices = (("BP", "Biological Processes"), ("CC", "Cellular Compartments"),
+                     ("MF", "Molecular Function")),
+            widget = wtforms.widgets.ListWidget(prefix_label=False),
+            option_widget = wtforms.widgets.CheckboxInput(),
+            default = ("BP", "CC", "MF"))
+    alpha = fields.IntegerField("Alpha", default=0.05)
+    correction_method = fields.SelectField(
+        "Correction for multiple testing Method",
+        choices = (
+            ("fdr", "FDR"), ("bonferroni", "Bonferroni"),
+            ("sidak", "Sidak"), ("holm", "Holm"),
+            ("uncorrected", "None")))
+
+@app.route('/go_term_enrichment')
+def go_term_enrichment():
+    return render_template("go_term_enrichment.html", form=GOTermEnrichmentForm())
+
+@app.route('/go_term_enrichment_result', methods=['POST'])
+def go_term_enrichment_result():
+    form = GOTermEnrichmentForm(request.form)
+    print '-----' * 10
+    print '-----' * 10
+    print form.data
+    print '-----' * 10
+    print '-----' * 10
+    results, header = go_term_enrichment.run(
+            form.organism.data, form.catagories.data,
+            form.foreground_textarea.data, form.background_textarea.data,
+            form.alpha.data, form.correction_method.data)
+    tsv = '%s\n%s\n' % ('\t'.join(header), '\n'.join(['\t'.join(x) for x in results]))
+    tsv.encode('base64')
+    return render_template('result.html', header=header, results=results, tsv=tsv, errors=[])
+
+
+
 
 if __name__ == '__main__':
     app.run(processes=4, debug=True)
+
+
+
+
+
+
+
+
+
+
