@@ -77,16 +77,15 @@ class GOEnrichmentStudy(object):
         self.methods = methods
         self.results = []
 
+        if backtracking: # add all parent GO-terms to assoc_dict
+            self.obo_dag.update_association(self.assoc_dict)
+
         self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
         if randomSample:
             self.pop_an_set = ui.get_population_an_set_random_sample()
             self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
         else:
             self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
-
-        if backtracking:
-        # add all parent GO-terms to assoc_dict
-            self.obo_dag.update_association(self.assoc_dict)
 
     def get_ans_from_goid(self, goid, study):
         if study:
