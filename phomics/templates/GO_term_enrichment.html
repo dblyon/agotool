@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function () {
+              //load_enzyme_enrichment();
+          });
+      </script>
+{% endblock head %}
+
+
+{% block content %}
+
+<div class="container-fluid">	
+	<form id="main_form" method="Post" action="/go_term_enrichment_result" enctype="multipart/form-data">
+        <p class="h4">GO Term Enrichment</p>
+        <p>
+            Abundance corrected GO-term enrichment
+            Funky stuff
+        </p>
+        <div class="row">
+            <div class="col-md-5">
+                {{ form.organism.label }}: {{ form.organism() }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                {{ form.foreground_textarea.label }}:
+                {{ form.foreground_textarea(rows="5", class="form-control") }}
+            </div>
+            <div class="col-md-5">
+                {{ form.background_textarea.label }}:
+                {{ form.background_textarea(rows="5", class="form-control") }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5"><br>{{ form.catagories.label }}: {{ form.catagories() }}</div>
+            <div class="col-md-5">
+                <br>{{ form.correction_method.label }}: {{ form.correction_method() }}
+                <br>{{ form.alpha.label }}: {{ form.alpha() }}
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-5">
+                <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
+                <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
+            </div>
+        </div>
+	</form>
+</div>  <!-- /container -->
+	
+{% endblock content %}
+
+
+

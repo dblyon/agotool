@@ -17,7 +17,7 @@ from scipy import stats
 class GOEnrichmentRecord(object):
     """Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
-    _fields = "id enrichment description ratio_in_study ratio_in_pop"\
+    _fields = "id enrichment fold_enrichment description ratio_in_study ratio_in_pop"\
               " p_uncorrected p_bonferroni p_holm p_sidak p_fdr ANs_study ANs_pop".split()
 
     def __init__(self, **kwargs):
@@ -35,19 +35,16 @@ class GOEnrichmentRecord(object):
 
     def __str__(self, indent=False):
         field_data = [self.__dict__[f] for f in self._fields]
-        field_formatter = ["%s"] * 3 + ["%d/%d"] * 2 + ["%.3g"] * 5 + ["%s"] * 2
+        field_formatter = ["%s"] * 2 + ["%0.2f"] + ["%s"] + ["%d/%d"] * 2 + ["%.3g"] * 5 + ["%s"] * 2
         assert len(field_data) == len(field_formatter)
-
         # default formatting only works for non-"n.a" data
         for i, f in enumerate(field_data):
             if f == "n.a.":
                 field_formatter[i] = "%s"
-
         # print dots to show the level of the term
         dots = ""
         if self.goterm is not None and indent:
             dots = "." * self.goterm.level
-
         return dots + "\t".join(a % b for (a, b) in zip(field_formatter, field_data))
 
     def __repr__(self):
@@ -66,10 +63,8 @@ class GOEnrichmentRecord(object):
     def update_remaining_fields(self, min_ratio=None):
         study_count, study_n = self.ratio_in_study
         pop_count, pop_n = self.ratio_in_pop
-        self.enrichment = 'e' if ((1.0 * study_count / study_n) >
-                                  (1.0 * pop_count / pop_n)) else 'p'
-        self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, study_count,
-                                                     study_n, pop_count, pop_n)
+        self.enrichment = 'e' if ((1.0 * study_count / study_n) > (1.0 * pop_count / pop_n)) else 'p'
+        self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, study_count, study_n, pop_count, pop_n)
 
 
 class GOEnrichmentStudy(object):
@@ -78,18 +73,21 @@ class GOEnrichmentStudy(object):
     def __init__(self, ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample):
         self.ui = ui
         self.study_an_frset = self.ui.get_study_an_frset()
-        self.pop = self.ui.get_population_an_set()
         self.assoc_dict = assoc_dict
         self.obo_dag = obo_dag
         self.alpha = alpha
         self.methods = methods
         self.results = []
-        if backtracking:
-            obo_dag.update_association(assoc_dict) # add all parent GO-terms to assoc_dict
-        if not randomSample:
-            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
+        if randomSample:
+            self.pop_an_set = ui.get_population_an_set_random_sample()
+            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
         else:
-            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop, self.assoc_dict, self.obo_dag)
+            self.pop_an_set = ui.get_population_an_set()
+            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+        if backtracking:
+        # add all parent GO-terms to assoc_dict
+            self.obo_dag.update_association(self.assoc_dict)
+
 
     def get_ans_from_goid(self, goid, study):
         if study:
@@ -141,7 +139,7 @@ class GOEnrichmentStudy(object):
         pop_n = study_n = len(study_an_frset)
 
         # Init study_count and pop_count to handle empty sets
-        study_count = pop_count = 0
+        # study_count = pop_count = 0
         for goid, study_count in list(term_study.items()):
             pop_count = int(round(self.term_pop[goid]))
             # p = fisher.pvalue_population(study_count, study_n, pop_count, pop_n)
@@ -150,8 +148,22 @@ class GOEnrichmentStudy(object):
             r1 = study_count + pop_count
             n = study_n + pop_n
             p = fisher.pvalue_population(a, col_1, r1, n)
+            try:
+                fold_en = (float(study_count)/study_n) / (float(pop_count)/pop_n)
+            except ZeroDivisionError:
+                fold_en = -1
+                # try:
+                #     study_ratio = float(study_count)/study_n
+                #     pop_ratio = float(pop_count)/pop_n
+                #     if pop_ratio == 0:
+                #         fold_en = +inf
+                #     elif study_ratio == 0:
+                #         fold_en = _inf
+                # except ZeroDivisionError:
+                #     fold_en = -1
             one_record = GOEnrichmentRecord(
                 id=goid,
+                fold_enrichment= fold_en,
                 p_uncorrected=p.two_tail,
                 ratio_in_study=(study_count, study_n),
                 ratio_in_pop=(pop_count, pop_n),
@@ -174,7 +186,7 @@ class GOEnrichmentStudy(object):
                 holm = HolmBonferroni(pvals, self.alpha).corrected_pvals
             elif method == "fdr":
                 # get the empirical p-value distributions for FDR
-                p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop, self.assoc_dict, self.term_pop, self.obo_dag)
+                p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
                 fdr = FDR(p_val_distribution,
                           results, self.alpha).corrected_pvals
             elif method == "benjamini_hochberg":
@@ -225,7 +237,7 @@ class GOEnrichmentStudy(object):
             fh_out.write("# min_ratio={0} pval={1}".format(min_ratio, pval) + '\n')
             fh_out.write("\t".join(GOEnrichmentRecord()._fields) + '\n')
             # for rec in self.results: # sort by record.id, results=[record1, record2, ...]
-            results_sorted_by_goterm  = sorted(self.results, key=lambda record: record.id)
+            results_sorted_by_goterm  = sorted(self.results, key=lambda record: record.fold_enrichment, reverse=True)
             for rec in results_sorted_by_goterm:
                 rec.update_remaining_fields(min_ratio=min_ratio)
                 if pval is not None and rec.p_bonferroni > pval:
