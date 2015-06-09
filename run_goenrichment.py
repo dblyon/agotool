@@ -19,11 +19,9 @@ if __name__ == '__main__':
 
     userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
     # userinput_fn = home + r'/modules/cpr/goterm/test/UserInput_test2.txt'
-
-    ui = goretriever.UserInput()
     home = os.path.expanduser('~')
 
-    randomSample = False
+    randomSample = True
     backtracking = True
     num_bins = 100
     alpha = 0.05
@@ -58,7 +56,7 @@ if __name__ == '__main__':
     # for i in range(1,11):
     #     fn_out = 'SummaryTest_yeast_acetyl_randomSample_v' + str(i) + '.txt'
 
-    fn_out = 'SummaryTest_yeast_acetyl_AbundanceCorrected.txt'
+    fn_out = 'SummaryTest_yeast_acetyl_AbundanceCorrected_btrk_rndom1.txt'
     ui = goretriever.UserInput(userinput_fn, num_bins) # adapt UserInput to process web input etc.
     gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample)
     results = gostudy.run_study()
