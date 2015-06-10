@@ -11,9 +11,13 @@ __author__ = 'dblyon'
 if __name__ == '__main__':
     #!!! don't run this for every analysis. check organism here!!!
     # required, and regularly updated
+
     goa_ref_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
+    # goa_ref_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
+
     obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
     # obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
+
     obo_dag = obo_parser.GODag(obo_file=obo_fn)
     assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict()
 
@@ -60,12 +64,6 @@ if __name__ == '__main__':
     # fn_out = 'Yeast_Acetyl_vs_Genome.txt'
 
 
-
-    # fn_out = 'TEST_v7.txt'
-    # col_sample_an = 'sample_an'
-    # col_background_an = 'backgrnd_an'
-    # col_background_int = 'backgrnd_int'
-
 # YEAST
 # ['Genome',
 #  'iBAQ observed (log10)',
@@ -81,40 +79,58 @@ if __name__ == '__main__':
 
 
     randomSample = False
-    userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast.txt'
+    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast.txt'
+    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_HeLa.txt'
 
-    for modification in ['Phos', 'Ubi', 'Acetyl', 'Succinyl']:
-        for background in ['Genome', 'Observed', 'AbCorr']:
-            fn_out = 'Yest_modification_vs_background.txt'.replace('modification', modification)
-            fn_out = 'Yest_modification_vs_background.txt'.replace('background', background)
-            if background == 'Genome':
-                abcorr = False
-            else:
-                abcorr = True
-            col_sample_an = modification
-            col_background_an = 'Genome'
-            col_background_int = 'iBAQ observed (log10)'
+    # for modification in ['Phos', 'Ubi', 'Acetyl', 'Succinyl']:
+    #     for background in ['Observed', 'Genome', 'AbCorr']:
+    #         # fn_out = 'Yeast_modification_vs_background.txt'
+    #         fn_out = 'HeLa_modification_vs_background.txt'
+    #         fn_out = fn_out.replace('modification', modification)
+    #         fn_out = fn_out.replace('background', background)
+    #         if background == 'AbCorr':
+    #             abcorr = True
+    #         else:
+    #             abcorr = False
+    #         if background == 'Genome':
+    #             col_background_an = 'Genome'
+    #         else:
+    #             col_background_an = 'Observed Proteome'
+    #         col_sample_an = modification
+    #         col_background_int = 'iBAQ observed (log10)'
+    #
+    #         print(fn_out, modification, background)
+    #         ui = goretriever.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int)
+    #
+    #         gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
+    #         gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
 
-            ui = goretriever.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int)
 
-            gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
-            gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
+    abcorr = True
+    userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
+    fn_out = 'Yeast_Acetyl_vs_AbCorr_oldUserInput.txt'
+    ui = goretriever.UserInput(userinput_fn, num_bins)
+    gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
+    gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
 
 
 
 
 
-    ##### Parameters from User
-    # Sample frequency IDs: List of AccessionNumbers
-    # Background frequency IDs: List of AccessionNumbers
-    # Background frequency abundance: corresponding List of Intensities
-    # organism = 'yeast' # Saccharomyces cerevisiae, HeLa, etc.
-    # --> generate study_fn, population_fn
-    # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test4.txt'
-    # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_test4.txt'
-    # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_yeast_acetyl.txt'
-    # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_obsProteome.txt'
-    # association_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast'
+
+
+
+            ##### Parameters from User
+            # Sample frequency IDs: List of AccessionNumbers
+            # Background frequency IDs: List of AccessionNumbers
+            # Background frequency abundance: corresponding List of Intensities
+            # organism = 'yeast' # Saccharomyces cerevisiae, HeLa, etc.
+            # --> generate study_fn, population_fn
+            # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test4.txt'
+            # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_test4.txt'
+            # study_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_yeast_acetyl.txt'
+            # population_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_obsProteome.txt'
+            # association_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast'
 
 
 

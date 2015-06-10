@@ -167,7 +167,7 @@ class UserInput(object):
     def __init__(self, user_input_fn=None, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', col_background_int='backgrnd_int'):
         if not user_input_fn:
             user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t")
+        self.df_orig = pd.read_csv(user_input_fn, sep="\t")#, decimal=',') #!!! check file for this
         self.set_num_bins(num_bins)
         self.col_sample_an = col_sample_an
         self.col_background_an = col_background_an
@@ -182,10 +182,19 @@ class UserInput(object):
         concat and align data to single DataFrame
         :return: None
         '''
-        cond = pd.isnull(self.df_orig[self.col_sample_an])
-        # remove duplicate AccessionNumbers from samplefrequency and backgroundfrequency
-        self.samplefreq_ser = self.df_orig.loc[-cond, self.col_sample_an].drop_duplicates().copy() # copy probably not necessary
-        self.backgroundfreq_df = self.df_orig.loc[:, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
+
+        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency
+        cond = pd.notnull(self.df_orig[self.col_sample_an])
+        self.samplefreq_ser = self.df_orig.loc[cond, self.col_sample_an].drop_duplicates().copy()
+
+        cond = pd.notnull(self.df_orig[self.col_background_an])
+        self.backgroundfreq_df = self.df_orig.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
+
+
+        # cond = pd.isnull(self.df_orig[self.col_sample_an])
+        # self.samplefreq_ser = self.df_orig.loc[-cond, self.col_sample_an].drop_duplicates().copy()
+        # self.backgroundfreq_df = self.df_orig.loc[:, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
+
         # concatenate data
         self.df = self.concat_and_align_sample_and_background(self.samplefreq_ser, self.backgroundfreq_df)
         # remove AccessionNumbers from sample and background-frequency without intensity values
@@ -382,6 +391,15 @@ class UserInput(object):
         :return: SetOfString
         '''
         return set(self.df_orig.loc[pd.notnull(self.df_orig[self.col_background_an]), self.col_background_an].tolist())
+
+    def get_study_an_frset_all(self):
+        '''
+        produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
+        remove NaN
+        :return: SetOfString
+        '''
+        return set(self.df_orig.loc[pd.notnull(self.df_orig[self.col_sample_an]), self.col_sample_an].tolist())
+
 
 
 # %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'

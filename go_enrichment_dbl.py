@@ -70,7 +70,6 @@ class GOEnrichmentStudy(object):
     """
     def __init__(self, ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr):
         self.ui = ui
-        self.study_an_frset = self.ui.get_study_an_frset()
         self.assoc_dict = assoc_dict
         self.obo_dag = obo_dag
         self.alpha = alpha
@@ -89,9 +88,13 @@ class GOEnrichmentStudy(object):
         '''
         :return: None
         '''
+        self.study_an_frset = self.ui.get_study_an_frset()
         self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
         study_n = len(self.study_an_frset)
         if self.abcorr:
+            self.study_an_frset = self.ui.get_study_an_frset()
+            self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+            study_n = len(self.study_an_frset)
             if self.randomSample:
                 self.pop_an_set = self.ui.get_population_an_set_random_sample()
                 pop_n  = len(self.pop_an_set)
@@ -100,6 +103,9 @@ class GOEnrichmentStudy(object):
                 pop_n = len(self.study_an_frset)
                 self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
         else:
+            self.study_an_frset = self.ui.get_study_an_frset_all()
+            self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+            study_n = len(self.study_an_frset)
             self.pop_an_set = self.ui.get_population_an_set_all()
             pop_n  = len(self.pop_an_set)
             self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
