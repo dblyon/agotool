@@ -164,11 +164,14 @@ class UserInput(object):
     samplefreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, user_input_fn=None, num_bins=100):
+    def __init__(self, user_input_fn=None, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', col_background_int='backgrnd_int'):
         if not user_input_fn:
             user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
         self.df_orig = pd.read_csv(user_input_fn, sep="\t")
         self.set_num_bins(num_bins)
+        self.col_sample_an = col_sample_an
+        self.col_background_an = col_background_an
+        self.col_background_int = col_background_int
         self.cleanupforanalysis()
 
     def cleanupforanalysis(self):
@@ -179,16 +182,16 @@ class UserInput(object):
         concat and align data to single DataFrame
         :return: None
         '''
-        cond = pd.isnull(self.df_orig["sample_an"])
+        cond = pd.isnull(self.df_orig[self.col_sample_an])
         # remove duplicate AccessionNumbers from samplefrequency and backgroundfrequency
-        self.samplefreq_ser = self.df_orig.loc[-cond, "sample_an"].drop_duplicates().copy() # copy probably not necessary
-        self.backgroundfreq_df = self.df_orig.loc[:, ["backgrnd_an", "backgrnd_int"]].drop_duplicates(subset="backgrnd_an").copy()
+        self.samplefreq_ser = self.df_orig.loc[-cond, self.col_sample_an].drop_duplicates().copy() # copy probably not necessary
+        self.backgroundfreq_df = self.df_orig.loc[:, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
         # concatenate data
         self.df = self.concat_and_align_sample_and_background(self.samplefreq_ser, self.backgroundfreq_df)
         # remove AccessionNumbers from sample and background-frequency without intensity values
-        self.df  = self.df.loc[pd.notnull(self.df['backgrnd_int']), ]
-        self.set_study(self.df.loc[pd.notnull(self.df['sample_an']), 'sample_an'])
-        self.set_population(self.df[['backgrnd_int', 'backgrnd_an']])
+        self.df  = self.df.loc[pd.notnull(self.df[self.col_background_int]), ]
+        self.set_study(self.df.loc[pd.notnull(self.df[self.col_sample_an]), self.col_sample_an])
+        self.set_population(self.df[[self.col_background_int, self.col_background_an]])
 
     def set_study(self, series):
         self.samplefreq_ser =  series
@@ -208,7 +211,7 @@ class UserInput(object):
         produce list of AccessionNumbers, background frequency (termed 'population' in goatools)
         :return: ListOfString
         '''
-        return sorted(self.backgroundfreq_df['backgrnd_an'].tolist())
+        return sorted(self.backgroundfreq_df[self.col_background_an].tolist())
 
     def set_num_bins(self, num_bins):
         self.num_bins = num_bins
@@ -221,19 +224,19 @@ class UserInput(object):
         produce AccessionNumbers with corresponding Intensity of sample/study
         :return: DataFrame
         '''
-        return self.df.loc[pd.notnull(self.df['sample_an']), ['sample_an', 'backgrnd_int']]
+        return self.df.loc[pd.notnull(self.df[self.col_sample_an]), [self.col_sample_an, self.col_background_int]]
 
     def get_background_an_int(self):
         '''
         produce AccessionNumbers with corresponding Intensity of background/population
         :return: DataFrame
         '''
-        return self.df[['backgrnd_an', 'backgrnd_int']]
+        return self.df[[self.col_background_an, self.col_background_int]]
 
     def get_df(self):
         '''
         return cleaned (non-redundant, aligned, no NANs) DataFrame
-        columns: sample_an, backgrnd_an, backgrnd_int
+        columns: self.col_sample_an, backgrnd_an, backgrnd_int
         :return: DataFrame
         '''
         return self.df
@@ -270,8 +273,8 @@ class UserInput(object):
         ans_sample_filtered = []
         for an in self.get_study():
             goterm_list = gor.get_goterms_from_an(an)
-            cond = self.backgroundfreq_df['backgrnd_an'] == an
-            intensity_valinlist = self.backgroundfreq_df.loc[cond, 'backgrnd_int'].tolist()
+            cond = self.backgroundfreq_df[self.col_background_an] == an
+            intensity_valinlist = self.backgroundfreq_df.loc[cond, self.col_background_int].tolist()
             if goterm_list != -1 and len(intensity_valinlist) != 0:
                 ans_sample_filtered += an
 
@@ -284,7 +287,7 @@ class UserInput(object):
         :return: DataFrame
         '''
         sample_ser.index = sample_ser.tolist()
-        background_df.index = background_df['backgrnd_an'].tolist()
+        background_df.index = background_df[self.col_background_an].tolist()
         return pd.concat([sample_ser, background_df], axis=1)
 
     def get_random_background_ans(self):
@@ -294,7 +297,7 @@ class UserInput(object):
         :return: ListOfString
         '''
         ans_random_list = []
-        hist, bins = np.histogram(self.get_sample_an_int()['backgrnd_int'], bins=self.get_num_bins())
+        hist, bins = np.histogram(self.get_sample_an_int()[self.col_background_int], bins=self.get_num_bins())
         # perc_hist = hist / float(sum(hist))
         for index, numinhist in enumerate(hist):
             num_ans = numinhist
@@ -315,10 +318,10 @@ class UserInput(object):
         :return: ListOfString
         '''
         df = self.get_background_an_int()
-        cond1 = df['backgrnd_int'] >= lower #!!!
-        cond2 = df['backgrnd_int'] <= upper #!!! can this lead to a larger random sample than population picked from?
+        cond1 = df[self.col_background_int] >= lower #!!!
+        cond2 = df[self.col_background_int] <= upper #!!! can this lead to a larger random sample than population picked from?
         cond = cond1 & cond2
-        ans_withinBounds = df.loc[cond, 'backgrnd_an']
+        ans_withinBounds = df.loc[cond, self.col_background_an]
         if len(ans_withinBounds) > 0:
             if get_all_ans:
                 return sorted(ans_withinBounds)
@@ -332,7 +335,7 @@ class UserInput(object):
         for every bin, produce ans-background and weighting-factor of respective bin
         :return: Tuple(ListOfSting, Float)
         """
-        hist, bins = np.histogram(self.get_sample_an_int()['backgrnd_int'], bins=self.get_num_bins())
+        hist, bins = np.histogram(self.get_sample_an_int()[self.col_background_int], bins=self.get_num_bins())
         for index, numinhist in enumerate(hist):
             num_ans = numinhist
             lower = bins[index]
@@ -372,6 +375,13 @@ class UserInput(object):
         '''
         return set(self.get_random_background_ans())
 
+    def get_population_an_set_all(self):
+        '''
+        produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
+        remove NaN
+        :return: SetOfString
+        '''
+        return set(self.df_orig.loc[pd.notnull(self.df_orig[self.col_background_an]), self.col_background_an].tolist())
 
 
 # %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'

@@ -68,7 +68,7 @@ class GOEnrichmentRecord(object):
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample):
+    def __init__(self, ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr):
         self.ui = ui
         self.study_an_frset = self.ui.get_study_an_frset()
         self.assoc_dict = assoc_dict
@@ -76,16 +76,34 @@ class GOEnrichmentStudy(object):
         self.alpha = alpha
         self.methods = methods
         self.results = []
+        self.backtracking = backtracking
+        self.randomSample = randomSample
+        self.abcorr = abcorr
 
-        if backtracking: # add all parent GO-terms to assoc_dict
+        if self.backtracking: # add all parent GO-terms to assoc_dict
             self.obo_dag.update_association(self.assoc_dict)
 
+        self.prepare_run()
+
+    def prepare_run(self):
+        '''
+        :return: None
+        '''
         self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
-        if randomSample:
-            self.pop_an_set = ui.get_population_an_set_random_sample()
-            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+        study_n = len(self.study_an_frset)
+        if self.abcorr:
+            if self.randomSample:
+                self.pop_an_set = self.ui.get_population_an_set_random_sample()
+                pop_n  = len(self.pop_an_set)
+                self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+            else:
+                pop_n = len(self.study_an_frset)
+                self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
         else:
-            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+            self.pop_an_set = self.ui.get_population_an_set_all()
+            pop_n  = len(self.pop_an_set)
+            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+        self.run_study_v2(self.term_study, self.term_pop, study_n, pop_n)
 
     def get_ans_from_goid(self, goid, study):
         if study:
@@ -98,6 +116,71 @@ class GOEnrichmentStudy(object):
                 return sorted(self.go2ans_pop_dict[goid])
             else:
                 return ''
+
+    def run_study_no_abcorr(self):
+        '''
+        run tests without abundance correction of background proteome
+        :return: None
+        '''
+        pass
+
+
+    def run_study_v2(self, term_study, term_pop, study_n, pop_n):
+        """
+        ###################################################
+        # contingency table general variable names:
+        #     sample  background  row-sum
+        # -------------------------------
+        # +   a       b           r1
+        # -------------------------------
+        # -   c       d           r2
+        # -------------------------------
+        #     col_1   col_2       n
+        #
+        # what we've got as input:
+        #     sample            background    row-sum
+        # ----------------------------------------------
+        # +   study_count       pop_count     r1
+        # ----------------------------------------------
+        # -   c                 d             r2
+        # ----------------------------------------------
+        #     study_n           pop_n         n
+        #
+        # fisher.pvalue_population() expects:
+        #  (a, col_1, r1, n)
+        #  (study_count, study_n, study_count + pop_count, study_n + pop_n)
+        #
+        # equivalent results using the following methods:
+        # fisher.pvalue_population(a, col_1, r1, n)
+        # fisher.pvalue(a, b, c, d)
+        # scipy.stats.fisher_exact([[a, b], [c, d]])
+        ###################################################
+        :return: results-object
+        """
+        # Init study_count and pop_count to handle empty sets
+        study_count = pop_count = 0
+        for goid, study_count in list(term_study.items()):
+            pop_count = term_pop[goid]
+            a = study_count
+            col_1 = study_n
+            r1 = study_count + pop_count
+            n = study_n + pop_n
+            p = fisher.pvalue_population(a, col_1, r1, n)
+            try:
+                fold_en = (float(study_count)/study_n) / (float(pop_count)/pop_n)
+            except ZeroDivisionError:
+                fold_en = -1
+            one_record = GOEnrichmentRecord(
+                id=goid,
+                fold_enrichment= fold_en,
+                p_uncorrected=p.two_tail,
+                ratio_in_study=(study_count, study_n),
+                ratio_in_pop=(pop_count, pop_n),
+                ANs_study = (',').join(self.get_ans_from_goid(goid, study=True)),
+                ANs_pop = (',').join(self.get_ans_from_goid(goid, study=False)))
+            self.results.append(one_record)
+        self.calc_multiple_corrections()
+
 
     def run_study(self):
         """
@@ -131,7 +214,7 @@ class GOEnrichmentStudy(object):
         ###################################################
         :return: results-object
         """
-        pop_n = study_n = len(self.study_an_frset)
+        study_n = pop_n = len(self.study_an_frset)
         # Init study_count and pop_count to handle empty sets
         study_count = pop_count = 0
         for goid, study_count in list(self.term_study.items()):
@@ -154,7 +237,7 @@ class GOEnrichmentStudy(object):
                 ANs_study = (',').join(self.get_ans_from_goid(goid, study=True)),
                 ANs_pop = (',').join(self.get_ans_from_goid(goid, study=False)))
             self.results.append(one_record)
-        return self.calc_multiple_corrections()
+        self.calc_multiple_corrections()
 
     def calc_multiple_corrections(self):
         # Calculate multiple corrections
@@ -187,7 +270,7 @@ class GOEnrichmentStudy(object):
         for rec in self.results:
             # get go term for description and level
             rec.find_goterm(self.obo_dag)
-        return self.results
+        # return self.results
 
     def update_results(self, method, corrected_pvals):
         if corrected_pvals is None:
