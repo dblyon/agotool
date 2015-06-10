@@ -1,11 +1,10 @@
+import os, re, goatools
 
-import os
-import re
-import goatools
+home = os.path.expanduser('~')
 
-ASSOCIATIONS = 'static/data/associations/%s'
-UNIPROT_GOTERMS = 'static/data/uniprot_go'
-OBO_FILE = 'static/data/go-basic.obo'
+ASSOCIATIONS = home + '/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast'
+OBO_FILE = home + '/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
+#!!! # UNIPROT_GOTERMS = home + '/CloudStation/CPR/Brian_GO/go_rescources/go_obo/???'
 
 
 def update_data(input_ids, assoc, base_assoc):
@@ -16,7 +15,6 @@ def update_data(input_ids, assoc, base_assoc):
             assoc['%s_%s' % (_id, site)] = base_assoc[_id]
             ids.add(_id)
     return ids
-
 
 def read_associations(assoc_fn):
     assoc = {}
@@ -30,7 +28,6 @@ def read_associations(assoc_fn):
             continue
         b = set(b.split(";"))
         assoc[a] = b
-
     return assoc
     # results, header = penrichment.run(
     #     form.organism.data, form.catagories.data,
@@ -42,7 +39,6 @@ def run(organism, catagories, fg, bg, alpha, min_ratio, correction='fdr'):
     # goatools assumes that every gene is a count rather than every
     # site we fudge this by making a association record with name:
     # ID_SITE, with association equal to the ID
-
     base_assoc_file = open(ASSOCIATIONS % organism, 'r')
     base_assoc_file.readline()
     base_assoc = {}
@@ -50,18 +46,13 @@ def run(organism, catagories, fg, bg, alpha, min_ratio, correction='fdr'):
         _id, bp, cc, mf = line.rstrip('\r\n').split('\t')
         _sets = set(bp.split(';')) | set(cc.split(';')) | set(mf.split(';'))
         base_assoc[_id] = _sets
-
     assoc = {}
     study = update_data(bg, assoc, base_assoc)
     pop   = update_data(fg, assoc, base_assoc)
-
     obo_dag = goatools.obo_parser.GODag(obo_file=OBO_FILE)
     g = goatools.GOEnrichmentStudy(
             pop, assoc, obo_dag, alpha=alpha, study=study,
-    #        methods=["bonferroni", "sidak", "holm", "fdr"]
-            methods=["bonferroni", "sidak", "holm"]
-    )
-
+            methods=["bonferroni", "sidak", "holm"])
     header = goatools.GOEnrichmentRecord()._fields
     results = []
     for rec in g.results:
@@ -82,24 +73,19 @@ def run(organism, catagories, fg, bg, alpha, min_ratio, correction='fdr'):
 
 def get_top_nodes(node):
     top_nodes = set()
-
     def get_parents(node):
         if node.parents == []:
             top_nodes.add(node.id)
         else:
             for n in node.parents:
                 get_parents(n)
-
     get_parents(node)
     return top_nodes
 
 
-
 if __name__ == '__main__':
 
-    root_term_meaning = {
-        "GO:0008150" : "BP", "GO:0005575" : "CP", "GO:0003674" : "MF"
-    }
+    root_term_meaning = {"GO:0008150" : "BP", "GO:0005575" : "CP", "GO:0003674" : "MF"}
 
     obo_dag = goatools.obo_parser.GODag(obo_file=OBO_FILE)
     for go_file_path in os.listdir(UNIPROT_GOTERMS):

@@ -1,14 +1,6 @@
-import os
-import time
-import itertools
-import sys
-import logging
-import wtforms
-import StringIO
-import collections
+import flask, os, time, itertools, sys, logging, wtforms, StringIO, collections
 from wtforms import fields, validators
 # Setup for flask
-import flask
 from flask import render_template, request
 
 # import 'back end' scripts
@@ -18,7 +10,6 @@ import ks
 import pdavid
 import penrichment
 import go_term_enrichment
-
 
 app = flask.Flask(__name__)
 
@@ -43,9 +34,7 @@ organism_choices = [
     (u'7227',  u'Drosophila melanogaster'),
     (u'7955',  u'Danio rerio'),
     (u'9031',  u'Gallus gallus'),
-    (u'8364',  u'Xenopus (Silurana) tropicalis')
-]
-
+    (u'8364',  u'Xenopus (Silurana) tropicalis')]
 
 def resultfile_to_results(result_file):
     result_file.seek(0)
@@ -59,7 +48,14 @@ def resultfile_to_results(result_file):
 @app.route('/')
 def index():
     return render_template('index.html')
+################################################################################
 
+################################################################################
+# about.html
+################################################################################
+@app.route('/about')
+def about():
+    return render_template('about.html')
 ################################################################################
 
 ################################################################################
@@ -68,10 +64,8 @@ class BaseActivationLoopForm(wtforms.Form):
     input_textarea = fields.TextAreaField(u'Input Sites')
     input_file = fields.FileField(u"Input file")
 
-
 class ActivationLoopSitesForm(BaseActivationLoopForm):
     example_data = fields.HiddenField(default=open('static/data/examples/site_example.tsv').read())
-
 
 class ActivationLoopPeptidesForm(BaseActivationLoopForm):
     example_data = fields.HiddenField(default=open('static/data/examples/peptide_example.tsv').read())
@@ -85,7 +79,6 @@ class ActivationLoopPeptidesForm(BaseActivationLoopForm):
 @app.route('/activation_loop_sites')
 def activation_loop_sites():
     return render_template('activation_loop.html', form=ActivationLoopSitesForm(), page_type="sites")
-
 
 @app.route('/activation_loop_peptides')
 def activation_loop_peptides():
@@ -101,7 +94,6 @@ def get_activation_loop_organism_and_textarea(request):
 @app.route('/activation_loop_sites_result', methods=['POST'])
 def submit_activation_loop_sites():
     organism, textarea = get_activation_loop_organism_and_textarea(request)
-
     results, errors = activationloop.parse_positions(textarea, organism)
     header = ['Uniprot Entry', 'Gene Name', 'Loop Sites', 'Other Sites']
     tsv, _results = ['\t'.join(header)], []
@@ -119,8 +111,7 @@ def submit_activation_loop_peptides():
     form = ActivationLoopPeptidesForm(request.form)
     organism, textarea = get_activation_loop_organism_and_textarea(request)
     results, errors = activationloop.parse_peptides(
-        textarea, int(organism), form.cleave_res.data, int(form.missed_clevages.data), form.cleave.data == 'after'
-    )
+        textarea, int(organism), form.cleave_res.data, int(form.missed_clevages.data), form.cleave.data == 'after')
     header = ['Uniprot Entry', 'Gene Name', 'Loop Sites', 'Other Sites', 'Peptide']
     tsv, _results = ['\t'.join(header)], []
     br = '\n'
@@ -132,9 +123,7 @@ def submit_activation_loop_peptides():
             tsv.append('\t'.join((acc, gene, l, k, s)))
         seq = '\n'.join(seq)
         _results.append([acc, gene, '\n'.join(loop), '\n'.join(kin), seq, des])
-
     tsv = u'\n'.join(tsv).encode('base64')
-
     return render_template('result.html', header=header,
                            results=_results, tsv=tsv, errors=errors)
 
@@ -152,13 +141,9 @@ def enzyme_enrichment():
 @app.route('/enzyme_enrichment_result', methods=["POST"])
 def submit_enzyme_enrichment():
     result_file = StringIO.StringIO()
-
     fg = '/Users/jcr/Projects/Teaching/UV/reg_UV_networkin.tsv'
     bg = '/Users/jcr/Projects/Teaching/UV/unreg_UV_networkin.tsv'
-
     ks.ks_test(fg, bg, result_file)
-    # ks.ks_test(request.files['forground_file'], request.files['forground_file'], result_file)
-
     results, header = resultfile_to_results(result_file)
     return render_template('result.html', header=header, results=results, tsv=result_file.read(),
                     errors=[])
@@ -210,10 +195,9 @@ def phospho_enrichment_result():
 ################################################################################
 class GOTermEnrichmentForm(wtforms.Form):
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-    foreground_textarea = fields.TextAreaField("Foreground Sites")
-    background_textarea = fields.TextAreaField("Background Sites")
-    catagories = fields.SelectMultipleField(
-            "GO Catagories",
+    foreground_textarea = fields.TextAreaField("Study AccessionNumbers")
+    background_textarea = fields.TextAreaField("Background AccessionNumbers and Intensities")
+    catagories = fields.SelectMultipleField("GO Catagories",
             choices = (("BP", "Biological Processes"), ("CC", "Cellular Compartments"),
                      ("MF", "Molecular Function")),
             widget = wtforms.widgets.ListWidget(prefix_label=False),
