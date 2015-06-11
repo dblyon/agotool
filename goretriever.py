@@ -164,10 +164,10 @@ class UserInput(object):
     samplefreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, user_input_fn=None, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', col_background_int='backgrnd_int'):
+    def __init__(self, user_input_fn=None, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', col_background_int='backgrnd_int', decimal='.'):
         if not user_input_fn:
             user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t")#, decimal=',') #!!! check file for this
+        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=decimal) #!!! check file for this
         self.set_num_bins(num_bins)
         self.col_sample_an = col_sample_an
         self.col_background_an = col_background_an
@@ -186,21 +186,89 @@ class UserInput(object):
         # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency
         cond = pd.notnull(self.df_orig[self.col_sample_an])
         self.samplefreq_ser = self.df_orig.loc[cond, self.col_sample_an].drop_duplicates().copy()
-
         cond = pd.notnull(self.df_orig[self.col_background_an])
         self.backgroundfreq_df = self.df_orig.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
+        print(self.samplefreq_ser.iloc[0:3])
+        print(self.samplefreq_ser.shape)
+        print(self.backgroundfreq_df.iloc[0:3])
+        print(self.backgroundfreq_df.shape)
+        print("####")
 
-
-        # cond = pd.isnull(self.df_orig[self.col_sample_an])
-        # self.samplefreq_ser = self.df_orig.loc[-cond, self.col_sample_an].drop_duplicates().copy()
-        # self.backgroundfreq_df = self.df_orig.loc[:, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
-
+        # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
+        # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
+        self.samplefreq_ser = self.removeSpliceVariants_splitProteinGrous_Series(self.samplefreq_ser)
+        self.backgroundfreq_df = self.removeSpliceVariants_splitProteinGrous_DataFrame(self.backgroundfreq_df, self.col_background_an, self.col_background_int)
+        print(self.samplefreq_ser.iloc[0:3])
+        print(self.samplefreq_ser.shape)
+        print()
+        print(self.backgroundfreq_df.iloc[0:3])
+        print(self.backgroundfreq_df.shape)
         # concatenate data
         self.df = self.concat_and_align_sample_and_background(self.samplefreq_ser, self.backgroundfreq_df)
         # remove AccessionNumbers from sample and background-frequency without intensity values
         self.df  = self.df.loc[pd.notnull(self.df[self.col_background_int]), ]
         self.set_study(self.df.loc[pd.notnull(self.df[self.col_sample_an]), self.col_sample_an])
         self.set_population(self.df[[self.col_background_int, self.col_background_an]])
+
+
+    def removeSpliceVariants_splitProteinGrous_Series(self, series):
+        '''
+        remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
+        split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
+        :param series: PandasSeries
+        :return: Series
+        '''
+        list2return = []
+        templist = []
+        for ele in series:
+            templist += ele.split(';')
+        for ele in templist:
+            ele_split = ele.split('-')
+            if len(ele_split) > 1:
+                list2return.append(ele_split[0])
+            else:
+                list2return.append(ele)
+        return pd.Series(list2return, name = series.name)
+
+    def removeSpliceVariants_splitProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
+        '''
+        remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
+        split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
+        copy abundance data when adding rows
+        :param series: PandasDataFrame
+        :return: Series
+        '''
+        df_new = self.splitProteinGroups_DataFrame(dataframe, colname_an, colname_int)
+        return self.removeSpliceVariants_DataFrame(df_new, colname_an, colname_int)
+
+    def splitProteinGroups_DataFrame(self, dataframe, colname_an, colname_int):
+        ans2write_list = []
+        int2write_list = []
+        iterrows = dataframe[[colname_an, colname_int]].iterrows()
+        for row in iterrows:
+            index = row[0]
+            int_val = dataframe.loc[index, colname_int]
+            ans_row = row[1][colname_an]
+            ans_split_semicol = ans_row.split(';')
+            len_ans_split_semicol = len(ans_split_semicol)
+            if len_ans_split_semicol > 1:
+                ans2write_list += ans_split_semicol
+                int2write_list += [int_val] * len_ans_split_semicol
+            else:
+                ans2write_list.append(ans_row)
+                int2write_list.append(int_val)
+        return pd.DataFrame({colname_an: ans2write_list, colname_int: int2write_list})
+
+    def removeSpliceVariants_DataFrame(self, dataframe, colname_an, colname_int):
+        iterrows = dataframe[[colname_an, colname_int]].iterrows()
+        for row in iterrows:
+            index = row[0]
+            an_row = row[1][colname_an]
+            an_split_minus = an_row.split('-')
+            len_an_split_minus = len(an_split_minus)
+            if len_an_split_minus > 1:
+                dataframe.loc[index, colname_an] = an_split_minus[0]
+        return dataframe
 
     def set_study(self, series):
         self.samplefreq_ser =  series

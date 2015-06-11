@@ -21,12 +21,8 @@ if __name__ == '__main__':
     obo_dag = obo_parser.GODag(obo_file=obo_fn)
     assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict()
 
-    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
-    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Yest_Acetyl_vs_Genome_UserInput.txt'
-    # userinput_fn = home + r'/modules/cpr/goterm/test/UserInput_test2.txt'
+
     home = os.path.expanduser('~')
-
-
     backtracking = True
     num_bins = 100
     alpha = 0.05
@@ -58,12 +54,6 @@ if __name__ == '__main__':
         assert 1 <= min_ratio <= 2
     assert 0 < alpha < 1, "Test-wise alpha must fall between (0, 1)"
 
-    # for i in range(1,11):
-    #     fn_out = 'SummaryTest_yeast_acetyl_randomSample_v' + str(i) + '.txt'
-
-    # fn_out = 'Yeast_Acetyl_vs_Genome.txt'
-
-
 # YEAST
 # ['Genome',
 #  'iBAQ observed (log10)',
@@ -77,41 +67,43 @@ if __name__ == '__main__':
 # 2- modified v observed
 # 3- modified v Abundance-corrected
 
-
+    decimal = ','
     randomSample = False
-    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast.txt'
+    userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast_v2.txt'
     # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_HeLa.txt'
 
-    # for modification in ['Phos', 'Ubi', 'Acetyl', 'Succinyl']:
-    #     for background in ['Observed', 'Genome', 'AbCorr']:
-    #         # fn_out = 'Yeast_modification_vs_background.txt'
-    #         fn_out = 'HeLa_modification_vs_background.txt'
-    #         fn_out = fn_out.replace('modification', modification)
-    #         fn_out = fn_out.replace('background', background)
-    #         if background == 'AbCorr':
-    #             abcorr = True
-    #         else:
-    #             abcorr = False
-    #         if background == 'Genome':
-    #             col_background_an = 'Genome'
-    #         else:
-    #             col_background_an = 'Observed Proteome'
-    #         col_sample_an = modification
-    #         col_background_int = 'iBAQ observed (log10)'
-    #
-    #         print(fn_out, modification, background)
-    #         ui = goretriever.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int)
-    #
-    #         gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
-    #         gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
+    for modification in ['Acetyl']: #['Phos', 'Ubi', 'Acetyl', 'Succinyl']:
+        for background in ['Observed', 'Genome', 'AbCorr']:
+            fn_out = 'Yeast_modification_vs_background.txt'
+            # fn_out = 'HeLa_modification_vs_background.txt'
+            fn_out = fn_out.replace('modification', modification)
+            fn_out = fn_out.replace('background', background)
+            if background == 'AbCorr':
+                abcorr = True
+            else:
+                abcorr = False
+            if background == 'Genome':
+                col_background_an = 'Genome'
+            else:
+                col_background_an = 'Observed Proteome'
+            col_sample_an = modification
+            col_background_int = 'iBAQ observed (log10)'
+
+            print(fn_out, modification, background)
+            ui = goretriever.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+
+            gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
+            gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
 
 
-    abcorr = True
-    userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
-    fn_out = 'Yeast_Acetyl_vs_AbCorr_oldUserInput.txt'
-    ui = goretriever.UserInput(userinput_fn, num_bins)
-    gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
-    gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
+
+##### old UserInput txt file
+    # abcorr = True
+    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/UserInput.txt'
+    # fn_out = 'Yeast_Acetyl_vs_AbCorr_oldUserInput.txt'
+    # ui = goretriever.UserInput(userinput_fn, num_bins)
+    # gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
+    # gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
 
 
 
