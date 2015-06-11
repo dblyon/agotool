@@ -206,8 +206,7 @@ class GOTermEnrichmentForm(wtforms.Form):
     alpha = fields.IntegerField("Alpha", default=0.05)
     correction_method = fields.SelectField(
         "Correction for multiple testing Method",
-        choices = (
-            ("fdr", "FDR"), ("bonferroni", "Bonferroni"),
+        choices = (("fdr", "FDR"), ("bonferroni", "Bonferroni"),
             ("sidak", "Sidak"), ("holm", "Holm"),
             ("uncorrected", "None")))
 
