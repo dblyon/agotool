@@ -12,8 +12,9 @@ from __future__ import absolute_import
 import fisher
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, FDR, calc_qval_dbl
 import ratio_dbl
+import numpy
 
-class GOEnrichmentRecord(object):
+class GOEnrichmentRecord_old(object):
     """Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
     _fields = "id enrichment fold_enrichment description ratio_in_study ratio_in_pop"\
@@ -65,6 +66,94 @@ class GOEnrichmentRecord(object):
         self.enrichment = 'e' if ((1.0 * study_count / study_n) > (1.0 * pop_count / pop_n)) else 'p'
         self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, study_count, study_n, pop_count, pop_n)
 
+class GOEnrichmentRecord(object):
+    """
+    Represents one result (from a single GOTerm) in the GOEnrichmentStudy
+    """
+
+    def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop, ANs_study, ANs_pop):
+        self.id = id
+        self.p_uncorrected = p_uncorrected
+        self.study_count, self.study_n = ratio_in_study
+        self.pop_count, self.pop_n = ratio_in_pop
+        self.ANs_study = ANs_study
+        self.ANs_pop = ANs_pop
+        self.perc_enrichment_study = self.calc_fold_enrichemnt(self.study_count, self.study_n)
+        self.perc_enrichment_pop = self.calc_fold_enrichemnt(self.pop_count, self.pop_n)
+        if self.perc_enrichment_study != -1 and self.perc_enrichment_pop != -1:
+            self.fold_enrichment_study2pop = str(round(self.calc_fold_enrichemnt(self.perc_enrichment_study, self.perc_enrichment_pop), 2))
+        else:
+            self.fold_enrichment_study2pop = "-1"
+        self.perc_enrichment_study = int(round(self.perc_enrichment_study * 100))
+        self.perc_enrichment_pop = int(round(self.perc_enrichment_pop * 100))
+        # self.study_count = str(self.study_count)
+        # self.study_n = str(self.study_n)
+        # self.pop_count = str(self.pop_count)
+        # self.pop_n = str(self.pop_n)
+
+
+
+    def calc_fold_enrichemnt(self, zaehler, nenner):
+        try:
+            fold_en = float(zaehler) / nenner
+        except ZeroDivisionError:
+            fold_en = -1
+        return fold_en
+
+    def find_goterm(self, go):
+        if self.id in list(go.keys()):
+            self.goterm = go[self.id]
+            self.description = self.goterm.name
+
+    def __setattr__(self, name, value):
+        self.__dict__[name] = value
+
+    def update_fields(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
+
+    def update_remaining_fields(self, min_ratio=None):
+        self.enrichment = 'e' if ((1.0 * self.study_count / self.study_n) > (1.0 * self.pop_count / self.pop_n)) else 'p'
+        self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, self.study_count, self.study_n, self.pop_count, self.pop_n)
+
+    def get_attributes2write(self):
+# id	enrichment	fold_enrichment	description	ratio_in_study	ratio_in_pop	p_uncorrected	p_bonferroni	p_holm	p_sidak	p_fdr	ANs_study	ANs_pop
+# ....GO:0016624	e	3.84	oxidoreductase activity, acting on the aldehyde or oxo group of donors, disulfide as acceptor	5/1129	5/4337	0.0372	182	163	178	n.a.	P09624,P16387,P19955,P20967,P32473	P09624,P16387,P19955,P20967,P32473
+
+        header_list = ['id', 'enrichment', 'perc_enrichment_study', 'perc_enrichment_pop', 'fold_enrichment_study2pop', 'study_count',
+                       'study_n', 'pop_count', 'pop_n', 'description', 'p_uncorrected', 'p_bonferroni', 'p_holm', 'p_sidak', 'ANs_study', 'ANs_pop'] # 'p_fdr'
+        return header_list
+
+    def get_line2write(self, indent):
+        attributes2write_list = self.get_attributes2write()
+        if indent:
+            attributes2write_list = ['dot_id' if x=='id' else x for x in attributes2write_list]
+            dots = ''
+            if self.goterm is not None:
+                dots = "." * self.goterm.level
+            self.dot_id = dots + self.id
+        return self.get_attributes_formatted(attributes2write_list)
+
+    def get_attributes_formatted(self, attributes_list):
+        string2write = ""
+        for attribute in attributes_list:
+            attr2write = self.__dict__[attribute]
+            if type(attr2write) == str:
+                pass
+            elif type(attr2write) == float:
+                attr2write == str(round(attr2write, 2))
+            elif type(attr2write) == int:
+                attr2write == str(attr2write)
+            else:
+                try:
+                    attr2write = str(attr2write)
+                except:
+                    attr2write = 'bubu'
+            print(attr2write, type(attr2write))
+            string2write += attr2write + '\t'
+        return string2write.rstrip()
+
+
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
@@ -115,29 +204,55 @@ class GOEnrichmentStudy(object):
         '''
         :return: None
         '''
-        self.study_an_frset = self.ui.get_study_an_frset()
-        self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+        # self.study_an_frset = self.ui.get_study_an_frset()
+        # self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+        # if self.abcorr:
+        #     self.study_an_frset = self.ui.get_study_an_frset()
+        #     self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+        #     study_n = len(self.study_an_frset)
+        #     if self.randomSample:
+        #         self.pop_an_set = self.ui.get_population_an_set_random_sample()
+        #         pop_n  = len(self.pop_an_set)
+        #         self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+        #     else:
+        #         pop_n = len(self.study_an_frset)
+        #         self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+        # else:
+        #     self.study_an_frset = self.ui.get_study_an_frset()
+        #     self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+        #     study_n = len(self.study_an_frset)
+        #     self.pop_an_set = self.ui.get_population_an_set_all()
+        #     pop_n  = len(self.pop_an_set)
+        #     self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+        # self.run_study_v2(self.term_study, self.term_pop, study_n, pop_n)
+
+
         if self.abcorr:
-            self.study_an_frset = self.ui.get_study_an_frset()
+            self.study_an_frset = self.ui.get_sample_an_frset()
             self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
             study_n = len(self.study_an_frset)
+
             if self.randomSample:
-                self.pop_an_set = self.ui.get_population_an_set_random_sample()
+                self.pop_an_set = self.ui.get_background_an_set_random_sample()
                 pop_n  = len(self.pop_an_set)
                 self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
             else:
                 pop_n = len(self.study_an_frset)
                 self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+
         else:
-            self.study_an_frset = self.ui.get_study_an_frset()
+            if self.ui.col_background_an == 'Genome':
+                self.study_an_frset = self.ui.get_sample_an_frset_genome()
+            else:
+                self.study_an_frset = self.ui.get_sample_an_frset()
             self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
             study_n = len(self.study_an_frset)
-            self.pop_an_set = self.ui.get_population_an_set_all()
+
+            self.pop_an_set = self.ui.get_background_an_all_set()
             pop_n  = len(self.pop_an_set)
             self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+
         self.run_study_v2(self.term_study, self.term_pop, study_n, pop_n)
-
-
 
     def get_ans_from_goid(self, goid, study):
         if study:
@@ -150,13 +265,6 @@ class GOEnrichmentStudy(object):
                 return sorted(self.go2ans_pop_dict[goid])
             else:
                 return ''
-
-    def run_study_no_abcorr(self):
-        '''
-        run tests without abundance correction of background proteome
-        :return: None
-        '''
-        pass
 
     def run_study_v2(self, term_study, term_pop, study_n, pop_n):
         """
@@ -199,13 +307,8 @@ class GOEnrichmentStudy(object):
             r1 = study_count + pop_count
             n = study_n + pop_n
             p = fisher.pvalue_population(a, col_1, r1, n)
-            try:
-                fold_en = (float(study_count)/study_n) / (float(pop_count)/pop_n)
-            except ZeroDivisionError:
-                fold_en = -1
             one_record = GOEnrichmentRecord(
                 id=goid,
-                fold_enrichment= fold_en,
                 p_uncorrected=p.two_tail,
                 ratio_in_study=(study_count, study_n),
                 ratio_in_pop=(pop_count, pop_n),
@@ -328,7 +431,7 @@ class GOEnrichmentStudy(object):
             if rec.is_ratio_different:
                 print(rec.__str__(indent=indent))
 
-    def write_summary2file(self, fn_out, min_ratio=None, indent=False, pval=0.05):
+    def write_summary2file_old(self, fn_out, min_ratio=None, indent=False, pval=0.05):
         '''
         as above just write to file instead of printing
         '''
@@ -344,6 +447,24 @@ class GOEnrichmentStudy(object):
                 if rec.is_ratio_different:
                     fh_out.write(rec.__str__(indent=indent) + '\n')
         print("DONE :)") #!!!
+
+
+    def write_summary2file(self, fn_out, min_ratio=None, indent=False, pval=0.05):
+        with open(fn_out, 'w') as fh_out:
+            fh_out.write("# min_ratio={0} pval={1}".format(min_ratio, pval) + '\n')
+            header2write = ('\t').join(self.results[0].get_attributes2write()) + '\n'
+            fh_out.write(header2write)
+            results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+            for rec in results_sorted_by_fold_enrichment_study2pop:
+                rec.update_remaining_fields(min_ratio=min_ratio)
+                if pval is not None and rec.p_bonferroni > pval:
+                    continue
+                if rec.is_ratio_different:
+                    fh_out.write(rec.get_line2write(indent=indent) + '\n')
+        print("DONE :)") #!!!
+
+
+
 
 ############################################################################################
 ############ testing goatools original fisher p-value caluculation

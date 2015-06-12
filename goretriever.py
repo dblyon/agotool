@@ -157,7 +157,6 @@ class Parser_UniProt_goa_ref(object):
                     print(an + ' ' + self.get_goterms_from_an(an))
         return assoc_dict
 
-
 class UserInput(object):
     """
     expects 2 arrays,
@@ -173,6 +172,24 @@ class UserInput(object):
         self.col_background_an = col_background_an
         self.col_background_int = col_background_int
         self.cleanupforanalysis()
+        # self.df_orig: unchanged
+        # remove NaNs, duplicates, split, protein groups, remove splice variant appendix
+        # self.df: aligned and only if intensity values exist
+
+        # SAMPLE:
+        # no NaNs, no duplicates, split protein groups, remove splice variant appendix
+        # self.sample_ser_all: PandasSeries of AccessionNumbers
+        # self.sample_ser_int: if abundance data present
+        # BACKGROUND:
+        # no NaNs, no duplicates, split protein groups, remove splice variant appendix
+        # self.background_df_all: PandasDataFrame of AccessionNumber and Abundance data
+        # self.background_df_int: if abundance data present
+        # self.background_df_all_minsample: sample ANs removed
+        # self.background_df_int_minsample: sample ANs removed
+        # STUDY:
+        # = self.sample_ser_int
+        # POPULATION:
+        # = self.background_df_int
 
     def cleanupforanalysis(self):
         '''
@@ -182,42 +199,90 @@ class UserInput(object):
         concat and align data to single DataFrame
         :return: None
         '''
-        self.samplefreq_ser = self.df_orig[self.col_sample_an]
-        self.backgroundfreq_df = self.df_orig[[self.col_background_an, self.col_background_int]]
-        
+        self.sample_ser = self.df_orig[self.col_sample_an]
+        self.background_df = self.df_orig[[self.col_background_an, self.col_background_int]]
+
         # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.samplefreq_ser)
-        self.samplefreq_ser = self.samplefreq_ser.loc[cond, ].drop_duplicates()        
-        cond = pd.notnull(self.backgroundfreq_df[self.col_background_an])
-        self.backgroundfreq_df = self.backgroundfreq_df.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an)
-        
+        cond = pd.notnull(self.sample_ser)
+        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
+        cond = pd.notnull(self.background_df[self.col_background_an])
+        self.background_df = self.background_df.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an)
+
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-#         print(self.samplefreq_ser.iloc[0:5])
-        self.samplefreq_ser = self.removeSpliceVariants_splitProteinGrous_Series(self.samplefreq_ser)
-        self.backgroundfreq_df = self.removeSpliceVariants_splitProteinGrous_DataFrame(self.backgroundfreq_df, self.col_background_an, self.col_background_int)
+        self.sample_ser = self.removeSpliceVariants_splitProteinGrous_Series(self.sample_ser)
+        self.background_df = self.removeSpliceVariants_splitProteinGrous_DataFrame(self.background_df, self.col_background_an, self.col_background_int)
 
         # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.samplefreq_ser)
-        self.samplefreq_ser = self.samplefreq_ser.loc[cond, ].drop_duplicates()        
-        cond = pd.notnull(self.backgroundfreq_df[self.col_background_an])
-        self.backgroundfreq_df = self.backgroundfreq_df.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an)
-
-        
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency
-#         cond = pd.notnull(self.df_orig[self.col_sample_an])
-#         self.samplefreq_ser = self.df_orig.loc[cond, self.col_sample_an].drop_duplicates().copy()
-#         cond = pd.notnull(self.df_orig[self.col_background_an])
-#         self.backgroundfreq_df = self.df_orig.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
-
+        cond = pd.notnull(self.sample_ser)
+        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
+        self.set_sample_ser_all(self.sample_ser.copy())
+        cond = pd.notnull(self.background_df[self.col_background_an])
+        self.background_df = self.background_df.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an)
+        self.set_background_df_all(self.background_df.copy())
 
         # concatenate data
-        self.df = self.concat_and_align_sample_and_background(self.samplefreq_ser, self.backgroundfreq_df)
+        self.df = self.concat_and_align_sample_and_background(self.sample_ser, self.background_df)
         # remove AccessionNumbers from sample and background-frequency without intensity values
         self.df  = self.df.loc[pd.notnull(self.df[self.col_background_int]), ]
-        self.set_study(self.df.loc[pd.notnull(self.df[self.col_sample_an]), self.col_sample_an])
-        self.set_population(self.df[[self.col_background_int, self.col_background_an]])
+        # self.set_study(self.df.loc[pd.notnull(self.df[self.col_sample_an]), self.col_sample_an])
+        self.set_sample_ser_int(self.df.loc[pd.notnull(self.df[self.col_sample_an]), self.col_sample_an])
+        # self.set_population(self.df[[self.col_background_int, self.col_background_an]])
+        self.set_background_df_int(self.df[[self.col_background_an, self.col_background_int]])
 
+        # set background minus sample
+        cond = self.get_background_df_all()[self.col_background_an].isin(self.get_sample_ser_all())
+        self.set_background_df_all_minsample(self.get_background_df_all().loc[-cond, ].copy())
+        cond = self.get_background_df_int()[self.col_background_an].isin(self.get_sample_ser_int())
+        self.set_background_df_int_minsample(self.get_background_df_int().loc[-cond, ].copy())
+
+    def set_sample_ser_all(self, series):
+        self.sample_ser_all = series
+        self.sample_ser_all.index = self.sample_ser_all.tolist()
+
+    def get_sample_ser_all(self):
+        return self.sample_ser_all
+
+    def get_sample_list_all(self):
+        return sorted(self.sample_ser_all)
+
+    def set_sample_ser_int(self, series):
+        self.sample_ser_int = series
+        self.sample_ser_int.index = self.sample_ser_int.tolist()
+
+    def get_sample_ser_int(self):
+        return self.sample_ser_int
+
+    def get_sample_list_int(self):
+        return sorted(self.sample_ser_int)
+
+    def set_background_df_all(self, df):
+        self.background_df_all = df
+        self.background_df_all.index = self.background_df_all[self.col_background_an].tolist()
+
+    def get_background_df_all(self):
+        return self.background_df_all
+
+    def set_background_df_all_minsample(self, df):
+        self.background_df_all_minsample = df
+        self.background_df_all_minsample.index = self.background_df_all_minsample[self.col_background_an].tolist()
+
+    def get_background_df_all_minsample(self):
+        return self.background_df_all_minsample
+
+    def set_background_df_int(self, df):
+        self.background_df_int = df
+        self.background_df_int.index = self.background_df_int[self.col_background_an].tolist()
+
+    def get_background_df_int(self):
+        return self.background_df_int
+
+    def set_background_df_int_minsample(self, df):
+        self.background_df_int_minsample = df
+        self.background_df_int_minsample.index = self.background_df_int_minsample[self.col_background_an].tolist()
+
+    def get_background_df_int_minsample(self):
+        return self.background_df_int_minsample
 
     def removeSpliceVariants_splitProteinGrous_Series(self, series):
         '''
@@ -278,25 +343,25 @@ class UserInput(object):
                 dataframe.loc[index, colname_an] = an_split_minus[0]
         return dataframe
 
-    def set_study(self, series):
-        self.samplefreq_ser = series
+    # def set_study(self, series):
+    #     self.samplefreq_ser = series
 
-    def get_study(self):
-        '''
-        produce list of AccessionNumbers, sample frequency (termed 'study' in goatools)
-        :return: ListOfString
-        '''
-        return sorted(self.samplefreq_ser.tolist())
+    # def get_study(self):
+    #     '''
+    #     produce list of AccessionNumbers, sample frequency (termed 'study' in goatools)
+    #     :return: ListOfString
+    #     '''
+    #     return sorted(self.samplefreq_ser.tolist())
 
-    def set_population(self, population):
-        self.backgroundfreq_df = population
+    # def set_population(self, population):
+    #     self.backgroundfreq_df = population
 
-    def get_population(self):
-        '''
-        produce list of AccessionNumbers, background frequency (termed 'population' in goatools)
-        :return: ListOfString
-        '''
-        return sorted(self.backgroundfreq_df[self.col_background_an].tolist())
+    # def get_population(self):
+    #     '''
+    #     produce list of AccessionNumbers, background frequency (termed 'population' in goatools)
+    #     :return: ListOfString
+    #     '''
+    #     return sorted(self.backgroundfreq_df[self.col_background_an].tolist())
 
     def set_num_bins(self, num_bins):
         self.num_bins = num_bins
@@ -304,49 +369,57 @@ class UserInput(object):
     def get_num_bins(self):
         return self.num_bins
 
-    def get_sample_an_int(self):
+    # def get_sample_an_int(self):
+    #     '''
+    #     produce AccessionNumbers with corresponding Intensity of sample/study
+    #     :return: DataFrame
+    #     '''
+    #     return self.df.loc[pd.notnull(self.df[self.col_sample_an]), [self.col_sample_an, self.col_background_int]]
+
+    def get_sample_int_an_int(self):
         '''
         produce AccessionNumbers with corresponding Intensity of sample/study
         :return: DataFrame
         '''
         return self.df.loc[pd.notnull(self.df[self.col_sample_an]), [self.col_sample_an, self.col_background_int]]
 
-    def get_background_an_int(self):
-        '''
-        produce AccessionNumbers with corresponding Intensity of background/population
-        :return: DataFrame
-        '''
-        return self.df[[self.col_background_an, self.col_background_int]]
 
-    def get_df(self):
-        '''
-        return cleaned (non-redundant, aligned, no NANs) DataFrame
-        columns: self.col_sample_an, backgrnd_an, backgrnd_int
-        :return: DataFrame
-        '''
-        return self.df
+    # def get_background_an_int(self):
+    #     '''
+    #     produce AccessionNumbers with corresponding Intensity of background/population
+    #     :return: DataFrame
+    #     '''
+    #     return self.df[[self.col_background_an, self.col_background_int]]
 
-    def get_df_orig(self):
-        '''
-        return original user input
-        :return: DataFrame
-        '''
-        return self.df_orig
+    # def get_df(self):
+    #     '''
+    #     return cleaned (non-redundant, aligned, no NANs) DataFrame
+    #     columns: self.col_sample_an, backgrnd_an, backgrnd_int
+    #     :return: DataFrame
+    #     '''
+    #     return self.df
+    #
+    # def get_df_orig(self):
+    #     '''
+    #     return original user input
+    #     :return: DataFrame
+    #     '''
+    #     return self.df_orig
 
-    def write_goatools_input2file(self, fn_study, fn_pop):
-        '''
-        write input files for goatools termed study (sample-frequency) and population (background-frequency)
-        consisting of AccessionNumbers (one per line)
-        :param fn_study: rawString
-        :param fn_pop: rawString
-        :return: None
-        '''
-        with open(fn_study, 'w') as fh_study:
-            for an in self.get_study():
-                fh_study.write(an + '\n')
-        with open(fn_pop, 'w') as fh_pop:
-            for an in self.get_population():
-                fh_pop.write(an + '\n')
+    # def write_goatools_input2file(self, fn_study, fn_pop):
+    #     '''
+    #     write input files for goatools termed study (sample-frequency) and population (background-frequency)
+    #     consisting of AccessionNumbers (one per line)
+    #     :param fn_study: rawString
+    #     :param fn_pop: rawString
+    #     :return: None
+    #     '''
+    #     with open(fn_study, 'w') as fh_study:
+    #         for an in self.get_sample_ser_int():
+    #             fh_study.write(an + '\n')
+    #     with open(fn_pop, 'w') as fh_pop:
+    #         for an in self.get_population():
+    #             fh_pop.write(an + '\n')
 
     def remove_ans_without_go_or_int(self, gor):
         '''
@@ -356,7 +429,7 @@ class UserInput(object):
         :return: None
         '''
         ans_sample_filtered = []
-        for an in self.get_study():
+        for an in self.get_sample_ser_int():
             goterm_list = gor.get_goterms_from_an(an)
             cond = self.backgroundfreq_df[self.col_background_an] == an
             intensity_valinlist = self.backgroundfreq_df.loc[cond, self.col_background_int].tolist()
@@ -403,8 +476,8 @@ class UserInput(object):
         :return: ListOfString
         '''
         df = self.get_background_an_int()
-        cond1 = df[self.col_background_int] >= lower #!!!
-        cond2 = df[self.col_background_int] <= upper #!!! can this lead to a larger random sample than population picked from?
+        cond1 = df[self.col_background_int] >= lower
+        cond2 = df[self.col_background_int] <= upper
         cond = cond1 & cond2
         ans_withinBounds = df.loc[cond, self.col_background_an]
         if len(ans_withinBounds) > 0:
@@ -438,21 +511,21 @@ class UserInput(object):
             for an in ans_list:
                 fh.write(an + '\n')
 
-    def get_study_an_frset(self):
+    def get_sample_int_frset(self):
         '''
         produce frozenset of AccessionNumbers of sample frequency (study)
         :return: FrozenSet of Strings
         '''
-        return frozenset(self.get_study())
+        return frozenset(self.get_sample_ser_int())
 
-    def get_population_an_set(self):
+    def get_background_int_set(self):
         '''
         produce set of AccessionNumbers of background frequency (population)
         :return: Set of Strings
         '''
-        return set(self.get_population())
+        return set(self.get_background_df_int()[self.col_background_an])
 
-    def get_population_an_set_random_sample(self):
+    def get_background_an_set_random_sample(self):
         '''
         produce a randomly generated set of AccessionNumbers from background-frequency
         with the same intensity-distribution as sample-frequency
@@ -460,38 +533,23 @@ class UserInput(object):
         '''
         return set(self.get_random_background_ans())
 
-    def get_population_an_set_all(self):
+    def get_background_all_set(self):
         '''
         produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
         remove NaN
         :return: SetOfString
         '''
-        return set(self.df_orig.loc[pd.notnull(self.df_orig[self.col_background_an]), self.col_background_an].tolist())
+        return set(self.get_background_df_all()[self.col_background_an])
+        # return set(self.df_orig.loc[pd.notnull(self.df_orig[self.col_background_an]), self.col_background_an].tolist())
 
-    def get_study_an_frset_all(self):
+    def get_sample_all_frset(self):
         '''
         produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
         remove NaN
         :return: SetOfString
         '''
-        return set(self.df_orig.loc[pd.notnull(self.df_orig[self.col_sample_an]), self.col_sample_an].tolist())
-
-
-
-# %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'
-
-
-
-# class UpdateRescources(object):
-#     """
-#     retrieve updated resources from UniProt FTP and geneontology.org
-#     ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/ --> e.g. gene_association.goa_ref_yeast
-#     and e.g. http://purl.obolibrary.org/obo/go/releases/2015-04-25/go.owl
-#     """
-#
-#     def __init__(self):
-#         pass
-
+        return frozenset(self.get_sample_ser_all())
+        # return set(self.df_orig.loc[pd.notnull(self.df_orig[self.col_sample_an]), self.col_sample_an].tolist())
 
 if __name__ == "__main__":
     # pass
@@ -511,5 +569,16 @@ if __name__ == "__main__":
     ans_rand_list = ui.get_random_background_ans()
     fn_out = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast_randomSample_test.txt'
     ui.write_ans2file(ans_rand_list, fn_out)
+# %run find_enrichment_dbl.py --pval=0.5 /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/study_test3.txt /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/population_yeast /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/input_goatools/association_goa_yeast --obo /Users/dbl/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo --fn_out 'summary_test3.txt'
 
 
+
+# class UpdateRescources(object):
+#     """
+#     retrieve updated resources from UniProt FTP and geneontology.org
+#     ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/ --> e.g. gene_association.goa_ref_yeast
+#     and e.g. http://purl.obolibrary.org/obo/go/releases/2015-04-25/go.owl
+#     """
+#
+#     def __init__(self):
+#         pass

@@ -1,4 +1,4 @@
-import goretriever, go_enrichment_dbl, obo_parser, os
+import goretriever, go_enrichment_dbl, obo_parser, os, userinput
 # find_enrichment_dbl
 # import pandas as pd
 # import numpy as np
@@ -93,7 +93,7 @@ if __name__ == '__main__':
             col_background_int = 'iBAQ observed (log10)'
 
             print(fn_out, modification, background)
-            ui = goretriever.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+            ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
 
             gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
             gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
