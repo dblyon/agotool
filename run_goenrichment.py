@@ -9,20 +9,23 @@ __author__ = 'dblyon'
 
 
 if __name__ == '__main__':
+    home = os.path.expanduser('~')
+
+
     #!!! don't run this for every analysis. check organism here!!!
     # required, and regularly updated
 
-    goa_ref_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
-    # goa_ref_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
+    goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
+    # goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
 
-    obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
-    # obo_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
+    obo_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
+    # obo_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
 
     obo_dag = obo_parser.GODag(obo_file=obo_fn)
     assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict()
 
 
-    home = os.path.expanduser('~')
+
     backtracking = True
     num_bins = 100
     alpha = 0.05
@@ -69,8 +72,8 @@ if __name__ == '__main__':
 
     decimal = ','
     randomSample = False
-    userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast_v2.txt'
-    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_HeLa.txt'
+    userinput_fn = home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast_v2.txt'
+    # userinput_fn = home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_HeLa.txt'
 
     for modification in ['Acetyl']: #['Phos', 'Ubi', 'Acetyl', 'Succinyl']:
         for background in ['Observed', 'Genome', 'AbCorr']:
