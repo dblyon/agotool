@@ -83,9 +83,6 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
             go2ans2return[goterm] = go2ans_dict[goterm]
     return(term_cnt, go2ans2return)
 
-
-
-
 def is_ratio_different(min_ratio, study_go, study_n, pop_go, pop_n):
     """
     check if the ratio go/n is different between the study group and
