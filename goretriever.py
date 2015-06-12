@@ -182,27 +182,35 @@ class UserInput(object):
         concat and align data to single DataFrame
         :return: None
         '''
-
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency
-        cond = pd.notnull(self.df_orig[self.col_sample_an])
-        self.samplefreq_ser = self.df_orig.loc[cond, self.col_sample_an].drop_duplicates().copy()
-        cond = pd.notnull(self.df_orig[self.col_background_an])
-        self.backgroundfreq_df = self.df_orig.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
-        print(self.samplefreq_ser.iloc[0:3])
-        print(self.samplefreq_ser.shape)
-        print(self.backgroundfreq_df.iloc[0:3])
-        print(self.backgroundfreq_df.shape)
-        print("####")
-
+        self.samplefreq_ser = self.df_orig[self.col_sample_an]
+        self.backgroundfreq_df = self.df_orig[[self.col_background_an, self.col_background_int]]
+        
+        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
+        cond = pd.notnull(self.samplefreq_ser)
+        self.samplefreq_ser = self.samplefreq_ser.loc[cond, ].drop_duplicates()        
+        cond = pd.notnull(self.backgroundfreq_df[self.col_background_an])
+        self.backgroundfreq_df = self.backgroundfreq_df.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an)
+        
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
+#         print(self.samplefreq_ser.iloc[0:5])
         self.samplefreq_ser = self.removeSpliceVariants_splitProteinGrous_Series(self.samplefreq_ser)
         self.backgroundfreq_df = self.removeSpliceVariants_splitProteinGrous_DataFrame(self.backgroundfreq_df, self.col_background_an, self.col_background_int)
-        print(self.samplefreq_ser.iloc[0:3])
-        print(self.samplefreq_ser.shape)
-        print()
-        print(self.backgroundfreq_df.iloc[0:3])
-        print(self.backgroundfreq_df.shape)
+
+        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
+        cond = pd.notnull(self.samplefreq_ser)
+        self.samplefreq_ser = self.samplefreq_ser.loc[cond, ].drop_duplicates()        
+        cond = pd.notnull(self.backgroundfreq_df[self.col_background_an])
+        self.backgroundfreq_df = self.backgroundfreq_df.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an)
+
+        
+        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency
+#         cond = pd.notnull(self.df_orig[self.col_sample_an])
+#         self.samplefreq_ser = self.df_orig.loc[cond, self.col_sample_an].drop_duplicates().copy()
+#         cond = pd.notnull(self.df_orig[self.col_background_an])
+#         self.backgroundfreq_df = self.df_orig.loc[cond, [self.col_background_an, self.col_background_int]].drop_duplicates(subset=self.col_background_an).copy()
+
+
         # concatenate data
         self.df = self.concat_and_align_sample_and_background(self.samplefreq_ser, self.backgroundfreq_df)
         # remove AccessionNumbers from sample and background-frequency without intensity values
@@ -271,7 +279,7 @@ class UserInput(object):
         return dataframe
 
     def set_study(self, series):
-        self.samplefreq_ser =  series
+        self.samplefreq_ser = series
 
     def get_study(self):
         '''
