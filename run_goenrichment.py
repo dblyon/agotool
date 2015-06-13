@@ -1,4 +1,4 @@
-import goretriever, go_enrichment_dbl, obo_parser, os, userinput
+import goretriever, go_enrichment_dbl, obo_parser, os, userinput, uniprot_keywords
 # find_enrichment_dbl
 # import pandas as pd
 # import numpy as np
@@ -11,21 +11,38 @@ __author__ = 'dblyon'
 if __name__ == '__main__':
     home = os.path.expanduser('~')
 
+    # None will include all parent terms, otherwise limit results to one category
+    go_parent = None # go_parent = is one of: 'MF', 'BP', 'CP', None
+    species = 'human'
+    go_slims = False
+    go_terms_or_uniprot_keywords = 'uniprot_keywords'
 
-    #!!! don't run this for every analysis. check organism here!!!
-    # required, and regularly updated
+    e_or_p_or_both = None # e_or_p_or_both: is one of: 'enriched', 'purified', None
+    decimal = ','
+    randomSample = False
 
-    goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
-    # goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
-
-    obo_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
-    # obo_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
-
-    obo_dag = obo_parser.GODag(obo_file=obo_fn)
-    assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict()
-
-
-
+#####
+    species = species.upper()
+    if species == 'YEAST':
+        goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
+        uniprot_keywords_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/keywords/UniProt_SaccharomycesCerevisiae_Keywords_20150611.tab'
+        userinput_fn = home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast_v2.txt'
+    elif species == 'HUMAN':
+        goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human'
+        uniprot_keywords_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/keywords/UniProt_HomoSapiens_Keywords_20150611.tab'
+        userinput_fn = home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_HeLa_v2.txt'
+#####
+    if go_slims:
+        obo_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo'
+    else:
+        obo_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
+#####
+    if go_terms_or_uniprot_keywords == 'go_terms':
+        obo_dag = obo_parser.GODag(obo_file=obo_fn)
+        assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict(go_parent, obo_dag)
+    else:
+        assoc_dict = uniprot_keywords.UniProt_keywords_parser(uniprot_keywords_fn).get_association_dict()
+#####
     backtracking = True
     num_bins = 100
     alpha = 0.05
@@ -65,20 +82,16 @@ if __name__ == '__main__':
 #  'Ubi',
 #  'Acetyl',
 #  'Succinyl']
-
 # 1- modified v genome
 # 2- modified v observed
 # 3- modified v Abundance-corrected
 
-    decimal = ','
-    randomSample = False
-    userinput_fn = home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast_v2.txt'
-    # userinput_fn = home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_HeLa.txt'
-
-    for modification in ['Acetyl']: #['Phos', 'Ubi', 'Acetyl', 'Succinyl']:
+    for modification in ['Acetyl', 'Phos', 'Ubi', 'Succinyl']:
         for background in ['Observed', 'Genome', 'AbCorr']:
-            fn_out = 'Yeast_modification_vs_background.txt'
-            # fn_out = 'HeLa_modification_vs_background.txt'
+            if species == 'YEAST':
+                fn_out = 'Yeast_modification_vs_background_UPK.txt'
+            elif species == 'HUMAN':
+                fn_out = 'HeLa_modification_vs_background_UPK.txt'
             fn_out = fn_out.replace('modification', modification)
             fn_out = fn_out.replace('background', background)
             if background == 'AbCorr':
@@ -95,8 +108,12 @@ if __name__ == '__main__':
             print(fn_out, modification, background)
             ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
 
-            gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr)
-            gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
+            if go_terms_or_uniprot_keywords == 'go_terms':
+                gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr, e_or_p_or_both)
+                gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
+            else:
+                gostudy = go_enrichment_dbl.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, methods, randomSample, abcorr, e_or_p_or_both)
+                gostudy.write_summary2file(fn_out, min_ratio=min_ratio, pval=pval)
 
 
 
