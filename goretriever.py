@@ -15,6 +15,7 @@ class Parser_UniProt_goa_ref(object):
     # additional info http://www.geneontology.org/doc/GO.references
     produce list of GO-terms associated with given AccessionNumber
     """
+    go_parents_name2num_dict = {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
 
     def __init__(self, goa_ref_fn=None):
         """
@@ -62,6 +63,28 @@ class Parser_UniProt_goa_ref(object):
             return self.an2go_dict[an]
         except KeyError:
             return -1 #!!!
+
+    def get_goterms_from_an_limit2parent(self, an, go_parent, obo_dag):
+        '''
+        produce list of GO-terms associated with given AccessionNumber
+        limit to child terms of given parent
+        :param an: String
+        :param go_parent: String
+        :param obo_dag: GODag Instance
+        :return: ListOfString
+        '''
+        goterms_list = self.get_goterms_from_an(an)
+        if goterms_list == -1:
+            return -1
+        else:
+            goterms_of_parent = []
+            for goterm in goterms_list:
+                if obo_dag[goterm].has_parent(self.go_parents_name2num_dict[go_parent]):
+                    goterms_of_parent.append(goterm)
+        if len(goterms_of_parent) >= 1:
+            return goterms_of_parent
+        else:
+            return -1
 
     def get_ans(self):
         '''
@@ -137,25 +160,42 @@ class Parser_UniProt_goa_ref(object):
                 else:
                     fh_out.write(an + '\t' + ';'.join(go_list) + '\n')
 
-    def get_association_dict(self):
+    def get_association_dict(self, go_parent, obo_dag):
         '''
         produce association_dictionary, containing all AccessionNumbers of theoretical proteome and
         their corresponding GO-IDs (most specific ones)
         do not report GO-ID without association
         assoc is a dict: key=AN, val=set of go-terms
+        if go_parents given: limit the set of GO-terms to the given parent category
+        obo_dag is a Dict: key=GO-term, val=GOTerm instance
+        can be queried for parent term: obo_dag['GO:1990413'].has_parent('GO:0008150')
+        # "BP" "GO:0008150"
+        # "CP" "GO:0005575"
+        # "MF" "GO:0003674"
+        :param go_parent: String
+        :param obo_dag: GODag Instance
         :return: Dict
         '''
         assoc_dict = {}
         for an in self.get_ans():
             if not assoc_dict.has_key(an):
-                goterms_list = self.get_goterms_from_an(an)
+                if go_parent:
+                    goterms_list = self.get_goterms_from_an_limit2parent(an, go_parent, obo_dag)
+                else:
+                    goterms_list = self.get_goterms_from_an(an)
                 if goterms_list != -1:
                     assoc_dict[an] = set(goterms_list)
             else:
-                if assoc_dict[an] != set(self.get_goterms_from_an(an)):
+                if go_parent:
+                    goterms_set = set(self.get_goterms_from_an_limit2parent(an, go_parent, obo_dag))
+                else:
+                    goterms_set = set(self.get_goterms_from_an(an))
+                if assoc_dict[an] != goterms_set:
                     print('Associations-dict: multiple entries of AN with diverging associations:')
                     print(an + ' ' + self.get_goterms_from_an(an))
         return assoc_dict
+
+
 
 class UserInput(object):
     """

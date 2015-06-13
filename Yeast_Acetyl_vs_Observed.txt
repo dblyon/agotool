@@ -1,2 +1,0 @@
-# min_ratio=None pval=None
-id	enrichment	perc_enrichment_study	perc_enrichment_pop	fold_enrichment_study2pop	study_count	study_n	pop_count	pop_n	description	p_uncorrected	p_bonferroni	p_holm	p_sidak	ANs_study	ANs_pop
