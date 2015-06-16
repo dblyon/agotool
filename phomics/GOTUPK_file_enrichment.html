@@ -11,19 +11,16 @@
 
 {% block content %}
 
-<div class="container-fluid">	
-	<form id="main_form" method="Post" action="enzyme_enrichment_result" enctype="multipart/form-data">
-        <h4>Enzyme Enrichment</h4>
-        <p>Takes two <a href="networkin.info">Networkin</a> Result files, for each enzyme (usally only kinases) it performs a kolmogorov-smirnov test to see if the distribution of scores are significantly different</p>
+<div class="container-fluid">
+	<form id="main_form" method="Post" action="GOTUPK_file_enrichment_result" enctype="multipart/form-data">
+        <h4>GO-term or UniProt-Keyword Enrichment</h4>
+        <p>Takes a single file as input, containing 3 tab-separated column with the following header: 'sample_an', 'background_an', 'background_int'</p>
         <div>{{form.forground_file.label}}: {{form.forground_file(class="filestyle btn-info")}}</div>
-        <div>{{form.background_file.label}}: {{form.background_file(class="filestyle btn-info")}}</div>
-
         <br>
         <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
         <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
 		<br>
 	</form>
 </div>  <!-- /container -->
-	
-{% endblock content %}
 
+{% endblock content %}

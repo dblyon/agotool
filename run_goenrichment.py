@@ -15,7 +15,7 @@ if __name__ == '__main__':
     go_parent = None # go_parent = is one of: 'MF', 'BP', 'CP', None
     species = 'human'
     go_slims = False
-    go_terms_or_uniprot_keywords = 'uniprot_keywords'
+    go_terms_or_uniprot_keywords = 'go_terms' # 'go_terms' or 'up_keywords'
 
     e_or_p_or_both = None # e_or_p_or_both: is one of: 'enriched', 'purified', None
     decimal = ','
@@ -89,9 +89,15 @@ if __name__ == '__main__':
     for modification in ['Acetyl', 'Phos', 'Ubi', 'Succinyl']:
         for background in ['Observed', 'Genome', 'AbCorr']:
             if species == 'YEAST':
-                fn_out = 'Yeast_modification_vs_background_UPK.txt'
+                if go_terms_or_uniprot_keywords == 'up_keywords':
+                    fn_out = 'Yeast_modification_vs_background_UPK.txt'
+                else:
+                    fn_out = 'Yeast_modification_vs_background.txt'
             elif species == 'HUMAN':
-                fn_out = 'HeLa_modification_vs_background_UPK.txt'
+                if go_terms_or_uniprot_keywords == 'up_keywords':
+                    fn_out = 'HeLa_modification_vs_background_UPK.txt'
+                else:
+                    fn_out = 'HeLa_modification_vs_background.txt'
             fn_out = fn_out.replace('modification', modification)
             fn_out = fn_out.replace('background', background)
             if background == 'AbCorr':

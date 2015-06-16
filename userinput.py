@@ -44,8 +44,10 @@ class UserInput(object):
 
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        self.sample_ser = self.removeSpliceVariants_splitProteinGrous_Series(self.sample_ser)
-        self.background_df = self.removeSpliceVariants_splitProteinGrous_DataFrame(self.background_df, col_background_an, col_background_int)
+        # self.sample_ser = self.removeSpliceVariants_splitProteinGrous_Series(self.sample_ser)
+        self.sample_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.sample_ser)
+        # self.background_df = self.removeSpliceVariants_splitProteinGrous_DataFrame(self.background_df, col_background_an, col_background_int)
+        self.background_df = self.removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self.background_df, col_background_an, col_background_int)
 
         # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
         cond = pd.notnull(self.sample_ser)
@@ -77,6 +79,42 @@ class UserInput(object):
             else:
                 list2return.append(ele)
         return pd.Series(list2return, name = series.name)
+
+    def removeSpliceVariants_takeFirstEntryProteinGroups_Series(self, series):
+        list2return = []
+        templist = []
+        for ele in series:
+            ele_split = ele.split(';')
+            if len(ele_split) > 1:
+                templist.append(ele_split[0])
+            else:
+                templist.append(ele)
+        for ele in templist:
+            ele_split = ele.split('-')
+            if len(ele_split) > 1:
+                list2return.append(ele_split[0])
+            else:
+                list2return.append(ele)
+        return pd.Series(list2return, name = series.name)
+
+    def removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
+        iterrows = dataframe[[colname_an, colname_int]].iterrows()
+        for row in iterrows:
+            index = row[0]
+            an_row = row[1][colname_an]
+            an_row_split_colon = an_row.split(';')
+            if len(an_row_split_colon) > 1:
+                an = an_row_split_colon[0]
+            else:
+                an = an_row
+            an_split_minus = an.split('-')
+            if len(an_split_minus) > 1:
+                an = an_split_minus[0]
+            else:
+                an = an
+            dataframe.loc[index, colname_an] = an
+        return dataframe
+
 
     def removeSpliceVariants_splitProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
         '''
@@ -199,7 +237,7 @@ class UserInput(object):
             num_ans = numinhist
             lower = bins[index]
             upper = bins[index+1]
-            ans_all_from_bin = self.get_random_an_from_bin(lower, upper, num_ans, get_all_ans=True)
+            ans_all_from_bin = self.get_random_an_from_bin(lower, upper, num_ans, get_all_ans=True) #!!!
             num_ans_all_from_bin = len(ans_all_from_bin)
             if not num_ans_all_from_bin == 0:
                 weight_fac = float(numinhist) / len(ans_all_from_bin)
@@ -236,7 +274,6 @@ class UserInput(object):
         col_background_an = 'Observed Proteome'
         ui2 = UserInput(self.user_input_fn, self.get_num_bins, col_sample_an=self.col_sample_an, col_background_an=col_background_an, col_background_int=self.col_background_int, decimal=self.decimal)
         return ui2.get_sample_an_frset()
-
 
     def get_background_an_set(self):
         '''

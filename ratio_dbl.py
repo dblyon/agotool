@@ -95,3 +95,14 @@ def is_ratio_different(min_ratio, study_go, study_n, pop_go, pop_n):
     if s > p:
         return s / p > min_ratio
     return p / s > min_ratio
+
+
+
+
+
+
+
+
+
+
+
