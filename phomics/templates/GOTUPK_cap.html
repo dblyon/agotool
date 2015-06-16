@@ -11,11 +11,11 @@
 
 {% block content %}
 
-<div class="container-fluid">	
-	<form id="main_form" method="Post" action="/go_term_enrichment_result" enctype="multipart/form-data">
-        <p class="h4">abundance corrected GO-term or UniProt-Keyword enrichment</p>
+<div class="container-fluid">
+	<form id="main_form" method="Post" action="/GOTUPK_cap_result" enctype="multipart/form-data">
+        <p class="h4">GOTUPK copy & paste</p>
         <p>
-            Push my buttons
+            bubu
         </p>
         <div class="row">
             <div class="col-md-5">
@@ -33,7 +33,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-5"><br>{{ form.categories.label }}: {{ form.categories() }}</div>
+            <div class="col-md-5"><br>{{ form.catagories.label }}: {{ form.catagories() }}</div>
             <div class="col-md-5">
                 <br>{{ form.correction_method.label }}: {{ form.correction_method() }}
                 <br>{{ form.alpha.label }}: {{ form.alpha() }}
@@ -48,5 +48,5 @@
         </div>
 	</form>
 </div>  <!-- /container -->
-	
+
 {% endblock content %}

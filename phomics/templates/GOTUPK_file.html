@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function () {
+              load_enzyme_enrichment();
+          });
+      </script>
+{% endblock head %}
+
+
+{% block content %}
+
+<div class="container-fluid">	
+	<form id="main_form" method="Post" action="GOTUPK_file_result" enctype="multipart/form-data">
+
+        <h4>Input File</h4>
+        <p>Expects a user input file with 3 columns: 'sample_an', 'background_an', and 'background_int'</p>
+        <div>{{form.userinput_file.label}}: {{form.userinput_file(class="filestyle btn-info")}}</div>
+        <br>{{ form.decimal.label }}: {{ form.decimal() }}
+
+        <div class="row">
+            <div class="col-md-5">
+                {{ form.organism.label }}: {{ form.organism() }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <br>{{ form.gocat_upk.label }}: {{ form.gocat_upk() }}
+            </div>
+
+            <div class="col-md-5">
+                <br>{{ form.abcorr.label }}: {{ form.abcorr() }}
+            </div>
+
+            <div class="col-md-5">
+                <h2>Multiple testing</h2>
+                <br>{{ form.correction_method.label }}: {{ form.correction_method() }}
+                <br>{{ form.alpha.label }}: {{ form.alpha() }}
+            </div>
+
+            <div class="col-md-5">
+                <br>{{ form.go_slims_or_basic.label }}: {{ form.go_slims_or_basic() }}
+            </div>
+
+            <div class="col-md-5">
+                <br>{{ form.e_or_p_or_both.label }}: {{ form.e_or_p_or_both() }}
+            </div>
+
+
+            <div class="col-md-5">
+                <h2f>Report options</h2f>
+                <br>{{ form.minimum_ratio.label }}: {{ form.minimum_ratio() }}
+                <br>{{ form.p_value.label }}: {{ form.p_value() }}
+                <br>{{ form.indent.label }}: {{ form.indent() }}
+            </div>
+
+        </div>
+
+        <br>
+        <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
+        <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
+		<br>
+	</form>
+</div>  <!-- /container -->
+	
+{% endblock content %}
+

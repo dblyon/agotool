@@ -1,8 +1,13 @@
-import os, re, goatools
+
+import os
+import re
+
+import goatools
 
 ASSOCIATIONS = 'static/data/associations/%s'
 UNIPROT_GOTERMS = 'static/data/uniprot_go'
 OBO_FILE = 'static/data/go-basic.obo'
+
 
 def update_data(input_ids, assoc, base_assoc):
     ids = set()
@@ -12,6 +17,7 @@ def update_data(input_ids, assoc, base_assoc):
             assoc['%s_%s' % (_id, site)] = base_assoc[_id]
             ids.add(_id)
     return ids
+
 
 def read_associations(assoc_fn):
     assoc = {}
@@ -25,6 +31,7 @@ def read_associations(assoc_fn):
             continue
         b = set(b.split(";"))
         assoc[a] = b
+
     return assoc
     # results, header = penrichment.run(
     #     form.organism.data, form.catagories.data,
