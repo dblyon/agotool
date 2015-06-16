@@ -76,77 +76,77 @@ class ActivationLoopPeptidesForm(BaseActivationLoopForm):
 
     cleave_res = fields.StringField(u"Cleave at", default='RK')
 
-@app.route('/activation_loop_sites')
-def activation_loop_sites():
-    return render_template('activation_loop.html', form=ActivationLoopSitesForm(), page_type="sites")
-
-@app.route('/activation_loop_peptides')
-def activation_loop_peptides():
-    return render_template('activation_loop.html', form=ActivationLoopPeptidesForm(), page_type="peptides")
-
-def get_activation_loop_organism_and_textarea(request):
-    textarea = request.form['input_textarea']
-    organism = request.form['organism']
-    if textarea == "":
-        textarea = request.files['input_file'].read()
-    return organism, textarea
-
-@app.route('/activation_loop_sites_result', methods=['POST'])
-def submit_activation_loop_sites():
-    organism, textarea = get_activation_loop_organism_and_textarea(request)
-    results, errors = activationloop.parse_positions(textarea, organism)
-    header = ['Uniprot Entry', 'Gene Name', 'Loop Sites', 'Other Sites']
-    tsv, _results = ['\t'.join(header)], []
-    for (acc, gene, loop, kin, des) in results:
-        loop = ', '.join(map(str, loop))
-        kin  = ', '.join(map(str, kin))
-        _results.append([acc, gene, loop, kin, des])
-        tsv.append('\t'.join([acc, gene, loop.replace(' ', ''), kin.replace(' ', '')]))
-    tsv = u'\n'.join(tsv).encode('base64')
-    return render_template('result.html', header=header,
-                           results=_results, tsv=tsv, errors=errors)
-
-@app.route('/activation_loop_peptides_result', methods=['POST'])
-def submit_activation_loop_peptides():
-    form = ActivationLoopPeptidesForm(request.form)
-    organism, textarea = get_activation_loop_organism_and_textarea(request)
-    results, errors = activationloop.parse_peptides(
-        textarea, int(organism), form.cleave_res.data, int(form.missed_clevages.data), form.cleave.data == 'after')
-    header = ['Uniprot Entry', 'Gene Name', 'Loop Sites', 'Other Sites', 'Peptide']
-    tsv, _results = ['\t'.join(header)], []
-    br = '\n'
-    print results
-    for (acc, gene, loop, kin, seq, des) in results:
-        kin = map(str, kin)
-        loop = map(str, loop)
-        for l, k, s in zip(loop, kin, seq):
-            tsv.append('\t'.join((acc, gene, l, k, s)))
-        seq = '\n'.join(seq)
-        _results.append([acc, gene, '\n'.join(loop), '\n'.join(kin), seq, des])
-    tsv = u'\n'.join(tsv).encode('base64')
-    return render_template('result.html', header=header,
-                           results=_results, tsv=tsv, errors=errors)
+# @app.route('/activation_loop_sites')
+# def activation_loop_sites():
+#     return render_template('activation_loop.html', form=ActivationLoopSitesForm(), page_type="sites")
+#
+# @app.route('/activation_loop_peptides')
+# def activation_loop_peptides():
+#     return render_template('activation_loop.html', form=ActivationLoopPeptidesForm(), page_type="peptides")
+#
+# def get_activation_loop_organism_and_textarea(request):
+#     textarea = request.form['input_textarea']
+#     organism = request.form['organism']
+#     if textarea == "":
+#         textarea = request.files['input_file'].read()
+#     return organism, textarea
+#
+# @app.route('/activation_loop_sites_result', methods=['POST'])
+# def submit_activation_loop_sites():
+#     organism, textarea = get_activation_loop_organism_and_textarea(request)
+#     results, errors = activationloop.parse_positions(textarea, organism)
+#     header = ['Uniprot Entry', 'Gene Name', 'Loop Sites', 'Other Sites']
+#     tsv, _results = ['\t'.join(header)], []
+#     for (acc, gene, loop, kin, des) in results:
+#         loop = ', '.join(map(str, loop))
+#         kin  = ', '.join(map(str, kin))
+#         _results.append([acc, gene, loop, kin, des])
+#         tsv.append('\t'.join([acc, gene, loop.replace(' ', ''), kin.replace(' ', '')]))
+#     tsv = u'\n'.join(tsv).encode('base64')
+#     return render_template('result.html', header=header,
+#                            results=_results, tsv=tsv, errors=errors)
+#
+# @app.route('/activation_loop_peptides_result', methods=['POST'])
+# def submit_activation_loop_peptides():
+#     form = ActivationLoopPeptidesForm(request.form)
+#     organism, textarea = get_activation_loop_organism_and_textarea(request)
+#     results, errors = activationloop.parse_peptides(
+#         textarea, int(organism), form.cleave_res.data, int(form.missed_clevages.data), form.cleave.data == 'after')
+#     header = ['Uniprot Entry', 'Gene Name', 'Loop Sites', 'Other Sites', 'Peptide']
+#     tsv, _results = ['\t'.join(header)], []
+#     br = '\n'
+#     print results
+#     for (acc, gene, loop, kin, seq, des) in results:
+#         kin = map(str, kin)
+#         loop = map(str, loop)
+#         for l, k, s in zip(loop, kin, seq):
+#             tsv.append('\t'.join((acc, gene, l, k, s)))
+#         seq = '\n'.join(seq)
+#         _results.append([acc, gene, '\n'.join(loop), '\n'.join(kin), seq, des])
+#     tsv = u'\n'.join(tsv).encode('base64')
+#     return render_template('result.html', header=header,
+#                            results=_results, tsv=tsv, errors=errors)
 
 ################################################################################
 # Kinase Enrichment
 ################################################################################
-class EnzymeEnrichmentForm(wtforms.Form):
-    forground_file = fields.FileField(u"Forground File")
-    background_file = fields.FileField(u"Background File")
-
-@app.route('/enzyme_enrichment')
-def enzyme_enrichment():
-    return render_template('enzyme_enrichment.html', form=EnzymeEnrichmentForm())
-
-@app.route('/enzyme_enrichment_result', methods=["POST"])
-def submit_enzyme_enrichment():
-    result_file = StringIO.StringIO()
-    fg = '/Users/jcr/Projects/Teaching/UV/reg_UV_networkin.tsv'
-    bg = '/Users/jcr/Projects/Teaching/UV/unreg_UV_networkin.tsv'
-    ks.ks_test(fg, bg, result_file)
-    results, header = resultfile_to_results(result_file)
-    return render_template('result.html', header=header, results=results, tsv=result_file.read(),
-                    errors=[])
+# class EnzymeEnrichmentForm(wtforms.Form):
+#     forground_file = fields.FileField(u"Forground File")
+#     background_file = fields.FileField(u"Background File")
+#
+# @app.route('/enzyme_enrichment')
+# def enzyme_enrichment():
+#     return render_template('enzyme_enrichment.html', form=EnzymeEnrichmentForm())
+#
+# @app.route('/enzyme_enrichment_result', methods=["POST"])
+# def submit_enzyme_enrichment():
+#     result_file = StringIO.StringIO()
+#     fg = '/Users/jcr/Projects/Teaching/UV/reg_UV_networkin.tsv'
+#     bg = '/Users/jcr/Projects/Teaching/UV/unreg_UV_networkin.tsv'
+#     ks.ks_test(fg, bg, result_file)
+#     results, header = resultfile_to_results(result_file)
+#     return render_template('result.html', header=header, results=results, tsv=result_file.read(),
+#                     errors=[])
 
 ################################################################################
 # Enrichment
@@ -193,42 +193,78 @@ def phospho_enrichment_result():
 ################################################################################
 # GO term enrichment abundance corrected
 ################################################################################
-class GOTermEnrichmentForm(wtforms.Form):
+class GOTUPK_file_Form(wtforms.Form):
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
     foreground_textarea = fields.TextAreaField("Study AccessionNumbers")
     background_textarea = fields.TextAreaField("Background AccessionNumbers and Intensities")
-    catagories = fields.SelectMultipleField("GO Catagories",
-            choices = (("BP", "Biological Processes"), ("CC", "Cellular Compartments"),
-                     ("MF", "Molecular Function")),
-            widget = wtforms.widgets.ListWidget(prefix_label=False),
-            option_widget = wtforms.widgets.CheckboxInput(),
-            default = ("BP", "CC", "MF"))
+
+    categories = fields.SelectField("GO Catagories or UniProt-Keywords",
+                    choices = (("all_GO", "all 3 GO categories"),
+                               ("BP", "Biological Process"), ("CC", "Cellular Compartment"),
+                               ("MF", "Molecular Function"), ("UPK", "UniProt-Keywords")))
+    # categories = fields.SelectMultipleField("GO Categories or UniProt-Keywords",
+    #         choices = (("BP", "Biological Process"), ("CC", "Cellular Compartment"),
+    #                  ("MF", "Molecular Function"),
+    #                  ("all_GO", "all 3 GO categories"), ("UPK", "UniProt-Keywords")),
+    #         widget = wtforms.widgets.ListWidget(prefix_label=False),
+    #         option_widget = wtforms.widgets.CheckboxInput(),
+    #         default = ("all_GO"))
+
     alpha = fields.IntegerField("Alpha", default=0.05)
     correction_method = fields.SelectField(
         "Correction for multiple testing Method",
-        choices = (("fdr", "FDR"), ("bonferroni", "Bonferroni"),
-            ("sidak", "Sidak"), ("holm", "Holm"),
-            ("uncorrected", "None")))
+        choices = (("bonferroni", "Bonferroni"), ("uncorrected", "None"),
+                   ("sidak", "Sidak"), ("holm", "Holm")))
+                   #("fdr", "FDR"),
+    # decimal = fields.SelectField(
+    #     "Decimal separator",
+    #     choices = (("Point", "."), ("Comma", ",")))
 
-@app.route('/go_term_enrichment')
-def go_term_enrichment():
-    return render_template("go_term_enrichment.html", form=GOTermEnrichmentForm())
+@app.route('/GOTUPK_cap_enrichment')
+def GOTUPK_cap_enrichment():
+    return render_template("GOTUPK_cap_enrichment.html", form=GOTUPK_file_Form())
 
-@app.route('/go_term_enrichment_result', methods=['POST'])
-def go_term_enrichment_result():
-    form = GOTermEnrichmentForm(request.form)
+@app.route('/GOTUPK_cap_enrichment_result', methods=['POST'])
+def GOTUPK_cap_enrichment_result():
+    form = GOTUPK_file_Form(request.form)
     print '-----' * 10
     print '-----' * 10
     print form.data
     print '-----' * 10
     print '-----' * 10
-    results, header = go_term_enrichment.run(
-            form.organism.data, form.catagories.data,
+    results, header = GOTUPK_cap_enrichment.run(
+            form.organism.data, form.categories.data,
             form.foreground_textarea.data, form.background_textarea.data,
             form.alpha.data, form.correction_method.data)
     tsv = '%s\n%s\n' % ('\t'.join(header), '\n'.join(['\t'.join(x) for x in results]))
     tsv.encode('base64')
-    return render_template('result.html', header=header, results=results, tsv=tsv, errors=[])
+    return render_template('GOTUPK_result.html', header=header, results=results, tsv=tsv, errors=[])
+
+
+
+################################################################################
+# GO term UPK enrichment -- FILE
+################################################################################
+class GOTUPK_file_Form(wtforms.Form):
+    userinput_file = fields.FileField(u"UserInput File")
+    # decimal = fields.SelectField(
+    #     "Decimal separator",
+    #     choices = (("Point", "."), ("Comma", ",")))
+
+@app.route('/GOTUPK_file_enrichment')
+def GOTUPK_file_enrichment():
+    return render_template('GOTUPK_file_enrichment.html', form=GOTUPK_file_Form())
+
+@app.route('/GOTUPK_file_enrichment_result', methods=["POST"])
+def GOTUPK_file_result():
+    result_file = StringIO.StringIO()
+    # fg = '/Users/jcr/Projects/Teaching/UV/reg_UV_networkin.tsv'
+    # bg = '/Users/jcr/Projects/Teaching/UV/unreg_UV_networkin.tsv'
+    # ks.ks_test(fg, bg, result_file)
+    results, header = resultfile_to_results(result_file)
+    return render_template('GOTUPK_result.html', header=header, results=results, tsv=result_file.read(),
+                    errors=[])
+
 
 
 
