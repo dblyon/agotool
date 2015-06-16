@@ -14,16 +14,14 @@
 
 
 <div class="container-fluid">
-    <h3>Push my buttons</h3>
-	<p>Work in progress</p>
+    <h3>GO-term or UniProt-keyword enrichment</h3>
+	<p>This site contains proteomics tools</p>
 	<ul>
-	    <li><a href="{{ url_for('GOTUPK_file_enrichment') }}">File 222</a></li>
-        <li><a href="{{ url_for('GOTUPK_cap_enrichment') }}">Copy & Paste 222</a></li>
-		<li><a href="{{ url_for('phospho_enrichment') }}">Phospho Enrichment 222</a></li>
+		<li><a href="{{ url_for('enzyme_enrichment') }}">Enzyme Enrichment</a></li>
+		<li><a href="{{ url_for('phospho_enrichment') }}">Phospho Enrichment</a></li>
+        <li><a href="{{ url_for('GOTUPK_cap') }}">Copy & Paste</a></li>
+        <li><a href="{{ url_for('GOTUPK_file') }}">File</a></li>
 	</ul>
 </div>
 	
 {% endblock content %}
-
-
-

@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>GO</title>
+    <title>GO-term or UniProt-Keyword enrichment</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
@@ -30,14 +30,14 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{ url_for('index') }}">AbCorr</a>
+                <a class="navbar-brand" href="{{ url_for('index') }}">GO-term or UniProt-Keyword enrichment</a>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('GOTUPK_file_enrichment') }}">File</a></li>
-                    <li><a href="{{ url_for('GOTUPK_cap_enrichment') }}">Copy & Paste</a></li>
+                    <li><a href="{{ url_for('enzyme_enrichment') }}">Enzyme Enrichment</a></li>
                     <li><a href="{{ url_for('phospho_enrichment') }}">Phospho Enrichment</a></li>
-                    <li><a href="{{ url_for('about') }}">about</a></li>
+                    <li><a href="{{ url_for('GOTUPK_cap') }}">Copy & Paste</a></li>
+                    <li><a href="{{ url_for('GOTUPK_file') }}">File</a></li>
                 </ul>
             </div>
         </div>
