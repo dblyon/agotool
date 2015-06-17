@@ -1,5 +1,5 @@
 import fisher, ratio_dbl
-from multiple_testing import Bonferroni, Sidak, HolmBonferroni
+from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
 from collections import defaultdict
 
 
@@ -243,6 +243,7 @@ class GOEnrichmentStudy(object):
         self.calc_multiple_corrections(study_n, pop_n)
 
     def calc_multiple_corrections(self, study_n, pop_n):
+        self.results.sort(key=lambda r: r.p_uncorrected)
         pvals = [r.p_uncorrected for r in self.results]
         all_methods = ("bonferroni", "sidak", "holm", "benjamini_hochberg", "fdr")
         method_name = self.multitest_method
@@ -257,8 +258,8 @@ class GOEnrichmentStudy(object):
             #     p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
             #     fdr = FDR(p_val_distribution,
             #               self.results, self.alpha).corrected_pvals
-        elif method_name == "benjamini_hochberg":
-            pass
+        elif method_name == 'benjamini_hochberg':
+            corrected_pvals = BenjaminiHochberg(pvals, len(self.results))
         else:
             raise Exception("multiple test correction methods must be "
                             "one of %s" % all_methods)
@@ -275,30 +276,16 @@ class GOEnrichmentStudy(object):
     def print_summary(self, min_ratio=None, indent=False, pval=0.05):
         # Header contains parameters
         print("# min_ratio={0} pval={1}".format(min_ratio, pval))
-
         # field names for output
         print("\t".join(GOEnrichmentRecord()._fields))
-
         for rec in self.results:
             # calculate some additional statistics
             # (over_under, is_ratio_different)
             rec.update_remaining_fields(min_ratio=min_ratio)
-
             if pval is not None and rec.p_bonferroni > pval:
                 continue
-
             if rec.is_ratio_different:
                 print(rec.__str__(indent=indent))
-
-    # def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
-    #     with open(fn_out, 'w') as fh_out:
-    #         header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
-    #         fh_out.write(header2write)
-    #         results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
-    #         for rec in results_sorted_by_fold_enrichment_study2pop:
-    #             rec.update_remaining_fields()
-    #             if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop and rec.multitest_method > p_value_mulitpletesting and rec.p_uncorrected > p_value_uncorrected:
-    #                 fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
 
     def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
         multitest_method_name = "p_" + self.multitest_method
@@ -475,6 +462,7 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         self.calc_multiple_corrections(study_n, pop_n)
 
     def calc_multiple_corrections(self, study_n, pop_n):
+        self.results.sort(key=lambda r: r.p_uncorrected)
         pvals = [r.p_uncorrected for r in self.results]
         all_methods = ("bonferroni", "sidak", "holm", "benjamini_hochberg", "fdr")
         method_name = self.multitest_method
@@ -489,8 +477,8 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         #     p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
         #     fdr = FDR(p_val_distribution,
         #               self.results, self.alpha).corrected_pvals
-        elif method_name == "benjamini_hochberg":
-            pass
+        elif method_name == 'benjamini_hochberg':
+            corrected_pvals = BenjaminiHochberg(pvals, len(self.results))
         else:
             raise Exception("multiple test correction methods must be "
                             "one of %s" % all_methods)
