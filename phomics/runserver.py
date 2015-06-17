@@ -58,6 +58,15 @@ def index():
     return render_template('index.html')
 
 ################################################################################
+# about.html
+################################################################################
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
+
+################################################################################
 # Kinase Enrichment
 ################################################################################
 class EnzymeEnrichmentForm(wtforms.Form):
@@ -83,40 +92,43 @@ def submit_enzyme_enrichment():
 ################################################################################
 class GOTUPK_file_Form(wtforms.Form):
 
-    userinput_file = fields.FileField(u"UserInput File")
+    userinput_file = fields.FileField(u"Input File")
 
+
+    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
     decimal = fields.SelectField("Decimal delimiter",
                                  choices = ((",", "Comma"), (".", "Point")),
                                  description = u"either a ',' or a '.' used for abundance values")
 
-    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-
-
-
     gocat_upk = fields.SelectField("GO-terms or UniProt-Keywords",
-                                choices = (("all_GO", "all 3 GO categories"),
-                                           ("BP", "Biological Process"), ("CP", "Celluar Compartment"),
-                                           ("MF", "Molecular Function"), ("UPK", "UniProt Keywords")))
+                                choices = (("UPK", "UniProt Keywords"),
+                                           ("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
+                                           ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
+
+    abcorr = fields.BooleanField("Abundance correction", default = "checked")
+
+
+
     go_slims_or_basic = fields.SelectField("GO basic or slims",
                                  choices = (("basic", "basic"), ("slims", "slims")))
 
-    indent = fields.SelectField("prepend GO-term level by dots",
-                                choices = ((True, "Yes"), (False, "No")))
+    indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
 
-    correction_method = fields.SelectField("Correction for multiple testing Method",
+    multitest_method = fields.SelectField("Correction for multiple testing Method",
                                 choices = (("bonferroni", "Bonferroni"), ("sidak", "Sidak"), ("holm", "Holm")))
     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
 
     e_or_p_or_both = fields.SelectField("enriched or purified or both",
-                                 choices = (("e", "enriched"), ("p", "purified"), ("both", "both"))) #!!! ? why does it switch to 'both' here???
+                                 choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
 
-    p_value =  fields.FloatField("p value (report threshold)", default = 0)
+    num_bins = fields.IntegerField("Number of bins", default = 100)
 
-    minimum_ratio = fields.FloatField("minimum ratio study / background (report threshold)", default = 0)
+    backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
 
-    abcorr = fields.SelectField("Abundance correction",
-                                choices = ((True, "Yes"), (False, "No")))
-
+###### Filter rows
+    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
+    p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
+    p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
 
 @app.route('/GOTUPK_file')
 def GOTUPK_file():
@@ -129,8 +141,11 @@ def submit_GOTUPK_file():
     # results, header = resultfile_to_results(result_file)
     gotupk.run(form.userinput_file, form.decimal.data, form.organism.data,
                form.gocat_upk.data, form.go_slims_or_basic.data, form.indent.data,
-               form.correction_method.data, form.alpha.data, form.e_or_p_or_both.data,
-               form.p_value.data, form.minimum_ratio.data, form.abcorr.data)
+               form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
+               form.abcorr.data, form.num_bins.data, form.backtracking.data,
+               form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+               form.p_value_mulitpletesting.data)
+
 
     return render_template('GOTUPK_file_result.html')
 

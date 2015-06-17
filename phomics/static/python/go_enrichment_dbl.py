@@ -2,16 +2,16 @@ import fisher, ratio_dbl
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni
 from collections import defaultdict
 
+
 class GOEnrichmentRecord(object):
     """
     Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
     attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
                    ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
-                   ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'),
-                   ('description', '%s'), ('p_uncorrected', "%.3g"), ('p_bonferroni', "%.3g"),
-                   ('p_holm', "%.3g"), ('p_sidak',"%.3g"), ('ANs_study', '%s'), ('ANs_pop', '%s'),
-                   ('p_fdr', '%s')]
+                   ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'), ('p_uncorrected', "%.3g")]
+    # ('p_fdr', '%s'), ('p_bonferroni', "%.3g"), ('p_holm', "%.3g"), ('p_sidak',"%.3g"), , ('ANs_pop', '%s'), ('description', '%s'), ('ANs_study', '%s')
+
 
     def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop, ANs_study, ANs_pop):
         self.id = id
@@ -48,9 +48,10 @@ class GOEnrichmentRecord(object):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
-    def update_remaining_fields(self, min_ratio=None):
+    def update_remaining_fields(self):
         self.enrichment = 'e' if ((1.0 * self.study_count / self.study_n) > (1.0 * self.pop_count / self.pop_n)) else 'p'
-        self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, self.study_count, self.study_n, self.pop_count, self.pop_n)
+        # self.find_goterm(obo_dag)
+        # self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, self.study_count, self.study_n, self.pop_count, self.pop_n)
 
     def get_attributenames2write(self, e_or_p_or_both):
         if e_or_p_or_both == None:
@@ -99,12 +100,13 @@ class GOEnrichmentRecord(object):
             line2write += self.get_attribute_formatted(attr_form)
         return line2write.rstrip()
 
+
 class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
     attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
                    ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
                    ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'),
-                   ('p_uncorrected', "%.3g"), ('p_bonferroni', "%.3g"),
-                   ('p_holm', "%.3g"), ('p_sidak',"%.3g"), ('ANs_study', '%s'), ('ANs_pop', '%s')]
+                   ('p_uncorrected', "%.3g")]
+    #, ('p_bonferroni', "%.3g"), ('p_holm', "%.3g"), ('p_sidak',"%.3g"), ('ANs_pop', '%s')
 
     def get_attribute_format_list(self, e_or_p_or_both):
         return self.get_attributes_list(e_or_p_or_both)
@@ -116,21 +118,24 @@ class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
             line2write += self.get_attribute_formatted(attr_form)
         return line2write.rstrip()
 
+
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr, e_or_p_or_both):
+    def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, e_or_p_or_both, multitest_method):
         self.ui = ui
         self.assoc_dict = assoc_dict
         self.obo_dag = obo_dag
         self.alpha = alpha
-        self.methods = methods
+        self.multitest_method = multitest_method
+        GOEnrichmentRecord.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('description', '%s'), ('ANs_study', '%s')]
         self.results = []
         self.backtracking = backtracking
         self.randomSample = randomSample
         self.abcorr = abcorr
+        if not self.abcorr:
+            GOEnrichmentRecord.attributes_list.append(('ANs_pop', '%s'))
         self.e_or_p_or_both = e_or_p_or_both
-
         if self.backtracking: # add all parent GO-terms to assoc_dict
             self.obo_dag.update_association(self.assoc_dict)
         self.prepare_run()
@@ -238,43 +243,34 @@ class GOEnrichmentStudy(object):
         self.calc_multiple_corrections(study_n, pop_n)
 
     def calc_multiple_corrections(self, study_n, pop_n):
-        # Calculate multiple corrections
         pvals = [r.p_uncorrected for r in self.results]
         all_methods = ("bonferroni", "sidak", "holm", "benjamini_hochberg", "fdr")
-        bonferroni, sidak, holm, fdr = None, None, None, None
-        for method in self.methods:
-            if method == "bonferroni":
-                bonferroni = Bonferroni(pvals, self.alpha).corrected_pvals
-            elif method == "sidak":
-                sidak = Sidak(pvals, self.alpha).corrected_pvals
-            elif method == "holm":
-                holm = HolmBonferroni(pvals, self.alpha).corrected_pvals
+        method_name = self.multitest_method
+        if method_name == "bonferroni":
+            corrected_pvals = Bonferroni(pvals, self.alpha).corrected_pvals
+        elif method_name == "sidak":
+            corrected_pvals = Sidak(pvals, self.alpha).corrected_pvals
+        elif method_name == "holm":
+            corrected_pvals = HolmBonferroni(pvals, self.alpha).corrected_pvals
             # elif method == "fdr":
             #     # get the empirical p-value distributions for FDR
             #     p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
             #     fdr = FDR(p_val_distribution,
             #               self.results, self.alpha).corrected_pvals
-            elif method == "benjamini_hochberg":
-                pass
-
-            else:
-                raise Exception("multiple test correction methods must be "
-                                "one of %s" % all_methods)
-        all_corrections = (bonferroni, sidak, holm, fdr)
-        for method, corrected_pvals in zip(all_methods, all_corrections):
-            self.update_results(method, corrected_pvals)
-        self.results.sort(key=lambda r: r.p_uncorrected)
-        # self.results = results
+        elif method_name == "benjamini_hochberg":
+            pass
+        else:
+            raise Exception("multiple test correction methods must be "
+                            "one of %s" % all_methods)
+        self.update_results(method_name, corrected_pvals)
         for rec in self.results:
-            # get go term for description and level
             rec.find_goterm(self.obo_dag)
-        # return self.results
 
-    def update_results(self, method, corrected_pvals):
+    def update_results(self, method_name, corrected_pvals):
         if corrected_pvals is None:
             return
         for rec, val in zip(self.results, corrected_pvals):
-            rec.__setattr__("p_"+method, val)
+            rec.__setattr__("p_" + method_name, val)
 
     def print_summary(self, min_ratio=None, indent=False, pval=0.05):
         # Header contains parameters
@@ -294,32 +290,44 @@ class GOEnrichmentStudy(object):
             if rec.is_ratio_different:
                 print(rec.__str__(indent=indent))
 
-    def write_summary2file(self, fn_out, min_ratio=None, indent=False, pval=0.05):
-        # return self.results
+    # def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
+    #     with open(fn_out, 'w') as fh_out:
+    #         header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+    #         fh_out.write(header2write)
+    #         results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+    #         for rec in results_sorted_by_fold_enrichment_study2pop:
+    #             rec.update_remaining_fields()
+    #             if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop and rec.multitest_method > p_value_mulitpletesting and rec.p_uncorrected > p_value_uncorrected:
+    #                 fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
+
+    def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
+        multitest_method_name = "p_" + self.multitest_method
         with open(fn_out, 'w') as fh_out:
-            fh_out.write("# min_ratio={0} pval={1}".format(min_ratio, pval) + '\n')
             header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
             fh_out.write(header2write)
             results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
             for rec in results_sorted_by_fold_enrichment_study2pop:
-                rec.update_remaining_fields(min_ratio=min_ratio)
-                if pval is not None and rec.p_bonferroni > pval:
-                    continue
-                if rec.is_ratio_different:
-                    fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
+                rec.update_remaining_fields()
+                if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                    if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                        if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                            fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
+
 
 class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
 
-    def __init__(self, ui, assoc_dict, alpha, methods, randomSample, abcorr, e_or_p_or_both):
+    def __init__(self, ui, assoc_dict, alpha, randomSample, abcorr, e_or_p_or_both, multitest_method):
         self.ui = ui
         self.assoc_dict = assoc_dict
         self.alpha = alpha
-        self.methods = methods
+        self.multitest_method = multitest_method
+        GOEnrichmentRecord_UPK.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('ANs_study', '%s')]
         self.results = []
         self.randomSample = randomSample
         self.abcorr = abcorr
+        if not self.abcorr:
+            GOEnrichmentRecord_UPK.attributes_list.append(('ANs_pop', '%s'))
         self.e_or_p_or_both = e_or_p_or_both
-
         self.prepare_run()
 
     def prepare_run(self):
@@ -469,44 +477,37 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
     def calc_multiple_corrections(self, study_n, pop_n):
         pvals = [r.p_uncorrected for r in self.results]
         all_methods = ("bonferroni", "sidak", "holm", "benjamini_hochberg", "fdr")
-        bonferroni, sidak, holm, fdr = None, None, None, None
-        for method in self.methods:
-            if method == "bonferroni":
-                bonferroni = Bonferroni(pvals, self.alpha).corrected_pvals
-            elif method == "sidak":
-                sidak = Sidak(pvals, self.alpha).corrected_pvals
-            elif method == "holm":
-                holm = HolmBonferroni(pvals, self.alpha).corrected_pvals
-            # elif method == "fdr":
-            #     # get the empirical p-value distributions for FDR
-            #     p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
-            #     fdr = FDR(p_val_distribution,
-            #               self.results, self.alpha).corrected_pvals
-            elif method == "benjamini_hochberg":
-                pass
+        method_name = self.multitest_method
+        if method_name == "bonferroni":
+            corrected_pvals = Bonferroni(pvals, self.alpha).corrected_pvals
+        elif method_name == "sidak":
+            corrected_pvals = Sidak(pvals, self.alpha).corrected_pvals
+        elif method_name == "holm":
+            corrected_pvals = HolmBonferroni(pvals, self.alpha).corrected_pvals
+        # elif method == "fdr":
+        #     # get the empirical p-value distributions for FDR
+        #     p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
+        #     fdr = FDR(p_val_distribution,
+        #               self.results, self.alpha).corrected_pvals
+        elif method_name == "benjamini_hochberg":
+            pass
+        else:
+            raise Exception("multiple test correction methods must be "
+                            "one of %s" % all_methods)
+        self.update_results(method_name, corrected_pvals)
 
-            else:
-                raise Exception("multiple test correction methods must be "
-                                "one of %s" % all_methods)
-        all_corrections = (bonferroni, sidak, holm, fdr)
-        for method, corrected_pvals in zip(all_methods, all_corrections):
-            self.update_results(method, corrected_pvals)
-        self.results.sort(key=lambda r: r.p_uncorrected)
-
-    def write_summary2file(self, fn_out, min_ratio=None, pval=0.05):
-        # return self.results
+    def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
+        multitest_method_name = "p_" + self.multitest_method
         with open(fn_out, 'w') as fh_out:
-            fh_out.write("# min_ratio={0} pval={1}".format(min_ratio, pval) + '\n')
             header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
             fh_out.write(header2write)
             results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
             for rec in results_sorted_by_fold_enrichment_study2pop:
-                rec.update_remaining_fields(min_ratio=min_ratio)
-                if pval is not None and rec.p_bonferroni > pval:
-                    continue
-                if rec.is_ratio_different:
-                    fh_out.write(rec.get_line2write(self.e_or_p_or_both) + '\n')
-        print("DONE :)") #!!!
+                rec.update_remaining_fields()
+                if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                    if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                        if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                            fh_out.write(rec.get_line2write(self.e_or_p_or_both) + '\n')
 
 
 
@@ -525,72 +526,3 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
 
 
 
-############################################################################################
-############ testing goatools original fisher p-value caluculation
-# #GO:0000030	p	mannosyltransferase activity	1/1159	39/4258	8.97e-05	0.443	0.419	0.432	n.a.
-# #GO:0000062	e	fatty-acyl-CoA binding	1/1159	1/4258	0.272	1.35e+03	824	1.31e+03	n.a.
-# #GO:0000075	p	cell cycle checkpoint	14/1159	56/4258	0.765	3.78e+03	749	3.68e+03	n.a.
-#
-# study = '14/1159'
-# pop   = '56/4258'
-# a, col_1 = study.split('/')
-# r1, n = pop.split('/')
-# a = int(a)
-# col_1 = int(col_1)
-# r1 = int(r1)
-# n = int(n)
-# col_2 = n - col_1
-# b = r1 - a
-# c = col_1 - a
-# d = col_2 - b
-# r2 = c + d
-# assert n == col_1 + col_2
-# assert n == r1 + r2
-# print fisher.pvalue_population(a, col_1, r1, n)
-# print fisher.pvalue(a, b, c, d)
-# print scipy.stats.fisher_exact([[a, b], [c, d]])
-############ testing goatools abundance corrected fisher p-value caluculation
-# #GO:0000122	e	negative regulation of transcription from RNA polymerase II promoter
-# #50/1159	21/1159	0.000635	3.14	3.08	3.06	n.a.
-# import scipy, fisher
-# study = '50/1159'
-# pop   = '21/1159'
-# a, col_1 = study.split('/')
-# b, col_2 = pop.split('/')
-# a = int(a)
-# col_1 = int(col_1)
-# b = int(b)
-# col_2 = int(col_2)
-# n = col_1 + col_2
-# col_2 = n - col_1
-# b = r1 - a
-# c = col_1 - a
-# d = col_2 - b
-# r2 = c + d
-# assert n == col_1 + col_2
-# assert n == r1 + r2
-# print fisher.pvalue_population(a, col_1, r1, n)
-# print fisher.pvalue(a, b, c, d)
-# print scipy.stats.fisher_exact([[a, b], [c, d]])
-############################################################################################
-
-
-
-                # try:
-                #     study_ratio = float(study_count)/study_n
-                #     pop_ratio = float(pop_count)/pop_n
-                #     if pop_ratio == 0:
-                #         fold_en = +inf
-                #     elif study_ratio == 0:
-                #         fold_en = _inf
-                # except ZeroDivisionError:
-                #     fold_en = -1
-# None ...GO:0045239	e	0.6	0.2	3.84	7	1129	7	4337	tricarboxylic acid cycle enzyme complex	0.0138	8.31	7.54	8.1	P08417,P09624,P19262,P19955,P20967,P28241,P28834	P08417,P09624,P19262,P19955,P20967,P28241,P28834	n.a.
-# enriched ...GO:0045239	0.6	0.2	3.84	7	1129	7	4337	tricarboxylic acid cycle enzyme complex	0.0138	8.31	7.8	8.1	P08417,P09624,P19262,P19955,P20967,P28241,P28834	P08417,P09624,P19262,P19955,P20967,P28241,P28834	n.a.
-# purified ...GO:0045239	0.6	0.2	3.84	7	1129	7	4337	tricarboxylic acid cycle enzyme complex	0.997	602	27.9	587	P08417,P09624,P19262,P19955,P20967,P28241,P28834	P08417,P09624,P19262,P19955,P20967,P28241,P28834	n.a.
-# Pvalue(left_tail=0.9971, right_tail=0.01376, two_tail=0.01376)
-#
-# None ....GO:0016023	p	0.3	1.0	0.26	3	1129	44	4337	cytoplasmic membrane-bounded vesicle	0.0109	6.6	6.03	6.43	P07560,P41810,P43555	P07560,P08004,P11075,P17065,P19524,P22146,P22213,P22804,P25560,P27351,P29465,P32486,P32803,P36122,P38221,P38261,P38312,P38682,P38856,P38869,P39704,P39727,P39980,P40955,P41810,P43555,P47018,P47102,P53039,P53173,P53309,P53337,P53633,P53845,P54837,Q00381,Q04322,Q04651,Q05359,Q08754,Q12344,Q12396,Q12674,Q3E834	n.a.
-# enriched ....GO:0016023	0.3	1.0	0.26	3	1129	44	4337	cytoplasmic membrane-bounded vesicle	0.998	603	25	588	P07560,P41810,P43555	P07560,P08004,P11075,P17065,P19524,P22146,P22213,P22804,P25560,P27351,P29465,P32486,P32803,P36122,P38221,P38261,P38312,P38682,P38856,P38869,P39704,P39727,P39980,P40955,P41810,P43555,P47018,P47102,P53039,P53173,P53309,P53337,P53633,P53845,P54837,Q00381,Q04322,Q04651,Q05359,Q08754,Q12344,Q12396,Q12674,Q3E834	n.a.
-# purified ....GO:0016023	0.3	1.0	0.26	3	1129	44	4337	cytoplasmic membrane-bounded vesicle	0.00688	4.15	3.99	4.05	P07560,P41810,P43555	P07560,P08004,P11075,P17065,P19524,P22146,P22213,P22804,P25560,P27351,P29465,P32486,P32803,P36122,P38221,P38261,P38312,P38682,P38856,P38869,P39704,P39727,P39980,P40955,P41810,P43555,P47018,P47102,P53039,P53173,P53309,P53337,P53633,P53845,P54837,Q00381,Q04322,Q04651,Q05359,Q08754,Q12344,Q12396,Q12674,Q3E834	n.a.
-# Pvalue(left_tail=0.006879, right_tail=0.9984, two_tail=0.01093)
