@@ -2,17 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/phomics/templates/about.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/phomics/templates/upload.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/AAA111_webserver_output_test.txt" afterPath="$PROJECT_DIR$/phomics/AAA111_webserver_output_test.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/templates/GOTUPK_file.html" afterPath="$PROJECT_DIR$/phomics/templates/GOTUPK_file.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled5-checkpoint.ipynb" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled5-checkpoint.ipynb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Untitled5.ipynb" afterPath="$PROJECT_DIR$/Untitled5.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/templates/about.html" afterPath="$PROJECT_DIR$/phomics/templates/about.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/static/python/go_enrichment_dbl.py" afterPath="$PROJECT_DIR$/phomics/static/python/go_enrichment_dbl.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/static/python/gotupk.py" afterPath="$PROJECT_DIR$/phomics/static/python/gotupk.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/templates/index.html" afterPath="$PROJECT_DIR$/phomics/templates/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/templates/layout.html" afterPath="$PROJECT_DIR$/phomics/templates/layout.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/static/python/multiple_testing.py" afterPath="$PROJECT_DIR$/phomics/static/python/multiple_testing.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/phomics/runserver.py" afterPath="$PROJECT_DIR$/phomics/runserver.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="goterm.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -46,8 +45,8 @@
       <file leaf-file-name="runserver.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/phomics/runserver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-9.111111">
-              <caret line="94" column="37" selection-start-line="94" selection-start-column="28" selection-end-line="94" selection-end-column="37" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -55,164 +54,12 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="GOTUPK_file.html" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/phomics/templates/GOTUPK_file.html">
+      <file leaf-file-name="upload.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/phomics/templates/upload.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.24822696">
-              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.18518518">
+              <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="gotupk.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phomics/static/python/gotupk.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="112" column="28" selection-start-line="112" selection-start-column="24" selection-end-line="112" selection-end-column="28" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="go_enrichment_dbl.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phomics/static/python/go_enrichment_dbl.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="512" column="0" selection-start-line="512" selection-start-column="0" selection-end-line="512" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#24#0" expanded="true" />
-                <element signature="e#164#249#1" expanded="false" />
-                <element signature="e#1708#1840#0" expanded="false" />
-                <element signature="e#1881#1997#0" expanded="false" />
-                <element signature="e#2585#2896#0" expanded="false" />
-                <element signature="e#2957#3229#0" expanded="false" />
-                <element signature="e#3304#3702#0" expanded="false" />
-                <element signature="e#3762#3970#0" expanded="false" />
-                <element signature="e#4034#4285#0" expanded="false" />
-                <element signature="e#4827#4874#0" expanded="false" />
-                <element signature="e#5213#14806#0" expanded="false" />
-                <element signature="e#6257#7754#0" expanded="false" />
-                <element signature="e#6257#6294#1" expanded="false" />
-                <element signature="e#7810#8143#0" expanded="false" />
-                <element signature="e#8219#10743#0" expanded="false" />
-                <element signature="e#8219#9502#1" expanded="false" />
-                <element signature="e#15516#16864#0" expanded="false" />
-                <element signature="e#16920#17527#0" expanded="false" />
-                <element signature="e#16920#17108#1" expanded="false" />
-                <element signature="e#17598#18864#0" expanded="false" />
-                <element signature="e#17598#17955#1" expanded="false" />
-                <element signature="e#18918#19251#0" expanded="false" />
-                <element signature="e#19324#21736#0" expanded="false" />
-                <element signature="e#19324#20607#1" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="goretriever.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phomics/static/python/goretriever.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="77" column="26" selection-start-line="77" selection-start-column="19" selection-end-line="77" selection-end-column="26" />
-              <folding>
-                <element signature="e#0#24#0" expanded="true" />
-                <element signature="e#123#436#1" expanded="false" />
-                <element signature="e#579#1001#0" expanded="false" />
-                <element signature="e#579#616#1" expanded="false" />
-                <element signature="e#1044#1963#0" expanded="false" />
-                <element signature="e#1044#1170#1" expanded="false" />
-                <element signature="e#2012#2258#0" expanded="false" />
-                <element signature="e#2012#2154#1" expanded="false" />
-                <element signature="e#2340#2599#1" expanded="false" />
-                <element signature="e#3081#3206#0" expanded="false" />
-                <element signature="e#3081#3167#1" expanded="false" />
-                <element signature="e#3240#3361#0" expanded="false" />
-                <element signature="e#3240#3336#1" expanded="false" />
-                <element signature="e#3401#3507#0" expanded="false" />
-                <element signature="e#3401#3476#1" expanded="false" />
-                <element signature="e#3558#3808#0" expanded="false" />
-                <element signature="e#3558#3699#1" expanded="false" />
-                <element signature="e#3846#4211#0" expanded="false" />
-                <element signature="e#3846#3968#1" expanded="false" />
-                <element signature="e#4251#4596#0" expanded="false" />
-                <element signature="e#4251#4377#1" expanded="false" />
-                <element signature="e#4652#5317#0" expanded="false" />
-                <element signature="e#4652#4982#1" expanded="false" />
-                <element signature="e#5383#7013#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="obo_parser.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phomics/static/python/obo_parser.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-              <folding>
-                <element signature="e#306#387#0" expanded="false" />
-                <element signature="e#425#759#0" expanded="false" />
-                <element signature="e#783#993#1" expanded="false" />
-                <element signature="e#1361#1531#0" expanded="false" />
-                <element signature="e#1566#2810#0" expanded="false" />
-                <element signature="e#2831#6850#0" expanded="false" />
-                <element signature="e#2831#2915#1" expanded="false" />
-                <element signature="e#2949#3514#0" expanded="false" />
-                <element signature="e#3547#3772#0" expanded="false" />
-                <element signature="e#3806#3839#0" expanded="false" />
-                <element signature="e#3881#4003#0" expanded="false" />
-                <element signature="e#4044#4166#0" expanded="false" />
-                <element signature="e#4207#4365#0" expanded="false" />
-                <element signature="e#4407#4571#0" expanded="false" />
-                <element signature="e#4617#4811#0" expanded="false" />
-                <element signature="e#4856#5046#0" expanded="false" />
-                <element signature="e#5294#6850#0" expanded="false" />
-                <element signature="e#6931#6959#0" expanded="false" />
-                <element signature="e#7009#7444#0" expanded="false" />
-                <element signature="e#7485#8485#0" expanded="false" />
-                <element signature="e#7519#7742#0" expanded="false" />
-                <element signature="e#7786#8009#0" expanded="false" />
-                <element signature="e#8536#8684#0" expanded="false" />
-                <element signature="e#8827#9112#0" expanded="false" />
-                <element signature="e#9314#9511#0" expanded="false" />
-                <element signature="e#9579#9767#0" expanded="false" />
-                <element signature="e#9831#10013#0" expanded="false" />
-                <element signature="e#10077#10241#0" expanded="false" />
-                <element signature="e#10308#11059#0" expanded="false" />
-                <element signature="e#11130#11464#0" expanded="false" />
-                <element signature="e#11511#11550#0" expanded="false" />
-                <element signature="e#11607#11961#0" expanded="false" />
-                <element signature="e#12020#13156#0" expanded="false" />
-                <element signature="e#12020#12529#1" expanded="false" />
-                <element signature="e#12755#13078#0" expanded="false" />
-                <element signature="e#13200#13339#0" expanded="false" />
-                <element signature="e#13495#14855#0" expanded="false" />
-                <element signature="e#15016#16425#0" expanded="false" />
-                <element signature="e#16697#17809#0" expanded="false" />
-                <element signature="e#17866#18746#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="multiple_testing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phomics/static/python/multiple_testing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="35" column="28" selection-start-line="35" selection-start-column="13" selection-end-line="35" selection-end-column="28" />
-              <folding>
-                <element signature="e#47#107#1" expanded="false" />
-                <element signature="e#108#145#0" expanded="true" />
-                <element signature="e#1505#1881#1" expanded="false" />
-                <element signature="e#2568#2844#0" expanded="false" />
-                <element signature="e#2632#2844#0" expanded="false" />
-                <element signature="e#2847#2970#1" expanded="false" />
-                <element signature="e#3961#5008#0" expanded="false" />
-                <element signature="e#3961#4223#1" expanded="false" />
-                <element signature="e#5059#5246#0" expanded="false" />
-                <element signature="e#5059#5237#1" expanded="false" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -273,14 +120,15 @@
         <option value="$PROJECT_DIR$/phomics/static/python/ratio_dbl.py" />
         <option value="$PROJECT_DIR$/ratio.py" />
         <option value="$PROJECT_DIR$/phomics/static/python/goretriever.py" />
-        <option value="$PROJECT_DIR$/phomics/templates/about.html" />
         <option value="$PROJECT_DIR$/phomics/templates/index.html" />
         <option value="$PROJECT_DIR$/phomics/templates/layout.html" />
         <option value="$PROJECT_DIR$/phomics/static/python/multiple_testing.py" />
-        <option value="$PROJECT_DIR$/phomics/templates/GOTUPK_file.html" />
-        <option value="$PROJECT_DIR$/phomics/runserver.py" />
         <option value="$PROJECT_DIR$/phomics/static/python/go_enrichment_dbl.py" />
         <option value="$PROJECT_DIR$/phomics/static/python/gotupk.py" />
+        <option value="$PROJECT_DIR$/phomics/templates/about.html" />
+        <option value="$PROJECT_DIR$/phomics/templates/GOTUPK_file.html" />
+        <option value="$PROJECT_DIR$/phomics/runserver.py" />
+        <option value="$PROJECT_DIR$/phomics/templates/upload.html" />
       </list>
     </option>
   </component>
@@ -292,10 +140,9 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1440" />
-    <option name="y" value="-456" />
-    <option name="width" value="2560" />
-    <option name="height" value="1413" />
+    <option name="y" value="23" />
+    <option name="width" value="1440" />
+    <option name="height" value="873" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -800,7 +647,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1440" y="-456" width="2560" height="1413" extended-state="6" />
+    <frame x="0" y="23" width="1440" height="873" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32981133" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -808,7 +655,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24982053" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.110802226" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19957082" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.27656367" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
@@ -915,12 +762,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
           <url>file://$PROJECT_DIR$/phomics/runserver.py</url>
-          <line>92</line>
+          <line>102</line>
           <option name="timeStamp" value="70" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
           <url>file://$PROJECT_DIR$/phomics/runserver.py</url>
-          <line>141</line>
+          <line>151</line>
           <option name="timeStamp" value="72" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
@@ -934,13 +781,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/find_enrichment_dbl.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="135" column="26" selection-start-line="135" selection-start-column="6" selection-end-line="135" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/go_enrichment.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1150,56 +990,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="231" column="41" selection-start-line="231" selection-start-column="31" selection-end-line="231" selection-end-column="41" />
-          <folding>
-            <element signature="e#47#325#1" expanded="false" />
-            <element signature="e#571#2660#0" expanded="false" />
-            <element signature="e#873#1132#0" expanded="false" />
-            <element signature="e#1182#1209#0" expanded="false" />
-            <element signature="e#1256#1883#0" expanded="false" />
-            <element signature="e#1917#1958#0" expanded="false" />
-            <element signature="e#1999#2115#0" expanded="false" />
-            <element signature="e#2164#2292#0" expanded="false" />
-            <element signature="e#2357#2660#0" expanded="false" />
-            <element signature="e#2700#6848#0" expanded="false" />
-            <element signature="e#2700#2785#1" expanded="false" />
-            <element signature="e#3404#4230#0" expanded="false" />
-            <element signature="e#4293#4425#0" expanded="false" />
-            <element signature="e#4466#4582#0" expanded="false" />
-            <element signature="e#4632#4659#0" expanded="false" />
-            <element signature="e#4708#4770#0" expanded="false" />
-            <element signature="e#4835#5082#0" expanded="false" />
-            <element signature="e#5148#5459#0" expanded="false" />
-            <element signature="e#5520#5792#0" expanded="false" />
-            <element signature="e#5867#6265#0" expanded="false" />
-            <element signature="e#6325#6533#0" expanded="false" />
-            <element signature="e#6597#6848#0" expanded="false" />
-            <element signature="e#6904#7769#0" expanded="false" />
-            <element signature="e#7423#7470#0" expanded="false" />
-            <element signature="e#7526#7769#0" expanded="false" />
-            <element signature="e#8594#8631#1" expanded="false" />
-            <element signature="e#10147#10480#0" expanded="false" />
-            <element signature="e#10556#13080#0" expanded="false" />
-            <element signature="e#10556#11839#1" expanded="false" />
-            <element signature="e#13147#14752#0" expanded="false" />
-            <element signature="e#14817#14969#0" expanded="false" />
-            <element signature="e#15049#15602#0" expanded="false" />
-            <element signature="e#15699#16528#0" expanded="false" />
-            <element signature="e#15699#15770#1" expanded="false" />
-            <element signature="e#16622#17452#0" expanded="false" />
-            <element signature="e#17605#17881#0" expanded="false" />
-            <element signature="e#20000#20357#1" expanded="false" />
-            <element signature="e#21320#21653#0" expanded="false" />
-            <element signature="e#21726#24138#0" expanded="false" />
-            <element signature="e#21726#23009#1" expanded="false" />
-            <element signature="e#24205#25579#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ratio_dbl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1334,14 +1124,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/go_enrichment.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6988417">
-          <caret line="71" column="52" selection-start-line="71" selection-start-column="34" selection-end-line="71" selection-end-column="52" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/run_goenrichment.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.8339768">
@@ -1381,26 +1163,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/phomics/templates/citation.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/phomics/templates/phospho_enrichment.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-12.5">
           <caret line="20" column="12" selection-start-line="16" selection-start-column="8" selection-end-line="20" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/phomics/templates/about.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-6.875">
-          <caret line="11" column="20" selection-start-line="11" selection-start-column="20" selection-end-line="11" selection-end-column="20" />
           <folding />
         </state>
       </provider>
@@ -1418,25 +1184,6 @@
         <state vertical-scroll-proportion="0.070810385">
           <caret line="6" column="21" selection-start-line="6" selection-start-column="21" selection-end-line="6" selection-end-column="21" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/phomics/static/python/multiple_testing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="35" column="28" selection-start-line="35" selection-start-column="13" selection-end-line="35" selection-end-column="28" />
-          <folding>
-            <element signature="e#47#107#1" expanded="false" />
-            <element signature="e#108#145#0" expanded="true" />
-            <element signature="e#1505#1881#1" expanded="false" />
-            <element signature="e#2568#2844#0" expanded="false" />
-            <element signature="e#2632#2844#0" expanded="false" />
-            <element signature="e#2847#2970#1" expanded="false" />
-            <element signature="e#3961#5008#0" expanded="false" />
-            <element signature="e#3961#4223#1" expanded="false" />
-            <element signature="e#5059#5246#0" expanded="false" />
-            <element signature="e#5059#5237#1" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1501,7 +1248,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/phomics/static/python/goretriever.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
+        <state vertical-scroll-proportion="0.45816734">
           <caret line="77" column="26" selection-start-line="77" selection-start-column="19" selection-end-line="77" selection-end-column="26" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
@@ -1532,51 +1279,89 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/phomics/static/python/go_enrichment_dbl.py">
+    <entry file="file://$PROJECT_DIR$/go_enrichment.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="512" column="0" selection-start-line="512" selection-start-column="0" selection-end-line="512" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.5816733">
+          <caret line="117" column="49" selection-start-line="117" selection-start-column="42" selection-end-line="117" selection-end-column="49" />
           <folding>
-            <element signature="e#0#24#0" expanded="true" />
-            <element signature="e#164#249#1" expanded="false" />
-            <element signature="e#1708#1840#0" expanded="false" />
-            <element signature="e#1881#1997#0" expanded="false" />
-            <element signature="e#2585#2896#0" expanded="false" />
-            <element signature="e#2957#3229#0" expanded="false" />
-            <element signature="e#3304#3702#0" expanded="false" />
-            <element signature="e#3762#3970#0" expanded="false" />
-            <element signature="e#4034#4285#0" expanded="false" />
-            <element signature="e#4827#4874#0" expanded="false" />
-            <element signature="e#5213#14806#0" expanded="false" />
-            <element signature="e#6257#7754#0" expanded="false" />
-            <element signature="e#6257#6294#1" expanded="false" />
-            <element signature="e#7810#8143#0" expanded="false" />
-            <element signature="e#8219#10743#0" expanded="false" />
-            <element signature="e#8219#9502#1" expanded="false" />
-            <element signature="e#15516#16864#0" expanded="false" />
-            <element signature="e#16920#17527#0" expanded="false" />
-            <element signature="e#16920#17108#1" expanded="false" />
-            <element signature="e#17598#18864#0" expanded="false" />
-            <element signature="e#17598#17955#1" expanded="false" />
-            <element signature="e#18918#19251#0" expanded="false" />
-            <element signature="e#19324#21736#0" expanded="false" />
-            <element signature="e#19324#20607#1" expanded="false" />
+            <element signature="e#47#325#1" expanded="false" />
+            <element signature="e#548#2681#0" expanded="false" />
+            <element signature="e#816#1075#0" expanded="false" />
+            <element signature="e#1125#1152#0" expanded="false" />
+            <element signature="e#1199#1827#0" expanded="false" />
+            <element signature="e#1861#1902#0" expanded="false" />
+            <element signature="e#1943#2059#0" expanded="false" />
+            <element signature="e#2108#2236#0" expanded="false" />
+            <element signature="e#2301#2681#0" expanded="false" />
+            <element signature="e#2925#3234#0" expanded="false" />
+            <element signature="e#5701#5853#0" expanded="false" />
+            <element signature="e#5933#6486#0" expanded="false" />
+            <element signature="e#6579#7328#0" expanded="false" />
+            <element signature="e#6579#6650#1" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/phomics/static/python/gotupk.py">
+    <entry file="file://$PROJECT_DIR$/go_enrichment_dbl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6613546">
+          <caret line="330" column="56" selection-start-line="330" selection-start-column="8" selection-end-line="330" selection-end-column="56" />
+          <folding>
+            <element signature="e#47#325#1" expanded="false" />
+            <element signature="e#571#2660#0" expanded="false" />
+            <element signature="e#873#1132#0" expanded="false" />
+            <element signature="e#1182#1209#0" expanded="false" />
+            <element signature="e#1256#1883#0" expanded="false" />
+            <element signature="e#1917#1958#0" expanded="false" />
+            <element signature="e#1999#2115#0" expanded="false" />
+            <element signature="e#2164#2292#0" expanded="false" />
+            <element signature="e#2357#2660#0" expanded="false" />
+            <element signature="e#2700#6848#0" expanded="false" />
+            <element signature="e#2700#2785#1" expanded="false" />
+            <element signature="e#3404#4230#0" expanded="false" />
+            <element signature="e#4293#4425#0" expanded="false" />
+            <element signature="e#4466#4582#0" expanded="false" />
+            <element signature="e#4632#4659#0" expanded="false" />
+            <element signature="e#4708#4770#0" expanded="false" />
+            <element signature="e#4835#5082#0" expanded="false" />
+            <element signature="e#5148#5459#0" expanded="false" />
+            <element signature="e#5520#5792#0" expanded="false" />
+            <element signature="e#5867#6265#0" expanded="false" />
+            <element signature="e#6325#6533#0" expanded="false" />
+            <element signature="e#6597#6848#0" expanded="false" />
+            <element signature="e#6904#7769#0" expanded="false" />
+            <element signature="e#7423#7470#0" expanded="false" />
+            <element signature="e#7526#7769#0" expanded="false" />
+            <element signature="e#8594#8631#1" expanded="false" />
+            <element signature="e#10147#10480#0" expanded="false" />
+            <element signature="e#10556#11839#1" expanded="false" />
+            <element signature="e#14817#14969#0" expanded="false" />
+            <element signature="e#15049#15602#0" expanded="false" />
+            <element signature="e#15699#16528#0" expanded="false" />
+            <element signature="e#15699#15770#1" expanded="false" />
+            <element signature="e#16622#17452#0" expanded="false" />
+            <element signature="e#17605#17881#0" expanded="false" />
+            <element signature="e#20000#20357#1" expanded="false" />
+            <element signature="e#21320#21653#0" expanded="false" />
+            <element signature="e#21726#24138#0" expanded="false" />
+            <element signature="e#21726#23009#1" expanded="false" />
+            <element signature="e#24205#25579#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/phomics/templates/citation.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="112" column="28" selection-start-line="112" selection-start-column="24" selection-end-line="112" selection-end-column="28" />
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/phomics/runserver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.111111">
-          <caret line="94" column="37" selection-start-line="94" selection-start-column="28" selection-end-line="94" selection-end-column="37" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -1585,8 +1370,91 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/phomics/templates/GOTUPK_file.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.24822696">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.43209878">
+          <caret line="37" column="70" selection-start-line="37" selection-start-column="70" selection-end-line="37" selection-end-column="70" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/phomics/templates/about.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.32921812">
+          <caret line="16" column="26" selection-start-line="16" selection-start-column="26" selection-end-line="16" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/phomics/static/python/gotupk.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.19787517">
+          <caret line="31" column="25" selection-start-line="31" selection-start-column="25" selection-end-line="31" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/phomics/static/python/go_enrichment_dbl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.0358566">
+          <caret line="247" column="73" selection-start-line="247" selection-start-column="73" selection-end-line="247" selection-end-column="73" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+            <element signature="e#183#4304#0" expanded="false" />
+            <element signature="e#183#268#1" expanded="false" />
+            <element signature="e#838#1664#0" expanded="false" />
+            <element signature="e#1727#1859#0" expanded="false" />
+            <element signature="e#1900#2016#0" expanded="false" />
+            <element signature="e#2066#2093#0" expanded="false" />
+            <element signature="e#2142#2204#0" expanded="false" />
+            <element signature="e#2253#2538#0" expanded="false" />
+            <element signature="e#2604#2915#0" expanded="false" />
+            <element signature="e#2976#3248#0" expanded="false" />
+            <element signature="e#3323#3721#0" expanded="false" />
+            <element signature="e#3781#3989#0" expanded="false" />
+            <element signature="e#4053#4304#0" expanded="false" />
+            <element signature="e#4361#5192#0" expanded="false" />
+            <element signature="e#4846#4893#0" expanded="false" />
+            <element signature="e#4949#5192#0" expanded="false" />
+            <element signature="e#5435#6163#0" expanded="false" />
+            <element signature="e#6276#7773#0" expanded="false" />
+            <element signature="e#6276#6313#1" expanded="false" />
+            <element signature="e#7829#8162#0" expanded="false" />
+            <element signature="e#8238#9521#1" expanded="false" />
+            <element signature="e#12222#12381#0" expanded="false" />
+            <element signature="e#12461#13010#0" expanded="false" />
+            <element signature="e#13143#14080#0" expanded="false" />
+            <element signature="e#14243#14753#0" expanded="false" />
+            <element signature="e#14790#16138#0" expanded="false" />
+            <element signature="e#16194#16801#0" expanded="false" />
+            <element signature="e#16194#16382#1" expanded="false" />
+            <element signature="e#16872#18138#0" expanded="false" />
+            <element signature="e#16872#17229#1" expanded="false" />
+            <element signature="e#18192#18525#0" expanded="false" />
+            <element signature="e#18598#21010#0" expanded="false" />
+            <element signature="e#18598#19881#1" expanded="false" />
+            <element signature="e#22430#23359#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/phomics/static/python/multiple_testing.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.38247013">
+          <caret line="150" column="21" selection-start-line="150" selection-start-column="4" selection-end-line="150" selection-end-column="21" />
+          <folding>
+            <element signature="e#47#107#1" expanded="false" />
+            <element signature="e#108#145#0" expanded="true" />
+            <element signature="e#1505#1881#1" expanded="false" />
+            <element signature="e#2847#2970#1" expanded="false" />
+            <element signature="e#3961#5008#0" expanded="false" />
+            <element signature="e#3961#4223#1" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/phomics/templates/upload.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.18518518">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
           <folding />
         </state>
       </provider>

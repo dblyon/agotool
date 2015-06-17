@@ -147,14 +147,64 @@ def calc_qval_dbl(study_n, pop_n, pop, assoc, term_pop, obo_dag, T=500):
                         format(i, T, smallest_p), file=sys.stderr)
     return distribution
 
-def calc_benjamini_hochberg(threshold=0.05):
-    """
-    sort by p-values-uncorrected
-    multiply by number n (number of all p-values, num rows, num GO-terms) and divide by rank
-    :param threshold: Float
-    :return:
-    """
-    pass
+
+def BenjaminiHochberg(pvals, num_total_tests):
+    '''
+    expects a sorted (ascending) list of uncorrected p-values
+    and the total number of tests
+    http://stats.stackexchange.com/questions/870/multiple-hypothesis-testing-correction-with-benjamini-hochberg-p-values-or-q-va
+    http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1074290335
+    :param pvals: ListOfFloat
+    :param num_total_tests: Integer
+    :return: ListOfFloat
+    '''
+    p_values = np.array(pvals)
+    p_values_corrected = []
+    prev_bh_value = 0
+    for i, p_value in enumerate(p_values):
+        bh_value = p_value * num_total_tests / (i + 1)
+        # Sometimes this correction can give values greater than 1,
+        # so we set those values at 1
+        bh_value = min(bh_value, 1)
+        # To preserve monotonicity in the values, we take the
+        # maximum of the previous value or this one, so that we
+        # don't yield a value less than the previous.
+        bh_value = max(bh_value, prev_bh_value)
+        prev_bh_value = bh_value
+        p_values_corrected.append(bh_value)
+    return p_values_corrected
+
+
+# def calc_benjamini_hochberg_corrections(p_values, num_total_tests):
+#     """
+#     Calculates the Benjamini-Hochberg correction for multiple hypothesis
+#     testing from a list of p-values *sorted in ascending order*.
+#
+#     See
+#     http://en.wikipedia.org/wiki/False_discovery_rate#Independent_tests
+#     for more detail on the theory behind the correction.
+#
+#     **NOTE:** This is a generator, not a function. It will yield values
+#     until all calculations have completed.
+#
+#     :Parameters:
+#     - `p_values`: a list or iterable of p-values sorted in ascending
+#       order
+#     - `num_total_tests`: the total number of tests (p-values)
+#
+#     """
+#     prev_bh_value = 0
+#     for i, p_value in enumerate(p_values):
+#         bh_value = p_value * num_total_tests / (i + 1)
+#         # Sometimes this correction can give values greater than 1,
+#         # so we set those values at 1
+#         bh_value = min(bh_value, 1)
+#         # To preserve monotonicity in the values, we take the
+#         # maximum of the previous value or this one, so that we
+#         # don't yield a value less than the previous.
+#         bh_value = max(bh_value, prev_bh_value)
+#         prev_bh_value = bh_value
+#         yield bh_value
 
 
 if __name__ == '__main__':

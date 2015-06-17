@@ -65,6 +65,16 @@ def about():
     return render_template('about.html')
 
 
+################################################################################
+# upload.html
+################################################################################
+@app.route('/upload')
+def upload():
+    return render_template('upload.html')
+
+
+
+
 
 ################################################################################
 # Kinase Enrichment
@@ -109,13 +119,13 @@ class GOTUPK_file_Form(wtforms.Form):
 
 
 
-    go_slims_or_basic = fields.SelectField("GO basic or slims",
-                                 choices = (("basic", "basic"), ("slims", "slims")))
+    go_slim_or_basic = fields.SelectField("GO basic or slim",
+                                 choices = (("basic", "basic"), ("slim", "slim")))
 
     indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
 
     multitest_method = fields.SelectField("Correction for multiple testing Method",
-                                choices = (("bonferroni", "Bonferroni"), ("sidak", "Sidak"), ("holm", "Holm")))
+                                choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
 
     e_or_p_or_both = fields.SelectField("enriched or purified or both",
@@ -140,7 +150,7 @@ def submit_GOTUPK_file():
     # result_file = StringIO.StringIO()
     # results, header = resultfile_to_results(result_file)
     gotupk.run(form.userinput_file, form.decimal.data, form.organism.data,
-               form.gocat_upk.data, form.go_slims_or_basic.data, form.indent.data,
+               form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
                form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
                form.abcorr.data, form.num_bins.data, form.backtracking.data,
                form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,

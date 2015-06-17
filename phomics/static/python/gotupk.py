@@ -25,7 +25,7 @@ obo2file_dict = {"slims": home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_o
 # (u'9031',  u'Gallus gallus'),
 # (u'8364',  u'Xenopus (Silurana) tropicalis')
 
-def run(userinput_file, decimal, organism, gocat_upk, go_slims_or_basic, indent,
+def run(userinput_file, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting):
 
@@ -37,7 +37,7 @@ def run(userinput_file, decimal, organism, gocat_upk, go_slims_or_basic, indent,
     # print userinput_file.__dict__
     # print "####################################"
     # for par in [userinput_file, decimal, organism,
-    #     gocat_upk, go_slims_or_basic, indent,
+    #     gocat_upk, go_slim_or_basic, indent,
     #     correction_method, alpha, e_or_p_or_both, p_value, abcorr]:
     #         print str(par), type(par)
     # print "####################################"
@@ -95,7 +95,7 @@ def run(userinput_file, decimal, organism, gocat_upk, go_slims_or_basic, indent,
         gostudy.write_summary2file(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
     else:
         goa_ref_fn = species2files_dict[organism]["goa_ref_fn"]
-        obo_fn = obo2file_dict[go_slims_or_basic]
+        obo_fn = obo2file_dict[go_slim_or_basic]
         obo_dag = obo_parser.GODag(obo_file=obo_fn)
         go_parent = gocat_upk
         assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict(go_parent, obo_dag)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     userinput_file = species2files_dict[organism]["userinput_fn"]
     decimal = ','
     gocat_upk = 'UPK'
-    go_slims_or_basic = 'basic'
+    go_slim_or_basic = 'basic'
     indent = False
     multitest_method = 'holm'
     alpha = 0.05
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     p_value_uncorrected = 0
     p_value_mulitpletesting = 0
 
-    run(userinput_file, decimal, organism, gocat_upk, go_slims_or_basic, indent,
+    run(userinput_file, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting)
 
