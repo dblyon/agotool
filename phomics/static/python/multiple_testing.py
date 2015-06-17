@@ -19,7 +19,6 @@ class AbstractCorrection(object):
         self.pvals = self.corrected_pvals = np.array(pvals)
         self.n = len(self.pvals)    # number of multiple tests
         self.a = a                  # type-1 error cutoff for each test
-
         self.set_correction()
 
     def set_correction(self):
