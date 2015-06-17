@@ -25,7 +25,7 @@ obo2file_dict = {"slims": home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_o
 # (u'9031',  u'Gallus gallus'),
 # (u'8364',  u'Xenopus (Silurana) tropicalis')
 
-def run(userinput_file, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting):
 
@@ -35,12 +35,17 @@ def run(userinput_file, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     # print userinput_file
     # print str(userinput_file)
     # print userinput_file.__dict__
-    # print "####################################"
-    # for par in [userinput_file, decimal, organism,
-    #     gocat_upk, go_slim_or_basic, indent,
-    #     correction_method, alpha, e_or_p_or_both, p_value, abcorr]:
-    #         print str(par), type(par)
-    # print "####################################"
+    print "####################################"
+    varnames = ['userinput_fn','decimal','organism','gocat_upk',
+                'go_slim_or_basic','indent','multitest_method','alpha',
+                'e_or_p_or_both','abcorr','num_bins','backtracking',
+                'fold_enrichment_study2pop','p_value_uncorrected','p_value_mulitpletesting']
+    vars = [userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+        multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
+        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting]
+    for varname, var in zip(varnames, vars) :
+            print varname, ": ", str(var), type(var)
+    print "####################################"
 
     fn_out = "AAA111_webserver_output_test.txt"
 
@@ -82,9 +87,14 @@ def run(userinput_file, decimal, organism, gocat_upk, go_slim_or_basic, indent,
 
     randomSample = False
 ################################
+    print(userinput_fn)
+    try:
+        if os.path.isfile(userinput_fn):
+            userinput_fn = userinput_fn
+    except:
+        userinput_fn = species2files_dict[organism]["userinput_fn"]
 
-    userinput_fn = species2files_dict[organism]["userinput_fn"]
-
+    print(userinput_fn)
     ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
 
     # gocat_upk is one of: 'MF', 'BP', 'CP', "all_GO", "UPK"
