@@ -290,15 +290,16 @@ class GOEnrichmentStudy(object):
     def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
         multitest_method_name = "p_" + self.multitest_method
         with open(fn_out, 'w') as fh_out:
-            header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
-            fh_out.write(header2write)
-            results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
-            for rec in results_sorted_by_fold_enrichment_study2pop:
-                rec.update_remaining_fields()
-                if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
-                    if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
-                        if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                            fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
+            if len(self.results) > 1:
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                fh_out.write(header2write)
+                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+                for rec in results_sorted_by_fold_enrichment_study2pop:
+                    rec.update_remaining_fields()
+                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                        if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                            if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                                fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
 
 
 class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
@@ -487,15 +488,16 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
     def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
         multitest_method_name = "p_" + self.multitest_method
         with open(fn_out, 'w') as fh_out:
-            header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
-            fh_out.write(header2write)
-            results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
-            for rec in results_sorted_by_fold_enrichment_study2pop:
-                rec.update_remaining_fields()
-                if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
-                    if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
-                        if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                            fh_out.write(rec.get_line2write(self.e_or_p_or_both) + '\n')
+            if len(self.results) > 1:
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                fh_out.write(header2write)
+                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+                for rec in results_sorted_by_fold_enrichment_study2pop:
+                    rec.update_remaining_fields()
+                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                        if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                            if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                                fh_out.write(rec.get_line2write(self.e_or_p_or_both) + '\n')
 
 
 
