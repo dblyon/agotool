@@ -13,8 +13,7 @@
 
 <div class="container-fluid">	
 	<form id="main_form" method="Post" action="GOTUPK_file_result" enctype="multipart/form-data">
-        <h1>Abundance corrected GO-term or UniProt-keyword enrichment</h1>
-        <br>
+        <h2>Abundance corrected GO-term or UniProt-keyword enrichment</h2>
         <h3>Input data</h3>
 
         <div>{{form.userinput_file.label}}: {{form.userinput_file(class="filestyle btn-info")}}</div>
@@ -29,14 +28,12 @@
                 <br>{{ form.backtracking.label }}: {{ form.backtracking() }}
             </div>
         </div>
-        <br>
 
         <div class="row">
             <div class="col-md-5">
                 <h3>Keyword association</h3>
                 {{ form.gocat_upk.label }}: {{ form.gocat_upk() }}
                 <br>{{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}
-                <br>
                 <br>
             </div>
             </div>
@@ -61,7 +58,6 @@
                 <h4>Multiple testing</h4>
                 {{ form.multitest_method.label }}: {{ form.multitest_method() }}
                 <br>{{ form.alpha.label }}: {{ form.alpha() }}
-
             </div>
         </div>
 
