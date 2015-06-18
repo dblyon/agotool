@@ -5,31 +5,31 @@ webserver_data = home + r'/CloudStation/CPR/Brian_GO/webserver_data'
 
 # key=TaxId, val=Dict {key=goa_ref_fn, uniprot_keywords_fn, val=rawString}
 species2files_dict = {"9606":
-                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_ref_human',
-                           'uniprot_keywords_fn': home + r'/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab'},
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_human',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab'},
                       "4932":
-                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_ref_yeast',
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_yeast',
                            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Yeast_uniprot-proteome%3AUP000002311.tab'},
                       "3702":
                           {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_arabidopsis',
-                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000000589.tab'},
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000006548.tab'},
                       "7955":
                           {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_zebrafish',
-                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000589.tab'},
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000437.tab'},
                       "7227":
                           {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_fly',
-                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000589.tab'},
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000803.tab'},
                       "9031":
                           {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_chicken',
-                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000589.tab'},
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000539.tab'},
                       "10090":
                           {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_mouse',
                            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Mouse_uniprot-proteome%3AUP000000589.tab'},
                       "10116":
                           {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_rat',
-                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Rat_uniprot-proteome%3AUP000000589.tab'},
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Rat_uniprot-proteome%3AUP000002494.tab'},
                       "8364":
-                          {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Frog_uniprot-proteome%3AUP000000589.tab'},
+                          {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab'}
                       }
 
 obo2file_dict = {"slims": webserver_data + r'/OBO/goslim_generic.obo',
