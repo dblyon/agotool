@@ -300,6 +300,11 @@ class GOEnrichmentStudy(object):
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
                                 fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
+            else:
+                fh_out.write("""unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
+missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
+
 
 
 class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
@@ -498,7 +503,10 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
                                 fh_out.write(rec.get_line2write(self.e_or_p_or_both) + '\n')
-
+            else:
+                fh_out.write("""unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
+missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
 
 
 
