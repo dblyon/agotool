@@ -38,16 +38,7 @@ logger.addHandler(stream_handler)
 ################################################################################
 # Globals
 ################################################################################
-organism_choices = [
-    (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
-    (u'9606',  u'Homo sapiens'), # Human
-    (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
-    (u'7955',  u'Danio rerio'), # Zebrafish
-    (u'7227',  u'Drosophila melanogaster'), # Fly
-    (u'9031',  u'Gallus gallus'), # Chicken
-    (u'10090', u'Mus musculus'), # Mouse
-    (u'10116', u'Rattus norvegicus'), # Rat
-    (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
+
 
 def resultfile_to_results(result_file):
     result_file.seek(0)
@@ -73,6 +64,158 @@ def index():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+@app.route('/gotupk_results_zero')
+def gotupk_results_zero():
+    return render_template('gotupk_results_zero.html')
+
+
+################################################################################
+# UniProtKeywords
+################################################################################
+class UniProtKeywords_Form(wtforms.Form):
+    organism_choices = [
+    (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
+    (u'9606',  u'Homo sapiens'), # Human
+    (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
+    (u'7955',  u'Danio rerio'), # Zebrafish
+    (u'7227',  u'Drosophila melanogaster'), # Fly
+    (u'9031',  u'Gallus gallus'), # Chicken
+    (u'10090', u'Mus musculus'), # Mouse
+    (u'10116', u'Rattus norvegicus'), # Rat
+    (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
+    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+    decimal = fields.SelectField("Decimal delimiter",
+                                 choices = ((",", "Comma"), (".", "Point")),
+                                 description = u"either a ',' or a '.' used for abundance values")
+
+
+    abcorr = fields.BooleanField("Abundance correction", default = "checked")
+
+    multitest_method = fields.SelectField("Correction for multiple testing Method",
+                                choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
+    alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
+    e_or_p_or_both = fields.SelectField("enriched or purified or both",
+                                 choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
+    num_bins = fields.IntegerField("Number of bins", default = 100)
+    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
+    p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
+    p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
+
+
+@app.route('/UniProtKeywords')
+def UniProtKeywords():
+    return render_template('UniProtKeywords.html', form=UniProtKeywords_Form())
+
+@app.route('/upk_results', methods=['POST'])
+def upk_results():
+    form = UniProtKeywords_Form(request.form)
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            gocat_upk = "UPK"
+            go_slim_or_basic = "basic"
+            indent = False
+            backtracking = False
+
+            header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
+               gocat_upk, go_slim_or_basic, indent,
+               form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
+               form.abcorr.data, form.num_bins.data, backtracking,
+               form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+               form.p_value_mulitpletesting.data)
+            if len(results) == 0:
+                return render_template('gotupk_results_zero.html')
+            else:
+                header = header.split("\t")
+                results2display = []
+                for res in results:
+                    results2display.append(res.split('\t'))
+                return render_template('gotupk_results.html', header=header, results=results2display, errors=[]) #tsv=tsv,
+    return render_template('UniProtKeywords.html', form=GOTUPK_file_upload_Form())
+
+################################################################################
+@app.route('/gotupk_results/<path:filename>', methods=['GET', 'POST'])
+def download_results(filename):
+    uploads = app.config['UPLOAD_FOLDER']
+    return send_from_directory(directory=uploads, filename=filename)
+################################################################################
+
+################################################################################
+# GOTerms
+################################################################################
+class GOTerms_Form(wtforms.Form):
+    organism_choices = [
+    (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
+    (u'9606',  u'Homo sapiens'), # Human
+    (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
+    (u'7955',  u'Danio rerio'), # Zebrafish
+    (u'7227',  u'Drosophila melanogaster'), # Fly
+    (u'9031',  u'Gallus gallus'), # Chicken
+    (u'10090', u'Mus musculus'), # Mouse
+    (u'10116', u'Rattus norvegicus')] # Rat
+    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+    decimal = fields.SelectField("Decimal delimiter",
+                                 choices = ((",", "Comma"), (".", "Point")),
+                                 description = u"either a ',' or a '.' used for abundance values")
+    gocat_upk = fields.SelectField("GO-terms",
+                                choices = (("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
+                                           ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
+    abcorr = fields.BooleanField("Abundance correction", default = "checked")
+    go_slim_or_basic = fields.SelectField("GO basic or slim",
+                                 choices = (("basic", "basic"), ("slim", "slim")))
+    indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
+    multitest_method = fields.SelectField("Correction for multiple testing Method",
+                                choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
+    alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
+    e_or_p_or_both = fields.SelectField("enriched or purified or both",
+                                 choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
+    num_bins = fields.IntegerField("Number of bins", default = 100)
+    backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
+    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
+    p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
+    p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
+
+@app.route('/GOTerms')
+def GOTerms():
+    return render_template('GOTerms.html', form=GOTerms_Form())
+
+@app.route('/got_results', methods=['POST'])
+def got_results():
+    form = GOTerms_Form(request.form)
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
+               form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+               form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
+               form.abcorr.data, form.num_bins.data, form.backtracking.data,
+               form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+               form.p_value_mulitpletesting.data)
+            if len(results) == 0:
+                return render_template('gotupk_results_zero.html')
+            else:
+                header = header.split("\t")
+                results2display = []
+                for res in results:
+                    results2display.append(res.split('\t'))
+                return render_template('gotupk_results.html', header=header, results=results2display, errors=[]) #tsv=tsv,
+    return render_template('GOTerms.html', form=GOTUPK_file_upload_Form())
+
+################################################################################
+
+
+
+
+
+
 
 # ###############################################################################
 # upload.html
@@ -131,130 +274,130 @@ def about():
 ################################################################################
 # GOTUPK FILE UPLOAD
 ################################################################################
-class GOTUPK_file_upload_Form(wtforms.Form):
-    # userinput_file = fields.FileField(u"Input File")
-    #         <div>{{form.userinput_file.label}}: {{form.userinput_file(class="filestyle btn-info")}}</div>
-
-    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-    decimal = fields.SelectField("Decimal delimiter",
-                                 choices = ((",", "Comma"), (".", "Point")),
-                                 description = u"either a ',' or a '.' used for abundance values")
-    gocat_upk = fields.SelectField("GO-terms or UniProt-Keywords",
-                                choices = (("UPK", "UniProt Keywords"),
-                                           ("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
-                                           ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
-    abcorr = fields.BooleanField("Abundance correction", default = "checked")
-    go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                 choices = (("basic", "basic"), ("slim", "slim")))
-    indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
-    multitest_method = fields.SelectField("Correction for multiple testing Method",
-                                choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
-    alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
-    e_or_p_or_both = fields.SelectField("enriched or purified or both",
-                                 choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
-    num_bins = fields.IntegerField("Number of bins", default = 100)
-    backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
-    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
-    p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
-    p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
-
-@app.route('/upload')
-def upload():
-    return render_template('upload.html', form=GOTUPK_file_upload_Form())
-
-@app.route('/GOTUPK_file_upload_result', methods=['POST'])
-def submit_GOTUPK_file_upload():
-    form = GOTUPK_file_Form(request.form)
-    if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
-               form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
-               form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
-               form.abcorr.data, form.num_bins.data, form.backtracking.data,
-               form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-               form.p_value_mulitpletesting.data)
-            # tsv = '%s\n%s\n' % ('\t'.join(header), '\n'.join(['\t'.join(x) for x in results]))
-            header = header.split("\t")
-            # tsv = '%s\n%s\n' % (header, results)
-            # tsv.encode('base64')
-            results2display = []
-            for res in results:
-                results2display.append(res.split('\t'))
-            return render_template('GOTUPK_file_upload_result.html', header=header, results=results2display, errors=[]) #tsv=tsv,
-            # return render_template('GOTUPK_file_result.html')
-    return render_template('upload.html', form=GOTUPK_file_upload_Form())
-
-@app.route('/GOTUPK_file_upload_result/<path:filename>', methods=['GET', 'POST'])
-def download(filename):
-    uploads = app.config['UPLOAD_FOLDER'] #+ r'/results.txt'
-    return send_from_directory(directory=uploads, filename=filename)
+# class GOTUPK_file_upload_Form(wtforms.Form):
+#     # userinput_file = fields.FileField(u"Input File")
+#     #         <div>{{form.userinput_file.label}}: {{form.userinput_file(class="filestyle btn-info")}}</div>
+#
+#     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+#     decimal = fields.SelectField("Decimal delimiter",
+#                                  choices = ((",", "Comma"), (".", "Point")),
+#                                  description = u"either a ',' or a '.' used for abundance values")
+#     gocat_upk = fields.SelectField("GO-terms or UniProt-Keywords",
+#                                 choices = (("UPK", "UniProt Keywords"),
+#                                            ("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
+#                                            ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
+#     abcorr = fields.BooleanField("Abundance correction", default = "checked")
+#     go_slim_or_basic = fields.SelectField("GO basic or slim",
+#                                  choices = (("basic", "basic"), ("slim", "slim")))
+#     indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
+#     multitest_method = fields.SelectField("Correction for multiple testing Method",
+#                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
+#     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
+#     e_or_p_or_both = fields.SelectField("enriched or purified or both",
+#                                  choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
+#     num_bins = fields.IntegerField("Number of bins", default = 100)
+#     backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
+#     fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
+#     p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
+#     p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
+#
+# @app.route('/upload')
+# def upload():
+#     return render_template('upload.html', form=GOTUPK_file_upload_Form())
+#
+# @app.route('/GOTUPK_file_upload_result', methods=['POST'])
+# def submit_GOTUPK_file_upload():
+#     form = GOTUPK_file_Form(request.form)
+#     if request.method == 'POST':
+#         file = request.files['file']
+#         if file and allowed_file(file.filename):
+#             filename = secure_filename(file.filename)
+#             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+#             userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+#             header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
+#                form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+#                form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
+#                form.abcorr.data, form.num_bins.data, form.backtracking.data,
+#                form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+#                form.p_value_mulitpletesting.data)
+#             # tsv = '%s\n%s\n' % ('\t'.join(header), '\n'.join(['\t'.join(x) for x in results]))
+#             header = header.split("\t")
+#             # tsv = '%s\n%s\n' % (header, results)
+#             # tsv.encode('base64')
+#             results2display = []
+#             for res in results:
+#                 results2display.append(res.split('\t'))
+#             return render_template('GOTUPK_file_upload_result.html', header=header, results=results2display, errors=[]) #tsv=tsv,
+#             # return render_template('GOTUPK_file_result.html')
+#     return render_template('upload.html', form=GOTUPK_file_upload_Form())
+#
+# @app.route('/GOTUPK_file_upload_result/<path:filename>', methods=['GET', 'POST'])
+# def download(filename):
+#     uploads = app.config['UPLOAD_FOLDER'] #+ r'/results.txt'
+#     return send_from_directory(directory=uploads, filename=filename)
 
 
 ################################################################################
 # GOTUPK FILE
-################################################################################
-class GOTUPK_file_Form(wtforms.Form):
-    userinput_file = fields.FileField(u"Input File", id=file)
-    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-    decimal = fields.SelectField("Decimal delimiter",
-                                 choices = ((",", "Comma"), (".", "Point")),
-                                 description = u"either a ',' or a '.' used for abundance values")
-    gocat_upk = fields.SelectField("GO-terms or UniProt-Keywords",
-                                choices = (("UPK", "UniProt Keywords"),
-                                           ("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
-                                           ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
-    abcorr = fields.BooleanField("Abundance correction", default = "checked")
-    go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                 choices = (("basic", "basic"), ("slim", "slim")))
-    indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
-    multitest_method = fields.SelectField("Correction for multiple testing Method",
-                                choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
-    alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
-    e_or_p_or_both = fields.SelectField("enriched or purified or both",
-                                 choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
-    num_bins = fields.IntegerField("Number of bins", default = 100)
-    backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
-###### Filter rows
-    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
-    p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
-    p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
-
-@app.route('/GOTUPK_file')
-def GOTUPK_file():
-    return render_template('GOTUPK_file.html', form=GOTUPK_file_Form())
-
-@app.route('/GOTUPK_file_result', methods=["POST"])
-def submit_GOTUPK_file():
-    form = GOTUPK_file_Form(request.form)
-    # result_file = StringIO.StringIO()
-    # results, header = resultfile_to_results(result_file)
-    if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
-               form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
-               form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
-               form.abcorr.data, form.num_bins.data, form.backtracking.data,
-               form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-               form.p_value_mulitpletesting.data)
-
-            # tsv = '%s\n%s\n' % ('\t'.join(header), '\n'.join(['\t'.join(x) for x in results]))
-            header = header.split("\t")
-            tsv = '%s\n%s\n' % (header, results)
-            tsv.encode('base64')
-            results2display = []
-            for res in results:
-                results2display.append(res.split('\t'))
-            return render_template('GOTUPK_file_upload_result.html', header=header, results=results2display, tsv=tsv, errors=[])
-            # return render_template('GOTUPK_file_result.html')
-    return render_template('GOTUPK_file.html', form=GOTUPK_file_Form())
+# ################################################################################
+# class GOTUPK_file_Form(wtforms.Form):
+#     userinput_file = fields.FileField(u"Input File", id=file)
+#     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+#     decimal = fields.SelectField("Decimal delimiter",
+#                                  choices = ((",", "Comma"), (".", "Point")),
+#                                  description = u"either a ',' or a '.' used for abundance values")
+#     gocat_upk = fields.SelectField("GO-terms or UniProt-Keywords",
+#                                 choices = (("UPK", "UniProt Keywords"),
+#                                            ("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
+#                                            ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
+#     abcorr = fields.BooleanField("Abundance correction", default = "checked")
+#     go_slim_or_basic = fields.SelectField("GO basic or slim",
+#                                  choices = (("basic", "basic"), ("slim", "slim")))
+#     indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
+#     multitest_method = fields.SelectField("Correction for multiple testing Method",
+#                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
+#     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
+#     e_or_p_or_both = fields.SelectField("enriched or purified or both",
+#                                  choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
+#     num_bins = fields.IntegerField("Number of bins", default = 100)
+#     backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
+# ###### Filter rows
+#     fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
+#     p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
+#     p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
+#
+# @app.route('/GOTUPK_file')
+# def GOTUPK_file():
+#     return render_template('GOTUPK_file.html', form=GOTUPK_file_Form())
+#
+# @app.route('/GOTUPK_file_result', methods=["POST"])
+# def submit_GOTUPK_file():
+#     form = GOTUPK_file_Form(request.form)
+#     # result_file = StringIO.StringIO()
+#     # results, header = resultfile_to_results(result_file)
+#     if request.method == 'POST':
+#         file = request.files['file']
+#         if file and allowed_file(file.filename):
+#             filename = secure_filename(file.filename)
+#             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+#             userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+#             header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
+#                form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+#                form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
+#                form.abcorr.data, form.num_bins.data, form.backtracking.data,
+#                form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+#                form.p_value_mulitpletesting.data)
+#
+#             # tsv = '%s\n%s\n' % ('\t'.join(header), '\n'.join(['\t'.join(x) for x in results]))
+#             header = header.split("\t")
+#             tsv = '%s\n%s\n' % (header, results)
+#             tsv.encode('base64')
+#             results2display = []
+#             for res in results:
+#                 results2display.append(res.split('\t'))
+#             return render_template('GOTUPK_file_upload_result.html', header=header, results=results2display, tsv=tsv, errors=[])
+#             # return render_template('GOTUPK_file_result.html')
+#     return render_template('GOTUPK_file.html', form=GOTUPK_file_Form())
 
 
 ################################################################################
