@@ -290,7 +290,11 @@ class GOEnrichmentStudy(object):
     def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
         multitest_method_name = "p_" + self.multitest_method
         with open(fn_out, 'w') as fh_out:
-            if len(self.results) > 1:
+            if len(self.results) == 0:
+                fh_out.write("""unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
+missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
+            else:
                 header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
                 fh_out.write(header2write)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
@@ -300,11 +304,29 @@ class GOEnrichmentStudy(object):
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
                                 fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
-            else:
-                fh_out.write("""unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
-   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
-missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
 
+    def write_summary2file_web(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
+        multitest_method_name = "p_" + self.multitest_method
+        results2write = []
+        with open(fn_out, 'w') as fh_out:
+            if len(self.results) == 0:
+                header2write = """unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
+missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!"""
+                fh_out.write(header2write)
+            else:
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                fh_out.write(header2write)
+                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+                for rec in results_sorted_by_fold_enrichment_study2pop:
+                    rec.update_remaining_fields()
+                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                        if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                            if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                                res = rec.get_line2write(indent, self.e_or_p_or_both)
+                                results2write.append(res)
+                                fh_out.write(res + '\n')
+        return header2write, results2write
 
 
 class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
@@ -493,7 +515,11 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
     def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
         multitest_method_name = "p_" + self.multitest_method
         with open(fn_out, 'w') as fh_out:
-            if len(self.results) > 1:
+            if len(self.results) == 0:
+                fh_out.write("""unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
+missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
+            else:
                 header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
                 fh_out.write(header2write)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
@@ -503,15 +529,29 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
                                 fh_out.write(rec.get_line2write(self.e_or_p_or_both) + '\n')
-            else:
-                fh_out.write("""unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+
+    def write_summary2file_web(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
+        multitest_method_name = "p_" + self.multitest_method
+        results2write = []
+        with open(fn_out, 'w') as fh_out:
+            if len(self.results) == 0:
+                header2write = """unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
    either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
-missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
-
-
-
-
-
+missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!"""
+                fh_out.write(header2write)
+            else:
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                fh_out.write(header2write)
+                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+                for rec in results_sorted_by_fold_enrichment_study2pop:
+                    rec.update_remaining_fields()
+                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                        if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                            if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                                res = rec.get_line2write(self.e_or_p_or_both)
+                                results2write.append(res)
+                                fh_out.write(res + '\n')
+        return header2write, results2write
 
 
 

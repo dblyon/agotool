@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block head %}
+        <!--
+      <script type="text/javascript">
+          $(document).ready( function () {
+              load();
+          });
+      </script>-->
+{% endblock head %}
+
+
+{% block content %}
+
+
+<div class="container-fluid">
+    <h4>Download results file</h4>
+    <td><a href="{{ url_for('download', filename='results.txt') }}">results.txt</a></td>
+
+
+    {% if errors != [] %}
+    <h4>Errors</h4>
+        {% for error in errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    {% endif %}
+    <br>
+    <br>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+            {% for h in header %}
+                <th>{{ h }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+         <tbody>
+         {% for result_row in results %}
+             <tr>
+             {% for r in result_row %}
+                 <td title="{{ result_row }}">{{ r }}</td>
+             {% endfor %}
+             </tr>
+         {% endfor %}
+         </tbody>
+    </table>
+
+
+
+</div>
+
+{% endblock content %}
