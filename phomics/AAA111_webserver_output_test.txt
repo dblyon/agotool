@@ -1,9 +1,0 @@
-unfortunately no results to write to file
-
-possible reasons:
-   threshold of reports too high
-   either no/few IDs could be mapped to keywords (correct species selected?)
-   abundance datamissing (but option selected)
-
-
-Don't hesitate to contact us for feedback or questions!

@@ -1,29 +1,52 @@
 import goretriever, go_enrichment_dbl, obo_parser, os, userinput, uniprot_keywords
 
 home = os.path.expanduser('~')
+webserver_data = home + r'/CloudStation/CPR/Brian_GO/webserver_data'
 
 # key=TaxId, val=Dict {key=goa_ref_fn, uniprot_keywords_fn, val=rawString}
 species2files_dict = {"9606":
-                          {'goa_ref_fn': home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/human/gene_association.goa_ref_human',
-                           'uniprot_keywords_fn': home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/keywords/UniProt_HomoSapiens_Keywords_20150611.tab',
-                           'userinput_fn': home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_HeLa_v2.txt'},
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_ref_human',
+                           'uniprot_keywords_fn': home + r'/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab'},
                       "4932":
-                      {'goa_ref_fn': home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast',
-                           'uniprot_keywords_fn': home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/keywords/UniProt_SaccharomycesCerevisiae_Keywords_20150611.tab',
-                           'userinput_fn': home + r'/CloudStation/CPR/Brian_GO/alldata/Data_for_web_tool_Yeast_v2.txt'}
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_ref_yeast',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Yeast_uniprot-proteome%3AUP000002311.tab'},
+                      "3702":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_arabidopsis',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000000589.tab'},
+                      "7955":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_zebrafish',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000589.tab'},
+                      "7227":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_fly',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000589.tab'},
+                      "9031":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_chicken',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000589.tab'},
+                      "10090":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_mouse',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Mouse_uniprot-proteome%3AUP000000589.tab'},
+                      "10116":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_rat',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Rat_uniprot-proteome%3AUP000000589.tab'},
+                      "8364":
+                          {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Frog_uniprot-proteome%3AUP000000589.tab'},
                       }
 
-obo2file_dict = {"slims": home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/goslim_generic.obo',
-                 "basic": home + r'/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'}
+obo2file_dict = {"slims": webserver_data + r'/OBO/goslim_generic.obo',
+                 "basic": webserver_data + r'/OBO/go-basic.obo'}
 
-# (u'9606',  u'Homo sapiens'),
-# (u'10090', u'Mus musculus'),
-# (u'10116', u'Rattus norvegicus'),
-# (u'4932',  u'Saccharomyces cerevisiae'),
-# (u'7227',  u'Drosophila melanogaster'),
-# (u'7955',  u'Danio rerio'),
-# (u'9031',  u'Gallus gallus'),
-# (u'8364',  u'Xenopus (Silurana) tropicalis')
+# (u'9606',  u'Homo sapiens'), # Human
+# (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
+# (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
+# (u'7955',  u'Danio rerio'), # Zebrafish
+# (u'7227',  u'Drosophila melanogaster'), # Fly
+# (u'9031',  u'Gallus gallus'), # Chicken
+# (u'10090', u'Mus musculus'), # Mouse
+# (u'10116', u'Rattus norvegicus'), # Rat
+# (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
+
+
+
 
 def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
@@ -47,11 +70,17 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
             print varname, ": ", str(var), type(var)
     print "####################################"
 
-    fn_out = "AAA111_webserver_output_test.txt"
+    fn_out = home + r'/CloudStation/CPR/Brian_GO/webserver_data/userdata/results.txt'
 
-    col_background_an = 'Observed Proteome'
-    col_sample_an = "Acetyl"
-    col_background_int = 'iBAQ observed (log10)'
+
+    # col_background_an = 'Observed Proteome'
+    # col_sample_an = "Acetyl"
+    # col_background_int = 'iBAQ observed (log10)'
+
+    col_sample_an = "sample_an"
+    col_background_an = 'background_an'
+    col_background_int = 'background_int'
+    # background_int	background_an	sample_an
 
     e_or_p_or_both = e_or_p_or_both # e_or_p_or_both: is one of: 'enriched', 'purified', None
     decimal = decimal # is one of: "," or "."
@@ -95,14 +124,18 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         userinput_fn = species2files_dict[organism]["userinput_fn"]
 
     print(userinput_fn)
-    ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+    if abcorr:
+        ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+    else:
+        ui = userinput.UserInput_noAbCorr(userinput_fn, num_bins, col_sample_an, col_background_an, decimal)
 
     # gocat_upk is one of: 'MF', 'BP', 'CP', "all_GO", "UPK"
     if gocat_upk == "UPK":
         uniprot_keywords_fn = species2files_dict[organism]["uniprot_keywords_fn"]
         assoc_dict = uniprot_keywords.UniProt_keywords_parser(uniprot_keywords_fn).get_association_dict()
         gostudy = go_enrichment_dbl.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, e_or_p_or_both, multitest_method)
-        gostudy.write_summary2file(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
+        header, results = gostudy.write_summary2file_web(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
+        return header, results
     else:
         goa_ref_fn = species2files_dict[organism]["goa_ref_fn"]
         obo_fn = obo2file_dict[go_slim_or_basic]
@@ -110,17 +143,19 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         go_parent = gocat_upk
         assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict(go_parent, obo_dag)
         gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, e_or_p_or_both, multitest_method)
-        gostudy.write_summary2file(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
+        header, results = gostudy.write_summary2file_web(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
+        return header, results
 
 
 if __name__ == "__main__":
     organism = "4932"
-    userinput_file = species2files_dict[organism]["userinput_fn"]
+    # userinput_file = species2files_dict[organism]["userinput_fn"]
+    userinput_file = r'/Users/dblyon/Downloads/yeast_observed_acetyl_abundance.txt'
     decimal = ','
     gocat_upk = 'UPK'
     go_slim_or_basic = 'basic'
-    indent = False
-    multitest_method = 'holm'
+    indent = True
+    multitest_method = 'benjamini_hochberg'
     alpha = 0.05
     e_or_p_or_both = 'both'
     abcorr = True

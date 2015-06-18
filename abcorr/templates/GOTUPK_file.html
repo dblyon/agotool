@@ -12,26 +12,21 @@
 {% block content %}
 
 <div class="container-fluid">	
-    <form id="main_form" method="Post" action="GOTUPK_file_upload_result" enctype="multipart/form-data">
+	<form id="main_form" method="Post" action="GOTUPK_file_result" enctype="multipart/form-data">
         <h2>Abundance corrected GO-term or UniProt-keyword enrichment</h2>
+        <h3>Input data</h3>
+
+        <div>{{form.userinput_file.label}}: {{form.userinput_file(class="filestyle btn-info")}}</div>
+
+        <p>Expects a tab-demlimited text-file with 3 columns: 'sample_an', 'background_an', and 'background_int'</p>
 
         <div class="row">
             <div class="col-md-5">
-                <h3>Upload file</h3>
-                <title>Where does this show up?</title>
-                <p><input type=file name=file></p>
-                <p><input type=submit value=Upload></p>
-                <p>Expects a tab-demlimited text-file with 3 columns:<br>
-                    'sample_an', 'background_an', and 'background_int'</p>
-                </div>
-            <div class="col-md-5">
-                <br>
-                <br>
                 <br>{{ form.organism.label }}: {{ form.organism() }}
                 <br>{{ form.decimal.label }}: {{ form.decimal() }}
                 <br>{{ form.abcorr.label }}: {{ form.abcorr() }}
                 <br>{{ form.num_bins.label }}: {{ form.num_bins() }}
-                <br>
+                <br>{{ form.backtracking.label }}: {{ form.backtracking() }}
             </div>
         </div>
 
@@ -40,8 +35,6 @@
                 <h3>Keyword association</h3>
                 {{ form.gocat_upk.label }}: {{ form.gocat_upk() }}
                 <br>{{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}
-                <br>{{ form.backtracking.label }}: {{ form.backtracking() }}
-                <br>
                 <br>
             </div>
             </div>
@@ -53,19 +46,19 @@
                 <br>{{ form.e_or_p_or_both.label }}: {{ form.e_or_p_or_both() }}
                 <br>
                 <br>
-                <h4>Multiple testing</h4>
-                {{ form.multitest_method.label }}: {{ form.multitest_method() }}
-                <br>{{ form.alpha.label }}: {{ form.alpha() }}
+                <h4>filter rows</h4>
+                {{ form.fold_enrichment_study2pop.label }}: {{ form.fold_enrichment_study2pop() }}
+                <br>{{ form.p_value_uncorrected.label }}: {{ form.p_value_uncorrected() }}
+                <br>{{ form.p_value_mulitpletesting.label }}: {{ form.p_value_mulitpletesting() }}
                 <br>
                 <br>
                 </div>
             <div class="col-md-5">
                 <br>
                 <br>
-                <h4>filter rows</h4>
-                {{ form.fold_enrichment_study2pop.label }}: {{ form.fold_enrichment_study2pop() }}
-                <br>{{ form.p_value_uncorrected.label }}: {{ form.p_value_uncorrected() }}
-                <br>{{ form.p_value_mulitpletesting.label }}: {{ form.p_value_mulitpletesting() }}
+                <h4>Multiple testing</h4>
+                {{ form.multitest_method.label }}: {{ form.multitest_method() }}
+                <br>{{ form.alpha.label }}: {{ form.alpha() }}
             </div>
         </div>
 
