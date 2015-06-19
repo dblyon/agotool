@@ -20,9 +20,12 @@
                 <h3>Upload file</h3>
                 <title>Where does this show up?</title>
                 <p><input type=file name=file></p>
-                <p>Expects a tab-demlimited text-file with 3 columns:<br>
-                    'sample_an', 'background_an', and 'background_int'<br>
+                <p>Expects a tab-demlimited text-file with 3 columns:
+                    <li>'background_an'</li>
+                    <li>'background_int'</li>
+                    <li>'sample_an'</li>
                     if 'Abundance correction' is deselected 'background_int' can be omitted
+                </p>
                 </p>
                 </div>
             <div class="col-md-5">
@@ -56,7 +59,8 @@
                 <br>
                 <h4>Multiple testing</h4>
                 {{ form.multitest_method.label }}: {{ form.multitest_method() }}
-                <br>{{ form.alpha.label }}: {{ form.alpha() }}
+                <br>{{ form.alpha.label }}: {{ form.alpha() }} *
+                <p>* alpha does not apply to 'Benjamini Hochberg' correction</p>
                 <br>
                 <br>
                 </div>
@@ -69,9 +73,6 @@
                 <br>{{ form.p_value_mulitpletesting.label }}: {{ form.p_value_mulitpletesting() }}
             </div>
         </div>
-
-
-        <br>
         <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
 		<br>
 	</form>

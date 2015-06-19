@@ -49,6 +49,36 @@ class Parser_UniProt_goa_ref(object):
         self.remove_redundant_go_terms()
         fh.close()
 
+    def parse_goa_ref_v2(self, fn):
+        """
+        parse UniProt goa_ref file filling self.an2go_dict
+        an2go_dict: key=AN, val=set(GO-terms)
+        :param fn: raw String
+        :return: None
+        """
+        fh = open(fn, "r")
+        for line in fh:
+            if line[0] == "!":
+                if line[0:11] == "!Generated:":
+                    self.date = line.replace("!Generated:", "").strip()
+                elif line[0:12] == "!GO-version:":
+                    self.obolibrary = line.replace("!GO-version:", "").strip()
+            else:
+                line_split = line.split("\t")
+                if len(line_split) == 17:
+                    an = line_split[1] # DB_Object_ID
+                    goid = line_split[4] # GO_ID
+                    if not self.an2go_dict.has_key(an):
+                        self.an2go_dict[an] = set([goid])
+                    else:
+                        self.an2go_dict[an].update([goid])
+        self.set2sortedlist()
+        fh.close()
+
+    def set2sortedlist(self):
+        for an in self.an2go_dict.keys():
+            self.an2go_dict[an] = sorted(self.an2go_dict[an])
+
     def get_goterms_from_an(self, an):
         """
         produce list of GO-terms associated with given AccessionNumber

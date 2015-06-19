@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block head %}
+
+{% endblock head %}
+
+
+{% block content %}
+
+
+<div class="container-fluid">
+    <h2>Input error</h2>
+    <br>
+    <p>We're expecting a tab delimited txt file with the following three column-headers:</p>
+    <li>background_an</li>
+    <li>background_int</li>
+    <li>sample_an</li>
+    <p>If you have de-selected 'Abundance correction' the 'background_int' column and header can be omitted.</p>
+
+    <br>
+    Look at the <a href="{{ url_for('example') }}">example</a> data/page for comparison.
+    <br>
+    <h3>Please try again!</h3>
+
+</div>
+	
+{% endblock content %}
