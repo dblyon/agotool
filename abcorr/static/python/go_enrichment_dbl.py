@@ -156,7 +156,6 @@ class GOEnrichmentStudy(object):
             else:
                 pop_n = len(self.study_an_frset)
                 self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
-
         else:
             if self.ui.col_background_an == 'Genome':
                 self.study_an_frset = self.ui.get_sample_an_frset_genome()

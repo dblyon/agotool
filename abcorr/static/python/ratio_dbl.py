@@ -39,6 +39,9 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     produce abundance corrected counts of GO-terms of background frequency
     round floats to nearest integer
     UserInput-object includes ANs of sample, and background as well as abundance data
+    produces:
+        term_cnt: key=GOid, val=Num of occurrences
+        go2ans_dict: key=GOid, val=ListOfANs
     :param ui: UserInput-object
     :param assoc_dict:  Dict with key=AN, val=set of GO-terms
     :param obo_dag: Dict with additional methods
