@@ -54,13 +54,13 @@
             <div class="col-md-5">
                 <h3>Report options</h3>
                 {{ form.indent.label }}: {{ form.indent() }}
-                <br>{{ form.e_or_p_or_both.label }}: {{ form.e_or_p_or_both() }}
+                <br>{{ form.o_or_e_or_both.label }}: {{ form.o_or_e_or_both() }}
                 <br>
                 <br>
                 <h4>Multiple testing</h4>
                 {{ form.multitest_method.label }}: {{ form.multitest_method() }}
                 <br>{{ form.alpha.label }}: {{ form.alpha() }} *
-                <p>* alpha does not apply to 'Benjamini Hochberg' correction</p>
+                <p>* alpha only applies to 'Sidak' and 'Holm' correction</p>
                 <br>
                 <br>
                 </div>

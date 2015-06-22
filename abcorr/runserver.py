@@ -117,8 +117,8 @@ class UniProtKeywords_Form(wtforms.Form):
     multitest_method = fields.SelectField("Correction for multiple testing Method",
                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
-    e_or_p_or_both = fields.SelectField("enriched or purified or both",
-                                 choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
+    o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
+                                 choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
     num_bins = fields.IntegerField("Number of bins", default = 100)
     fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
     p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
@@ -144,7 +144,7 @@ def upk_results():
             if check_userinput(userinput_fn, form.decimal.data, form.abcorr.data):
                 header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
                                     gocat_upk, go_slim_or_basic, indent, form.multitest_method.data,
-                                    form.alpha.data, form.e_or_p_or_both.data, form.abcorr.data, form.num_bins.data,
+                                    form.alpha.data, form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
                                     backtracking, form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
                                    form.p_value_mulitpletesting.data)
             else:
@@ -186,8 +186,8 @@ class GOTerms_Form(wtforms.Form):
     multitest_method = fields.SelectField("Correction for multiple testing Method",
                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
-    e_or_p_or_both = fields.SelectField("enriched or purified or both",
-                                 choices = (("both", "both"), ("e", "enriched"), ("p", "purified"))) #!!! ? why does it switch to 'both' here???
+    o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
+                                 choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
     num_bins = fields.IntegerField("Number of bins", default = 100)
     backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
     fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
@@ -210,7 +210,7 @@ def got_results():
             if check_userinput(userinput_fn, form.decimal.data, form.abcorr.data):
                 header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
                    form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
-                   form.multitest_method.data, form.alpha.data, form.e_or_p_or_both.data,
+                   form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
                    form.abcorr.data, form.num_bins.data, form.backtracking.data,
                    form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
                    form.p_value_mulitpletesting.data)

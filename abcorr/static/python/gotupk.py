@@ -32,7 +32,7 @@ species2files_dict = {"9606":
                           {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab'}
                       }
 
-obo2file_dict = {"slims": webserver_data + r'/OBO/goslim_generic.obo',
+obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
 
 # (u'9606',  u'Homo sapiens'), # Human
@@ -49,7 +49,7 @@ obo2file_dict = {"slims": webserver_data + r'/OBO/goslim_generic.obo',
 
 
 def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
-        multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
+        multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting):
 
     # # fh = open(userinput_file, 'r')
@@ -58,17 +58,17 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     # print userinput_file
     # print str(userinput_file)
     # print userinput_file.__dict__
-    print "####################################"
-    varnames = ['userinput_fn','decimal','organism','gocat_upk',
-                'go_slim_or_basic','indent','multitest_method','alpha',
-                'e_or_p_or_both','abcorr','num_bins','backtracking',
-                'fold_enrichment_study2pop','p_value_uncorrected','p_value_mulitpletesting']
-    vars = [userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
-        multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
-        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting]
-    for varname, var in zip(varnames, vars) :
-            print varname, ": ", str(var), type(var)
-    print "####################################"
+    # print "####################################"
+    # varnames = ['userinput_fn','decimal','organism','gocat_upk',
+    #             'go_slim_or_basic','indent','multitest_method','alpha',
+    #             'e_or_p_or_both','abcorr','num_bins','backtracking',
+    #             'fold_enrichment_study2pop','p_value_uncorrected','p_value_mulitpletesting']
+    # vars = [userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+    #     multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+    #     fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting]
+    # for varname, var in zip(varnames, vars) :
+    #         print varname, ": ", str(var), type(var)
+    # print "####################################"
 
     fn_out = home + r'/CloudStation/CPR/Brian_GO/webserver_data/userdata/results.txt'
 
@@ -82,7 +82,7 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     col_background_int = 'background_int'
     # background_int	background_an	sample_an
 
-    e_or_p_or_both = e_or_p_or_both # e_or_p_or_both: is one of: 'enriched', 'purified', None
+    o_or_u_or_both = o_or_u_or_both # e_or_p_or_both: is one of: 'enriched', 'purified', None
     decimal = decimal # is one of: "," or "."
     alpha = alpha
     # pval = p_value
@@ -133,43 +133,50 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     if gocat_upk == "UPK":
         uniprot_keywords_fn = species2files_dict[organism]["uniprot_keywords_fn"]
         assoc_dict = uniprot_keywords.UniProt_keywords_parser(uniprot_keywords_fn).get_association_dict()
-        gostudy = go_enrichment_dbl.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, e_or_p_or_both, multitest_method)
+        gostudy = go_enrichment_dbl.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
         header, results = gostudy.write_summary2file_web(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
         return header, results
     else:
         goa_ref_fn = species2files_dict[organism]["goa_ref_fn"]
-        obo_fn = obo2file_dict[go_slim_or_basic]
-        obo_dag = obo_parser.GODag(obo_file=obo_fn)
         go_parent = gocat_upk
-        assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict(go_parent, obo_dag)
-        gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, e_or_p_or_both, multitest_method)
+        go_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+        assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict(go_parent, go_dag)
+        if go_slim_or_basic == 'slim':
+            goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+            assoc_dict_slim = goretriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
+            # assoc_dict is the important one, go_obo or goslim_obo doesn't matter for ratio_dbl.count_terms
+            gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
+        else:
+            gostudy = go_enrichment_dbl.GOEnrichmentStudy(ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
         header, results = gostudy.write_summary2file_web(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
         return header, results
 
 
 if __name__ == "__main__":
-    organism = "4932"
+    organism = "9606"
     # userinput_file = species2files_dict[organism]["userinput_fn"]
-    userinput_file = r'/Users/dblyon/Downloads/yeast_observed_acetyl_abundance.txt'
+    # userinput_fn = r'/Users/dblyon/Downloads/yeast_observed_acetyl_abundance.txt'
+    userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/webserver_data/userdata/hela_observed_acetyl_abundance.txt'
+    fn_out = r'/Users/dblyon/Downloads/slim_back_OLD_3.txt'
     decimal = ','
-    gocat_upk = 'UPK'
+    gocat_upk = 'all_GO'
+
     go_slim_or_basic = 'basic'
+    backtracking = True
+
     indent = True
     multitest_method = 'benjamini_hochberg'
     alpha = 0.05
-    e_or_p_or_both = 'both'
+    o_or_u_or_both = 'both'
     abcorr = True
     num_bins = 100
-    backtracking = True
     fold_enrichment_study2pop = 0
     p_value_uncorrected = 0
     p_value_mulitpletesting = 0
 
-    run(userinput_file, decimal, organism, gocat_upk, go_slim_or_basic, indent,
-        multitest_method, alpha, e_or_p_or_both, abcorr, num_bins, backtracking,
-        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting)
-
-
+    run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+            multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+            fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, fn_out)
 
 
 

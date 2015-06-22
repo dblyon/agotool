@@ -49,12 +49,12 @@ class GOEnrichmentRecord(object):
             self.__setattr__(k, v)
 
     def update_remaining_fields(self):
-        self.enrichment = 'e' if ((1.0 * self.study_count / self.study_n) > (1.0 * self.pop_count / self.pop_n)) else 'p'
+        self.enrichment = 'o' if ((1.0 * self.study_count / self.study_n) > (1.0 * self.pop_count / self.pop_n)) else 'u'
         # self.find_goterm(obo_dag)
         # self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, self.study_count, self.study_n, self.pop_count, self.pop_n)
 
-    def get_attributenames2write(self, e_or_p_or_both):
-        if e_or_p_or_both == None:
+    def get_attributenames2write(self, o_or_u_or_both):
+        if o_or_u_or_both == 'both':
             return [name_format[0] for name_format in self.attributes_list]
         else:
             list2return = []
@@ -63,8 +63,8 @@ class GOEnrichmentRecord(object):
                     list2return.append(ele[0])
             return list2return
 
-    def get_attributes_list(self, e_or_p_or_both):
-        if e_or_p_or_both == None:
+    def get_attributes_list(self, o_or_u_or_both):
+        if o_or_u_or_both == 'both':
             return self.attributes_list
         else:
             list2return = []
@@ -73,15 +73,15 @@ class GOEnrichmentRecord(object):
                     list2return.append(ele)
             return list2return
 
-    def get_attribute_format_list(self, indent, e_or_p_or_both):
+    def get_attribute_format_list(self, indent, o_or_u_or_both):
         if indent:
-            attributes_list = [('dot_id', '%s') if x[0] == 'id' else x for x in self.get_attributes_list(e_or_p_or_both)]
+            attributes_list = [('dot_id', '%s') if x[0] == 'id' else x for x in self.get_attributes_list(o_or_u_or_both)]
             dots = ''
             if self.goterm is not None:
                 dots = "." * self.goterm.level
             self.dot_id = dots + self.id
         else:
-            attributes_list = self.get_attributes_list(e_or_p_or_both)
+            attributes_list = self.get_attributes_list(o_or_u_or_both)
         return attributes_list
 
     def get_attribute_formatted(self, attr_form):
@@ -93,9 +93,9 @@ class GOEnrichmentRecord(object):
             attr2write = 'n.a.' + '\t'
         return attr2write
 
-    def get_line2write(self, indent, e_or_p_or_both):
+    def get_line2write(self, indent, o_or_u_or_both):
         line2write = ''
-        attribute_format_list = self.get_attribute_format_list(indent, e_or_p_or_both)
+        attribute_format_list = self.get_attribute_format_list(indent, o_or_u_or_both)
         for attr_form in attribute_format_list:
             line2write += self.get_attribute_formatted(attr_form)
         return line2write.rstrip()
@@ -108,12 +108,12 @@ class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
                    ('p_uncorrected', "%.3g")]
     #, ('p_bonferroni', "%.3g"), ('p_holm', "%.3g"), ('p_sidak',"%.3g"), ('ANs_pop', '%s')
 
-    def get_attribute_format_list(self, e_or_p_or_both):
-        return self.get_attributes_list(e_or_p_or_both)
+    def get_attribute_format_list(self, o_or_u_or_both):
+        return self.get_attributes_list(o_or_u_or_both)
 
-    def get_line2write(self, e_or_p_or_both):
+    def get_line2write(self, o_or_u_or_both):
         line2write = ''
-        attribute_format_list = self.get_attribute_format_list(e_or_p_or_both)
+        attribute_format_list = self.get_attribute_format_list(o_or_u_or_both)
         for attr_form in attribute_format_list:
             line2write += self.get_attribute_formatted(attr_form)
         return line2write.rstrip()
@@ -122,7 +122,7 @@ class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, e_or_p_or_both, multitest_method):
+    def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method):
         self.ui = ui
         self.assoc_dict = assoc_dict
         self.obo_dag = obo_dag
@@ -135,7 +135,7 @@ class GOEnrichmentStudy(object):
         self.abcorr = abcorr
         if not self.abcorr:
             GOEnrichmentRecord.attributes_list.append(('ANs_pop', '%s'))
-        self.e_or_p_or_both = e_or_p_or_both
+        self.o_or_u_or_both = o_or_u_or_both
         if self.backtracking: # add all parent GO-terms to assoc_dict
             self.obo_dag.update_association(self.assoc_dict)
         self.prepare_run()
@@ -225,9 +225,9 @@ class GOEnrichmentStudy(object):
             p = fisher.pvalue_population(a, col_1, r1, n)
             # if significantly enriched --> right_tail
             # if significantly purified --> left_tail
-            if self.e_or_p_or_both == 'enriched':
+            if self.o_or_u_or_both == 'underrepresented':
                 p_val_uncorrected = p.right_tail
-            elif self.e_or_p_or_both == 'purified':
+            elif self.o_or_u_or_both == 'overrepresented':
                 p_val_uncorrected = p.left_tail
             else:
                 p_val_uncorrected = p.two_tail
@@ -294,7 +294,7 @@ class GOEnrichmentStudy(object):
    either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
 missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
             else:
-                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
                 fh_out.write(header2write)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
@@ -302,7 +302,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                     if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                                fh_out.write(rec.get_line2write(indent, self.e_or_p_or_both) + '\n')
+                                fh_out.write(rec.get_line2write(indent, self.o_or_u_or_both) + '\n')
 
     def write_summary2file_web(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
         multitest_method_name = "p_" + self.multitest_method
@@ -314,7 +314,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
 missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!"""
                 fh_out.write(header2write)
             else:
-                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
                 fh_out.write(header2write)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
@@ -322,7 +322,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                     if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                                res = rec.get_line2write(indent, self.e_or_p_or_both)
+                                res = rec.get_line2write(indent, self.o_or_u_or_both)
                                 results2write.append(res)
                                 fh_out.write(res + '\n')
         return header2write, results2write
@@ -330,7 +330,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
 
 class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
 
-    def __init__(self, ui, assoc_dict, alpha, randomSample, abcorr, e_or_p_or_both, multitest_method):
+    def __init__(self, ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method):
         self.ui = ui
         self.assoc_dict = assoc_dict
         self.alpha = alpha
@@ -341,7 +341,7 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         self.abcorr = abcorr
         if not self.abcorr:
             GOEnrichmentRecord_UPK.attributes_list.append(('ANs_pop', '%s'))
-        self.e_or_p_or_both = e_or_p_or_both
+        self.o_or_u_or_both = o_or_u_or_both
         self.prepare_run()
 
     def prepare_run(self):
@@ -472,9 +472,9 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
             r1 = study_count + pop_count
             n = study_n + pop_n
             p = fisher.pvalue_population(a, col_1, r1, n)
-            if self.e_or_p_or_both == 'enriched':
+            if self.o_or_u_or_both == 'overrepresented':
                 p_val_uncorrected = p.right_tail
-            elif self.e_or_p_or_both == 'purified':
+            elif self.o_or_u_or_both == 'underrepresented':
                 p_val_uncorrected = p.left_tail
             else:
                 p_val_uncorrected = p.two_tail
@@ -519,7 +519,7 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
    either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
 missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
             else:
-                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
                 fh_out.write(header2write)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
@@ -527,7 +527,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                     if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                                fh_out.write(rec.get_line2write(self.e_or_p_or_both) + '\n')
+                                fh_out.write(rec.get_line2write(self.o_or_u_or_both) + '\n')
 
     def write_summary2file_web(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
         multitest_method_name = "p_" + self.multitest_method
@@ -539,7 +539,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
 missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!"""
                 fh_out.write(header2write)
             else:
-                header2write = ('\t').join(self.results[0].get_attributenames2write(self.e_or_p_or_both)) + '\n'
+                header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
                 fh_out.write(header2write)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
@@ -547,7 +547,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                     if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                                res = rec.get_line2write(self.e_or_p_or_both)
+                                res = rec.get_line2write(self.o_or_u_or_both)
                                 results2write.append(res)
                                 fh_out.write(res + '\n')
         return header2write, results2write
