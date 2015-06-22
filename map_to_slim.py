@@ -115,3 +115,12 @@ if __name__ == '__main__':
             else:
                 slim_terms_str = ";".join(all_all_anc)
             print((protein_product + "\t" + slim_terms_str))
+
+
+
+
+
+
+
+
+
