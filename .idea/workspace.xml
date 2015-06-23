@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/abcorr/templates/UniProtKeywords.html" afterPath="$PROJECT_DIR$/abcorr/templates/UniProtKeywords.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/abcorr/static/python/go_enrichment_dbl.py" afterPath="$PROJECT_DIR$/abcorr/static/python/go_enrichment_dbl.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/abcorr/templates/gotupk_results.html" afterPath="$PROJECT_DIR$/abcorr/templates/gotupk_results.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/abcorr/static/python/gotupk.py" afterPath="$PROJECT_DIR$/abcorr/static/python/gotupk.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/abcorr/runserver.py" afterPath="$PROJECT_DIR$/abcorr/runserver.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/abcorr/static/python/userinput.py" afterPath="$PROJECT_DIR$/abcorr/static/python/userinput.py" />
     </list>
     <ignored path="goterm.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -40,10 +38,10 @@
       <file leaf-file-name="runserver.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/abcorr/runserver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.35907337">
-              <caret line="137" column="44" selection-start-line="137" selection-start-column="44" selection-end-line="137" selection-end-column="44" />
+            <state vertical-scroll-proportion="0.34749034">
+              <caret line="114" column="43" selection-start-line="114" selection-start-column="43" selection-end-line="114" selection-end-column="43" />
               <folding>
-                <element signature="e#0#32#0" expanded="true" />
+                <element signature="e#2#26#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -69,11 +67,53 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="userinput.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/abcorr/static/python/userinput.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="16" column="48" selection-start-line="16" selection-start-column="35" selection-end-line="16" selection-end-column="48" />
+              <folding>
+                <element signature="e#0#19#0" expanded="true" />
+                <element signature="e#1128#1547#1" expanded="false" />
+                <element signature="e#3622#3896#1" expanded="false" />
+                <element signature="e#5680#6173#0" expanded="false" />
+                <element signature="e#5680#6002#1" expanded="false" />
+                <element signature="e#6263#7001#0" expanded="false" />
+                <element signature="e#7093#7480#0" expanded="false" />
+                <element signature="e#7528#7552#0" expanded="false" />
+                <element signature="e#7590#7610#0" expanded="false" />
+                <element signature="e#7653#7896#0" expanded="false" />
+                <element signature="e#7653#7773#1" expanded="false" />
+                <element signature="e#7943#8150#0" expanded="false" />
+                <element signature="e#7943#8072#1" expanded="false" />
+                <element signature="e#8241#8733#0" expanded="false" />
+                <element signature="e#8241#8547#1" expanded="false" />
+                <element signature="e#8784#9389#0" expanded="false" />
+                <element signature="e#8784#8981#1" expanded="false" />
+                <element signature="e#9481#10370#0" expanded="false" />
+                <element signature="e#9481#9866#1" expanded="false" />
+                <element signature="e#10405#11186#0" expanded="false" />
+                <element signature="e#10405#10548#1" expanded="false" />
+                <element signature="e#11240#11333#0" expanded="false" />
+                <element signature="e#11694#11956#0" expanded="false" />
+                <element signature="e#11694#11849#1" expanded="false" />
+                <element signature="e#12008#12430#0" expanded="false" />
+                <element signature="e#12008#12141#1" expanded="false" />
+                <element signature="e#12477#12690#0" expanded="false" />
+                <element signature="e#12477#12634#1" expanded="false" />
+                <element signature="e#12741#12896#1" expanded="false" />
+                <element signature="e#13013#13265#0" expanded="false" />
+                <element signature="e#13013#13212#1" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="gotupk.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/abcorr/static/python/gotupk.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <state vertical-scroll-proportion="-15.62963">
+              <caret line="127" column="32" selection-start-line="127" selection-start-column="23" selection-end-line="127" selection-end-column="32" />
               <folding />
             </state>
           </provider>
@@ -174,7 +214,6 @@
         <option value="$PROJECT_DIR$/phomics/templates/index.html" />
         <option value="$PROJECT_DIR$/phomics/templates/upload.html" />
         <option value="$PROJECT_DIR$/abcorr/templates/result.html" />
-        <option value="$PROJECT_DIR$/abcorr/static/python/userinput.py" />
         <option value="$PROJECT_DIR$/abcorr/templates/upload.html" />
         <option value="$PROJECT_DIR$/abcorr/templates/GOTUPK_file.html" />
         <option value="$PROJECT_DIR$/abcorr/templates/GOTUPK_file_upload_result.html" />
@@ -195,10 +234,11 @@
         <option value="$PROJECT_DIR$/abcorr/static/python/multiple_testing.py" />
         <option value="$PROJECT_DIR$/map_to_slim.py" />
         <option value="$PROJECT_DIR$/abcorr/static/python/goretriever.py" />
-        <option value="$PROJECT_DIR$/abcorr/static/python/gotupk.py" />
         <option value="$PROJECT_DIR$/abcorr/static/python/go_enrichment_dbl.py" />
         <option value="$PROJECT_DIR$/abcorr/templates/gotupk_results.html" />
         <option value="$PROJECT_DIR$/abcorr/templates/UniProtKeywords.html" />
+        <option value="$PROJECT_DIR$/abcorr/static/python/gotupk.py" />
+        <option value="$PROJECT_DIR$/abcorr/static/python/userinput.py" />
         <option value="$PROJECT_DIR$/abcorr/runserver.py" />
       </list>
     </option>
@@ -883,8 +923,18 @@
           <line>243</line>
           <option name="timeStamp" value="92" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/abcorr/runserver.py</url>
+          <line>124</line>
+          <option name="timeStamp" value="94" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/abcorr/static/python/userinput.py</url>
+          <line>16</line>
+          <option name="timeStamp" value="96" />
+        </line-breakpoint>
       </breakpoints>
-      <option name="time" value="94" />
+      <option name="time" value="97" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -1524,46 +1574,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/abcorr/static/python/userinput.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#19#0" expanded="false" />
-            <element signature="e#1129#1548#1" expanded="false" />
-            <element signature="e#3623#3897#1" expanded="false" />
-            <element signature="e#5681#6174#0" expanded="false" />
-            <element signature="e#5681#6003#1" expanded="false" />
-            <element signature="e#6264#7002#0" expanded="false" />
-            <element signature="e#7094#7481#0" expanded="false" />
-            <element signature="e#7529#7553#0" expanded="false" />
-            <element signature="e#7591#7611#0" expanded="false" />
-            <element signature="e#7654#7897#0" expanded="false" />
-            <element signature="e#7654#7774#1" expanded="false" />
-            <element signature="e#7944#8151#0" expanded="false" />
-            <element signature="e#7944#8073#1" expanded="false" />
-            <element signature="e#8242#8734#0" expanded="false" />
-            <element signature="e#8242#8548#1" expanded="false" />
-            <element signature="e#8785#9390#0" expanded="false" />
-            <element signature="e#8785#8982#1" expanded="false" />
-            <element signature="e#9482#10371#0" expanded="false" />
-            <element signature="e#9482#9867#1" expanded="false" />
-            <element signature="e#10406#11187#0" expanded="false" />
-            <element signature="e#10406#10549#1" expanded="false" />
-            <element signature="e#11241#11334#0" expanded="false" />
-            <element signature="e#11695#11957#0" expanded="false" />
-            <element signature="e#11695#11850#1" expanded="false" />
-            <element signature="e#12009#12431#0" expanded="false" />
-            <element signature="e#12009#12142#1" expanded="false" />
-            <element signature="e#12478#12691#0" expanded="false" />
-            <element signature="e#12478#12635#1" expanded="false" />
-            <element signature="e#12742#12897#1" expanded="false" />
-            <element signature="e#13014#13266#0" expanded="false" />
-            <element signature="e#13014#13213#1" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/abcorr/static/python/ratio_dbl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1731,14 +1741,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/abcorr/static/python/gotupk.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/abcorr/static/python/go_enrichment_dbl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1780,11 +1782,51 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/abcorr/templates/gotupk_results.html">
+    <entry file="file://$PROJECT_DIR$/abcorr/static/python/gotupk.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-12.5">
-          <caret line="20" column="25" selection-start-line="20" selection-start-column="25" selection-end-line="20" selection-end-column="25" />
+        <state vertical-scroll-proportion="-15.62963">
+          <caret line="127" column="32" selection-start-line="127" selection-start-column="23" selection-end-line="127" selection-end-column="32" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/abcorr/static/python/userinput.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="16" column="48" selection-start-line="16" selection-start-column="35" selection-end-line="16" selection-end-column="48" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+            <element signature="e#1128#1547#1" expanded="false" />
+            <element signature="e#3622#3896#1" expanded="false" />
+            <element signature="e#5680#6173#0" expanded="false" />
+            <element signature="e#5680#6002#1" expanded="false" />
+            <element signature="e#6263#7001#0" expanded="false" />
+            <element signature="e#7093#7480#0" expanded="false" />
+            <element signature="e#7528#7552#0" expanded="false" />
+            <element signature="e#7590#7610#0" expanded="false" />
+            <element signature="e#7653#7896#0" expanded="false" />
+            <element signature="e#7653#7773#1" expanded="false" />
+            <element signature="e#7943#8150#0" expanded="false" />
+            <element signature="e#7943#8072#1" expanded="false" />
+            <element signature="e#8241#8733#0" expanded="false" />
+            <element signature="e#8241#8547#1" expanded="false" />
+            <element signature="e#8784#9389#0" expanded="false" />
+            <element signature="e#8784#8981#1" expanded="false" />
+            <element signature="e#9481#10370#0" expanded="false" />
+            <element signature="e#9481#9866#1" expanded="false" />
+            <element signature="e#10405#11186#0" expanded="false" />
+            <element signature="e#10405#10548#1" expanded="false" />
+            <element signature="e#11240#11333#0" expanded="false" />
+            <element signature="e#11694#11956#0" expanded="false" />
+            <element signature="e#11694#11849#1" expanded="false" />
+            <element signature="e#12008#12430#0" expanded="false" />
+            <element signature="e#12008#12141#1" expanded="false" />
+            <element signature="e#12477#12690#0" expanded="false" />
+            <element signature="e#12477#12634#1" expanded="false" />
+            <element signature="e#12741#12896#1" expanded="false" />
+            <element signature="e#13013#13265#0" expanded="false" />
+            <element signature="e#13013#13212#1" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1796,12 +1838,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/abcorr/templates/gotupk_results.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-12.5">
+          <caret line="20" column="25" selection-start-line="20" selection-start-column="25" selection-end-line="20" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/abcorr/runserver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.35907337">
-          <caret line="137" column="44" selection-start-line="137" selection-start-column="44" selection-end-line="137" selection-end-column="44" />
+        <state vertical-scroll-proportion="0.34749034">
+          <caret line="114" column="43" selection-start-line="114" selection-start-column="43" selection-end-line="114" selection-end-column="43" />
           <folding>
-            <element signature="e#0#32#0" expanded="true" />
+            <element signature="e#2#26#0" expanded="true" />
           </folding>
         </state>
       </provider>

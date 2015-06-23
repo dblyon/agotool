@@ -8,10 +8,10 @@ class UserInput(object):
     samplefreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, user_input_fn=None, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', col_background_int='backgrnd_int', decimal='.'):
+    def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', col_background_int='backgrnd_int', decimal='.'):
         home = os.path.expanduser('~')
-        if not user_input_fn:
-            user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
+        # if not user_input_fn:
+        #     user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
         self.user_input_fn = user_input_fn
         self.decimal = decimal
         self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal) #!!! check file for this
