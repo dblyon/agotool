@@ -110,6 +110,9 @@ class UniProtKeywords_Form(wtforms.Form):
     (u'10116', u'Rattus norvegicus'), # Rat
     (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+
+    userinput_file = fields.FileField("Choose File")
+
     decimal = fields.SelectField("Decimal delimiter",
                                  choices = ((",", "Comma"), (".", "Point")),
                                  description = u"either a ',' or a '.' used for abundance values")
@@ -132,7 +135,7 @@ def UniProtKeywords():
 def upk_results():
     form = UniProtKeywords_Form(request.form)
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files['userinput_file']
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -153,11 +156,25 @@ def upk_results():
                 return render_template('gotupk_results_zero.html')
             else:
                 header = header.split("\t")
+                # protein_forground_index = header.index(u"ANs_study")
                 results2display = []
                 for res in results:
-                    results2display.append(res.split('\t'))
-                return render_template('gotupk_results.html', header=header, results=results2display, errors=[]) #tsv=tsv,
+                    tabs = res.split('\t')
+                    # proteins = tabs[protein_forground_index].split(',')
+                    # new_proteins = []
+                    # for i in range(0, len(proteins), 5):
+                    #     new_proteins.append(', '.join(proteins[i:i+5]))
+                    # tabs[protein_forground_index] = u"<div>" + u'</div><div>'.join(new_proteins) + u"</div>"
+                    results2display.append(tabs)
+                tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
+                return render_template('gotupk_results.html', header=header, results=results2display, errors=[], tsv=tsv)
+
     return render_template('UniProtKeywords.html', form=UniProtKeywords_Form())
+
+
+    # tsv = u'\n'.join(tsv).encode('base64')
+    # return render_template('result.html', header=header,
+    #                        results=_results, tsv=tsv, errors=errors)
 
 ################################################################################
 # GOTerms

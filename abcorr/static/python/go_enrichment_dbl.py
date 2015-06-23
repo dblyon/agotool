@@ -314,7 +314,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
 missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!"""
                 fh_out.write(header2write)
             else:
-                header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
+                header2write = '\t'.join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
                 fh_out.write(header2write)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
@@ -325,7 +325,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                                 res = rec.get_line2write(indent, self.o_or_u_or_both)
                                 results2write.append(res)
                                 fh_out.write(res + '\n')
-        return header2write, results2write
+        return header2write.rstrip(), results2write
 
 
 class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
@@ -550,7 +550,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                                 res = rec.get_line2write(self.o_or_u_or_both)
                                 results2write.append(res)
                                 fh_out.write(res + '\n')
-        return header2write, results2write
+        return header2write.rstrip(), results2write
 
 
 

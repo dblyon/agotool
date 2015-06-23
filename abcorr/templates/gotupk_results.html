@@ -15,7 +15,7 @@
 
 <div class="container-fluid">
     <h4>Download results file</h4>
-    <td><a href="{{ url_for('download_results', filename='results.txt') }}">results.txt</a></td>
+    <a href="data:application/octet-stream;charset=utf-8;base64,{{ tsv }}" class="btn btn-primary">Download Data</a>
     <p>please right click the download link to 'save link as'</p>
 
     {% if errors != [] %}
