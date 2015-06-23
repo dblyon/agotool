@@ -1,4 +1,8 @@
-import os, sys, logging, wtforms
+
+
+import os, sys, StringIO
+
+import logging, wtforms
 from wtforms import fields
 # Setup for flask
 import flask
@@ -76,6 +80,7 @@ def download_results(filename):
 ################################################################################
 def check_userinput(userinput_fn, decimal, abcorr):
     df = pd.read_csv(userinput_fn, sep='\t', decimal=decimal)
+    userinput_fn.seek(0)
     if abcorr:
         if ['background_an', 'background_int', 'sample_an'] == sorted(df.columns.tolist()):
             return True
@@ -137,15 +142,18 @@ def upk_results():
     if request.method == 'POST':
         file = request.files['userinput_file']
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            #filename = secure_filename(file.filename)
+            #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            #userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            userinput_fh = StringIO.StringIO(file.read())
+
             gocat_upk = "UPK"
             go_slim_or_basic = "basic"
             indent = False
             backtracking = False
-            if check_userinput(userinput_fn, form.decimal.data, form.abcorr.data):
-                header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
+            if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
+                header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
                                     gocat_upk, go_slim_or_basic, indent, form.multitest_method.data,
                                     form.alpha.data, form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
                                     backtracking, form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,

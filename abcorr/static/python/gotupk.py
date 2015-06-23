@@ -116,14 +116,14 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
 
     randomSample = False
 ################################
-    print(userinput_fn)
-    try:
-        if os.path.isfile(userinput_fn):
-            userinput_fn = userinput_fn
-    except:
-        userinput_fn = species2files_dict[organism]["userinput_fn"]
+    # print(userinput_fn)
+    # try:
+    #     if os.path.isfile(userinput_fn):
+    #         userinput_fn = userinput_fn
+    # except:
+    #     userinput_fn = species2files_dict[organism]["userinput_fn"]
 
-    print(userinput_fn)
+    # print(userinput_fn)
     if abcorr:
         ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
     else:
