@@ -7,9 +7,15 @@ class GOEnrichmentRecord(object):
     """
     Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
-    attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
-                   ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
-                   ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'), ('p_uncorrected', "%.3g")]
+    # attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
+    #                ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
+    #                ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'), ('p_uncorrected', "%.3g")]
+    attributes_list = [('GO term ID or Uniprot Keyword term', '%s'), ('overrepresented (o) or underrepresented (u)', '%s'),
+                       ('% associated with the term in the study group', "%0.1f"), ('% associated with the term in the population group', "%0.1f"),
+                       ('fold change study/population', "%0.2f"), ('number of proteins associating with term in study', '%s'),
+                       ('number of proteins in study group (total)', '%s'),
+                       ('number of proteins associating with term in population','%s'), ('number of proteins in population group (total)', '%s'),
+                       ('p_uncorrected', "%.3g")]
     # ('p_fdr', '%s'), ('p_bonferroni', "%.3g"), ('p_holm', "%.3g"), ('p_sidak',"%.3g"), , ('ANs_pop', '%s'), ('description', '%s'), ('ANs_study', '%s')
 
 
@@ -102,10 +108,18 @@ class GOEnrichmentRecord(object):
 
 
 class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
-    attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
-                   ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
-                   ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'),
-                   ('p_uncorrected', "%.3g")]
+    # attributes_list = [('id', '%s'), ('enrichment', '%s'),
+    #  ('perc_enrichment_study', "%0.1f"), ('perc_enrichment_pop', "%0.1f"),
+    #  ('fold_enrichment_study2pop', "%0.2f"), ('study_count', '%s'),
+    #  ('study_n', '%s'),
+    #  ('pop_count','%s'), ('pop_n', '%s'),
+    #                ('p_uncorrected', "%.3g")]
+    attributes_list = [('GO term ID or Uniprot Keyword term', '%s'), ('overrepresented (o) or underrepresented (u)', '%s'),
+                       ('% associated with the term in the study group', "%0.1f"), ('% associated with the term in the population group', "%0.1f"),
+                       ('fold change study/population', "%0.2f"), ('number of proteins associating with term in study', '%s'),
+                       ('number of proteins in study group (total)', '%s'),
+                       ('number of proteins associating with term in population','%s'), ('number of proteins in population group (total)', '%s'),
+                       ('p_uncorrected', "%.3g")]
     #, ('p_bonferroni', "%.3g"), ('p_holm', "%.3g"), ('p_sidak',"%.3g"), ('ANs_pop', '%s')
 
     def get_attribute_format_list(self, o_or_u_or_both):
@@ -128,13 +142,15 @@ class GOEnrichmentStudy(object):
         self.obo_dag = obo_dag
         self.alpha = alpha
         self.multitest_method = multitest_method
-        GOEnrichmentRecord.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('description', '%s'), ('ANs_study', '%s')]
+        # GOEnrichmentRecord.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('description', '%s'), ('ANs_study', '%s')]
+        GOEnrichmentRecord.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('description of GO term (GO terms only)', '%s'), ('Accession names in the study (UniProt IDs associating with the GO term/keyword)', '%s')]
         self.results = []
         self.backtracking = backtracking
         self.randomSample = randomSample
         self.abcorr = abcorr
         if not self.abcorr:
-            GOEnrichmentRecord.attributes_list.append(('ANs_pop', '%s'))
+            # GOEnrichmentRecord.attributes_list.append(('ANs_pop', '%s'))
+            GOEnrichmentRecord.attributes_list.append(('Accession names in the population (UniProt IDs associating with the GO term/keyword)', '%s'))
         self.o_or_u_or_both = o_or_u_or_both
         if self.backtracking: # add all parent GO-terms to assoc_dict
             self.obo_dag.update_association(self.assoc_dict)
@@ -335,12 +351,15 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         self.assoc_dict = assoc_dict
         self.alpha = alpha
         self.multitest_method = multitest_method
-        GOEnrichmentRecord_UPK.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('ANs_study', '%s')]
+        # GOEnrichmentRecord_UPK.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('ANs_study', '%s')]
+        GOEnrichmentRecord_UPK.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('Accession names in the study (UniProt IDs associating with the GO term/keyword)', '%s')]
+
         self.results = []
         self.randomSample = randomSample
         self.abcorr = abcorr
         if not self.abcorr:
-            GOEnrichmentRecord_UPK.attributes_list.append(('ANs_pop', '%s'))
+            # GOEnrichmentRecord_UPK.attributes_list.append(('ANs_pop', '%s'))
+            GOEnrichmentRecord_UPK.attributes_list.append(('Accession names in the population (UniProt IDs associating with the GO term/keyword)', '%s'))
         self.o_or_u_or_both = o_or_u_or_both
         self.prepare_run()
 

@@ -297,8 +297,6 @@ class UserInput(object):
         return set(self.get_random_background_ans())
 
 
-
-
 class UserInput_noAbCorr(UserInput):
 
     def __init__(self, user_input_fn=None, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', decimal='.'):
