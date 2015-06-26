@@ -2,65 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8f9e081-24c8-49a5-b53b-b8a834716423" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_arabidopsis" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_fly" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_human" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_mouse" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_rat" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/OBO/go-basic.obo" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000006548.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000539.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000803.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/GO_basic_vs_slim-checkpoint.ipynb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/exampledata/GO_term_results.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Mouse_uniprot-proteome%3AUP000000589.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Rat_uniprot-proteome%3AUP000002494.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/exampledata/UniProt_keywords_results.txt" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled7-checkpoint.ipynb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Untitled7.ipynb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled8-checkpoint.ipynb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Untitled8.ipynb" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Yeast_uniprot-proteome%3AUP000002311.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000437.tab" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_chicken" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_yeast" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/GOA/gene_association.goa_zebrafish" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/OBO/goslim_generic.obo" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/python/gotupk.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/agotool/static/data/exampledata/yeast_observed_acetyl_abundance.txt" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/abcorr/static/python/gotupk.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/abcorr/templates/result.html" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/runserver.py" afterPath="$PROJECT_DIR$/agotool/runserver.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/css/bootstrap.min.css" afterPath="$PROJECT_DIR$/agotool/static/css/bootstrap.min.css" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/data/examples/hela_genome_acetyl.txt" afterPath="$PROJECT_DIR$/agotool/static/data/exampledata/hela_genome_acetyl.txt" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/data/examples/hela_observed_acetyl_abundance.txt" afterPath="$PROJECT_DIR$/agotool/static/data/exampledata/hela_observed_acetyl_abundance.txt" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/data/examples/yeast_genome_acetyl.txt" afterPath="$PROJECT_DIR$/agotool/static/data/exampledata/yeast_genome_acetyl.txt" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/data/examples/yeast_observed_acetyl_abundance.txt" afterPath="$PROJECT_DIR$/agotool/static/data/exampledata/exampledata.txt" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/js/bootstrap-filestyle.min.js" afterPath="$PROJECT_DIR$/agotool/static/js/bootstrap-filestyle.min.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/js/bootstrap.js" afterPath="$PROJECT_DIR$/agotool/static/js/bootstrap.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/js/jquery.min.js" afterPath="$PROJECT_DIR$/agotool/static/js/jquery.min.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/js/utilities.js" afterPath="$PROJECT_DIR$/agotool/static/js/utilities.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/go_enrichment_dbl.py" afterPath="$PROJECT_DIR$/agotool/static/python/go_enrichment.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/goretriever.py" afterPath="$PROJECT_DIR$/agotool/static/python/goretriever.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/multiple_testing.py" afterPath="$PROJECT_DIR$/agotool/static/python/multiple_testing.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/obo_parser.py" afterPath="$PROJECT_DIR$/agotool/static/python/obo_parser.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/penrichment.py" afterPath="$PROJECT_DIR$/agotool/static/python/penrichment.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/ratio_dbl.py" afterPath="$PROJECT_DIR$/agotool/static/python/ratio.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/uniprot_keywords.py" afterPath="$PROJECT_DIR$/agotool/static/python/uniprot_keywords.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/static/python/userinput.py" afterPath="$PROJECT_DIR$/agotool/static/python/userinput.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/GOTerms.html" afterPath="$PROJECT_DIR$/agotool/templates/GOTerms.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/UniProtKeywords.html" afterPath="$PROJECT_DIR$/agotool/templates/UniProtKeywords.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/about.html" afterPath="$PROJECT_DIR$/agotool/templates/about.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/error.html" afterPath="$PROJECT_DIR$/agotool/templates/error.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/example.html" afterPath="$PROJECT_DIR$/agotool/templates/example.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/gotupk_results.html" afterPath="$PROJECT_DIR$/agotool/templates/gotupk_results.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/gotupk_results_zero.html" afterPath="$PROJECT_DIR$/agotool/templates/gotupk_results_zero.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/index.html" afterPath="$PROJECT_DIR$/agotool/templates/index.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/info_check_input.html" afterPath="$PROJECT_DIR$/agotool/templates/info_check_input.html" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/abcorr/templates/layout.html" afterPath="$PROJECT_DIR$/agotool/templates/layout.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GO_basic_vs_slim.ipynb" afterPath="$PROJECT_DIR$/GO_basic_vs_slim.ipynb" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/abcorr/runserver.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/agotool/runserver.py" afterPath="$PROJECT_DIR$/agotool/runserver.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="goterm.iws" />
@@ -95,80 +38,8 @@
       <file leaf-file-name="runserver.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/agotool/runserver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#24#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="UniProtKeywords.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agotool/templates/UniProtKeywords.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="gotupk_results.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agotool/templates/gotupk_results.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-11.25">
-              <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="gotupk_results_zero.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agotool/templates/gotupk_results_zero.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="example.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agotool/templates/example.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="gotupk.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agotool/static/python/gotupk.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="59" column="29" selection-start-line="59" selection-start-column="29" selection-end-line="59" selection-end-column="29" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="uniprot_keywords.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agotool/static/python/uniprot_keywords.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="16" column="25" selection-start-line="16" selection-start-column="25" selection-end-line="16" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="goretriever.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agotool/static/python/goretriever.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.4370861">
+              <caret line="52" column="41" selection-start-line="52" selection-start-column="41" selection-end-line="52" selection-end-column="41" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -240,10 +111,10 @@
         <option value="$PROJECT_DIR$/agotool/static/python/multiple_testing.py" />
         <option value="$PROJECT_DIR$/agotool/static/python/go_enrichment.py" />
         <option value="$PROJECT_DIR$/agotool/static/python/goretriever.py" />
-        <option value="$PROJECT_DIR$/agotool/runserver.py" />
         <option value="$PROJECT_DIR$/agotool/static/python/gotupk.py" />
         <option value="$PROJECT_DIR$/agotool/templates/gotupk_results.html" />
         <option value="$PROJECT_DIR$/agotool/templates/layout.html" />
+        <option value="$PROJECT_DIR$/agotool/runserver.py" />
       </list>
     </option>
   </component>
@@ -1589,14 +1460,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/agotool/templates/UniProtKeywords.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/agotool/templates/gotupk_results.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-11.25">
@@ -1653,10 +1516,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/agotool/templates/UniProtKeywords.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/agotool/runserver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.4370861">
+          <caret line="52" column="41" selection-start-line="52" selection-start-column="41" selection-end-line="52" selection-end-column="41" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
