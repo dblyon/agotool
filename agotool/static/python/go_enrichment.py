@@ -1,4 +1,4 @@
-import fisher, ratio_dbl
+import fisher, ratio
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
 from collections import defaultdict
 
@@ -7,17 +7,9 @@ class GOEnrichmentRecord(object):
     """
     Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
-    # attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
-    #                ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
-    #                ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'), ('p_uncorrected', "%.3g")]
-    attributes_list = [('GO term ID or Uniprot Keyword term', '%s'), ('overrepresented (o) or underrepresented (u)', '%s'),
-                       ('% associated with the term in the study group', "%0.1f"), ('% associated with the term in the population group', "%0.1f"),
-                       ('fold change study/population', "%0.2f"), ('number of proteins associating with term in study', '%s'),
-                       ('number of proteins in study group (total)', '%s'),
-                       ('number of proteins associating with term in population','%s'), ('number of proteins in population group (total)', '%s'),
-                       ('p_uncorrected', "%.3g")]
-    # ('p_fdr', '%s'), ('p_bonferroni', "%.3g"), ('p_holm', "%.3g"), ('p_sidak',"%.3g"), , ('ANs_pop', '%s'), ('description', '%s'), ('ANs_study', '%s')
-
+    attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
+                   ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
+                   ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'), ('p_uncorrected', "%.3g")]
 
     def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop, ANs_study, ANs_pop):
         self.id = id
@@ -56,8 +48,6 @@ class GOEnrichmentRecord(object):
 
     def update_remaining_fields(self):
         self.enrichment = 'o' if ((1.0 * self.study_count / self.study_n) > (1.0 * self.pop_count / self.pop_n)) else 'u'
-        # self.find_goterm(obo_dag)
-        # self.is_ratio_different = ratio_dbl.is_ratio_different(min_ratio, self.study_count, self.study_n, self.pop_count, self.pop_n)
 
     def get_attributenames2write(self, o_or_u_or_both):
         if o_or_u_or_both == 'both':
@@ -108,19 +98,12 @@ class GOEnrichmentRecord(object):
 
 
 class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
-    # attributes_list = [('id', '%s'), ('enrichment', '%s'),
-    #  ('perc_enrichment_study', "%0.1f"), ('perc_enrichment_pop', "%0.1f"),
-    #  ('fold_enrichment_study2pop', "%0.2f"), ('study_count', '%s'),
-    #  ('study_n', '%s'),
-    #  ('pop_count','%s'), ('pop_n', '%s'),
-    #                ('p_uncorrected', "%.3g")]
-    attributes_list = [('GO term ID or Uniprot Keyword term', '%s'), ('overrepresented (o) or underrepresented (u)', '%s'),
-                       ('% associated with the term in the study group', "%0.1f"), ('% associated with the term in the population group', "%0.1f"),
-                       ('fold change study/population', "%0.2f"), ('number of proteins associating with term in study', '%s'),
-                       ('number of proteins in study group (total)', '%s'),
-                       ('number of proteins associating with term in population','%s'), ('number of proteins in population group (total)', '%s'),
-                       ('p_uncorrected', "%.3g")]
-    #, ('p_bonferroni', "%.3g"), ('p_holm', "%.3g"), ('p_sidak',"%.3g"), ('ANs_pop', '%s')
+    attributes_list = [('id', '%s'), ('enrichment', '%s'),
+     ('perc_enrichment_study', "%0.1f"), ('perc_enrichment_pop', "%0.1f"),
+     ('fold_enrichment_study2pop', "%0.2f"), ('study_count', '%s'),
+     ('study_n', '%s'),
+     ('pop_count','%s'), ('pop_n', '%s'),
+                   ('p_uncorrected', "%.3g")]
 
     def get_attribute_format_list(self, o_or_u_or_both):
         return self.get_attributes_list(o_or_u_or_both)
@@ -142,15 +125,13 @@ class GOEnrichmentStudy(object):
         self.obo_dag = obo_dag
         self.alpha = alpha
         self.multitest_method = multitest_method
-        # GOEnrichmentRecord.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('description', '%s'), ('ANs_study', '%s')]
-        GOEnrichmentRecord.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('description of GO term (GO terms only)', '%s'), ('Accession names in the study (UniProt IDs associating with the GO term/keyword)', '%s')]
+        GOEnrichmentRecord.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('description', '%s'), ('ANs_study', '%s')]
         self.results = []
         self.backtracking = backtracking
         self.randomSample = randomSample
         self.abcorr = abcorr
         if not self.abcorr:
-            # GOEnrichmentRecord.attributes_list.append(('ANs_pop', '%s'))
-            GOEnrichmentRecord.attributes_list.append(('Accession names in the population (UniProt IDs associating with the GO term/keyword)', '%s'))
+            GOEnrichmentRecord.attributes_list.append(('ANs_pop', '%s'))
         self.o_or_u_or_both = o_or_u_or_both
         if self.backtracking: # add all parent GO-terms to assoc_dict
             self.obo_dag.update_association(self.assoc_dict)
@@ -162,27 +143,27 @@ class GOEnrichmentStudy(object):
         '''
         if self.abcorr:
             self.study_an_frset = self.ui.get_sample_an_frset()
-            self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+            self.term_study, self.go2ans_study_dict = ratio.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
             study_n = len(self.study_an_frset)
 
             if self.randomSample:
                 self.pop_an_set = self.ui.get_background_an_set_random_sample()
                 pop_n  = len(self.pop_an_set)
-                self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+                self.term_pop, self.go2ans_pop_dict = ratio.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
             else:
                 pop_n = len(self.study_an_frset)
-                self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+                self.term_pop, self.go2ans_pop_dict = ratio.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
         else:
             if self.ui.col_background_an == 'Genome':
                 self.study_an_frset = self.ui.get_sample_an_frset_genome()
             else:
                 self.study_an_frset = self.ui.get_sample_an_frset()
-            self.term_study, self.go2ans_study_dict = ratio_dbl.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
+            self.term_study, self.go2ans_study_dict = ratio.count_terms(self.study_an_frset, self.assoc_dict, self.obo_dag)
             study_n = len(self.study_an_frset)
 
             self.pop_an_set = self.ui.get_background_an_all_set()
             pop_n  = len(self.pop_an_set)
-            self.term_pop, self.go2ans_pop_dict = ratio_dbl.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+            self.term_pop, self.go2ans_pop_dict = ratio.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
 
         self.run_study_v2(self.term_study, self.term_pop, study_n, pop_n)
 
@@ -268,11 +249,6 @@ class GOEnrichmentStudy(object):
             corrected_pvals = Sidak(pvals, self.alpha).corrected_pvals
         elif method_name == "holm":
             corrected_pvals = HolmBonferroni(pvals, self.alpha).corrected_pvals
-            # elif method == "fdr":
-            #     # get the empirical p-value distributions for FDR
-            #     p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
-            #     fdr = FDR(p_val_distribution,
-            #               self.results, self.alpha).corrected_pvals
         elif method_name == 'benjamini_hochberg':
             corrected_pvals = BenjaminiHochberg(pvals, len(self.results))
         else:
@@ -289,13 +265,9 @@ class GOEnrichmentStudy(object):
             rec.__setattr__("p_" + method_name, val)
 
     def print_summary(self, min_ratio=None, indent=False, pval=0.05):
-        # Header contains parameters
         print("# min_ratio={0} pval={1}".format(min_ratio, pval))
-        # field names for output
         print("\t".join(GOEnrichmentRecord()._fields))
         for rec in self.results:
-            # calculate some additional statistics
-            # (over_under, is_ratio_different)
             rec.update_remaining_fields(min_ratio=min_ratio)
             if pval is not None and rec.p_bonferroni > pval:
                 continue
@@ -320,27 +292,23 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
                                 fh_out.write(rec.get_line2write(indent, self.o_or_u_or_both) + '\n')
 
-    def write_summary2file_web(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
+    def write_summary2file_web(self, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
         multitest_method_name = "p_" + self.multitest_method
         results2write = []
-        with open(fn_out, 'w') as fh_out:
-            if len(self.results) == 0:
-                header2write = """unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
-   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
+        if len(self.results) == 0:
+            header2write = """unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
 missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!"""
-                fh_out.write(header2write)
-            else:
-                header2write = '\t'.join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
-                fh_out.write(header2write)
-                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
-                for rec in results_sorted_by_fold_enrichment_study2pop:
-                    rec.update_remaining_fields()
-                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
-                        if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
-                            if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                                res = rec.get_line2write(indent, self.o_or_u_or_both)
-                                results2write.append(res)
-                                fh_out.write(res + '\n')
+        else:
+            header2write = '\t'.join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
+            results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+            for rec in results_sorted_by_fold_enrichment_study2pop:
+                rec.update_remaining_fields()
+                if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                    if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                        if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                            res = rec.get_line2write(indent, self.o_or_u_or_both)
+                            results2write.append(res)
         return header2write.rstrip(), results2write
 
 
@@ -351,15 +319,12 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         self.assoc_dict = assoc_dict
         self.alpha = alpha
         self.multitest_method = multitest_method
-        # GOEnrichmentRecord_UPK.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('ANs_study', '%s')]
-        GOEnrichmentRecord_UPK.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('Accession names in the study (UniProt IDs associating with the GO term/keyword)', '%s')]
-
+        GOEnrichmentRecord_UPK.attributes_list += [("p_" + self.multitest_method, "%.3g"), ('ANs_study', '%s')]
         self.results = []
         self.randomSample = randomSample
         self.abcorr = abcorr
         if not self.abcorr:
-            # GOEnrichmentRecord_UPK.attributes_list.append(('ANs_pop', '%s'))
-            GOEnrichmentRecord_UPK.attributes_list.append(('Accession names in the population (UniProt IDs associating with the GO term/keyword)', '%s'))
+            GOEnrichmentRecord_UPK.attributes_list.append(('ANs_pop', '%s'))
         self.o_or_u_or_both = o_or_u_or_both
         self.prepare_run()
 
@@ -368,7 +333,6 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
             self.study_an_frset = self.ui.get_sample_an_frset()
             self.term_study, self.upk2ans_study_dict = self.count_upk(self.study_an_frset, self.assoc_dict)
             study_n = len(self.study_an_frset)
-
             if self.randomSample:
                 self.pop_an_set = self.ui.get_background_an_set_random_sample()
                 pop_n  = len(self.pop_an_set)
@@ -376,7 +340,6 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
             else:
                 pop_n = len(self.study_an_frset)
                 self.term_pop, self.upk2ans_pop_dict = self.count_upk_abundance_corrected(self.ui, self.assoc_dict)
-
         else:
             if self.ui.col_background_an == 'Genome':
                 self.study_an_frset = self.ui.get_sample_an_frset_genome()
@@ -384,11 +347,9 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
                 self.study_an_frset = self.ui.get_sample_an_frset()
             self.term_study, self.upk2ans_study_dict = self.count_upk(self.study_an_frset, self.assoc_dict)
             study_n = len(self.study_an_frset)
-
             self.pop_an_set = self.ui.get_background_an_all_set()
             pop_n  = len(self.pop_an_set)
             self.term_pop, self.upk2ans_pop_dict = self.count_upk(self.pop_an_set, self.assoc_dict)
-
         self.run_study(self.term_study, self.term_pop, study_n, pop_n)
 
     def count_upk(self, ans_set, assoc_dict):
@@ -518,11 +479,6 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
             corrected_pvals = Sidak(pvals, self.alpha).corrected_pvals
         elif method_name == "holm":
             corrected_pvals = HolmBonferroni(pvals, self.alpha).corrected_pvals
-        # elif method == "fdr":
-        #     # get the empirical p-value distributions for FDR
-        #     p_val_distribution = calc_qval_dbl(study_n, pop_n, self.pop_an_set, self.assoc_dict, self.term_pop, self.obo_dag)
-        #     fdr = FDR(p_val_distribution,
-        #               self.results, self.alpha).corrected_pvals
         elif method_name == 'benjamini_hochberg':
             corrected_pvals = BenjaminiHochberg(pvals, len(self.results))
         else:
@@ -530,45 +486,23 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
                             "one of %s" % all_methods)
         self.update_results(method_name, corrected_pvals)
 
-    def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
-        multitest_method_name = "p_" + self.multitest_method
-        with open(fn_out, 'w') as fh_out:
-            if len(self.results) == 0:
-                fh_out.write("""unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
-   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
-missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!""")
-            else:
-                header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
-                fh_out.write(header2write)
-                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
-                for rec in results_sorted_by_fold_enrichment_study2pop:
-                    rec.update_remaining_fields()
-                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
-                        if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
-                            if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                                fh_out.write(rec.get_line2write(self.o_or_u_or_both) + '\n')
-
-    def write_summary2file_web(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
+    def write_summary2file_web(self, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected):
         multitest_method_name = "p_" + self.multitest_method
         results2write = []
-        with open(fn_out, 'w') as fh_out:
-            if len(self.results) == 0:
-                header2write = """unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
-   either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
+        if len(self.results) == 0:
+            header2write = """unfortunately no results to write to file\n\npossible reasons:\n   threshold of reports too high\n\
+either no/few IDs could be mapped to keywords (correct species selected?)\n   abundance data\
 missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or questions!"""
-                fh_out.write(header2write)
-            else:
-                header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
-                fh_out.write(header2write)
-                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
-                for rec in results_sorted_by_fold_enrichment_study2pop:
-                    rec.update_remaining_fields()
-                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
-                        if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
-                            if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
-                                res = rec.get_line2write(self.o_or_u_or_both)
-                                results2write.append(res)
-                                fh_out.write(res + '\n')
+        else:
+            header2write = ('\t').join(self.results[0].get_attributenames2write(self.o_or_u_or_both)) + '\n'
+            results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+            for rec in results_sorted_by_fold_enrichment_study2pop:
+                rec.update_remaining_fields()
+                if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                    if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
+                        if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
+                            res = rec.get_line2write(self.o_or_u_or_both)
+                            results2write.append(res)
         return header2write.rstrip(), results2write
 
 

@@ -19,7 +19,10 @@
             <div class="col-md-5">
                 <h3>Upload file</h3>
                 <title>Where does this show up?</title>
-                <p><input type=file name=file></p>
+                {{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload File"}) }}
+
+<!--                <p><input type=file name=file></p> -->
+
                 <p>Expects a tab-demlimited text-file with 3 columns:
                     <li>'background_an'</li>
                     <li>'background_int'</li>

@@ -1,33 +1,52 @@
-
-
 import os, sys, StringIO
-
 import logging, wtforms
 from wtforms import fields
 # Setup for flask
 import flask
 from flask import render_template, request, send_from_directory
-from werkzeug import secure_filename
 import pandas as pd
-
-
-
 
 # import 'back end' scripts
 sys.path.append('static/python')
 import gotupk
 
-home = os.path.expanduser("~")
+webserver_data  = os.getcwd() + '/static/data'
+species2files_dict = {"9606":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_human',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab'},
+                      "4932":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_yeast',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Yeast_uniprot-proteome%3AUP000002311.tab'},
+                      "3702":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_arabidopsis',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000006548.tab'},
+                      "7955":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_zebrafish',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000437.tab'},
+                      "7227":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_fly',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000803.tab'},
+                      "9031":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_chicken',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000539.tab'},
+                      "10090":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_mouse',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Mouse_uniprot-proteome%3AUP000000589.tab'},
+                      "10116":
+                          {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_rat',
+                           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Rat_uniprot-proteome%3AUP000002494.tab'},
+                      "8364":
+                          {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab'}
+                      }
+obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
+                 "basic": webserver_data + r'/OBO/go-basic.obo'}
+print obo2file_dict['slim']
+
+
 
 app = flask.Flask(__name__)
 
-##### upload file
-UPLOAD_FOLDER = home + r'/CloudStation/CPR/Brian_GO/webserver_data/userdata'
-EXAMPLE_FOLDER = home + r'/CloudStation/CPR/Brian_GO/webserver_data/exampledata'
 ALLOWED_EXTENSIONS = set(['txt', 'tsv'])
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
-
 
 # Additional path settings for flask
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -78,9 +97,9 @@ def download_results(filename):
     return send_from_directory(directory=uploads, filename=filename)
 
 ################################################################################
-def check_userinput(userinput_fn, decimal, abcorr):
-    df = pd.read_csv(userinput_fn, sep='\t', decimal=decimal)
-    userinput_fn.seek(0)
+def check_userinput(userinput_fh, decimal, abcorr):
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+    userinput_fh.seek(0)
     if abcorr:
         if ['background_an', 'background_int', 'sample_an'] == sorted(df.columns.tolist()):
             return True
@@ -115,9 +134,7 @@ class UniProtKeywords_Form(wtforms.Form):
     (u'10116', u'Rattus norvegicus'), # Rat
     (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-
     userinput_file = fields.FileField("Choose File")
-
     decimal = fields.SelectField("Decimal delimiter",
                                  choices = ((",", "Comma"), (".", "Point")),
                                  description = u"either a ',' or a '.' used for abundance values")
@@ -142,12 +159,7 @@ def upk_results():
     if request.method == 'POST':
         file = request.files['userinput_file']
         if file and allowed_file(file.filename):
-            #filename = secure_filename(file.filename)
-            #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-            #userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             userinput_fh = StringIO.StringIO(file.read())
-
             gocat_upk = "UPK"
             go_slim_or_basic = "basic"
             indent = False
@@ -157,32 +169,19 @@ def upk_results():
                                     gocat_upk, go_slim_or_basic, indent, form.multitest_method.data,
                                     form.alpha.data, form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
                                     backtracking, form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-                                   form.p_value_mulitpletesting.data)
+                                   form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
             else:
                 return render_template('info_check_input.html')
             if len(results) == 0:
                 return render_template('gotupk_results_zero.html')
             else:
                 header = header.split("\t")
-                # protein_forground_index = header.index(u"ANs_study")
                 results2display = []
                 for res in results:
-                    tabs = res.split('\t')
-                    # proteins = tabs[protein_forground_index].split(',')
-                    # new_proteins = []
-                    # for i in range(0, len(proteins), 5):
-                    #     new_proteins.append(', '.join(proteins[i:i+5]))
-                    # tabs[protein_forground_index] = u"<div>" + u'</div><div>'.join(new_proteins) + u"</div>"
-                    results2display.append(tabs)
+                    results2display.append(res.split('\t'))
                 tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
                 return render_template('gotupk_results.html', header=header, results=results2display, errors=[], tsv=tsv)
-
     return render_template('UniProtKeywords.html', form=UniProtKeywords_Form())
-
-
-    # tsv = u'\n'.join(tsv).encode('base64')
-    # return render_template('result.html', header=header,
-    #                        results=_results, tsv=tsv, errors=errors)
 
 ################################################################################
 # GOTerms
@@ -198,6 +197,7 @@ class GOTerms_Form(wtforms.Form):
     (u'10090', u'Mus musculus'), # Mouse
     (u'10116', u'Rattus norvegicus')] # Rat
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+    userinput_file = fields.FileField("Choose File")
     decimal = fields.SelectField("Decimal delimiter",
                                  choices = ((",", "Comma"), (".", "Point")),
                                  description = u"either a ',' or a '.' used for abundance values")
@@ -227,18 +227,16 @@ def GOTerms():
 def got_results():
     form = GOTerms_Form(request.form)
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files['userinput_file']
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            userinput_fn = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            if check_userinput(userinput_fn, form.decimal.data, form.abcorr.data):
-                header, results = gotupk.run(userinput_fn, form.decimal.data, form.organism.data,
+            userinput_fh = StringIO.StringIO(file.read())
+            if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
+                header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
                    form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
                    form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
                    form.abcorr.data, form.num_bins.data, form.backtracking.data,
                    form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-                   form.p_value_mulitpletesting.data)
+                   form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
             else:
                 return render_template('info_check_input.html')
             if len(results) == 0:
@@ -248,7 +246,8 @@ def got_results():
                 results2display = []
                 for res in results:
                     results2display.append(res.split('\t'))
-                return render_template('gotupk_results.html', header=header, results=results2display, errors=[]) #tsv=tsv,
+                tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
+                return render_template('gotupk_results.html', header=header, results=results2display, errors=[], tsv=tsv)
     return render_template('GOTerms.html', form=GOTerms_Form())
 
 ################################################################################
@@ -256,10 +255,11 @@ def got_results():
 
 
 
-
-
 if __name__ == '__main__':
+    #app.run('red', 5911, processes=4, debug=True)
     app.run(processes=4, debug=True)
+
+
 
 
 
