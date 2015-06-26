@@ -1,7 +1,6 @@
 import cPickle as pickle
 from os.path import expanduser
 import obo_parser
-home = expanduser("~")
 
 
 class Parser_UniProt_goa_ref(object):
@@ -14,15 +13,13 @@ class Parser_UniProt_goa_ref(object):
     """
     go_parents_name2num_dict = {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
 
-    def __init__(self, goa_ref_fn=None):
+    def __init__(self, goa_ref_fn):
         """
         :return: None
         """
         self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
         self.date = "not set yet" # generation date
         self.obolibrary = "not yet set" # link to obo-library
-        if not goa_ref_fn:
-            goa_ref_fn = home + r'/CloudStation/CPR/Brian_GO/go_rescources/UniProt_goa/yeast/gene_association.goa_ref_yeast'
         self.parse_goa_ref(goa_ref_fn)
 
     def parse_goa_ref(self, fn):

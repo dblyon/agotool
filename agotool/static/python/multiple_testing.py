@@ -10,7 +10,7 @@ import sys
 import random
 import fisher
 import numpy as np
-from ratio_dbl import count_terms
+from ratio import count_terms
 
 
 class AbstractCorrection(object):
