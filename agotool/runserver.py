@@ -40,13 +40,13 @@ species2files_dict = {"9606":
                       }
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
-print obo2file_dict['slim']
-
 
 
 app = flask.Flask(__name__)
-
+EXAMPLE_FOLDER = webserver_data + r'/exampledata'
+app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = set(['txt', 'tsv'])
+
 
 # Additional path settings for flask
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
