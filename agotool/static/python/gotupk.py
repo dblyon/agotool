@@ -65,59 +65,62 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
             assoc_dict_slim = goretriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
             gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
         else:
+
             gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
+        # fn_out = '/Users/dblyon/modules/cpr/goterm/TEST.txt' #!!! remove
+        # gostudy.write_summary2file(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent) #!!! remove
         return header, results
 
-
-if __name__ == "__main__":
-    organism = "4932"
-    # userinput_file = species2files_dict[organism]["userinput_fn"]
-    # userinput_fn = r'/Users/dblyon/Downloads/yeast_observed_acetyl_abundance.txt'
-    # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/webserver_data/userdata/hela_observed_acetyl_abundance.txt'
-    userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/webserver_data/userdata/yeast_observed_acetyl_abundance.txt'
-    decimal = ','
-    gocat_upk = 'all_GO'
-
-    go_slim_or_basic = 'slim'
-    backtracking = True
-
-    indent = True
-    multitest_method = 'benjamini_hochberg'
-    alpha = 0.05
-    o_or_u_or_both = 'both'
-    abcorr = True
-    num_bins = 100
-    fold_enrichment_study2pop = 0
-    p_value_uncorrected = 0
-    p_value_mulitpletesting = 0
-
-    species2files_dict = {'10090': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_mouse',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Mouse_uniprot-proteome%3AUP000000589.tab'},
- '10116': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_rat',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Rat_uniprot-proteome%3AUP000002494.tab'},
- '3702': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_arabidopsis',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000006548.tab'},
- '4932': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_yeast',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Yeast_uniprot-proteome%3AUP000002311.tab'},
- '7227': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_fly',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000803.tab'},
- '7955': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_zebrafish',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000437.tab'},
- '8364': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab'},
- '9031': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_chicken',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000539.tab'},
- '9606': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_human',
-  'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab'}}
-
-    obo2file_dict = {'basic': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/OBO/go-basic.obo',
-        'slim': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/OBO/goslim_generic.obo'}
-
-
-    header, results = run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
-            multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-            fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, species2files_dict, obo2file_dict)
-
+#
+# if __name__ == "__main__":
+#     organism = "4932"
+#     # userinput_file = species2files_dict[organism]["userinput_fn"]
+#     # userinput_fn = r'/Users/dblyon/Downloads/yeast_observed_acetyl_abundance.txt'
+#     # userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/webserver_data/userdata/hela_observed_acetyl_abundance.txt'
+#     userinput_fn = r'/Users/dblyon/CloudStation/CPR/Brian_GO/webserver_data/userdata/yeast_observed_acetyl_abundance.txt'
+#     decimal = ','
+#     gocat_upk = 'all_GO'
+#
+#     go_slim_or_basic = 'slim'
+#     backtracking = True
+#
+#     indent = True
+#     multitest_method = 'benjamini_hochberg'
+#     alpha = 0.05
+#     o_or_u_or_both = 'both'
+#     abcorr = True
+#     num_bins = 100
+#     fold_enrichment_study2pop = 0
+#     p_value_uncorrected = 0
+#     p_value_mulitpletesting = 0
+#
+#     species2files_dict = {'10090': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_mouse',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Mouse_uniprot-proteome%3AUP000000589.tab'},
+#  '10116': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_rat',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Rat_uniprot-proteome%3AUP000002494.tab'},
+#  '3702': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_arabidopsis',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000006548.tab'},
+#  '4932': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_yeast',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Yeast_uniprot-proteome%3AUP000002311.tab'},
+#  '7227': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_fly',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000803.tab'},
+#  '7955': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_zebrafish',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000437.tab'},
+#  '8364': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab'},
+#  '9031': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_chicken',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000539.tab'},
+#  '9606': {'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/gene_association.goa_human',
+#   'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab'}}
+#
+#     obo2file_dict = {'basic': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/OBO/go-basic.obo',
+#         'slim': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/OBO/goslim_generic.obo'}
+#
+#
+#     header, results = run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+#             multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+#             fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, species2files_dict, obo2file_dict)
+#
 
 
 
