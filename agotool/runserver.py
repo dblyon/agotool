@@ -5,10 +5,12 @@ from wtforms import fields
 import flask
 from flask import render_template, request, send_from_directory
 import pandas as pd
+import numpy as np
 
 # import 'back end' scripts
 sys.path.append('static/python')
 import gotupk
+#obo_parser
 
 webserver_data  = os.getcwd() + '/static/data'
 species2files_dict = {"9606":
@@ -41,9 +43,11 @@ species2files_dict = {"9606":
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
 
+# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
 app = flask.Flask(__name__)
-EXAMPLE_FOLDER = webserver_data + r'/exampledata'
+EXAMPLE_FOLDER = webserver_data + '/exampledata'
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = set(['txt', 'tsv'])
 
@@ -101,10 +105,14 @@ def check_userinput(userinput_fh, decimal, abcorr):
     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
     userinput_fh.seek(0)
     if abcorr:
-        if ['background_an', 'background_int', 'sample_an'] == sorted(df.columns.tolist()):
+        if ['population_an', 'population_int', 'sample_an'] == sorted(df.columns.tolist()):
+            try:
+                np.histogram(df['population_int'], bins=10)
+            except:
+                return False
             return True
     else:
-        if ['background_an', 'sample_an'] == sorted(df.columns.tolist()):
+        if ['population_an', 'sample_an'] == sorted(df.columns.tolist()):
             return True
     return False
 
@@ -139,15 +147,15 @@ class UniProtKeywords_Form(wtforms.Form):
                                  choices = ((",", "Comma"), (".", "Point")),
                                  description = u"either a ',' or a '.' used for abundance values")
     abcorr = fields.BooleanField("Abundance correction", default = "checked")
-    multitest_method = fields.SelectField("Correction for multiple testing Method",
+    multitest_method = fields.SelectField("Method for correction of multiple testing",
                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
     o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
                                  choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
     num_bins = fields.IntegerField("Number of bins", default = 100)
-    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
-    p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
-    p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
+    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
+    p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
+    p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
 
 @app.route('/UniProtKeywords')
 def UniProtKeywords():
@@ -208,16 +216,16 @@ class GOTerms_Form(wtforms.Form):
     go_slim_or_basic = fields.SelectField("GO basic or slim",
                                  choices = (("basic", "basic"), ("slim", "slim")))
     indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
-    multitest_method = fields.SelectField("Correction for multiple testing Method",
+    multitest_method = fields.SelectField("Method for correction of multiple testing",
                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
     o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
                                  choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
     num_bins = fields.IntegerField("Number of bins", default = 100)
     backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
-    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/background", default = 0)
-    p_value_uncorrected =  fields.FloatField("p value uncorrected", default = 0)
-    p_value_mulitpletesting =  fields.FloatField("p value multiple testing", default = 0)
+    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
+    p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
+    p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
 
 @app.route('/GOTerm')
 def GOTerms():
@@ -256,7 +264,8 @@ def got_results():
 
 
 if __name__ == '__main__':
-    #app.run('red', 5911, processes=4, debug=True)
+
+    #app.run('red', 5911, processes=4, debug=False)
     app.run(processes=4, debug=True)
 
 

@@ -10,55 +10,88 @@
 
 <div class="container-fluid">
     <h3>Contact</h3>
-    <br>
-    <div class="row">
-        <div class="col-md-3">
-        <p>
-        Brian Tate Weinert
-        <br><a href="mailto:briantate.weinert@cpr.ku.dk" class="link"><span>briantate.weinert@cpr.ku.dk</span></a>
-        </p>
+        <br>
+        <div class="row">
+            <div class="col-md-3">
+            <p>
+            Brian Tate Weinert
+            <br><a href="mailto:briantate.weinert@cpr.ku.dk" class="link"><span>briantate.weinert@cpr.ku.dk</span></a>
+            </p>
+            </div>
+            <div class="col-md-3">
+            <p>
+            Chuna Ram Choudhary
+            <br><a href="mailto:chuna.choudhary@cpr.ku.dk" class="link"><span>chuna.choudhary@cpr.ku.dk</span></a>
+            </p>
+            </div>
+            <div class="col-md-3">
+            <p>
+            Lars Juhl Jensen
+            <br><a href="mailto:lars.juhl.jensen@cpr.ku.dk" class="link"><span>lars.juhl.jensen@cpr.ku.dk</span></a>
+            </p>
+            </div>
         </div>
-        <div class="col-md-3">
-        <p>
-        Chuna Ram Choudhary
-        <br><a href="mailto:chuna.choudhary@cpr.ku.dk" class="link"><span>chuna.choudhary@cpr.ku.dk</span></a>
-        </p>
-        </div>
-        <div class="col-md-3">
-        <p>
-        Lars Juhl Jensen
-        <br><a href="mailto:lars.juhl.jensen@cpr.ku.dk" class="link"><span>lars.juhl.jensen@cpr.ku.dk</span></a>
-        </p>
-        </div>
-    </div>
-
-        <p>
+            <p>
+                <br>
+            <a href="http://www.cpr.ku.dk/">Center for Protein Research</a>
+                <br>
+            </p>
             <br>
-        <a href="http://www.cpr.ku.dk/">Center for Protein Research</a>
-            <br>
-        </p>
-    <br>
     <h3>Publication</h3>
-    <p>will be named and linked here</p>
+        <p>will be named and linked here</p>
+        <br>
 
-    <br>
+
     <h3>FAQ</h3>
-        <h4>Parameters</h4>
         <p>
         AccessionNubers that do not match any <a href="http://geneontology.org/">GO-term</a>
             or UniProt-keyword <a href="http://www.uniprot.org/">UniProt-keyword</a>
             will be disregarded.<br>
-        Abundance correction: AccessionNumbers without abundance data will be disregarded.<br>
-            <br>
-        GO basic or GO slims <a href="http://geneontology.org/page/go-slim-and-subset-guide/">GO slim subset</a><br>
-
-
+        AccessionNumbers without abundance data will be disregarded if 'abundance correction' is selected.<br>
             <br>
         </p>
+        <h4>Parameters</h4>
+        <h5>Upload files</h5>
+        <b>Select Organism:</b> Choose the species/organism the identifiers (accession numbers) correspond to.<br>
+        <b>Decimal delimiter:</b> Decimal delimiter of the abundance data of the file to upload. Either a comma "," or a point ".". <br>
+        <b>Abundance correction:</b> Apply the abundance correction described in the publication. A column named 'background_int' <br>
+            that corresponds to the column 'background_an' needs to be provided, when selecting this option.<br>
+            If 'Abundance correction' is deselected 'background_int' can be omitted.<br>
+        <b>Number of bins:</b> The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.<br>
+        <h5>Keyword associations</h5>
+        <b>GO-terms:</b> Select one of three major GO categories (molecular function, biological process, cellular component) or all three.<br>
+        <b>GO basic or slim:</b> Choose between the full Gene Ontology or <a href="http://geneontology.org/page/go-slim-and-subset-guide/">GO slim subset</a> a cut-down version of GO.<br>
+        <b>Backtracking parent GO-terms:</b> Include all parent GO-terms.<br>
+        <h5>Report options</h5>
+        <b>prepend GO-term level by dots:</b> Add dots to GO-terms to indicate the level in the hierarchy.<br>
+        <b>overrepresented or underrepresented or both:</b> Choose to only test and report overrepresented or underrepresented GO-terms, or report both of them.<br>
+        <b>Method for correction of multiple testing:</b> Select a method for multiple testing correction.<br>
+        <b>Alpha:</b> Applied to multiple correction methods 'Sidak' and 'Holm' to calculate 'corrected' p-values.<br><br>
+        <b>Filter results options simply filter the results based on the provided threshold values and thus influence which results are shown (but not what is being tested).</b>
+        <b>fold enrichment study/population:</b> Minimum threshold value of 'fold_enrichment_study2pop'.<br>
+        <b>p-value uncorrected:</b> Maximum threshold value of 'p_uncorrected'.<br>
+        <b>FDR-cutoff / p-value multiple testing:</b> Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.<br>
+    <br>
+    <br>
+
         <h4>Results</h4>
         <p>
-        'pop_an' only shown when 'abundance correction' deselected
-
+            <h5>Column definitions</h5>
+                <b>id:</b>	GO term ID or Uniprot Keyword term<br>
+                <b>over/under:</b>	overrepresented (o) or underrepresented (u)<br>
+                <b>perc_associated_study:</b>	% associated with the term in the study group<br>
+                <b>perc_associated_pop:</b>	% associated with the term in the population group<br>
+                <b>fold_enrichment_study2pop:</b>	fold change study/population<br>
+                <b>study_count:</b>	number of proteins associating with term in study<br>
+                <b>study_n:</b>	number of proteins in study group (total)<br>
+                <b>pop_count:</b>	number of proteins associating with term in population<br>
+                <b>pop_n:</b>	number of proteins in population group (total)<br>
+                <b>description:</b>	description of GO term (GO terms only)<br>
+                <b>p_uncorrected:</b>	Fisher exact test P-value<br>
+                <b>ANs_study:</b>	Accession names in the study (UniProt IDs associating with the GO term/keyword)<br>
+                <b>ANs_pop: *</b>	Accession names in the population (UniProt IDs associating with the GO term/keyword)<br>
+                (* 'ANs_pop' column is only shown when 'abundance correction' is deselected.)
+                <br><br><br>
         </p>
 
 
