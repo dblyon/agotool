@@ -2,16 +2,18 @@ import pandas as pd
 import numpy as np
 import os
 
+
+
 class UserInput(object):
     """
     expects 2 arrays,
     samplefreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an', col_background_an='population_an', col_background_int='population_int', decimal='.'):
+    def __init__(self, user_input_fn=None, num_bins=100, col_sample_an='sample_an', col_background_an='backgrnd_an', col_background_int='backgrnd_int', decimal='.'):
         home = os.path.expanduser('~')
-        # if not user_input_fn:
-        #     user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
+        if not user_input_fn:
+            user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
         self.user_input_fn = user_input_fn
         self.decimal = decimal
         self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal) #!!! check file for this
@@ -112,6 +114,7 @@ class UserInput(object):
                 an = an
             dataframe.loc[index, colname_an] = an
         return dataframe
+
 
     def removeSpliceVariants_splitProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
         '''
@@ -297,41 +300,16 @@ class UserInput(object):
         return set(self.get_random_background_ans())
 
 
-class UserInput_noAbCorr(UserInput):
 
-    def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
-        self.user_input_fn = user_input_fn
-        self.decimal = decimal
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal) #!!! check file for this
-        self.set_num_bins(num_bins)
-        self.col_sample_an = col_sample_an
-        self.col_background_an = col_background_an
-        self.cleanupforanalysis(self.df_orig, self.col_sample_an, self.col_background_an)
 
-    def cleanupforanalysis(self, df_orig, col_sample_an, col_background_an):
-        self.sample_ser = df_orig[col_sample_an]
-        self.background_ser = df_orig[col_background_an]
 
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.sample_ser)
-        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
-        cond = pd.notnull(self.background_ser)
-        self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
 
-        # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> correction: 1 row of first value
-        # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        self.sample_ser     = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.sample_ser)
-        self.background_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.background_ser)
 
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.sample_ser)
-        self.sample_ser     = self.sample_ser.loc[cond, ].drop_duplicates()
-        cond = pd.notnull(self.background_ser)
-        self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
 
-    def get_sample_an_frset(self):
-        return frozenset(self.sample_ser)
 
-    def get_background_an_all_set(self):
-        return set(self.background_ser)
+
+
+
+
+
 
