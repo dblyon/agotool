@@ -7,8 +7,8 @@ class GOEnrichmentRecord(object):
     """
     Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
-    attributes_list = [('id', '%s'), ('enrichment', '%s'), ('perc_enrichment_study', "%0.1f"),
-                   ('perc_enrichment_pop', "%0.1f"), ('fold_enrichment_study2pop', "%0.2f"),
+    attributes_list = [('id', '%s'), ('over_under', '%s'), ('perc_associated_study', "%0.3f"),
+                   ('perc_associated_pop', "%0.3f"), ('fold_enrichment_study2pop', "%0.3f"),
                    ('study_count', '%s'), ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'), ('p_uncorrected', "%.3g")]
 
     def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop, ANs_study, ANs_pop):
@@ -18,14 +18,14 @@ class GOEnrichmentRecord(object):
         self.pop_count, self.pop_n = ratio_in_pop
         self.ANs_study = ANs_study
         self.ANs_pop = ANs_pop
-        self.perc_enrichment_study = self.calc_fold_enrichemnt(self.study_count, self.study_n)
-        self.perc_enrichment_pop = self.calc_fold_enrichemnt(self.pop_count, self.pop_n)
-        if self.perc_enrichment_study != -1 and self.perc_enrichment_pop != -1:
-            self.fold_enrichment_study2pop = round(self.calc_fold_enrichemnt(self.perc_enrichment_study, self.perc_enrichment_pop), 2)
+        self.perc_associated_study = self.calc_fold_enrichemnt(self.study_count, self.study_n)
+        self.perc_associated_pop = self.calc_fold_enrichemnt(self.pop_count, self.pop_n)
+        if self.perc_associated_study != -1 and self.perc_associated_pop != -1:
+            self.fold_enrichment_study2pop = round(self.calc_fold_enrichemnt(self.perc_associated_study, self.perc_associated_pop), 2)
         else:
             self.fold_enrichment_study2pop = "-1"
-        self.perc_enrichment_study = self.perc_enrichment_study * 100
-        self.perc_enrichment_pop = self.perc_enrichment_pop * 100
+        self.perc_associated_study = self.perc_associated_study * 100
+        self.perc_associated_pop = self.perc_associated_pop * 100
 
     def calc_fold_enrichemnt(self, zaehler, nenner):
         try:
@@ -47,7 +47,7 @@ class GOEnrichmentRecord(object):
             self.__setattr__(k, v)
 
     def update_remaining_fields(self):
-        self.enrichment = 'o' if ((1.0 * self.study_count / self.study_n) > (1.0 * self.pop_count / self.pop_n)) else 'u'
+        self.over_under = 'o' if ((1.0 * self.study_count / self.study_n) > (1.0 * self.pop_count / self.pop_n)) else 'u'
 
     def get_attributenames2write(self, o_or_u_or_both):
         if o_or_u_or_both == 'both':
@@ -55,7 +55,7 @@ class GOEnrichmentRecord(object):
         else:
             list2return = []
             for ele in self.attributes_list:
-                if ele[0] != 'enrichment':
+                if ele[0] != 'over_under':
                     list2return.append(ele[0])
             return list2return
 
@@ -65,7 +65,7 @@ class GOEnrichmentRecord(object):
         else:
             list2return = []
             for ele in self.attributes_list:
-                if ele[0] != 'enrichment':
+                if ele[0] != 'over_under':
                     list2return.append(ele)
             return list2return
 
@@ -98,12 +98,10 @@ class GOEnrichmentRecord(object):
 
 
 class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
-    attributes_list = [('id', '%s'), ('enrichment', '%s'),
-     ('perc_enrichment_study', "%0.1f"), ('perc_enrichment_pop', "%0.1f"),
-     ('fold_enrichment_study2pop', "%0.2f"), ('study_count', '%s'),
-     ('study_n', '%s'),
-     ('pop_count','%s'), ('pop_n', '%s'),
-                   ('p_uncorrected', "%.3g")]
+    attributes_list = [('id', '%s'), ('over_under', '%s'),
+     ('perc_associated_study', "%0.3f"), ('perc_associated_pop', "%0.3f"),
+     ('fold_enrichment_study2pop', "%0.3f"), ('study_count', '%s'),
+     ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'), ('p_uncorrected', "%.3g")]
 
     def get_attribute_format_list(self, o_or_u_or_both):
         return self.get_attributes_list(o_or_u_or_both)

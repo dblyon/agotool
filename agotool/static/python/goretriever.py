@@ -103,8 +103,9 @@ class Parser_UniProt_goa_ref(object):
         else:
             goterms_of_parent = []
             for goterm in goterms_list:
-                if obo_dag[goterm].has_parent(self.go_parents_name2num_dict[go_parent]):
-                    goterms_of_parent.append(goterm)
+                if obo_dag.has_key(goterm):
+                    if obo_dag[goterm].has_parent(self.go_parents_name2num_dict[go_parent]):
+                        goterms_of_parent.append(goterm)
         if len(goterms_of_parent) >= 1:
             return goterms_of_parent
         else:

@@ -23,8 +23,8 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, species2files_dict, obo2file_dict):
 
     col_sample_an = "sample_an"
-    col_background_an = 'background_an'
-    col_background_int = 'background_int'
+    col_background_an = 'population_an'
+    col_background_int = 'population_int'
 
     o_or_u_or_both = o_or_u_or_both # e_or_p_or_both: is one of: 'enriched', 'purified', None
     decimal = decimal # is one of: "," or "."
