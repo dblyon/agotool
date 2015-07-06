@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
 
 
 class UserInput(object):
@@ -10,9 +9,6 @@ class UserInput(object):
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
     def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an', col_background_an='population_an', col_background_int='population_int', decimal='.'):
-        home = os.path.expanduser('~')
-        # if not user_input_fn:
-        #     user_input_fn = home + r"/CloudStation/CPR/Brian_GO/UserInput.txt"
         self.user_input_fn = user_input_fn
         self.decimal = decimal
         self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal) #!!! check file for this
@@ -43,9 +39,7 @@ class UserInput(object):
 
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        # self.sample_ser = self.removeSpliceVariants_splitProteinGrous_Series(self.sample_ser)
         self.sample_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.sample_ser)
-        # self.background_df = self.removeSpliceVariants_splitProteinGrous_DataFrame(self.background_df, col_background_an, col_background_int)
         self.background_df = self.removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self.background_df, col_background_an, col_background_int)
 
         # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
