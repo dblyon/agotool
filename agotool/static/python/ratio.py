@@ -23,7 +23,6 @@ def count_terms_v2(ans_set, assoc_dict, obo_dag):
                     go2ans_dict[goterm].update([an])
     return(term_cnt, go2ans_dict, len(ans2count))
 
-
 def count_terms(ans_set, assoc_dict, obo_dag):
     """
     count the number of terms in the study group
@@ -57,7 +56,6 @@ def get_go2ans_dict(assoc_dict):
             else:
                 go2ans_dict[goid].update([an])
     return go2ans_dict
-
 
 def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     """

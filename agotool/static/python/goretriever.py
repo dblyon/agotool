@@ -1,5 +1,4 @@
 import cPickle as pickle
-from os.path import expanduser
 import obo_parser
 
 

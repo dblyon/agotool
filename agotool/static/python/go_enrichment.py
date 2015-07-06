@@ -2,6 +2,7 @@ import fisher, ratio
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
 from collections import defaultdict
 
+
 class GOEnrichmentRecord(object):
     """
     Represents one result (from a single GOTerm) in the GOEnrichmentStudy
