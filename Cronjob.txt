@@ -1,0 +1,38 @@
+
+1.) goa (gene association files): ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/
+(u'4932',  u'Saccharomyces cerevisiae'), # Yeast 
+(u'9606',  u'Homo sapiens'), # Human
+(u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
+(u'7955',  u'Danio rerio'), # Zebrafish
+(u'7227',  u'Drosophila melanogaster'), # Fly
+(u'9031',  u'Gallus gallus'), # Chicken
+(u'10090', u'Mus musculus'), # Mouse
+(u'10116', u'Rattus norvegicus')] # Rat
+
+
+2.) uniprot_keywords: www.uniprot.org
+(u'4932',  u'Saccharomyces cerevisiae'), # Yeast # Saccharomyces cerevisiae (strain ATCC 204508 / S288c)
+(u'9606',  u'Homo sapiens'), # Human
+(u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
+(u'7955',  u'Danio rerio'), # Zebrafish
+(u'7227',  u'Drosophila melanogaster'), # Fly
+(u'9031',  u'Gallus gallus'), # Chicken
+(u'10090', u'Mus musculus'), # Mouse
+(u'10116', u'Rattus norvegicus'), # Rat
+(u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
+
+http://www.uniprot.org/uniprot/?query=organism:9606&format=tab&columns=id,keywords
+
+update interval: every 4 weeks
+http://www.uniprot.org/downloads
+http://www.uniprot.org/help/update_notification
+
+
+3.) obo: http://geneontology.org
+go-basic.obo
+goslim_generic.obo
+
+update interval: GO ontology downloads (daily releases)
+
+
+

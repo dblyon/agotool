@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 
+
 class UserInput(object):
     """
     expects 2 arrays,
