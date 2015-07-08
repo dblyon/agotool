@@ -2,18 +2,17 @@
 
 {% block head %}
       <script type="text/javascript">
-          $(document).ready( function () {
-              load_enzyme_enrichment();
+          $(document).ready( function() {
+              enrichment_page();
           });
       </script>
 {% endblock head %}
 
-
 {% block content %}
+<div class="container-fluid">
+    <form id="main_form" method="Post" action="results" enctype="multipart/form-data">
 
-<div class="container-fluid">	
-    <form id="main_form" method="Post" action="upk_results" enctype="multipart/form-data">
-        <h2>UniProt-keyword enrichment</h2>
+        <h2>Enrichment</h2>
 
         <div class="row">
             <div class="col-md-5">
@@ -26,45 +25,50 @@
                     <li>'sample_an'</li>
                     if 'Abundance correction' is deselected 'population_int' can be omitted
                 </p>
-                </div>
+            </div>
             <div class="col-md-5">
                 <br>
-                <br>
-                <br>{{ form.organism.label }}: {{ form.organism() }}
-                <br>{{ form.decimal.label }}: {{ form.decimal() }}
-                <br>{{ form.abcorr.label }}: {{ form.abcorr() }}
-                <br>{{ form.num_bins.label }}: {{ form.num_bins() }}
+                <br>{{ form.organism.label }}: {{ form.organism() }}<br>
+                <span class="number"> {{ form.decimal.label }}: {{ form.decimal() }} <br> </span>
+                <br> {{ form.abcorr.label }}: {{ form.abcorr() }}
+                <span class="number"> {{ form.num_bins.label }}: {{ form.num_bins() }} <br> </span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <h3>Keyword association</h3>
+                <span> {{ form.gocat_upk.label }}: {{ form.gocat_upk() }} <br> </span>
+                <span class="GOT"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }} <br> </span>
+                <span class="GOT"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>
                 <br>
             </div>
         </div>
 
-
         <div class="row">
             <div class="col-md-5">
                 <h3>Report options</h3>
-                {{ form.o_or_e_or_both.label }}: {{ form.o_or_e_or_both() }}
-                <br>
-                <br>
+                <span> {{ form.o_or_e_or_both.label }}: {{ form.o_or_e_or_both() }} <br> </span>
+                <span class="GOT"> {{ form.indent.label }}: {{ form.indent() }} <br> </span>
+                <br><br>
+
                 <h4>Multiple testing</h4>
-                {{ form.multitest_method.label }}: {{ form.multitest_method() }}
-                <br>{{ form.alpha.label }}: {{ form.alpha() }} *
-                <p>* alpha only applies to 'Sidak' and 'Holm' correction</p>
+                <span> {{ form.multitest_method.label }}: {{ form.multitest_method() }} <br> </span>
+                <span class="alpha"> {{ form.alpha.label }}: {{ form.alpha() }} <br> </span>
                 <br>
-                <br>
-                </div>
+
+            </div>
             <div class="col-md-5">
-                <br>
-                <br>
+                <br><br>
                 <h4>filter results</h4>
                 {{ form.fold_enrichment_study2pop.label }}: {{ form.fold_enrichment_study2pop() }}
                 <br>{{ form.p_value_uncorrected.label }}: {{ form.p_value_uncorrected() }}
                 <br>{{ form.p_value_mulitpletesting.label }}: {{ form.p_value_mulitpletesting() }}
             </div>
         </div>
+
         <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
 		<br>
 	</form>
 </div>
-	
 {% endblock content %}
-
