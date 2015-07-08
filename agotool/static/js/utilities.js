@@ -1,4 +1,65 @@
 ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+var enrichment_page = (function() {
+
+// hide GO-term specific options if UniProt-keywords selected
+    $('#gocat_upk').change(function() {
+        var gocat_upk = $('#gocat_upk').val();
+        if (gocat_upk == "UPK"){
+            $(".GOT").hide(".GOT");
+        }
+
+        else {
+            $(".GOT").show(".GOT");
+        }
+    });
+    $("#gocat_upk").change();
+
+// hide 'alpha' parameter if BH selected
+    $('#multitest_method').change(function() {
+        var multitest_method = $('#multitest_method').val();
+        choice = multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni" ;
+        toggle_if(".alpha", choice);
+        //if (multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni" ){
+        //    $(".alpha").hide(".alpha");
+        //}
+        //else {
+        //    $(".alpha").show(".alpha");
+        //}
+    });
+    $("#multitest_method").change();
+
+// hide decimal delimiter and number of bins if abcorr deselected
+    $("#abcorr").change(function() {
+        var abcorr = $("#abcorr").val();
+        if (abcorr == false){
+            $(".number").hide(".number");
+        }
+        else {
+            $(".number").show(".number");
+        }
+    });
+    $("#abcorr").change();
+
+});
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+var toggle_if = function(select, choice){
+    if (choice == true) {
+        $(select).hide();
+    } else {
+        $(select).show();
+    }
+x}
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 // global variables
 ///////////////////////////////////////////////////////////////////////////////
 
