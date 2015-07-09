@@ -1,6 +1,6 @@
 import os, sys, StringIO
 import logging, wtforms
-from wtforms import fields
+from wtforms import fields, validators
 # Setup for flask
 import flask
 from flask import render_template, request, send_from_directory
@@ -43,6 +43,7 @@ species2files_dict = {"9606":
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
 
+# preload #!!!
 # go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
 # goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
@@ -108,7 +109,7 @@ def check_userinput(userinput_fh, decimal, abcorr):
         if ['population_an', 'population_int', 'sample_an'] == sorted(df.columns.tolist()):
             try:
                 np.histogram(df['population_int'], bins=10)
-            except:
+            except TypeError:
                 return False
             return True
     else:
@@ -127,11 +128,8 @@ def download_example_data(filename):
     return send_from_directory(directory=uploads, filename=filename)
 ################################################################################
 
-################################################################################
-# enrichment
-################################################################################
-class Enrichment_Form(wtforms.Form):
-    organism_choices = [
+
+organism_choices = [
     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
     (u'9606',  u'Homo sapiens'), # Human
     (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
@@ -140,10 +138,23 @@ class Enrichment_Form(wtforms.Form):
     (u'9031',  u'Gallus gallus'), # Chicken
     (u'10090', u'Mus musculus'), # Mouse
     (u'10116', u'Rattus norvegicus')] # Rat
+
+
+def validate_alpha(form, field):
+    # form = Enrichment_Form(request.form)
+    print("validate alpha:", form.alpha.data)
+    if not 0 < form.alpha.data < 1:
+        raise wtforms.ValidationError("alpha must be a number between 0 and 1")
+
+################################################################################
+# enrichment
+################################################################################
+class Enrichment_Form(wtforms.Form):
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
     userinput_file = fields.FileField("Choose File")
     decimal = fields.SelectField("Decimal delimiter",
-                                 choices = ((",", "Comma"), (".", "Point")),
+                                 choices = ((",", "Comma"),
+                                            (".", "Point")),
                                  description = u"either a ',' or a '.' used for abundance values")
     gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
                                 choices = (("all_GO", "all 3 GO categories"),
@@ -151,45 +162,64 @@ class Enrichment_Form(wtforms.Form):
                                            ("CP", "Celluar Compartment"),
                                            ("MF", "Molecular Function"),
                                            ("UPK", "UniProt-keywords"),))
+
     abcorr = fields.BooleanField("Abundance correction", default = "checked")
+
     go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                 choices = (("basic", "basic"), ("slim", "slim")))
+                                 choices = (("basic", "basic"),
+                                            ("slim", "slim")))
     indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
 
     multitest_method = fields.SelectField("Method for correction of multiple testing",
-                                choices = (("benjamini_hochberg", "Benjamini Hochberg"),
+                                choices = (("sidak", "Sidak"), #!!!
+                                    ("benjamini_hochberg", "Benjamini Hochberg"),
                                            ("sidak", "Sidak"),
                                            ("holm", "Holm"),
                                            ("bonferroni", "Bonferroni")))
-                                          #id='newid', _name='newname'
 
-    alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
+    alpha = fields.FloatField("Alpha", [validate_alpha],
+                              default = 0.05,
+                              description=u"for multiple testing correction")
+    #[validators.NumberRange(min=0, max=1)]
+    #assert 0 < alpha < 1, "Test-wise alpha must fall between (0, 1)" #!!!
+
     o_or_e_or_both = fields.SelectField("over- or under-represented or both",
-                                 choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
+                                 choices = (("both", "both"),
+                                            ("o", "overrepresented"),
+                                            ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
     num_bins = fields.IntegerField("Number of bins", default = 100)
     backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
     fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
     p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
     p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
 
+
+
+
 @app.route('/enrichment')
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form())
 
-@app.route('/results', methods=['POST'])
+@app.route('/results', methods=["GET", "POST"])
 def results():
     form = Enrichment_Form(request.form)
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate():
+        print("#"*80)
+        # print("abcorr: ", form.abcorr.data)
+        # print("multi test: ", form.multitest_method.data)
+        # print("indent: ", form.indent.data)
+        print("alpha: ", form.alpha.data)
+        print("#"*80)
         file = request.files['userinput_file']
         if file and allowed_file(file.filename):
             userinput_fh = StringIO.StringIO(file.read())
             if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
                 header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
-                   form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
-                   form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
-                   form.abcorr.data, form.num_bins.data, form.backtracking.data,
-                   form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-                   form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
+                       form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+                       form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
+                       form.abcorr.data, form.num_bins.data, form.backtracking.data,
+                       form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+                       form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
             else:
                 return render_template('info_check_input.html')
             if len(results) == 0:
@@ -201,141 +231,145 @@ def results():
                     results2display.append(res.split('\t'))
                 tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
                 return render_template('results.html', header=header, results=results2display, errors=[], tsv=tsv)
-    return render_template('enrichment.html', form=GOTerms_Form())
+    return render_template('enrichment.html', form=form)
 ################################################################################
+
+
+
+
 
 
 
 ################################################################################
 # UniProtKeywords
 ################################################################################
-class UniProtKeywords_Form(wtforms.Form):
-    organism_choices = [
-    (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
-    (u'9606',  u'Homo sapiens'), # Human
-    (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
-    (u'7955',  u'Danio rerio'), # Zebrafish
-    (u'7227',  u'Drosophila melanogaster'), # Fly
-    (u'9031',  u'Gallus gallus'), # Chicken
-    (u'10090', u'Mus musculus'), # Mouse
-    (u'10116', u'Rattus norvegicus'), # Rat
-    (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
-    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-    userinput_file = fields.FileField("Choose File")
-    decimal = fields.SelectField("Decimal delimiter",
-                                 choices = ((",", "Comma"), (".", "Point")),
-                                 description = u"either a ',' or a '.' used for abundance values")
-    abcorr = fields.BooleanField("Abundance correction", default = "checked")
-    multitest_method = fields.SelectField("Method for correction of multiple testing",
-                                choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
-    alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
-    o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
-                                 choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
-    num_bins = fields.IntegerField("Number of bins", default = 100)
-    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
-    p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
-    p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
-
-@app.route('/UniProtKeywords')
-def UniProtKeywords():
-    return render_template('UniProtKeywords.html', form=UniProtKeywords_Form())
-
-@app.route('/upk_results', methods=['POST'])
-def upk_results():
-    form = UniProtKeywords_Form(request.form)
-    if request.method == 'POST':
-        file = request.files['userinput_file']
-        if file and allowed_file(file.filename):
-            userinput_fh = StringIO.StringIO(file.read())
-            gocat_upk = "UPK"
-            go_slim_or_basic = "basic"
-            indent = False
-            backtracking = False
-            if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
-                header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
-                                    gocat_upk, go_slim_or_basic, indent, form.multitest_method.data,
-                                    form.alpha.data, form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
-                                    backtracking, form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-                                   form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
-            else:
-                return render_template('info_check_input.html')
-            if len(results) == 0:
-                return render_template('gotupk_results_zero.html')
-            else:
-                header = header.split("\t")
-                results2display = []
-                for res in results:
-                    results2display.append(res.split('\t'))
-                tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
-                return render_template('gotupk_results.html', header=header, results=results2display, errors=[], tsv=tsv)
-    return render_template('UniProtKeywords.html', form=UniProtKeywords_Form())
+# class UniProtKeywords_Form(wtforms.Form):
+#     organism_choices = [
+#     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
+#     (u'9606',  u'Homo sapiens'), # Human
+#     (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
+#     (u'7955',  u'Danio rerio'), # Zebrafish
+#     (u'7227',  u'Drosophila melanogaster'), # Fly
+#     (u'9031',  u'Gallus gallus'), # Chicken
+#     (u'10090', u'Mus musculus'), # Mouse
+#     (u'10116', u'Rattus norvegicus'), # Rat
+#     (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
+#     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+#     userinput_file = fields.FileField("Choose File")
+#     decimal = fields.SelectField("Decimal delimiter",
+#                                  choices = ((",", "Comma"), (".", "Point")),
+#                                  description = u"either a ',' or a '.' used for abundance values")
+#     abcorr = fields.BooleanField("Abundance correction", default = "checked")
+#     multitest_method = fields.SelectField("Method for correction of multiple testing",
+#                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
+#     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
+#     o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
+#                                  choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
+#     num_bins = fields.IntegerField("Number of bins", default = 100)
+#     fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
+#     p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
+#     p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
+#
+# @app.route('/UniProtKeywords')
+# def UniProtKeywords():
+#     return render_template('UniProtKeywords.html', form=UniProtKeywords_Form())
+#
+# @app.route('/upk_results', methods=['POST'])
+# def upk_results():
+#     form = UniProtKeywords_Form(request.form)
+#     if request.method == 'POST':
+#         file = request.files['userinput_file']
+#         if file and allowed_file(file.filename):
+#             userinput_fh = StringIO.StringIO(file.read())
+#             gocat_upk = "UPK"
+#             go_slim_or_basic = "basic"
+#             indent = False
+#             backtracking = False
+#             if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
+#                 header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
+#                                     gocat_upk, go_slim_or_basic, indent, form.multitest_method.data,
+#                                     form.alpha.data, form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
+#                                     backtracking, form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+#                                    form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
+#             else:
+#                 return render_template('info_check_input.html')
+#             if len(results) == 0:
+#                 return render_template('gotupk_results_zero.html')
+#             else:
+#                 header = header.split("\t")
+#                 results2display = []
+#                 for res in results:
+#                     results2display.append(res.split('\t'))
+#                 tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
+#                 return render_template('gotupk_results.html', header=header, results=results2display, errors=[], tsv=tsv)
+#     return render_template('UniProtKeywords.html', form=UniProtKeywords_Form())
 
 ################################################################################
 # GOTerms
 ################################################################################
-class GOTerms_Form(wtforms.Form):
-    organism_choices = [
-    (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
-    (u'9606',  u'Homo sapiens'), # Human
-    (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
-    (u'7955',  u'Danio rerio'), # Zebrafish
-    (u'7227',  u'Drosophila melanogaster'), # Fly
-    (u'9031',  u'Gallus gallus'), # Chicken
-    (u'10090', u'Mus musculus'), # Mouse
-    (u'10116', u'Rattus norvegicus')] # Rat
-    organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-    userinput_file = fields.FileField("Choose File")
-    decimal = fields.SelectField("Decimal delimiter",
-                                 choices = ((",", "Comma"), (".", "Point")),
-                                 description = u"either a ',' or a '.' used for abundance values")
-    gocat_upk = fields.SelectField("GO-terms",
-                                choices = (("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
-                                           ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
-    abcorr = fields.BooleanField("Abundance correction", default = "checked")
-    go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                 choices = (("basic", "basic"), ("slim", "slim")))
-    indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
-    multitest_method = fields.SelectField("Method for correction of multiple testing",
-                                choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
-    alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
-    o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
-                                 choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
-    num_bins = fields.IntegerField("Number of bins", default = 100)
-    backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
-    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
-    p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
-    p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
-
-@app.route('/GOTerm')
-def GOTerms():
-    return render_template('GOTerms.html', form=GOTerms_Form())
-
-@app.route('/got_results', methods=['POST'])
-def got_results():
-    form = GOTerms_Form(request.form)
-    if request.method == 'POST':
-        file = request.files['userinput_file']
-        if file and allowed_file(file.filename):
-            userinput_fh = StringIO.StringIO(file.read())
-            if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
-                header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
-                   form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
-                   form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
-                   form.abcorr.data, form.num_bins.data, form.backtracking.data,
-                   form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-                   form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
-            else:
-                return render_template('info_check_input.html')
-            if len(results) == 0:
-                return render_template('gotupk_results_zero.html')
-            else:
-                header = header.split("\t")
-                results2display = []
-                for res in results:
-                    results2display.append(res.split('\t'))
-                tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
-                return render_template('gotupk_results.html', header=header, results=results2display, errors=[], tsv=tsv)
-    return render_template('GOTerms.html', form=GOTerms_Form())
+# class GOTerms_Form(wtforms.Form):
+#     organism_choices = [
+#     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
+#     (u'9606',  u'Homo sapiens'), # Human
+#     (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
+#     (u'7955',  u'Danio rerio'), # Zebrafish
+#     (u'7227',  u'Drosophila melanogaster'), # Fly
+#     (u'9031',  u'Gallus gallus'), # Chicken
+#     (u'10090', u'Mus musculus'), # Mouse
+#     (u'10116', u'Rattus norvegicus')] # Rat
+#     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
+#     userinput_file = fields.FileField("Choose File")
+#     decimal = fields.SelectField("Decimal delimiter",
+#                                  choices = ((",", "Comma"), (".", "Point")),
+#                                  description = u"either a ',' or a '.' used for abundance values")
+#     gocat_upk = fields.SelectField("GO-terms",
+#                                 choices = (("all_GO", "all 3 GO categories"),("BP", "Biological Process"),
+#                                            ("CP", "Celluar Compartment"),("MF", "Molecular Function")))
+#     abcorr = fields.BooleanField("Abundance correction", default = "checked")
+#     go_slim_or_basic = fields.SelectField("GO basic or slim",
+#                                  choices = (("basic", "basic"), ("slim", "slim")))
+#     indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
+#     multitest_method = fields.SelectField("Method for correction of multiple testing",
+#                                 choices = (("benjamini_hochberg", "Benjamini Hochberg"), ("sidak", "Sidak"), ("holm", "Holm"), ("bonferroni", "Bonferroni")))
+#     alpha = fields.FloatField("Alpha", default = 0.05, description=u"for multiple testing correction")
+#     o_or_e_or_both = fields.SelectField("overrepresented or underrepresented or both",
+#                                  choices = (("both", "both"), ("o", "overrepresented"), ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
+#     num_bins = fields.IntegerField("Number of bins", default = 100)
+#     backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
+#     fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
+#     p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
+#     p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
+#
+# @app.route('/GOTerm')
+# def GOTerms():
+#     return render_template('GOTerms.html', form=GOTerms_Form())
+#
+# @app.route('/got_results', methods=['POST'])
+# def got_results():
+#     form = GOTerms_Form(request.form)
+#     if request.method == 'POST':
+#         file = request.files['userinput_file']
+#         if file and allowed_file(file.filename):
+#             userinput_fh = StringIO.StringIO(file.read())
+#             if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
+#                 header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
+#                    form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+#                    form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
+#                    form.abcorr.data, form.num_bins.data, form.backtracking.data,
+#                    form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+#                    form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
+#             else:
+#                 return render_template('info_check_input.html')
+#             if len(results) == 0:
+#                 return render_template('gotupk_results_zero.html')
+#             else:
+#                 header = header.split("\t")
+#                 results2display = []
+#                 for res in results:
+#                     results2display.append(res.split('\t'))
+#                 tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
+#                 return render_template('gotupk_results.html', header=header, results=results2display, errors=[], tsv=tsv)
+#     return render_template('GOTerms.html', form=GOTerms_Form())
 
 ################################################################################
 

@@ -27,11 +27,12 @@
                 </p>
             </div>
             <div class="col-md-5">
-                <br>
-                <br>{{ form.organism.label }}: {{ form.organism() }}<br>
+                <br><br>
+                <br> {{ form.organism.label }}: {{ form.organism() }}
+                <br> {{ form.abcorr.label }}: {{ form.abcorr() }} <br>
                 <span class="number"> {{ form.decimal.label }}: {{ form.decimal() }} <br> </span>
-                <br> {{ form.abcorr.label }}: {{ form.abcorr() }}
                 <span class="number"> {{ form.num_bins.label }}: {{ form.num_bins() }} <br> </span>
+                <span class="number_placeholder"> <br> <br> </span>
             </div>
         </div>
 
@@ -41,6 +42,7 @@
                 <span> {{ form.gocat_upk.label }}: {{ form.gocat_upk() }} <br> </span>
                 <span class="GOT"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }} <br> </span>
                 <span class="GOT"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>
+                <span class="GOT_placeholder"> <br> <br> </span>
                 <br>
             </div>
         </div>
@@ -50,11 +52,16 @@
                 <h3>Report options</h3>
                 <span> {{ form.o_or_e_or_both.label }}: {{ form.o_or_e_or_both() }} <br> </span>
                 <span class="GOT"> {{ form.indent.label }}: {{ form.indent() }} <br> </span>
+                <span class="GOT_placeholder"> <br> </span>
                 <br><br>
 
                 <h4>Multiple testing</h4>
                 <span> {{ form.multitest_method.label }}: {{ form.multitest_method() }} <br> </span>
-                <span class="alpha"> {{ form.alpha.label }}: {{ form.alpha() }} <br> </span>
+                <span class="alpha"> {{ form.alpha.label }}: {{ form.alpha(class="css_class") }} <br> </span>
+                    {% if form.alpha.errors %}
+                    <ul class="errors">{% for error in form.alpha.errors %}<b><font color=red>{{ error }}</b></font>{% endfor %}</ul>
+                    {% endif %}
+                <span class="alpha_placeholder"> <br> </span>
                 <br>
 
             </div>

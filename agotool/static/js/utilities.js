@@ -5,54 +5,46 @@ var enrichment_page = (function() {
 // hide GO-term specific options if UniProt-keywords selected
     $('#gocat_upk').change(function() {
         var gocat_upk = $('#gocat_upk').val();
-        if (gocat_upk == "UPK"){
-            $(".GOT").hide(".GOT");
-        }
-
-        else {
-            $(".GOT").show(".GOT");
-        }
+        var choice = gocat_upk == "UPK";
+        toggle_if(choice, ".GOT", ".GOT_placeholder");
     });
     $("#gocat_upk").change();
 
 // hide 'alpha' parameter if BH selected
     $('#multitest_method').change(function() {
         var multitest_method = $('#multitest_method').val();
-        choice = multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni" ;
-        toggle_if(".alpha", choice);
-        //if (multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni" ){
-        //    $(".alpha").hide(".alpha");
-        //}
-        //else {
-        //    $(".alpha").show(".alpha");
-        //}
+        var choice = multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni";
+        toggle_if(choice, ".alpha", ".alpha_placeholder");
     });
     $("#multitest_method").change();
 
 // hide decimal delimiter and number of bins if abcorr deselected
     $("#abcorr").change(function() {
-        var abcorr = $("#abcorr").val();
-        if (abcorr == false){
-            $(".number").hide(".number");
-        }
-        else {
-            $(".number").show(".number");
-        }
+        var abcorr = $("#abcorr:checked").val();
+        var choice = abcorr != "y";
+        toggle_if(choice, ".number", ".number_placeholder");
     });
     $("#abcorr").change();
 
 });
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
-
-var toggle_if = function(select, choice){
+// show or hide selectors/tags depending on choice
+var toggle_if = function(choice, tag, placeholder_tag){
     if (choice == true) {
-        $(select).hide();
+        $(tag).hide();
+        $(placeholder_tag).show();
     } else {
-        $(select).show();
+        $(tag).show();
+        $(placeholder_tag).hide();
     }
-x}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
 
 
 
