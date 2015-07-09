@@ -1,21 +1,4 @@
-import goretriever, go_enrichment, obo_parser, userinput, uniprot_keywords, os
-
-# webserver_data = home + r'/CloudStation/CPR/Brian_GO/webserver_data'
-
-# key=TaxId, val=Dict {key=goa_ref_fn, uniprot_keywords_fn, val=rawString}
-
-
-# (u'9606',  u'Homo sapiens'), # Human
-# (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
-# (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
-# (u'7955',  u'Danio rerio'), # Zebrafish
-# (u'7227',  u'Drosophila melanogaster'), # Fly
-# (u'9031',  u'Gallus gallus'), # Chicken
-# (u'10090', u'Mus musculus'), # Mouse
-# (u'10116', u'Rattus norvegicus'), # Rat
-# (u'8364',  u'Xenopus (Silurana) tropicalis')] # Frog
-
-
+import goretriever, go_enrichment, obo_parser, userinput, uniprot_keywords
 
 
 def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
@@ -26,9 +9,8 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     col_background_an = 'population_an'
     col_background_int = 'population_int'
 
-    o_or_u_or_both = o_or_u_or_both # e_or_p_or_both: is one of: 'enriched', 'purified', None
+    o_or_u_or_both = o_or_u_or_both
     decimal = decimal # is one of: "," or "."
-    alpha = alpha
 
     if fold_enrichment_study2pop == 0:
         fold_enrichment_study2pop = None
@@ -37,7 +19,7 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     if p_value_uncorrected == 0:
         p_value_uncorrected = None
 
-    assert 0 < alpha < 1, "Test-wise alpha must fall between (0, 1)"
+    # assert 0 < alpha < 1, "Test-wise alpha must fall between (0, 1)" #!!!
 
 ################################
 #### constants
