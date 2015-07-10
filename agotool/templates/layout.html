@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
+    <!-- <link rel="icon" href="../../favicon.ico"> -->
+    <link rel="icon" href="../batman.jpg">
 
     <title>A.GO.TOOL</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
@@ -16,6 +17,11 @@
 
     <script src="{{ url_for('static', filename='js/utilities.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"></script>
+    <style>
+        body {background-color:lightgrey}
+        .errors  {color:red}
+    </style>
+
 
     {% block head %}{% endblock head %}
 </head>
@@ -34,7 +40,7 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('enrichment') }}">Enrichment</a></li>
+                    <li><a href="{{ url_for('enrichment') }}">ENRICHMENT</a></li>
 
 {#                    <li><a href="{{ url_for('GOTerms') }}">GOTerms</a></li>#}
 {#                    <li><a href="{{ url_for('UniProtKeywords') }}">UniProtKeywords</a></li>#}

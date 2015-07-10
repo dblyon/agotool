@@ -1,4 +1,4 @@
-import os, sys, StringIO
+import os, sys, StringIO, imp
 import logging, wtforms
 from wtforms import fields, validators
 # Setup for flask
@@ -10,7 +10,12 @@ import numpy as np
 # import 'back end' scripts
 sys.path.append('static/python')
 import gotupk
-#obo_parser
+
+#import from relative path
+name = 'obo_parser'
+path = r'./static/python/'
+f, filename, description = imp.find_module(name, [path])
+obo_parser = imp.load_module(name, f, filename, description)
 
 webserver_data  = os.getcwd() + '/static/data'
 species2files_dict = {"9606":
@@ -40,12 +45,12 @@ species2files_dict = {"9606":
                       "8364":
                           {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab'}
                       }
+
+# pre-load go_dag and goslim_dag (obo files) for speed
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
-
-# preload #!!!
-# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
 app = flask.Flask(__name__)
 EXAMPLE_FOLDER = webserver_data + '/exampledata'
@@ -70,9 +75,9 @@ def resultfile_to_results(result_file):
     result_file.seek(0)
     return results, header
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+# def allowed_file(filename):
+#     return '.' in filename and \
+#            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 ################################################################################
 # index.html
@@ -102,7 +107,8 @@ def download_results(filename):
     return send_from_directory(directory=uploads, filename=filename)
 
 ################################################################################
-def check_userinput(userinput_fh, decimal, abcorr):
+def check_userinput(userinput_fh, abcorr):
+    decimal = '.'
     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
     userinput_fh.seek(0)
     if abcorr:
@@ -110,12 +116,18 @@ def check_userinput(userinput_fh, decimal, abcorr):
             try:
                 np.histogram(df['population_int'], bins=10)
             except TypeError:
-                return False
-            return True
+                try:
+                    decimal = ','
+                    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+                    userinput_fh.seek(0)
+                    np.histogram(df['population_int'], bins=10)
+                except TypeError:
+                    return(False, decimal)
+            return(True, decimal)
     else:
         if ['population_an', 'sample_an'] == sorted(df.columns.tolist()):
-            return True
-    return False
+            return(True, decimal)
+    return(False, decimal)
 
 ################################################################################
 @app.route('/example')
@@ -140,22 +152,51 @@ organism_choices = [
     (u'10116', u'Rattus norvegicus')] # Rat
 
 
-def validate_alpha(form, field):
-    # form = Enrichment_Form(request.form)
-    print("validate alpha:", form.alpha.data)
-    if not 0 < form.alpha.data < 1:
-        raise wtforms.ValidationError("alpha must be a number between 0 and 1")
+def validate_float_larger_zero_smaller_one(form, field):
+    # print("validate_float_larger_zero_smaller_one: ", field.data)
+    if not 0 < field.data < 1:
+        raise wtforms.ValidationError(" number must be: 0 < number < 1")
+
+def validate_float_between_zero_and_one(form, field):
+    # print("validate_float_between_zero_and_one: ", field.data)
+    if not 0 <= field.data <= 1:
+        raise wtforms.ValidationError(" number must be: 0 <= number <= 1")
+
+def validate_integer(form, field):
+    # print("validate_integer: ", field.data)
+    if not isinstance(field.data, int):
+        raise wtforms.ValidationError(" number must be an integer")
+
+def validate_number(form, field):
+    # print("validate_float: ", field.data)
+    if not isinstance(field.data, (int, float)):
+        raise wtforms.ValidationError(" must be a number")
+
+def validate_inputfile(form, field):
+    filename = request.files['userinput_file'].filename
+    print("#"*80)
+    # print("validate_inputfile: ", filename)
+    # print("#"*80)
+    for extension in ALLOWED_EXTENSIONS:
+        if filename.endswith('.' + extension):
+            return True
+    raise wtforms.ValidationError(" file must have a '.txt' or '.tsv' extension")
+
 
 ################################################################################
 # enrichment
 ################################################################################
 class Enrichment_Form(wtforms.Form):
     organism = fields.SelectField(u'Select Organism', choices = organism_choices)
-    userinput_file = fields.FileField("Choose File")
-    decimal = fields.SelectField("Decimal delimiter",
-                                 choices = ((",", "Comma"),
-                                            (".", "Point")),
-                                 description = u"either a ',' or a '.' used for abundance values")
+
+    userinput_file = fields.FileField("Choose File",
+                                      [validate_inputfile])
+
+    # decimal = fields.SelectField("Decimal delimiter",
+    #                              choices = ((",", "Comma"),
+    #                                         (".", "Point")),
+    #                              description = u"either a ',' or a '.' used for abundance values")
+
     gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
                                 choices = (("all_GO", "all 3 GO categories"),
                                            ("BP", "Biological Process"),
@@ -163,38 +204,48 @@ class Enrichment_Form(wtforms.Form):
                                            ("MF", "Molecular Function"),
                                            ("UPK", "UniProt-keywords"),))
 
-    abcorr = fields.BooleanField("Abundance correction", default = "checked")
+    abcorr = fields.BooleanField("Abundance correction",
+                                 default = "checked")
 
     go_slim_or_basic = fields.SelectField("GO basic or slim",
                                  choices = (("basic", "basic"),
                                             ("slim", "slim")))
-    indent = fields.BooleanField("prepend GO-term level by dots", default = "checked")
+
+    indent = fields.BooleanField("prepend GO-term level by dots",
+                                 default = "checked")
 
     multitest_method = fields.SelectField("Method for correction of multiple testing",
-                                choices = (("sidak", "Sidak"), #!!!
-                                    ("benjamini_hochberg", "Benjamini Hochberg"),
+                                choices = (("benjamini_hochberg", "Benjamini Hochberg"),
                                            ("sidak", "Sidak"),
                                            ("holm", "Holm"),
                                            ("bonferroni", "Bonferroni")))
 
-    alpha = fields.FloatField("Alpha", [validate_alpha],
+    alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
                               default = 0.05,
                               description=u"for multiple testing correction")
-    #[validators.NumberRange(min=0, max=1)]
-    #assert 0 < alpha < 1, "Test-wise alpha must fall between (0, 1)" #!!!
 
     o_or_e_or_both = fields.SelectField("over- or under-represented or both",
                                  choices = (("both", "both"),
                                             ("o", "overrepresented"),
                                             ("u", "underrepresented"))) #!!! ? why does it switch to 'both' here???
-    num_bins = fields.IntegerField("Number of bins", default = 100)
-    backtracking = fields.BooleanField("Backtracking parent GO-terms", default = "checked")
-    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population", default = 0)
-    p_value_uncorrected =  fields.FloatField("p-value uncorrected", default = 0)
-    p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing", default = 0)
+    num_bins = fields.IntegerField("Number of bins",
+                                   [validate_integer],
+                                   default = 100)
 
+    backtracking = fields.BooleanField("Backtracking parent GO-terms",
+                                       default = "checked")
 
+    fold_enrichment_study2pop = fields.FloatField("fold enrichment study/population",
+                                                  [validate_number],
+                                                  default = 0)
 
+    p_value_uncorrected =  fields.FloatField("p-value uncorrected",
+                                             [validate_float_between_zero_and_one],
+                                             default = 0)
+
+    p_value_mulitpletesting =  fields.FloatField("FDR-cutoff / p-value multiple testing",
+                                                 [validate_float_between_zero_and_one],
+                                                 default = 0)
 
 @app.route('/enrichment')
 def enrichment():
@@ -204,33 +255,37 @@ def enrichment():
 def results():
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
-        print("#"*80)
+        # print("#"*80)
         # print("abcorr: ", form.abcorr.data)
         # print("multi test: ", form.multitest_method.data)
         # print("indent: ", form.indent.data)
-        print("alpha: ", form.alpha.data)
-        print("#"*80)
+        # print("alpha: ", form.alpha.data)
+        # print("#"*80)
         file = request.files['userinput_file']
-        if file and allowed_file(file.filename):
-            userinput_fh = StringIO.StringIO(file.read())
-            if check_userinput(userinput_fh, form.decimal.data, form.abcorr.data):
-                header, results = gotupk.run(userinput_fh, form.decimal.data, form.organism.data,
-                       form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
-                       form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
-                       form.abcorr.data, form.num_bins.data, form.backtracking.data,
-                       form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
-                       form.p_value_mulitpletesting.data, species2files_dict, obo2file_dict)
-            else:
-                return render_template('info_check_input.html')
-            if len(results) == 0:
-                return render_template('results_zero.html')
-            else:
-                header = header.split("\t")
-                results2display = []
-                for res in results:
-                    results2display.append(res.split('\t'))
-                tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
-                return render_template('results.html', header=header, results=results2display, errors=[], tsv=tsv)
+        # if file and allowed_file(file.filename):
+        userinput_fh = StringIO.StringIO(file.read())
+
+        check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+        if check:
+            header, results = gotupk.run(userinput_fh, decimal, form.organism.data,
+                   form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+                   form.multitest_method.data, form.alpha.data, form.o_or_e_or_both.data,
+                   form.abcorr.data, form.num_bins.data, form.backtracking.data,
+                   form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data,
+                   form.p_value_mulitpletesting.data, species2files_dict, go_dag, goslim_dag)
+        else:
+            return render_template('info_check_input.html')
+
+        if len(results) == 0:
+            return render_template('results_zero.html')
+        else:
+            header = header.split("\t")
+            results2display = []
+            for res in results:
+                results2display.append(res.split('\t'))
+            tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
+            return render_template('results.html', header=header, results=results2display, errors=[], tsv=tsv)
+
     return render_template('enrichment.html', form=form)
 ################################################################################
 

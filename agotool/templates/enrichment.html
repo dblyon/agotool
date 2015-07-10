@@ -12,13 +12,16 @@
 <div class="container-fluid">
     <form id="main_form" method="Post" action="results" enctype="multipart/form-data">
 
-        <h2>Enrichment</h2>
+        <h2>ENRICHMENT</h2>
 
         <div class="row">
             <div class="col-md-5">
                 <h3>Upload file</h3>
                 <title>Where does this show up?</title>
                 {{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload File"}) }}
+                    {% if form.userinput_file.errors %}
+                    <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                    {% endif %}
                 <p>Expects a tab-demlimited text-file with 3 columns:
                     <li>'population_an'</li>
                     <li>'population_int'</li>
@@ -30,8 +33,11 @@
                 <br><br>
                 <br> {{ form.organism.label }}: {{ form.organism() }}
                 <br> {{ form.abcorr.label }}: {{ form.abcorr() }} <br>
-                <span class="number"> {{ form.decimal.label }}: {{ form.decimal() }} <br> </span>
+{#               <!-- <span class="number"> {{ form.decimal.label }}: {{ form.decimal() }} <br> </span> -->#}
                 <span class="number"> {{ form.num_bins.label }}: {{ form.num_bins() }} <br> </span>
+                    {% if form.num_bins.errors %}
+                    <ul class="errors"> {% for error in form.num_bins.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                    {% endif %}
                 <span class="number_placeholder"> <br> <br> </span>
             </div>
         </div>
@@ -57,9 +63,10 @@
 
                 <h4>Multiple testing</h4>
                 <span> {{ form.multitest_method.label }}: {{ form.multitest_method() }} <br> </span>
-                <span class="alpha"> {{ form.alpha.label }}: {{ form.alpha(class="css_class") }} <br> </span>
+                <span class="alpha"> {{ form.alpha.label }}: {{ form.alpha }} <br> </span>
+                <!-- <span class="alpha">                       form.alpha(class="css_class") <br> </span> -->
                     {% if form.alpha.errors %}
-                    <ul class="errors">{% for error in form.alpha.errors %}<b><font color=red>{{ error }}</b></font>{% endfor %}</ul>
+                    <ul class="errors"> {% for error in form.alpha.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
                 <span class="alpha_placeholder"> <br> </span>
                 <br>
@@ -69,8 +76,18 @@
                 <br><br>
                 <h4>filter results</h4>
                 {{ form.fold_enrichment_study2pop.label }}: {{ form.fold_enrichment_study2pop() }}
+                    {% if form.fold_enrichment_study2pop.errors %}
+                    <ul class="errors"> {% for error in form.fold_enrichment_study2pop.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                    {% endif %}
                 <br>{{ form.p_value_uncorrected.label }}: {{ form.p_value_uncorrected() }}
+                    {% if form.p_value_uncorrected.errors %}
+                    <ul class="errors"> {% for error in form.p_value_uncorrected.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                    {% endif %}
                 <br>{{ form.p_value_mulitpletesting.label }}: {{ form.p_value_mulitpletesting() }}
+                    {% if form.p_value_mulitpletesting.errors %}
+                    <ul class="errors"> {% for error in form.p_value_mulitpletesting.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                    {% endif %}
+                <span><br> "0" means that no filter will be applied </span>
             </div>
         </div>
 
