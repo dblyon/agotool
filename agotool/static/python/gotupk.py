@@ -3,7 +3,7 @@ import goretriever, go_enrichment, obo_parser, userinput, uniprot_keywords
 
 def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, species2files_dict, obo2file_dict):
+        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, species2files_dict, go_dag, goslim_dag):
 
     col_sample_an = "sample_an"
     col_background_an = 'population_an'
@@ -18,8 +18,6 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         p_value_mulitpletesting = None
     if p_value_uncorrected == 0:
         p_value_uncorrected = None
-
-    # assert 0 < alpha < 1, "Test-wise alpha must fall between (0, 1)" #!!!
 
 ################################
 #### constants
@@ -40,15 +38,16 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     else:
         goa_ref_fn = species2files_dict[organism]["goa_ref_fn"]
         go_parent = gocat_upk
-        go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+        # go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
         assoc_dict = goretriever.Parser_UniProt_goa_ref(goa_ref_fn = goa_ref_fn).get_association_dict(go_parent, go_dag)
+
         if go_slim_or_basic == 'slim':
-            goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+            # goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
             assoc_dict_slim = goretriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
             gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
         else:
-
             gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
+
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
         # fn_out = '/Users/dblyon/modules/cpr/goterm/TEST.txt' #!!! remove
         # gostudy.write_summary2file(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent) #!!! remove

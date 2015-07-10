@@ -37,6 +37,7 @@ var toggle_if = function(choice, tag, placeholder_tag){
         $(tag).show();
         $(placeholder_tag).hide();
     }
+
 };
 
 
