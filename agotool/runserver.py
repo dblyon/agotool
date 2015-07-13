@@ -1,4 +1,4 @@
-import os, sys, StringIO, imp
+import os, sys, StringIO #, imp
 import logging, wtforms
 from wtforms import fields, validators
 # Setup for flask
@@ -9,13 +9,13 @@ import numpy as np
 
 # import 'back end' scripts
 sys.path.append('static/python')
-import gotupk
+import gotupk, obo_parser
 
 #import from relative path
-name = 'obo_parser'
-path = r'./static/python/'
-f, filename, description = imp.find_module(name, [path])
-obo_parser = imp.load_module(name, f, filename, description)
+# name = 'obo_parser'
+# path = r'./static/python/'
+# f, filename, description = imp.find_module(name, [path])
+# obo_parser = imp.load_module(name, f, filename, description)
 
 webserver_data  = os.getcwd() + '/static/data'
 species2files_dict = {"9606":
