@@ -8,10 +8,12 @@ class UserInput(object):
     samplefreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an', col_background_an='population_an', col_background_int='population_int', decimal='.'):
+    def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an',
+                 col_background_an='population_an',
+                 col_background_int='population_int', decimal='.'):
         self.user_input_fn = user_input_fn
         self.decimal = decimal
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal) #!!! check file for this
+        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
         self.set_num_bins(num_bins)
         self.col_sample_an = col_sample_an
         self.col_background_an = col_background_an
@@ -297,7 +299,7 @@ class UserInput_noAbCorr(UserInput):
     def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
         self.user_input_fn = user_input_fn
         self.decimal = decimal
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal) #!!! check file for this
+        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
         self.set_num_bins(num_bins)
         self.col_sample_an = col_sample_an
         self.col_background_an = col_background_an

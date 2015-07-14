@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
 from __future__ import print_function
 import sys
+
 try:
     from exceptions import EOFError
 except ImportError:
@@ -208,7 +207,7 @@ class GODag(dict):
 
     def load_obo_file(self, obo_file):
 
-        print("load obo file %s" % obo_file, file=sys.stderr) #!!! switch off or display somewhere specific at some point
+        # print("load obo file %s" % obo_file, file=sys.stderr) #!!! switch off or display somewhere specific at some point
         obo_reader = OBOReader(obo_file)
         for rec in obo_reader:
             self[rec.id] = rec
@@ -216,7 +215,7 @@ class GODag(dict):
                 self[alt] = rec
 
         self.populate_terms()
-        print(len(self), "nodes imported", file=sys.stderr) #!!! switch off or display somewhere specific at some point
+        # print(len(self), "nodes imported", file=sys.stderr) #!!! switch off or display somewhere specific at some point
 
     def populate_terms(self):
 
@@ -495,6 +494,5 @@ class GODag(dict):
         if bad_terms:
             print("terms not found: %s" % (bad_terms,), file=sys.stderr)
 
-# if __name__ == '__main__':
-#     obo_file = r'/Users/dblyon/CloudStation/CPR/Brian_GO/go_rescources/go_obo/go-basic.obo'
-#     godag = GODag(obo_file)
+
+
