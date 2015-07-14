@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
-
-"""
-A list of commonly used multiple correction routines
-"""
 from __future__ import print_function
 from __future__ import absolute_import
 import sys
@@ -147,7 +141,6 @@ def BenjaminiHochberg(pvals, num_total_tests):
         prev_bh_value = bh_value
         p_values_corrected.append(bh_value)
     return p_values_corrected
-
 
 
 if __name__ == '__main__':
