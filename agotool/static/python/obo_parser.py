@@ -202,18 +202,15 @@ class GOTerm:
 class GODag(dict):
 
     def __init__(self, obo_file="go-basic.obo"):
-
         self.load_obo_file(obo_file)
 
     def load_obo_file(self, obo_file):
-
         # print("load obo file %s" % obo_file, file=sys.stderr) #!!! switch off or display somewhere specific at some point
         obo_reader = OBOReader(obo_file)
         for rec in obo_reader:
             self[rec.id] = rec
             for alt in rec.alt_ids:
                 self[alt] = rec
-
         self.populate_terms()
         # print(len(self), "nodes imported", file=sys.stderr) #!!! switch off or display somewhere specific at some point
 

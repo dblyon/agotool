@@ -272,7 +272,7 @@ def results():
 
 if __name__ == '__main__':
     #app.run('red', 5911, processes=4, debug=False)
-    app.run(processes=4, debug=False)
+    app.run(processes=4, debug=True)
 
 
 
