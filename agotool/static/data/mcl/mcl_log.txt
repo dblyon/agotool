@@ -1,0 +1,288 @@
+..[mcl] new tab created
+[mcl] pid 6735
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in ./../data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in ./../data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
+..[mcl] new tab created
+[mcl] pid 6748
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in ./../data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in ./../data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
+..[mcl] new tab created
+[mcl] pid 6753
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in ./../data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in ./../data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
+..[mcl] new tab created
+[mcl] pid 6773
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in ./../data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in ./../data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
+..[mcl] new tab created
+[mcl] pid 6810
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
+..[mcl] new tab created
+[mcl] pid 6820
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
+..[mcl] new tab created
+[mcl] pid 6826
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
+..[mcl] new tab created
+[mcl] pid 6828
+ ite -------------------  chaos  time hom(avg,lo,hi) m-ie m-ex i-ex fmv
+  1  ...................  25.46  0.01 0.74/0.28/1.72 7.42 4.58 4.58 100
+  2  ...................  29.70  0.02 0.67/0.23/1.83 1.62 0.74 3.41 100
+  3  ...................  18.19  0.01 0.75/0.23/3.26 2.09 0.43 1.46  98
+  4  ...................  11.64  0.00 0.82/0.26/2.52 3.20 0.30 0.44  94
+  5  ...................   3.75  0.00 0.89/0.40/2.06 2.57 0.39 0.17  79
+  6  ...................   1.79  0.00 0.91/0.52/1.00 1.36 0.51 0.09  50
+  7  ...................   1.12  0.00 0.94/0.46/1.00 1.06 0.72 0.06  11
+  8  ...................   1.14  0.00 0.95/0.55/1.00 1.02 0.88 0.06   6
+  9  ...................   0.66  0.00 0.96/0.63/1.00 1.00 0.92 0.05   6
+ 10  ...................   0.49  0.00 0.97/0.63/1.00 1.00 0.93 0.05   6
+ 11  ...................   0.36  0.00 0.98/0.75/1.00 1.00 0.93 0.05   6
+ 12  ...................   0.24  0.00 1.00/0.76/1.00 1.00 0.98 0.05   6
+ 13  ...................   0.12  0.00 1.00/0.88/1.00 1.00 0.96 0.04   6
+ 14  ...................   0.01  0.00 1.00/0.99/1.00 1.00 0.97 0.04   6
+ 15  ...................   0.00  0.00 1.00/1.00/1.00 1.00 0.99 0.04   6
+[mcl] jury pruning marks: <99,99,99>, out of 100
+[mcl] jury pruning synopsis: <99.0 or perfect> (cf -scheme, -do log)
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+[mcl] 49 clusters found
+[mcl] output is in /Users/dblyon/modules/cpr/goterm/agotool/static/data/mcl/mcl_out.txt
+
+Please cite:
+    Stijn van Dongen, Graph Clustering by Flow Simulation.  PhD thesis,
+    University of Utrecht, May 2000.
+       (  http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf
+       or  http://micans.org/mcl/lit/svdthesis.pdf.gz)
+OR
+    Stijn van Dongen, A cluster algorithm for graphs. Technical
+    Report INS-R0010, National Research Institute for Mathematics
+    and Computer Science in the Netherlands, Amsterdam, May 2000.
+       (  http://www.cwi.nl/ftp/CWIreports/INS/INS-R0010.ps.Z
+       or  http://micans.org/mcl/lit/INS-R0010.ps.Z)
+
