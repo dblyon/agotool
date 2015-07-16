@@ -1,4 +1,4 @@
-sample_an	backgrnd_int	backgrnd_an
+sample_an	population_int	population_an
 P07261	11.07751325	P00359
 P07261	11.07751325	P00359
 P09201	10.96978388	P00925

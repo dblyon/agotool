@@ -1,4 +1,4 @@
-import goretriever, go_enrichment, obo_parser, os, userinput, uniprot_keywords, gotupk
+import goretriever, go_enrichment_, obo_parser, os, userinput_, uniprot_keywords, gotupk
 # find_enrichment_dbl
 # import pandas as pd
 # import numpy as np
@@ -95,13 +95,13 @@ if __name__ == '__main__':
             col_background_int = 'iBAQ observed (log10)'
 
             print(fn_out, modification, background)
-            ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+            ui = userinput_.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
 
             if go_terms_or_uniprot_keywords == 'go_terms':
-                gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr, e_or_p_or_both)
+                gostudy = go_enrichment_.GOEnrichmentStudy(ui, assoc_dict, obo_dag, alpha, methods, backtracking, randomSample, abcorr, e_or_p_or_both)
                 gostudy.write_summary2file(fn_out, min_ratio=min_ratio, indent=indent, pval=pval)
             else:
-                gostudy = go_enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, methods, randomSample, abcorr, e_or_p_or_both)
+                gostudy = go_enrichment_.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, methods, randomSample, abcorr, e_or_p_or_both)
                 gostudy.write_summary2file(fn_out, min_ratio=min_ratio, pval=pval)
 
 

@@ -87,8 +87,41 @@ class MCL(object):
 
 class Filter(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, go_dag):
+        self.go_lineage_dict = {}
+        # key=GO-term, val=set of GO-terms
+        for go_term_name in go_dag:
+            GOTerm_instance = go_dag[go_term_name]
+            self.go_lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
+
+    def filter_term_lineage(self, header, results, indent):
+        """
+        produce reduced list of results
+        from each GO-term lineage (all descendants (children) and ancestors
+        (parents), but not 'siblings') pick the term with the lowest p-value.
+        :param header: String
+        :param results: ListOfString
+        :param indent: Bool
+        :return: ListOfString
+        """
+        results_filtered = []
+        blacklist = set(["GO:0008150", "GO:0005575", "GO:0003674"])
+        # {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
+        index_p = header.index('p_uncorrected')
+        index_go = header.index('id')
+        results.sort(key=lambda x: float(x[index_p]))
+        for res in results:
+            if indent:
+                dot_goterm = res[index_go]
+                goterm = dot_goterm[dot_goterm.find("GO:"):]
+                if not goterm in blacklist:
+                    results_filtered.append(res)
+                    blacklist = blacklist.union(self.go_lineage_dict[goterm])
+            else:
+                if not res[index_go] in blacklist:
+                    results_filtered.append(res)
+                    blacklist = blacklist.union(self.go_lineage_dict[res[index_go]])
+        return results_filtered
 
 
 if __name__ == "__main__":

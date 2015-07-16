@@ -1,0 +1,17 @@
+id	p_uncorrected	comment
+...GO:0016021	1.23e-10	# term
+....GO:0031361	1.23e-09	# child
+....GO:0031224	1.23e-08	# parent
+....GO:0044425	1.23e-08	# parent
+....GO:0031360	1.23e-11	# sibling
+.....GO:0031326	5.33e-05	# term
+...GO:0019222	0.00324	# parent
+......GO:2001141	5.46e-05	# child
+.....GO:0010556	0.000122	# sister
+GO:0008150	0.00141	# blacklist BP
+GO:0005575	0.00453	# blacklist CP
+GO:0003674	0.000145	# blacklist MF
+...GO:0044281	0.33	# A
+......GO:0046395	0.32	# B
+.......GO:0006101	0.31	# C
+

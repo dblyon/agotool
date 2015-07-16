@@ -1,4 +1,4 @@
-backgrnd_an	backgrnd_int	sample_an
+population_an	population_int	sample_an
 P00924	9.837979632	P00924
 P00925	10.96978388	P00925
 P00927	9.04544034	P00927
