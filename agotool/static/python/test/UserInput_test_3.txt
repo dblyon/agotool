@@ -1,4 +1,4 @@
-sample_an	background_int	background_an
+sample_an	population_int	population_an
 AAA111	11.1	AAA111
 AAA112	11.2	AAA112
 AAA113	11.3	AAA113
@@ -18,3 +18,4 @@ DAA111		DAA111
 		
 		
 
+['AAA111','AAA112','AAA113', 'CAA111', 'BBB111', 'BBB112', 'BBB113', 'DAA111', 'EEE111', 'FFF111'])

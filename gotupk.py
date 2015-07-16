@@ -1,4 +1,4 @@
-import goretriever, go_enrichment, obo_parser, userinput, uniprot_keywords, os
+import goretriever, go_enrichment_, obo_parser, userinput_, uniprot_keywords, os
 
 # webserver_data = home + r'/CloudStation/CPR/Brian_GO/webserver_data'
 
@@ -52,7 +52,7 @@ def run(fn_out, ui, decimal, organism, gocat_upk, go_slim_or_basic, indent,
     if gocat_upk == "UPK":
         uniprot_keywords_fn = species2files_dict[organism]["uniprot_keywords_fn"]
         assoc_dict = uniprot_keywords.UniProt_keywords_parser(uniprot_keywords_fn).get_association_dict()
-        gostudy = go_enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
+        gostudy = go_enrichment_.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
         gostudy.write_summary2file(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
         # header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
         # return header, results
@@ -64,9 +64,9 @@ def run(fn_out, ui, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         if go_slim_or_basic == 'slim':
             goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
             assoc_dict_slim = goretriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
-            gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
+            gostudy = go_enrichment_.GOEnrichmentStudy(ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
         else:
-            gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
+            gostudy = go_enrichment_.GOEnrichmentStudy(ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method) #!!!
             gostudy.write_summary2file(fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
         # header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
         # return header, results
@@ -154,7 +154,7 @@ if __name__ == "__main__":
             col_background_int = 'iBAQ observed (log10)'
 
             print(fn_out, modification, background)
-            ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+            ui = userinput_.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
 
             if gocat_upk == 'all_GO':
                 run(fn_out, ui, decimal, organism, gocat_upk, go_slim_or_basic, indent,

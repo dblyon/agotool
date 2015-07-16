@@ -1,0 +1,2 @@
+id	p_uncorrected	comment
+...GO:0044281	0.31	# A

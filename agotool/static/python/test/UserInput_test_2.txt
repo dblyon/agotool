@@ -1,0 +1,11 @@
+population_an	population_int	sample_an	comment
+P25574	12.345	P25574	fiktivesHochAbundantesProtein ER membrane protein complex(YEAST)
+P47133	12.345	P47133	fiktivesHochAbundantesProtein ER membrane protein complex
+P36039	12.345	P36039	fiktivesHochAbundantesProtein ER membrane protein complex
+P40540	12.345	P40540	fiktivesHochAbundantesProtein ER membrane protein complex
+Q12431	12.345	Q12431	fiktivesHochAbundantesProtein ER membrane protein complex
+P53073	12.345	P53073	fiktivesHochAbundantesProtein ER membrane protein complex
+P02994	9.028611915
+P32471	8.099335278
+P36008	6.773449992
+P29547	7.702800907

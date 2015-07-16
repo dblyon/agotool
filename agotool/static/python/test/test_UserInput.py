@@ -1,7 +1,7 @@
-from unittest import TestCase
+# from unittest import TestCase
 import pandas as pd
-import numpy as np
-import userinput, unittest
+# import numpy as np
+import userinput_, unittest
 from os.path import expanduser
 
 
@@ -9,24 +9,34 @@ class TestUserInput(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         home = expanduser('~')
-        user_input_fn = home + r'/modules/cpr/goterm/test/UserInput_test_3.txt'
-        cls._ui = userinput.UserInput(user_input_fn, col_sample_an='sample_an', col_background_an='background_an',
-                                      col_background_int='background_int')
+        user_input_fn = home + r'/modules/cpr/goterm/agotool/static/python/test/UserInput_test_3.txt'
+        cls._ui = userinput_.UserInput(
+            user_input_fn, col_sample_an='sample_an',
+            col_background_an='background_an',
+            col_background_int='background_int')
 
     def test_get_sample_an_frset_1(self):
-        sample_an_frset = frozenset(['AAA111', 'AAA112', 'AAA113', 'CAA111', 'CAA112', 'CAA113'])
+        sample_an_frset = frozenset(
+            ['AAA111', 'AAA112', 'AAA113', 'CAA111', 'CAA112', 'CAA113'])
         self.assertEqual(sample_an_frset, self._ui.get_sample_an_frset())
 
     def test_get_sample_an_frset_all_1(self):
-        sample_an_frset = frozenset(['AAA111', 'AAA112', 'AAA113', 'CAA111', 'CAA112', 'CAA113', 'DAA111'])
+        sample_an_frset = frozenset(
+            ['AAA111', 'AAA112', 'AAA113', 'CAA111', 'CAA112', 'CAA113', 'DAA111'])
         self.assertEqual(sample_an_frset, self._ui.get_sample_an_frset_all())
 
     def test_get_background_an_set(self):
-        background_an_set = set(['AAA111','AAA112','AAA113','CAA111','CAA112','CAA113', 'BBB111', 'BBB112', 'BBB113', 'EEE111', 'EEE123'])
+        background_an_set = set(
+            ['AAA111','AAA112','AAA113','CAA111','CAA112','CAA113', 'BBB111',
+             'BBB112', 'BBB113', 'EEE111', 'EEE123'])
         self.assertEqual(background_an_set, self._ui.get_background_an_set())
 
     def test_get_background_an_all_set(self):
-        background_an_all_set = set(['AAA111','AAA112','AAA113','CAA111','CAA112','CAA113', 'BBB111', 'BBB112', 'BBB113', 'DAA111', 'EEE111', 'EEE123', 'FFF111'])
+        background_an_all_set = set(
+            ['AAA111','AAA112','AAA113', 'CAA111', 'BBB111', 'BBB112',
+             'BBB113', 'DAA111', 'EEE111', 'FFF111'])
+            # ['AAA111','AAA112','AAA113','CAA111', 'CAA112','CAA113', 'BBB111',
+            #  'BBB112', 'BBB113', 'DAA111', 'EEE111', 'EEE123', 'FFF111'])
         self.assertEqual(background_an_all_set, self._ui.get_background_an_all_set())
 
     def test_df_int_noNaNs(self):
@@ -43,6 +53,8 @@ class TestUserInput(unittest.TestCase):
         sum_background_an_NaNs = sum(self._ui.df_all.loc[pd.isnull(self._ui.df_all[self._ui.col_background_an]), self._ui.col_background_an])
         self.assertEqual(sum_background_an_NaNs, 0)
 
+suite = unittest.TestLoader().loadTestsFromTestCase(TestUserInput)
+unittest.TextTestRunner(verbosity=2).run(suite)
 
 
 
@@ -91,5 +103,3 @@ class TestUserInput(unittest.TestCase):
         #     assert_frame_equal(background_df_int_minsample.sort(self._ui.col_background_an), self._ui.get_background_df_int_minsample().sort(self._ui.col_background_an), check_names=True)
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestUserInput)
-unittest.TextTestRunner(verbosity=2).run(suite)
