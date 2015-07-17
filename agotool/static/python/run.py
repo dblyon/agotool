@@ -2,7 +2,6 @@ import go_retriever
 import go_enrichment
 import userinput
 
-
 def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
