@@ -4,9 +4,7 @@
 
 {% endblock head %}
 
-
 {% block content %}
-
 
 <div class="container-fluid">
     <h3>Example data</h3>
@@ -21,8 +19,6 @@
         <br>The results (using default settings) should look like this:
         <td><a href="{{ url_for('download_example_data', filename='GO_term_results.txt') }}">GO-term results</a> and</td>
         <td><a href="{{ url_for('download_example_data', filename='UniProt_keywords_results.txt') }}">UniProt-keywords results</a></td>
-
-
 </div>
 	
 {% endblock content %}

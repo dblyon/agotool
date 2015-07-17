@@ -1,0 +1,13 @@
+body {background-color:lightgrey;}
+.errors  {color:red;}
+.column_names {text-indent: 50px;}
+.cpr_logo {float: right;
+           padding: 10px;
+    /*in layout:*/
+    /*height="40" width="92" */
+           }
+.navbar-header{
+    padding: 10px;
+    width: 140px;}
+
+.navbar-nav{padding: 10px;}

@@ -16,6 +16,7 @@ import numpy as np
 sys.path.append('static/python')
 import run
 import obo_parser
+import cluster_filter
 
 app = flask.Flask(__name__)
 webserver_data  = os.getcwd() + '/static/data'
@@ -58,6 +59,15 @@ obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
 go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
 goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+
+# filter results based on ancestors and descendants
+filter = cluster_filter.Filter(go_dag)
+# results_filtered = filter(header, results, indent)
+
+# MCL clustering
+mcl = cluster_filter.MCL_no_input_file_pid()
+# cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor=2.0)
+
 
 organism_choices = [
     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -118,7 +128,7 @@ def check_userinput(userinput_fh, abcorr):
     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
     userinput_fh.seek(0)
     if abcorr:
-        if ['population_an', 'population_int', 'sample_an'] == sorted(df.columns.tolist()):
+        if len(set(['population_an','population_int','sample_an']).intersection(set(df.columns.tolist()))) == 3:
             try:
                 np.histogram(df['population_int'], bins=10)
             except TypeError:
@@ -131,7 +141,7 @@ def check_userinput(userinput_fh, abcorr):
                     return False, decimal
             return True, decimal
     else:
-        if ['population_an', 'sample_an'] == sorted(df.columns.tolist()):
+        if len(set(['population_an', 'sample_an']).intersection(set(df.columns.tolist()))) == 2:
             return True, decimal
     return False, decimal
 
@@ -239,6 +249,13 @@ def enrichment():
 
 @app.route('/results', methods=["GET", "POST"])
 def results():
+    """
+    #!!!
+    cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor=2.0)
+    cluster_list: nested ListOfString corresponding to indices of results
+    results_filtered = filter(header, results, indent)
+    results_filtered: reduced version of results
+    """
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
         user_input_file = request.files['userinput_file']
@@ -272,7 +289,7 @@ def results():
 
 if __name__ == '__main__':
     #app.run('red', 5911, processes=4, debug=False)
-    app.run(processes=4, debug=True)
+    app.run(processes=4, debug=False)
 
 
 
