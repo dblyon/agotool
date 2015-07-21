@@ -236,6 +236,15 @@ class UniProtKeywordsParser(object):
                 assoc_dict[an] = keywords
         return assoc_dict
 
+    # def parse_file(self, fn): #!!!
+    #     assoc_dict = {}
+    #     with open(fn, 'r') as fh:
+    #         for line in fh:
+    #             an, keywords = line.split('\t')
+    #             keywords = set([ele.strip() for ele in keywords.split(';')])
+    #             assoc_dict[an] = keywords
+    #     return assoc_dict
+
     def get_association_dict(self):
         '''
         assoc is a dict: key=AN, val=set of go-terms

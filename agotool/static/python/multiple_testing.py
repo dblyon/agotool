@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import sys
 import random
-import fisher
+from scipy import stats
 import numpy as np
 from ratio import count_terms
 
@@ -104,12 +104,12 @@ def calc_qval_dbl(study_n, pop_n, pop, assoc, term_pop, obo_dag, T=500):
         for term, study_count in list(new_term_study.items()):
             pop_count = term_pop[term]
             a = study_count
-            col_1 = study_n
-            r1 = study_count + pop_count
-            n = study_n + pop_n
-            p = fisher.pvalue_population(a, col_1, r1, n)
-            if p.two_tail < smallest_p:
-                smallest_p = p.two_tail
+            b = study_n - study_count
+            c = pop_count
+            d = pop_n - pop_count
+            p_two_tail  = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
+            if p_two_tail < smallest_p:
+                smallest_p = p_two_tail
         distribution.append(smallest_p)
         if i % 10  == 0:
             print("Sample {0} / {1}: p-value {2}".\

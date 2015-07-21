@@ -14,6 +14,12 @@
 
 
 <div class="container-fluid">
+
+    <form id="main_form" method="Post" action="results_filtered" enctype="multipart/form-data">
+    <br>{{ form.inflation_factor.label }}: {{ form.inflation_factor() }}
+
+
+
     <h4>Download results file</h4>
     <a href="data:application/octet-stream;charset=utf-8;base64,{{ tsv }}" class="btn btn-primary">Download Data</a>
 
@@ -46,8 +52,8 @@
          </tbody>
     </table>
 
-
-
+    <button id="submit_button" type="submit" class="btn btn-primary">Filter</button>
+	</form>
 </div>
 
 {% endblock content %}

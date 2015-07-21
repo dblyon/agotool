@@ -264,8 +264,8 @@ class GOEnrichmentStudy(object):
                 p_uncorrected=p_val_uncorrected,
                 ratio_in_study=(study_count, study_n),
                 ratio_in_pop=(pop_count, pop_n),
-                ANs_study = ','.join(self.get_ans_from_goid(goid, study=True)),
-                ANs_pop = ','.join(self.get_ans_from_goid(goid, study=False)),
+                ANs_study = ', '.join(self.get_ans_from_goid(goid, study=True)),
+                ANs_pop = ', '.join(self.get_ans_from_goid(goid, study=False)),
                 attributes2add=attributes2add_list)
             self.results.append(one_record)
         self.calc_multiple_corrections(study_n, pop_n)
@@ -509,8 +509,8 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
                 p_uncorrected=p_val_uncorrected,
                 ratio_in_study=(study_count, study_n),
                 ratio_in_pop=(pop_count, pop_n),
-                ANs_study = ','.join(self.get_ans_from_upk(upk, study=True)),
-                ANs_pop = ','.join(self.get_ans_from_upk(upk, study=False)),
+                ANs_study = ', '.join(self.get_ans_from_upk(upk, study=True)),
+                ANs_pop = ', '.join(self.get_ans_from_upk(upk, study=False)),
                 attributes2add=attributes2add_list)
             self.results.append(one_record)
         self.calc_multiple_corrections(study_n, pop_n)

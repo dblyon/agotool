@@ -2,6 +2,9 @@ import go_retriever
 import go_enrichment
 import userinput
 
+import obo_parser
+
+
 def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
@@ -57,5 +60,33 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
             p_value_uncorrected, indent)
 
     return header, results
+    # return gostudy
 
 
+if __name__ == "__main__":
+
+    userinput_fn=r'/Users/dblyon/modules/cpr/goterm/agotool/static/data/exampledata/exampledata.txt'
+    decimal = ','
+    organism = '4932'
+    gocat_upk = 'UPK'
+    go_slim_or_basic = 'basic'
+    indent = True
+    multitest_method = 'benjamini_hochberg'
+    alpha = 0.05
+    o_or_u_or_both = 'both'
+    abcorr = True
+    num_bins = 100
+    backtracking = True
+    fold_enrichment_study2pop = 0.0
+    p_value_uncorrected = 0.0
+    p_value_mulitpletesting = 0.0
+    species2files_dict = {'10116': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/10116.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/10116.tsv'}, '4932': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/4932.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/4932.tsv'}, '9031': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/9031.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/9031.tsv'}, '7227': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/7227.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/7227.tsv'}, '9606': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/9606.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/9606.tsv'}, '3702': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/3702.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/3702.tsv'}, '10090': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/10090.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/10090.tsv'}, '7955': {'uniprot_keywords_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/UniProt_Keywords/7955.tab', 'goa_ref_fn': '/Users/dblyon/modules/cpr/goterm/agotool/static/data/GOA/7955.tsv'}}
+    obo2file_dict = {"slim": r'/Users/dblyon/modules/cpr/goterm/agotool/static/data/OBO/goslim_generic.obo',
+                     "basic": r'/Users/dblyon/modules/cpr/goterm/agotool/static/data/OBO/go-basic.obo'}
+    go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+    goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+
+    run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+        multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+        species2files_dict, go_dag, goslim_dag)

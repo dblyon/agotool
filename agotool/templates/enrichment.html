@@ -57,7 +57,7 @@
         <div class="row">
             <div class="col-md-5">
                 <h3>Report options</h3>
-                <span> {{ form.o_or_e_or_both.label }}: {{ form.o_or_e_or_both() }} <br> </span>
+                <span> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }} <br> </span>
                 <span class="GOT"> {{ form.indent.label }}: {{ form.indent() }} <br> </span>
                 <span class="GOT_placeholder"> <br> </span>
                 <br><br>
@@ -65,7 +65,6 @@
                 <h4>Multiple testing</h4>
                 <span> {{ form.multitest_method.label }}: {{ form.multitest_method() }} <br> </span>
                 <span class="alpha"> {{ form.alpha.label }}: {{ form.alpha }} <br> </span>
-                <!-- <span class="alpha">                       form.alpha(class="css_class") <br> </span> -->
                     {% if form.alpha.errors %}
                     <ul class="errors"> {% for error in form.alpha.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
