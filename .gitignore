@@ -42,3 +42,8 @@ goslim_generic.obo
 *uniprot-proteome*
 
 .idea/workspace.xml
+
+*.tab
+*.tsv
+
+

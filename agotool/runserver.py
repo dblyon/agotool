@@ -35,24 +35,32 @@ stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
 species2files_dict = {
-    "9606": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_human',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Human_uniprot-proteome%3AUP000005640.tab'},
-    "4932": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_yeast',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Yeast_uniprot-proteome%3AUP000002311.tab'},
-    "3702": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_arabidopsis',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Arabidopsis_uniprot-proteome%3AUP000006548.tab'},
-    "7955": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_zebrafish',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Zebrafish_uniprot-proteome%3AUP000000437.tab'},
-    "7227": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_fly',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Fly_uniprot-proteome%3AUP000000803.tab'},
-    "9031": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_chicken',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Chicken_uniprot-proteome%3AUP000000539.tab'},
-    "10090": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_mouse',
-       'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Mouse_uniprot-proteome%3AUP000000589.tab'},
-    "10116": {'goa_ref_fn': webserver_data + r'/GOA/gene_association.goa_rat',
-       'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Rat_uniprot-proteome%3AUP000002494.tab'},
-    "8364": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/Frog_uniprot-proteome%3AUP000008143.tab'}
+    "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
+           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
+    "4932": {'goa_ref_fn': webserver_data + r'/GOA/4932.tsv',
+           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/4932.tab'},
+    "3702": {'goa_ref_fn': webserver_data + r'/GOA/3702.tsv',
+           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3702.tab'},
+    "7955": {'goa_ref_fn': webserver_data + r'/GOA/7955.tsv',
+           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7955.tab'},
+    "7227": {'goa_ref_fn': webserver_data + r'/GOA/7227.tsv',
+           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7227.tab'},
+    "9031": {'goa_ref_fn': webserver_data + r'/GOA/9031.tsv',
+           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9031.tab'},
+    "10090": {'goa_ref_fn': webserver_data + r'/GOA/10090.tsv',
+       'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10090.tab'},
+    "10116": {'goa_ref_fn': webserver_data + r'/GOA/10116.tsv',
+       'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'}
     }
+
+# organisms = {9606: 'human',
+#             4932: 'yeast',
+#             3702: 'arabidopsis',
+#             7955: 'zebrafish',
+#             7227: 'fly',
+#             9031: 'chicken',
+#             10090: 'mouse',
+#             10116: 'rat'}
 
 # pre-load go_dag and goslim_dag (obo files) for speed
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
@@ -62,7 +70,7 @@ goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
 # filter results based on ancestors and descendants
 filter = cluster_filter.Filter(go_dag)
-# results_filtered = filter(header, results, indent)
+# results_filtered = filter.filter_term_lineage(header, results, indent)
 
 # MCL clustering
 mcl = cluster_filter.MCL_no_input_file_pid()
@@ -156,11 +164,11 @@ def validate_float_between_zero_and_one(form, field):
 
 def validate_integer(form, field):
     if not isinstance(field.data, int):
-        raise wtforms.ValidationError(" number must be an integer")
+        raise wtforms.ValidationError()
 
 def validate_number(form, field):
     if not isinstance(field.data, (int, float)):
-        raise wtforms.ValidationError(" must be a number")
+        raise wtforms.ValidationError("")
 
 def validate_inputfile(form, field):
     filename = request.files['userinput_file'].filename
@@ -183,6 +191,7 @@ def resultfile_to_results(result_file):
 # enrichment.html
 ################################################################################
 class Enrichment_Form(wtforms.Form):
+
     organism = fields.SelectField(u'Select Organism',
                                   choices = organism_choices)
 
@@ -213,11 +222,9 @@ class Enrichment_Form(wtforms.Form):
                    ("bonferroni", "Bonferroni")))
 
     alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-                              default = 0.05,
-                              description = u"for multiple testing correction")
-                              #!!! ??? where do the descriptions show up, how to make them visible??
+                              default = 0.05)
 
-    o_or_e_or_both = fields.SelectField("over- or under-represented or both",
+    o_or_u_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("both", "both"),
                                                    ("o", "overrepresented"),
                                                    ("u", "underrepresented")))
@@ -243,6 +250,13 @@ class Enrichment_Form(wtforms.Form):
         [validate_float_between_zero_and_one],
         default = 0)
 
+class Results_Form(wtforms.Form):
+
+    inflation_factor = fields.FloatField(
+        "inflation factor",
+        [validate_number], default = 2.0)
+
+
 @app.route('/enrichment')
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form())
@@ -266,7 +280,7 @@ def results():
                 userinput_fh, decimal, form.organism.data, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
-                form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
+                form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
                 form.p_value_mulitpletesting.data, species2files_dict, go_dag,
@@ -277,7 +291,7 @@ def results():
         if len(results) == 0:
             return render_template('results_zero.html')
         else:
-            header = header.split("\t")
+            header = header.replace('_', ' ').split("\t")
             results2display = []
             for res in results:
                 results2display.append(res.split('\t'))
@@ -286,10 +300,33 @@ def results():
 
     return render_template('enrichment.html', form=form)
 
+@app.route('/results_filtered', methods=["GET", "POST"])
+def results_filtered():
+    # form = Enrichment_Form(request.form)
+    with open(tsv, 'r') as fh:
+        header = fh.readline()
+        results = []
+        for line in fh:
+            results.append(line)
+    results_filtered = filter.filter_term_lineage(header, results, indent) #!!!
+    header = header.replace('_', ' ').split("\t")
+    results2display = []
+    for res in results_filtered:
+        results2display.append(res.split('\t'))
+    tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results_filtered))).encode('base64')
+    return render_template('results.html', header=header, results=results2display, errors=[], tsv=tsv)
+
+
+
+@app.route('/results_clutered', methods=["GET", "POST"])
+def results_clustered():
+    pass
+
+
 
 if __name__ == '__main__':
     #app.run('red', 5911, processes=4, debug=False)
-    app.run(processes=4, debug=False)
+    app.run(processes=4, debug=True)
 
 
 
