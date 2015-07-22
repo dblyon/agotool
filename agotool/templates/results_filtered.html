@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block head %}
+        <!--
+      <script type="text/javascript">
+          $(document).ready( function () {
+              load();
+          });
+      </script>-->
+{% endblock head %}
+
+
+{% block content %}
+
+
+<div class="container-fluid">
+
+{#    <form id="main_form" method="Post" action="results_filtered" enctype="multipart/form-data">#}
+{#    <br>{{ form.inflation_factor.label }}: {{ form.inflation_factor() }}#}
+
+
+
+    <h4>Download results file</h4>
+    <a href="data:application/octet-stream;charset=utf-8;base64,{{ tsv }}" class="btn btn-primary">Download Data</a>
+
+    {% if errors != [] %}
+    <h4>Errors</h4>
+        {% for error in errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    {% endif %}
+    <br>
+    <br>
+
+    <table width="90%" class="table table-striped table-bordered">
+
+        <thead>
+            <tr>
+            {% for h in header%}
+                <th>{{ h }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+         <tbody>
+         {% for result_row in results %}
+             <tr>
+             {% for r in result_row %}
+                 <td title="{{ result_row }}">{{ r }}</td>
+             {% endfor %}
+             </tr>
+         {% endfor %}
+         </tbody>
+    </table>
+
+{#    <button id="submit_button" type="submit" class="btn btn-primary">Filter</button>#}
+{#	</form>#}
+</div>
+
+{% endblock content %}
