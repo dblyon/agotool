@@ -303,6 +303,8 @@ def results():
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
     # form = Enrichment_Form(request.form)
+    indent = True
+    tsv = r'/Users/dblyon/modules/cpr/goterm/agotool/static/data/exampledata/exampledata.txt' #!!!
     with open(tsv, 'r') as fh:
         header = fh.readline()
         results = []
@@ -314,11 +316,11 @@ def results_filtered():
     for res in results_filtered:
         results2display.append(res.split('\t'))
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results_filtered))).encode('base64')
-    return render_template('results.html', header=header, results=results2display, errors=[], tsv=tsv)
+    return render_template('results_filtered.html', header=header, results=results2display, errors=[], tsv=tsv)
 
 
 
-@app.route('/results_clutered', methods=["GET", "POST"])
+@app.route('/results_clustered', methods=["GET", "POST"])
 def results_clustered():
     pass
 
