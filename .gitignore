@@ -36,14 +36,15 @@
 ehthumbs.db
 Thumbs.db
 
+# ipython notebook
+.idea/workspace.xml
+.idea
+
+# agotool #
+######################
 gene_association.*
 go-basic.obo
 goslim_generic.obo
 *uniprot-proteome*
-
-.idea/workspace.xml
-
 *.tab
 *.tsv
-
-
