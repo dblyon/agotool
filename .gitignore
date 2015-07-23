@@ -39,6 +39,8 @@ Thumbs.db
 # ipython notebook
 .idea/workspace.xml
 .idea
+.ipython_checkpoints
+*.ipynb
 
 # agotool #
 ######################
@@ -48,3 +50,5 @@ goslim_generic.obo
 *uniprot-proteome*
 *.tab
 *.tsv
+*.obo
+
