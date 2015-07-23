@@ -63,14 +63,18 @@ species2files_dict = {
 #             10116: 'rat'}
 
 # pre-load go_dag and goslim_dag (obo files) for speed
-obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-                 "basic": webserver_data + r'/OBO/go-basic.obo'}
-go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+
+# we want to be uncommed later
+# we want to be uncommed later
+# we want to be uncommed later
+# obo2file_dict = {"slim": webserver_dataata + r'/OBO/goslim_generic.obo',
+#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
+# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
 # filter results based on ancestors and descendants
-filter = cluster_filter.Filter(go_dag)
-# results_filtered = filter.filter_term_lineage(header, results, indent)
+# filter = cluster_filter.Filter(go_dag)
+# results_filtered = filter(header, results, indent)
 
 # MCL clustering
 mcl = cluster_filter.MCL_no_input_file_pid()
@@ -222,9 +226,11 @@ class Enrichment_Form(wtforms.Form):
                    ("bonferroni", "Bonferroni")))
 
     alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-                              default = 0.05)
+                              default = 0.05,
+                              description = u"for multiple testing correction")
+                              #!!! ??? where do the descriptions show up, how to make them visible??
 
-    o_or_u_or_both = fields.SelectField("over- or under-represented or both",
+    o_or_e_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("both", "both"),
                                                    ("o", "overrepresented"),
                                                    ("u", "underrepresented")))
@@ -250,16 +256,11 @@ class Enrichment_Form(wtforms.Form):
         [validate_float_between_zero_and_one],
         default = 0)
 
-class Results_Form(wtforms.Form):
-
-    inflation_factor = fields.FloatField(
-        "inflation factor",
-        [validate_number], default = 2.0)
-
 
 @app.route('/enrichment')
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form())
+
 
 @app.route('/results', methods=["GET", "POST"])
 def results():
@@ -280,7 +281,7 @@ def results():
                 userinput_fh, decimal, form.organism.data, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
-                form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
+                form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
                 form.p_value_mulitpletesting.data, species2files_dict, go_dag,
@@ -291,14 +292,43 @@ def results():
         if len(results) == 0:
             return render_template('results_zero.html')
         else:
-            header = header.replace('_', ' ').split("\t")
-            results2display = []
-            for res in results:
-                results2display.append(res.split('\t'))
-            tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
-            return render_template('results.html', header=header, results=results2display, errors=[], tsv=tsv)
+            return generate_result_page(header, results)
 
     return render_template('enrichment.html', form=form)
+
+
+@app.route('/results_back', methods=["GET", "POST"])
+def result_back():
+    # implement the back button as a post request with 'tsv' = file data, then this should work
+
+    # tsv = request.args['tsv'].split('\n')
+    tsv = open ("static/data/exampledata/UniProt_keywords_results.txt").readlines()
+    header = tsv[0]
+    results = tsv[1:]
+    return generate_result_page(header, results)
+
+
+def generate_result_page(header, results):
+    header = header.rstrip().split("\t")
+    print header
+    try:
+        ans_index = header.index("ANs_study")
+    except ValueError:
+        ans_index = header.index("ANs_pop")
+        # let flask throw an internal server error
+
+    try:
+        description_index = header.index("description")
+        elipsis_indexes=(description_index, ans_index)
+    except ValueError:
+        elipsis_indexes = (ans_index,)
+
+    results2display = []
+    for res in results:
+        results2display.append(res.split('\t'))
+    tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
+    return render_template('results.html', header=header, results=results2display,
+                           errors=[], tsv=tsv, ellipsis_indexes=elipsis_indexes)
 
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
@@ -323,7 +353,6 @@ def results_filtered():
 @app.route('/results_clustered', methods=["GET", "POST"])
 def results_clustered():
     pass
-
 
 
 if __name__ == '__main__':
