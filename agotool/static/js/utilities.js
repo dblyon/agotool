@@ -38,6 +38,9 @@ var toggle_if = function(choice, tag, placeholder_tag){
 
 };
 
+var toggle_ellipsis = function(element) {
+    $(element).toggleClass("ellipsis")
+}
 
 
 

@@ -14,12 +14,6 @@
 
 
 <div class="container-fluid">
-
-    <form id="main_form" method="Post" action="results_filtered" enctype="multipart/form-data">
-    <br>{{ form.inflation_factor.label }}: {{ form.inflation_factor() }}
-
-
-
     <h4>Download results file</h4>
     <a href="data:application/octet-stream;charset=utf-8;base64,{{ tsv }}" class="btn btn-primary">Download Data</a>
 
@@ -45,15 +39,16 @@
          {% for result_row in results %}
              <tr>
              {% for r in result_row %}
-                 <td title="{{ result_row }}">{{ r }}</td>
+                 <!--<td {% if loop.counter0 in ellipsis_indexes %}class="ellipsis" onclick="toggle_ellipsis(this)"{% endif %}>{{ r }}</td>-->
+                 <td title="click to show all"><div class="ellipsis long_row" onclick="toggle_ellipsis(this)">{{ r }}</div></td>
              {% endfor %}
              </tr>
          {% endfor %}
          </tbody>
     </table>
 
-    <button id="submit_button" type="submit" class="btn btn-primary">Filter</button>
-	</form>
+
+
 </div>
 
 {% endblock content %}
