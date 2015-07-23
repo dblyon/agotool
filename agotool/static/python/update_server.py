@@ -37,9 +37,8 @@ organisms = {9606: 'human',
 # http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id,keywords&format=tab
 
 def get_uniprot_annotatios():
-    dl_string = "http://www.uniprot.org/uniprot/?query=organism:%i&columns=id,keywords&format=tab"
-    print ('-' * 50, '\n', dl_string)
     for organism in organisms:
+        dl_string = "http://www.uniprot.org/uniprot/?query=organism:%i&columns=id,keywords&format=tab"
         _folder = os.path.join(PROJECT_DIR, 'static/data/UniProt_Keywords')
         if organism == 4932:
             dl_string = r"http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id,keywords&format=tab"
@@ -91,7 +90,7 @@ def cleanup_mcl():
     for the_file in os.listdir(_folder):
         file_path = os.path.join(_folder, the_file)
         try:
-            if os.path.isfile(file_path):z
+            if os.path.isfile(file_path):
                 os.unlink(file_path)
                 # elif os.path.isdir(file_path): shutil.rmtree(file_path)
         except Exception:
