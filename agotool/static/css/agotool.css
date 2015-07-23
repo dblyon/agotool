@@ -8,3 +8,14 @@ body {background-color:lightgrey;}
     padding: 10px;
     width: 140px;}
 .navbar-nav{padding: 10px;}
+
+
+.long_row {
+  max-width: 200px;
+}
+
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

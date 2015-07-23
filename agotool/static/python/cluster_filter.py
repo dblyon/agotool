@@ -41,7 +41,7 @@ class MCL(object):
         :param fn_out: rawString
         :return: None
         """
-        func = lambda x: set(x.split(","))
+        func = lambda x: set(x.split(", "))
         df["ANs_study_set"] = map(func, df["ANs_study"])
         index_of_col = df.columns.tolist().index("ANs_study_set")
         df_ans_study_set = df.values[:, index_of_col]
@@ -165,8 +165,13 @@ class Filter(object):
         results_filtered = []
         blacklist = set(["GO:0008150", "GO:0005575", "GO:0003674"])
         # {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
+        header = header.split('\t') #!!!
         index_p = header.index('p_uncorrected')
         index_go = header.index('id')
+        print("#"*80)
+        print("FILTER CLUSTER")
+        print(index_p, index_go)
+        print("#"*80)
         results.sort(key=lambda x: float(x[index_p]))
         for res in results:
             if indent:
