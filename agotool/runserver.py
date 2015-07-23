@@ -53,31 +53,21 @@ species2files_dict = {
        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'}
     }
 
-# organisms = {9606: 'human',
-#             4932: 'yeast',
-#             3702: 'arabidopsis',
-#             7955: 'zebrafish',
-#             7227: 'fly',
-#             9031: 'chicken',
-#             10090: 'mouse',
-#             10116: 'rat'}
+
+go_dag = False
+goslim_dag = False
 
 # pre-load go_dag and goslim_dag (obo files) for speed
-
-# we want to be uncommed later
-# we want to be uncommed later
-# we want to be uncommed later
-# obo2file_dict = {"slim": webserver_dataata + r'/OBO/goslim_generic.obo',
-#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
-# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
+                 "basic": webserver_data + r'/OBO/go-basic.obo'}
+go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
 # filter results based on ancestors and descendants
-# filter = cluster_filter.Filter(go_dag)
-# results_filtered = filter(header, results, indent)
+filter_ = cluster_filter.Filter(go_dag)
 
 # MCL clustering
-mcl = cluster_filter.MCL_no_input_file_pid()
+# mcl = cluster_filter.MCL_no_input_file_pid()
 # cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor=2.0)
 
 
@@ -203,11 +193,12 @@ class Enrichment_Form(wtforms.Form):
                                       [validate_inputfile])
 
     gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
-                                   choices = (("all_GO", "all 3 GO categories"),
+                                   choices = (("UPK", "UniProt-keywords"),
+                                       ("all_GO", "all 3 GO categories"),
                                               ("BP", "Biological Process"),
                                               ("CP", "Celluar Compartment"),
-                                              ("MF", "Molecular Function"),
-                                              ("UPK", "UniProt-keywords")))
+                                              ("MF", "Molecular Function")
+                                              ))
 
     abcorr = fields.BooleanField("Abundance correction",
                                  default = "checked")
@@ -230,7 +221,7 @@ class Enrichment_Form(wtforms.Form):
                               description = u"for multiple testing correction")
                               #!!! ??? where do the descriptions show up, how to make them visible??
 
-    o_or_e_or_both = fields.SelectField("over- or under-represented or both",
+    o_or_u_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("both", "both"),
                                                    ("o", "overrepresented"),
                                                    ("u", "underrepresented")))
@@ -281,7 +272,7 @@ def results():
                 userinput_fh, decimal, form.organism.data, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
-                form.o_or_e_or_both.data, form.abcorr.data, form.num_bins.data,
+                form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
                 form.p_value_mulitpletesting.data, species2files_dict, go_dag,
@@ -292,67 +283,91 @@ def results():
         if len(results) == 0:
             return render_template('results_zero.html')
         else:
-            return generate_result_page(header, results)
+            # print("#"*80)
+            # print("results")
+            # print(form.gocat_upk.data, form.indent.data)
+            # print("#"*80)
+            return generate_result_page(header, results, form.gocat_upk.data, form.indent.data)
 
     return render_template('enrichment.html', form=form)
 
 
-@app.route('/results_back', methods=["GET", "POST"])
-def result_back():
-    # implement the back button as a post request with 'tsv' = file data, then this should work
-
-    # tsv = request.args['tsv'].split('\n')
-    tsv = open ("static/data/exampledata/UniProt_keywords_results.txt").readlines()
-    header = tsv[0]
-    results = tsv[1:]
-    return generate_result_page(header, results)
-
-
-def generate_result_page(header, results):
+def generate_result_page(header, results, gocat_upk, indent):
     header = header.rstrip().split("\t")
-    print header
-    try:
-        ans_index = header.index("ANs_study")
-    except ValueError:
-        ans_index = header.index("ANs_pop")
-        # let flask throw an internal server error
-
-    try:
-        description_index = header.index("description")
-        elipsis_indexes=(description_index, ans_index)
-    except ValueError:
-        elipsis_indexes = (ans_index,)
-
+    ellipsis_indices = elipsis(header)
     results2display = []
     for res in results:
         results2display.append(res.split('\t'))
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
     return render_template('results.html', header=header, results=results2display,
-                           errors=[], tsv=tsv, ellipsis_indexes=elipsis_indexes)
+                           errors=[], tsv=tsv, ellipsis_indices=ellipsis_indices,
+                           gocat_upk=gocat_upk, indent=indent)
+
+def elipsis(header):
+    try:
+        ans_index = header.index("ANs_study")
+    except ValueError:
+        ans_index = header.index("ANs_pop")
+        # let flask throw an internal server error
+    try:
+        description_index = header.index("description")
+        ellipsis_indices=(description_index, ans_index)
+    except ValueError:
+        ellipsis_indices = (ans_index,)
+    return ellipsis_indices
 
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
     # form = Enrichment_Form(request.form)
-    indent = True
-    tsv = r'/Users/dblyon/modules/cpr/goterm/agotool/static/data/exampledata/exampledata.txt' #!!!
-    with open(tsv, 'r') as fh:
-        header = fh.readline()
-        results = []
-        for line in fh:
-            results.append(line)
-    results_filtered = filter.filter_term_lineage(header, results, indent) #!!!
-    header = header.replace('_', ' ').split("\t")
-    results2display = []
-    for res in results_filtered:
-        results2display.append(res.split('\t'))
-    tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results_filtered))).encode('base64')
-    return render_template('results_filtered.html', header=header, results=results2display, errors=[], tsv=tsv)
+    form_data = dict(request.form.items())
+    indent = form_data['indent']
+    gocat_upk = form_data['gocat_upk']
+
+    tsv_split = form_data["file_stream"].decode("base64").split("\n") #!!! somewhere there are newlines introduced. --> check if data remains the same
+    header = tsv_split[0] + "\n"
+    results = [res.split('\t') for res in tsv_split[1:]]
+    ellipsis_indices = elipsis(header)
+
+    print("#"*80)
+    print("results_filtered")
+    print(indent, gocat_upk)
+    print(header)
+    # print(results[:3])
+    # print(results[-3:])
+    print(form_data["file_stream"].decode("base64"))
+    print("#"*80)
+
+    if not gocat_upk == "UPK":
+        results_filtered = filter_.filter_term_lineage(header, results, indent)
+        results2display = []
+        for res in results_filtered:
+            results2display.append(res.split('\t'))
+        tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results_filtered))).encode('base64')
+        return render_template('results_filtered.html', header=header, results=results2display,
+                           errors=[], tsv=tsv, ellipsis_indices=ellipsis_indices)
+    else:
+        return render_template('index.html')
 
 
 
 @app.route('/results_clustered', methods=["GET", "POST"])
 def results_clustered():
-    pass
+    return render_template('index.html')
+
+
+# @app.route('/results_back', methods=["GET", "POST"])
+# def result_back():
+#     # implement the back button as a post request with 'tsv' = file data, then this should work
+#
+#     tsv = request.args['tsv'].split('\n')
+#     indent = request.args['indent']
+#     gocat_upk = request.args['gocat_upk']
+#     # tsv = [line.rstrip() for line in open("static/data/exampledata/UniProt_keywords_results.txt")]
+#     header = tsv[0]
+#     results = tsv[1:]
+#     return generate_result_page(header, results, gocat_upk, indent)
+
+
 
 
 if __name__ == '__main__':
