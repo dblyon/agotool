@@ -36,18 +36,14 @@
 ehthumbs.db
 Thumbs.db
 
-# ipython notebook
-.idea/workspace.xml
-.idea
-.ipython_checkpoints
+# ipython notebook #
+######################
+.idea/
+.ipython_checkpoints/
 *.ipynb
 
 # agotool #
 ######################
-gene_association.*
-go-basic.obo
-goslim_generic.obo
-*uniprot-proteome*
 *.tab
 *.tsv
 *.obo

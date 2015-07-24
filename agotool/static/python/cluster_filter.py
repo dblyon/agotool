@@ -165,13 +165,17 @@ class Filter(object):
         results_filtered = []
         blacklist = set(["GO:0008150", "GO:0005575", "GO:0003674"])
         # {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
-        header = header.split('\t') #!!!
-        index_p = header.index('p_uncorrected')
-        index_go = header.index('id')
-        print("#"*80)
-        print("FILTER CLUSTER")
-        print(index_p, index_go)
-        print("#"*80)
+        header_list = header.split('\t') #!!!
+        index_p = header_list.index('p_uncorrected')
+        index_go = header_list.index('id')
+        # print("#"*80)
+        # print("FILTER CLUSTER")
+        # print(index_p, index_go)
+        # print("#"*80)
+        results = [res.split('\t') for res in results]
+        for res in results:
+            if not len(res)>= index_p:
+                print res
         results.sort(key=lambda x: float(x[index_p]))
         for res in results:
             if indent:
@@ -184,7 +188,7 @@ class Filter(object):
                 if not res[index_go] in blacklist:
                     results_filtered.append(res)
                     blacklist = blacklist.union(self.go_lineage_dict[res[index_go]])
-        return results_filtered
+        return ["\t".join(res) for res in results_filtered]
 
 
 def get_header_results(fn):
