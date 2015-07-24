@@ -1,3 +1,5 @@
+# refactor header and results to be list and nested list (not list of string)
+
 # standard library
 import os
 import sys
@@ -54,9 +56,6 @@ species2files_dict = {
     }
 
 
-go_dag = False
-goslim_dag = False
-
 # pre-load go_dag and goslim_dag (obo files) for speed
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
@@ -68,7 +67,7 @@ filter_ = cluster_filter.Filter(go_dag)
 
 # MCL clustering
 # mcl = cluster_filter.MCL_no_input_file_pid()
-# cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor=2.0)
+
 
 
 organism_choices = [
@@ -283,14 +282,31 @@ def results():
         if len(results) == 0:
             return render_template('results_zero.html')
         else:
-            # print("#"*80)
-            # print("results")
-            # print(form.gocat_upk.data, form.indent.data)
-            # print("#"*80)
             return generate_result_page(header, results, form.gocat_upk.data, form.indent.data)
 
     return render_template('enrichment.html', form=form)
 
+def read_results_file(fn):
+    """
+    :return: Tuple(header=String, results=ListOfString)
+    """
+    results = []
+    with open(fn, 'r') as fh:
+        for line in fh:
+            line = line.strip()
+            if len(line) > 1:
+                results.append(line)
+    header = results[0]
+    results = results[1:]
+    return header, results
+
+@app.route("/test", methods=["GET"])
+def test():
+    fn = webserver_data + r'/exampledata/test.txt'
+    header, results = read_results_file(fn)
+    gocat_upk = "all_GO"
+    indent = True
+    return generate_result_page(header, results, gocat_upk, indent)
 
 def generate_result_page(header, results, gocat_upk, indent):
     header = header.rstrip().split("\t")
@@ -318,33 +334,28 @@ def elipsis(header):
 
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
-    # form = Enrichment_Form(request.form)
-    form_data = dict(request.form.items())
-    indent = form_data['indent']
-    gocat_upk = form_data['gocat_upk']
-
-    tsv_split = form_data["file_stream"].decode("base64").split("\n") #!!! somewhere there are newlines introduced. --> check if data remains the same
-    header = tsv_split[0] + "\n"
-    results = [res.split('\t') for res in tsv_split[1:]]
-    ellipsis_indices = elipsis(header)
-
-    print("#"*80)
-    print("results_filtered")
-    print(indent, gocat_upk)
-    print(header)
-    # print(results[:3])
-    # print(results[-3:])
-    print(form_data["file_stream"].decode("base64"))
-    print("#"*80)
-
+    indent = request.form['indent']
+    gocat_upk = request.form['gocat_upk']
+    tsv_orig = request.form["file_stream"]
+    tsv_split = tsv_orig.decode("base64").strip().split("\n") #!!! somewhere there are newlines introduced. --> check if data remains the same
+    header = tsv_split[0]
+    results = tsv_split[1:]
     if not gocat_upk == "UPK":
+        print("#"*80)
+        # print(header)
+        # for res in results:
+            # if len(res.split('\t')) < 3:
+            # print res
         results_filtered = filter_.filter_term_lineage(header, results, indent)
+        header = header.rstrip().split("\t")
+        ellipsis_indices = elipsis(header)
         results2display = []
-        for res in results_filtered:
+        for res in results:
             results2display.append(res.split('\t'))
-        tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results_filtered))).encode('base64')
+        tsv_filtered = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results_filtered))).encode('base64')
+        print("#"*80)
         return render_template('results_filtered.html', header=header, results=results2display,
-                           errors=[], tsv=tsv, ellipsis_indices=ellipsis_indices)
+                           errors=[], tsv_orig=tsv_orig, tsv_filtered=tsv_filtered, ellipsis_indices=ellipsis_indices)
     else:
         return render_template('index.html')
 
@@ -352,6 +363,7 @@ def results_filtered():
 
 @app.route('/results_clustered', methods=["GET", "POST"])
 def results_clustered():
+    # cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor=2.0)
     return render_template('index.html')
 
 
