@@ -3,6 +3,7 @@ from scipy import stats
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
 import ratio
 
+
 class GOEnrichmentRecord(object):
     """
     Represents one result (from a single GOTerm) in the GOEnrichmentStudy

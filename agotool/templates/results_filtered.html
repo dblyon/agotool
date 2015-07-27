@@ -1,33 +1,26 @@
 {% extends "layout.html" %}
 
-{% block head %}
-        <!--
-      <script type="text/javascript">
-          $(document).ready( function () {
-              load();
-          });
-      </script>-->
-{% endblock head %}
-
-
 {% block content %}
-
-
 <div class="container-fluid">
-    <h4>Download results file</h4>
-    <a name="file_stream_orig" href="data:application/octet-stream;charset=utf-8;base64,{{ tsv_orig }}" class="btn btn-primary">Download original unfiltered data</a>
-    <br>
-    <a name="file_stream_filtered" href="data:application/octet-stream;charset=utf-8;base64,{{ tsv_filtered }}" class="btn btn-primary">Download filtered data</a>
+{#    <h4>Download results file</h4>#}
+        <a name="file_path_orig" href="{{ file_path_orig }}" class="btn btn-primary">Download original results</a>
+        <br><br>
+        <a name="file_path_filtered" href="{{ file_path_filtered }}" class="btn btn-primary">Download filtered results</a>
+        <br><br>
+
+{#<!--    <a name="file_stream_orig" href="data:application/octet-stream;charset=utf-8;base64,{{ tsv_orig }}" class="btn btn-primary">Download original unfiltered data</a>#}
+{#    <a name="file_stream_filtered" href="data:application/octet-stream;charset=utf-8;base64,{{ tsv_filtered }}" class="btn btn-primary">Download filtered data</a>#}
+{#-->#}
 
 <!--    <form id="mcl_form" method="Post" action="results_clustered" enctype="multipart/form-data">
         <button id="submit_mcl" type="submit" class="btn btn-primary">MCL</button>
 
-        <input type="hidden" style="display: none;" name="UPK" value="{{ gocat_upk }}">
-        <input type="hidden" style="display: none;" name="indent" value="{{ indent }}">
+{#        <input type="hidden" style="display: none;" name="UPK" value="{{ gocat_upk }}">#}
+{#        <input type="hidden" style="display: none;" name="indent" value="{{ indent }}">#}
         <br>
     </form>
 -->
-
+    <h4>Displaying filtered results</h4>
     {% if errors != [] %}
     <h4>Errors</h4>
         {% for error in errors %}

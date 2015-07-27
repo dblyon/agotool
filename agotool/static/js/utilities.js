@@ -38,10 +38,15 @@ var toggle_if = function(choice, tag, placeholder_tag){
 
 };
 
-var toggle_ellipsis = function(element) {
+var toggle_ellipsis = (function(element) {
     $(element).toggleClass("ellipsis")
-}
+});
 
 
+
+var submit_form = (function(action) {
+    $("#filter_form").attr("action", action);
+    $("#filter_form").submit();
+});
 
 
