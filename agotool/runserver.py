@@ -1,3 +1,6 @@
+# import ipdb
+# ipdb.set_trace()
+
 # refactor header and results to be list and nested list (not list of string)
 
 # standard library
@@ -5,6 +8,7 @@ import os
 import sys
 import StringIO
 import logging
+import time
 
 # third party
 import flask
@@ -23,6 +27,8 @@ import cluster_filter
 app = flask.Flask(__name__)
 webserver_data  = os.getcwd() + '/static/data'
 EXAMPLE_FOLDER = webserver_data + '/exampledata'
+SESSION_FOLDER = webserver_data + '/session'
+PUBLIC_SESSION_FOLDER = '/static/data/session'
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = set(['txt', 'tsv'])
 
@@ -30,6 +36,7 @@ ALLOWED_EXTENSIONS = set(['txt', 'tsv'])
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_ROOT, 'data')
 SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
+app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20
 
 logger = logging.getLogger()
 logger.level = logging.DEBUG
@@ -66,7 +73,7 @@ goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 filter_ = cluster_filter.Filter(go_dag)
 
 # MCL clustering
-# mcl = cluster_filter.MCL_no_input_file_pid()
+mcl = cluster_filter.MCL_no_input_file_pid()
 
 
 
@@ -80,6 +87,12 @@ organism_choices = [
     (u'10090', u'Mus musculus'), # Mouse
     (u'10116', u'Rattus norvegicus') # Rat
     ]
+
+
+def generate_session_id():
+    pid = str(os.getpid())
+    time_ = str(time.time())
+    return "_" + pid + "_" + time_
 
 ################################################################################
 # index.html
@@ -122,6 +135,7 @@ def download_example_data(filename):
     return send_from_directory(directory=uploads, filename=filename)
 
 ################################################################################
+# helper functions
 ################################################################################
 # check user input
 def check_userinput(userinput_fh, abcorr):
@@ -171,7 +185,6 @@ def validate_inputfile(form, field):
     raise wtforms.ValidationError(
         " file must have a '.txt' or '.tsv' extension")
 
-
 def resultfile_to_results(result_file):
     result_file.seek(0)
     header = result_file.readline().rstrip().split('\t')
@@ -179,6 +192,26 @@ def resultfile_to_results(result_file):
     result_file.seek(0)
     return results, header
 
+def read_results_file(fn):
+    """
+    :return: Tuple(header=String, results=ListOfString)
+    """
+    with open(fn, 'r') as fh:
+        lines_split = [ele.strip() for ele in fh.readlines()]
+    return lines_split[0], lines_split[1:]
+
+def elipsis(header):
+    try:
+        ans_index = header.index("ANs_study")
+    except ValueError:
+        ans_index = header.index("ANs_pop")
+        # let flask throw an internal server error
+    try:
+        description_index = header.index("description")
+        ellipsis_indices=(description_index, ans_index)
+    except ValueError:
+        ellipsis_indices = (ans_index,)
+    return ellipsis_indices
 
 ################################################################################
 # enrichment.html
@@ -192,12 +225,11 @@ class Enrichment_Form(wtforms.Form):
                                       [validate_inputfile])
 
     gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
-                                   choices = (("UPK", "UniProt-keywords"),
-                                       ("all_GO", "all 3 GO categories"),
+                                   choices = (("all_GO", "all 3 GO categories"),
                                               ("BP", "Biological Process"),
                                               ("CP", "Celluar Compartment"),
-                                              ("MF", "Molecular Function")
-                                              ))
+                                              ("MF", "Molecular Function"),
+                                              ("UPK", "UniProt-keywords")))
 
     abcorr = fields.BooleanField("Abundance correction",
                                  default = "checked")
@@ -246,10 +278,17 @@ class Enrichment_Form(wtforms.Form):
         [validate_float_between_zero_and_one],
         default = 0)
 
-
 @app.route('/enrichment')
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form())
+
+################################################################################
+# results.html
+################################################################################
+
+class Results_Form(wtforms.Form):
+    inflation_factor = fields.FloatField("inflation factor", [validate_float_larger_zero_smaller_one],
+                                         default = 2.0)
 
 
 @app.route('/results', methods=["GET", "POST"])
@@ -282,89 +321,87 @@ def results():
         if len(results) == 0:
             return render_template('results_zero.html')
         else:
-            return generate_result_page(header, results, form.gocat_upk.data, form.indent.data)
-
+            session_id = generate_session_id()
+            return generate_result_page(header, results, form.gocat_upk.data,
+                                        form.indent.data, session_id, form=Results_Form())
     return render_template('enrichment.html', form=form)
 
-def read_results_file(fn):
-    """
-    :return: Tuple(header=String, results=ListOfString)
-    """
-    results = []
-    with open(fn, 'r') as fh:
-        for line in fh:
-            line = line.strip()
-            if len(line) > 1:
-                results.append(line)
-    header = results[0]
-    results = results[1:]
-    return header, results
-
-@app.route("/test", methods=["GET"])
-def test():
-    fn = webserver_data + r'/exampledata/test.txt'
-    header, results = read_results_file(fn)
-    gocat_upk = "all_GO"
-    indent = True
-    return generate_result_page(header, results, gocat_upk, indent)
-
-def generate_result_page(header, results, gocat_upk, indent):
+def generate_result_page(header, results, gocat_upk, indent, session_id, form):
     header = header.rstrip().split("\t")
     ellipsis_indices = elipsis(header)
     results2display = []
     for res in results:
         results2display.append(res.split('\t'))
-    tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results))).encode('base64')
-    return render_template('results.html', header=header, results=results2display,
-                           errors=[], tsv=tsv, ellipsis_indices=ellipsis_indices,
-                           gocat_upk=gocat_upk, indent=indent)
+    file_name = "results_orig" + session_id + ".tsv"
+    fn_results_orig_absolute = os.path.join(SESSION_FOLDER, file_name)
+    fn_results_orig_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
+    tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
+    with open(fn_results_orig_absolute, 'w') as f:
+        f.write(tsv)
+    return render_template('results.html', header=header, results=results2display, errors=[],
+                           file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
+                           gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
 
-def elipsis(header):
-    try:
-        ans_index = header.index("ANs_study")
-    except ValueError:
-        ans_index = header.index("ANs_pop")
-        # let flask throw an internal server error
-    try:
-        description_index = header.index("description")
-        ellipsis_indices=(description_index, ans_index)
-    except ValueError:
-        ellipsis_indices = (ans_index,)
-    return ellipsis_indices
+
 
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
     indent = request.form['indent']
     gocat_upk = request.form['gocat_upk']
-    tsv_orig = request.form["file_stream"]
-    tsv_split = tsv_orig.decode("base64").strip().split("\n") #!!! somewhere there are newlines introduced. --> check if data remains the same
-    header = tsv_split[0]
-    results = tsv_split[1:]
+    session_id = request.form['session_id']
+
+    # original unfiltered/clustered results
+    file_name = "results_orig" + session_id + ".tsv"
+    fn_results_orig_absolute = os.path.join(SESSION_FOLDER, file_name)
+    fn_results_orig_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
+    header, results = read_results_file(fn_results_orig_absolute)
     if not gocat_upk == "UPK":
-        print("#"*80)
-        # print(header)
-        # for res in results:
-            # if len(res.split('\t')) < 3:
-            # print res
         results_filtered = filter_.filter_term_lineage(header, results, indent)
-        header = header.rstrip().split("\t")
+
+        # filtered results
+        file_name = "results_filtered" + session_id + ".tsv"
+        fn_results_filtered_absolute = os.path.join(SESSION_FOLDER, file_name)
+        fn_results_filtered_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
+
+        tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
+        with open(fn_results_filtered_absolute, 'w') as f:
+            f.write(tsv)
+        header = header.split("\t")
         ellipsis_indices = elipsis(header)
         results2display = []
         for res in results:
             results2display.append(res.split('\t'))
-        tsv_filtered = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results_filtered))).encode('base64')
-        print("#"*80)
-        return render_template('results_filtered.html', header=header, results=results2display,
-                           errors=[], tsv_orig=tsv_orig, tsv_filtered=tsv_filtered, ellipsis_indices=ellipsis_indices)
+        return render_template('results_filtered.html', header=header, results=results2display, errors=[],
+                               file_path_orig=fn_results_orig_relative, file_path_filtered=fn_results_filtered_relative,
+                               ellipsis_indices=ellipsis_indices)
     else:
         return render_template('index.html')
 
-
-
+################################################################################
+# results_clustered.html
+################################################################################
 @app.route('/results_clustered', methods=["GET", "POST"])
 def results_clustered():
-    # cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor=2.0)
+    form = Results_Form(request.form)
+    inflation_factor = form.inflation_factor.data
+
+    session_id = request.form['session_id']
+    file_name = "results_orig" + session_id + ".tsv"
+    fn_results_orig_absolute = os.path.join(SESSION_FOLDER, file_name)
+    fn_results_orig_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
+
+    header, results = read_results_file(fn_results_orig_absolute)
+
+    cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor)
+    print(cluster_list)
+
     return render_template('index.html')
+    # return render_template('results_clustered.html', header=header, results=results2display, errors=[],
+    #                        file_path_orig=fn_results_orig_relative, file_path_filtered=fn_results_filtered_relative,
+    #                        ellipsis_indices=ellipsis_indices)
+
+
+
 
 
 # @app.route('/results_back', methods=["GET", "POST"])
@@ -379,7 +416,13 @@ def results_clustered():
 #     results = tsv[1:]
 #     return generate_result_page(header, results, gocat_upk, indent)
 
-
+# @app.route("/test", methods=["GET"])
+# def test():
+#     fn = webserver_data + r'/exampledata/test.txt'
+#     header, results = read_results_file(fn)
+#     gocat_upk = "all_GO"
+#     indent = True
+#     return generate_result_page(header, results, gocat_upk, indent, 'test_test')
 
 
 if __name__ == '__main__':

@@ -19,3 +19,10 @@ body {background-color:lightgrey;}
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/*.logo {*/
+    /*position: relative;*/
+    /*top: 50%;*/
+    /*transform: translate(-50%, 0%);*/
+
+/*}*/

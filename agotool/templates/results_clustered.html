@@ -1,10 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
+{% extends "layout.html" %}
 
-</body>
-</html>
+{% block content %}
+<div class="container-fluid">
+{#    <h4>Download results file</h4>#}
+        <a name="file_path_orig" href="{{ file_path_orig }}" class="btn btn-primary">Download original results</a>
+        <br><br>
+        <a name="file_path_mcl" href="{{ file_path_mcl }}" class="btn btn-primary">Download MCL clustered results</a>
+        <br><br>
+
+    <h4>Displaying filtered results</h4>
+    {% if errors != [] %}
+    <h4>Errors</h4>
+        {% for error in errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    {% endif %}
+    <br>
+    <br>
+
+    <table width="90%" class="table table-striped table-bordered">
+
+        <thead>
+            <tr>
+            {% for h in header%}
+                <th>{{ h.replace('_', ' ') }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+         <tbody>
+         {% for result_row in results %}
+             <tr>
+             {% for r in result_row %}
+                 <!--<td {% if loop.counter0 in ellipsis_indices %}class="ellipsis" onclick="toggle_ellipsis(this)"{% endif %}>{{ r }}</td>-->
+                 <td title="click to show all"><div class="ellipsis long_row" onclick="toggle_ellipsis(this)">{{ r }}</div></td>
+             {% endfor %}
+             </tr>
+         {% endfor %}
+         </tbody>
+    </table>
+
+
+
+</div>
+
+{% endblock content %}

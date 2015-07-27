@@ -1,7 +1,6 @@
 import go_retriever
 import go_enrichment
 import userinput
-
 import obo_parser
 
 
