@@ -9,15 +9,37 @@
     <link rel="shortcut icon" href="./static/js/cpr_logo.png">
     <title>A.GO.TOOL</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
+
+{#<!--    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script> -->#}
+<!--    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script> -->
+<!--
+{#    <script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>#}
+{#    <link rel="stylesheet" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">#}
+-->
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+    <!-- jQuery -->
+    <script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script src="{{ url_for('static', filename='js/utilities.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"></script>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
+    <script src="{{ url_for('static', filename='js/utilities.js') }}"></script>
+
     {% block head %}
+{#        <script type="text/javascript">#}
+{#            $(document).ready( function () {#}
+{#                $('#table_id').DataTable({#}
+{#                            paging: false#}
+{#                        });#}
+{#        } );#}
+{#        </script>#}
+
     {% endblock head %}
+
+
 </head>
 
 <body role="document">
@@ -38,17 +60,21 @@
                     <li><a href="{{ url_for('example') }}">example</a></li>
                     <li><a href="{{ url_for('about') }}">about</a></li>
                 </ul>
-            <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/js/cpr_logo.png"></a></span>
+                <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/js/cpr_logo.png"></a></span>
             </div>
         </div>
 
     </div>
 
     <div class="tab-content container">
-        {% block content %} {% endblock %}
+    {% block content %}
+    {% endblock content %}
     </div>
+    {% block table %}
+    {% endblock table %}
     <div class="tab-content container">
-        {% block optionals %} {% endblock %}
+    {% block optionals %}
+    {% endblock optionals %}
     </div>
 </body>
 </html>

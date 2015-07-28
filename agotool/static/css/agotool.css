@@ -1,24 +1,77 @@
 body {background-color:lightgrey;}
+
 .errors  {color:red;}
+
 .column_names {text-indent: 50px;}
+
 .cpr_logo {
     float: right;
     padding: 10px;}
+
 .navbar-header{
     padding: 10px;
     width: 140px;}
-.navbar-nav{padding: 10px;}
 
+.navbar-nav{padding: 10px;}
 
 .long_row {
   max-width: 200px;
 }
 
 .ellipsis {
+  cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.dataTables_wrapper {
+    padding: 22px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.table.dataTable {
+    background-color: lightslategrey;
+    /*width: 100%;*/
+}
+
+.tbody {
+    background-color: lightgrey;
+}
+
+table.dataTable tbody tr {
+  background-color: lightgrey;
+}
+
+table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {
+  background-color: #FFA500;
+}
+
+.MCL_cluster_separator {
+    background-color: black !important;
+}
+
+span.table_header {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table_simple_dbl {
+    width: 98%;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+
+/*.table_all_dbl {*/
+    /*width: 90%;*/
+/*}*/
+
+
+/*.table-striped {*/
+    /*background-color: lightgrey;*/
+/*}*/
 
 /*.logo {*/
     /*position: relative;*/

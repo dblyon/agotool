@@ -9,10 +9,12 @@ import os
 
 class MCL(object):
 
-    def __init__(self):
+    def __init__(self, SESSION_FOLDER_ABSOLUTE):
         # self.set_fh_log(os.path.dirname(os.getcwd()) + r'/data/mcl/mcl_log.txt')
-        self.abs_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + r'/data/mcl/'
-        self.set_fh_log(self.abs_path + 'mcl_log.txt')
+        # self.abs_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + r'/data/mcl/'
+        # self.set_fh_log(self.abs_path + 'mcl_log.txt')
+        self.abs_path = SESSION_FOLDER_ABSOLUTE
+        self.set_fh_log(os.path.join(self.abs_path, 'mcl_log.txt'))
 
     def set_fh_log(self, log_fn):
         self.fh_log = open(log_fn, "a")
@@ -64,27 +66,28 @@ class MCL(object):
     def get_clusters(self, mcl_out):
         """
         parse MCL output
-        returns nested list of strings
+        returns nested list of integers
         [
-        ['1', '3', '4'],
-        ['2', '5']
+        [1, 3, 4],
+        [2, 5]
         ]
         :param mcl_out: rawFile
-        :return: ListOfListOfString
+        :return: ListOfListOfIntegers
         """
         cluster_list = []
         with open(mcl_out, 'r') as fh:
             for line in fh:
-                cluster_list.append(line.strip().split('\t'))
+                cluster_list.append([int(ele) for ele in line.strip().split('\t')])
         return cluster_list
 
-    def calc_MCL_get_clusters(self, fn_results, inflation_factor=2.0):
+    def calc_MCL_get_clusters(self, session_id, fn_results, inflation_factor):
         df = pd.read_csv(fn_results, sep='\t')
-        mcl_in = self.abs_path + 'mcl_in.txt'
-        mcl_out = self.abs_path + 'mcl_out.txt'
+        mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
+        mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
         self.write_JaccardIndexMatrix(df, mcl_in)
         self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
         return self.get_clusters(mcl_out)
+
 
 class MCL_no_input_file_pid(MCL):
     """
@@ -93,25 +96,13 @@ class MCL_no_input_file_pid(MCL):
 
     cat mcl_in.txt | mcl - -I 2.0 --abc -o /dev/stdout 2>/dev/null
     """
-    # def mcl_cluster2file(self, mcl_in_str, inflation_factor, mcl_out):
-    #     # cmd_text = """cat mcl_in.txt | mcl - -I %d --abc -o /dev/stdout""" % inflation_factor
-    #     # cmd_text = """%s | mcl - -I %d --abc -o %s""" % (mcl_in_str, inflation_factor, mcl_out)
-    #     mcl_in = self.abs_path + 'mcl_in.txt'
-    #     # cmd_text = """cat %s | mcl - -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
-    #     # cmd_text = """cat %s | mcl - -I %d --abc -o /dev/stdout 2>/dev/null""" % (mcl_in, inflation_factor)
-    #     cmd_text = """mcl %s -I %d --abc -o /dev/stdout 2>/dev/null""" % (mcl_in, inflation_factor)
-    #     # print cmd_text
+
+    # def mcl_cluster2file(self, mcl_in, inflation_factor, mcl_out):
+    #     cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
     #     args = shlex.split(cmd_text)
-    #     ph = subprocess.Popen(args, stdin=None, stdout=subprocess.PIPE, stderr=self.get_fh_log())
+    #     ph = subprocess.Popen(args, stdin=None, stdout=self.get_fh_log(), stderr=self.get_fh_log())
     #     self.get_fh_log().flush()
     #     return ph.wait()
-
-    def mcl_cluster2file(self, mcl_in, inflation_factor, mcl_out):
-        cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
-        args = shlex.split(cmd_text)
-        ph = subprocess.Popen(args, stdin=None, stdout=self.get_fh_log(), stderr=self.get_fh_log())
-        self.get_fh_log().flush()
-        return ph.wait()
 
     def write_JaccardIndexMatrix(self, header, results, fn_out):
         """
@@ -124,7 +115,7 @@ class MCL_no_input_file_pid(MCL):
         :return: None
         """
         index_ANs_study = header.index("ANs_study")
-        ANs_study_set_list = [set(res[index_ANs_study].split(",")) for res in results]
+        ANs_study_set_list = [set(res[index_ANs_study].split(", ")) for res in results]
         with open(fn_out, 'w') as fh:
             for combi in itertools.combinations(range(0, len(ANs_study_set_list)), 2):
                 c1, c2 = combi

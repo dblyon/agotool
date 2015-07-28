@@ -1,11 +1,16 @@
 {% extends "layout.html" %}
 
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function() {
+              results_page();
+          });
+      </script>
+{% endblock head %}
 
 {% block content %}
 
 <div class="container-fluid">
-
-
 
         <form id="filter_form" method="Post" action="unset" enctype="multipart/form-data">
         <div class="row">
@@ -15,13 +20,11 @@
             </div>
             <div class="col-md-8">
                 <h4>provide inflation factor and click button to cluster using MCL</h4>
+                <button id="submit_mcl" type="button" onclick="submit_form('results_clustered')" class="btn btn-primary">MCL</button>
                 <span class="inflation_factor"> {{ form.inflation_factor.label }}: {{ form.inflation_factor}} <br> </span>
                     {% if form.inflation_factor.errors %}
                     <ul class="errors"> {% for error in form.inflation_factor.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
-            <button id="submit_mcl" type="button" onclick="submit_form('results_clustered')" class="btn btn-primary">MCL</button>
-
-
             </div>
             <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">
             <input type="hidden" style="display: none;" name="gocat_upk" value="{{ gocat_upk }}">
@@ -29,17 +32,8 @@
         </div>
         </form>
 
-{#<!--    <form id="filter_form" method="Post" action="unset" enctype="multipart/form-data">#}
-{#        <button id="submit_filter" type="button" onclick="submit_form('results_filtered')" class="btn btn-primary">Filter</button>#}
-{#        <button id="submit_mcl" type="button" onclick="submit_form('results_clustered')" class="btn btn-primary">MCL</button>#}
-{#        <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">#}
-{#        <input type="hidden" style="display: none;" name="gocat_upk" value="{{ gocat_upk }}">#}
-{#        <input type="hidden" style="display: none;" name="indent" value="{{ indent }}">#}
-{#        <br><br>#}
-{#    </form> -->#}
-
+    <br>
     <h4>Download results file</h4>
-    <p>results displayed below</p>
     <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>
 
     {% if errors != [] %}
@@ -48,15 +42,15 @@
         <div>{{ error }}</div>
         {% endfor %}
     {% endif %}
-    <br>
-    <br>
+</div>
+{% endblock content %}
 
-    <table width="90%" class="table table-striped table-bordered">
-
+{% block table %}
+    <table id="table_id" class="table table-striped table-bordered hover">
         <thead>
             <tr>
             {% for h in header%}
-                <th>{{ h.replace('_', ' ') }}</th>
+                <th><span class="table_header">{{ h.replace('_', ' ') }}</span></th>
             {% endfor %}
             </tr>
         </thead>
@@ -64,16 +58,13 @@
          {% for result_row in results %}
              <tr>
              {% for r in result_row %}
-{#                 <!--<td {% if loop.counter0 in ellipsis_indices %}class="ellipsis" onclick="toggle_ellipsis(this)"{% endif %}>{{ r }}</td>-->#}
                  <td title="click to show all"><div class="ellipsis long_row" onclick="toggle_ellipsis(this)">{{ r }}</div></td>
              {% endfor %}
              </tr>
          {% endfor %}
          </tbody>
     </table>
-
-</div>
-
+{% endblock table %}
 
 
-{% endblock content %}
+
