@@ -1,6 +1,3 @@
-# import ipdb
-# ipdb.set_trace()
-
 # refactor header and results to be list and nested list (not list of string)
 
 # standard library
@@ -27,10 +24,10 @@ import cluster_filter
 app = flask.Flask(__name__)
 webserver_data  = os.getcwd() + '/static/data'
 EXAMPLE_FOLDER = webserver_data + '/exampledata'
-SESSION_FOLDER = webserver_data + '/session'
-PUBLIC_SESSION_FOLDER = '/static/data/session'
+SESSION_FOLDER_ABSOLUTE = webserver_data + '/session'
+SESSION_FOLDER_RELATIVE = '/static/data/session'
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
-ALLOWED_EXTENSIONS = set(['txt', 'tsv'])
+ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
 # Additional path settings for flask
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -73,9 +70,7 @@ goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 filter_ = cluster_filter.Filter(go_dag)
 
 # MCL clustering
-mcl = cluster_filter.MCL_no_input_file_pid()
-
-
+mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE)
 
 organism_choices = [
     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -87,7 +82,6 @@ organism_choices = [
     (u'10090', u'Mus musculus'), # Mouse
     (u'10116', u'Rattus norvegicus') # Rat
     ]
-
 
 def generate_session_id():
     pid = str(os.getpid())
@@ -290,7 +284,6 @@ class Results_Form(wtforms.Form):
     inflation_factor = fields.FloatField("inflation factor", [validate_float_larger_zero_smaller_one],
                                          default = 2.0)
 
-
 @app.route('/results', methods=["GET", "POST"])
 def results():
     """
@@ -333,16 +326,14 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form):
     for res in results:
         results2display.append(res.split('\t'))
     file_name = "results_orig" + session_id + ".tsv"
-    fn_results_orig_absolute = os.path.join(SESSION_FOLDER, file_name)
-    fn_results_orig_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
+    fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
+    fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
     with open(fn_results_orig_absolute, 'w') as f:
         f.write(tsv)
     return render_template('results.html', header=header, results=results2display, errors=[],
                            file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
-
-
 
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
@@ -351,18 +342,14 @@ def results_filtered():
     session_id = request.form['session_id']
 
     # original unfiltered/clustered results
-    file_name = "results_orig" + session_id + ".tsv"
-    fn_results_orig_absolute = os.path.join(SESSION_FOLDER, file_name)
-    fn_results_orig_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
+    file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
+
     if not gocat_upk == "UPK":
         results_filtered = filter_.filter_term_lineage(header, results, indent)
 
         # filtered results
-        file_name = "results_filtered" + session_id + ".tsv"
-        fn_results_filtered_absolute = os.path.join(SESSION_FOLDER, file_name)
-        fn_results_filtered_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
-
+        file_name, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
         tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
         with open(fn_results_filtered_absolute, 'w') as f:
             f.write(tsv)
@@ -386,21 +373,35 @@ def results_clustered():
     inflation_factor = form.inflation_factor.data
 
     session_id = request.form['session_id']
-    file_name = "results_orig" + session_id + ".tsv"
-    fn_results_orig_absolute = os.path.join(SESSION_FOLDER, file_name)
-    fn_results_orig_relative = os.path.join(PUBLIC_SESSION_FOLDER, file_name)
+    file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+    cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+    file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
 
     header, results = read_results_file(fn_results_orig_absolute)
+    results2display = []
+    with open(fn_results_clustered_absolute, 'w') as fh:
+        fh.write(header)
+        for cluster in cluster_list:
+            results_one_cluster = []
+            for res_index in cluster:
+                res = results[res_index]
+                fh.write(res + '\n')
+                results_one_cluster.append(res.split('\t'))
+            fh.write('#'*80)
+            results2display.append(results_one_cluster)
 
-    cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor)
-    print(cluster_list)
+    header = header.split("\t")
+    ellipsis_indices = elipsis(header)
 
-    return render_template('index.html')
-    # return render_template('results_clustered.html', header=header, results=results2display, errors=[],
-    #                        file_path_orig=fn_results_orig_relative, file_path_filtered=fn_results_filtered_relative,
-    #                        ellipsis_indices=ellipsis_indices)
+    return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
+                           file_path_orig=fn_results_orig_relative, file_path_mcl=fn_results_clustered_relative,
+                           ellipsis_indices=ellipsis_indices)
 
-
+def fn_suffix2abs_rel_path(suffix, session_id):
+    file_name = "results_" + suffix + session_id + ".tsv"
+    fn_results_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
+    fn_results_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
+    return file_name, fn_results_absolute, fn_results_relative
 
 
 

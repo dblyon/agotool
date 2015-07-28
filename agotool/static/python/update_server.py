@@ -6,11 +6,11 @@ import os
 import sys
 import zlib
 import urllib
-import shutil
+# import shutil
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.join(PYTHON_DIR, '../..')
-
+DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'static/data', directory) for directory in ["GOA", "OBO", "UniProt_Keywords", "session"]]
 sys.path.append(PYTHON_DIR)
 
 # (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -84,9 +84,14 @@ def update_go_basic_slim():
         urllib.urlretrieve(url, tmp_f)
         os.rename(tmp_f, file_name)
 
-def cleanup_mcl():
-    _folder = os.path.join(PROJECT_DIR, 'static/data/mcl')
-    e = 'could not remove %s from static/data/mcl'
+def create_directories_if_not_exist():
+    for directory in DIRECTORIES_LIST:
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
+
+def cleanup_sessions():
+    _folder = os.path.join(PROJECT_DIR, 'static/data/session')
+    e = 'could not remove %s from static/data/session'
     for the_file in os.listdir(_folder):
         file_path = os.path.join(_folder, the_file)
         try:
@@ -99,8 +104,9 @@ def cleanup_mcl():
 
 if __name__ == '__main__':
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
+    create_directories_if_not_exist()
     get_uniprot_annotatios()
     update_go_annotations()
     update_go_basic_slim()
-    cleanup_mcl()
+    cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')
