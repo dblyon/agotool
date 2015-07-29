@@ -40,6 +40,34 @@ logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
+ADMINS = ["dblyon@gmail.com"] # ['david.lyon@cpr.ku.dk']
+if not app.debug:
+    # email if errors #!!!
+    from logging.handlers import SMTPHandler
+    mail_handler = SMTPHandler('127.0.0.1',
+                               'server-error@example.com',
+                               ADMINS, 'Flask-server AGOTOOL failed')
+    mail_handler.setFormatter(logging.Formatter('''
+                                Message type:       %(levelname)s
+                                Location:           %(pathname)s:%(lineno)d
+                                Module:             %(module)s
+                                Function:           %(funcName)s
+                                Time:               %(asctime)s
+                                Message:
+                                %(message)s
+                                '''))
+    mail_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(mail_handler)
+
+    # log warnings and errors
+    from logging import FileHandler
+    file_handler = FileHandler("log_agotool.txt", mode="a", encoding="UTF-8")
+    file_handler.setFormatter(logging.Formatter("#"*80 + "\n" + '%(asctime)s %(levelname)s: %(message)s'))
+    file_handler.setLevel(logging.WARNING)
+    app.logger.addHandler(file_handler)
+
+
+
 species2files_dict = {
     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
@@ -179,12 +207,12 @@ def validate_inputfile(form, field):
     raise wtforms.ValidationError(
         " file must have a '.txt' or '.tsv' extension")
 
-def resultfile_to_results(result_file):
-    result_file.seek(0)
-    header = result_file.readline().rstrip().split('\t')
-    results = [line.split('\t') + [''] for line in result_file]
-    result_file.seek(0)
-    return results, header
+# def resultfile_to_results(result_file):
+#     result_file.seek(0)
+#     header = result_file.readline().rstrip().split('\t')
+#     results = [line.split('\t') + [''] for line in result_file]
+#     result_file.seek(0)
+#     return results, header
 
 def read_results_file(fn):
     """
@@ -281,7 +309,7 @@ def enrichment():
 ################################################################################
 
 class Results_Form(wtforms.Form):
-    inflation_factor = fields.FloatField("inflation factor", [validate_float_larger_zero_smaller_one],
+    inflation_factor = fields.FloatField("inflation factor", [validate_number],
                                          default = 2.0)
 
 @app.route('/results', methods=["GET", "POST"])
@@ -371,13 +399,16 @@ def results_filtered():
 def results_clustered():
     form = Results_Form(request.form)
     inflation_factor = form.inflation_factor.data
-
     session_id = request.form['session_id']
+    gocat_upk = request.form['gocat_upk']
+    indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+    header, results = read_results_file(fn_results_orig_absolute)
+    if not form.validate():
+        return generate_result_page(header, results, gocat_upk, indent, session_id, form=form)
+
     cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
-
-    header, results = read_results_file(fn_results_orig_absolute)
     results2display = []
     with open(fn_results_clustered_absolute, 'w') as fh:
         fh.write(header)
@@ -389,10 +420,8 @@ def results_clustered():
                 results_one_cluster.append(res.split('\t'))
             fh.write('#'*80)
             results2display.append(results_one_cluster)
-
     header = header.split("\t")
     ellipsis_indices = elipsis(header)
-
     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
                            file_path_orig=fn_results_orig_relative, file_path_mcl=fn_results_clustered_relative,
                            ellipsis_indices=ellipsis_indices)

@@ -11,16 +11,15 @@
 {% block content %}
 
 <div class="container-fluid">
-
-        <form id="filter_form" method="Post" action="unset" enctype="multipart/form-data">
+        <form id="form" method="Post" action="unset" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-3">
                 <h4>click button to filter</h4>
-                <button id="submit_filter" type="button" onclick="submit_form('results_filtered')" class="btn btn-primary">Filter</button>
+                <button id="submit_filter" type="button" onclick="submit_form('form', 'results_filtered')" class="btn btn-primary">Filter</button>
             </div>
             <div class="col-md-8">
                 <h4>provide inflation factor and click button to cluster using MCL</h4>
-                <button id="submit_mcl" type="button" onclick="submit_form('results_clustered')" class="btn btn-primary">MCL</button>
+                <button id="submit_mcl" type="button" onclick="submit_form('form', 'results_clustered')" class="btn btn-primary">MCL</button>
                 <span class="inflation_factor"> {{ form.inflation_factor.label }}: {{ form.inflation_factor}} <br> </span>
                     {% if form.inflation_factor.errors %}
                     <ul class="errors"> {% for error in form.inflation_factor.errors %} <b> {{ error }} </b> {% endfor %} </ul>
@@ -36,12 +35,6 @@
     <h4>Download results file</h4>
     <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>
 
-    {% if errors != [] %}
-    <h4>Errors</h4>
-        {% for error in errors %}
-        <div>{{ error }}</div>
-        {% endfor %}
-    {% endif %}
 </div>
 {% endblock content %}
 

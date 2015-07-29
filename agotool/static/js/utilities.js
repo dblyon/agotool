@@ -62,8 +62,9 @@ var toggle_ellipsis = (function(element) {
 });
 
 
-var submit_form = (function(action) {
-    $("#filter_form").attr("action", action);
-    $("#filter_form").submit();
+var submit_form = (function(form_id, action) {
+    var form = $("#" + form_id);
+    form.attr("action", action);
+    form.submit();
 });
 

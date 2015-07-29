@@ -1,5 +1,13 @@
 {% extends "layout.html" %}
 
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function() {
+              results_page();
+          });
+      </script>
+{% endblock head %}
+
 {% block content %}
 <div class="container-fluid">
         <a name="file_path_orig" href="{{ file_path_orig }}" class="btn btn-primary">Download original results</a>
