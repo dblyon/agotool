@@ -1,3 +1,4 @@
+import ipdb
 # refactor header and results to be list and nested list (not list of string)
 
 # standard library
@@ -363,6 +364,21 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form):
                            file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
 
+@app.route('/results_back', methods=["GET", "POST"])
+def results_back():
+    """
+    renders original un-filtered / un-clustered results
+    and remembers user options in order to perform clustering or filtering
+    as initially
+    """
+    # ipdb.set_trace()
+    session_id = request.form['session_id']
+    gocat_upk = request.form['gocat_upk']
+    indent = request.form['indent']
+    file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+    header, results = read_results_file(fn_results_orig_absolute)
+    return generate_result_page(header, results, gocat_upk, indent, session_id, form=Results_Form())
+
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
     indent = request.form['indent']
@@ -388,7 +404,7 @@ def results_filtered():
             results2display.append(res.split('\t'))
         return render_template('results_filtered.html', header=header, results=results2display, errors=[],
                                file_path_orig=fn_results_orig_relative, file_path_filtered=fn_results_filtered_relative,
-                               ellipsis_indices=ellipsis_indices)
+                               ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id)
     else:
         return render_template('index.html')
 
@@ -424,7 +440,7 @@ def results_clustered():
     ellipsis_indices = elipsis(header)
     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
                            file_path_orig=fn_results_orig_relative, file_path_mcl=fn_results_clustered_relative,
-                           ellipsis_indices=ellipsis_indices)
+                           ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
     file_name = "results_" + suffix + session_id + ".tsv"

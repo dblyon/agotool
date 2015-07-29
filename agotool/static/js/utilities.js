@@ -44,7 +44,7 @@ var results_page = (function () {
 // hide Filter button if "UPK" == "GOT"
     var gocat_upk = $('input[name=gocat_upk]').val();
     if (gocat_upk == "UPK") {
-        $('#submit_filter').parents(".col-md-3").hide();
+        $('#submit_filter').parents(".col-md-4").hide();
     }
 
     $('#table_id').DataTable({
