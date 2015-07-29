@@ -1,0 +1,370 @@
+Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 317, in results
+    check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+  File "runserver.py", line 154, in check_userinput
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file
+2015-07-29 12:29:14,811 ERROR: Exception on /results_clustered [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 395, in results_clustered
+    cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+  File "static/python/cluster_filter.py", line 88, in calc_MCL_get_clusters
+    self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+  File "static/python/cluster_filter.py", line 60, in mcl_cluster2file
+    cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+TypeError: %d format: a number is required, not NoneType
+################################################################################
+2015-07-29 12:33:37,337 ERROR: Exception on /results_clustered [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 395, in results_clustered
+    cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+  File "static/python/cluster_filter.py", line 88, in calc_MCL_get_clusters
+    self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+  File "static/python/cluster_filter.py", line 60, in mcl_cluster2file
+    cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+TypeError: %d format: a number is required, not NoneType
+################################################################################
+2015-07-29 15:11:47,204 ERROR: Exception on /results_clustered [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 405, in results_clustered
+    file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+  File "static/python/cluster_filter.py", line 88, in calc_MCL_get_clusters
+    self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+  File "static/python/cluster_filter.py", line 60, in mcl_cluster2file
+    cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+TypeError: %d format: a number is required, not NoneType
+################################################################################
+2015-07-29 15:12:36,429 ERROR: Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 328, in results
+    userinput_fh = StringIO.StringIO(user_input_file.read())
+  File "runserver.py", line 165, in check_userinput
+    decimal = '.'
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file
+################################################################################
+2015-07-29 15:23:09,350 ERROR: Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 328, in results
+    check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+  File "runserver.py", line 165, in check_userinput
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file
+################################################################################
+2015-07-29 15:30:48,630 ERROR: Exception on /results_clustered [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 405, in results_clustered
+    cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+  File "static/python/cluster_filter.py", line 88, in calc_MCL_get_clusters
+    self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+  File "static/python/cluster_filter.py", line 60, in mcl_cluster2file
+    cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+TypeError: %d format: a number is required, not NoneType
+################################################################################
+2015-07-29 15:30:53,328 ERROR: Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 328, in results
+    check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+  File "runserver.py", line 165, in check_userinput
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file
+################################################################################
+2015-07-29 15:48:11,352 ERROR: Exception on /results_clustered [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 405, in results_clustered
+    cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+  File "static/python/cluster_filter.py", line 88, in calc_MCL_get_clusters
+    self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+  File "static/python/cluster_filter.py", line 60, in mcl_cluster2file
+    cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+TypeError: %d format: a number is required, not NoneType
+################################################################################
+2015-07-29 15:48:13,289 ERROR: Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 328, in results
+    check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+  File "runserver.py", line 165, in check_userinput
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file
+################################################################################
+2015-07-29 15:48:15,336 ERROR: Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 328, in results
+    check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+  File "runserver.py", line 165, in check_userinput
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file
+################################################################################
+2015-07-29 15:48:35,850 ERROR: Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 328, in results
+    check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+  File "runserver.py", line 165, in check_userinput
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file
+################################################################################
+2015-07-29 15:48:52,396 ERROR: Exception on /results_clustered [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 405, in results_clustered
+    cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+  File "static/python/cluster_filter.py", line 88, in calc_MCL_get_clusters
+    self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+  File "static/python/cluster_filter.py", line 60, in mcl_cluster2file
+    cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+TypeError: %d format: a number is required, not NoneType
+################################################################################
+2015-07-29 15:53:18,204 ERROR: Exception on /results_clustered [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 405, in results_clustered
+    
+  File "static/python/cluster_filter.py", line 88, in calc_MCL_get_clusters
+    self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+  File "static/python/cluster_filter.py", line 60, in mcl_cluster2file
+    cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+TypeError: %d format: a number is required, not NoneType
+################################################################################
+2015-07-29 15:53:24,559 ERROR: Exception on /results [POST]
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1817, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1477, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1381, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1475, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Python/2.7/site-packages/flask/app.py", line 1461, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "runserver.py", line 328, in results
+    check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+  File "runserver.py", line 165, in check_userinput
+    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 474, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 250, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 566, in __init__
+    self._make_engine(self.engine)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 705, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/Library/Python/2.7/site-packages/pandas/io/parsers.py", line 1072, in __init__
+    self._reader = _parser.TextReader(src, **kwds)
+  File "pandas/parser.pyx", line 512, in pandas.parser.TextReader.__cinit__ (pandas/parser.c:4814)
+ValueError: No columns to parse from file

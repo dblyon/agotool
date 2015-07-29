@@ -47,4 +47,5 @@ Thumbs.db
 *.tab
 *.tsv
 *.obo
+/agotool/static/data/session/
 
