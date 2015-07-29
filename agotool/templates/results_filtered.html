@@ -10,19 +10,27 @@
 
 {% block content %}
 <div class="container-fluid">
-        <a name="file_path_orig" href="{{ file_path_orig }}" class="btn btn-primary">Download original results</a>
-        <br><br>
+    <form id="form" method="Post" action="results_back" enctype="multipart/form-data">
+        <h4>Back to original results</h4>
+        <button id="submit_back" type="button" onclick="submit_form('form', 'results_back')" class="btn btn-primary">Back</button>
+        <br>
+        <h4>Download results file</h4>
         <a name="file_path_filtered" href="{{ file_path_filtered }}" class="btn btn-primary">Download filtered results</a>
-        <br><br>
 
-    <h4>Displaying filtered results</h4>
+        <input type="hidden" style="display: none;" name="file_path_orig" value="{{ file_path_orig }}">
+        <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">
+        <input type="hidden" style="display: none;" name="gocat_upk" value="{{ gocat_upk }}">
+        <input type="hidden" style="display: none;" name="indent" value="{{ indent }}">
+    </form>
+</div>
+
     {% if errors != [] %}
     <h4>Errors</h4>
         {% for error in errors %}
         <div>{{ error }}</div>
         {% endfor %}
     {% endif %}
-</div>
+
 {% endblock content %}
 
 {% block table %}
