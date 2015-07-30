@@ -16,7 +16,7 @@
             <div class="col-md-4">
                 <h4>MCL clustering</h4>
                 <button id="submit_mcl" type="button" onclick="submit_form('form', 'results_clustered')" class="btn btn-primary">MCL</button>
-                <span class="inflation_factor"> {{ form.inflation_factor.label }}: {{ form.inflation_factor}} <br> </span>
+                <span title="{{ form.inflation_factor.description }}" class="inflation_factor"> {{ form.inflation_factor.label }}: {{ form.inflation_factor}} <br> </span>
                     {% if form.inflation_factor.errors %}
                     <ul class="errors"> {% for error in form.inflation_factor.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}

@@ -6,7 +6,8 @@ body {background-color:lightgrey;}
 
 .cpr_logo {
     float: right;
-    padding: 10px;}
+    padding-bottom: 10px;
+    padding-top: 15px;}
 
 .navbar-header{
     padding: 10px;
@@ -44,9 +45,9 @@ table.dataTable tbody tr {
   background-color: lightgrey;
 }
 
-table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {
-  background-color: #FFA500;
-}
+/*table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {*/
+  /*background-color: #FFA500;*/
+/*}*/
 
 .MCL_cluster_separator {
     background-color: black !important;
@@ -62,6 +63,17 @@ span.table_header {
     margin-left:auto;
     margin-right:auto;
 }
+
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+    /*margin-right: 20px*/
+}
+
+
 
 
 /*.table_all_dbl {*/

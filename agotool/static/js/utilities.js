@@ -30,10 +30,10 @@ var enrichment_page = (function() {
 var toggle_if = function(choice, tag, placeholder_tag){
     if (choice == true) {
         $(tag).hide();
-        $(placeholder_tag).show();
+        //$(placeholder_tag).show();
     } else {
         $(tag).show();
-        $(placeholder_tag).hide();
+        //$(placeholder_tag).hide();
     }
 };
 
@@ -51,6 +51,19 @@ var results_page = (function () {
         paging: false
     });
 
+    $("tbody > tr").hover(
+        // hover over
+        function () {
+            $(this).children().css("background-color", "#FFA500");
+        },
+        // hover out
+        function () {
+            $(this).children().css("background-color", "");
+        }
+
+    );
+
+
 });
 
 //var function_name = (function () {
@@ -67,4 +80,6 @@ var submit_form = (function(form_id, action) {
     form.attr("action", action);
     form.submit();
 });
+
+
 
