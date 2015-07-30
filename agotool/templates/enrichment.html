@@ -11,61 +11,54 @@
 {% block content %}
 <div class="container-fluid">
     <form id="main_form" method="Post" action="results" enctype="multipart/form-data">
-
-        <h2>ENRICHMENT</h2>
+    <h2 class="row">ENRICHMENT</h2>
 
         <div class="row">
+            <h3>Upload file</h3>
             <div class="col-md-5">
-                <h3>Upload file</h3>
-                <title>Where does this show up?</title>
-                {{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload File"}) }}
+                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload File"}) }}</span>
                     {% if form.userinput_file.errors %}
                     <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
             </div>
             <div class="col-md-5">
-                <br><br>
-                <br> {{ form.organism.label }}: {{ form.organism() }}
+                {{ form.organism.label }}: {{ form.organism() }}
                 <br> {{ form.abcorr.label }}: {{ form.abcorr() }} <br>
                 <span class="number"> {{ form.num_bins.label }}: {{ form.num_bins() }} <br> </span>
                     {% if form.num_bins.errors %}
                     <ul class="errors"> {% for error in form.num_bins.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
-                <span class="number_placeholder"> <br> <br> </span>
+{#                <span class="number_placeholder"> <br> <br> </span>#}
             </div>
         </div>
 
         <div class="row">
+            <h3>Keyword association</h3>
             <div class="col-md-5">
-                <h3>Keyword association</h3>
                 <span> {{ form.gocat_upk.label }}: {{ form.gocat_upk() }} <br> </span>
-                <span class="GOT"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }} <br> </span>
+                <span class="GOT"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>
                 <span class="GOT"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>
-                <span class="GOT_placeholder"> <br> </span>
-                <br>
+{#                <span class="GOT_placeholder"> <br> </span>#}
             </div>
         </div>
 
         <div class="row">
+            <h3>Report options</h3>
             <div class="col-md-5">
-                <h3>Report options</h3>
                 <span> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }} <br> </span>
                 <span class="GOT"> {{ form.indent.label }}: {{ form.indent() }} <br> </span>
-                <span class="GOT_placeholder"> <br> </span>
-                <br><br>
+{#                <span class="GOT_placeholder"> <br> </span>#}
 
+                <br>
                 <h4>Multiple testing</h4>
                 <span> {{ form.multitest_method.label }}: {{ form.multitest_method() }} <br> </span>
-                <span class="alpha"> {{ form.alpha.label }}: {{ form.alpha }} <br> </span>
+                <span class="alpha" title="{{ form.alpha.description }}"> {{ form.alpha.label }}: {{ form.alpha }} <br> </span>
                     {% if form.alpha.errors %}
                     <ul class="errors"> {% for error in form.alpha.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
-                <span class="alpha_placeholder"> <br> </span>
-                <br>
-
+{#                <span class="alpha_placeholder"> <br> </span><br>#}
             </div>
             <div class="col-md-5">
-                <br><br>
                 <h4>Filter results</h4>
                 <table>
                 <tr><td>{{ form.fold_enrichment_study2pop.label }}: </td><td>{{ form.fold_enrichment_study2pop() }}</td>
@@ -81,14 +74,29 @@
                     <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_mulitpletesting.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
                 </tr>
-
                 </table>
-
             </div>
         </div>
-
+        <br>
         <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
 		<br>
 	</form>
 </div>
 {% endblock content %}
+
+
+
+{#        <div class="row">#}
+{#            <h3>Keyword association</h3>#}
+{#            <div class="col-md-3"><span> {{ form.gocat_upk.label }}:</span></div>#}
+{#            <div class="col-md-1"><span>{{ form.gocat_upk() }}</span></div> <br>#}
+{#        </div>#}
+{#        <div class="row">#}
+{#            <div class="col-md-3"><span class="GOT"> {{ form.go_slim_or_basic.label }}:</span></div>#}
+{#            <div class="col-md-1"><span>{{ form.go_slim_or_basic() }}</span></div>#}
+{#        </div>#}
+{#        <div class="row">#}
+{#            <div class="col-md-3"><span class="GOT"> {{ form.backtracking.label }}: </span></div>#}
+{#            <div class="col-md-1"><span>{{ form.backtracking() }}</span></div>#}
+{#            <div class="col-md-3"><span class="GOT_placeholder"> </span></div>#}
+{#        </div>#}

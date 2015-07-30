@@ -23,7 +23,7 @@ class MCL(object):
         return self.fh_log
 
     def close_log(self):
-        self.get_fh_log().flush()
+        # self.get_fh_log().flush()
         self.get_fh_log().close()
 
     def jaccard_index_ans_setA2B(self, ans_set1, ans_set2):
@@ -86,7 +86,10 @@ class MCL(object):
         mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
         self.write_JaccardIndexMatrix(df, mcl_in)
         self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
+        self.close_log()
         return self.get_clusters(mcl_out)
+
+
 
 
 class MCL_no_input_file_pid(MCL):

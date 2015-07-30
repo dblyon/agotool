@@ -1,6 +1,3 @@
-import ipdb
-# refactor header and results to be list and nested list (not list of string)
-
 # standard library
 import os
 import sys
@@ -67,8 +64,6 @@ if not app.debug:
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
 
-
-
 species2files_dict = {
     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
@@ -88,18 +83,12 @@ species2files_dict = {
        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'}
     }
 
-
-# pre-load go_dag and goslim_dag (obo files) for speed
+# pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
 go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
 goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
-
-# filter results based on ancestors and descendants
 filter_ = cluster_filter.Filter(go_dag)
-
-# MCL clustering
-mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE)
 
 organism_choices = [
     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -200,6 +189,10 @@ def validate_number(form, field):
     if not isinstance(field.data, (int, float)):
         raise wtforms.ValidationError("")
 
+def validate_inflation_factor(form, field):
+    if not field.data >= 1.0:
+        raise wtforms.ValidationError(" number must be larger than 1")
+
 def validate_inputfile(form, field):
     filename = request.files['userinput_file'].filename
     for extension in ALLOWED_EXTENSIONS:
@@ -207,13 +200,6 @@ def validate_inputfile(form, field):
             return True
     raise wtforms.ValidationError(
         " file must have a '.txt' or '.tsv' extension")
-
-# def resultfile_to_results(result_file):
-#     result_file.seek(0)
-#     header = result_file.readline().rstrip().split('\t')
-#     results = [line.split('\t') + [''] for line in result_file]
-#     result_file.seek(0)
-#     return results, header
 
 def read_results_file(fn):
     """
@@ -245,7 +231,10 @@ class Enrichment_Form(wtforms.Form):
                                   choices = organism_choices)
 
     userinput_file = fields.FileField("Choose File",
-                                      [validate_inputfile])
+                                      [validate_inputfile],
+                                      description="""Expects a tab-demlimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
+'population_an', 'population_int', and 'sample_an'.
+If 'Abundance correction' is deselected 'population_int' can be omitted.""")
 
     gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
                                    choices = (("all_GO", "all 3 GO categories"),
@@ -271,9 +260,7 @@ class Enrichment_Form(wtforms.Form):
                    ("bonferroni", "Bonferroni")))
 
     alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-                              default = 0.05,
-                              description = u"for multiple testing correction")
-                              #!!! ??? where do the descriptions show up, how to make them visible??
+                              default = 0.05, description="alpha")
 
     o_or_u_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("both", "both"),
@@ -310,14 +297,13 @@ def enrichment():
 ################################################################################
 
 class Results_Form(wtforms.Form):
-    inflation_factor = fields.FloatField("inflation factor", [validate_number],
-                                         default = 2.0)
+    inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor],
+                                         default = 2.0, description="""Clustering can take a long time, depends on size of data and inflation factor.
+Please be patient.""")
 
 @app.route('/results', methods=["GET", "POST"])
 def results():
     """
-    #!!!
-    cluster_list = mcl.calc_MCL_get_clusters(header, results, inflation_factor=2.0)
     cluster_list: nested ListOfString corresponding to indices of results
     results_filtered = filter(header, results, indent)
     results_filtered: reduced version of results
@@ -400,7 +386,7 @@ def results_filtered():
         header = header.split("\t")
         ellipsis_indices = elipsis(header)
         results2display = []
-        for res in results:
+        for res in results_filtered:
             results2display.append(res.split('\t'))
         return render_template('results_filtered.html', header=header, results=results2display, errors=[],
                                file_path_orig=fn_results_orig_relative, file_path_filtered=fn_results_filtered_relative,
@@ -422,8 +408,9 @@ def results_clustered():
     header, results = read_results_file(fn_results_orig_absolute)
     if not form.validate():
         return generate_result_page(header, results, gocat_upk, indent, session_id, form=form)
-
+    mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE)
     cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+    num_clusters = len(cluster_list)
     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
     results2display = []
     with open(fn_results_clustered_absolute, 'w') as fh:
@@ -440,7 +427,8 @@ def results_clustered():
     ellipsis_indices = elipsis(header)
     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
                            file_path_orig=fn_results_orig_relative, file_path_mcl=fn_results_clustered_relative,
-                           ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id)
+                           ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id,
+                           num_clusters=num_clusters, inflation_factor=inflation_factor)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
     file_name = "results_" + suffix + session_id + ".tsv"
