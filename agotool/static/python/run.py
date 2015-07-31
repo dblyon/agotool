@@ -67,7 +67,7 @@ if __name__ == "__main__":
     userinput_fn=r'/Users/dblyon/modules/cpr/goterm/agotool/static/data/exampledata/exampledata.txt'
     decimal = ','
     organism = '4932'
-    gocat_upk = 'UPK'
+    gocat_upk = 'all_GO'
     go_slim_or_basic = 'basic'
     indent = True
     multitest_method = 'benjamini_hochberg'

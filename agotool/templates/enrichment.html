@@ -61,15 +61,15 @@
             <div class="col-md-5">
                 <h4>Filter results</h4>
                 <table>
-                <tr><td>{{ form.fold_enrichment_study2pop.label }}: </td><td>{{ form.fold_enrichment_study2pop() }}</td>
+                <tr><td class="somename">{{ form.fold_enrichment_study2pop.label }}: </td><td>{{ form.fold_enrichment_study2pop() }}</td>
                     {% if form.fold_enrichment_study2pop.errors %}
                     <tr><td colspan="2"><ul class="errors"> {% for error in form.fold_enrichment_study2pop.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
-                </tr><tr><td>{{ form.p_value_uncorrected.label }}: </td><td>{{ form.p_value_uncorrected() }}</td>
+                </tr><tr><td class="somename">{{ form.p_value_uncorrected.label }}: </td><td>{{ form.p_value_uncorrected() }}</td>
                     {% if form.p_value_uncorrected.errors %}
                     <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_uncorrected.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
-                </tr><tr><td>{{ form.p_value_mulitpletesting.label }}: </td><td>{{ form.p_value_mulitpletesting() }}</td>
+                </tr><tr><td class="somename">{{ form.p_value_mulitpletesting.label }}: </td><td>{{ form.p_value_mulitpletesting() }}</td>
                     {% if form.p_value_mulitpletesting.errors %}
                     <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_mulitpletesting.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}

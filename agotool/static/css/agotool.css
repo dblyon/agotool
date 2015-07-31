@@ -73,7 +73,9 @@ span.table_header {
     /*margin-right: 20px*/
 }
 
-
+.somename {
+    padding-right: 10px;
+}
 
 
 /*.table_all_dbl {*/

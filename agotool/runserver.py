@@ -38,31 +38,20 @@ logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
-ADMINS = ["dblyon@gmail.com"] # ['david.lyon@cpr.ku.dk']
 if not app.debug:
-    # email if errors #!!!
-    from logging.handlers import SMTPHandler
-    mail_handler = SMTPHandler('127.0.0.1',
-                               'server-error@example.com',
-                               ADMINS, 'Flask-server AGOTOOL failed')
-    mail_handler.setFormatter(logging.Formatter('''
-                                Message type:       %(levelname)s
-                                Location:           %(pathname)s:%(lineno)d
-                                Module:             %(module)s
-                                Function:           %(funcName)s
-                                Time:               %(asctime)s
-                                Message:
-                                %(message)s
-                                '''))
-    mail_handler.setLevel(logging.ERROR)
-    app.logger.addHandler(mail_handler)
-
+    #########################
     # log warnings and errors
     from logging import FileHandler
     file_handler = FileHandler("log_agotool.txt", mode="a", encoding="UTF-8")
     file_handler.setFormatter(logging.Formatter("#"*80 + "\n" + '%(asctime)s %(levelname)s: %(message)s'))
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
+
+profiling = False
+if profiling:
+    from werkzeug.contrib.profiler import ProfilerMiddleware
+    app.config['PROFILE'] = True
+    app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[30])
 
 species2files_dict = {
     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
@@ -100,11 +89,6 @@ organism_choices = [
     (u'10090', u'Mus musculus'), # Mouse
     (u'10116', u'Rattus norvegicus') # Rat
     ]
-
-def generate_session_id():
-    pid = str(os.getpid())
-    time_ = str(time.time())
-    return "_" + pid + "_" + time_
 
 ################################################################################
 # index.html
@@ -155,7 +139,7 @@ def check_userinput(userinput_fh, abcorr):
     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
     userinput_fh.seek(0)
     if abcorr:
-        if len(set(['population_an','population_int','sample_an']).intersection(set(df.columns.tolist()))) == 3:
+        if len({'population_an','population_int','sample_an'}.intersection(set(df.columns.tolist()))) == 3:
             try:
                 np.histogram(df['population_int'], bins=10)
             except TypeError:
@@ -172,6 +156,7 @@ def check_userinput(userinput_fh, abcorr):
             return True, decimal
     return False, decimal
 
+#####
 # validation of user inputs
 def validate_float_larger_zero_smaller_one(form, field):
     if not 0 < field.data < 1:
@@ -200,6 +185,12 @@ def validate_inputfile(form, field):
             return True
     raise wtforms.ValidationError(
         " file must have a '.txt' or '.tsv' extension")
+#####
+
+def generate_session_id():
+    pid = str(os.getpid())
+    time_ = str(time.time())
+    return "_" + pid + "_" + time_
 
 def read_results_file(fn):
     """
@@ -295,7 +286,6 @@ def enrichment():
 ################################################################################
 # results.html
 ################################################################################
-
 class Results_Form(wtforms.Form):
     inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor],
                                          default = 2.0, description="""Clustering can take a long time, depends on size of data and inflation factor.
@@ -350,6 +340,9 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form):
                            file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
 
+################################################################################
+# results_back.html
+################################################################################
 @app.route('/results_back', methods=["GET", "POST"])
 def results_back():
     """
@@ -365,6 +358,9 @@ def results_back():
     header, results = read_results_file(fn_results_orig_absolute)
     return generate_result_page(header, results, gocat_upk, indent, session_id, form=Results_Form())
 
+################################################################################
+# results_filtered.html
+################################################################################
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
     indent = request.form['indent']
@@ -437,32 +433,13 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     return file_name, fn_results_absolute, fn_results_relative
 
 
-
-# @app.route('/results_back', methods=["GET", "POST"])
-# def result_back():
-#     # implement the back button as a post request with 'tsv' = file data, then this should work
-#
-#     tsv = request.args['tsv'].split('\n')
-#     indent = request.args['indent']
-#     gocat_upk = request.args['gocat_upk']
-#     # tsv = [line.rstrip() for line in open("static/data/exampledata/UniProt_keywords_results.txt")]
-#     header = tsv[0]
-#     results = tsv[1:]
-#     return generate_result_page(header, results, gocat_upk, indent)
-
-# @app.route("/test", methods=["GET"])
-# def test():
-#     fn = webserver_data + r'/exampledata/test.txt'
-#     header, results = read_results_file(fn)
-#     gocat_upk = "all_GO"
-#     indent = True
-#     return generate_result_page(header, results, gocat_upk, indent, 'test_test')
-
-
 if __name__ == '__main__':
     #app.run('red', 5911, processes=4, debug=False)
-    app.run(processes=4, debug=True)
 
+    if profiling:
+        app.run(debug=True)
+    else:
+        app.run(processes=4, debug=False)
 
 
 
