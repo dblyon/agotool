@@ -105,8 +105,8 @@ def cleanup_sessions():
 if __name__ == '__main__':
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
     create_directories_if_not_exist()
-    get_uniprot_annotatios()
     update_go_annotations()
     update_go_basic_slim()
+    get_uniprot_annotatios()
     cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')
