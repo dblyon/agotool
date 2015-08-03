@@ -42,7 +42,7 @@ if not app.debug:
     #########################
     # log warnings and errors
     from logging import FileHandler
-    file_handler = FileHandler("log_agotool.txt", mode="a", encoding="UTF-8")
+    file_handler = FileHandler("./logs/log_agotool.txt", mode="a", encoding="UTF-8")
     file_handler.setFormatter(logging.Formatter("#"*80 + "\n" + '%(asctime)s %(levelname)s: %(message)s'))
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
