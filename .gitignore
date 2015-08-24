@@ -6,6 +6,7 @@
 *.exe
 *.o
 *.so
+*.pyc
 
 # Packages #
 ############
@@ -47,5 +48,5 @@ Thumbs.db
 *.tab
 *.tsv
 *.obo
-/static/data/session/
-
+static/data/session/
+logs/

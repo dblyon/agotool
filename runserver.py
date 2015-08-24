@@ -437,22 +437,7 @@ if __name__ == '__main__':
     #app.run('red', 5911, processes=4, debug=False)
 
     if profiling:
-        app.run(debug=True)
+        app.run(localhost, 5911, debug=True)
     else:
-        app.run(processes=4, debug=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        app.run('0.0.0.0', 5911, processes=4, debug=False)
 
