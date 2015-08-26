@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="shortcut icon" href="./static/js/cpr_logo.png">
+{#    <link rel="shortcut icon" href="./static/js/cpr_logo.png">#}
+    <link rel="icon" type="image/png" href="./static/js/favicon_sund.ico" sizes="16x16" />
+
     <title>A.GO.TOOL</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
@@ -57,6 +59,7 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li><a href="{{ url_for('enrichment') }}">enrichment</a></li>
+                    <li><a href="{{ url_for('parameters') }}">parameters</a></li>
                     <li><a href="{{ url_for('example') }}">example</a></li>
                     <li><a href="{{ url_for('about') }}">about</a></li>
                 </ul>

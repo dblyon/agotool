@@ -11,6 +11,7 @@ import urllib
 PYTHON_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.join(PYTHON_DIR, '../..')
 DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'static/data', directory) for directory in ["GOA", "OBO", "UniProt_Keywords", "session"]]
+DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
 sys.path.append(PYTHON_DIR)
 
 # (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -36,7 +37,7 @@ organisms = {9606: 'human',
 # Saccharomyces cerevisiae (strain ATCC 204508 / S288c)
 # http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id,keywords&format=tab
 
-def get_uniprot_annotatios():
+def update_uniprot_annotatios():
     for organism in organisms:
         dl_string = "http://www.uniprot.org/uniprot/?query=organism:%i&columns=id,keywords&format=tab"
         _folder = os.path.join(PROJECT_DIR, 'static/data/UniProt_Keywords')
@@ -107,6 +108,6 @@ if __name__ == '__main__':
     create_directories_if_not_exist()
     update_go_annotations()
     update_go_basic_slim()
-    get_uniprot_annotatios()
+    update_uniprot_annotatios()
     cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')

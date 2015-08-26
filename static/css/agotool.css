@@ -78,6 +78,14 @@ span.table_header {
 }
 
 
+/* formatting unordered list with long row  */
+.bulletpoints_li {
+    list-style-type: disc;
+    list-style-position: inside;
+    text-indent: -1em;
+    padding-left: 1em;
+}
+
 /*.table_all_dbl {*/
     /*width: 90%;*/
 /*}*/

@@ -1,3 +1,4 @@
+# coding=utf-8
 # standard library
 import os
 import sys
@@ -73,11 +74,11 @@ species2files_dict = {
     }
 
 # pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-                 "basic": webserver_data + r'/OBO/go-basic.obo'}
-go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
-filter_ = cluster_filter.Filter(go_dag)
+# obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
+#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
+# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+# filter_ = cluster_filter.Filter(go_dag)
 
 organism_choices = [
     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -103,6 +104,13 @@ def index():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+################################################################################
+# parameters.html
+################################################################################
+@app.route('/parameters')
+def parameters():
+    return render_template('parameters.html')
 
 ################################################################################
 # results_zero.html
@@ -152,7 +160,7 @@ def check_userinput(userinput_fh, abcorr):
                     return False, decimal
             return True, decimal
     else:
-        if len(set(['population_an', 'sample_an']).intersection(set(df.columns.tolist()))) == 2:
+        if len({'population_an', 'sample_an'}.intersection(set(df.columns.tolist()))) == 2:
             return True, decimal
     return False, decimal
 
@@ -223,9 +231,19 @@ class Enrichment_Form(wtforms.Form):
 
     userinput_file = fields.FileField("Choose File",
                                       [validate_inputfile],
-                                      description="""Expects a tab-demlimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
-'population_an', 'population_int', and 'sample_an'.
-If 'Abundance correction' is deselected 'population_int' can be omitted.""")
+                                      description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
+
+'population_an': UniProt accession numbers (such as 'P00359') for all proteins
+
+'population_int': Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)
+
+'sample_an': UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment,
+these identifiers should also be present in the 'population_an' as the test group is a subset of the population)
+
+If "Abundance correction" is deselected "population_int" can be omitted.""")
+#                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
+# 'population_an', 'population_int', and 'sample_an'.
+# If 'Abundance correction' is deselected 'population_int' can be omitted.""")
 
     gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
                                    choices = (("all_GO", "all 3 GO categories"),
@@ -372,7 +390,7 @@ def results_filtered():
     header, results = read_results_file(fn_results_orig_absolute)
 
     if not gocat_upk == "UPK":
-        results_filtered = filter_.filter_term_lineage(header, results, indent)
+        results_filtered = filter_.filter_term_lineage(header, results, indent) #!!!
 
         # filtered results
         file_name, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
@@ -437,7 +455,8 @@ if __name__ == '__main__':
     #app.run('red', 5911, processes=4, debug=False)
 
     if profiling:
-        app.run(localhost, 5911, debug=True)
+        app.run('localhost', 5000, debug=True)
     else:
-        app.run('0.0.0.0', 5911, processes=4, debug=False)
+        # app.run('0.0.0.0', 5911, processes=4, debug=False)
+        app.run('localhost', 5000, processes=4, debug=True)
 
