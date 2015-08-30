@@ -233,7 +233,8 @@ class UniProtKeywordsParser(object):
                 line_split = line.split('\t')
                 an = line_split[0]
                 keywords = set([ele.strip() for ele in line_split[-1].split(';')])
-                assoc_dict[an] = keywords
+                if keywords != {""}:
+                    assoc_dict[an] = keywords
         return assoc_dict
 
     # def parse_file(self, fn): #!!!
@@ -318,3 +319,7 @@ def gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking):
             assoc_dict_slims[an] = all_direct_anc
     return assoc_dict_slims
 
+
+if __name__ == "__main__":
+    fn = r'/Users/dblyon/modules/cpr/agotool/static/data/UniProt_Keywords/9606.tab'
+    up = UniProtKeywordsParser(fn)

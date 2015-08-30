@@ -74,11 +74,11 @@ species2files_dict = {
     }
 
 # pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-# obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
-# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
-# filter_ = cluster_filter.Filter(go_dag)
+obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
+                 "basic": webserver_data + r'/OBO/go-basic.obo'}
+go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+filter_ = cluster_filter.Filter(go_dag)
 
 organism_choices = [
     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -227,7 +227,8 @@ def elipsis(header):
 class Enrichment_Form(wtforms.Form):
 
     organism = fields.SelectField(u'Select Organism',
-                                  choices = organism_choices)
+                                  choices = organism_choices,
+                                  description="""Choose the species/organism the identifiers (accession numbers) correspond to.""")
 
     userinput_file = fields.FileField("Choose File",
                                       [validate_inputfile],
@@ -241,61 +242,71 @@ class Enrichment_Form(wtforms.Form):
 these identifiers should also be present in the 'population_an' as the test group is a subset of the population)
 
 If "Abundance correction" is deselected "population_int" can be omitted.""")
-#                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
-# 'population_an', 'population_int', and 'sample_an'.
-# If 'Abundance correction' is deselected 'population_int' can be omitted.""")
 
     gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
                                    choices = (("all_GO", "all 3 GO categories"),
                                               ("BP", "Biological Process"),
                                               ("CP", "Celluar Compartment"),
                                               ("MF", "Molecular Function"),
-                                              ("UPK", "UniProt-keywords")))
+                                              ("UPK", "UniProt-keywords")),
+                                   description="""Select either one of three major GO categories (molecular function, biological process, cellular component) or all three or UniProt-keywords.""")
 
     abcorr = fields.BooleanField("Abundance correction",
-                                 default = "checked")
+                                 default = "checked",
+                                 description="""Apply the abundance correction as described in the publication. A column named "population_int" (population intensity)
+that corresponds to the column "population_an" (population accession number) needs to be provided, when selecting this option.
+If "Abundance correction" is deselected "population_int" can be omitted.""")
 
     go_slim_or_basic = fields.SelectField("GO basic or slim",
                                           choices = (("basic", "basic"),
-                                                     ("slim", "slim")))
+                                                     ("slim", "slim")),
+                                          description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
 
     indent = fields.BooleanField("prepend GO-term level by dots",
-                                 default = "checked")
+                                 default="checked",
+                                 description="Add dots to GO-terms to indicate the level in the parental hierarchy.")
 
     multitest_method = fields.SelectField(
         "Method for correction of multiple testing",
         choices = (("benjamini_hochberg", "Benjamini Hochberg"),
                    ("sidak", "Sidak"), ("holm", "Holm"),
-                   ("bonferroni", "Bonferroni")))
+                   ("bonferroni", "Bonferroni")),
+        description="""Select a method for multiple testing correction.""")
 
     alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-                              default = 0.05, description="alpha")
+                              default = 0.05, description="""Applied to multiple correction methods "Sidak" and "Holm" to calculate "corrected" p-values.""")
 
     o_or_u_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("both", "both"),
                                                    ("o", "overrepresented"),
-                                                   ("u", "underrepresented")))
+                                                   ("u", "underrepresented")),
+                                        description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
 
     num_bins = fields.IntegerField("Number of bins",
                                    [validate_integer],
-                                   default = 100)
+                                   default = 100,
+                                   description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
 
     backtracking = fields.BooleanField("Backtracking parent GO-terms",
-                                       default = "checked")
+                                       default = "checked",
+                                       description="Include all parent GO-terms.")
 
     fold_enrichment_study2pop = fields.FloatField(
         "fold enrichment study/population",
-        [validate_number], default = 0)
+        [validate_number], default = 0,
+        description="""Minimum threshold value of "fold_enrichment_study2pop".""")
 
     p_value_uncorrected =  fields.FloatField(
         "p-value uncorrected",
         [validate_float_between_zero_and_one],
-        default = 0)
+        default = 0,
+        description="""Maximum threshold value of "p_uncorrected".""")
 
     p_value_mulitpletesting =  fields.FloatField(
         "FDR-cutoff / p-value multiple testing",
         [validate_float_between_zero_and_one],
-        default = 0)
+        default = 0,
+        description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.""")
 
 @app.route('/enrichment')
 def enrichment():
@@ -390,7 +401,7 @@ def results_filtered():
     header, results = read_results_file(fn_results_orig_absolute)
 
     if not gocat_upk == "UPK":
-        results_filtered = filter_.filter_term_lineage(header, results, indent) #!!!
+        results_filtered = filter_.filter_term_lineage(header, results, indent)
 
         # filtered results
         file_name, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
@@ -452,11 +463,12 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 
 if __name__ == '__main__':
-    #app.run('red', 5911, processes=4, debug=False)
+
 
     if profiling:
         app.run('localhost', 5000, debug=True)
     else:
         # app.run('0.0.0.0', 5911, processes=4, debug=False)
+        # app.run('red', 5911, processes=4, debug=False)
         app.run('localhost', 5000, processes=4, debug=True)
 
