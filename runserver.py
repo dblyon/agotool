@@ -464,11 +464,10 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 if __name__ == '__main__':
 
-
     if profiling:
         app.run('localhost', 5000, debug=True)
     else:
         # app.run('0.0.0.0', 5911, processes=4, debug=False)
         # app.run('red', 5911, processes=4, debug=False)
-        app.run('localhost', 5000, processes=4, debug=True)
+        app.run('localhost', 5000, processes=4, debug=False)
 

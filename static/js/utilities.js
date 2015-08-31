@@ -38,13 +38,12 @@ var toggle_if = function(choice, tag, placeholder_tag){
 };
 
 
-
 // RESTULS PAGE
 var results_page = (function () {
 // hide Filter button if "UPK" == "GOT"
     var gocat_upk = $('input[name=gocat_upk]').val();
     if (gocat_upk == "UPK") {
-        $('#submit_filter').parents(".col-md-4").hide();
+        $('#submit_filter').parents(".row").hide();
     }
 
     $('#table_id').DataTable({
