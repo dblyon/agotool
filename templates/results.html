@@ -15,17 +15,30 @@
 
         <div class="row">
             <h4>MCL clustering</h4>
-            <button id="submit_mcl" type="button" onclick="submit_form('form', 'results_clustered')" class="btn btn-primary">MCL</button>
-            <span title="{{ form.inflation_factor.description }}" class="inflation_factor"> {{ form.inflation_factor.label }}: {{ form.inflation_factor}} <br> </span>
-                {% if form.inflation_factor.errors %}
-                <ul class="errors"> {% for error in form.inflation_factor.errors %} <b> {{ error }} </b> {% endfor %} </ul>
-                {% endif %}
+                <div class="col-md-4">
+                    <span>The aim of the clustering approach is to group results (i.e. rows of the resulting output table below) associated with similar sets of accession numbers.
+                        Enter a number higher than 1 as the inflation factor. Usually a number between 1.1 and 10 is chosen. Increasing the value will increase cluster granularity (produce more clusters).</span>
+                </div>
+
+                <div class="col-md-4">
+                    <span title="{{ form.inflation_factor.description }}" class="inflation_factor"> {{ form.inflation_factor.label }}: {{ form.inflation_factor}}</span>
+                        {% if form.inflation_factor.errors %}
+                        <ul class="errors"> {% for error in form.inflation_factor.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                        {% endif %}
+                    <button id="submit_mcl" type="button" onclick="submit_form('form', 'results_clustered')" class="btn btn-primary">MCL</button>
+                </div>
         </div>
         <br>
 
         <div class="row">
             <h4>Filter hierarchy</h4>
-            <button id="submit_filter" type="button" onclick="submit_form('form', 'results_filtered')" class="btn btn-primary">Filter</button>
+                <div class="col-md-4">
+                    <span>The aim of this processing step is to reduce the plethora of results (i.e. the number of GO-terms) to a clear and concise subset thereof, without
+                        loosing essential information. See <a href="{{ url_for('parameters') }}">parameters</a> for more information.</span>
+                </div>
+                <div class="md-col-4">
+                    <button id="submit_filter" type="button" onclick="submit_form('form', 'results_filtered')" class="btn btn-primary">Filter</button>
+                </div>
         </div>
         <br>
 
@@ -41,7 +54,40 @@
         </div>
         <br>
 </div>
+
 {% endblock content %}
+
+{#{% block content %}#}
+{##}
+{#<div class="container-fluid">#}
+{#    <form id="form" method="Post" action="unset" enctype="multipart/form-data">#}
+{#        <div class="row">#}
+{#            <div class="col-md-4">#}
+{#                <h4>MCL clustering</h4>#}
+{#                <button id="submit_mcl" type="button" onclick="submit_form('form', 'results_clustered')" class="btn btn-primary">MCL</button>#}
+{#                <span title="{{ form.inflation_factor.description }}" class="inflation_factor"> {{ form.inflation_factor.label }}: {{ form.inflation_factor}} <br> </span>#}
+{#                    {% if form.inflation_factor.errors %}#}
+{#                    <ul class="errors"> {% for error in form.inflation_factor.errors %} <b> {{ error }} </b> {% endfor %} </ul>#}
+{#                    {% endif %}#}
+{#            </div>#}
+{#            <div class="col-md-4">#}
+{#                <h4>Filter hierarchy</h4>#}
+{#                <button id="submit_filter" type="button" onclick="submit_form('form', 'results_filtered')" class="btn btn-primary">Filter</button>#}
+{#            </div>#}
+{#            <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">#}
+{#            <input type="hidden" style="display: none;" name="gocat_upk" value="{{ gocat_upk }}">#}
+{#            <input type="hidden" style="display: none;" name="indent" value="{{ indent }}">#}
+{#        </div>#}
+{#    </form>#}
+{##}
+{#    <br>#}
+{#    <h4>Download results file</h4>#}
+{#    <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>#}
+{#</div>#}
+{##}
+{#{% endblock content %}#}
+
+
 
 {% block table %}
     <table id="table_id" class="table table-striped hover">

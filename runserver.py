@@ -317,8 +317,10 @@ def enrichment():
 ################################################################################
 class Results_Form(wtforms.Form):
     inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor],
-                                         default = 2.0, description="""Clustering can take a long time, depends on size of data and inflation factor.
-Please be patient.""")
+                                         default = 2.0, description="""Enter a number higher than 1.
+Usually a number between 1.1 and 10 is chosen.
+Increasing the value will increase cluster granularity (produce more clusters).
+Some combinations of data and inflation factor can take very long to process. Please be patient.""")
 
 @app.route('/results', methods=["GET", "POST"])
 def results():
