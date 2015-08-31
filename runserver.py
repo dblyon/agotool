@@ -43,10 +43,19 @@ if not app.debug:
     #########################
     # log warnings and errors
     from logging import FileHandler
-    file_handler = FileHandler("./logs/log_agotool.txt", mode="a", encoding="UTF-8")
+    file_handler = FileHandler("./logs/warnings_errors_log.txt", mode="a", encoding="UTF-8")
     file_handler.setFormatter(logging.Formatter("#"*80 + "\n" + '%(asctime)s %(levelname)s: %(message)s'))
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
+    #########################
+    # log activity
+    log_activity_fh = open("./logs/activity_log.txt", "a")
+
+def log_activity(string2log):
+    string2log_prefix = "\n" + "Current date & time " + time.strftime("%c") + "\n"
+    string2log = string2log_prefix + string2log
+    log_activity_fh.write(string2log)
+    log_activity_fh.flush()
 
 profiling = False
 if profiling:
@@ -335,6 +344,18 @@ def results():
         userinput_fh = StringIO.StringIO(user_input_file.read())
         check, decimal = check_userinput(userinput_fh, form.abcorr.data)
         if check:
+            ip = request.environ['REMOTE_ADDR']
+            string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
+            string2log += """organism: {}\ngocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
+o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nbacktracking: {}\nfold_enrichment_study2pop: {}\n\
+p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.organism.data, form.gocat_upk.data,
+                form.go_slim_or_basic.data, form.indent.data,
+                form.multitest_method.data, form.alpha.data,
+                form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
+                form.backtracking.data, form.fold_enrichment_study2pop.data,
+                form.p_value_uncorrected.data,
+                form.p_value_mulitpletesting.data)
+            log_activity(string2log)
             header, results = run.run(
                 userinput_fh, decimal, form.organism.data, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
@@ -415,6 +436,10 @@ def results_filtered():
         results2display = []
         for res in results_filtered:
             results2display.append(res.split('\t'))
+        ip = request.environ['REMOTE_ADDR']
+        string2log = "ip: " + ip + "\n" + "Request: results_filtered" + "\n"
+        string2log += """gocat_upk: {}\nindent: {}\n""".format(gocat_upk, indent)
+        log_activity(string2log)
         return render_template('results_filtered.html', header=header, results=results2display, errors=[],
                                file_path_orig=fn_results_orig_relative, file_path_filtered=fn_results_filtered_relative,
                                ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id)
@@ -452,6 +477,10 @@ def results_clustered():
             results2display.append(results_one_cluster)
     header = header.split("\t")
     ellipsis_indices = elipsis(header)
+    ip = request.environ['REMOTE_ADDR']
+    string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
+    string2log += """gocat_upk: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(gocat_upk, indent, num_clusters, inflation_factor)
+    log_activity(string2log)
     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
                            file_path_orig=fn_results_orig_relative, file_path_mcl=fn_results_clustered_relative,
                            ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id,

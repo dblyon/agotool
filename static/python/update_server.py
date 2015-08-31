@@ -6,6 +6,7 @@ import os
 import sys
 import zlib
 import urllib
+import time
 # import shutil
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -105,6 +106,7 @@ def cleanup_sessions():
 
 if __name__ == '__main__':
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
+    print("Current date & time " + time.strftime("%c"))
     create_directories_if_not_exist()
     update_go_annotations()
     update_go_basic_slim()
