@@ -20,6 +20,8 @@ import run
 import obo_parser
 import cluster_filter
 
+
+
 app = flask.Flask(__name__)
 webserver_data  = os.getcwd() + '/static/data'
 EXAMPLE_FOLDER = webserver_data + '/exampledata'
@@ -83,11 +85,11 @@ species2files_dict = {
     }
 
 # pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-                 "basic": webserver_data + r'/OBO/go-basic.obo'}
-go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
-filter_ = cluster_filter.Filter(go_dag)
+# obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
+#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
+# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+# filter_ = cluster_filter.Filter(go_dag)
 
 organism_choices = [
     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -492,6 +494,17 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     fn_results_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     return file_name, fn_results_absolute, fn_results_relative
 
+# run_simple('localhost', 5000, app,
+#            ssl_context=('/Users/dblyon/modules/cpr/agotool/ssl.crt',
+#                         '/Users/dblyon/modules/cpr/agotool/ssl.key'))
+
+from OpenSSL import SSL
+context = SSL.Context(SSL.SSLv23_METHOD)
+context.use_privatekey_file('/Users/dblyon/modules/cpr/agotool/ssl.key')
+# context.use_privatekey_file('/Users/dblyon/modules/cpr/agotool/ssl_temp/server.key')
+context.use_certificate_file('/Users/dblyon/modules/cpr/agotool/ssl.crt')
+# context.use_certificate_file('/Users/dblyon/modules/cpr/agotool/ssl_temp/server.crt')
+
 
 if __name__ == '__main__':
 
@@ -500,5 +513,16 @@ if __name__ == '__main__':
     else:
         # app.run('0.0.0.0', 5911, processes=4, debug=False)
         # app.run('red', 5911, processes=4, debug=False)
-        app.run('localhost', 5000, processes=4, debug=False)
+        # app.run('localhost', 5000, processes=4, debug=False)
+
+
+        # app.run(host='localhost',port=443, debug=False, ssl_context=context)
+
+        app.run(host='localhost',port=443, debug=False,
+                           ssl_context=('/Users/dblyon/modules/cpr/agotool/ssl.crt',
+                        '/Users/dblyon/modules/cpr/agotool/ssl.key'))
+
+
+        # run_simple('localhost', 4000, application,
+        #    ssl_context=('server.crt', 'server.key')
 

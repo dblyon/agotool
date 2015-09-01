@@ -51,4 +51,4 @@ Thumbs.db
 static/data/session/
 logs/
 static/js/favicon/
-
+ssl*
