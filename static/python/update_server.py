@@ -198,13 +198,13 @@ def parse_files_and_pickle(taxid_not_retrieved_list):
 if __name__ == '__main__':
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
     print("Current date & time " + time.strftime("%c"))
-    # create_directories_if_not_exist()
-    # taxid_not_retrieved_list = update_go_annotations()
-    # update_go_annotations_onebigfile()
-    # update_go_basic_slim()
-    # update_uniprot_annotatios()
+    create_directories_if_not_exist()
+    taxid_not_retrieved_list = update_go_annotations()
+    update_go_annotations_onebigfile()
+    update_go_basic_slim()
+    update_uniprot_annotatios()
     parse_files_and_pickle(taxid_not_retrieved_list=['9796', '39947', '3880', '3055'])
-    # cleanup_sessions()
+    cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')
 
 

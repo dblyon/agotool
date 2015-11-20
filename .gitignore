@@ -53,4 +53,4 @@ logs/
 static/js/favicon/
 ssl*
 *.p
-
+*.tmp
