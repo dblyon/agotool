@@ -52,3 +52,5 @@ static/data/session/
 logs/
 static/js/favicon/
 ssl*
+*.p
+
