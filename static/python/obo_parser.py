@@ -133,12 +133,22 @@ class GOTerm:
                 return True
         return False
 
+    # def get_all_parents(self):
+    #     all_parents = set()
+    #     for p in self.parents:
+    #         all_parents.add(p.id)
+    #         all_parents |= p.get_all_parents()
+    #     return all_parents
+
     def get_all_parents(self):
-        all_parents = set()
-        for p in self.parents:
-            all_parents.add(p.id)
-            all_parents |= p.get_all_parents()
-        return all_parents
+        try:
+            len(self.all_parents)
+        except AttributeError:
+            self.all_parents = set()
+            for p in self.parents:
+                self.all_parents.add(p.id)
+                self.all_parents |= p.get_all_parents()
+        return self.all_parents
 
     def get_all_children(self):
         all_children = set()

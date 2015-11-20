@@ -24,7 +24,7 @@
                         <li class="bulletpoints_li">"sample_an": UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “population_an” as the test group is a subset of the population)</li>
                     </ul>
                 </span>
-            <b>Select Organism:</b> Choose the species/organism the identifiers (accession numbers) correspond to.<br>
+            <b>Select Organism:</b> Choose the species/organism the identifiers (accession numbers) correspond to. A slightly larger set of organisms is available for "UniProt-keywords" than for "GO-terms" (the drop-down-list changes when selecting "GO-terms" or "UniProt-keywords"). <br>
             <b>Abundance correction:</b> Apply the abundance correction as described in the publication. A column named "population_int" (population intensity) <br>
                 that corresponds to the column "population_an" (population accession number) needs to be provided, when selecting this option.<br>
                 If "Abundance correction" is deselected "population_int" can be omitted.<br>
@@ -77,7 +77,7 @@
     <div class="col-md-12">
         <b>inflation factor:</b> Enter a number higher than 1. Usually a number between 1.1 and 10 is chosen. Increasing the value will increase cluster granularity (produce more clusters).<br>
         For more information about the <a href="http://micans.org/mcl/">Markov Cluster Algorithm (MCL)</a> please visit the web-page.<br>
-        Some combinations of data and inflation factor can take very long to process. Please be patient.<br>
+        Some combinations of data and inflation factor can take very long to process. Please be patient. The maximum time for clustering is set to 20min. If this limit is exceeded, MCL is interrupted and the original results will be displayed.<br>
         <b>Explanation of the approach</b><br>
         The aim of the clustering approach is to group results (i.e. rows of the resulting output table) associated with similar sets of accession numbers.
         Therefore, a similarity matrix is calculated, by determining the <a href="https://en.wikipedia.org/wiki/Jaccard_index">Jaccard-Index</a>
@@ -107,10 +107,7 @@
 
     </p>
 </div>
-
 <br><br><br><br><br><br>
-
 </div>
-	
+</div>
 {% endblock content %}
-

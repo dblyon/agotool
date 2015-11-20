@@ -5,8 +5,23 @@ var enrichment_page = (function() {
         var gocat_upk = $('#gocat_upk').val();
         var choice = gocat_upk == "UPK";
         toggle_if(choice, ".GOT", ".GOT_placeholder");
+
+        //// hide organimss
+        //if (choice) { // UPK selected
+        //    $('.go_term').hide();
+        //    $('.up_keyword').show();
+        //} else {
+        //    var selected = $('#organism').val();
+        //    var selected_cass = $('#organism option[value="' + selected + '"]').prop('class');
+        //    if (selected_cass == "up_keyword") {
+        //         $('#organism').val('');
+        //    }
+        //    $('.up_keyword').hide();
+        //    $('.go_term').show();
+        //}
+
     });
-    $("#gocat_upk").change();
+    $("#gocat_upk").change(); // fire event to hide stuff
 
 // hide 'alpha' parameter if BH selected
     $('#multitest_method').change(function() {

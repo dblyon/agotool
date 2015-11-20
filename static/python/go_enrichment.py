@@ -44,9 +44,12 @@ class GOEnrichmentRecord(object):
         return fold_en
 
     def find_goterm(self, go):
-        if self.id in list(go.keys()):
+        # if self.id in list(go.keys()):
+        try:
             self.goterm = go[self.id]
             self.description = self.goterm.name
+        except KeyError:
+            pass
 
     def __setattr__(self, name, value):
         self.__dict__[name] = value
@@ -241,6 +244,7 @@ class GOEnrichmentStudy(object):
         ###################################################
         :return: results-object
         """
+        fisher_dict = {}
         multitest = ("p_" + self.multitest_method, "%.3g")
         attributes2add_list = [multitest, ('description', '%s'), ('ANs_study', '%s')]
         if not self.abcorr:
@@ -253,13 +257,25 @@ class GOEnrichmentStudy(object):
             d = pop_n - pop_count
             if self.o_or_u_or_both == 'underrepresented':
                 # purified or underrepresented --> left_tail or less
-                p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
+                try:
+                    p_val_uncorrected = fisher_dict[(a,b,c,d)]
+                except KeyError:
+                    p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
+                    fisher_dict[(a,b,c,d)] = p_val_uncorrected
             elif self.o_or_u_or_both == 'overrepresented':
                 # enriched or overrepresented --> right_tail or greater
-                p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='less')[1]
+                try:
+                    p_val_uncorrected = fisher_dict[(a,b,c,d)]
+                except KeyError:
+                    p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='less')[1]
+                    fisher_dict[(a,b,c,d)] = p_val_uncorrected
             else:
                 # both --> two_tail or two-sided
-                p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='two-sided')[1]
+                try:
+                    p_val_uncorrected = fisher_dict[(a,b,c,d)]
+                except KeyError:
+                    p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='two-sided')[1]
+                    fisher_dict[(a,b,c,d)] = p_val_uncorrected
             one_record = GOEnrichmentRecord(
                 id=goid,
                 p_uncorrected=p_val_uncorrected,

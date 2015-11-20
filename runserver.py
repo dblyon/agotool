@@ -19,8 +19,7 @@ sys.path.append('static/python')
 import run
 import obo_parser
 import cluster_filter
-
-
+import go_retriever
 
 app = flask.Flask(__name__)
 webserver_data  = os.getcwd() + '/static/data'
@@ -59,47 +58,72 @@ def log_activity(string2log):
     log_activity_fh.write(string2log)
     log_activity_fh.flush()
 
-profiling = False
+profiling = True
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[30])
 
-species2files_dict = {
-    "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
-    "4932": {'goa_ref_fn': webserver_data + r'/GOA/4932.tsv',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/4932.tab'},
-    "3702": {'goa_ref_fn': webserver_data + r'/GOA/3702.tsv',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3702.tab'},
-    "7955": {'goa_ref_fn': webserver_data + r'/GOA/7955.tsv',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7955.tab'},
-    "7227": {'goa_ref_fn': webserver_data + r'/GOA/7227.tsv',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7227.tab'},
-    "9031": {'goa_ref_fn': webserver_data + r'/GOA/9031.tsv',
-           'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9031.tab'},
-    "10090": {'goa_ref_fn': webserver_data + r'/GOA/10090.tsv',
-       'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10090.tab'},
-    "10116": {'goa_ref_fn': webserver_data + r'/GOA/10116.tsv',
-       'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'}
-    }
+################################################################################
+##### Maximum Time for MCL clustering
+max_timeout = 20 # minutes
+################################################################################
 
-# pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+################################################################################
+##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+pgoa = go_retriever.Parser_GO_annotations()
+pgoa.unpickle()
+upkp = go_retriever.UniProtKeywordsParser()
+upkp.unpickle()
 obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
                  "basic": webserver_data + r'/OBO/go-basic.obo'}
 go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
 goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
-filter_ = cluster_filter.Filter(go_dag)
 
+for go_term in go_dag.keys():
+    parents = go_dag[go_term].get_all_parents()
+
+filter_ = cluster_filter.Filter(go_dag)
+################################################################################
+# species2files_dict = {
+#     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
+#     "559292": {'goa_ref_fn': webserver_data + r'/GOA/559292.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/559292.tab'},
+#     "3702": {'goa_ref_fn': webserver_data + r'/GOA/3702.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3702.tab'},
+#     "7955": {'goa_ref_fn': webserver_data + r'/GOA/7955.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7955.tab'},
+#     "7227": {'goa_ref_fn': webserver_data + r'/GOA/7227.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7227.tab'},
+#     "9031": {'goa_ref_fn': webserver_data + r'/GOA/9031.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9031.tab'},
+#     "10090": {'goa_ref_fn': webserver_data + r'/GOA/10090.tsv',
+#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10090.tab'},
+#     "10116": {'goa_ref_fn': webserver_data + r'/GOA/10116.tsv',
+#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'},
+#     "9823": {'goa_ref_fn': webserver_data + r'/GOA/9823.tsv',
+#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9823.tab'},
+#     "9796": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9796.tab'},
+#     "39947": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/39947.tab'},
+#     "3880": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3880.tab'},
+#     "3055": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3055.tab'}}
+#4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
+################################################################################
 organism_choices = [
-    (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
-    (u'9606',  u'Homo sapiens'), # Human
-    (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
-    (u'7955',  u'Danio rerio'), # Zebrafish
-    (u'7227',  u'Drosophila melanogaster'), # Fly
-    (u'9031',  u'Gallus gallus'), # Chicken
+    (u'559292', u'Saccharomyces cerevisiae'), # Yeast not 4932 any more !!!
+    (u'9606', u'Homo sapiens'), # Human
+    (u'7955', u'Danio rerio'), # Zebrafish
+    (u'7227', u'Drosophila melanogaster'), # Fly
+    (u'9796', u'Equus caballus'), # Horse
+    (u'9031', u'Gallus gallus'), # Chicken
     (u'10090', u'Mus musculus'), # Mouse
-    (u'10116', u'Rattus norvegicus') # Rat
+    (u'10116', u'Rattus norvegicus'), # Rat
+    (u'9823', u'Sus scrofa'), # Pig
+    (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
+    (u'3055', u'Chlamydomonas reinhardtii'), # Chlamy
+    (u'3880', u'Medicago truncatula'), # Medicago
+    (u'39947', u'Oryza sativa subsp. japonica') # Rice
     ]
 
 ################################################################################
@@ -321,6 +345,9 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
 
 @app.route('/enrichment')
 def enrichment():
+    # return render_template('enrichment.html', form=Enrichment_Form(),
+    #                        up_organisms=zip(*organism_choices_UniProt)[0],
+                           # go_organisms=zip(*organism_choices_GO)[0])
     return render_template('enrichment.html', form=Enrichment_Form())
 
 ################################################################################
@@ -365,8 +392,8 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.organism.d
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_mulitpletesting.data, species2files_dict, go_dag,
-                goslim_dag)
+                form.p_value_mulitpletesting.data, go_dag,
+                goslim_dag, pgoa, upkp)
         else:
             return render_template('info_check_input.html')
 
@@ -378,7 +405,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.organism.d
                                         form.indent.data, session_id, form=Results_Form())
     return render_template('enrichment.html', form=form)
 
-def generate_result_page(header, results, gocat_upk, indent, session_id, form):
+def generate_result_page(header, results, gocat_upk, indent, session_id, form, errors=()):
     header = header.rstrip().split("\t")
     ellipsis_indices = elipsis(header)
     results2display = []
@@ -390,7 +417,7 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form):
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
     with open(fn_results_orig_absolute, 'w') as f:
         f.write(tsv)
-    return render_template('results.html', header=header, results=results2display, errors=[],
+    return render_template('results.html', header=header, results=results2display, errors=errors,
                            file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
 
@@ -404,7 +431,6 @@ def results_back():
     and remembers user options in order to perform clustering or filtering
     as initially
     """
-    # ipdb.set_trace()
     session_id = request.form['session_id']
     gocat_upk = request.form['gocat_upk']
     indent = request.form['indent']
@@ -462,8 +488,12 @@ def results_clustered():
     header, results = read_results_file(fn_results_orig_absolute)
     if not form.validate():
         return generate_result_page(header, results, gocat_upk, indent, session_id, form=form)
-    mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE)
-    cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+    try:
+        mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, max_timeout)
+        cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+    except cluster_filter.TimeOutException:
+        return generate_result_page(header, results, gocat_upk, indent, session_id, form=form, errors=['MCL timeout: The maximum time (20min) for clustering has exceeded. Your original results are being displayed.'])
+
     num_clusters = len(cluster_list)
     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
     results2display = []
@@ -494,17 +524,6 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     fn_results_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     return file_name, fn_results_absolute, fn_results_relative
 
-# run_simple('localhost', 5000, app,
-#            ssl_context=('/Users/dblyon/modules/cpr/agotool/ssl.crt',
-#                         '/Users/dblyon/modules/cpr/agotool/ssl.key'))
-
-#from OpenSSL import SSL
-#context = SSL.Context(SSL.SSLv23_METHOD)
-#context.use_privatekey_file('/Users/dblyon/modules/cpr/agotool/ssl.key')
-# context.use_privatekey_file('/Users/dblyon/modules/cpr/agotool/ssl_temp/server.key')
-#context.use_certificate_file('/Users/dblyon/modules/cpr/agotool/ssl.crt')
-# context.use_certificate_file('/Users/dblyon/modules/cpr/agotool/ssl_temp/server.crt')
-
 
 if __name__ == '__main__':
 
@@ -517,6 +536,37 @@ if __name__ == '__main__':
 
 
         # app.run(host='localhost',port=443, debug=False, ssl_context=context)
+        app.run('localhost', 5000, debug=True)
+        # app.run(host='localhost', port=5911, processes=8, debug=False)
 
-        app.run(host='localhost', port=5911, processes=8, debug=False)
 
+
+
+
+# organism_choices_UniProt = [
+#     (u'4932', u'Saccharomyces cerevisiae'), # Yeast
+#     (u'9606', u'Homo sapiens'), # Human
+#     (u'7955', u'Danio rerio'), # Zebrafish
+#     (u'7227', u'Drosophila melanogaster'), # Fly
+#     (u'9796', u'Equus caballus'), # Horse
+#     (u'9031', u'Gallus gallus'), # Chicken
+#     (u'10090', u'Mus musculus'), # Mouse
+#     (u'10116', u'Rattus norvegicus'), # Rat
+#     (u'9823', u'Sus scrofa'), # Pig
+#     (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
+#     (u'3055', u'Chlamydomonas reinhardtii'), # Chlamy
+#     (u'3880', u'Medicago truncatula'), # Medicago
+#     (u'39947', u'Oryza sativa subsp. japonica') # Rice
+#     ]
+
+# organism_choices_GO= [
+#     (u'4932', u'Saccharomyces cerevisiae'), # Yeast
+#     (u'9606', u'Homo sapiens'), # Human
+#     (u'7955', u'Danio rerio'), # Zebrafish
+#     (u'7227', u'Drosophila melanogaster'), # Fly
+#     (u'9031', u'Gallus gallus'), # Chicken
+#     (u'10090', u'Mus musculus'), # Mouse
+#     (u'10116', u'Rattus norvegicus'), # Rat
+#     (u'9823', u'Sus scrofa'), # Pig
+#     (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
+#     ]

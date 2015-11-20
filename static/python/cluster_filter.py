@@ -3,18 +3,27 @@ import itertools
 import shlex
 import subprocess
 import os
+import threading
+import signal
+import time
+
+class TimeOutException(BaseException):
+    pass
 
 # filename = '{}.pid'.format(os.getpid())
 # filename = '{}_pid'.format(os.getpid())
 
 class MCL(object):
 
-    def __init__(self, SESSION_FOLDER_ABSOLUTE):
+    def __init__(self, SESSION_FOLDER_ABSOLUTE, max_timeout):
         # self.set_fh_log(os.path.dirname(os.getcwd()) + r'/data/mcl/mcl_log.txt')
         # self.abs_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + r'/data/mcl/'
         # self.set_fh_log(self.abs_path + 'mcl_log.txt')
         self.abs_path = SESSION_FOLDER_ABSOLUTE
         self.set_fh_log(os.path.join(self.abs_path, 'mcl_log.txt'))
+        self.max_timeout =  max_timeout * 60
+        # print("#"*80)
+        # print("2. max_timeout {}".format(max_timeout))
 
     def set_fh_log(self, log_fn):
         self.fh_log = open(log_fn, "a")
@@ -27,12 +36,18 @@ class MCL(object):
         self.get_fh_log().close()
 
     def jaccard_index_ans_setA2B(self, ans_set1, ans_set2):
-        B = float(len(ans_set1.intersection(ans_set2)))
-        ABC = len(ans_set1.union(ans_set2))
-        try:
-            return B/ABC
-        except ZeroDivisionError:
+        # ABC = len(ans_set1.union(ans_set2))
+        ABC = len(ans_set1 & ans_set2)
+        # try:
+        #     return B/ABC
+        # except ZeroDivisionError:
+        #     return 0.0
+        if ABC == 0:
             return 0.0
+        else:
+            # B = float(len(ans_set1.intersection(ans_set2)))
+            B = float(len(ans_set1 | ans_set2))
+            return B / ABC
 
     def write_JaccardIndexMatrix(self, fn_results, fn_out): #!!! profile this function
         """
@@ -59,7 +74,7 @@ class MCL(object):
 
     def results2list_of_sets(self, fn_results):
         with open(fn_results, 'r') as fh:
-            lines_split = [ele.strip().split('\t') for ele in fh.readlines()]
+            lines_split = [ele.strip().split('\t') for ele in fh]
         ANs_study_index = lines_split[0].index("ANs_study")
         # try:
         return [set(row[ANs_study_index].split(', ')) for row in lines_split[1:]]
@@ -92,12 +107,59 @@ class MCL(object):
                 line2write = str(c1) + '\t' + str(c2) + '\t' + str(ji) + '\n'
                 fh.write(line2write)
 
+    def write_JaccardIndexMatrix_speed(self, fn_results, fn_out):
+        list_of_sets = self.results2list_of_sets(fn_results)
+        with open(fn_out, 'w') as fh:
+            for combi in itertools.combinations(range(0, len(list_of_sets)), 2):
+                c1, c2 = combi
+                ans_set1 = list_of_sets[c1]
+                ans_set2 = list_of_sets[c2]
+                ABC = len(ans_set1 & ans_set2)
+                if ABC == 0:
+                    ji = 0.0
+                else:
+                    B = len(ans_set1 | ans_set2) * 1.0
+                    ji = B / ABC
+                line2write = str(c1) + '\t' + str(c2) + '\t' + str(ji) + '\n'
+                #fh.write(line2write)
+
     def mcl_cluster2file(self, mcl_in, inflation_factor, mcl_out):
+        print(self.max_timeout)
         cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
         args = shlex.split(cmd_text)
-        ph = subprocess.Popen(args, stdin=None, stdout=self.get_fh_log(), stderr=self.get_fh_log())
+        #ph = subprocess.Popen(args, stdin=None, stdout=self.get_fh_log(), stderr=self.get_fh_log())
+#        self.pid = ph.pid
+        class my_process(object):
+            # hack to get a namespace
+            def open(self, args, **kwargs):
+                ph = subprocess.Popen(args, **kwargs)
+                self.process = ph
+                self.pid = ph.pid
+                ph.wait()
+        kwargs = {
+            "stdin" : None,
+            "stdout" : self.get_fh_log(),
+            "stderr" : self.get_fh_log()
+        }
+        p = my_process()
+        t = threading.Thread(target=p.open, args=(args,), kwargs=kwargs)
+        t.start()
         self.get_fh_log().flush()
-        return ph.wait()
+        # wait for max_time, kill or return depending on time
+#        is_alive = False
+        for time_passed in range(1, self.max_timeout + 1):
+            time.sleep(1)
+            if not t.isAlive():
+                break
+        if t.isAlive():
+            os.kill(p.pid, signal.SIGKILL)
+            raise TimeOutException("MCL took to long and was killed:(")
+        ###################################################################### --> I like you <3
+        ########## in python 3 Popen.wait takes 1 argument          ##########
+        ########## ... the name is timeout... guess what it does    ########## ^^ this is my favorite smiley <3
+        ########## ... ever considered switching to python 3 ;)     ##########
+        ######################################################################
+#        return ph.wait();
 
     def get_clusters(self, mcl_out):
         """
@@ -120,12 +182,31 @@ class MCL(object):
         # df = pd.read_csv(fn_results, sep='\t')
         mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
         mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
-        # self.write_JaccardIndexMatrix(fn_results, mcl_in)
-        self.write_JaccardIndexMatrix_2(fn_results, mcl_in)
+        self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
         self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
         self.close_log()
         return self.get_clusters(mcl_out)
 
+    # def a(self, session_id, fn_results, inflation_factor):
+    #     # df = pd.read_csv(fn_results, sep='\t')
+    #     mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
+    #     mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
+    #     # self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
+    #     self.write_JaccardIndexMatrix_2(fn_results, mcl_in)
+    #
+    # def b(self, session_id, fn_results, inflation_factor):
+    #     # df = pd.read_csv(fn_results, sep='\t')
+    #     mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
+    #     mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
+    #     # self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
+    #     self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
+    # #
+    # def c(self, session_id, fn_results, inflation_factor):
+    #     # df = pd.read_csv(fn_results, sep='\t')
+    #     mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
+    #     mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
+    #     # self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
+    #     self.write_JaccardIndexMatrix_speed2(fn_results, mcl_in)
 
 
 class Filter(object):
@@ -153,14 +234,7 @@ class Filter(object):
         header_list = header.split('\t') #!!!
         index_p = header_list.index('p_uncorrected')
         index_go = header_list.index('id')
-        # print("#"*80)
-        # print("FILTER CLUSTER")
-        # print(index_p, index_go)
-        # print("#"*80)
         results = [res.split('\t') for res in results]
-        # for res in results:
-        #     if not len(res) >= index_p:
-        #         print res
         results.sort(key=lambda x: float(x[index_p]))
         for res in results:
             if indent:
@@ -193,10 +267,12 @@ if __name__ == "__main__":
     ##### PROFILING MCL
     # data=GO-terms yeast default
     SESSION_FOLDER_ABSOLUTE = r'/Users/dblyon/modules/cpr/agotool/static/data/session/'
-    mcl = MCL(SESSION_FOLDER_ABSOLUTE)
+    mcl = MCL(SESSION_FOLDER_ABSOLUTE, max_timeout=1)
     # session_id = "_5581_1438333013.92"
     # session_id = '_6027_1440960988.55'
-    session_id = '_6029_1440960996.93'
+    # session_id = '_6029_1440960996.93'
+    session_id = '_31830_1447841531.11'
+    # results_orig_31830_1447841531.11.tsv
     inflation_factor = 2.0
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, ("results_orig" + session_id + ".tsv"))
     cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
