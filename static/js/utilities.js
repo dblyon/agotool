@@ -62,7 +62,7 @@ var results_page = (function () {
     }
 
     $('#table_id').DataTable({
-        paging: false
+        paging: true
     });
 
     $("tbody > tr").hover(

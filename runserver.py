@@ -58,7 +58,7 @@ def log_activity(string2log):
     log_activity_fh.write(string2log)
     log_activity_fh.flush()
 
-profiling = True
+profiling = False
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
@@ -533,11 +533,9 @@ if __name__ == '__main__':
         # app.run('0.0.0.0', 5911, processes=4, debug=False)
         # app.run('red', 5911, processes=4, debug=False)
         # app.run('localhost', 5000, processes=4, debug=False)
-
-
         # app.run(host='localhost',port=443, debug=False, ssl_context=context)
-        app.run('localhost', 5000, debug=True)
-        # app.run(host='localhost', port=5911, processes=8, debug=False)
+        # app.run('localhost', 5000, debug=True)
+        app.run(host='localhost', port=5911, processes=8, debug=False)
 
 
 

@@ -88,25 +88,6 @@ class MCL(object):
 
         # return [set(row[ANs_study_index].split(', ')) for row in lines_split[1:]]
 
-    def write_JaccardIndexMatrix_2(self, fn_results, fn_out):
-        """
-        expects a DataFrame with a 'ANs_study' column,
-        calculates the Jaccard Index for all
-        combinations of AN sets.
-        :param df: DataFrame
-        :param fn_out: rawString
-        :return: None
-        """
-        list_of_sets = self.results2list_of_sets(fn_results)
-        with open(fn_out, 'w') as fh:
-            for combi in itertools.combinations(range(0, len(list_of_sets)), 2):
-                c1, c2 = combi
-                ans_set1 = list_of_sets[c1]
-                ans_set2 = list_of_sets[c2]
-                ji = self.jaccard_index_ans_setA2B(ans_set1, ans_set2)
-                line2write = str(c1) + '\t' + str(c2) + '\t' + str(ji) + '\n'
-                fh.write(line2write)
-
     def write_JaccardIndexMatrix_speed(self, fn_results, fn_out):
         list_of_sets = self.results2list_of_sets(fn_results)
         with open(fn_out, 'w') as fh:
@@ -121,7 +102,7 @@ class MCL(object):
                     B = len(ans_set1 | ans_set2) * 1.0
                     ji = B / ABC
                 line2write = str(c1) + '\t' + str(c2) + '\t' + str(ji) + '\n'
-                #fh.write(line2write)
+                fh.write(line2write)
 
     def mcl_cluster2file(self, mcl_in, inflation_factor, mcl_out):
         print(self.max_timeout)
@@ -179,35 +160,13 @@ class MCL(object):
         return cluster_list
 
     def calc_MCL_get_clusters(self, session_id, fn_results, inflation_factor):
-        # df = pd.read_csv(fn_results, sep='\t')
         mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
         mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
-        self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
+        if not os.path.isfile(mcl_in):
+            self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
         self.mcl_cluster2file(mcl_in, inflation_factor, mcl_out)
         self.close_log()
         return self.get_clusters(mcl_out)
-
-    # def a(self, session_id, fn_results, inflation_factor):
-    #     # df = pd.read_csv(fn_results, sep='\t')
-    #     mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
-    #     mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
-    #     # self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
-    #     self.write_JaccardIndexMatrix_2(fn_results, mcl_in)
-    #
-    # def b(self, session_id, fn_results, inflation_factor):
-    #     # df = pd.read_csv(fn_results, sep='\t')
-    #     mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
-    #     mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
-    #     # self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
-    #     self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
-    # #
-    # def c(self, session_id, fn_results, inflation_factor):
-    #     # df = pd.read_csv(fn_results, sep='\t')
-    #     mcl_in = os.path.join(self.abs_path, 'mcl_in') + session_id + '.txt'
-    #     mcl_out = os.path.join(self.abs_path, 'mcl_out') + session_id + '.txt'
-    #     # self.write_JaccardIndexMatrix_speed(fn_results, mcl_in)
-    #     self.write_JaccardIndexMatrix_speed2(fn_results, mcl_in)
-
 
 class Filter(object):
 
