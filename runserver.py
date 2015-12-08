@@ -111,8 +111,8 @@ filter_ = cluster_filter.Filter(go_dag)
 #4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
 ################################################################################
 organism_choices = [
-    (u'559292', u'Saccharomyces cerevisiae'), # Yeast not 4932 any more !!!
     (u'9606', u'Homo sapiens'), # Human
+    (u'559292', u'Saccharomyces cerevisiae'), # Yeast not 4932 any more !!!
     (u'7955', u'Danio rerio'), # Zebrafish
     (u'7227', u'Drosophila melanogaster'), # Fly
     (u'9796', u'Equus caballus'), # Horse
@@ -535,7 +535,7 @@ if __name__ == '__main__':
         # app.run('localhost', 5000, processes=4, debug=False)
         # app.run(host='localhost',port=443, debug=False, ssl_context=context)
         # app.run('localhost', 5000, debug=True)
-        app.run(host='localhost', port=5911, processes=8, debug=False)
+        app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 
 
 
