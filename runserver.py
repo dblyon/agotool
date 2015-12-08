@@ -111,21 +111,19 @@ filter_ = cluster_filter.Filter(go_dag)
 #4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
 ################################################################################
 organism_choices = [
-    (u'9606', u'Homo sapiens'), # Human
-    (u'559292', u'Saccharomyces cerevisiae'), # Yeast not 4932 any more !!!
-    (u'7955', u'Danio rerio'), # Zebrafish
-    (u'7227', u'Drosophila melanogaster'), # Fly
-    (u'9796', u'Equus caballus'), # Horse
-    (u'9031', u'Gallus gallus'), # Chicken
-    (u'10090', u'Mus musculus'), # Mouse
-    (u'10116', u'Rattus norvegicus'), # Rat
-    (u'9823', u'Sus scrofa'), # Pig
-    (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
-    (u'3055', u'Chlamydomonas reinhardtii'), # Chlamy
-    (u'3880', u'Medicago truncatula'), # Medicago
-    (u'39947', u'Oryza sativa subsp. japonica') # Rice
-    ]
-
+    (u'9606', u'Homo sapiens'),
+    (u'3702', u'Arabidopsis thaliana'),
+    (u'3055', u'Chlamydomonas reinhardtii'),
+    (u'7955', u'Danio rerio'),
+    (u'7227', u'Drosophila melanogaster'),
+    (u'9796', u'Equus caballus'),
+    (u'9031', u'Gallus gallus'),
+    (u'3880', u'Medicago truncatula'),
+    (u'10090', u'Mus musculus'),
+    (u'39947', u'Oryza sativa subsp. japonica'),
+    (u'10116', u'Rattus norvegicus'),
+    (u'559292', u'Saccharomyces cerevisiae'),
+    (u'9823', u'Sus scrofa')]
 ################################################################################
 # index.html
 ################################################################################
