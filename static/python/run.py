@@ -33,7 +33,7 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         # uniprot_keywords_fn = species2files_dict[organism]["uniprot_keywords_fn"]
         # assoc_dict = go_retriever.UniProtKeywordsParser(
         #     uniprot_keywords_fn).get_association_dict()
-        assoc_dict = upkp.get_association_dict_from_organims(go_dagorganism)
+        assoc_dict = upkp.get_association_dict_from_organims(organism)
         gostudy = go_enrichment.GOEnrichmentStudy_UPK(
             ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both,
             multitest_method)
