@@ -36,7 +36,8 @@ class GOEnrichmentRecord(object):
         self.perc_associated_pop = self.perc_associated_pop * 100
         self.attributes_list += attributes2add
 
-    def calc_fold_enrichemnt(self, zaehler, nenner):
+    @staticmethod
+    def calc_fold_enrichemnt(zaehler, nenner):
         try:
             fold_en = float(zaehler) / nenner
         except ZeroDivisionError:
@@ -202,12 +203,14 @@ class GOEnrichmentStudy(object):
 
     def get_ans_from_goid(self, goid, study):
         if study:
-            if self.go2ans_study_dict.has_key(goid):
+            # if self.go2ans_study_dict.has_key(goid):
+            if goid in self.go2ans_study_dict:
                 return sorted(self.go2ans_study_dict[goid])
             else:
                 return ''
         else:
-            if self.go2ans_pop_dict.has_key(goid):
+            # if self.go2ans_pop_dict.has_key(goid):
+            if goid in self.go2ans_pop_dict:
                 return sorted(self.go2ans_pop_dict[goid])
             else:
                 return ''
@@ -392,7 +395,8 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
 
         self.run_study(self.term_study, self.term_pop, study_n, pop_n)
 
-    def count_upk(self, ans_set, assoc_dict):
+    @staticmethod
+    def count_upk(ans_set, assoc_dict):
         """
         count the number of terms in the study group
         produces defaultsdict: key=UPKeyword, val=Num of occurrences
@@ -403,13 +407,16 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         for an in (acnum for acnum in ans_set if acnum in assoc_dict):
             for upk in assoc_dict[an]:
                 term_cnt[upk] += 1
-                if not upk2ans_dict.has_key(upk):
-                    upk2ans_dict[upk] = set([an])
+                # if not upk2ans_dict.has_key(upk):
+                if upk not in upk2ans_dict:
+                    # upk2ans_dict[upk] = set([an])
+                    upk2ans_dict[upk] = {[an]}
                 else:
                     upk2ans_dict[upk].update([an])
-        return(term_cnt, upk2ans_dict)
+        return term_cnt, upk2ans_dict
 
-    def count_upk_v2(self, ans_set, assoc_dict):
+    @staticmethod
+    def count_upk_v2(ans_set, assoc_dict):
         """
         count the number of terms in the study group
         produces defaultsdict: key=UPKeyword, val=Num of occurrences
@@ -422,13 +429,16 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
             for upk in assoc_dict[an]:
                 term_cnt[upk] += 1
                 ans2count.update([an])
-                if not upk2ans_dict.has_key(upk):
-                    upk2ans_dict[upk] = set([an])
+                # if not upk2ans_dict.has_key(upk):
+                if upk not in upk2ans_dict:
+                    # upk2ans_dict[upk] = set([an])
+                    upk2ans_dict[upk] = {[an]}
                 else:
                     upk2ans_dict[upk].update([an])
-        return(term_cnt, upk2ans_dict, len(ans2count))
+        return term_cnt, upk2ans_dict, len(ans2count)
 
-    def count_upk_abundance_corrected(self, ui, assoc_dict):
+    @staticmethod
+    def count_upk_abundance_corrected(ui, assoc_dict):
         """
         produce abundance corrected counts of UPK of background frequency
         round floats to nearest integer

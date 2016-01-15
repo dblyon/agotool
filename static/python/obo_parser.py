@@ -16,7 +16,6 @@ def after_colon(line):
     # macro for getting anything after the :
     return line.split(":", 1)[1].strip()
 
-
 def read_until(handle, start):
     # read each line until it has a certain start, and then puts
     # the start tag back
@@ -31,15 +30,13 @@ def read_until(handle, start):
     raise EOFError("%s tag cannot be found" % start)
 
 
-class OBOReader:
+class OBOReader(object):
     """
     parse obo file, usually the most updated can be downloaded from
     http://purl.obolibrary.org/obo/go/go-basic.obo
-
     >>> reader = OBOReader()
     >>> for rec in reader:
             print rec
-
     """
 
     def __init__(self, obo_file="go-basic.obo"):
@@ -88,15 +85,16 @@ class OBOReader:
             elif line.startswith("namespace:"):
                 rec.namespace = after_colon(line)
             elif line.startswith("is_a:"):
-                rec._parents.append(after_colon(line).split()[0])
+                # rec._parents.append(after_colon(line).split()[0])
+                # replaced due to static code analysis from 'quantified code' START
+                rec.parents.append(after_colon(line).split()[0])
             elif (line.startswith("is_obsolete:") and
                   after_colon(line) == "true"):
                 rec.is_obsolete = True
-
         return rec
 
 
-class GOTerm:
+class GOTerm(object):
     """
     GO term, actually contain a lot more properties than interfaced here
     """
@@ -119,7 +117,21 @@ class GOTerm:
                                                self.name, self.namespace, obsolete)
 
     def __repr__(self):
-        return "GOTerm('%s')" % (self.id)
+        return "GOTerm('%s')" % self.id
+
+    # added due to static code analysis from 'quantified code' START
+    @property
+    def parents(self):
+        return self._parents
+
+    @parents.setter
+    def parents(self, value):
+        self._parents = value
+
+    @parents.deleter
+    def parents(self):
+        del self._parents
+    # added due to static code analysis from 'quantified code' STOP
 
     def has_parent(self, term):
         for p in self.parents:
