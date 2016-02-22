@@ -19,6 +19,24 @@ class Parser_GO_annotations(object):
     produce list of GO-terms associated with given AccessionNumber
     file format info:
     http://geneontology.org/page/go-annotation-file-format-20
+    Column	Content	Required?	Cardinality	Example
+    1	DB	required	1	UniProtKB
+    2	DB Object ID	required	1	P12345
+    3	DB Object Symbol	required	1	PHO3
+    4	Qualifier	optional	0 or greater	NOT
+    5	GO ID	required	1	GO:0003993
+    6	DB:Reference (|DB:Reference)	required	1 or greater	PMID:2676709
+    7	Evidence Code	required	1	IMP
+    8	With (or) From	optional	0 or greater	GO:0000346
+    9	Aspect	required	1	F
+    10	DB Object Name	optional	0 or 1	Toll-like receptor 4
+    11	DB Object Synonym (|Synonym)	optional	0 or greater	hToll|Tollbooth
+    12	DB Object Type	required	1	protein
+    13	Taxon(|taxon)	required	1 or 2	taxon:9606
+    14	Date	required	1	20090118
+    15	Assigned By	required	1	SGD
+    16	Annotation Extension	optional	0 or greater	part_of(CL:0000576)
+    17	Gene Product Form ID	optional	0 or 1	UniProtKB:P12345-2
     ############################################################################
     A.) SPECIES SPECIFIC FILTERED
     UniProt-GOA also provides species-specific annotation sets
@@ -357,20 +375,29 @@ def gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking):
 
 
 if __name__ == "__main__":
-    fn_gz = r"../../static/data/GOA/uniprot_test.gz"
-    organisms_set={u'10090',
-                     u'10116',
-                     u'3055',
-                     u'3702',
-                     u'3880',
-                     u'39947',
-                     u'4932',
-                     u'7227',
-                     u'7955',
-                     u'9031',
-                     u'9606',
-                     u'9796',
-                     u'9823'}
+################################################################################
+### try new HOMD_GOA.tsv
+    pgoa = Parser_GO_annotations()
+    fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA.tsv'
+    pgoa.parse_goa_ref(fn, organisms_set=None)
+
+
+################################################################################
+    # fn_gz = r"../../static/data/GOA/uniprot_test.gz"
+    # organisms_set={u'10090',
+    #                  u'10116',
+    #                  u'3055',
+    #                  u'3702',
+    #                  u'3880',
+    #                  u'39947',
+    #                  u'4932',
+    #                  u'7227',
+    #                  u'7955',
+    #                  u'9031',
+    #                  u'9606',
+    #                  u'9796',
+    #                  u'9823'}
+
     ##### parsing from GOA_ref file
     # pgoa = Parser_GO_annotations(fn_gz, organisms_set)
     # go_dag = obo_parser.GODag(obo_file=r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo')
@@ -380,6 +407,7 @@ if __name__ == "__main__":
     # pgoa.unpickle()
     # go_dag = obo_parser.GODag(obo_file=r'../../static/data/OBO/go-basic.obo')
     # assoc_dict = pgoa.get_association_dict_for_organism(go_parent="all_GO", obo_dag=go_dag, organism="9606")
+
 
 
 

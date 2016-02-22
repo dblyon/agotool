@@ -317,12 +317,12 @@ class UserInput_noAbCorr(UserInput):
 
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> correction: 1 row of first value
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        self.sample_ser     = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.sample_ser)
+        self.sample_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.sample_ser)
         self.background_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.background_ser)
 
         # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
         cond = pd.notnull(self.sample_ser)
-        self.sample_ser     = self.sample_ser.loc[cond, ].drop_duplicates()
+        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
         cond = pd.notnull(self.background_ser)
         self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
 
@@ -331,4 +331,32 @@ class UserInput_noAbCorr(UserInput):
 
     def get_background_an_all_set(self):
         return set(self.background_ser)
+
+class UserInput_compare_groups(object):
+
+    def __init__(self, user_input_fn, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
+        self.user_input_fn = user_input_fn
+        self.decimal = decimal
+        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
+        self.col_sample_an = col_sample_an
+        self.col_background_an = col_background_an
+
+        # remove NaNs from samplefrequency and backgroundfrequency AN-cols
+        # DON'T REMOVE DUPLICATES
+        cond = pd.notnull(self.sample_ser)
+        self.sample_ser = self.sample_ser.loc[cond, ]
+        cond = pd.notnull(self.background_ser)
+        self.background_ser = self.background_ser.loc[cond, ]
+
+    def get_sample_an(self):
+        return self.sample_ser
+
+    def get_background_an(self):
+        return self.background_ser
+
+
+if __name__ == "__main__":
+    fn = r''
+    ui = UserInput_compare_groups(fn)
+
 

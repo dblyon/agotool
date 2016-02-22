@@ -524,17 +524,22 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 
 if __name__ == '__main__':
+    # ToDo potential speedup
+    # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
+    # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
+    # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
 
     if profiling:
         app.run('localhost', 5000, debug=True)
     else:
         # app.run('0.0.0.0', 5911, processes=4, debug=False)
-        # app.run('red', 5911, processes=4, debug=False)
         # app.run('localhost', 5000, processes=4, debug=False)
-        # app.run(host='localhost',port=443, debug=False, ssl_context=context)
-        # app.run('localhost', 5000, debug=True)
-        app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 
+        app.run('localhost', 5000, debug=True)
+################################################################################
+        ### agptool
+        # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+################################################################################
 
 
 
