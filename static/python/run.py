@@ -23,8 +23,7 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         p_value_uncorrected = None
 
     if abcorr:
-        ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an,
-                                 col_background_an, col_background_int, decimal)
+        ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
     else:
         ui = userinput.UserInput_noAbCorr(
             userinput_fn, num_bins, col_sample_an, col_background_an, decimal)
@@ -34,12 +33,8 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         # assoc_dict = go_retriever.UniProtKeywordsParser(
         #     uniprot_keywords_fn).get_association_dict()
         assoc_dict = upkp.get_association_dict_from_organims(organism)
-        gostudy = go_enrichment.GOEnrichmentStudy_UPK(
-            ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both,
-            multitest_method)
-        header, results = gostudy.write_summary2file_web(
-            fold_enrichment_study2pop, p_value_mulitpletesting,
-            p_value_uncorrected)
+        gostudy = go_enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
+        header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
     else:
         go_parent = gocat_upk
         # goa_ref_fn = species2files_dict[organism]["goa_ref_fn"]
@@ -47,18 +42,11 @@ def run(userinput_fn, decimal, organism, gocat_upk, go_slim_or_basic, indent,
         #     goa_ref_fn = goa_ref_fn).get_association_dict(go_parent, go_dag)
         assoc_dict = pgoa.get_association_dict_for_organism(go_parent=go_parent, obo_dag=go_dag, organism=organism)
         if go_slim_or_basic == 'slim':
-            assoc_dict_slim = go_retriever.gobasic2slims(
-                assoc_dict, go_dag, goslim_dag, backtracking)
-            gostudy = go_enrichment.GOEnrichmentStudy(
-                ui, assoc_dict_slim, goslim_dag, alpha, backtracking,
-                randomSample, abcorr, o_or_u_or_both, multitest_method)
+            assoc_dict_slim = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
+            gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method)
         else:
-            gostudy = go_enrichment.GOEnrichmentStudy(
-                ui, assoc_dict, go_dag, alpha, backtracking, randomSample,
-                abcorr, o_or_u_or_both, multitest_method)
-        header, results = gostudy.write_summary2file_web(
-            fold_enrichment_study2pop, p_value_mulitpletesting,
-            p_value_uncorrected, indent)
+            gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method)
+        header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
 
     return header, results
     # return gostudy

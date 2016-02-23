@@ -87,7 +87,7 @@ class Parser_GO_annotations(object):
         try:
             len(self.organism2ans_dict)
         except AttributeError:
-            self.organism2ans_dict = {} # key=TaxID(String), val=ListOfANs
+            # self.organism2ans_dict = {} # key=TaxID(String), val=ListOfANs
             self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
         self.HOMD = HOMD
 
@@ -125,10 +125,10 @@ class Parser_GO_annotations(object):
                     if organisms_set is not None:
                         if not organism in organisms_set:
                             continue
-                    if not self.organism2ans_dict.has_key(organism):
-                        self.organism2ans_dict[organism] = [an]
-                    else:
-                        self.organism2ans_dict[organism].append(an)
+                    # if not self.organism2ans_dict.has_key(organism):
+                    #     self.organism2ans_dict[organism] = [an]
+                    # else:
+                    #     self.organism2ans_dict[organism].append(an)
 
                     if not self.an2go_dict.has_key(an): # the only important one ???
                         self.an2go_dict[an] = [goid]
@@ -143,10 +143,10 @@ class Parser_GO_annotations(object):
         :return: None
         """
         dict2pickle = {}
-        dict2pickle["organism2ans_dict"] = self.organism2ans_dict
+        # dict2pickle["organism2ans_dict"] = self.organism2ans_dict
         dict2pickle["an2godict"] = self.an2go_dict # the only important one ???
-        dict2pickle["date"] = self.date
-        dict2pickle["obolibrary"] = self.obolibrary
+        # dict2pickle["date"] = self.date
+        # dict2pickle["obolibrary"] = self.obolibrary
         pickle.dump(dict2pickle, open(fn_p, "wb"))
         del dict2pickle
 
@@ -158,14 +158,17 @@ class Parser_GO_annotations(object):
         """
         fn_p = update_server.get_fn_pickle_Parser_GO_annotations()
         dict2pickle = pickle.load(open(fn_p, "rb"))
-        self.organism2ans_dict = dict2pickle["organism2ans_dict"]
+        # self.organism2ans_dict = dict2pickle["organism2ans_dict"]
         self.an2go_dict = dict2pickle["an2godict"] # the only important one ???
-        self.date = dict2pickle["date"]
-        self.obolibrary = dict2pickle["obolibrary"]
+        # self.date = dict2pickle["date"]
+        # self.obolibrary = dict2pickle["obolibrary"]
         del dict2pickle
 
     def get_ans_from_organism(self, organism):
         return self.organism2ans_dict[organism]
+
+    def get_ans(self):
+        return self.an2go_dict.keys()
 
     def get_association_dict_for_organism(self, go_parent, obo_dag, organism):
         '''
@@ -187,6 +190,29 @@ class Parser_GO_annotations(object):
         '''
         assoc_dict = {}
         for an in self.get_ans_from_organism(organism):
+            if not assoc_dict.has_key(an):
+                if go_parent == "all_GO":
+                    goterms_list = self.get_goterms_from_an(an)
+                else:
+                    goterms_list = self.get_goterms_from_an_limit2parent(an, go_parent, obo_dag)
+                if goterms_list != -1:
+                    assoc_dict[an] = set(goterms_list)
+        return assoc_dict
+
+    def get_association_dict(self, go_parent, obo_dag): # WITHOUT the organism distinction
+        """
+        assoc is a dict: key=AN, val=set of go-terms
+        produce dict for all AccessionNumbers not just specific organism cf. above function
+        limit the set of GO-terms to the given parent category
+        # "BP" "GO:0008150"
+        # "CP" "GO:0005575"
+        # "MF" "GO:0003674"
+        :param go_parent: String
+        :param obo_dag: GODag Instance
+        :return: Dict
+        """
+        assoc_dict = {}
+        for an in self.get_ans():
             if not assoc_dict.has_key(an):
                 if go_parent == "all_GO":
                     goterms_list = self.get_goterms_from_an(an)
@@ -253,10 +279,11 @@ class Parser_GO_annotations(object):
         """
         return self.obolibrary
 
-# how about just making one big associations dict for all organisms UniProt and HOMD
+# how about just making one big an2go_dict for all organisms UniProt and HOMD
 # load uniprot_all.gz first, then overwrite anything in there with specific files, then add HOMD and check if overwriting AN
 # then pickle --> how big in memory???
 
+# assoc_dict = pgoa.get_association_dict_for_organism(go_parent=go_parent, obo_dag=go_dag) # WITHOUT the organism distinction
 
 
 
