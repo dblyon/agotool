@@ -73,8 +73,9 @@ class Parser_GO_annotations(object):
     go_parents_name2num_dict = {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
     my_regex = r"taxon:(\d+)"
 
-    def __init__(self): #, goa_ref_fn=None, organisms_set=None):
+    def __init__(self, HOMD=False): #, goa_ref_fn=None, organisms_set=None):
         """
+        :param HOMD: Bool (flag to ignore organisms, make it possible to just get GOterms from AN without specifying TaxID)
         :return: None
         """
         # self.date = "not set yet" # generation date
@@ -88,6 +89,7 @@ class Parser_GO_annotations(object):
         except AttributeError:
             self.organism2ans_dict = {} # key=TaxID(String), val=ListOfANs
             self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
+        self.HOMD = HOMD
 
     def yield_gz_file_lines(self, fn):
         if fn.endswith(".gz"):
@@ -128,7 +130,7 @@ class Parser_GO_annotations(object):
                     else:
                         self.organism2ans_dict[organism].append(an)
 
-                    if not self.an2go_dict.has_key(an):
+                    if not self.an2go_dict.has_key(an): # the only important one ???
                         self.an2go_dict[an] = [goid]
                     else:
                         self.an2go_dict[an].append(goid)
@@ -142,7 +144,7 @@ class Parser_GO_annotations(object):
         """
         dict2pickle = {}
         dict2pickle["organism2ans_dict"] = self.organism2ans_dict
-        dict2pickle["an2godict"] = self.an2go_dict
+        dict2pickle["an2godict"] = self.an2go_dict # the only important one ???
         dict2pickle["date"] = self.date
         dict2pickle["obolibrary"] = self.obolibrary
         pickle.dump(dict2pickle, open(fn_p, "wb"))
@@ -157,7 +159,7 @@ class Parser_GO_annotations(object):
         fn_p = update_server.get_fn_pickle_Parser_GO_annotations()
         dict2pickle = pickle.load(open(fn_p, "rb"))
         self.organism2ans_dict = dict2pickle["organism2ans_dict"]
-        self.an2go_dict = dict2pickle["an2godict"]
+        self.an2go_dict = dict2pickle["an2godict"] # the only important one ???
         self.date = dict2pickle["date"]
         self.obolibrary = dict2pickle["obolibrary"]
         del dict2pickle
@@ -180,6 +182,7 @@ class Parser_GO_annotations(object):
         # "MF" "GO:0003674"
         :param go_parent: String
         :param obo_dag: GODag Instance
+        :param organism: String (TaxID)
         :return: Dict
         '''
         assoc_dict = {}
@@ -249,6 +252,14 @@ class Parser_GO_annotations(object):
         :return: String
         """
         return self.obolibrary
+
+# how about just making one big associations dict for all organisms UniProt and HOMD
+# load uniprot_all.gz first, then overwrite anything in there with specific files, then add HOMD and check if overwriting AN
+# then pickle --> how big in memory???
+
+
+
+
 
 
 class UniProtKeywordsParser(object):
@@ -378,8 +389,10 @@ if __name__ == "__main__":
 ################################################################################
 ### try new HOMD_GOA.tsv
     pgoa = Parser_GO_annotations()
-    fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA.tsv'
+    fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA_commasepnotlong.tsv'
+    # fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA.tsv'
     pgoa.parse_goa_ref(fn, organisms_set=None)
+
 
 
 ################################################################################

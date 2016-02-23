@@ -85,9 +85,9 @@ class OBOReader(object):
             elif line.startswith("namespace:"):
                 rec.namespace = after_colon(line)
             elif line.startswith("is_a:"):
-                # rec._parents.append(after_colon(line).split()[0])
+                rec._parents.append(after_colon(line).split()[0])
                 # replaced due to static code analysis from 'quantified code' START
-                rec.parents.append(after_colon(line).split()[0])
+                # rec.parents.append(after_colon(line).split()[0])
             elif (line.startswith("is_obsolete:") and
                   after_colon(line) == "true"):
                 rec.is_obsolete = True
@@ -514,4 +514,7 @@ class GODag(dict):
             print("terms not found: %s" % (bad_terms,), file=sys.stderr)
 
 
+if __name__ == "__main__":
+    fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
+    go_dag = GODag(obo_file=fn_obo)
 
