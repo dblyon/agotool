@@ -343,9 +343,6 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
 
 @app.route('/enrichment')
 def enrichment():
-    # return render_template('enrichment.html', form=Enrichment_Form(),
-    #                        up_organisms=zip(*organism_choices_UniProt)[0],
-                           # go_organisms=zip(*organism_choices_GO)[0])
     return render_template('enrichment.html', form=Enrichment_Form())
 
 ################################################################################

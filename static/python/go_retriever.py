@@ -97,7 +97,7 @@ class Parser_GO_annotations(object):
                 for line in fh:
                     yield line
         else:
-            with open(fn, 'r') as fh:
+            with open(fn, "r") as fh:
                 for line in fh:
                     yield line
 
@@ -134,6 +134,49 @@ class Parser_GO_annotations(object):
                         self.an2go_dict[an] = [goid]
                     else:
                         self.an2go_dict[an].append(goid)
+        self.remove_redundant_go_terms()
+
+    def parse_goa_ref_low_memory(self, fn_list, fn_out, organisms_set=None):
+        """
+        parse UniProt goa_ref file filling self.an2go_dict
+        restrict to organisms (TaxIDs as String) if provided
+        :param fn_list: ListOfString
+        :param fn_out: String
+        :param organisms_set: SetOfString
+        :return: None
+        """
+        with open(fn_out, "w") as fh:
+            # header = "AN" + "\t" + "GOterm" + "\n"
+            # fh.write(header)
+            for fn in fn_list:
+                for line in self.yield_gz_file_lines(fn):
+                    if line[0] == "!":
+                        continue
+                    else:
+                        line_split = line.split("\t")
+                        if len(line_split) >= 15:
+                            an = line_split[1] # DB_Object_ID
+                            goid = line_split[4] # GO_ID
+                            organism = re.match(self.my_regex, line_split[12]).groups()[0]
+                            # reduce to specific organisms
+                            if organisms_set is not None:
+                                if not organism in organisms_set:
+                                    continue
+                            line2write = an + "\t" + goid + "\n"
+                            fh.write(line2write)
+
+    def low_memory_file_2_an2go_dict(self, fn):
+        """
+        :param fn: String
+        :return: None
+        """
+        self.an2go_dict = {}
+        for line in self.yield_gz_file_lines(fn):
+            an, goid = line.strip().split("\t")
+            if not self.an2go_dict.has_key(an): # the only important one ???
+                self.an2go_dict[an] = [goid]
+            else:
+                self.an2go_dict[an].append(goid)
         self.remove_redundant_go_terms()
 
     def pickle(self, fn_p):
