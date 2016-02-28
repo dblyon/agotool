@@ -157,8 +157,12 @@ class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method):
+    def __init__(self, compare_groups, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method):
+        self.compare_groups = compare_groups
         self.ui = ui
+        if compare_groups:
+            self.study_n = self.ui.get_study_n()
+            self.pop_n = self.ui.get_pop_n()
         self.assoc_dict = assoc_dict
         self.obo_dag = obo_dag
         self.alpha = alpha
@@ -174,9 +178,30 @@ class GOEnrichmentStudy(object):
 
     def prepare_run(self): # study_n should be the same in genome vs. observed vs. abundance_corrected
         '''
+        ToDo change names from set to no set since redundant list not set
         :return: None
         '''
-        if self.abcorr:
+        if self.compare_groups:
+            # self.study_an_frset = ANs study
+            # self.term_study = GOterm2ANcount_dict --> study_count=ANcount
+            # self.go2ans_study_dict = GOterm2AN_dict --> study_n = len(self.go2ans_study_dict[goid]) * self.study_n
+            # study_n = total number of ANs that are in assoc_dict and have GOterm
+            self.study_an_frset = self.ui.get_sample_an()
+            self.term_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
+            # this study_n is NOT used
+            self.pop_an_set = self.ui.get_background_an()
+            self.term_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2(self.pop_an_set, self.assoc_dict, self.obo_dag)
+            # this pop_n is NOT used
+            # print self.study_an_frset
+            # print self.term_study
+            # print self.go2ans_study_dict
+            # # print study_n
+            # print self.pop_an_set
+            # print self.term_pop
+            # print self.go2ans_pop_dict
+            # print pop_n
+
+        elif self.abcorr:
             self.study_an_frset = self.ui.get_sample_an_frset()
             self.term_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
 
@@ -236,6 +261,24 @@ class GOEnrichmentStudy(object):
         # ----------------------------------------------
         #     study_n           pop_n         n
         #
+
+        #     sample | background  |
+        # -----------------------------------
+        # +     a    |    c        |   r1
+        # -----------------------------------
+        # -     b    |    d        |   r2
+        # -----------------------------------
+        #     col_1  |   col_2     |    n
+
+        ################################################
+        #     sample       |     background   |
+        # ----------------------------------------------
+        # +   study_count  |     pop_count    |   r1
+        # ----------------------------------------------
+        # -     b          |       d          |   r2
+        # ----------------------------------------------
+        #     study_n      |     pop_n        |    n
+
         # fisher.pvalue_population() expects:
         #  (a, col_1, r1, n)
         #  (study_count, study_n, study_count + pop_count, study_n + pop_n)
@@ -254,6 +297,26 @@ class GOEnrichmentStudy(object):
             attributes2add_list.append(('ANs_pop', '%s'))
         for goid, study_count in list(term_study.items()):
             pop_count = term_pop[goid]
+            if self.compare_groups:
+                try:
+                    # ans_set_study = self.go2ans_study_dict[goid]
+                    study_n = len(self.go2ans_study_dict[goid]) * self.study_n
+                except KeyError:
+
+                    study_n = self.study_n
+                # study_n = len(self.go2ans_study_dict[goid]) * self.study_n
+                # study_n = len(ans_set_study) * self.study_n
+                try:
+                    # ans_set_pop = self.go2ans_pop_dict[goid]
+                    pop_n = len(self.go2ans_pop_dict[goid]) * self.pop_n
+                except KeyError:
+                    pop_n = self.pop_n
+                # pop_n = len(ans_set_pop) * self.pop_n
+                # print goid, a, b, c, d
+                # print "study_count: {}".format(study_count)
+                # print "study_n: {}".format(study_n)
+                # print "pop_count: {}".format(pop_count)
+                # print "pop_n: {}".format(pop_n)
             a = study_count
             b = study_n - study_count
             c = pop_count

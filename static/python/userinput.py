@@ -332,31 +332,53 @@ class UserInput_noAbCorr(UserInput):
     def get_background_an_all_set(self):
         return set(self.background_ser)
 
+
 class UserInput_compare_groups(object):
 
-    def __init__(self, user_input_fn, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
+    def __init__(self, user_input_fn, study_n, pop_n, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
         self.user_input_fn = user_input_fn
+        self.study_n = study_n
+        self.pop_n = pop_n
         self.decimal = decimal
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
+        self.df = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
         self.col_sample_an = col_sample_an
         self.col_background_an = col_background_an
+        self.sample_ser = self.df[col_sample_an]
+        self.population_ser = self.df[col_background_an]
 
         # remove NaNs from samplefrequency and backgroundfrequency AN-cols
         # DON'T REMOVE DUPLICATES
         cond = pd.notnull(self.sample_ser)
         self.sample_ser = self.sample_ser.loc[cond, ]
-        cond = pd.notnull(self.background_ser)
-        self.background_ser = self.background_ser.loc[cond, ]
+        cond = pd.notnull(self.population_ser)
+        self.population_ser = self.population_ser.loc[cond,]
 
     def get_sample_an(self):
         return self.sample_ser
 
     def get_background_an(self):
-        return self.background_ser
+        return self.population_ser
 
+    def get_all_unique_ans(self):
+        ans_list = self.sample_ser.unique().tolist() + self.population_ser.unique().tolist()
+        return ans_list
+
+    def get_study_n(self):
+        return self.study_n
+
+    def get_pop_n(self):
+        return self.pop_n
 
 if __name__ == "__main__":
-    fn = r''
-    ui = UserInput_compare_groups(fn)
+    fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'
+    fn = r'/Users/dblyon/modules/cpr/metaprot/CompareGroups_test.txt'
+    study_n = 10.0
+    pop_n = 20.0
+    ui = UserInput_compare_groups(fn, study_n, pop_n)
+    sample_an = ui.get_sample_an()
+    backgound_an = ui.get_background_an()
+    all_unique_an = ui.get_all_unique_ans()
+    print len(sample_an), len(backgound_an), len(all_unique_an)
+
 
 

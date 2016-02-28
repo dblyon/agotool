@@ -16,12 +16,13 @@ def count_terms_v2(ans_set, assoc_dict, obo_dag):
         for goterm in assoc_dict[an]:
             if goterm in obo_dag:
                 ans2count.update([an])
-                term_cnt[obo_dag[goterm].id] += 1
-                if not go2ans_dict.has_key(goterm):
-                    go2ans_dict[goterm] = set([an])
+                goid = obo_dag[goterm].id
+                term_cnt[goid] += 1
+                if not goid in go2ans_dict:
+                    go2ans_dict[goid] = set([an])
                 else:
-                    go2ans_dict[goterm].update([an])
-    return(term_cnt, go2ans_dict, len(ans2count))
+                    go2ans_dict[goid].update([an])
+    return term_cnt, go2ans_dict, len(ans2count)
 
 def count_terms(ans_set, assoc_dict, obo_dag):
     """

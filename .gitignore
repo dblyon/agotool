@@ -47,6 +47,7 @@ Thumbs.db
 ######################
 *.tab
 *.tsv
+*.txt
 *.obo
 static/data/session/
 logs/
