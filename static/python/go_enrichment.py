@@ -41,7 +41,8 @@ class GOEnrichmentRecord(object):
         try:
             fold_en = float(zaehler) / nenner
         except ZeroDivisionError:
-            fold_en = -1
+            # fold_en = -1 #!!!
+            fold_en = 1000
         return fold_en
 
     def find_goterm(self, go):
@@ -157,7 +158,8 @@ class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, compare_groups, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method):
+    def __init__(self, proteinGroup, compare_groups, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method):
+        self.proteinGroup = proteinGroup
         self.compare_groups = compare_groups
         self.ui = ui
         if compare_groups:
@@ -181,37 +183,43 @@ class GOEnrichmentStudy(object):
         ToDo change names from set to no set since redundant list not set
         :return: None
         '''
-        if self.compare_groups:
+        if self.compare_groups == "compare_groups":
             # self.study_an_frset = ANs study
-            # self.term_study = GOterm2ANcount_dict --> study_count=ANcount
+            # self.GOid2NumANs_dict_study = GOterm2ANcount_dict --> study_count=ANcount
             # self.go2ans_study_dict = GOterm2AN_dict --> study_n = len(self.go2ans_study_dict[goid]) * self.study_n
             # study_n = total number of ANs that are in assoc_dict and have GOterm
-            self.study_an_frset = self.ui.get_sample_an()
-            self.term_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
-            # this study_n is NOT used
-            self.pop_an_set = self.ui.get_background_an()
-            self.term_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2(self.pop_an_set, self.assoc_dict, self.obo_dag)
-            # this pop_n is NOT used
-            # print self.study_an_frset
-            # print self.term_study
-            # print self.go2ans_study_dict
-            # # print study_n
-            # print self.pop_an_set
-            # print self.term_pop
-            # print self.go2ans_pop_dict
-            # print pop_n
+            if self.proteinGroup:
+                self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
+                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "background")
+            else:
+                self.study_an_frset = self.ui.get_sample_an()
+                self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
+                # study_n is NOT used
+                self.pop_an_set = self.ui.get_background_an()
+                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2(self.pop_an_set, self.assoc_dict, self.obo_dag)
+                # this pop_n is NOT used
+
+        elif self.compare_groups == "characterize_study":
+
+            if self.proteinGroup: # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
+                self.GOid2NumANs_dict_study, self.go2ans_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
+            else:
+                self.study_an_frset = self.ui.get_sample_an()
+                self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
+                # study_n is NOT used
+            return None
 
         elif self.abcorr:
             self.study_an_frset = self.ui.get_sample_an_frset()
-            self.term_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
+            self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
 
             if self.randomSample:
                 self.pop_an_set = self.ui.get_background_an_set_random_sample()
                 pop_n  = len(self.pop_an_set)
-                self.term_pop, self.go2ans_pop_dict = ratio.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
+                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict = ratio.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
             else:
                 pop_n = study_n
-                self.term_pop, self.go2ans_pop_dict = ratio.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict = ratio.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
 
         else:
             if self.ui.col_background_an == 'Genome':
@@ -219,26 +227,12 @@ class GOEnrichmentStudy(object):
             else:
                 self.study_an_frset = self.ui.get_sample_an_frset()
 
-            self.term_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
+            self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
 
             self.pop_an_set = self.ui.get_background_an_all_set()
-            self.term_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2(self.pop_an_set, self.assoc_dict, self.obo_dag)
+            self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2(self.pop_an_set, self.assoc_dict, self.obo_dag)
 
-        self.run_study_v2(self.term_study, self.term_pop, study_n, pop_n)
-
-    def get_ans_from_goid(self, goid, study):
-        if study:
-            # if self.go2ans_study_dict.has_key(goid):
-            if goid in self.go2ans_study_dict:
-                return sorted(self.go2ans_study_dict[goid])
-            else:
-                return ''
-        else:
-            # if self.go2ans_pop_dict.has_key(goid):
-            if goid in self.go2ans_pop_dict:
-                return sorted(self.go2ans_pop_dict[goid])
-            else:
-                return ''
+        self.run_study_v2(self.GOid2NumANs_dict_study, self.GOid2NumANs_dict_pop, study_n, pop_n)
 
     def run_study_v2(self, term_study, term_pop, study_n, pop_n):
         """
@@ -302,7 +296,6 @@ class GOEnrichmentStudy(object):
                     # ans_set_study = self.go2ans_study_dict[goid]
                     study_n = len(self.go2ans_study_dict[goid]) * self.study_n
                 except KeyError:
-
                     study_n = self.study_n
                 # study_n = len(self.go2ans_study_dict[goid]) * self.study_n
                 # study_n = len(ans_set_study) * self.study_n
@@ -352,6 +345,20 @@ class GOEnrichmentStudy(object):
                 attributes2add=attributes2add_list)
             self.results.append(one_record)
         self.calc_multiple_corrections(study_n, pop_n)
+
+    def get_ans_from_goid(self, goid, study):
+        if study:
+            # if self.go2ans_study_dict.has_key(goid):
+            if goid in self.go2ans_study_dict:
+                return sorted(self.go2ans_study_dict[goid])
+            else:
+                return ''
+        else:
+            # if self.go2ans_pop_dict.has_key(goid):
+            if goid in self.go2ans_pop_dict:
+                return sorted(self.go2ans_pop_dict[goid])
+            else:
+                return ''
 
     def calc_multiple_corrections(self, study_n, pop_n):
         self.results.sort(key=lambda r: r.p_uncorrected)
@@ -435,15 +442,15 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
     def prepare_run(self):
         if self.abcorr:
             self.study_an_frset = self.ui.get_sample_an_frset()
-            self.term_study, self.upk2ans_study_dict, study_n = self.count_upk_v2(self.study_an_frset, self.assoc_dict)
+            self.GOid2NumANs_dict_study, self.upk2ans_study_dict, study_n = self.count_upk_v2(self.study_an_frset, self.assoc_dict)
 
             if self.randomSample:
                 self.pop_an_set = self.ui.get_background_an_set_random_sample()
                 pop_n  = len(self.pop_an_set)
-                self.term_pop, self.upk2ans_pop_dict = self.count_upk(self.pop_an_set, self.assoc_dict)
+                self.GOid2NumANs_dict_pop, self.upk2ans_pop_dict = self.count_upk(self.pop_an_set, self.assoc_dict)
             else:
                 pop_n = study_n
-                self.term_pop, self.upk2ans_pop_dict = self.count_upk_abundance_corrected(self.ui, self.assoc_dict)
+                self.GOid2NumANs_dict_pop, self.upk2ans_pop_dict = self.count_upk_abundance_corrected(self.ui, self.assoc_dict)
 
         else:
             if self.ui.col_background_an == 'Genome':
@@ -451,12 +458,12 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
             else:
                 self.study_an_frset = self.ui.get_sample_an_frset()
 
-            self.term_study, self.upk2ans_study_dict, study_n = self.count_upk_v2(self.study_an_frset, self.assoc_dict)
+            self.GOid2NumANs_dict_study, self.upk2ans_study_dict, study_n = self.count_upk_v2(self.study_an_frset, self.assoc_dict)
 
             self.pop_an_set = self.ui.get_background_an_all_set()
-            self.term_pop, self.upk2ans_pop_dict, pop_n = self.count_upk_v2(self.pop_an_set, self.assoc_dict)
+            self.GOid2NumANs_dict_pop, self.upk2ans_pop_dict, pop_n = self.count_upk_v2(self.pop_an_set, self.assoc_dict)
 
-        self.run_study(self.term_study, self.term_pop, study_n, pop_n)
+        self.run_study(self.GOid2NumANs_dict_study, self.GOid2NumANs_dict_pop, study_n, pop_n)
 
     @staticmethod
     def count_upk(ans_set, assoc_dict):

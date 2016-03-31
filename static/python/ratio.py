@@ -1,28 +1,67 @@
 from collections import defaultdict
 
 
+def get_goids_from_proteinGroup(proteinGroup, assoc_dict):
+    """
+    e.g. proteinGroup 'A3CP09;ssan_c_1_1478;EGQ25042.1;EGQ22065.1'
+    assoc_dict {'P28482': {u'GO:0000165',u'GO:0000166',u'GO:0000186',u'GO:0000187',u'GO:0000189'}}
+    :param proteinGroup: String(SemicolonSepAN)
+    :param assoc_dict: Dict(key: AN, val: SetOfGOid)
+    :return: SetOfGOid
+    """
+    goid_set = set()
+    ans_list = proteinGroup.split(";")
+    for an in ans_list:
+        try:
+            goid_set_temp = assoc_dict[an]
+        except KeyError:
+            continue
+        goid_set.update(goid_set_temp)
+    return goid_set, ans_list
+
+def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
+    # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
+    GO2NumProtGroups_dict = defaultdict(int) # key: String(GOid), val: Int(Number of proteinGroups)
+    GOid2ANs_dict = {} # key: GOid, val: ListOfANs
+    if sample_or_background == "sample":
+        proteinGroup_list = ui.get_sample_an().dropna().tolist()
+    else:
+        proteinGroup_list = ui.get_background_an().dropna().tolist()
+    for protGroup in proteinGroup_list:
+        goid_set, ans_list = get_goids_from_proteinGroup(protGroup, assoc_dict)
+        for goid in goid_set:
+            if goid in obo_dag:
+                if goid not in GO2NumProtGroups_dict:
+                    GO2NumProtGroups_dict[goid] = 1
+                    GOid2ANs_dict[goid] = set(ans_list)
+                else:
+                    GO2NumProtGroups_dict[goid] += 1
+                    GOid2ANs_dict[goid].update(ans_list)
+
+    return GO2NumProtGroups_dict, GOid2ANs_dict
+
 def count_terms_v2(ans_set, assoc_dict, obo_dag):
     """
     count the number of terms in the study group
-    produces
-    term_cnt: key=GOid, val=Num of occurrences
-    go2ans_dict: key=GOid, val=ListOfANs
+    GOid2NumANs_dict: key=GOid, val=Num of occurrences
+    GOid2ANs_dict: key=GOid, val=ListOfANs
     count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag
+    :return: Tuple(dict, dict, int)
     """
     ans2count = set()
-    go2ans_dict = {}
-    term_cnt = defaultdict(int)
+    GOid2ANs_dict = {}
+    GOid2NumANs_dict = defaultdict(int)
     for an in (acnum for acnum in ans_set if acnum in assoc_dict):
         for goterm in assoc_dict[an]:
             if goterm in obo_dag:
                 ans2count.update([an])
                 goid = obo_dag[goterm].id
-                term_cnt[goid] += 1
-                if not goid in go2ans_dict:
-                    go2ans_dict[goid] = set([an])
+                GOid2NumANs_dict[goid] += 1
+                if not goid in GOid2ANs_dict:
+                    GOid2ANs_dict[goid] = set([an])
                 else:
-                    go2ans_dict[goid].update([an])
-    return term_cnt, go2ans_dict, len(ans2count)
+                    GOid2ANs_dict[goid].update([an])
+    return GOid2NumANs_dict, GOid2ANs_dict, len(ans2count)
 
 def count_terms(ans_set, assoc_dict, obo_dag):
     """

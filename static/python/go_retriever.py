@@ -492,6 +492,21 @@ class Parser_GO_annotations(object):
         """
         return self.obolibrary
 
+    def get_GO2AN_dict(self):
+        """
+        key=GOid, val=ListOfANs
+        """
+        assoc_dict = self.get_association_dict()
+        GO2AN_dict = {}
+        for item in assoc_dict.items():
+            an, goid_set = item
+            for goid in goid_set:
+                if goid not in GO2AN_dict:
+                    GO2AN_dict[goid] = [an]
+                else:
+                    GO2AN_dict[goid].append(an)
+        return GO2AN_dict
+
 # how about just making one big an2go_dict for all organisms UniProt and HOMD
 # load uniprot_all.gz first, then overwrite anything in there with specific files, then add HOMD and check if overwriting AN
 # then pickle --> how big in memory???
@@ -620,6 +635,15 @@ def gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking):
         else:
             assoc_dict_slims[an] = all_direct_anc
     return assoc_dict_slims
+
+def get_description(goid, go_dag):
+    """
+    e.g. dfx['description'] = dfx["GOid"].apply(get_description, args=(go_dag, ))
+    """
+    return go_dag[goid].name
+
+def get_level(goid, go_dag):
+    return go_dag[goid].level
 
 
 if __name__ == "__main__":

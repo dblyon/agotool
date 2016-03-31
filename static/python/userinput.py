@@ -335,7 +335,8 @@ class UserInput_noAbCorr(UserInput):
 
 class UserInput_compare_groups(object):
 
-    def __init__(self, user_input_fn, study_n, pop_n, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
+    def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
+        self.proteinGroup = proteinGroup
         self.user_input_fn = user_input_fn
         self.study_n = study_n
         self.pop_n = pop_n
@@ -348,10 +349,12 @@ class UserInput_compare_groups(object):
 
         # remove NaNs from samplefrequency and backgroundfrequency AN-cols
         # DON'T REMOVE DUPLICATES
-        cond = pd.notnull(self.sample_ser)
-        self.sample_ser = self.sample_ser.loc[cond, ]
-        cond = pd.notnull(self.population_ser)
-        self.population_ser = self.population_ser.loc[cond,]
+        # cond = pd.notnull(self.sample_ser)
+        # self.sample_ser = self.sample_ser.loc[cond, ]
+        self.sample_ser = self.sample_ser.dropna()
+        # cond = pd.notnull(self.population_ser)
+        # self.population_ser = self.population_ser.loc[cond,]
+        self.population_ser = self.population_ser.dropna()
 
     def get_sample_an(self):
         return self.sample_ser
@@ -359,8 +362,16 @@ class UserInput_compare_groups(object):
     def get_background_an(self):
         return self.population_ser
 
+    def split_protGroups_into_unique_list(self, ans_list):
+        temp_list = []
+        for protgroup in ans_list:
+            temp_list += protgroup.split(";")
+        return sorted(set(temp_list))
+
     def get_all_unique_ans(self):
         ans_list = self.sample_ser.unique().tolist() + self.population_ser.unique().tolist()
+        if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
+            ans_list = self.split_protGroups_into_unique_list(ans_list)
         return ans_list
 
     def get_study_n(self):
@@ -372,13 +383,16 @@ class UserInput_compare_groups(object):
 if __name__ == "__main__":
     fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'
     fn = r'/Users/dblyon/modules/cpr/metaprot/CompareGroups_test.txt'
+    fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_proteinGroups.txt'
     study_n = 10.0
     pop_n = 20.0
-    ui = UserInput_compare_groups(fn, study_n, pop_n)
+    proteinGroup = True
+    ui = UserInput_compare_groups(proteinGroup, fn, study_n, pop_n)
     sample_an = ui.get_sample_an()
-    backgound_an = ui.get_background_an()
+    # backgound_an = ui.get_background_an()
     all_unique_an = ui.get_all_unique_ans()
-    print len(sample_an), len(backgound_an), len(all_unique_an)
+    # print len(sample_an), len(backgound_an), len(all_unique_an)
+    print len(sample_an), len(all_unique_an)
 
 
 

@@ -16,7 +16,6 @@ def after_colon(line):
     # macro for getting anything after the :
     return line.split(":", 1)[1].strip()
 
-
 def read_until(handle, start):
     # read each line until it has a certain start, and then puts
     # the start tag back
@@ -499,7 +498,7 @@ class GODag(dict):
                     bad_terms.add(term.strip())
             terms.update(parents) # updates the association object with all parent GO-terms of given GO-terms
         if bad_terms:
-            print("terms not found: %s" % (bad_terms,), file=sys.stderr)
+            print("number of terms not found: %s" % (len(bad_terms),), file=sys.stderr)
 
 
 

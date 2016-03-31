@@ -177,7 +177,7 @@ class Filter(object):
             GOTerm_instance = go_dag[go_term_name]
             self.go_lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
 
-    def filter_term_lineage(self, header, results, indent):
+    def filter_term_lineage(self, header, results, indent, sort_on='fold_enrichment_study2pop'): #!!! ToDo filter analogously but sort by fold-enrichment
         """
         produce reduced list of results
         from each GO-term lineage (all descendants (children) and ancestors
@@ -185,16 +185,19 @@ class Filter(object):
         :param header: String
         :param results: ListOfString
         :param indent: Bool
+        :param sort_on: String(one of 'p_uncorrected' or 'fold_enrichment_study2pop')
         :return: ListOfString
         """
         results_filtered = []
         blacklist = set(["GO:0008150", "GO:0005575", "GO:0003674"])
         # {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
         header_list = header.split('\t') #!!!
-        index_p = header_list.index('p_uncorrected')
+        index_p = header_list.index(sort_on)
         index_go = header_list.index('id')
         results = [res.split('\t') for res in results]
         results.sort(key=lambda x: float(x[index_p]))
+        if sort_on == "fold_enrichment_study2pop":
+            results = results[::-1]
         for res in results:
             if indent:
                 dot_goterm = res[index_go]
