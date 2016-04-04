@@ -20,9 +20,16 @@ def get_goids_from_proteinGroup(proteinGroup, assoc_dict):
     return goid_set, ans_list
 
 def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
+    """
+    GOid2ANs_dict: key: GOid, val: ListOfAN
+    GO2NumProtGroups_dict: key: GOid, val: Int(number of proteinGroups associated with GOterm)
+    redundant count e.g. 8 out of 10 samples --> study_count = 8
+    study_n = 10 (1 unique proteinGroup * 10 for study_n)
+    """
     # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
-    GO2NumProtGroups_dict = defaultdict(int) # key: String(GOid), val: Int(Number of proteinGroups)
+    GOid2RedundantNumProtGroups_dict = defaultdict(int) # key: String(GOid), val: Int(Number of proteinGroups)
     GOid2ANs_dict = {} # key: GOid, val: ListOfANs
+    GOid2UniqueNumProtGroups_dict = {}
     if sample_or_background == "sample":
         proteinGroup_list = ui.get_sample_an().dropna().tolist()
     else:
@@ -31,14 +38,17 @@ def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
         goid_set, ans_list = get_goids_from_proteinGroup(protGroup, assoc_dict)
         for goid in goid_set:
             if goid in obo_dag:
-                if goid not in GO2NumProtGroups_dict:
-                    GO2NumProtGroups_dict[goid] = 1
+                if goid not in GOid2RedundantNumProtGroups_dict:
+                    GOid2RedundantNumProtGroups_dict[goid] = 1
                     GOid2ANs_dict[goid] = set(ans_list)
+                    GOid2UniqueNumProtGroups_dict[goid] = [protGroup]
                 else:
-                    GO2NumProtGroups_dict[goid] += 1
+                    GOid2RedundantNumProtGroups_dict[goid] += 1
                     GOid2ANs_dict[goid].update(ans_list)
-
-    return GO2NumProtGroups_dict, GOid2ANs_dict
+                    GOid2UniqueNumProtGroups_dict[goid].append(protGroup)
+    for key in GOid2UniqueNumProtGroups_dict:
+        GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
+    return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
 
 def count_terms_v2(ans_set, assoc_dict, obo_dag):
     """

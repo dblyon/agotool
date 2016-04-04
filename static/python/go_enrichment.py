@@ -183,14 +183,16 @@ class GOEnrichmentStudy(object):
         ToDo change names from set to no set since redundant list not set
         :return: None
         '''
+        study_n = 0
+        pop_n = 0
         if self.compare_groups == "compare_groups":
             # self.study_an_frset = ANs study
             # self.GOid2NumANs_dict_study = GOterm2ANcount_dict --> study_count=ANcount
             # self.go2ans_study_dict = GOterm2AN_dict --> study_n = len(self.go2ans_study_dict[goid]) * self.study_n
             # study_n = total number of ANs that are in assoc_dict and have GOterm
             if self.proteinGroup:
-                self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
-                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "background")
+                self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
+                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, self.GOid2NumProtGroups_pop_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "background")
             else:
                 self.study_an_frset = self.ui.get_sample_an()
                 self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
@@ -202,7 +204,7 @@ class GOEnrichmentStudy(object):
         elif self.compare_groups == "characterize_study":
 
             if self.proteinGroup: # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
-                self.GOid2NumANs_dict_study, self.go2ans_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
+                self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
             else:
                 self.study_an_frset = self.ui.get_sample_an()
                 self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
@@ -292,24 +294,24 @@ class GOEnrichmentStudy(object):
         for goid, study_count in list(term_study.items()):
             pop_count = term_pop[goid]
             if self.compare_groups:
-                try:
-                    # ans_set_study = self.go2ans_study_dict[goid]
-                    study_n = len(self.go2ans_study_dict[goid]) * self.study_n
-                except KeyError:
-                    study_n = self.study_n
-                # study_n = len(self.go2ans_study_dict[goid]) * self.study_n
-                # study_n = len(ans_set_study) * self.study_n
-                try:
-                    # ans_set_pop = self.go2ans_pop_dict[goid]
-                    pop_n = len(self.go2ans_pop_dict[goid]) * self.pop_n
-                except KeyError:
-                    pop_n = self.pop_n
-                # pop_n = len(ans_set_pop) * self.pop_n
-                # print goid, a, b, c, d
-                # print "study_count: {}".format(study_count)
-                # print "study_n: {}".format(study_n)
-                # print "pop_count: {}".format(pop_count)
-                # print "pop_n: {}".format(pop_n)
+                if self.proteinGroup:
+                    try:
+                        study_n = self.GOid2NumProtGroups_study_dict[goid] * self.study_n
+                    except KeyError:
+                        study_n = self.study_n
+                    try:
+                        pop_n = self.GOid2NumProtGroups_pop_dict[goid] * self.pop_n
+                    except KeyError:
+                        pop_n = self.pop_n
+                else:
+                    try:
+                        study_n = len(self.go2ans_study_dict[goid]) * self.study_n
+                    except KeyError:
+                        study_n = self.study_n
+                    try:
+                        pop_n = len(self.go2ans_pop_dict[goid]) * self.pop_n
+                    except KeyError:
+                        pop_n = self.pop_n
             a = study_count
             b = study_n - study_count
             c = pop_count

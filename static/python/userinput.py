@@ -370,6 +370,7 @@ class UserInput_compare_groups(object):
 
     def get_all_unique_ans(self):
         ans_list = self.sample_ser.unique().tolist() + self.population_ser.unique().tolist()
+        ans_list = sorted(set(ans_list))
         if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
             ans_list = self.split_protGroups_into_unique_list(ans_list)
         return ans_list

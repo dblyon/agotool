@@ -181,6 +181,7 @@ if __name__ == "__main__":
     dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag, ))
     dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag, ))
     assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
+    print("test1 ")
     ################################################################################
     # TESTING compare_groups = compare_groups
     study_n = 10
@@ -219,7 +220,7 @@ if __name__ == "__main__":
     dfm = pd.merge(df_compare_groups, df_characterize_study, how='outer')
     cond = dfm['study_count'] == dfm['Num_associations']
     assert sum(cond) == len(cond)
-
+    print("test2 ")
     ### Test 3
     # TESTING compare_groups = characterize_study with proteinGroups
     study_n = 10
@@ -244,6 +245,7 @@ if __name__ == "__main__":
     dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag,))
     dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag,))
     assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
+    print("test3 ")
     ### Test 4
     # TESTING compare_groups = characterize_study
     study_n = 10
@@ -267,6 +269,7 @@ if __name__ == "__main__":
     dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag, ))
     dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag, ))
     assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
+    print("test4 ")
     ######### TESTING STOP
     ################################################################################
     ################################################################################
