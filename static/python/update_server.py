@@ -7,7 +7,7 @@ import sys
 import zlib
 import urllib
 import time
-# import shutil
+import pandas as pd
 
 # my own modules
 import go_retriever
@@ -22,6 +22,16 @@ sys.path.append(PYTHON_DIR)
 # file, please use either the GOA ftp site:
 # ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz
 URL_GENE_ASSOCIATIONS_GOA_UNIPROT = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz"
+
+#ToDo: automatically popylate SQLite DB, create proper index for faster lookup
+# show users 'organims.txt' with explanations
+# create graphical output
+
+
+### PROTEOMES http://www.ebi.ac.uk/GOA/proteomes
+# These annotation sets have not undergone any filtering steps to reduce redundancy.
+# The current set of species that we provide these files for are listed on the proteomes page of our project website
+
 
 # organism_choices = [
 #     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
@@ -63,6 +73,13 @@ organisms = {9606: 'human',
             3880: 'medicago',
             3055: 'chlamy',
             39947: 'rice'}
+# Schizosaccharomyces pombe 4896
+# ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/proteomes/78.S_pombe.goa
+
+# and Caenorhabditis elegans 6239
+# ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/proteomes/9.C_elegans.goa
+
+
 
 # using TaxID 559292 instead of 4932 for yeast
 # 4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c

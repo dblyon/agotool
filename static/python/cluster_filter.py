@@ -105,7 +105,7 @@ class MCL(object):
                 fh.write(line2write)
 
     def mcl_cluster2file(self, mcl_in, inflation_factor, mcl_out):
-        print(self.max_timeout)
+        print("MCL max_timeout:", self.max_timeout)
         cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
         args = shlex.split(cmd_text)
         #ph = subprocess.Popen(args, stdin=None, stdout=self.get_fh_log(), stderr=self.get_fh_log())
