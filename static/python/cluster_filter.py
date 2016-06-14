@@ -177,7 +177,7 @@ class Filter(object):
             GOTerm_instance = go_dag[go_term_name]
             self.go_lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
 
-    def filter_term_lineage(self, header, results, indent, sort_on='fold_enrichment_study2pop'): #!!! ToDo filter analogously but sort by fold-enrichment
+    def filter_term_lineage(self, header, results, indent, sort_on='p_uncorrected'): #'fold_enrichment_study2pop'
         """
         produce reduced list of results
         from each GO-term lineage (all descendants (children) and ancestors

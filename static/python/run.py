@@ -45,25 +45,58 @@ def run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, org
         assoc_dict = upkp.get_association_dict_from_organims(organism)
         gostudy = go_enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
+        return header, results
     else:
         go_parent = gocat_upk
         # assoc_dict = pgoa.get_association_dict_for_organism(go_parent=go_parent, obo_dag=go_dag, organism=organism)
         assoc_dict = pgoa.get_association_dict(go_parent=go_parent, obo_dag=go_dag, ans_list=ans_list)
         if go_slim_or_basic == 'slim':
             assoc_dict = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
-            # gostudy = go_enrichment.GOEnrichmentStudy(ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method)
-        # gostudy = go_enrichment.GOEnrichmentStudy(compare_groups, ui, assoc_dict_slim, goslim_dag, alpha, backtracking, randomSample, abcorr,
-        #                                               o_or_u_or_both, multitest_method)
-
         if compare_groups == "characterize_study":
             gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method)
             return gostudy.GOid2NumANs_dict_study, gostudy.go2ans_study_dict
         elif compare_groups == "compare_groups":
-            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr,
-                                                  o_or_u_or_both, multitest_method)
+            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method)
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
-    return header, results
+        return header, results
 
+
+class get_startup_objects(object):
+    ### Jan is so smart and nice, we love callable Classes
+    def __init__(self):
+        self.args = self.__get_startup_objects()
+
+    def __call__(self):
+        if self.args is not False:
+            return self.args
+        else:
+            self.args = self.__get_startup_objects()
+            return self.args
+
+    def __get_startup_objects(self):
+        # setting up objects
+        decimal = '.'
+        organism = None
+        gocat_upk = 'all_GO'
+        indent = False
+        multitest_method = 'benjamini_hochberg'
+        alpha = 0.05
+        o_or_u_or_both = 'both'
+        abcorr = False
+        num_bins = 100
+        backtracking = True
+        fold_enrichment_study2pop = 0.0
+        p_value_uncorrected = 0.0
+        p_value_mulitpletesting = 0.0
+        fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
+        go_dag = obo_parser.GODag(obo_file=fn_obo)
+        fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/goslim_generic.obo'
+        goslim_dag = obo_parser.GODag(obo_file=fn_obo)
+        upkp = go_retriever.UniProtKeywordsParser()
+        pgoa = go_retriever.Parser_GO_annotations()
+        pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
+        filter_ = cluster_filter.Filter(go_dag)
+        return go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_
 
 if __name__ == "__main__":
     # compare_groups = True
@@ -83,13 +116,13 @@ if __name__ == "__main__":
     # fold_enrichment_study2pop = 0.0
     # p_value_uncorrected = 0.0
     # p_value_mulitpletesting = 0.0
-    fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
-    go_dag = obo_parser.GODag(obo_file=fn_obo)
-    fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/goslim_generic.obo'
-    goslim_dag = obo_parser.GODag(obo_file=fn_obo)
-    upkp = go_retriever.UniProtKeywordsParser()
-    pgoa = go_retriever.Parser_GO_annotations()
-    pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
+    # fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
+    # go_dag = obo_parser.GODag(obo_file=fn_obo)
+    # fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/goslim_generic.obo'
+    # goslim_dag = obo_parser.GODag(obo_file=fn_obo)
+    # upkp = go_retriever.UniProtKeywordsParser()
+    # pgoa = go_retriever.Parser_GO_annotations()
+    # pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
 
     ### Daniel saliva
     # fn = r'/Users/dblyon/CloudStation/CPR/Ancient_Proteins_Project/Daniel/txt_Jesper/GOenr/ANs_bac_unique.txt'

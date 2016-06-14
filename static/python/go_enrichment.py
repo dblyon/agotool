@@ -297,6 +297,8 @@ class GOEnrichmentStudy(object):
                 if self.proteinGroup:
                     try:
                         study_n = self.GOid2NumProtGroups_study_dict[goid] * self.study_n
+                        # import ipdb
+                        # ipdb.set_trace()
                     except KeyError:
                         study_n = self.study_n
                     try:

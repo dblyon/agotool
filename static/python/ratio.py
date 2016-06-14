@@ -27,11 +27,14 @@ def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
     study_n = 10 (1 unique proteinGroup * 10 for study_n)
     """
     # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
-    GOid2RedundantNumProtGroups_dict = defaultdict(int) # key: String(GOid), val: Int(Number of proteinGroups)
-    GOid2ANs_dict = {} # key: GOid, val: ListOfANs
-    GOid2UniqueNumProtGroups_dict = {}
+    GOid2RedundantNumProtGroups_dict = defaultdict(int) # key: String(GOid), val: Int(redundant Number of proteinGroups,
+    # e.g. if 8 out of 10 samples have proteinGroup --> 8)
+    GOid2ANs_dict = {} # key: GOid, val: ListOfANs (all ANs associated with GOterm)
+    GOid2UniqueNumProtGroups_dict = {} # key: String(GOid), val: Int(NON-redundant Number of proteinGroups,
+    # e.g. if 8 out of 10 samples have proteinGroup --> 1)
     if sample_or_background == "sample":
         proteinGroup_list = ui.get_sample_an().dropna().tolist()
+        # redundant list
     else:
         proteinGroup_list = ui.get_background_an().dropna().tolist()
     for protGroup in proteinGroup_list:
