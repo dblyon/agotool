@@ -609,7 +609,7 @@ def mapslim(go_term, go_dag, goslim_dag):
                 if got_leaf:
                     covered_ancestors.add(term.id)
                 got_leaf = True
-    # get the direct ancestors, i.e. those that are not covered by a earlier
+    # get the direct ancestors, i.e. those that are not covered by an    earlier
     # ancestor of the GO-Slim in _any_ path (in bottom->top order)
     direct_ancestors = all_ancestors - covered_ancestors
     return direct_ancestors, all_ancestors

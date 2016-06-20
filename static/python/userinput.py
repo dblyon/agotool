@@ -368,8 +368,13 @@ class UserInput_compare_groups(object):
             temp_list += protgroup.split(";")
         return sorted(set(temp_list))
 
-    def get_all_unique_ans(self):
-        ans_list = self.sample_ser.unique().tolist() + self.population_ser.unique().tolist()
+    def get_all_unique_ans(self, sample_population_all="all"):
+        if sample_population_all == "all":
+            ans_list = self.sample_ser.unique().tolist() + self.population_ser.unique().tolist()
+        elif sample_population_all == "sample":
+            ans_list = self.sample_ser.unique().tolist()
+        elif sample_population_all == "population":
+            ans_list = self.population_ser.unique().tolist()
         ans_list = sorted(set(ans_list))
         if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
             ans_list = self.split_protGroups_into_unique_list(ans_list)
