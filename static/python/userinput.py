@@ -349,12 +349,19 @@ class UserInput_compare_groups(object):
 
         # remove NaNs from samplefrequency and backgroundfrequency AN-cols
         # DON'T REMOVE DUPLICATES
-        # cond = pd.notnull(self.sample_ser)
-        # self.sample_ser = self.sample_ser.loc[cond, ]
         self.sample_ser = self.sample_ser.dropna()
-        # cond = pd.notnull(self.population_ser)
-        # self.population_ser = self.population_ser.loc[cond,]
+        if not self.proteinGroup:
+            self.sample_ser = self.sample_ser.apply(self.grep_first_an_from_proteinGroup)
+
         self.population_ser = self.population_ser.dropna()
+        if not self.proteinGroup:
+            self.population_ser = self.population_ser.apply(self.grep_first_an_from_proteinGroup)
+
+    def grep_first_an_from_proteinGroup(self, stringi_):
+        try:
+            return stringi_.split(";")[0]
+        except IndexError:
+            return stringi_
 
     def get_sample_an(self):
         return self.sample_ser

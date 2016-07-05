@@ -1,3 +1,6 @@
+# ToDo:
+# UniProtKeywords OBO parsing --> there IS a hierarchy #!!!
+
 # coding=utf-8
 # standard library
 import os

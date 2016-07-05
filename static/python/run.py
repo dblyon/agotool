@@ -1,5 +1,5 @@
 from __future__ import print_function
-import operator
+import operator, os, sys
 import pandas as pd
 import numpy as np
 
@@ -47,16 +47,16 @@ def run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, org
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
         return header, results
     else:
-        go_parent = gocat_upk
-        # assoc_dict = pgoa.get_association_dict_for_organism(go_parent=go_parent, obo_dag=go_dag, organism=organism)
-        assoc_dict = pgoa.get_association_dict(go_parent=go_parent, obo_dag=go_dag, ans_list=ans_list)
-        if go_slim_or_basic == 'slim':
-            assoc_dict = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
+        assoc_dict = pgoa.get_association_dict(go_parent=gocat_upk, obo_dag=go_dag, ans_list=ans_list)
+        if not gocat_upk == "KEGG":
+            if go_slim_or_basic == 'slim':
+                assoc_dict = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
         if compare_groups == "characterize_study":
-            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method)
+            # print(gocat_upk)
+            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
             return gostudy.GOid2NumANs_dict_study, gostudy.go2ans_study_dict
         elif compare_groups == "compare_groups":
-            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method)
+            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
         return header, results
 
@@ -77,7 +77,7 @@ class get_startup_objects(object):
         # setting up objects
         decimal = '.'
         organism = None
-        gocat_upk = 'all_GO'
+        gocat_upk = 'all_GO' # "all_GO", "BP", "MF", "CP", "UPK", "KEGG"
         indent = False
         multitest_method = 'benjamini_hochberg'
         alpha = 0.05
@@ -95,10 +95,119 @@ class get_startup_objects(object):
         upkp = go_retriever.UniProtKeywordsParser()
         pgoa = go_retriever.Parser_GO_annotations()
         pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
+        pgoa.fn_sqlite_kegg = r"/Users/dblyon/modules/cpr/metaprot/HOMD_AN2KEGGname.sqlite"
         filter_ = cluster_filter.Filter(go_dag)
         return go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_
 
+
+def GO_compare_groups(userinput_fn, go_slim_or_basic, proteinGroup, *args):
+    go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = args
+    study_n = 10
+    pop_n = 10
+    compare_groups = "compare_groups"  # "characterize_study" or "compare_groups"
+    header, results = run(proteinGroup, compare_groups, userinput_fn, study_n,
+        pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+        multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+        go_dag, goslim_dag, pgoa, upkp)
+    if gocat_upk == "KEGG":
+        fn_out = userinput_fn.replace(".txt", "_compare_{}.txt".format(gocat_upk))
+    else:
+        fn_out = userinput_fn.replace(".txt", "_compare_{}.txt".format(go_slim_or_basic))
+    if proteinGroup:
+        fn_out = fn_out.replace(".txt","_protGr.txt")
+    tsv = (u'%s\n%s\n' % (header, u'\n'.join(results)))
+    write2file(fn_out, tsv)
+    df = pd.read_csv(fn_out, sep='\t')
+    if not gocat_upk == "KEGG": # filter results
+        df['level'] = df["id"].apply(go_retriever.get_level, args=(go_dag, ))
+    df['ANs_count'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
+    print(fn_out)
+    df.to_csv(fn_out, sep='\t', header=True, index=False)
+    if not gocat_upk == "KEGG": # filter results
+        fn_out_filtered = fn_out.replace('.txt', "_fltr.txt")
+        results_filtered = filter_.filter_term_lineage(header, results, indent, sort_on='p_uncorrected')
+        tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
+        print(fn_out_filtered)
+        write2file(fn_out_filtered, tsv)
+
+
+def GO_characterize_study(userinput_fn, go_slim_or_basic, proteinGroup, *args):
+    go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = args
+    backtracking = True
+    if gocat_upk == "KEGG":
+        backtracking = False
+    study_n = 10
+    pop_n = 10
+    compare_groups = "characterize_study"
+    term_study, go2ans_study_dict = run(proteinGroup, compare_groups, userinput_fn, study_n,
+        pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+        multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+        go_dag, goslim_dag, pgoa, upkp)
+    basename_split = os.path.basename(userinput_fn).split("_")
+    basename = "_".join([basename_split[0], basename_split[3]])
+    fn_out = os.path.join(os.path.dirname(userinput_fn), basename)
+    if proteinGroup:
+        fn_out = fn_out.replace(".txt","_protGr.txt")
+    sorted_term_study = sorted(term_study.items(), key=operator.itemgetter(1))[::-1]
+    if not gocat_upk == "KEGG":
+        fn_out = fn_out.replace(".txt", "_characterize_{}.txt".format(go_slim_or_basic))
+        dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
+        dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag,))
+        dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag,))
+    else:
+        fn_out = fn_out.replace(".txt", "_characterize_{}.txt".format(gocat_upk))
+        dfx = pd.DataFrame(sorted_term_study, columns=["KEGG", "Num_associations"])
+    print(fn_out)
+    dfx.to_csv(fn_out, sep='\t', header=True, index=False)
+
+
 if __name__ == "__main__":
+    ###  run GO enrichemnt and characterization
+    list_of_tuple_combinations = [('Perio', 'Caries'), ('Perio', 'Healthy'), ('Caries', 'Healthy'), ('Healthy', 'Caries')]
+    get_startup_objects = get_startup_objects()
+    go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = get_startup_objects()
+    go_slim_or_basic = "slim"
+    proteinGroup_list = [True] #, False] ##True]#, False]
+    dir_ = r"/Users/dblyon/CloudStation/CPR/Ancient_Proteins_Project/Daniel/txt_20160429_redFasta_FDR_matchBR/Intensity_Classic/"
+    Homo_Bac_Other_list = ["Bacteria"]#, 'Homo']
+    rank = 'genus'
+    userinput_fn_list = []
+
+    compare_groups = "characterize_study"
+    study_n = 10
+    pop_n = 10
+    gocat_upk = "KEGG"
+    backtracking = False
+
+
+    for Homo_Bac_Other in Homo_Bac_Other_list:
+        for combi in list_of_tuple_combinations:
+            groupA, groupB = combi
+            fn_out = "{}_vs_{}_{}{}.txt".format(groupA, groupB, Homo_Bac_Other, rank)
+            fn_out = os.path.join(dir_, fn_out)
+            userinput_fn_list.append(fn_out)
+    for proteinGroup in proteinGroup_list:
+        for userinput_fn in userinput_fn_list:
+            GO_compare_groups(userinput_fn, go_slim_or_basic, proteinGroup,
+                go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent,
+                multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+                fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+                filter_)
+            # print(userinput_fn)
+            GO_characterize_study(userinput_fn, go_slim_or_basic, proteinGroup,
+                go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent,
+                multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+                fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+                filter_)
+
+
+
+
+
+
+
     # compare_groups = True
     # compare_groups = "compare_groups" # or "characterize_study"
     # proteinGroup = True # ANs are provided as proteinGroups not single ANs, use all GOterms associated with the group but count only as one protein for stats
@@ -168,141 +277,141 @@ if __name__ == "__main__":
     # GOID3: 3             1*10      1           1*10
     ################################################################################
     ################################################################################
-    # setting up objects
-    decimal = '.'
-    organism = None
-    gocat_upk = 'all_GO'
-    indent = False
-    multitest_method = 'benjamini_hochberg'
-    alpha = 0.05
-    o_or_u_or_both = 'both'
-    abcorr = False
-    num_bins = 100
-    backtracking = True
-    fold_enrichment_study2pop = 0.0
-    p_value_uncorrected = 0.0
-    p_value_mulitpletesting = 0.0
-    fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
-    go_dag = obo_parser.GODag(obo_file=fn_obo)
-    fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/goslim_generic.obo'
-    goslim_dag = obo_parser.GODag(obo_file=fn_obo)
-    upkp = go_retriever.UniProtKeywordsParser()
-    pgoa = go_retriever.Parser_GO_annotations()
-    pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
-    filter_ = cluster_filter.Filter(go_dag)
+    # # setting up objects
+    # decimal = '.'
+    # organism = None
+    # gocat_upk = 'all_GO'
+    # indent = False
+    # multitest_method = 'benjamini_hochberg'
+    # alpha = 0.05
+    # o_or_u_or_both = 'both'
+    # abcorr = False
+    # num_bins = 100
+    # backtracking = True
+    # fold_enrichment_study2pop = 0.0
+    # p_value_uncorrected = 0.0
+    # p_value_mulitpletesting = 0.0
+    # fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
+    # go_dag = obo_parser.GODag(obo_file=fn_obo)
+    # fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/goslim_generic.obo'
+    # goslim_dag = obo_parser.GODag(obo_file=fn_obo)
+    # upkp = go_retriever.UniProtKeywordsParser()
+    # pgoa = go_retriever.Parser_GO_annotations()
+    # pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
+    # filter_ = cluster_filter.Filter(go_dag)
     ################################################################################
     ### Test 1
-    # TESTING compare_groups = characterize_study
-    study_n = 10
-    pop_n = 10
-    compare_groups = "characterize_study"  # "characterize_study" or "compare_groups"
-    go_slim_or_basic = "slim"
-    userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_v2.txt'
-    proteinGroup = False
-    term_study, go2ans_study_dict = run(proteinGroup, compare_groups, userinput_fn,
-                                            study_n, pop_n, decimal, organism,
-                                            gocat_upk, go_slim_or_basic, indent,
-                                            multitest_method, alpha,
-                                            o_or_u_or_both, abcorr, num_bins,
-                                            backtracking,
-                                            fold_enrichment_study2pop,
-                                            p_value_uncorrected,
-                                            p_value_mulitpletesting,
-                                            go_dag, goslim_dag, pgoa, upkp)
-    sorted_term_study = sorted(term_study.items(), key=operator.itemgetter(1))[::-1]
-    dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
-    dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag, ))
-    dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag, ))
-    assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
-    print("test1 ")
+    # # TESTING compare_groups = characterize_study
+    # study_n = 10
+    # pop_n = 10
+    # compare_groups = "characterize_study"  # "characterize_study" or "compare_groups"
+    # go_slim_or_basic = "slim"
+    # userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_v2.txt'
+    # proteinGroup = False
+    # term_study, go2ans_study_dict = run(proteinGroup, compare_groups, userinput_fn,
+    #                                         study_n, pop_n, decimal, organism,
+    #                                         gocat_upk, go_slim_or_basic, indent,
+    #                                         multitest_method, alpha,
+    #                                         o_or_u_or_both, abcorr, num_bins,
+    #                                         backtracking,
+    #                                         fold_enrichment_study2pop,
+    #                                         p_value_uncorrected,
+    #                                         p_value_mulitpletesting,
+    #                                         go_dag, goslim_dag, pgoa, upkp)
+    # sorted_term_study = sorted(term_study.items(), key=operator.itemgetter(1))[::-1]
+    # dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
+    # dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag, ))
+    # dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag, ))
+    # assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
+    # print("test1 ")
     ################################################################################
-    # TESTING compare_groups = compare_groups
-    study_n = 10
-    pop_n = 10
-    compare_groups = "compare_groups" # "characterize_study" or "compare_groups"
-    go_slim_or_basic = "slim"
-    userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_v2.txt'
-    proteinGroup = False
-    header, results = run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
-                multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-                fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
-                go_dag, goslim_dag, pgoa, upkp)
-    fn_out = userinput_fn.replace(".txt", "_compare_groups_{}.txt".format(go_slim_or_basic))
-    fn_out_filtered = fn_out.replace('.txt', "_fltr.txt")
-    tsv = (u'%s\n%s\n' % (header, u'\n'.join(results)))
-    print(fn_out)
-    write2file(fn_out, tsv)
-    df = pd.read_csv(fn_out, sep='\t')
-    df['level'] = df["id"].apply(go_retriever.get_level, args=(go_dag, ))
-    df['ANs_count'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
-    df.to_csv(fn_out, sep='\t', header=True, index=False)
-    print(df.shape)
-    assert sorted(df.study_n.unique()) == [10, 20]
-    assert sorted(df.pop_n.unique()) == [10, 20]
-    assert sorted(df.pop_count.unique()) == [1, 5, 6]
-    assert sorted(df.study_count.unique()) == [3, 8, 11]
-    df['ANs_count_study'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
-    cond = df["study_n"] == df["ANs_count_study"] * study_n
-    assert sum(cond) == len(cond) # all are True
-    df['ANs_count_pop'] = df['ANs_pop'].apply(lambda x: len(x.split(",")))
-    cond = df["pop_n"] == df["ANs_count"] * pop_n
-    assert sum(cond) == len(cond)
-    df_characterize_study = dfx.copy()
-    df_compare_groups = df[["id", "study_count"]]
-    df_compare_groups.columns = ["GOid", "study_count"]
-    dfm = pd.merge(df_compare_groups, df_characterize_study, how='outer')
-    cond = dfm['study_count'] == dfm['Num_associations']
-    assert sum(cond) == len(cond)
-    print("test2 ")
-    ### Test 3
-    # TESTING compare_groups = characterize_study with proteinGroups
-    study_n = 10
-    pop_n = 10
-    proteinGroup = True
-    compare_groups = "characterize_study"  # "characterize_study" or "compare_groups"
-    go_slim_or_basic = "slim"
-    userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_proteinGroups.txt'
-    GOid2NumANs_dict_study, go2ans_study_dict = run(proteinGroup, compare_groups,
-                                        userinput_fn,
-                                        study_n, pop_n, decimal, organism,
-                                        gocat_upk, go_slim_or_basic, indent,
-                                        multitest_method, alpha,
-                                        o_or_u_or_both, abcorr, num_bins,
-                                        backtracking,
-                                        fold_enrichment_study2pop,
-                                        p_value_uncorrected,
-                                        p_value_mulitpletesting,
-                                        go_dag, goslim_dag, pgoa, upkp)
-    sorted_term_study = sorted(GOid2NumANs_dict_study.items(), key=operator.itemgetter(1))[::-1]
-    dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
-    dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag,))
-    dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag,))
-    assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
-    print("test3 ")
+    # # TESTING compare_groups = compare_groups
+    # study_n = 10
+    # pop_n = 10
+    # compare_groups = "compare_groups" # "characterize_study" or "compare_groups"
+    # go_slim_or_basic = "slim"
+    # userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_v2.txt'
+    # proteinGroup = False
+    # header, results = run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+    #             multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+    #             fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+    #             go_dag, goslim_dag, pgoa, upkp)
+    # fn_out = userinput_fn.replace(".txt", "_compare_groups_{}.txt".format(go_slim_or_basic))
+    # fn_out_filtered = fn_out.replace('.txt', "_fltr.txt")
+    # tsv = (u'%s\n%s\n' % (header, u'\n'.join(results)))
+    # print(fn_out)
+    # write2file(fn_out, tsv)
+    # df = pd.read_csv(fn_out, sep='\t')
+    # df['level'] = df["id"].apply(go_retriever.get_level, args=(go_dag, ))
+    # df['ANs_count'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
+    # df.to_csv(fn_out, sep='\t', header=True, index=False)
+    # print(df.shape)
+    # assert sorted(df.study_n.unique()) == [10, 20]
+    # assert sorted(df.pop_n.unique()) == [10, 20]
+    # assert sorted(df.pop_count.unique()) == [1, 5, 6]
+    # assert sorted(df.study_count.unique()) == [3, 8, 11]
+    # df['ANs_count_study'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
+    # cond = df["study_n"] == df["ANs_count_study"] * study_n
+    # assert sum(cond) == len(cond) # all are True
+    # df['ANs_count_pop'] = df['ANs_pop'].apply(lambda x: len(x.split(",")))
+    # cond = df["pop_n"] == df["ANs_count"] * pop_n
+    # assert sum(cond) == len(cond)
+    # df_characterize_study = dfx.copy()
+    # df_compare_groups = df[["id", "study_count"]]
+    # df_compare_groups.columns = ["GOid", "study_count"]
+    # dfm = pd.merge(df_compare_groups, df_characterize_study, how='outer')
+    # cond = dfm['study_count'] == dfm['Num_associations']
+    # assert sum(cond) == len(cond)
+    # print("test2 ")
+    # ### Test 3
+    # # TESTING compare_groups = characterize_study with proteinGroups
+    # study_n = 10
+    # pop_n = 10
+    # proteinGroup = True
+    # compare_groups = "characterize_study"  # "characterize_study" or "compare_groups"
+    # go_slim_or_basic = "slim"
+    # userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_proteinGroups.txt'
+    # GOid2NumANs_dict_study, go2ans_study_dict = run(proteinGroup, compare_groups,
+    #                                     userinput_fn,
+    #                                     study_n, pop_n, decimal, organism,
+    #                                     gocat_upk, go_slim_or_basic, indent,
+    #                                     multitest_method, alpha,
+    #                                     o_or_u_or_both, abcorr, num_bins,
+    #                                     backtracking,
+    #                                     fold_enrichment_study2pop,
+    #                                     p_value_uncorrected,
+    #                                     p_value_mulitpletesting,
+    #                                     go_dag, goslim_dag, pgoa, upkp)
+    # sorted_term_study = sorted(GOid2NumANs_dict_study.items(), key=operator.itemgetter(1))[::-1]
+    # dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
+    # dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag,))
+    # dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag,))
+    # assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
+    # print("test3 ")
     ### Test 4
-    # TESTING compare_groups = characterize_study
-    study_n = 10
-    pop_n = 10
-    compare_groups = "characterize_study"  # "characterize_study" or "compare_groups"
-    go_slim_or_basic = "slim"
-    userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_proteinGroups.txt'
-    proteinGroup = True
-    term_study, go2ans_study_dict = run(proteinGroup, compare_groups, userinput_fn,
-                                            study_n, pop_n, decimal, organism,
-                                            gocat_upk, go_slim_or_basic, indent,
-                                            multitest_method, alpha,
-                                            o_or_u_or_both, abcorr, num_bins,
-                                            backtracking,
-                                            fold_enrichment_study2pop,
-                                            p_value_uncorrected,
-                                            p_value_mulitpletesting,
-                                            go_dag, goslim_dag, pgoa, upkp)
-    sorted_term_study = sorted(term_study.items(), key=operator.itemgetter(1))[::-1]
-    dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
-    dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag, ))
-    dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag, ))
-    assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
-    print("test4 ")
+    # # TESTING compare_groups = characterize_study
+    # study_n = 10
+    # pop_n = 10
+    # compare_groups = "characterize_study"  # "characterize_study" or "compare_groups"
+    # go_slim_or_basic = "slim"
+    # userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_proteinGroups.txt'
+    # proteinGroup = True
+    # term_study, go2ans_study_dict = run(proteinGroup, compare_groups, userinput_fn,
+    #                                         study_n, pop_n, decimal, organism,
+    #                                         gocat_upk, go_slim_or_basic, indent,
+    #                                         multitest_method, alpha,
+    #                                         o_or_u_or_both, abcorr, num_bins,
+    #                                         backtracking,
+    #                                         fold_enrichment_study2pop,
+    #                                         p_value_uncorrected,
+    #                                         p_value_mulitpletesting,
+    #                                         go_dag, goslim_dag, pgoa, upkp)
+    # sorted_term_study = sorted(term_study.items(), key=operator.itemgetter(1))[::-1]
+    # dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
+    # dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag, ))
+    # dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag, ))
+    # assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
+    # print("test4 ")
     ######### TESTING STOP
     ################################################################################
     ################################################################################

@@ -79,23 +79,13 @@ class Parser_GO_annotations(object):
         :param HOMD: Bool (flag to ignore organisms, make it possible to just get GOterms from AN without specifying TaxID)
         :return: None
         """
-        # self.date = "not set yet" # generation date
-        # self.obolibrary = "not yet set" # link to obo-library
-        # self.organism2ans_dict = {} # key=TaxID(String), val=ListOfANs
-        # self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
-        # self.organisms_set = set(organisms_set)
-        # self.parse_goa_ref(goa_ref_fn)
+        self.KEGG = False
         self.table_name = 'table_an2go'  # name of the table to be created
         self.id_column = 'an_column' # name of the column # id_column
         self.an_column = self.id_column
         self.go_column = 'go_column'  # name of the new column
-        self.fn_sqlite="AN2GO.sqlite"
-
-        # try:
-        #     len(self.organism2ans_dict)
-        # except AttributeError:
-        #     # self.organism2ans_dict = {} # key=TaxID(String), val=ListOfANs
-        #     self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
+        self.fn_sqlite = "AN2GO.sqlite"
+        self.fn_sqlite_kegg = "HOMD_AN2KEGGname.sqlite"
 
     def yield_gz_file_lines(self, fn):
         if fn.endswith(".gz"):
@@ -131,11 +121,6 @@ class Parser_GO_annotations(object):
                     if organisms_set is not None:
                         if not organism in organisms_set:
                             continue
-                    # if not self.organism2ans_dict.has_key(organism):
-                    #     self.organism2ans_dict[organism] = [an]
-                    # else:
-                    #     self.organism2ans_dict[organism].append(an)
-
                     if not self.an2go_dict.has_key(an): # the only important one ???
                         self.an2go_dict[an] = [goid]
                     else:
@@ -169,37 +154,6 @@ class Parser_GO_annotations(object):
                         self.insert_or_update_an_goterm_pair(an, goid)
         self.close_sqlite()
 
-
-    # def parse_goa_ref_low_memory(self, fn_list, fn_out, organisms_set=None):
-    #     """
-    #     parse UniProt goa_ref file filling self.an2go_dict
-    #     restrict to organisms (TaxIDs as String) if provided
-    #     :param fn_list: ListOfString
-    #     :param fn_out: String
-    #     :param organisms_set: SetOfString
-    #     :return: None
-    #     """
-    #     with open(fn_out, "w") as fh:
-    #         # header = "AN" + "\t" + "GOterm" + "\n"
-    #         # fh.write(header)
-    #         for fn in fn_list:
-    #             for line in self.yield_gz_file_lines(fn):
-    #                 if line[0] == "!":
-    #                     continue
-    #                 else:
-    #                     line_split = line.split("\t")
-    #                     if len(line_split) >= 15:
-    #                         an = line_split[1] # DB_Object_ID
-    #                         goid = line_split[4] # GO_ID
-    #                         organism = re.match(self.my_regex, line_split[12]).groups()[0]
-    #                         # reduce to specific organisms
-    #                         if organisms_set is not None:
-    #                             if not organism in organisms_set:
-    #                                 continue
-    #                         line2write = an + "\t" + goid + "\n"
-    #                         fh.write(line2write)
-
-
     def low_memory_file_2_an2go_dict(self, fn):
         """
         :param fn: String
@@ -216,7 +170,6 @@ class Parser_GO_annotations(object):
 
     def fill_sqlite_an2go(self, fn_an2go_temp):
         """
-
         :param fn_an2go: RawString
         :param fn_out_sqlite: RawString
         :return: None
@@ -264,10 +217,7 @@ class Parser_GO_annotations(object):
         :return: None
         """
         dict2pickle = {}
-        # dict2pickle["organism2ans_dict"] = self.organism2ans_dict
         dict2pickle["an2godict"] = self.an2go_dict # the only important one ???
-        # dict2pickle["date"] = self.date
-        # dict2pickle["obolibrary"] = self.obolibrary
         pickle.dump(dict2pickle, open(fn_p, "wb"))
         del dict2pickle
 
@@ -279,10 +229,7 @@ class Parser_GO_annotations(object):
         """
         fn_p = update_server.get_fn_pickle_Parser_GO_annotations()
         dict2pickle = pickle.load(open(fn_p, "rb"))
-        # self.organism2ans_dict = dict2pickle["organism2ans_dict"]
         self.an2go_dict = dict2pickle["an2godict"] # the only important one ???
-        # self.date = dict2pickle["date"]
-        # self.obolibrary = dict2pickle["obolibrary"]
         del dict2pickle
 
     def get_ans_from_organism(self, organism):
@@ -296,10 +243,6 @@ class Parser_GO_annotations(object):
         self.close_sqlite()
         return [ele[0] for ele in ans_list]
 
-    # def get_goterms_from_an__(self, an):
-    #     self.c.execute("SELECT ({coi}) FROM {tn} WHERE {cn}='{an}'".format(coi=self.go_column, tn=self.table_name, cn=self.an_column, an=an))
-    #     return self.c.fetchone()[0].split(";")
-
     def get_goterms_from_an(self, an):
         self.connect_sqlite()
         self.c.execute("SELECT ({coi}) FROM {tn} WHERE {cn}='{an}'".format(coi=self.go_column, tn=self.table_name, cn=self.an_column, an=an))
@@ -311,7 +254,10 @@ class Parser_GO_annotations(object):
             return -1
 
     def connect_sqlite(self):
-        conn = sqlite3.connect(self.fn_sqlite)
+        if self.KEGG:
+            conn = sqlite3.connect(self.fn_sqlite_kegg)
+        else:
+            conn = sqlite3.connect(self.fn_sqlite)
         c = conn.cursor()
         self.conn = conn
         self.c = c
@@ -349,31 +295,6 @@ class Parser_GO_annotations(object):
                     assoc_dict[an] = set(goterms_list)
         return assoc_dict
 
-    # def get_association_dict(self, go_parent, obo_dag): # WITHOUT the organism distinction
-    #     """
-    #     assoc is a dict: key=AN, val=set of go-terms
-    #     produce dict for all AccessionNumbers not just specific organism cf. above function
-    #     limit the set of GO-terms to the given parent category
-    #     # "BP" "GO:0008150"
-    #     # "CP" "GO:0005575"
-    #     # "MF" "GO:0003674"
-    #     :param go_parent: String
-    #     :param obo_dag: GODag Instance
-    #     :return: Dict
-    #     """
-    #     self.connect_sqlite()
-    #     assoc_dict = {}
-    #     for an in self.get_ans():
-    #         if an not in assoc_dict:
-    #             if go_parent == "all_GO":
-    #                 goterms_list = self.get_goterms_from_an__(an)
-    #             else:
-    #                 goterms_list = self.get_goterms_from_an_limit2parent(an, go_parent, obo_dag)
-    #             if goterms_list != -1:
-    #                 assoc_dict[an] = set(goterms_list)
-    #     self.close_sqlite()
-    #     return assoc_dict
-
     def get_association_dict(self, go_parent, obo_dag, ans_list=None): # WITHOUT the organism distinction
         """
         assoc is a dict: key=AN, val=set of go-terms
@@ -388,63 +309,30 @@ class Parser_GO_annotations(object):
         :return: Dict
         """
         assoc_dict = {}
-        self.connect_sqlite()
+        if go_parent == "KEGG":
+            self.KEGG = True
+        self.connect_sqlite() # or rather why do I need this one up here
         if not ans_list:
             ans_list = self.get_ans()
         for an in ans_list:
             if an not in assoc_dict:
                 self.connect_sqlite() #!!! ??? why does it not work without this line ???
-                self.c.execute("SELECT ({coi}) FROM {tn} WHERE {cn}='{an}'".format(coi=self.go_column, tn=self.table_name, cn=self.an_column, an=an))
+                if self.KEGG:
+                    self.c.execute("SELECT ({coi}) FROM {tn} WHERE {cn}='{an}'".format(coi="KEGGname", tn="AN2KEGGname", cn="AN", an=an))
+                else:
+                    self.c.execute("SELECT ({coi}) FROM {tn} WHERE {cn}='{an}'".format(coi=self.go_column, tn=self.table_name, cn=self.an_column, an=an))
                 goterm = self.c.fetchone()
                 if goterm:
                     goterms_list = goterm[0].split(";")
                 else:
                     goterms_list = -1
-                if go_parent != "all_GO":
+                # if go_parent != "all_GO":
+                if go_parent in {"BP", "MF", "CP"}:
                     goterms_list = self.get_goterms_from_an_limit2parent(goterms_list, go_parent, obo_dag)
                 if goterms_list != -1:
                     assoc_dict[an] = set(goterms_list)
         self.close_sqlite()
         return assoc_dict
-
-# cp /Volumes/JVO/Lyon/Bulgarien_combined_txt/txt_noMatch/proteinGroups.txt /Users/dblyon/CloudStation/CPR/Ancient_Proteins_Project/Bulgariens/proteinGroups.txt
-# cp /Volumes/JVO/Lyon/Bulgarien_combined_txt/txt_noMatch/evidence.txt /Users/dblyon/CloudStation/CPR/Ancient_Proteins_Project/Bulgariens/evidence.txt
-
-
-
-    # def get_goterms_from_an(self, an):
-    #     """
-    #     produce list of GO-terms associated with given AccessionNumber
-    #     :param an: String
-    #     :return: ListOfString
-    #     """
-    #     try:
-    #         return self.an2go_dict[an]
-    #     except KeyError:
-    #         return -1 #!!!
-
-    # def get_goterms_from_an_limit2parent(self, an, go_parent, obo_dag):
-    #     '''
-    #     produce list of GO-terms associated with given AccessionNumber
-    #     limit to child terms of given parent
-    #     :param an: String
-    #     :param go_parent: String
-    #     :param obo_dag: GODag Instance
-    #     :return: ListOfString
-    #     '''
-    #     goterms_list = self.get_goterms_from_an(an)
-    #     if goterms_list == -1:
-    #         return -1
-    #     else:
-    #         goterms_of_parent = []
-    #         for goterm in goterms_list:
-    #             if obo_dag.has_key(goterm):
-    #                 if obo_dag[goterm].has_parent(self.go_parents_name2num_dict[go_parent]):
-    #                     goterms_of_parent.append(goterm)
-    #     if len(goterms_of_parent) >= 1:
-    #         return goterms_of_parent
-    #     else:
-    #         return -1
 
     def get_goterms_from_an_limit2parent(self, goterms_list, go_parent, obo_dag):
         '''
@@ -467,7 +355,6 @@ class Parser_GO_annotations(object):
             return goterms_of_parent
         else:
             return -1
-
 
     def remove_redundant_go_terms(self):
         """
@@ -653,9 +540,6 @@ if __name__ == "__main__":
     fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA_commasepnotlong.tsv'
     # fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA.tsv'
     pgoa.parse_goa_ref(fn, organisms_set=None)
-
-
-
 ################################################################################
     # fn_gz = r"../../static/data/GOA/uniprot_test.gz"
     # organisms_set={u'10090',
@@ -681,201 +565,4 @@ if __name__ == "__main__":
     # pgoa.unpickle()
     # go_dag = obo_parser.GODag(obo_file=r'../../static/data/OBO/go-basic.obo')
     # assoc_dict = pgoa.get_association_dict_for_organism(go_parent="all_GO", obo_dag=go_dag, organism="9606")
-
-
-
-
 ################################################################################
-################################################################################
-##### RIP dead code
-# class Parser_UniProt_goa_ref(object):
-#     """
-#     formerly known as 'Goretriever'
-#     parse UniProt goa_ref files retrieved from ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/
-#     # e.g. gene_association.goa_ref_yeast
-#     # additional info http://www.geneontology.org/doc/GO.references
-#     produce list of GO-terms associated with given AccessionNumber
-#     """
-#     go_parents_name2num_dict = {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
-#
-#     def __init__(self, goa_ref_fn):
-#         """
-#         :return: None
-#         """
-#         self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
-#         self.date = "not set yet" # generation date
-#         self.obolibrary = "not yet set" # link to obo-library
-#         self.parse_goa_ref(goa_ref_fn)
-#
-#     def parse_goa_ref(self, fn):
-#         """
-#         parse UniProt goa_ref file filling self.an2go_dict
-#         :param fn: raw String
-#         :return: None
-#         """
-#         fh = open(fn, "r")
-#         for line in fh:
-#             if line[0] == "!":
-#                 if line[0:11] == "!Generated:":
-#                     self.date = line.replace("!Generated:", "").strip()
-#                 elif line[0:12] == "!GO-version:":
-#                     self.obolibrary = line.replace("!GO-version:", "").strip()
-#             else:
-#                 line_split = line.split("\t")
-#                 if len(line_split) == 17:
-#                     an = line_split[1] # DB_Object_ID
-#                     goid = line_split[4] # GO_ID
-#                     if not self.an2go_dict.has_key(an):
-#                         self.an2go_dict[an] = [goid]
-#                     else:
-#                         self.an2go_dict[an].append(goid)
-#         self.remove_redundant_go_terms()
-#         fh.close()
-#
-#     def set2sortedlist(self):
-#         for an in self.an2go_dict.keys():
-#             self.an2go_dict[an] = sorted(self.an2go_dict[an])
-#
-#     def get_goterms_from_an(self, an):
-#         """
-#         produce list of GO-terms associated with given AccessionNumber
-#         :param an: String
-#         :return: ListOfString
-#         """
-#         try:
-#             return self.an2go_dict[an]
-#         except KeyError:
-#             return -1 #!!!
-#
-#     def get_goterms_from_an_limit2parent(self, an, go_parent, obo_dag):
-#         '''
-#         produce list of GO-terms associated with given AccessionNumber
-#         limit to child terms of given parent
-#         :param an: String
-#         :param go_parent: String
-#         :param obo_dag: GODag Instance
-#         :return: ListOfString
-#         '''
-#         goterms_list = self.get_goterms_from_an(an)
-#         if goterms_list == -1:
-#             return -1
-#         else:
-#             goterms_of_parent = []
-#             for goterm in goterms_list:
-#                 if obo_dag.has_key(goterm):
-#                     if obo_dag[goterm].has_parent(self.go_parents_name2num_dict[go_parent]):
-#                         goterms_of_parent.append(goterm)
-#         if len(goterms_of_parent) >= 1:
-#             return goterms_of_parent
-#         else:
-#             return -1
-#
-#     def get_ans(self):
-#         '''
-#         produce List of AccessionNumbers
-#         :return: ListOfString
-#         '''
-#         return sorted(self.an2go_dict)
-#
-#     def get_date(self):
-#         """
-#         produce generation date of UniProt resource file
-#         :return: String
-#         """
-#         return self.date
-#
-#     def get_obolibrary(self):
-#         """
-#         produce link to obo-library
-#         :return: String
-#         """
-#         return self.obolibrary
-#
-#     def remove_redundant_go_terms(self):
-#         """
-#         remove redundant go-terms for each AccessionNumber if present
-#         and sort list of go-terms
-#         :return: None
-#         """
-#         for an in self.an2go_dict.keys():
-#             self.an2go_dict[an] = sorted(set(self.an2go_dict[an]))
-#
-#     def pickle(self, fn_p):
-#         """
-#         pickle relevant attributes to given FileName
-#         :param fn_p: raw String
-#         :return: None
-#         """
-#         dict2pickle = {}
-#         dict2pickle["an2godict"] = self.an2go_dict
-#         dict2pickle["date"] = self.date
-#         dict2pickle["obolibrary"] = self.obolibrary
-#         pickle.dump(dict2pickle, open(fn_p, "wb"))
-#         del dict2pickle
-#
-#     def unpickle(self, fn_p):
-#         """
-#         unpickle and set relevant attributes to instance
-#         :param fn_p: raw String
-#         :return: None
-#         """
-#         dict2pickle = pickle.load(open(fn_p, "rb"))
-#         self.an2go_dict = dict2pickle["an2godict"]
-#         self.date = dict2pickle["date"]
-#         self.obolibrary = dict2pickle["obolibrary"]
-#         del dict2pickle
-#
-#     def write_association2file(self, fn_out):
-#         '''
-#         produce input file for goatools termed 'association'
-#         containing all AccessionNumbers of theoretical proteome and
-#         their corresponding GO-IDs
-#         e.g.:
-#         AN tab GO-id1;GO-id2;GO-id3
-#         ACD5	GO:0005575;GO:0003674;GO:0008219
-#         :param fn_out: rawString
-#         :return: None
-#         '''
-#         with open(fn_out, 'w') as fh_out:
-#             for an in self.get_ans():
-#                 go_list = self.get_goterms_from_an(an)
-#                 if go_list == -1:
-#                     pass # #!!! should there be a default value instead?
-#                 else:
-#                     fh_out.write(an + '\t' + ';'.join(go_list) + '\n')
-#
-#     def get_association_dict(self, go_parent, obo_dag):
-#         '''
-#         produce association_dictionary, containing all AccessionNumbers of theoretical proteome and
-#         their corresponding GO-IDs (most specific ones)
-#         do not report GO-ID without association
-#         assoc is a dict: key=AN, val=set of go-terms
-#         go_parten is one of: 'MF', 'BP', 'CP', "all_GO"
-#         limit the set of GO-terms to the given parent category
-#         obo_dag is a Dict: key=GO-term, val=GOTerm instance
-#         can be queried for parent term: obo_dag['GO:1990413'].has_parent('GO:0008150')
-#         # "BP" "GO:0008150"
-#         # "CP" "GO:0005575"
-#         # "MF" "GO:0003674"
-#         :param go_parent: String
-#         :param obo_dag: GODag Instance
-#         :return: Dict
-#         '''
-#         assoc_dict = {}
-#         for an in self.get_ans():
-#             if not assoc_dict.has_key(an):
-#                 if go_parent == "all_GO":
-#                     goterms_list = self.get_goterms_from_an(an)
-#                 else:
-#                     goterms_list = self.get_goterms_from_an_limit2parent(an, go_parent, obo_dag)
-#                 if goterms_list != -1:
-#                     assoc_dict[an] = set(goterms_list)
-#             else:
-#                 if go_parent == "all_GO":
-#                     goterms_set = set(self.get_goterms_from_an(an))
-#                 else:
-#                     goterms_set = set(self.get_goterms_from_an_limit2parent(an, go_parent, obo_dag))
-#                 if assoc_dict[an] != goterms_set:
-#                     print('Associations-dict: multiple entries of AN with diverging associations:')
-#                     print(an + ' ' + self.get_goterms_from_an(an))
-#         # return assoc_dict

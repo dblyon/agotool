@@ -158,7 +158,7 @@ class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, proteinGroup, compare_groups, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method):
+    def __init__(self, proteinGroup, compare_groups, ui, assoc_dict, obo_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk="all_GO"):
         self.proteinGroup = proteinGroup
         self.compare_groups = compare_groups
         self.ui = ui
@@ -169,6 +169,7 @@ class GOEnrichmentStudy(object):
         self.obo_dag = obo_dag
         self.alpha = alpha
         self.multitest_method = multitest_method
+        self.gocat_upk = gocat_upk
         self.results = []
         self.backtracking = backtracking
         self.randomSample = randomSample
@@ -191,23 +192,38 @@ class GOEnrichmentStudy(object):
             # self.go2ans_study_dict = GOterm2AN_dict --> study_n = len(self.go2ans_study_dict[goid]) * self.study_n
             # study_n = total number of ANs that are in assoc_dict and have GOterm
             if self.proteinGroup:
-                self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
-                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, self.GOid2NumProtGroups_pop_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "background")
+                if self.gocat_upk == "KEGG":
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup_KEGG(self.ui, self.assoc_dict, "sample")
+                    self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, self.GOid2NumProtGroups_pop_dict = ratio.count_terms_proteinGroup_KEGG(self.ui, self.assoc_dict, "background")
+                else:
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
+                    self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, self.GOid2NumProtGroups_pop_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "background")
             else:
                 self.study_an_frset = self.ui.get_sample_an()
-                self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
-                # study_n is NOT used
                 self.pop_an_set = self.ui.get_background_an()
-                self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2(self.pop_an_set, self.assoc_dict, self.obo_dag)
-                # this pop_n is NOT used
+                if self.gocat_upk == "KEGG":
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2_KEGG(self.study_an_frset, self.assoc_dict)
+                    self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2_KEGG(self.pop_an_set, self.assoc_dict)
+                else:
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
+                    # study_n is NOT used
+                    self.GOid2NumANs_dict_pop, self.go2ans_pop_dict, pop_n = ratio.count_terms_v2(self.pop_an_set, self.assoc_dict, self.obo_dag)
+                    # this pop_n is NOT used
 
         elif self.compare_groups == "characterize_study":
 
             if self.proteinGroup: # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
-                self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
+                if self.gocat_upk == "KEGG":
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup_KEGG(self.ui, self.assoc_dict, "sample")
+                else:
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, self.GOid2NumProtGroups_study_dict = ratio.count_terms_proteinGroup(self.ui, self.assoc_dict, self.obo_dag, "sample")
             else:
-                self.study_an_frset = self.ui.get_sample_an()
-                self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
+                if self.gocat_upk == "KEGG":
+                    self.study_an_frset = self.ui.get_sample_an()
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2_KEGG(self.study_an_frset, self.assoc_dict)
+                else:
+                    self.study_an_frset = self.ui.get_sample_an()
+                    self.GOid2NumANs_dict_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
                 # study_n is NOT used
             return None
 
@@ -460,7 +476,8 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
             if self.ui.col_background_an == 'Genome':
                 self.study_an_frset = self.ui.get_sample_an_frset_genome()
             else:
-                self.study_an_frset = self.ui.get_sample_an_frset()
+                # self.study_an_frset = self.ui.get_sample_an_frset()
+                self.study_an_frset = set(self.ui.get_sample_an())
 
             self.GOid2NumANs_dict_study, self.upk2ans_study_dict, study_n = self.count_upk_v2(self.study_an_frset, self.assoc_dict)
 

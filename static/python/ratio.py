@@ -53,6 +53,44 @@ def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
         GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
     return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
 
+def count_terms_proteinGroup_KEGG(ui, assoc_dict, sample_or_background):
+    """
+    GOid2ANs_dict: key: GOid, val: ListOfAN
+    GO2NumProtGroups_dict: key: GOid, val: Int(number of proteinGroups associated with GOterm)
+    redundant count e.g. 8 out of 10 samples --> study_count = 8
+    study_n = 10 (1 unique proteinGroup * 10 for study_n)
+
+    :param ui: UserInputInstance
+    :param assoc_dict: Dict(key: AN, val: ListOfString)
+    :param sample_or_background: String
+    :return: Tuple(Dict, Dict, Dict)
+    """
+    # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
+    GOid2RedundantNumProtGroups_dict = defaultdict(int) # key: String(GOid), val: Int(redundant Number of proteinGroups,
+    # e.g. if 8 out of 10 samples have proteinGroup --> 8)
+    GOid2ANs_dict = {} # key: GOid, val: ListOfANs (all ANs associated with GOterm)
+    GOid2UniqueNumProtGroups_dict = {} # key: String(GOid), val: Int(NON-redundant Number of proteinGroups,
+    # e.g. if 8 out of 10 samples have proteinGroup --> 1)
+    if sample_or_background == "sample":
+        proteinGroup_list = ui.get_sample_an().dropna().tolist()
+        # redundant list
+    else:
+        proteinGroup_list = ui.get_background_an().dropna().tolist()
+    for protGroup in proteinGroup_list:
+        KEGG_set, ans_list = get_goids_from_proteinGroup(protGroup, assoc_dict)
+        for goid in KEGG_set:
+            if goid not in GOid2RedundantNumProtGroups_dict:
+                GOid2RedundantNumProtGroups_dict[goid] = 1
+                GOid2ANs_dict[goid] = set(ans_list)
+                GOid2UniqueNumProtGroups_dict[goid] = [protGroup]
+            else:
+                GOid2RedundantNumProtGroups_dict[goid] += 1
+                GOid2ANs_dict[goid].update(ans_list)
+                GOid2UniqueNumProtGroups_dict[goid].append(protGroup)
+    for key in GOid2UniqueNumProtGroups_dict:
+        GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
+    return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
+
 def count_terms_v2(ans_set, assoc_dict, obo_dag):
     """
     count the number of terms in the study group
@@ -75,6 +113,28 @@ def count_terms_v2(ans_set, assoc_dict, obo_dag):
                 else:
                     GOid2ANs_dict[goid].update([an])
     return GOid2NumANs_dict, GOid2ANs_dict, len(ans2count)
+
+def count_terms_v2_KEGG(ans_set, assoc_dict):
+    """
+    count the number of terms in the study group
+    GOid2NumANs_dict: key=GOid, val=Num of occurrences
+    GOid2ANs_dict: key=GOid, val=ListOfANs
+    count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag
+    :return: Tuple(dict, dict, int)
+    """
+    ans2count = set()
+    GOid2ANs_dict = {}
+    GOid2NumANs_dict = defaultdict(int)
+    for an in (acnum for acnum in ans_set if acnum in assoc_dict):
+        for keggterm in assoc_dict[an]:
+            ans2count.update([an])
+            GOid2NumANs_dict[keggterm] += 1
+            if not keggterm in GOid2ANs_dict:
+                GOid2ANs_dict[keggterm] = set([an])
+            else:
+                GOid2ANs_dict[keggterm].update([an])
+    return GOid2NumANs_dict, GOid2ANs_dict, len(ans2count)
+
 
 def count_terms(ans_set, assoc_dict, obo_dag):
     """
