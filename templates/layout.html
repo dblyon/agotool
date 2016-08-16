@@ -1,23 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-{#    <link rel="shortcut icon" href="./static/js/cpr_logo.png">#}
     <link rel="icon" type="image/png" href="./static/js/favicon_sund.ico" sizes="16x16" />
 
-    <title>A.GO.TOOL</title>
+    <title>a GO Tool</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
-{#<!--    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script> -->#}
-<!--    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script> -->
-<!--
-{#    <script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>#}
-{#    <link rel="stylesheet" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">#}
--->
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
     <!-- jQuery -->
@@ -27,21 +21,16 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"></script>
 
+{#    <!-- Compiled and minified CSS -->#}
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.7/css/materialize.min.css">#}
+{#    <!-- Compiled and minified JavaScript -->#}
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.7/js/materialize.min.js"></script>#}
+
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
     <script src="{{ url_for('static', filename='js/utilities.js') }}"></script>
-
     {% block head %}
-{#        <script type="text/javascript">#}
-{#            $(document).ready( function () {#}
-{#                $('#table_id').DataTable({#}
-{#                            paging: false#}
-{#                        });#}
-{#        } );#}
-{#        </script>#}
-
     {% endblock head %}
-
-
 </head>
 
 <body role="document">
@@ -61,6 +50,7 @@
                     <li><a href="{{ url_for('enrichment') }}">enrichment</a></li>
                     <li><a href="{{ url_for('parameters') }}">parameters</a></li>
                     <li><a href="{{ url_for('example') }}">example</a></li>
+                    <li><a href="{{ url_for('db_schema') }}">data base</a></li>
                     <li><a href="{{ url_for('about') }}">about</a></li>
                 </ul>
                 <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/js/cpr_logo.png"></a></span>

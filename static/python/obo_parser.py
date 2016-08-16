@@ -70,8 +70,7 @@ class OBOReader:
         while 1:
             pos = self._handle.tell()   # save current postion for roll-back
             line = self._handle.readline()
-            if not line or (line.startswith(typedef_tag)
-                            or line.startswith(term_tag)):
+            if not line or (line.startswith(typedef_tag) or line.startswith(term_tag)):
                 self._handle.seek(pos)  # roll-back
                 break
             lines.append(line)

@@ -21,7 +21,7 @@ class MCL(object):
         # self.set_fh_log(self.abs_path + 'mcl_log.txt')
         self.abs_path = SESSION_FOLDER_ABSOLUTE
         self.set_fh_log(os.path.join(self.abs_path, 'mcl_log.txt'))
-        self.max_timeout =  max_timeout * 60
+        self.max_timeout = max_timeout * 60
         # print("#"*80)
         # print("2. max_timeout {}".format(max_timeout))
 
@@ -134,7 +134,7 @@ class MCL(object):
                 break
         if t.isAlive():
             os.kill(p.pid, signal.SIGKILL)
-            raise TimeOutException("MCL took to long and was killed:(")
+            raise TimeOutException("MCL took too long and was killed:")
         ###################################################################### --> I like you <3
         ########## in python 3 Popen.wait takes 1 argument          ##########
         ########## ... the name is timeout... guess what it does    ########## ^^ this is my favorite smiley <3

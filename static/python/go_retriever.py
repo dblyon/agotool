@@ -76,7 +76,7 @@ class Parser_GO_annotations(object):
 
     def __init__(self): #, goa_ref_fn=None, organisms_set=None):
         """
-        :param HOMD: Bool (flag to ignore organisms, make it possible to just get GOterms from AN without specifying TaxID)
+        :param HOMD: Bool (flag to ignore ORGANISMS, make it possible to just get GOterms from AN without specifying TaxID)
         :return: None
         """
         self.KEGG = False
@@ -100,7 +100,7 @@ class Parser_GO_annotations(object):
     def parse_goa_ref(self, fn, organisms_set=None):
         """
         parse UniProt goa_ref file filling self.an2go_dict
-        restrict to organisms (TaxIDs as String) if provided
+        restrict to ORGANISMS (TaxIDs as String) if provided
         :param fn: raw String
         :param organisms_set: SetOfString
         :return: None
@@ -117,7 +117,7 @@ class Parser_GO_annotations(object):
                     an = line_split[1] # DB_Object_ID
                     goid = line_split[4] # GO_ID
                     organism = re.match(self.my_regex, line_split[12]).groups()[0]
-                    # reduce to specific organisms
+                    # reduce to specific ORGANISMS
                     if organisms_set is not None:
                         if not organism in organisms_set:
                             continue
@@ -130,7 +130,7 @@ class Parser_GO_annotations(object):
     def parse_goa_ref_write2sqlite(self, fn_list, organisms_set=None):
         """
         parse UniProt goa_ref file filling self.an2go_dict
-        restrict to organisms (TaxIDs as String) if provided
+        restrict to ORGANISMS (TaxIDs as String) if provided
         :param fn_list: ListOfString
         :param fn_out: String
         :param organisms_set: SetOfString
@@ -147,7 +147,7 @@ class Parser_GO_annotations(object):
                         an = line_split[1] # DB_Object_ID
                         goid = line_split[4] # GO_ID
                         organism = re.match(self.my_regex, line_split[12]).groups()[0]
-                        # reduce to specific organisms
+                        # reduce to specific ORGANISMS
                         if organisms_set is not None:
                             if not organism in organisms_set:
                                 continue
@@ -394,7 +394,7 @@ class Parser_GO_annotations(object):
                     GO2AN_dict[goid].append(an)
         return GO2AN_dict
 
-# how about just making one big an2go_dict for all organisms UniProt and HOMD
+# how about just making one big an2go_dict for all ORGANISMS UniProt and HOMD
 # load uniprot_all.gz first, then overwrite anything in there with specific files, then add HOMD and check if overwriting AN
 # then pickle --> how big in memory???
 

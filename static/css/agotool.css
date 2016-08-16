@@ -1,4 +1,27 @@
-body {background-color:lightgrey;}
+/*body {background-color:#64a1b8;}*/
+/*UniProt colours*/
+/*#71b8d3*/
+/*#1d5c74*/
+/*Darker version of UniProt blue*/
+/*#64a1b8*/
+/*#9d4a4d*/
+
+.navbar-default{
+    background-color:#64a1b8;
+    border-color:#64a1b8;
+    border-radius: 0;
+}
+
+.navbar-default a, .navbar-default a:active, .navbar-default a:visited{
+    color: #FFF !important;
+}
+
+.navbar-default a:hover{
+    font-weight: bold;
+}
+
+
+body {background-color:#fff;}
 
 .errors  {color:red;}
 

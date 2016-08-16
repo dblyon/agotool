@@ -1,67 +1,33 @@
+# coding=utf-8
 # standard library
-import os, sys, logging, time, shutil
+import os
+import sys
 import StringIO
-from subprocess import call
+import logging
+import time
 
 # third party
-import pandas as pd
-import numpy as np
-from flask import Flask, render_template, request, send_from_directory, Markup, jsonify
-import flask, flask_sqlalchemy, flask_restless
+import flask
+from flask import render_template, request, send_from_directory
 import wtforms
 from wtforms import fields
-import markdown
+import pandas as pd
+import numpy as np
 
 # local application
-import sys
-sys.path.append("./../metaprot/sql/")
-import db_config, models
 sys.path.append('./static/python')
-import run, obo_parser, cluster_filter, go_retriever
+import run
+import obo_parser
+import cluster_filter
+import go_retriever
 
-
-
-###############################################################################
-# ToDo:
-# - post DataBase schema for RestAPI lookup
-# - explain sources and update intervals
-# - downloads page for existing fasta
-# - create search page for common user input and convert to
-## e.g.
-## http://localhost:5000/api/functions?q={"filters": [{"name": "type", "val": "DOM", "op": "eq"}]}
-## http://localhost:5000/api/proteins?q={"filters": [{"name": "an", "val": "B2RID1", "op": "eq"}]}
-# - graphical output of enrichment
-# - enter list of TaxIDs --> create fasta for download
-# - tool to convert TaxNames to TaxIDs or rather link to NCBI
-# - Consenus functional annotation for protein groups
-# - check if TaxIDs not in NCBI taxdump, but in HOMD mappings are missing in DB, check if all TaxIDs from Fasta in DB, CHeck if all TaxNames in DB
-# - add other types to Ontologies (not only GO, but also UPK)
-# - DB schema doesn't have theme
-# - userinput report, redundant and unique number of ANs/protein-groups, organisms etc.
-###############################################################################
-
-
-ECHO = False
-TESTING = True
-DO_LOGGING = False
-connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
-# Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
-db = flask_sqlalchemy.SQLAlchemy(app)
-db.Model.metadata.reflect(db.engine)
-
-webserver_data = os.getcwd() + '/static/data'
+webserver_data  = os.getcwd() + '/static/data'
 EXAMPLE_FOLDER = webserver_data + '/exampledata'
 SESSION_FOLDER_ABSOLUTE = webserver_data + '/session'
 SESSION_FOLDER_RELATIVE = '/static/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.getcwd() + '/templates'
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
-
-
-FN_DATABASE_SCHEMA = r"/Users/dblyon/modules/cpr/metaprot/sql/DataBase_Schema.md"
-FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
 
 # Additional path settings for flask
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -73,27 +39,6 @@ logger = logging.getLogger()
 logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
-
-###############################################################################
-##### Create the Flask-Restless API manager.
-manager = flask_restless.APIManager(app, flask_sqlalchemy_db=db)
-### Create API endpoints, which will be available at /api/<tablename> by
-### default. Allowed HTTP methods can be specified as well.
-manager.create_api(models.Proteins, methods=['GET'], primary_key="an", include_columns=["an", "header", "aaseq"])
-manager.create_api(models.Peptides, methods=['GET'], primary_key="aaseq", include_columns=["aaseq", "an", "missedcleavages", "length"])
-manager.create_api(models.Taxa, methods=['GET'], primary_key="taxid", include_columns=["taxname", "taxid", "scientific"])
-manager.create_api(models.Taxid_2_rank, methods=['GET'], primary_key="taxid", include_columns=["taxid", "rank"])
-manager.create_api(models.Ogs, methods=['GET'], primary_key="og", include_columns=["og", "taxid", "description"])
-manager.create_api(models.Functions, methods=['GET'], primary_key="an", include_columns=["an", "type", "name"])
-manager.create_api(models.Ontologies, methods=['GET'], primary_key="child", include_columns=["child", "parent", "direct"])
-manager.create_api(models.Protein_2_og, methods=['GET'], primary_key="an", include_columns=["an", "og"])
-manager.create_api(models.Protein_2_version, methods=['GET'], primary_key="an", include_columns=["an", "version"])
-manager.create_api(models.Og_2_function, methods=['GET'], primary_key="og", include_columns=["og", "function"])
-manager.create_api(models.Protein_2_function, methods=['GET'], primary_key="an", include_columns=["an", "function"])
-manager.create_api(models.Function_2_definition, methods=['GET'], primary_key="function", include_columns=["function", "definition"])
-manager.create_api(models.Go_2_slim, methods=['GET'], primary_key="an", include_columns=["an", "slim"])
-manager.create_api(models.Protein_2_taxid, methods=['GET'], primary_key="an", include_columns=["an", "taxid"])
-
 
 if not app.debug:
     #########################
@@ -126,34 +71,59 @@ max_timeout = 20 # minutes
 
 ################################################################################
 ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-# pgoa = go_retriever.Parser_GO_annotations()
-# pgoa.unpickle()
-# upkp = go_retriever.UniProtKeywordsParser()
-# upkp.unpickle()
-# obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
-# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
-#
-# for go_term in go_dag.keys():
-#     parents = go_dag[go_term].get_all_parents()
-#
-# filter_ = cluster_filter.Filter(go_dag)
+pgoa = go_retriever.Parser_GO_annotations()
+pgoa.unpickle()
+upkp = go_retriever.UniProtKeywordsParser()
+upkp.unpickle()
+obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
+                 "basic": webserver_data + r'/OBO/go-basic.obo'}
+go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
+goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
-# organism_choices = [
-#     (u'9606', u'Homo sapiens'),
-#     (u'3702', u'Arabidopsis thaliana'),
-#     (u'3055', u'Chlamydomonas reinhardtii'),
-#     (u'7955', u'Danio rerio'),
-#     (u'7227', u'Drosophila melanogaster'),
-#     (u'9796', u'Equus caballus'),
-#     (u'9031', u'Gallus gallus'),
-#     (u'3880', u'Medicago truncatula'),
-#     (u'10090', u'Mus musculus'),
-#     (u'39947', u'Oryza sativa subsp. japonica'),
-#     (u'10116', u'Rattus norvegicus'),
-#     (u'559292', u'Saccharomyces cerevisiae'),
-#     (u'9823', u'Sus scrofa')]
+for go_term in go_dag.keys():
+    parents = go_dag[go_term].get_all_parents()
+
+filter_ = cluster_filter.Filter(go_dag)
+################################################################################
+# species2files_dict = {
+#     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
+#     "559292": {'goa_ref_fn': webserver_data + r'/GOA/559292.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/559292.tab'},
+#     "3702": {'goa_ref_fn': webserver_data + r'/GOA/3702.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3702.tab'},
+#     "7955": {'goa_ref_fn': webserver_data + r'/GOA/7955.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7955.tab'},
+#     "7227": {'goa_ref_fn': webserver_data + r'/GOA/7227.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7227.tab'},
+#     "9031": {'goa_ref_fn': webserver_data + r'/GOA/9031.tsv',
+#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9031.tab'},
+#     "10090": {'goa_ref_fn': webserver_data + r'/GOA/10090.tsv',
+#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10090.tab'},
+#     "10116": {'goa_ref_fn': webserver_data + r'/GOA/10116.tsv',
+#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'},
+#     "9823": {'goa_ref_fn': webserver_data + r'/GOA/9823.tsv',
+#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9823.tab'},
+#     "9796": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9796.tab'},
+#     "39947": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/39947.tab'},
+#     "3880": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3880.tab'},
+#     "3055": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3055.tab'}}
+#4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
+################################################################################
+organism_choices = [
+    (u'9606', u'Homo sapiens'),
+    (u'3702', u'Arabidopsis thaliana'),
+    (u'3055', u'Chlamydomonas reinhardtii'),
+    (u'7955', u'Danio rerio'),
+    (u'7227', u'Drosophila melanogaster'),
+    (u'9796', u'Equus caballus'),
+    (u'9031', u'Gallus gallus'),
+    (u'3880', u'Medicago truncatula'),
+    (u'10090', u'Mus musculus'),
+    (u'39947', u'Oryza sativa subsp. japonica'),
+    (u'10116', u'Rattus norvegicus'),
+    (u'559292', u'Saccharomyces cerevisiae'),
+    (u'9823', u'Sus scrofa')]
 ################################################################################
 # index.html
 ################################################################################
@@ -200,59 +170,6 @@ def example():
 def download_example_data(filename):
     uploads = app.config['EXAMPLE_FOLDER']
     return send_from_directory(directory=uploads, filename=filename)
-
-################################################################################
-# db_schema.html
-################################################################################
-@app.route("/db_schema")
-def db_schema():
-    with open(FN_DATABASE_SCHEMA, "r") as fh:
-        content = fh.read()
-    content = Markup(markdown.markdown(content))
-    return render_template("db_schema.html", **locals())
-
-def get_TOC_2_markdown_file(fn_md):
-    toc = ""
-    counter = 1
-    with open(fn_md, "r") as fh_in:
-        for line in fh_in:
-            if line.startswith("#"):
-                line = line.strip()
-                line2add = str(counter) + ". [" + line.replace("#", "").strip() + "]" + "(#" + "-".join(line.lower().replace("#", "").strip().split()) + ")\n"
-                toc += line2add
-                counter += 1
-    return toc
-
-def write_TOC_2_file(fn_md):
-    """
-    import tools
-    fn = r"/Users/dblyon/modules/cpr/metaprot/DataBase_Schema.md"
-    tools.write_TOC_2_file(fn)
-    """
-    toc = get_TOC_2_markdown_file(fn_md)
-    with open(fn_md, "r") as fh_in:
-        lines = fh_in.readlines()
-    with open(fn_md, "w") as fh_out:
-        fh_out.write(toc)
-        for line in lines:
-            fh_out.write(line)
-
-def update_db_schema():
-    text_before = """{% extends "layout.html" %}
-        {% block head %}
-        <script type="text/javascript">$(document).ready( function() {enrichment_page();});</script>
-        {% endblock head %}"""
-    text_after = """{% block content %}"""
-    shutil.copyfile(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
-    write_TOC_2_file(FN_DATABASE_SCHEMA_WITH_LINKS)
-    shellcmd = "grip {} --export --title='Data Base Schema'".format(FN_DATABASE_SCHEMA_WITH_LINKS)
-    call(shellcmd, shell=True)
-    with open(FN_DATABASE_SCHEMA.replace(".md", ".html"), "r") as fh:
-        content = fh.read()
-    with open(FN_DATABASE_SCHEMA.replace(".md", ".html"), "w") as fh:
-        fh.write(text_before)
-        fh.write(content)
-        fh.write(text_after)
 
 ################################################################################
 # helper functions
@@ -307,7 +224,8 @@ def validate_inputfile(form, field):
     for extension in ALLOWED_EXTENSIONS:
         if filename.endswith('.' + extension):
             return True
-    raise wtforms.ValidationError(" file must have a '.txt' or '.tsv' extension")
+    raise wtforms.ValidationError(
+        " file must have a '.txt' or '.tsv' extension")
 #####
 
 def generate_session_id():
@@ -341,9 +259,9 @@ def elipsis(header):
 ################################################################################
 class Enrichment_Form(wtforms.Form):
 
-    # organism = fields.SelectField(u'Select Organism',
-    #                               choices = organism_choices,
-    #                               description="""Choose the species/organism the identifiers (accession numbers) correspond to.""")
+    organism = fields.SelectField(u'Select Organism',
+                                  choices = organism_choices,
+                                  description="""Choose the species/organism the identifiers (accession numbers) correspond to.""")
 
     userinput_file = fields.FileField("Choose File",
                                       [validate_inputfile],
@@ -358,14 +276,13 @@ these identifiers should also be present in the 'population_an' as the test grou
 
 If "Abundance correction" is deselected "population_int" can be omitted.""")
 
-    gocat_upk = fields.SelectField("GO terms, UniProt keywords, KEGG pathways",
-                                   choices = (("all_GO", "all GO categories"),
-                                              ("BP", "GO Biological Process"),
-                                              ("CP", "GO Celluar Compartment"),
-                                              ("MF", "GO Molecular Function"),
-                                              ("UPK", "UniProt keywords"),
-                                              ("KEGG", "KEGG pathways")),
-                                   description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
+    gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
+                                   choices = (("all_GO", "all 3 GO categories"),
+                                              ("BP", "Biological Process"),
+                                              ("CP", "Celluar Compartment"),
+                                              ("MF", "Molecular Function"),
+                                              ("UPK", "UniProt-keywords")),
+                                   description="""Select either one of three major GO categories (molecular function, biological process, cellular component) or all three or UniProt-keywords.""")
 
     abcorr = fields.BooleanField("Abundance correction",
                                  default = "checked",
@@ -493,8 +410,8 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form, e
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
-    with open(fn_results_orig_absolute, 'w') as fh:
-        fh.write(tsv)
+    with open(fn_results_orig_absolute, 'w') as f:
+        f.write(tsv)
     return render_template('results.html', header=header, results=results2display, errors=errors,
                            file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
@@ -535,8 +452,8 @@ def results_filtered():
         # filtered results
         file_name, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
         tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
-        with open(fn_results_filtered_absolute, 'w') as fh:
-            fh.write(tsv)
+        with open(fn_results_filtered_absolute, 'w') as f:
+            f.write(tsv)
         header = header.split("\t")
         ellipsis_indices = elipsis(header)
         results2display = []
@@ -603,21 +520,25 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     return file_name, fn_results_absolute, fn_results_relative
 
 
-
-if __name__ == "__main__":
-    update_db_schema()
+if __name__ == '__main__':
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
     # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
+
     if profiling:
         app.run('localhost', 5000, debug=True)
     else:
+        # app.run('0.0.0.0', 5911, processes=4, debug=False)
+        # app.run('localhost', 5000, processes=4, debug=False)
+
         app.run('localhost', 5000, debug=True)
 ################################################################################
         ### agptool
         # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################
+
+
 
 
 # organism_choices_UniProt = [
@@ -648,29 +569,28 @@ if __name__ == "__main__":
 #     (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
 #     ]
 
-################################################################################
-# species2files_dict = {
-#     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
-#     "559292": {'goa_ref_fn': webserver_data + r'/GOA/559292.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/559292.tab'},
-#     "3702": {'goa_ref_fn': webserver_data + r'/GOA/3702.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3702.tab'},
-#     "7955": {'goa_ref_fn': webserver_data + r'/GOA/7955.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7955.tab'},
-#     "7227": {'goa_ref_fn': webserver_data + r'/GOA/7227.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7227.tab'},
-#     "9031": {'goa_ref_fn': webserver_data + r'/GOA/9031.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9031.tab'},
-#     "10090": {'goa_ref_fn': webserver_data + r'/GOA/10090.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10090.tab'},
-#     "10116": {'goa_ref_fn': webserver_data + r'/GOA/10116.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'},
-#     "9823": {'goa_ref_fn': webserver_data + r'/GOA/9823.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9823.tab'},
-#     "9796": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9796.tab'},
-#     "39947": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/39947.tab'},
-#     "3880": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3880.tab'},
-#     "3055": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3055.tab'}}
-#4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
-################################################################################
+
+
+
+
+
+{% extends "layout.html" %}
+
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function() {
+              enrichment_page();
+          });
+      </script>
+{% endblock head %}
+
+
+
+{% block content %}
+
+<div class="container-fluid">
+
+<h3>Data Base Schema</h3>
+
+
+{% endblock content %}

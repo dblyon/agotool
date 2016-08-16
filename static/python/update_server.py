@@ -1,163 +1,54 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import os, sys, zlib
+import requests, urllib, time
+from subprocess import call
 
-# core imports
-import os
-import sys
-import zlib
-import urllib
-import time
-import pandas as pd
-
-# my own modules
-import go_retriever
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '../..'))
-DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'static/data', directory) for directory in ["GOA", "OBO", "UniProt_Keywords", "session"]]
-DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
 sys.path.append(PYTHON_DIR)
 
-# If you would like to download an unfiltered GOA UniProt gene association
-# file, please use either the GOA ftp site:
-# ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz
-URL_GENE_ASSOCIATIONS_GOA_UNIPROT = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz"
+PROJECT_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '../..'))
+DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "static/data/downloads"))
 
-#ToDo: automatically popylate SQLite DB, create proper index for faster lookup
-# show users 'organims.txt' with explanations
-# create graphical output
+DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'static/data', directory) for directory in ["downloads", "session"]]
+DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
 
+# URL_GENE_ASSOCIATIONS_GOA_UNIPROT = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz" # old schema
+URL_GENE_ASSOCIATIONS_GOA_UNIPROT = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz" # new schema
 
-### PROTEOMES http://www.ebi.ac.uk/GOA/proteomes
-# These annotation sets have not undergone any filtering steps to reduce redundancy.
-# The current set of species that we provide these files for are listed on the proteomes page of our project website
+url_eggNOG = r"http://eggnogdb.embl.de/download/latest/all_OG_annotations.tsv.gz"
+url_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 
+ORGANISMS = {
+    3702: 'arabidopsis',
+    9031: 'chicken',
+    9913: 'cow', # 9913, Bos taurus
+    44689: 'dicty', # 44689, Dictyostelium discoideum
+    9615: 'dog', # 9615, Canis lupus familiaris
+    7227: 'fly',
+    9606: 'human',
+    10090: 'mouse',
+    9823: 'pig',
+    10116: 'rat',
+    6239: 'worm', # 6239, Caenorhabditis elegans
+    559292: 'yeast', # 559292 instead of 4932
+    7955: 'zebrafish',
+    3055: 'chlamy',
+    9796: 'horse',
+    3880: 'medicago',
+    39947: 'rice'}
 
-# organism_choices = [
-#     (u'4932',  u'Saccharomyces cerevisiae'), # Yeast
-#     (u'9606',  u'Homo sapiens'), # Human
-#     (u'7955',  u'Danio rerio'), # Zebrafish
-#     (u'7227',  u'Drosophila melanogaster'), # Fly
-#     (u'9796', u'Equus caballus'), # Horse
-#     (u'9031',  u'Gallus gallus'), # Chicken
-#     (u'10090', u'Mus musculus'), # Mouse
-#     (u'10116', u'Rattus norvegicus'), # Rat
-#     (u'9823', u'Sus scrofa'), # Pig
-#     (u'3702',  u'Arabidopsis thaliana'), # Arabidopsis
-#     (u'3055', u'Chlamydomonas reinhardtii'), # Chlamy
-#     (u'3880', u'Medicago truncatula'), # Medicago
-#     (u'39947', u'Oryza sativa subsp. japonica') # Rice
-#     ]
-
-# GOA files
-# """
-# Couldn't download horse 9796
-# Couldn't download rice 39947, #  at http://geneontology.org/page/download-annotations
-# Couldn't download medicago 3880
-# Couldn't download chlamy 3055
-# ['9796', '39947', '3880', '3055']
-# """
-
-# http://www.uniprot.org/uniprot/?query=organism:9606&format=tab&columns=id,keywords
-
-organisms = {9606: 'human',
-            559292: 'yeast', # 559292 instead of 4932
-            3702: 'arabidopsis',
-            7955: 'zebrafish',
-            7227: 'fly',
-            9031: 'chicken',
-            10090: 'mouse',
-            10116: 'rat',
-            9796: 'horse',
-            9823: 'pig',
-            3880: 'medicago',
-            3055: 'chlamy',
-            39947: 'rice'}
 # Schizosaccharomyces pombe 4896
 # ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/proteomes/78.S_pombe.goa
 
 # and Caenorhabditis elegans 6239
 # ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/proteomes/9.C_elegans.goa
 
-
-
 # using TaxID 559292 instead of 4932 for yeast
 # 4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
 # Saccharomyces cerevisiae (strain ATCC 204508 / S288c)
 # http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id,keywords&format=tab
-
-def update_uniprot_annotatios():
-    for organism in organisms:
-        dl_string = "http://www.uniprot.org/uniprot/?query=organism:%i&columns=id,keywords&format=tab"
-        _folder = os.path.join(PROJECT_DIR, 'static/data/UniProt_Keywords')
-        # if organism == 4932: # not needed any more if TaxID 559292 instead of 4932
-        #     dl_string = r"http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id,keywords&format=tab"
-        #     url = dl_string.replace(' ', '%20')
-        # else:
-        #     url = (dl_string % organism).replace(' ', '%20')
-        url = (dl_string % organism).replace(' ', '%20')
-        file_name = os.path.join(_folder, '%s.tab' % organism)
-        tmp_f = os.path.join(_folder, 'keywords.tmp')
-        print('%s\nDownloaded to: %s\n' % (url, file_name))
-        urllib.urlretrieve(url, tmp_f)
-        os.rename(tmp_f, file_name)
-
-def update_go_annotations():
-    """
-    http://stackoverflow.com/questions/2695152/in-python-how-do-i-decode-gzip-encoding
-    :return: None
-    """
-    taxid_not_retrieved_list = []
-    dl_string = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/%s/gene_association.goa_%s.gz"
-    for tax_id, organism in organisms.items():
-        _folder = os.path.join(PROJECT_DIR, 'static/data/GOA')
-        tmp_f = open(os.path.join(_folder, 'anotation.tmp'), 'w')
-        file_name = os.path.join(_folder, '%s.tsv' % tax_id)
-        url = dl_string % (organism.upper(), organism.lower())
-        print ('\nDownloading: %s' % url)
-        print ('TO: %s' % file_name)
-        try:
-            tmp_f.write(zlib.decompress(urllib.urlopen(url).read(), 16 + zlib.MAX_WBITS))
-        except IOError:
-            taxid_not_retrieved_list.append(str(tax_id))
-            print ("Couldn't download {} {} --> using unfiltered gene_association.goa_uniprot.gz as a resource instead.".format(organism, tax_id))
-            os.remove(tmp_f.name)
-            continue
-        os.rename(tmp_f.name, file_name)
-    return taxid_not_retrieved_list
-
-def update_go_annotations_onebigfile():
-    url = URL_GENE_ASSOCIATIONS_GOA_UNIPROT
-    tax_id = "uniprot_all"
-    organism = "uniprot_all"
-    _folder = os.path.join(PROJECT_DIR, 'static/data/GOA')
-    tmp_f = open(os.path.join(_folder, 'anotation.tmp'), 'wb')
-    file_name = os.path.join(_folder, '%s.gz' % tax_id)
-    print ('\nDownloading: %s' % url)
-    print ('TO: %s' % file_name)
-    try:
-        tmp_f.write(urllib.urlopen(url).read())
-    except IOError:
-        print ("Couldn't download {} {}.".format(organism, tax_id))
-        os.remove(tmp_f.name)
-    os.rename(tmp_f.name, file_name)
-
-def update_go_basic_slim():
-    """
-    http://geneontology.org/ontology/subsets/goslim_generic.obo
-    http://geneontology.org/ontology/go-basic.obo
-    :return: None
-    """
-    dl_string_list = [r"http://purl.obolibrary.org/obo/go/go-basic.obo",
-                      r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"]
-    for obo_url in dl_string_list:
-        _folder = os.path.join(PROJECT_DIR, 'static/data/OBO')
-        url = obo_url.replace(' ', '%20')
-        file_name = os.path.join(_folder, os.path.basename(obo_url))
-        tmp_f = os.path.join(_folder, 'obo.tmp')
-        print('%s\nDownloaded to: %s\n' % (url, file_name))
-        urllib.urlretrieve(url, tmp_f)
-        os.rename(tmp_f, file_name)
 
 def create_directories_if_not_exist():
     for directory in DIRECTORIES_LIST:
@@ -176,52 +67,183 @@ def cleanup_sessions():
         except Exception:
             print(e % the_file)
 
-def get_fn_pickle_Parser_GO_annotations():
-    return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/GOA/Parser_GO_annotations.p'))
+def download_file(url, fn_out):
+    """
+    only works for http not ftp
+    """
+    r = requests.get(url, stream=True)
+    with open(fn_out, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                f.write(chunk)
 
-def get_fn_UniProtKeywordsParser():
-    return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/UniProt_Keywords/UniProtKeywordsParser.p'))
+def download_go_annotations():
+    """
+    http://stackoverflow.com/questions/2695152/in-python-how-do-i-decode-gzip-encoding
+    e.g. of new schema
+    ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/MOUSE/goa_mouse.gaf.gz
+    :return: None
+    """
+    taxid_not_retrieved_list = []
+    dl_string = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/{}/goa_{}.gaf.gz" # new schema
+    for tax_id, organism in ORGANISMS.items():
+        tmp_f = open(os.path.join(DOWNLOADS_DIR, 'annotation.tmp'), 'w')
+        file_name = os.path.join(DOWNLOADS_DIR, '%s.gaf' % tax_id)
+        url = dl_string.format(organism.upper(), organism.lower())
+        print ('\nDownloading: %s' % url)
+        print ('TO: %s' % file_name)
+        try:
+            tmp_f.write(zlib.decompress(urllib.urlopen(url).read(), 16 + zlib.MAX_WBITS))
+            tmp_f.close()
+        except IOError:
+            taxid_not_retrieved_list.append(str(tax_id))
+            print ("Couldn't download {} {} --> using unfiltered goa_uniprot_all.gaf as a resource instead.".format(organism, tax_id))
+            os.remove(tmp_f.name)
+            continue
+        os.rename(tmp_f.name, file_name)
+    return taxid_not_retrieved_list
 
+def download_go_annotations_all_unfiltered():
+    """
+    unfiltered GOA
+    """
+    url = URL_GENE_ASSOCIATIONS_GOA_UNIPROT
+    # tax_id = "goa_uniprot_all"
+    basename = os.path.basename(url)
+    tax_id = basename[:basename.index(".")]
+    tmp_f = open(os.path.join(DOWNLOADS_DIR, 'annotation.tmp'), 'wb')
+    file_name = os.path.join(DOWNLOADS_DIR, '%s.gaf.gz' % tax_id)
+    print ('\nDownloading: %s' % url)
+    print ('TO: %s' % file_name)
+    try:
+        tmp_f.write(urllib.urlopen(url).read())
+    except IOError:
+        print ("Couldn't download {} .".format(tax_id))
+        os.remove(tmp_f.name)
+    os.rename(tmp_f.name, file_name)
+    # shellcmd = "gunzip {}".format(file_name) #!!! this fails
+    # gunzip /Users/dblyon/modules/cpr/agotool/static/data/downloads/goa_uniprot_all.gaf.gz
+    # gunzip: /Users/dblyon/modules/cpr/agotool/static/data/downloads/goa_uniprot_all.gaf.gz: unexpected end of file
+    # gunzip: /Users/dblyon/modules/cpr/agotool/static/data/downloads/goa_uniprot_all.gaf.gz: uncompress failed
+    # print(shellcmd)
+    # call(shellcmd, shell=True)
 
-################################################################################
-def parse_files_and_pickle(taxid_not_retrieved_list):
-    ### parse Gene Ontology annotations: GO-terms for each AccessionNumber
-    pgoa = go_retriever.Parser_GO_annotations()
-    organisms_set = set([str(taxid) for taxid in organisms.keys()])
-    organisms_specific = organisms_set - set(taxid_not_retrieved_list)
-    GOA_folder = os.path.join(PROJECT_DIR, 'static/data/GOA')
-    ### 1.) species specific files
-    for taxid in organisms_specific:
-        fn = os.path.join(GOA_folder, '%s.tsv' % taxid)
-        pgoa.parse_goa_ref(fn, organisms_set={taxid})
-    ### 2.) the remaining species (in taxid_not_retrieved_list)
-    fn = os.path.join(GOA_folder, '%s.gz' % "uniprot_all")
-    pgoa.parse_goa_ref(fn, organisms_set=set(taxid_not_retrieved_list))
-    fn_p = get_fn_pickle_Parser_GO_annotations()
-    pgoa.pickle(fn_p)
-    ### parse UniProt-keywords
-    upkp = go_retriever.UniProtKeywordsParser()
-    UPK_folder = os.path.join(PROJECT_DIR, 'static/data/UniProt_Keywords')
-    for taxid in organisms_set:
-        fn = os.path.join(UPK_folder, '%s.tab' % taxid)
-        upkp.parse_file(fn, taxid)
-    fn_p = get_fn_UniProtKeywordsParser()
-    upkp.pickle(fn_p)
+def download_go_basic_slim_obo():
+    """
+    http://geneontology.org/ontology/subsets/goslim_generic.obo
+    http://geneontology.org/ontology/go-basic.obo
+    """
+    dl_string_list = [r"http://purl.obolibrary.org/obo/go/go-basic.obo",
+                      r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"]
+    for obo_url in dl_string_list:
+        url = obo_url.replace(' ', '%20')
+        file_name = os.path.join(DOWNLOADS_DIR, os.path.basename(obo_url))
+        tmp_f = os.path.join(DOWNLOADS_DIR, 'obo.tmp')
+        print('%s\nDownloaded to: %s\n' % (url, file_name))
+        download_file(url, tmp_f)
+        os.rename(tmp_f, file_name)
 
+def download_UniProt_Keywords():
+    for organism in ORGANISMS:
+        dl_string = "http://www.uniprot.org/uniprot/?query=organism:%i&columns=id,keywords&format=tab"
+        url = (dl_string % organism).replace(' ', '%20')
+        file_name = os.path.join(DOWNLOADS_DIR, '%s.upk' % organism)
+        tmp_f = os.path.join(DOWNLOADS_DIR, 'keywords.tmp')
+        print('%s\nDownloaded to: %s\n' % (url, file_name))
+        download_file(url, tmp_f)
+        os.rename(tmp_f, file_name)
 
+def download_UniProt_Keywords_obo():
+    """
+    # ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/keywlist.txt
+    # http://www.uniprot.org/keywords/?query=&format=obo
+    """
+    # url = r"http://www.uniprot.org/keywords/?query=&format=obo"
+    url = url_UPK_obo
+    file_name = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+    tmp_f = os.path.join(DOWNLOADS_DIR, 'keywords-all_obo.tmp')
+    print('%s\nDownloaded to: %s\n' % (url, file_name))
+    download_file(url, tmp_f)
+    os.rename(tmp_f, file_name)
+
+def download_and_extract_all_annotations_from_eggNOG():
+    """
+    all_OG_annotations.tsv.gz
+    ENOG41xxxxx = Unsupervised Cluster of Orthologous Group (present in all levels)
+    OG_name_short | GroupName | ProteinCount, description, dunno, GO, KEGG, domains, members
+    """
+    # url_eggNOG = r"http://eggnogdb.embl.de/download/latest/all_OG_annotations.tsv.gz"
+    url = url_eggNOG
+    fn_out = os.path.join(DOWNLOADS_DIR, url.split('/')[-1])
+    download_file(url, fn_out)
+    shellcmd = "gunzip {}".format(fn_out)
+    print(shellcmd)
+    call(shellcmd, shell=True)
+
+def download_bactNOG_annotations():
+    url = r"http://eggnogdb.embl.de/download/latest/data/bactNOG/bactNOG.annotations.tsv.gz"
+    fn_out = os.path.join(DOWNLOADS_DIR, url.split('/')[-1])
+    download_file(url, fn_out)
+    shellcmd = "gunzip {}".format(fn_out)
+    print(shellcmd)
+    call(shellcmd, shell=True)
 
 
 
 if __name__ == '__main__':
+    # .gaf files are GOA (Gene Ontology Associations)
+    # .upk files are UPK (UniProt Keywords)
+    # .obo files are Ontology hierarchy
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
     print("Current date & time " + time.strftime("%c"))
     create_directories_if_not_exist()
-    taxid_not_retrieved_list = update_go_annotations()
-    update_go_annotations_onebigfile()
-    update_go_basic_slim()
-    update_uniprot_annotatios()
-    parse_files_and_pickle(taxid_not_retrieved_list) #=['9796', '39947', '3880', '3055'])
+    ### every month
+    # taxid_not_retrieved_list = download_go_annotations()
+    download_go_annotations_all_unfiltered()
+    # download_go_basic_slim_obo()
+    # download_UniProt_Keywords_obo()
+    # download_UniProt_Keywords()
+
+    ### NOT every month
+    # download_and_extract_all_annotations_from_eggNOG()
+    # download_bactNOG_annotations()
+
+    # # parse_files_and_pickle(taxid_not_retrieved_list) #=['9796', '39947', '3880', '3055'])
     cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')
 
 
+
+################################################################################
+# def parse_files_and_pickle(taxid_not_retrieved_list):
+    ### parse Gene Ontology annotations: GO-terms for each AccessionNumber
+    # pgoa = go_retriever.Parser_GO_annotations()
+    # organisms_set = set([str(taxid) for taxid in ORGANISMS.keys()])
+    # organisms_specific = organisms_set - set(taxid_not_retrieved_list)
+    # GOA_folder = os.path.join(PROJECT_DIR, 'static/data/GOA')
+    ### 1.) species specific files
+    # for taxid in organisms_specific:
+    #     fn = os.path.join(GOA_folder, '%s.tsv' % taxid)
+        # pgoa.parse_goa_ref(fn, organisms_set={taxid})
+    ### 2.) the remaining species (in taxid_not_retrieved_list)
+    # fn = os.path.join(GOA_folder, '%s.gz' % "uniprot_all")
+    # pgoa.parse_goa_ref(fn, organisms_set=set(taxid_not_retrieved_list))
+    # fn_p = get_fn_pickle_Parser_GO_annotations()
+    # pgoa.pickle(fn_p)
+    ### parse UniProt-keywords
+    # upkp = go_retriever.UniProtKeywordsParser()
+    # UPK_folder = os.path.join(PROJECT_DIR, 'static/data/UniProt_Keywords')
+    # for taxid in organisms_set:
+    #     fn = os.path.join(UPK_folder, '%s.tab' % taxid)
+        # upkp.parse_file(fn, taxid)
+    # fn_p = get_fn_UniProtKeywordsParser()
+    # upkp.pickle(fn_p)
+
+
+
+
+# def get_fn_pickle_Parser_GO_annotations():
+#     return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/GOA/Parser_GO_annotations.p'))
+#
+# def get_fn_UniProtKeywordsParser():
+#     return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/UniProt_Keywords/UniProtKeywordsParser.p'))
