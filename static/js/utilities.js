@@ -1,10 +1,21 @@
 // ENRICHMENT PAGE
 var enrichment_page = (function() {
 // hide GO-term specific options if UniProt-keywords selected
+    $("#copy_paste_field textarea").keypress(function (event) {
+        $("#userinput_file").filestyle('clear');
+    });
+
+    $("#clear_button").click(function (event) {
+        $('#foreground_textarea').val('');
+        $('#background_textarea').val('');
+        $("#userinput_file").filestyle('clear');
+    });
+
     $('#gocat_upk').change(function() {
         var gocat_upk = $('#gocat_upk').val();
         var choice = gocat_upk == "UPK";
         toggle_if(choice, ".GOT", ".GOT_placeholder");
+
 
         //// hide organimss
         //if (choice) { // UPK selected

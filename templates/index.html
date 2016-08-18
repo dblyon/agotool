@@ -8,13 +8,14 @@
 
 <div class="container-fluid">
     <h3>GO-term or UniProt-keyword enrichment</h3>
-	<p>This site can be used for functional annotation enrichment for proteomics data. It contains tools for abundance corrected GO-term, UniProt-keyword, and KEGG pathway enrichment.</p>
+	<p>This site can be used for functional annotation enrichment for proteomics data.<br>It contains tools for abundance corrected GO-term, UniProt-keyword, and KEGG pathway enrichment.<br></p>
 	<ul>
-        <li><a href="{{ url_for('enrichment') }}">enrichment</a></li>
-        <li><a href="{{ url_for('parameters') }}">parameters</a></li>
-        <li><a href="{{ url_for('example') }}">example</a></li>
-        <li><a href="{{ url_for('db_schema') }}">data base</a></li>
-        <li><a href="{{ url_for('about') }}">about</a></li>
+        <li><a href="{{ url_for('enrichment') }}">enrichment: analyze your data</a></li>
+        <li><a href="{{ url_for('parameters') }}">parameters: what do the parameters mean, what can I change</a></li>
+        <li><a href="{{ url_for('example') }}">example data to compare</a></li>
+        <li><a href="{{ url_for('db_schema') }}">data base schema and REST API</a></li>
+        <li><a href="{{ url_for('howto') }}">how to use this site</a></li>
+        <li><a href="{{ url_for('about') }}">about: publication citation, contact information, resource infos</a></li>
 	</ul>
 </div>
 	

@@ -17,7 +17,7 @@ import sys
 sys.path.append("./../metaprot/sql/")
 import db_config, models
 sys.path.append('./static/python')
-import run, obo_parser, cluster_filter, go_retriever
+import run, obo_parser, cluster_filter, go_retriever, tools
 
 
 
@@ -38,16 +38,22 @@ import run, obo_parser, cluster_filter, go_retriever
 # - add other types to Ontologies (not only GO, but also UPK)
 # - DB schema doesn't have theme
 # - userinput report, redundant and unique number of ANs/protein-groups, organisms etc.
+# - create HowTo page
 ###############################################################################
 
 
-ECHO = False
-TESTING = True
-DO_LOGGING = False
+ECHO = True
+TESTING = False
+DO_LOGGING = None
 connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
-# Create the Flask application and the Flask-SQLAlchemy object.
+### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
+# app.config['SQLALCHEMY_ECHO'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_RECORD_QUERIES'] = False
+
+
 db = flask_sqlalchemy.SQLAlchemy(app)
 db.Model.metadata.reflect(db.engine)
 
@@ -63,7 +69,7 @@ ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 FN_DATABASE_SCHEMA = r"/Users/dblyon/modules/cpr/metaprot/sql/DataBase_Schema.md"
 FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
 
-# Additional path settings for flask
+### Additional path settings for flask
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_ROOT, 'data')
 SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
@@ -140,24 +146,10 @@ max_timeout = 20 # minutes
 #
 # filter_ = cluster_filter.Filter(go_dag)
 
-# organism_choices = [
-#     (u'9606', u'Homo sapiens'),
-#     (u'3702', u'Arabidopsis thaliana'),
-#     (u'3055', u'Chlamydomonas reinhardtii'),
-#     (u'7955', u'Danio rerio'),
-#     (u'7227', u'Drosophila melanogaster'),
-#     (u'9796', u'Equus caballus'),
-#     (u'9031', u'Gallus gallus'),
-#     (u'3880', u'Medicago truncatula'),
-#     (u'10090', u'Mus musculus'),
-#     (u'39947', u'Oryza sativa subsp. japonica'),
-#     (u'10116', u'Rattus norvegicus'),
-#     (u'559292', u'Saccharomyces cerevisiae'),
-#     (u'9823', u'Sus scrofa')]
 ################################################################################
 # index.html
 ################################################################################
-@app.route('/')
+@app.route('/index')
 def index():
     return render_template('index.html')
 
@@ -211,48 +203,12 @@ def db_schema():
     content = Markup(markdown.markdown(content))
     return render_template("db_schema.html", **locals())
 
-def get_TOC_2_markdown_file(fn_md):
-    toc = ""
-    counter = 1
-    with open(fn_md, "r") as fh_in:
-        for line in fh_in:
-            if line.startswith("#"):
-                line = line.strip()
-                line2add = str(counter) + ". [" + line.replace("#", "").strip() + "]" + "(#" + "-".join(line.lower().replace("#", "").strip().split()) + ")\n"
-                toc += line2add
-                counter += 1
-    return toc
-
-def write_TOC_2_file(fn_md):
-    """
-    import tools
-    fn = r"/Users/dblyon/modules/cpr/metaprot/DataBase_Schema.md"
-    tools.write_TOC_2_file(fn)
-    """
-    toc = get_TOC_2_markdown_file(fn_md)
-    with open(fn_md, "r") as fh_in:
-        lines = fh_in.readlines()
-    with open(fn_md, "w") as fh_out:
-        fh_out.write(toc)
-        for line in lines:
-            fh_out.write(line)
-
-def update_db_schema():
-    text_before = """{% extends "layout.html" %}
-        {% block head %}
-        <script type="text/javascript">$(document).ready( function() {enrichment_page();});</script>
-        {% endblock head %}"""
-    text_after = """{% block content %}"""
-    shutil.copyfile(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
-    write_TOC_2_file(FN_DATABASE_SCHEMA_WITH_LINKS)
-    shellcmd = "grip {} --export --title='Data Base Schema'".format(FN_DATABASE_SCHEMA_WITH_LINKS)
-    call(shellcmd, shell=True)
-    with open(FN_DATABASE_SCHEMA.replace(".md", ".html"), "r") as fh:
-        content = fh.read()
-    with open(FN_DATABASE_SCHEMA.replace(".md", ".html"), "w") as fh:
-        fh.write(text_before)
-        fh.write(content)
-        fh.write(text_after)
+################################################################################
+# howto.html
+################################################################################
+@app.route('/howto')
+def howto():
+    return render_template('howto.html')
 
 ################################################################################
 # helper functions
@@ -302,12 +258,12 @@ def validate_inflation_factor(form, field):
     if not field.data >= 1.0:
         raise wtforms.ValidationError(" number must be larger than 1")
 
-def validate_inputfile(form, field):
-    filename = request.files['userinput_file'].filename
-    for extension in ALLOWED_EXTENSIONS:
-        if filename.endswith('.' + extension):
-            return True
-    raise wtforms.ValidationError(" file must have a '.txt' or '.tsv' extension")
+# def validate_inputfile(form, field):
+#     filename = request.files['userinput_file'].filename
+#     for extension in ALLOWED_EXTENSIONS:
+#         if filename.endswith('.' + extension):
+#             return True
+#     raise wtforms.ValidationError(" file must have a '.txt' or '.tsv' extension")
 #####
 
 def generate_session_id():
@@ -340,13 +296,8 @@ def elipsis(header):
 # enrichment.html
 ################################################################################
 class Enrichment_Form(wtforms.Form):
-
-    # organism = fields.SelectField(u'Select Organism',
-    #                               choices = organism_choices,
-    #                               description="""Choose the species/organism the identifiers (accession numbers) correspond to.""")
-
     userinput_file = fields.FileField("Choose File",
-                                      [validate_inputfile],
+                                      # [validate_inputfile],
                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
 
 'population_an': UniProt accession numbers (such as 'P00359') for all proteins
@@ -357,6 +308,9 @@ class Enrichment_Form(wtforms.Form):
 these identifiers should also be present in the 'population_an' as the test group is a subset of the population)
 
 If "Abundance correction" is deselected "population_int" can be omitted.""")
+
+    foreground_textarea = fields.TextAreaField("Foreground")
+    background_textarea = fields.TextAreaField("Background")
 
     gocat_upk = fields.SelectField("GO terms, UniProt keywords, KEGG pathways",
                                    choices = (("all_GO", "all GO categories"),
@@ -374,8 +328,8 @@ that corresponds to the column "population_an" (population accession number) nee
 If "Abundance correction" is deselected "population_int" can be omitted.""")
 
     go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                          choices = (("basic", "basic"),
-                                                     ("slim", "slim")),
+                                          choices = (("slim", "slim"),
+                                                    ("basic", "basic")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
 
     indent = fields.BooleanField("prepend GO-term level by dots",
@@ -424,7 +378,8 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         default = 0,
         description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.""")
 
-@app.route('/enrichment')
+# @app.route('/enrichment')
+@app.route('/')
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form())
 
@@ -448,14 +403,27 @@ def results():
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
         user_input_file = request.files['userinput_file']
-        userinput_fh = StringIO.StringIO(user_input_file.read())
-        check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+        # import ipdb
+        # ipdb.set_trace()
+        if len(user_input_file.read()) == 0:
+            ### use copy & paste field
+            foreground_str = form.foreground_textarea.data
+            background_str = form.background_textarea.data
+            # parse it
+        else:
+            ### use file
+            user_input_file.seek(0)
+            userinput_fh = StringIO.StringIO(user_input_file.read())
+            check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+            print check, decimal
+
+
         if check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """organism: {}\ngocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
+            string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
 o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nbacktracking: {}\nfold_enrichment_study2pop: {}\n\
-p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.organism.data, form.gocat_upk.data,
+p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
@@ -464,7 +432,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.organism.d
                 form.p_value_mulitpletesting.data)
             log_activity(string2log)
             header, results = run.run(
-                userinput_fh, decimal, form.organism.data, form.gocat_upk.data,
+                userinput_fh, decimal, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
@@ -605,7 +573,7 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 
 if __name__ == "__main__":
-    update_db_schema()
+    tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter

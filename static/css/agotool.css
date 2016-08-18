@@ -18,6 +18,7 @@
 
 .navbar-default a:hover{
     font-weight: bold;
+    color: black !important;
 }
 
 

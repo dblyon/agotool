@@ -8,11 +8,12 @@
 8. [Peptides](#peptides)
 9. [Proteins](#proteins)
 10. [Protein_2_Function](#protein_2_function)
-11. [Protein_2_OG](#protein_2_og)
-12. [Protein_2_TaxID](#protein_2_taxid)
-13. [Protein_2_version](#protein_2_version)
-14. [Taxa](#taxa)
-15. [TaxID_2_rank](#taxid_2_rank)
+11. [Protein_2_Gene](#protein_2_gene)
+12. [Protein_2_OG](#protein_2_og)
+13. [Protein_2_TaxID](#protein_2_taxid)
+14. [Protein_2_version](#protein_2_version)
+15. [Taxa](#taxa)
+16. [TaxID_2_rank](#taxid_2_rank)
 
 ## Functions
 | type | name | an |
@@ -91,6 +92,12 @@
 | P31946 | KEGG:04110 |
 use for UniProt AccessionNumbers to retrieve UniProt-Keywords and GO-terms, also map UniProt ANs to KEGG ANs
 HOMD ANs are mapped via OGs
+
+## Protein_2_Gene
+| prot | gene |
+|:---:|:---:|
+|  | ADAM6 |
+
 
 ## Protein_2_OG
 | an | og |
