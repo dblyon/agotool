@@ -2,58 +2,70 @@ import pandas as pd
 import numpy as np
 
 
-class UserInput(object):
+class UserInput_old(object):
     """
     expects 2 arrays,
-    samplefreq: Pandas DataFrame 1column
+    foregroundfreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an',
-                 col_background_an='population_an',
-                 col_background_int='population_int', decimal='.'):
+    def __init__(self,
+            user_input_fn=None, foreground_string=None, background_string=None,
+            col_foreground_an='foreground_an', col_background_an='background_an', col_background_int='background_int',
+            num_bins=100, decimal='.'):
+
         self.user_input_fn = user_input_fn
+        self.foreground_string = foreground_string
+        self.background_string = background_string
         self.decimal = decimal
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
-        self.set_num_bins(num_bins)
-        self.col_sample_an = col_sample_an
+        self.num_bins = num_bins
+        self.col_foreground_an = col_foreground_an
         self.col_background_an = col_background_an
         self.col_background_int = col_background_int
-        self.cleanupforanalysis(self.df_orig, self.col_sample_an, self.col_background_an, self.col_background_int)
 
-    def cleanupforanalysis(self, df_orig, col_sample_an, col_background_an, col_background_int):
+        self.parse_input()
+
+    def parse_input(self):
+        if self.user_input_fn is not None:
+            self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
+            self.cleanupforanalysis(self.df_orig, self.col_foreground_an, self.col_background_an, self.col_background_int)
+        else:
+
+            # parse text fields
+
+    def cleanupforanalysis(self, df_orig, col_foreground_an, col_background_an, col_background_int):
         '''
         remove NaNs, remove duplicates, split protein groups, remove splice variant appendix
         create 2 DataFrames
-        self.df_all: columns = [sample_ans, background_ans]
+        self.df_all: columns = [foreground_ans, background_ans]
         --> contains all AccessionNumbers regardless if intensity values present or not
-        self.df_int: columns = [sample_ans, background_ans, intensity]
+        self.df_int: columns = [foreground_ans, background_ans, intensity]
         --> only if intensity value given
         :return: None
         '''
-        self.sample_ser = df_orig[col_sample_an]
+        self.foreground_ser = df_orig[col_foreground_an]
         self.background_df = df_orig[[col_background_an, col_background_int]]
 
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.sample_ser)
-        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
+        # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
+        cond = pd.notnull(self.foreground_ser)
+        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
         cond = pd.notnull(self.background_df[col_background_an])
         self.background_df = self.background_df.loc[cond, [col_background_an, col_background_int]].drop_duplicates(subset=col_background_an)
 
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        self.sample_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.sample_ser)
+        self.foreground_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.foreground_ser)
         self.background_df = self.removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self.background_df, col_background_an, col_background_int)
 
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.sample_ser)
-        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
+        # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
+        cond = pd.notnull(self.foreground_ser)
+        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
         cond = pd.notnull(self.background_df[col_background_an])
         self.background_df = self.background_df.loc[cond, [col_background_an, col_background_int]].drop_duplicates(subset=col_background_an)
 
         # concatenate data
-        self.df_all = self.concat_and_align_sample_and_background(self.sample_ser, self.background_df)
+        self.df_all = self.concat_and_align_foreground_and_background(self.foreground_ser, self.background_df)
 
-        # remove AccessionNumbers from sample and background-frequency without intensity values
+        # remove AccessionNumbers from foreground and background-frequency without intensity values
         self.df_int  = self.df_all.loc[pd.notnull(self.df_all[col_background_int]), ]
 
     def removeSpliceVariants_splitProteinGrous_Series(self, series):
@@ -150,46 +162,40 @@ class UserInput(object):
                 dataframe.loc[index, colname_an] = an_split_minus[0]
         return dataframe
 
-    def set_num_bins(self, num_bins):
-        self.num_bins = num_bins
-
-    def get_num_bins(self):
-        return self.num_bins
-
-    def get_sample_an_int(self):
+    def get_foreground_an_int(self):
         '''
-        produce AccessionNumbers with corresponding Intensity of sample/study
+        produce AccessionNumbers with corresponding Intensity of foreground/study
         :return: DataFrame
         '''
-        return self.df_int.loc[pd.notnull(self.df_int[self.col_sample_an]), [self.col_sample_an, self.col_background_int]]
+        return self.df_int.loc[pd.notnull(self.df_int[self.col_foreground_an]), [self.col_foreground_an, self.col_background_int]]
 
     def get_background_an_int(self):
         '''
-        produce AccessionNumbers with corresponding Intensity of background/population
+        produce AccessionNumbers with corresponding Intensity of background/background
         :return: DataFrame
         '''
         return self.df_int[[self.col_background_an, self.col_background_int]]
 
-    def concat_and_align_sample_and_background(self, sample_ser, background_df):
+    def concat_and_align_foreground_and_background(self, foreground_ser, background_df):
         '''
         expects a Series and a DataFrames each containing a column with non-redundant
         AccessionNumbers, concatenate by producing the union and aligning the ANs in rows
-        :param sample_ser: Pandas.Series
+        :param foreground_ser: Pandas.Series
         :param background_df: Pandas.DataFrame
         :return: DataFrame
         '''
-        sample_ser.index = sample_ser.tolist()
+        foreground_ser.index = foreground_ser.tolist()
         background_df.index = background_df[self.col_background_an].tolist()
-        return pd.concat([sample_ser, background_df], axis=1)
+        return pd.concat([foreground_ser, background_df], axis=1)
 
     def get_random_background_ans(self):
         '''
         produce a randomly generated set of AccessionNumbers from background-frequency
-        with the same intensity-distribution as sample-frequency
+        with the same intensity-distribution as foreground-frequency
         :return: ListOfString
         '''
         ans_random_list = []
-        hist, bins = np.histogram(self.get_sample_an_int()[self.col_background_int], bins=self.get_num_bins())
+        hist, bins = np.histogram(self.get_foreground_an_int()[self.col_background_int], bins=self.get_num_bins())
         for index, numinhist in enumerate(hist):
             num_ans = numinhist
             lower = bins[index]
@@ -226,7 +232,7 @@ class UserInput(object):
         for every bin, produce ans-background and weighting-factor of respective bin
         :return: Tuple(ListOfSting, Float)
         """
-        hist, bins = np.histogram(self.get_sample_an_int()[self.col_background_int], bins=self.get_num_bins())
+        hist, bins = np.histogram(self.get_foreground_an_int()[self.col_background_int], bins=self.get_num_bins())
         for index, numinhist in enumerate(hist):
             num_ans = numinhist
             lower = bins[index]
@@ -244,34 +250,34 @@ class UserInput(object):
             for an in ans_list:
                 fh.write(an + '\n')
 
-    def get_sample_an_frset(self):
+    def get_foreground_an_frset(self):
         '''
-        produce frozenset of AccessionNumbers of sample frequency (study)
+        produce frozenset of AccessionNumbers of foreground frequency (study)
         if intensity value given
         :return: FrozenSet of Strings
         '''
-        return frozenset(self.df_int.loc[pd.notnull(self.df_int[self.col_sample_an]), self.col_sample_an])
+        return frozenset(self.df_int.loc[pd.notnull(self.df_int[self.col_foreground_an]), self.col_foreground_an])
 
-    def get_sample_an_frset_all(self):
+    def get_foreground_an_frset_all(self):
         '''
         produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
         remove NaN
         :return: SetOfString
         '''
-        return frozenset(self.df_all.loc[pd.notnull(self.df_all[self.col_sample_an]), self.col_sample_an])
+        return frozenset(self.df_all.loc[pd.notnull(self.df_all[self.col_foreground_an]), self.col_foreground_an])
 
-    def get_sample_an_frset_genome(self):
+    def get_foreground_an_frset_genome(self):
         '''
         produce all AccessionNumbers with intensity values in 'Observed' column
         :return: Frozenset of Strings
         '''
         col_background_an = 'Observed Proteome'
-        ui2 = UserInput(self.user_input_fn, self.get_num_bins, col_sample_an=self.col_sample_an, col_background_an=col_background_an, col_background_int=self.col_background_int, decimal=self.decimal)
-        return ui2.get_sample_an_frset()
+        ui2 = UserInput(self.user_input_fn, self.get_num_bins, col_foreground_an=self.col_foreground_an, col_background_an=col_background_an, col_background_int=self.col_background_int, decimal=self.decimal)
+        return ui2.get_foreground_an_frset()
 
     def get_background_an_set(self):
         '''
-        produce set of AccessionNumbers of background frequency (population)
+        produce set of AccessionNumbers of background frequency (background)
         if intensity value given
         :return: Set of Strings
         '''
@@ -285,10 +291,10 @@ class UserInput(object):
         '''
         return set(self.df_all[self.col_background_an])
 
-    def get_background_an_set_random_sample(self):
+    def get_background_an_set_random_foreground(self):
         '''
         produce a randomly generated set of AccessionNumbers from background-frequency
-        with the same intensity-distribution as sample-frequency
+        with the same intensity-distribution as foreground-frequency
         :return: Set of Strings
         '''
         return set(self.get_random_background_ans())
@@ -296,38 +302,38 @@ class UserInput(object):
 
 class UserInput_noAbCorr(UserInput):
 
-    def __init__(self, user_input_fn, num_bins=100, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
+    def __init__(self, user_input_fn, num_bins=100, col_foreground_an='foreground_an', col_background_an='background_an', decimal='.'):
         self.user_input_fn = user_input_fn
         self.decimal = decimal
         self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
         self.set_num_bins(num_bins)
-        self.col_sample_an = col_sample_an
+        self.col_foreground_an = col_foreground_an
         self.col_background_an = col_background_an
-        self.cleanupforanalysis(self.df_orig, self.col_sample_an, self.col_background_an)
+        self.cleanupforanalysis(self.df_orig, self.col_foreground_an, self.col_background_an)
 
-    def cleanupforanalysis(self, df_orig, col_sample_an, col_background_an):
-        self.sample_ser = df_orig[col_sample_an]
+    def cleanupforanalysis(self, df_orig, col_foreground_an, col_background_an):
+        self.foreground_ser = df_orig[col_foreground_an]
         self.background_ser = df_orig[col_background_an]
 
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.sample_ser)
-        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
+        # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
+        cond = pd.notnull(self.foreground_ser)
+        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
         cond = pd.notnull(self.background_ser)
         self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
 
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> correction: 1 row of first value
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        self.sample_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.sample_ser)
+        self.foreground_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.foreground_ser)
         self.background_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.background_ser)
 
-        # remove duplicate AccessionNumbers and NaNs from samplefrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.sample_ser)
-        self.sample_ser = self.sample_ser.loc[cond, ].drop_duplicates()
+        # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
+        cond = pd.notnull(self.foreground_ser)
+        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
         cond = pd.notnull(self.background_ser)
         self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
 
-    def get_sample_an_frset(self):
-        return frozenset(self.sample_ser)
+    def get_foreground_an_frset(self):
+        return frozenset(self.foreground_ser)
 
     def get_background_an_all_set(self):
         return set(self.background_ser)
@@ -335,27 +341,27 @@ class UserInput_noAbCorr(UserInput):
 
 class UserInput_compare_groups(object):
 
-    def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_sample_an='sample_an', col_background_an='population_an', decimal='.'):
+    def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_foreground_an='foreground_an', col_background_an='background_an', decimal='.'):
         self.proteinGroup = proteinGroup
         self.user_input_fn = user_input_fn
         self.study_n = study_n
         self.pop_n = pop_n
         self.decimal = decimal
         self.df = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
-        self.col_sample_an = col_sample_an
+        self.col_foreground_an = col_foreground_an
         self.col_background_an = col_background_an
-        self.sample_ser = self.df[col_sample_an]
-        self.population_ser = self.df[col_background_an]
+        self.foreground_ser = self.df[col_foreground_an]
+        self.background_ser = self.df[col_background_an]
 
-        # remove NaNs from samplefrequency and backgroundfrequency AN-cols
+        # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
         # DON'T REMOVE DUPLICATES
-        self.sample_ser = self.sample_ser.dropna()
+        self.foreground_ser = self.foreground_ser.dropna()
         if not self.proteinGroup:
-            self.sample_ser = self.sample_ser.apply(self.grep_first_an_from_proteinGroup)
+            self.foreground_ser = self.foreground_ser.apply(self.grep_first_an_from_proteinGroup)
 
-        self.population_ser = self.population_ser.dropna()
+        self.background_ser = self.background_ser.dropna()
         if not self.proteinGroup:
-            self.population_ser = self.population_ser.apply(self.grep_first_an_from_proteinGroup)
+            self.background_ser = self.background_ser.apply(self.grep_first_an_from_proteinGroup)
 
     def grep_first_an_from_proteinGroup(self, stringi_):
         try:
@@ -363,11 +369,11 @@ class UserInput_compare_groups(object):
         except IndexError:
             return stringi_
 
-    def get_sample_an(self):
-        return self.sample_ser
+    def get_foreground_an(self):
+        return self.foreground_ser
 
     def get_background_an(self):
-        return self.population_ser
+        return self.background_ser
 
     def split_protGroups_into_unique_list(self, ans_list):
         temp_list = []
@@ -375,13 +381,13 @@ class UserInput_compare_groups(object):
             temp_list += protgroup.split(";")
         return sorted(set(temp_list))
 
-    def get_all_unique_ans(self, sample_population_all="all"):
-        if sample_population_all == "all":
-            ans_list = self.sample_ser.unique().tolist() + self.population_ser.unique().tolist()
-        elif sample_population_all == "sample":
-            ans_list = self.sample_ser.unique().tolist()
-        elif sample_population_all == "population":
-            ans_list = self.population_ser.unique().tolist()
+    def get_all_unique_ans(self, foreground_background_all="all"):
+        if foreground_background_all == "all":
+            ans_list = self.foreground_ser.unique().tolist() + self.background_ser.unique().tolist()
+        elif foreground_background_all == "foreground":
+            ans_list = self.foreground_ser.unique().tolist()
+        elif foreground_background_all == "background":
+            ans_list = self.background_ser.unique().tolist()
         ans_list = sorted(set(ans_list))
         if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
             ans_list = self.split_protGroups_into_unique_list(ans_list)
@@ -393,6 +399,7 @@ class UserInput_compare_groups(object):
     def get_pop_n(self):
         return self.pop_n
 
+
 if __name__ == "__main__":
     fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'
     fn = r'/Users/dblyon/modules/cpr/metaprot/CompareGroups_test.txt'
@@ -401,11 +408,11 @@ if __name__ == "__main__":
     pop_n = 20.0
     proteinGroup = True
     ui = UserInput_compare_groups(proteinGroup, fn, study_n, pop_n)
-    sample_an = ui.get_sample_an()
+    foreground_an = ui.get_foreground_an()
     # backgound_an = ui.get_background_an()
     all_unique_an = ui.get_all_unique_ans()
-    # print len(sample_an), len(backgound_an), len(all_unique_an)
-    print len(sample_an), len(all_unique_an)
+    # print len(foreground_an), len(backgound_an), len(all_unique_an)
+    print len(foreground_an), len(all_unique_an)
 
 
 

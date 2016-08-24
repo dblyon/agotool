@@ -39,6 +39,10 @@ import run, obo_parser, cluster_filter, go_retriever, tools
 # - DB schema doesn't have theme
 # - userinput report, redundant and unique number of ANs/protein-groups, organisms etc.
 # - create HowTo page
+# - close up/macro picture of ESI or mass spec or something, combine with a histogram similar to the publication
+# - graphical output of
+# - Dia Show or nice images in the background, changing every 1min
+# - All proteins without abundance data were disregarded --> put into extra bin
 ###############################################################################
 
 
@@ -50,7 +54,7 @@ connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING
 app = flask.Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
 # app.config['SQLALCHEMY_ECHO'] = False
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['SQLALCHEMY_RECORD_QUERIES'] = False
 
 
@@ -344,7 +348,7 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         description="""Select a method for multiple testing correction.""")
 
     alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-                              default = 0.05, description="""Applied to multiple correction methods "Sidak" and "Holm" to calculate "corrected" p-values.""")
+                              default = 0.05, description="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""")
 
     o_or_u_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("both", "both"),
