@@ -26,12 +26,12 @@ class UserInput(object):
 
     def parse_input(self):
         if self.user_input_fn is not None:
-            self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
+            self.df_orig = pd.read_csv(self.user_input_fn, sep="\t", decimal=self.decimal)
             self.cleanupforanalysis(self.df_orig, self.col_foreground_an, self.col_background_an, self.col_background_int)
         else: # do something cool ;)
+            # parse text fields
             self.
 
-            # parse text fields
 
     def cleanupforanalysis(self, df_orig, col_foreground_an, col_background_an, col_background_int):
         '''
@@ -47,123 +47,33 @@ class UserInput(object):
         '''
         self.foreground_ser = df_orig[col_foreground_an]
         self.background_df = df_orig[[col_background_an, col_background_int]]
+        self.foreground_len_orig = len(self.foreground_ser) # total number of entries, including duplicates and NaNs
+        self.background_len_orig = len(self.background_df)
 
         # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.foreground_ser)
-        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
-        cond = pd.notnull(self.background_df[col_background_an])
-        self.background_df = self.background_df.loc[cond, [col_background_an, col_background_int]].drop_duplicates(subset=col_background_an)
+        self.foreground_ser = self.foreground_ser[pd.notnull(self.foreground_ser)]
+        self.background_df = self.background_df.loc[pd.notnull(self.background_df[self.col_background_an]), [col_background_an, col_background_int]]
 
-        # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        self.foreground_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.foreground_ser)
-        self.background_df = self.removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self.background_df, col_background_an, col_background_int)
+        self.foreground_ser = self.foreground_ser.apply(self.remove_spliceVariant)
+        self.foreground_ser.drop_duplicates(inplace=True)
+        self.background_df[self.col_background_an] = self.background_df[self.col_background_an].apply(self.remove_spliceVariant)
+        self.background_df.drop_duplicates(subset=self.col_background_an, inplace=True)
 
-        # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.foreground_ser)
-        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
-        cond = pd.notnull(self.background_df[col_background_an])
-        self.background_df = self.background_df.loc[cond, [col_background_an, col_background_int]].drop_duplicates(subset=col_background_an)
+        self.foreground_len_clean = len(self.foreground_ser)  # number of entries, excluding duplicates and NaNs
+        self.background_len_clean = len(self.background_df)
 
         # concatenate data
         self.df_all = self.concat_and_align_foreground_and_background(self.foreground_ser, self.background_df)
 
         # remove AccessionNumbers from foreground and background-frequency without intensity values
+        #put them in extra bin
         self.df_int  = self.df_all.loc[pd.notnull(self.df_all[col_background_int]), ]
 
-    def removeSpliceVariants_splitProteinGrous_Series(self, series):
-        '''
-        remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
-        :param series: PandasSeries
-        :return: Series
-        '''
-        list2return = []
-        templist = []
-        for ele in series:
-            templist += ele.split(';')
-        for ele in templist:
-            ele_split = ele.split('-')
-            if len(ele_split) > 1:
-                list2return.append(ele_split[0])
-            else:
-                list2return.append(ele)
-        return pd.Series(list2return, name = series.name)
+    @staticmethod
+    def remove_spliceVariant(self, string_):
+        return ";".join(sorted([ele.split("-")[0] for ele in string_.split(";")]))
 
-    def removeSpliceVariants_takeFirstEntryProteinGroups_Series(self, series):
-        list2return = []
-        templist = []
-        for ele in series:
-            ele_split = ele.split(';')
-            if len(ele_split) > 1:
-                templist.append(ele_split[0])
-            else:
-                templist.append(ele)
-        for ele in templist:
-            ele_split = ele.split('-')
-            if len(ele_split) > 1:
-                list2return.append(ele_split[0])
-            else:
-                list2return.append(ele)
-        return pd.Series(list2return, name = series.name)
-
-    def removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
-        iterrows = dataframe[[colname_an, colname_int]].iterrows()
-        for row in iterrows:
-            index = row[0]
-            an_row = row[1][colname_an]
-            an_row_split_colon = an_row.split(';')
-            if len(an_row_split_colon) > 1:
-                an = an_row_split_colon[0]
-            else:
-                an = an_row
-            an_split_minus = an.split('-')
-            if len(an_split_minus) > 1:
-                an = an_split_minus[0]
-            else:
-                an = an
-            dataframe.loc[index, colname_an] = an
-        return dataframe
-
-    def removeSpliceVariants_splitProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
-        '''
-        remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
-        copy abundance data when adding rows
-        :param series: PandasDataFrame
-        :return: Series
-        '''
-        df_new = self.splitProteinGroups_DataFrame(dataframe, colname_an, colname_int)
-        return self.removeSpliceVariants_DataFrame(df_new, colname_an, colname_int)
-
-    def splitProteinGroups_DataFrame(self, dataframe, colname_an, colname_int):
-        ans2write_list = []
-        int2write_list = []
-        iterrows = dataframe[[colname_an, colname_int]].iterrows()
-        for row in iterrows:
-            index = row[0]
-            int_val = dataframe.loc[index, colname_int]
-            ans_row = row[1][colname_an]
-            ans_split_semicol = ans_row.split(';')
-            len_ans_split_semicol = len(ans_split_semicol)
-            if len_ans_split_semicol > 1:
-                ans2write_list += ans_split_semicol
-                int2write_list += [int_val] * len_ans_split_semicol
-            else:
-                ans2write_list.append(ans_row)
-                int2write_list.append(int_val)
-        return pd.DataFrame({colname_an: ans2write_list, colname_int: int2write_list})
-
-    def removeSpliceVariants_DataFrame(self, dataframe, colname_an, colname_int):
-        iterrows = dataframe[[colname_an, colname_int]].iterrows()
-        for row in iterrows:
-            index = row[0]
-            an_row = row[1][colname_an]
-            an_split_minus = an_row.split('-')
-            len_an_split_minus = len(an_split_minus)
-            if len_an_split_minus > 1:
-                dataframe.loc[index, colname_an] = an_split_minus[0]
-        return dataframe
 
     def get_foreground_an_int(self):
         '''
@@ -419,3 +329,104 @@ if __name__ == "__main__":
 
 
 
+
+####### Dead Code RIP
+# def removeSpliceVariants_splitProteinGrous_Series(self, series):
+#     '''
+#     remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
+#     split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
+#     :param series: PandasSeries
+#     :return: Series
+#     '''
+#     list2return = []
+#     templist = []
+#     for ele in series:
+#         templist += ele.split(';')
+#     for ele in templist:
+#         ele_split = ele.split('-')
+#         if len(ele_split) > 1:
+#             list2return.append(ele_split[0])
+#         else:
+#             list2return.append(ele)
+#     return pd.Series(list2return, name=series.name)
+#
+#
+# def removeSpliceVariants_takeFirstEntryProteinGroups_Series(self, series):
+#     list2return = []
+#     templist = []
+#     for ele in series:
+#         ele_split = ele.split(';')
+#         if len(ele_split) > 1:
+#             templist.append(ele_split[0])
+#         else:
+#             templist.append(ele)
+#     for ele in templist:
+#         ele_split = ele.split('-')
+#         if len(ele_split) > 1:
+#             list2return.append(ele_split[0])
+#         else:
+#             list2return.append(ele)
+#     return pd.Series(list2return, name=series.name)
+#
+#
+# def removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
+#     iterrows = dataframe[[colname_an, colname_int]].iterrows()
+#     for row in iterrows:
+#         index = row[0]
+#         an_row = row[1][colname_an]
+#         an_row_split_colon = an_row.split(';')
+#         if len(an_row_split_colon) > 1:
+#             an = an_row_split_colon[0]
+#         else:
+#             an = an_row
+#         an_split_minus = an.split('-')
+#         if len(an_split_minus) > 1:
+#             an = an_split_minus[0]
+#         else:
+#             an = an
+#         dataframe.loc[index, colname_an] = an
+#     return dataframe
+#
+#
+# def removeSpliceVariants_splitProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
+#     '''
+#     remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
+#     split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
+#     copy abundance data when adding rows
+#     :param series: PandasDataFrame
+#     :return: Series
+#     '''
+#     df_new = self.splitProteinGroups_DataFrame(dataframe, colname_an, colname_int)
+#     return self.removeSpliceVariants_DataFrame(df_new, colname_an, colname_int)
+#
+#
+# def splitProteinGroups_DataFrame(self, dataframe, colname_an, colname_int):
+#     ans2write_list = []
+#     int2write_list = []
+#     iterrows = dataframe[[colname_an, colname_int]].iterrows()
+#     for row in iterrows:
+#         index = row[0]
+#         int_val = dataframe.loc[index, colname_int]
+#         ans_row = row[1][colname_an]
+#         ans_split_semicol = ans_row.split(';')
+#         len_ans_split_semicol = len(ans_split_semicol)
+#         if len_ans_split_semicol > 1:
+#             ans2write_list += ans_split_semicol
+#             int2write_list += [int_val] * len_ans_split_semicol
+#         else:
+#             ans2write_list.append(ans_row)
+#             int2write_list.append(int_val)
+#     return pd.DataFrame({colname_an: ans2write_list, colname_int: int2write_list})
+#
+#
+# def removeSpliceVariants_DataFrame(self, dataframe, colname_an, colname_int):
+#     # iterrows = dataframe[[colname_an, colname_int]].iterrows()
+#     # for row in iterrows:
+#     for index_, row in dataframe[[colname_an, colname_int]].iterrows():
+#         index = row[0]
+#         an_row = row[1][colname_an]
+#         an_split_minus = an_row.split('-')
+#         len_an_split_minus = len(an_split_minus)
+#         if len_an_split_minus > 1:
+#             dataframe.loc[index, colname_an] = an_split_minus[0]
+#     return dataframe
