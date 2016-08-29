@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-class UserInput_old(object):
+class UserInput(object):
     """
     expects 2 arrays,
     foregroundfreq: Pandas DataFrame 1column
@@ -28,12 +28,15 @@ class UserInput_old(object):
         if self.user_input_fn is not None:
             self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
             self.cleanupforanalysis(self.df_orig, self.col_foreground_an, self.col_background_an, self.col_background_int)
-        else:
+        else: # do something cool ;)
+            self.
 
             # parse text fields
 
     def cleanupforanalysis(self, df_orig, col_foreground_an, col_background_an, col_background_int):
         '''
+        ToDo:
+        summary stats on total number of ANs, redundancy, mapped to which species, 
         remove NaNs, remove duplicates, split protein groups, remove splice variant appendix
         create 2 DataFrames
         self.df_all: columns = [foreground_ans, background_ans]
