@@ -36,9 +36,9 @@ def run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, org
         ui = userinput.UserInput_compare_groups(proteinGroup, userinput_fn, study_n, pop_n)
         ans_list = ui.get_all_unique_ans()
     elif abcorr:
-        ui = userinput.UserInput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+        ui = userinput.Userinput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
     else:
-        ui = userinput.UserInput_noAbCorr(userinput_fn, num_bins, col_sample_an, col_background_an, decimal)
+        ui = userinput.Userinput_noAbCorr(userinput_fn, num_bins, col_sample_an, col_background_an, decimal)
 
     ### gocat_upk is one of: 'MF', 'BP', 'CP', "all_GO", "UPK"
     if gocat_upk == "UPK":

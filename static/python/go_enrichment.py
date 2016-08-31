@@ -283,13 +283,13 @@ class GOEnrichmentStudy(object):
         #     col_1  |   col_2     |    n
 
         ################################################
-        #     sample       |     background   |
+        #     foreground   |     background   |
         # ----------------------------------------------
-        # +   study_count  |     pop_count    |   r1
+        # +   foregr_count |     backgr_count |   r1
         # ----------------------------------------------
         # -     b          |       d          |   r2
         # ----------------------------------------------
-        #     study_n      |     pop_n        |    n
+        #     foregr_n     |     backgr_n     |    n
 
         # fisher.pvalue_population() expects:
         #  (a, col_1, r1, n)
@@ -533,8 +533,8 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         """
         produce abundance corrected counts of UPK of background frequency
         round floats to nearest integer
-        UserInput-object includes ANs of sample, and background as well as abundance data
-        :param ui: UserInput-object
+        Userinput-object includes ANs of sample, and background as well as abundance data
+        :param ui: Userinput-object
         :param assoc_dict:  Dict with key=AN, val=set of GO-terms
         :return: DefaultDict(Float)
         """

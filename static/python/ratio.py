@@ -174,11 +174,11 @@ def get_go2ans_dict(assoc_dict):
 #     """
 #     produce abundance corrected counts of GO-terms of background frequency
 #     round floats to nearest integer
-#     UserInput-object includes ANs of sample, and background as well as abundance data
+#     Userinput-object includes ANs of sample, and background as well as abundance data
 #     produces:
 #         term_cnt: key=GOid, val=Num of occurrences
 #         go2ans_dict: key=GOid, val=ListOfANs
-#     :param ui: UserInput-object
+#     :param ui: Userinput-object
 #     :param assoc_dict:  Dict with key=AN, val=set of GO-terms
 #     :param obo_dag: Dict with additional methods
 #     :return: DefaultDict(Float)
@@ -213,13 +213,14 @@ def get_go2ans_dict(assoc_dict):
 
 def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     """
+    #!!! modify to use protein groups
     produce abundance corrected counts of GO-terms of background frequency
     round floats to nearest integer
-    UserInput-object includes ANs of sample, and background as well as abundance data
+    Userinput-object includes ANs of sample, and background as well as abundance data
     produces:
         term_cnt: key=GOid, val=Num of occurrences
         go2ans_dict: key=GOid, val=ListOfANs
-    :param ui: UserInput-object
+    :param ui: Userinput-object
     :param assoc_dict:  Dict with key=AN, val=set of GO-terms
     :param obo_dag: Dict with additional methods
     :return: DefaultDict(Float)
@@ -239,7 +240,8 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
                         goterm_name = obo_dag[goterm].id
                         term_cnt[goterm_name] += weight_fac
                         if not go2ans_dict.has_key(goterm):
-                            go2ans_dict[goterm_name] = set([an])
+                            # go2ans_dict[goterm_name] = set([an])
+                            go2ans_dict[goterm_name] = {[an]}
                         else:
                             go2ans_dict[goterm_name].update([an])
                     else:
@@ -251,7 +253,7 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
         count = term_cnt[goterm]
         if count >=1:
             go2ans2return[goterm] = go2ans_dict[goterm]
-    return(term_cnt, go2ans2return)
+    return term_cnt, go2ans2return
 
 
 def is_ratio_different(min_ratio, study_go, study_n, pop_go, pop_n):

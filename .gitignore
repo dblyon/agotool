@@ -41,7 +41,7 @@ Thumbs.db
 ######################
 .idea/
 .ipython_checkpoints/
-*.ipynb
+#*.ipynb
 
 # agotool #
 ######################
