@@ -201,27 +201,25 @@ class Userinput(object):
         # yield correction factor and ANs background
         cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
         bins = pd.cut(self.foreground.loc[cond, "intensity"], bins=self.num_bins, retbins=True)[1]
-        bins = [DEFAULT_MISSING_BIN] + list(bins)
+        bins = [DEFAULT_MISSING_BIN - 1] + list(bins)
         groups_fg = self.foreground.groupby(pd.cut(self.foreground["intensity"], bins=bins))
         groups_bg = self.background.groupby(pd.cut(self.background[self.col_intensity], bins=bins))
         for group_fg, group_bg in zip(groups_fg, groups_bg):
-            # bins_fg = group_fg[0]
-            # bins_bg = group_bg[0]
-            # assert bins_fg == bins_bg
+            bins_fg = group_fg[0]
+            bins_bg = group_bg[0]
+            assert bins_fg == bins_bg
             proteinGroups_foreground = group_fg[1][self.col_foreground]
             proteinGroups_background = group_bg[1][self.col_background]
             len_proteinGroups_foreground = len(proteinGroups_foreground) * 1.0
             len_proteinGroups_background = len(proteinGroups_background) * 1.0
-            # if len_proteinGroups_background != 0:
             try:
-                # weight_fac = float(numinhist) / len(ans_all_from_bin)
                 weight_factor = len_proteinGroups_foreground / len_proteinGroups_background
             except ZeroDivisionError:
-                weight_factor = 0 #!!! debug
-                # continue
-                # print("Weight factor is Zero")
-                # raise StopIteration
-            yield proteinGroups_background.tolist(), proteinGroups_foreground.tolist(),weight_factor, bins_fg
+                # since the foreground is assumed to be a proper subset of the background
+                weight_factor = 1
+            if len_proteinGroups_foreground == 0:
+                continue
+            yield proteinGroups_background.tolist(), proteinGroups_foreground.tolist(), weight_factor, bins_fg
             
 
         # hist = number of ANs in bin, bins = edges of the cuts
@@ -244,9 +242,7 @@ class Userinput(object):
             upper = bins[index + 1]
             ans_all_from_bin = self.get_random_an_from_bin(lower, upper, num_ans, get_all_ans=True)
             num_ans_all_from_bin = len(ans_all_from_bin)
-            # if not num_ans_all_from_bin == 0:
             if num_ans_all_from_bin != 0:
-                # weight_fac = float(numinhist) / len(ans_all_from_bin)
                 weight_fac = float(numinhist) / num_ans_all_from_bin
             else:
                 weight_fac = 0 #!!! debug
