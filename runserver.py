@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 # standard library
 import os, sys, logging, time, shutil
 import StringIO
@@ -17,6 +19,7 @@ import sys
 sys.path.append("./../metaprot/sql/")
 import db_config, models
 sys.path.append('./static/python')
+import userinput
 import run, obo_parser, cluster_filter, go_retriever, tools
 
 
@@ -217,28 +220,28 @@ def howto():
 ################################################################################
 # helper functions
 ################################################################################
-# check user input
-def check_userinput(userinput_fh, abcorr):
-    decimal = '.'
-    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
-    userinput_fh.seek(0)
-    if abcorr:
-        if len({'population_an','population_int','sample_an'}.intersection(set(df.columns.tolist()))) == 3:
-            try:
-                np.histogram(df['population_int'], bins=10)
-            except TypeError:
-                try:
-                    decimal = ','
-                    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
-                    userinput_fh.seek(0)
-                    np.histogram(df['population_int'], bins=10)
-                except TypeError:
-                    return False, decimal
-            return True, decimal
-    else:
-        if len({'population_an', 'sample_an'}.intersection(set(df.columns.tolist()))) == 2:
-            return True, decimal
-    return False, decimal
+# # check user input
+# def check_userinput(userinput_fh, abcorr):
+#     decimal = '.'
+#     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+#     userinput_fh.seek(0)
+#     if abcorr:
+#         if len({'population_an','population_int','sample_an'}.intersection(set(df.columns.tolist()))) == 3:
+#             try:
+#                 np.histogram(df['population_int'], bins=10)
+#             except TypeError:
+#                 try:
+#                     decimal = ','
+#                     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+#                     userinput_fh.seek(0)
+#                     np.histogram(df['population_int'], bins=10)
+#                 except TypeError:
+#                     return False, decimal
+#             return True, decimal
+#     else:
+#         if len({'population_an', 'sample_an'}.intersection(set(df.columns.tolist()))) == 2:
+#             return True, decimal
+#     return False, decimal
 
 #####
 # validation of user inputs
@@ -407,6 +410,12 @@ def results():
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
         user_input_file = request.files['userinput_file']
+        # print(type(user_input_file))
+        # print(user_input_file)
+        ui = userinput.Userinput(fn=user_input_file, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+            col_foreground='foreground', col_background='background', col_intensity='intensity',
+            num_bins=form.num_bins.data, decimal='.', method="abundance_correction")
+        print(ui.foreground)
         # import ipdb
         # ipdb.set_trace()
         if len(user_input_file.read()) == 0:
@@ -418,9 +427,8 @@ def results():
             ### use file
             user_input_file.seek(0)
             userinput_fh = StringIO.StringIO(user_input_file.read())
-            check, decimal = check_userinput(userinput_fh, form.abcorr.data)
-            print check, decimal
-
+            # check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+            # print(check, decimal)
 
         if check:
             ip = request.environ['REMOTE_ADDR']
