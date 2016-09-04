@@ -3,8 +3,11 @@ import operator, os, sys
 import pandas as pd
 import numpy as np
 
+sys.path.append("./../metaprot/sql/")
+import query
+
 import go_retriever
-import go_enrichment
+import enrichment
 import userinput
 import obo_parser
 import cluster_filter
@@ -14,7 +17,51 @@ def write2file(fn, tsv):
     with open(fn, 'w') as f:
         f.write(tsv)
 
-def run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+
+
+def run(ui, connection, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
+        o_or_u_or_both, backtracking, fold_enrichment_study2pop,
+        p_value_uncorrected, p_value_mulitpletesting):
+
+    if fold_enrichment_study2pop == 0:
+        fold_enrichment_study2pop = None
+    if p_value_mulitpletesting == 0:
+        p_value_mulitpletesting = None
+    if p_value_uncorrected == 0:
+        p_value_uncorrected = None
+
+    protein_ans_list = ui.get_set_foreground_background_ANs()
+    # protein_ans_list = ui.get_set_foreground_background_ANs()
+    function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
+    assoc_dict = query.get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=limit_2_parent,
+                                            basic_or_slim=go_slim_or_basic, backtracking=backtracking)
+    print("#"*80)
+    print("association dict")
+    print(assoc_dict.items()[:10])
+    print("#" * 80)
+    # now convert assoc_dict into proteinGroups to consensus assoc_dict
+    # function_2_NumANs_foreground, function_2_NumANs_background, foreground_n, background_n
+
+
+
+def get_function_type__and__limit_2_parent(gocat_upk):
+    # choices = (("all_GO", "all GO categories"),
+    #            ("BP", "GO Biological Process"),
+    #            ("CP", "GO Celluar Compartment"),
+    #            ("MF", "GO Molecular Function"),
+    #            ("UPK", "UniProt keywords"),
+    #            ("KEGG", "KEGG pathways")),
+    if gocat_upk in {"BP", "CP", "MF"}:
+        return "GO", gocat_upk
+    elif gocat_upk == "all_GO":
+        return "GO", None
+    else:
+        return gocat_upk, None
+
+
+
+def run_old(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal,
+            organism, gocat_upk, go_slim_or_basic, indent,
         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
         go_dag, goslim_dag, pgoa, upkp):
@@ -43,7 +90,7 @@ def run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, org
     ### gocat_upk is one of: 'MF', 'BP', 'CP', "all_GO", "UPK"
     if gocat_upk == "UPK":
         assoc_dict = upkp.get_association_dict_from_organims(organism)
-        gostudy = go_enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
+        gostudy = enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
         return header, results
     else:
@@ -53,10 +100,10 @@ def run(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal, org
                 assoc_dict = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
         if compare_groups == "characterize_study":
             # print(gocat_upk)
-            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
+            gostudy = enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
             return gostudy.GOid2NumANs_dict_study, gostudy.go2ans_study_dict
         elif compare_groups == "compare_groups":
-            gostudy = go_enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
+            gostudy = enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
         return header, results
 

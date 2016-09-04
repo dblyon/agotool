@@ -57,3 +57,19 @@ def update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS):
         fh.write(text_before)
         fh.write(content)
         fh.write(text_after)
+
+def split_string_or_nan(string_or_nan, sep=";"):
+    try:
+        ans = string_or_nan.split(sep)
+    except AttributeError: # if nan
+        ans = []
+    return ans
+
+def commaSepCol2uniqueFlatList(df, colname, sep=";", unique=True):
+    series_of_lists = df[colname].apply(split_string_or_nan, 1, args=(sep,))
+    nested_list = series_of_lists.tolist()
+    flat_list = [item for sublist in nested_list for item in sublist]
+    if not unique:
+        return sorted(flat_list)
+    else:
+        return sorted(set(flat_list))

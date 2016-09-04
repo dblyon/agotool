@@ -1,9 +1,6 @@
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-from StringIO import StringIO
-from itertools import izip_longest
-import tools
 
 # test for comma vs point separated intensity values
 # test for " enclosed ANs, in general and for protein groups using these
@@ -12,17 +9,20 @@ import tools
 
 DEFAULT_MISSING_BIN = -1
 
+
 class Userinput(object):
     """
     expects 2 arrays,
     foregroundfreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, fn=None, foreground_string=None, background_string=None,
-            col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=100, decimal='.', method="abundance_correction"):
 
-        self.fn = fn
+    def __init__(self, user_input_fn=None, foreground_string=None, background_string=None,
+                 col_foreground='foreground', col_background='background', col_intensity='intensity',
+                 num_bins=100, decimal='.', method="abundance_correction"):
+
+        self.user_input_fn = user_input_fn
+        # !!! file name not file handle
         self.foreground_string = foreground_string
         self.background_string = background_string
         self.decimal = decimal
@@ -30,39 +30,29 @@ class Userinput(object):
         self.col_foreground = col_foreground
         self.col_background = col_background
         self.col_intensity = col_intensity
-        self.method = method # "abundance_correction", "compare_samples", "compare_groups", "characterize"
-        self.housekeeping_dict = {} # Infos for User
+        self.method = method
+        self.housekeeping_dict = {}  # Infos for User
         self.parse_input()
-        self.check = True
 
     def parse_input(self):
-        self.fn.read()
-        if self.fn.tell() != 0:
-            self.fn.seek(0)
-            print("#" * 80)
-            print("file")
-        else: # do something cool ;)
-            print("#" * 80)
-            print("copy and paste")
-            # use copy & paste field
-            self.fn = StringIO()
-            self.fn.write('foreground\tbackground\tintensity\r')
-            for a, b in izip_longest(self.foreground_string.split("\r\n"), self.background_string.split("\r\n"), fillvalue="\t"):
-                self.fn.write(a.strip() + "\t" + b.strip() + "\r")
-            print(self.fn.read())
-            self.fn.seek(0)
-        is_abundance_correction, self.decimal = self.check_userinput(self.fn)
-        if not is_abundance_correction:
-            self.method = "compare_groups"
-            # switch for reporting that something went wrong to user, or automatically switch method
-            # self.method = "compare_groups"
-            # or "characterize study"
-        # self.fn.seek(0)
-        # self.df_orig = pd.read_csv(self.fn, sep="\t", decimal=self.decimal)
-        self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        if self.user_input_fn is not None:
+            is_abundance_correction, self.decimal = self.check_userinput(self.user_input_fn)
+
+            if not is_abundance_correction:
+                pass
+                # switch for reporting that something went wrong to user, or automatically switch method
+                # self.method = "compare_groups"
+                # or "characterize study"
+
+            self.df_orig = pd.read_csv(self.user_input_fn, sep="\t", decimal=self.decimal)
+            self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        else:  # do something cool ;)
+            # parse text fields
+            # self.bubu
+            pass
 
     def cleanupforanalysis(self, df, col_foreground, col_background, col_intensity):
-        """
+        '''
         ToDo:
         summary stats on total number of ANs, redundancy, mapped to which species,
         remove NaNs, remove duplicates, split protein groups, remove splice variant appendix
@@ -72,59 +62,70 @@ class Userinput(object):
         self.df_int: columns = [foreground_ans, background_ans, intensity]
         --> only if intensity value given
         :return: None
-        """
+        '''
+        # self.foreground = df_orig[[col_foreground]]
+        # self.background = df_orig[[col_background, col_intensity]]
         # housekeeping
-        self.housekeeping_dict["Foreground_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_foreground]]) # total number of entries, including duplicates and NaNs
-        self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background, col_intensity]])
+        self.housekeeping_dict["Foreground_Number_of_entries_including_duplicates_and_NaNs"] = len(
+            df[[col_foreground]])  # total number of entries, including duplicates and NaNs
+        self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(
+            df[[col_background, col_intensity]])
 
         # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
         self.foreground = df.loc[pd.notnull(df[col_foreground]), [col_foreground]]
         self.background = df.loc[pd.notnull(df[col_background]), [col_background, col_intensity]]
 
         # remove splice variant appendix and drop duplicates
+        # # import ipdb
+        # # ipdb.set_trace()
+        # print(self.foreground.head())
+        # print(type(self.foreground))
         self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
         self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
         self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
         self.background.drop_duplicates(subset=col_background, inplace=True)
         # housekeeping
-        self.housekeeping_dict["Foreground_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.foreground) # number of entries, excluding duplicates and NaNs
+        self.housekeeping_dict["Foreground_Number_of_entries_excluding_duplicates_and_NaNs"] = len(
+            self.foreground)  # number of entries, excluding duplicates and NaNs
         self.housekeeping_dict["Background_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.background)
 
         # set default missing value for notnulls, and create lookup dict for abundances
         cond = pd.isnull(self.background[col_intensity])
         self.background.loc[cond, col_intensity] = DEFAULT_MISSING_BIN
-        self.an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]))
+        self.an_2_intensity_dict = self.create_an_2_intensity_dict(
+            zip(self.background[col_background], self.background[col_intensity]))
         # housekeeping
         self.housekeeping_dict["Number_ANs_with_missing_abundance_values"] = sum(cond)
 
         self.foreground["intensity"] = self.map_intensities_2_foreground()
 
-    def check_userinput(self, fh):
+    def check_userinput(self, userinput_fh):
         """
         test if userinput uses ',' or '.' as a decimal separator
         and if 3 columns for abundance_correction exist
-        set df attribute
-        :param fh: FileHandle
+        :param userinput_fh: FileHandle
         :return: Tuple(Bool, String)
         """
         decimal = '.'
-        self.df_orig = pd.read_csv(fh, sep='\t', decimal=decimal)
+        df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+        # userinput_fh.seek(0)
         if self.method == "abundance_correction":
-            if len({self.col_background, self.col_intensity, self.col_foreground}.intersection(set(self.df_orig.columns.tolist()))) == 3:
+            if len({self.col_background, self.col_intensity, self.col_foreground}.intersection(
+                    set(df.columns.tolist()))) == 3:
                 try:
-                    np.histogram(self.df_orig.loc[pd.notnull(self.df_orig[self.col_intensity]), self.col_intensity], bins=10)
+                    np.histogram(df.loc[pd.notnull(df[self.col_intensity]), self.col_intensity], bins=10)
                 except TypeError:
                     try:
                         decimal = ','
-                        fh.seek(0)
-                        self.df_orig = pd.read_csv(fh, sep='\t', decimal=decimal)
-                        np.histogram(self.df_orig.loc[pd.notnull(self.df_orig[self.col_intensity]), self.col_intensity], bins=10)
+                        df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
+                        # userinput_fh.seek(0)
+                        np.histogram(df.loc[pd.notnull(df[self.col_intensity]), self.col_intensity], bins=10)
                     except TypeError:
                         return False, decimal
                 return True, decimal
         else:
-            if len({self.col_background, self.col_foreground}.intersection(set(self.df_orig.columns.tolist()))) == 2:
+            if len({self.col_background, self.col_foreground}.intersection(set(df.columns.tolist()))) == 2:
                 return True, decimal
         return False, decimal
 
@@ -167,6 +168,9 @@ class Userinput(object):
             an_first_in_proteinGroup = proteinGroup.split(";")[0]
             intensity_foreground.append(self.an_2_intensity_dict[an_first_in_proteinGroup])
         return pd.Series(intensity_foreground, name="intensity")
+        # foreground_df = pd.DataFrame(data=intensity_foreground, columns=["Int"])
+        # foreground_df["AN"] = foreground
+        # return foreground_df
 
     ###################################################
     #     foreground       |     background     |
@@ -178,69 +182,139 @@ class Userinput(object):
     #     foregr_n         |     backgr_n       |    n
 
 
-    def get_foreground_n(self): #!!!
-        return len(self.foreground)
+    def get_foreground_n(self):
+        # get_study_n
+        pass
 
-    def get_background_n(self): #!!!
-        if self.method == "abundance_correction":
-            return len(self.foreground)
-        elif self.method == "compare_groups":
-            return len(self.background)
-        else:
-            pass #!!!
+    def get_background_n(self):
+        # get_pop_n
+        pass
 
     def get_sample_an(self):
-        return self.foreground[self.col_foreground].tolist()
+        pass
 
     def iter_bins(self):
-        """
-        map foreground proteinGroups to background abundance values,
-        split foreground proteinGroups into bins based on abundance,
-        calculate a correction factor for each bin (num proteinGroups foreground / num proteinGroups background),
-        yield background proteinGroups and correction factor for each bin
-        :return: Tuple(ListOfString(';' sep ANs), correction factor)
-        """
+        # intensity values as array, for all proteins/proteinGroups
+        # protein groups only count as a single AN
+        # split intensity values of foreground into bins
+        # iterate over bins
+        # correction factor = number ANs foreground in bin / number ANs background in bin
+        # yield correction factor and ANs background
         cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
         bins = pd.cut(self.foreground.loc[cond, "intensity"], bins=self.num_bins, retbins=True)[1]
         bins = [DEFAULT_MISSING_BIN - 1] + list(bins)
         groups_fg = self.foreground.groupby(pd.cut(self.foreground["intensity"], bins=bins))
         groups_bg = self.background.groupby(pd.cut(self.background[self.col_intensity], bins=bins))
         for group_fg, group_bg in zip(groups_fg, groups_bg):
-            # bins_fg = group_fg[0]
-            # bins_bg = group_bg[0]
-            # assert bins_fg == bins_bg
+            bins_fg = group_fg[0]
+            bins_bg = group_bg[0]
+            assert bins_fg == bins_bg
             proteinGroups_foreground = group_fg[1][self.col_foreground]
             proteinGroups_background = group_bg[1][self.col_background]
             len_proteinGroups_foreground = len(proteinGroups_foreground) * 1.0
             len_proteinGroups_background = len(proteinGroups_background) * 1.0
             try:
-                correction_factor = len_proteinGroups_foreground / len_proteinGroups_background
+                weight_factor = len_proteinGroups_foreground / len_proteinGroups_background
             except ZeroDivisionError:
-                # since the foreground is assumed to be a proper subset of the background, anything in the foreground must also be in the background
-                correction_factor = 1
-                proteinGroups_background = proteinGroups_foreground
+                # since the foreground is assumed to be a proper subset of the background
+                weight_factor = 1
             if len_proteinGroups_foreground == 0:
                 continue
-            # yield proteinGroups_background.tolist(), proteinGroups_foreground.tolist(), correction_factor, bins_fg
-            yield proteinGroups_background.tolist(), correction_factor
+            yield proteinGroups_background.tolist(), proteinGroups_foreground.tolist(), weight_factor, bins_fg
 
-    def get_set_foreground_background_ANs(self):
+
+            # hist = number of ANs in bin, bins = edges of the cuts
+            # hist, bins = np.histogram(, bins=self.num_bins, density=False)
+            # for each bin in hist:
+            #     number_proteinGroups_in_bin_foreground
+            #     number_proteinGroups_in_bin_background
+            #     proteinGroups_in_bin_background
+
+    def iter_bins_old(self):
         """
-        return all unique AccessionNumber provided by the user
+        for every bin, produce ans-background and weighting-factor of respective bin
+        weighting-factor = number of foreground-ANs in bin / number background-ANs in bin
+        :return: Tuple(ListOfSting, Float)
+        """
+        hist, bins = np.histogram(self.get_foreground_an_int()[self.col_intensity], bins=self.num_bins)
+        for index, numinhist in enumerate(hist):
+            num_ans = numinhist
+            lower = bins[index]
+            upper = bins[index + 1]
+            ans_all_from_bin = self.get_random_an_from_bin(lower, upper, num_ans, get_all_ans=True)
+            num_ans_all_from_bin = len(ans_all_from_bin)
+            if num_ans_all_from_bin != 0:
+                weight_fac = float(numinhist) / num_ans_all_from_bin
+            else:
+                weight_fac = 0  # !!! debug
+                print("Weight factor is Zero")
+                raise StopIteration
+            yield (ans_all_from_bin, weight_fac)
+
+    def get_random_an_from_bin(self, lower, upper, num_ans=1, get_all_ans=False):
+        '''
+        produce a random number of AccessionNumbers within given boundaries of Intensity values
+        where intensity >= lower and intensity < upper.
+        option: get_all_ans returns all AccessionNumbers in bin
+        :param lower: Float
+        :param upper: Float
+        :param num_ans: Integer
+        :param get_all_ans: Boolean
         :return: ListOfString
-        """
-        ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
-        ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
-        return list(set(ans))
+        '''
+        df = self.get_background_an_int()
+        cond1 = df[self.col_intensity] >= lower
+        cond2 = df[self.col_intensity] <= upper
+        cond = cond1 & cond2
+        ans_withinBounds = df.loc[cond, self.col_background]
+        if len(ans_withinBounds) > 0:
+            if get_all_ans:
+                return sorted(ans_withinBounds)
+            else:
+                return sorted(np.random.choice(ans_withinBounds, size=num_ans, replace=False))
+        else:
+            return []
 
+    def get_foreground_an_int(self):
+        '''
+        produce AccessionNumbers with corresponding Intensity of foreground/study
+        :return: DataFrame
+        '''
+        return self.df_int.loc[pd.notnull(self.df_int[self.col_foreground]), [self.col_foreground, self.col_intensity]]
 
+    def get_background_an_int(self):
+        '''
+        produce AccessionNumbers with corresponding Intensity of background/background
+        :return: DataFrame
+        '''
+        return self.df_int[[self.col_background, self.col_intensity]]
 
+    def concat_and_align_foreground_and_background(self, foreground_ser, background_df):
+        '''
+        expects a Series and a DataFrames each containing a column with non-redundant
+        AccessionNumbers, concatenate by producing the union and aligning the ANs in rows
+        :param foreground_ser: Pandas.Series
+        :param background_df: Pandas.DataFrame
+        :return: DataFrame
+        '''
+        foreground_ser.index = foreground_ser.tolist()
+        background_df.index = background_df[self.col_background].tolist()
+        return pd.concat([foreground_ser, background_df], axis=1)
 
-
-
-
-
-
+    def get_random_background_ans(self):
+        '''
+        produce a randomly generated set of AccessionNumbers from background-frequency
+        with the same intensity-distribution as foreground-frequency
+        :return: ListOfString
+        '''
+        ans_random_list = []
+        hist, bins = np.histogram(self.get_foreground_an_int()[self.col_intensity], bins=self.num_bins)
+        for index, numinhist in enumerate(hist):
+            num_ans = numinhist
+            lower = bins[index]
+            upper = bins[index + 1]
+            ans_random_list += self.get_random_an_from_bin(lower, upper, num_ans)
+        return sorted(ans_random_list)
 
     def write_ans2file(self, ans_list, fn):
         with open(fn, 'w') as fh:
@@ -269,7 +343,8 @@ class Userinput(object):
         :return: Frozenset of Strings
         '''
         col_background = 'Observed Proteome'
-        ui2 = Userinput(self.user_input_fn, self.num_bins, col_foreground=self.col_foreground, col_background=col_background, col_intensity=self.col_intensity, decimal=self.decimal)
+        ui2 = Userinput(self.user_input_fn, self.num_bins, col_foreground=self.col_foreground,
+                        col_background=col_background, col_intensity=self.col_intensity, decimal=self.decimal)
         return ui2.get_foreground_an_frset()
 
     def get_background_an_set(self):
@@ -298,8 +373,8 @@ class Userinput(object):
 
 
 class Userinput_noAbCorr(Userinput):
-
-    def __init__(self, user_input_fn, num_bins=100, col_foreground='foreground_an', col_background='background_an', decimal='.'):
+    def __init__(self, user_input_fn, num_bins=100, col_foreground='foreground_an', col_background='background_an',
+                 decimal='.'):
         self.user_input_fn = user_input_fn
         self.decimal = decimal
         self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
@@ -314,9 +389,9 @@ class Userinput_noAbCorr(Userinput):
 
         # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
         cond = pd.notnull(self.foreground_ser)
-        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
+        self.foreground_ser = self.foreground_ser.loc[cond,].drop_duplicates()
         cond = pd.notnull(self.background_ser)
-        self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
+        self.background_ser = self.background_ser.loc[cond,].drop_duplicates()
 
         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> correction: 1 row of first value
         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
@@ -325,9 +400,9 @@ class Userinput_noAbCorr(Userinput):
 
         # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
         cond = pd.notnull(self.foreground_ser)
-        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
+        self.foreground_ser = self.foreground_ser.loc[cond,].drop_duplicates()
         cond = pd.notnull(self.background_ser)
-        self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
+        self.background_ser = self.background_ser.loc[cond,].drop_duplicates()
 
     def get_foreground_an_frset(self):
         return frozenset(self.foreground_ser)
@@ -337,8 +412,8 @@ class Userinput_noAbCorr(Userinput):
 
 
 class UserInput_compare_groups(object):
-
-    def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_foreground='foreground_an', col_background='background_an', decimal='.'):
+    def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_foreground='foreground_an',
+                 col_background='background_an', decimal='.'):
         self.proteinGroup = proteinGroup
         self.user_input_fn = user_input_fn
         self.study_n = study_n
@@ -386,7 +461,7 @@ class UserInput_compare_groups(object):
         elif foreground_background_all == "background":
             ans_list = self.background_ser.unique().tolist()
         ans_list = sorted(set(ans_list))
-        if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
+        if self.proteinGroup:  # split comma sep string of ANs into single ANs and make unique
             ans_list = self.split_protGroups_into_unique_list(ans_list)
         return ans_list
 
@@ -411,7 +486,9 @@ if __name__ == "__main__":
     # # print len(foreground_an), len(backgound_an), len(all_unique_an)
     # print len(foreground_an), len(all_unique_an)
     fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast.txt"
-    ui = Userinput(user_input_fn=fn, foreground_string=None, background_string=None, col_foreground='foreground', col_background='background', col_intensity='intensity', num_bins=100, decimal='.', method="abundance_correction")
+    ui = Userinput(user_input_fn=fn, foreground_string=None, background_string=None, col_foreground='foreground',
+                   col_background='background', col_intensity='intensity', num_bins=100, decimal='.',
+                   method="abundance_correction")
 
 
 
@@ -517,93 +594,3 @@ if __name__ == "__main__":
 #         if len_an_split_minus > 1:
 #             dataframe.loc[index, colname_an] = an_split_minus[0]
 #     return dataframe
-#
-# def iter_bins_old(self):
-#     """
-#     for every bin, produce ans-background and weighting-factor of respective bin
-#     weighting-factor = number of foreground-ANs in bin / number background-ANs in bin
-#     :return: Tuple(ListOfSting, Float)
-#     """
-#     hist, bins = np.histogram(self.get_foreground_an_int()[self.col_intensity], bins=self.num_bins)
-#     for index, numinhist in enumerate(hist):
-#         num_ans = numinhist
-#         lower = bins[index]
-#         upper = bins[index + 1]
-#         ans_all_from_bin = self.get_random_an_from_bin(lower, upper, num_ans, get_all_ans=True)
-#         num_ans_all_from_bin = len(ans_all_from_bin)
-#         if num_ans_all_from_bin != 0:
-#             weight_fac = float(numinhist) / num_ans_all_from_bin
-#         else:
-#             weight_fac = 0  # !!! debug
-#             print("Weight factor is Zero")
-#             raise StopIteration
-#         yield (ans_all_from_bin, weight_fac)
-#
-#
-# def get_random_an_from_bin(self, lower, upper, num_ans=1, get_all_ans=False):
-#     '''
-#     produce a random number of AccessionNumbers within given boundaries of Intensity values
-#     where intensity >= lower and intensity < upper.
-#     option: get_all_ans returns all AccessionNumbers in bin
-#     :param lower: Float
-#     :param upper: Float
-#     :param num_ans: Integer
-#     :param get_all_ans: Boolean
-#     :return: ListOfString
-#     '''
-#     df = self.get_background_an_int()
-#     cond1 = df[self.col_intensity] >= lower
-#     cond2 = df[self.col_intensity] <= upper
-#     cond = cond1 & cond2
-#     ans_withinBounds = df.loc[cond, self.col_background]
-#     if len(ans_withinBounds) > 0:
-#         if get_all_ans:
-#             return sorted(ans_withinBounds)
-#         else:
-#             return sorted(np.random.choice(ans_withinBounds, size=num_ans, replace=False))
-#     else:
-#         return []
-
-# def get_foreground_an_int(self):
-#     '''
-#     produce AccessionNumbers with corresponding Intensity of foreground/study
-#     :return: DataFrame
-#     '''
-#     return self.df_int.loc[pd.notnull(self.df_int[self.col_foreground]), [self.col_foreground, self.col_intensity]]
-#
-#
-# def get_background_an_int(self):
-#     '''
-#     produce AccessionNumbers with corresponding Intensity of background/background
-#     :return: DataFrame
-#     '''
-#     return self.df_int[[self.col_background, self.col_intensity]]
-#
-#
-# def concat_and_align_foreground_and_background(self, foreground_ser, background_df):
-#     '''
-#     expects a Series and a DataFrames each containing a column with non-redundant
-#     AccessionNumbers, concatenate by producing the union and aligning the ANs in rows
-#     :param foreground_ser: Pandas.Series
-#     :param background_df: Pandas.DataFrame
-#     :return: DataFrame
-#     '''
-#     foreground_ser.index = foreground_ser.tolist()
-#     background_df.index = background_df[self.col_background].tolist()
-#     return pd.concat([foreground_ser, background_df], axis=1)
-#
-#
-# def get_random_background_ans(self):
-#     '''
-#     produce a randomly generated set of AccessionNumbers from background-frequency
-#     with the same intensity-distribution as foreground-frequency
-#     :return: ListOfString
-#     '''
-#     ans_random_list = []
-#     hist, bins = np.histogram(self.get_foreground_an_int()[self.col_intensity], bins=self.num_bins)
-#     for index, numinhist in enumerate(hist):
-#         num_ans = numinhist
-#         lower = bins[index]
-#         upper = bins[index + 1]
-#         ans_random_list += self.get_random_an_from_bin(lower, upper, num_ans)
-#     return sorted(ans_random_list)

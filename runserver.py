@@ -49,15 +49,15 @@ import run, obo_parser, cluster_filter, go_retriever, tools
 ###############################################################################
 
 
-ECHO = True
-TESTING = False
+ECHO = False
+TESTING = True
 DO_LOGGING = None
 connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
-# app.config['SQLALCHEMY_ECHO'] = False
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['SQLALCHEMY_RECORD_QUERIES'] = False
 
 
@@ -72,8 +72,8 @@ TEMPLATES_FOLDER_ABSOLUTE = os.getcwd() + '/templates'
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
-
-FN_DATABASE_SCHEMA = r"/Users/dblyon/modules/cpr/metaprot/sql/DataBase_Schema.md"
+HOMEDIR = os.path.expanduser("~")
+FN_DATABASE_SCHEMA = os.path.join(HOMEDIR, "modules/cpr/metaprot/sql/DataBase_Schema.md")
 FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
 
 ### Additional path settings for flask
@@ -409,28 +409,20 @@ def results():
     """
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
-        user_input_file = request.files['userinput_file']
-        # print(type(user_input_file))
-        # print(user_input_file)
-        ui = userinput.Userinput(fn=user_input_file, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+        input_fs = request.files['userinput_file']
+        # print("#"*80)
+        # print("this here")
+        # print(input_fs)
+        # input_fs.read()
+        # print(input_fs.tell())
+        ui = userinput.Userinput(fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
             num_bins=form.num_bins.data, decimal='.', method="abundance_correction")
-        print(ui.foreground)
-        # import ipdb
-        # ipdb.set_trace()
-        if len(user_input_file.read()) == 0:
-            ### use copy & paste field
-            foreground_str = form.foreground_textarea.data
-            background_str = form.background_textarea.data
-            # parse it
-        else:
-            ### use file
-            user_input_file.seek(0)
-            userinput_fh = StringIO.StringIO(user_input_file.read())
-            # check, decimal = check_userinput(userinput_fh, form.abcorr.data)
-            # print(check, decimal)
-
-        if check:
+        print("#"*80)
+        print(ui.foreground.head())
+        print(ui.background.head())
+        print("#"*80)
+        if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
@@ -443,15 +435,14 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.p_value_uncorrected.data,
                 form.p_value_mulitpletesting.data)
             log_activity(string2log)
-            header, results = run.run(
-                userinput_fh, decimal, form.gocat_upk.data,
+
+            header, results = run.run(ui, connection, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
-                form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
+                form.o_or_u_or_both.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_mulitpletesting.data, go_dag,
-                goslim_dag, pgoa, upkp)
+                form.p_value_mulitpletesting.data)
         else:
             return render_template('info_check_input.html')
 
@@ -585,7 +576,7 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 
 if __name__ == "__main__":
-    tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
+    # tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
