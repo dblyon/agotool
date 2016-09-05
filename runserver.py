@@ -50,7 +50,7 @@ import run, obo_parser, cluster_filter, go_retriever, tools
 
 
 ECHO = False
-TESTING = True
+TESTING = False
 DO_LOGGING = None
 connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
 ### Create the Flask application and the Flask-SQLAlchemy object.
