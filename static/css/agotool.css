@@ -21,6 +21,10 @@
     color: black !important;
 }
 
+.navbar-collapse > ul > li {
+    width: 110px !important;
+}
+
 
 body {background-color:#fff;}
 

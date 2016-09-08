@@ -20,8 +20,7 @@ class Userinput(object):
     """
     def __init__(self, fn=None, foreground_string=None, background_string=None,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=100, decimal='.', method="abundance_correction"):
-
+            num_bins=100, decimal='.', method="abundance_correction", foreground_n=None, background_n=None):
         self.fn = fn
         self.foreground_string = foreground_string
         self.background_string = background_string
@@ -31,6 +30,12 @@ class Userinput(object):
         self.col_background = col_background
         self.col_intensity = col_intensity
         self.method = method # "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        # abundance_correction: Foreground vs Background abundance corrected
+        # compare_samples: Foreground vs Background
+        # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
+        # characterize: Foreground
+        self.foreground_n = foreground_n
+        self.background_n = background_n
         self.housekeeping_dict = {} # Infos for User
         self.parse_input()
         self.check = True
@@ -53,7 +58,7 @@ class Userinput(object):
             self.fn.seek(0)
         is_abundance_correction, self.decimal = self.check_userinput(self.fn)
         if not is_abundance_correction:
-            self.method = "compare_groups"
+            self.method = "compare_samples"
             # switch for reporting that something went wrong to user, or automatically switch method
             # self.method = "compare_groups"
             # or "characterize study"
@@ -83,10 +88,12 @@ class Userinput(object):
 
         # remove splice variant appendix and drop duplicates
         self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
-        self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
+        if self.method != "compare_groups":
+            self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
         self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
-        self.background.drop_duplicates(subset=col_background, inplace=True)
+        if self.method != "compare_groups":
+            self.background.drop_duplicates(subset=col_background, inplace=True)
         # housekeeping
         self.housekeeping_dict["Foreground_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.foreground) # number of entries, excluding duplicates and NaNs
         self.housekeeping_dict["Background_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.background)
@@ -179,15 +186,36 @@ class Userinput(object):
 
 
     def get_foreground_n(self): #!!!
-        return len(self.foreground)
-
-    def get_background_n(self): #!!!
+        """
+        "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        :return: Int
+        """
         if self.method == "abundance_correction":
             return len(self.foreground)
-        elif self.method == "compare_groups":
-            return len(self.background)
+        elif self.method == "compare_samples": # no abundance correction
+            return len(self.foreground)
+        elif self.method == "compare_groups": # redundancies within group, therefore n set by user
+            return self.foreground_n
+        elif self.method == "characterize":
+            return len(self.foreground)
         else:
-            pass #!!!
+            raise StopIteration
+            # debug, case should not happen
+
+    def get_background_n(self): #!!!
+        """
+        "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        :return: Int
+        """
+        if self.method == "abundance_correction": # same as foreground
+            return len(self.foreground)
+        elif self.method == "compare_samples": # simply background to compare to
+            return len(self.background)
+        elif self.method == "compare_groups": # redundancies within group, therefore n set by user
+            return self.background_n
+        elif self.method == "characterize": # only for foreground, not background
+            raise StopIteration
+            # debug, since this last case should not happen
 
     def get_sample_an(self):
         return self.foreground[self.col_foreground].tolist()

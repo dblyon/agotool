@@ -9,6 +9,8 @@ from subprocess import call
 import pandas as pd
 import numpy as np
 from flask import Flask, render_template, request, send_from_directory, Markup, jsonify
+from flask_restful_swagger import swagger
+from flask_restful import Api
 import flask, flask_sqlalchemy, flask_restless
 import wtforms
 from wtforms import fields
@@ -59,6 +61,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['SQLALCHEMY_RECORD_QUERIES'] = False
+
+###################################
+# Wrap the Api with swagger.docs. It is a thin wrapper around the Api class that adds some swagger smarts
+# api = swagger.docs(Api(app), apiVersion='0.1')
+###################################
 
 
 db = flask_sqlalchemy.SQLAlchemy(app)
