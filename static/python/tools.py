@@ -5,7 +5,7 @@ def get_TOC_2_markdown_file(fn_md):
     counter = 1
     with open(fn_md, "r") as fh_in:
         for line in fh_in:
-            if line.startswith("#"):
+            if line.startswith("## "):
                 line = line.strip()
                 line2add = str(counter) + ". [" + line.replace("#", "").strip() + "]" + "(#" + "-".join(line.lower().replace("#", "").strip().split()) + ")\n"
                 toc += line2add

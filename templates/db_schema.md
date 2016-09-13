@@ -4,16 +4,15 @@
 4. [OGs](#ogs)
 5. [OG_2_Function](#og_2_function)
 6. [Ontologies](#ontologies)
-7. [(Child_2_Parent)](#(child_2_parent))
-8. [Peptides](#peptides)
-9. [Proteins](#proteins)
-10. [Protein_2_Function](#protein_2_function)
-11. [Protein_2_Gene](#protein_2_gene)
-12. [Protein_2_OG](#protein_2_og)
-13. [Protein_2_TaxID](#protein_2_taxid)
-14. [Protein_2_version](#protein_2_version)
-15. [Taxa](#taxa)
-16. [TaxID_2_rank](#taxid_2_rank)
+7. [Peptides](#peptides)
+8. [Proteins](#proteins)
+9. [Protein_2_Function](#protein_2_function)
+10. [Protein_2_Gene](#protein_2_gene)
+11. [Protein_2_OG](#protein_2_og)
+12. [Protein_2_TaxID](#protein_2_taxid)
+13. [Protein_2_version](#protein_2_version)
+14. [Taxa](#taxa)
+15. [TaxID_2_rank](#taxid_2_rank)
 
 ## Functions
 | type | name | an |
@@ -59,7 +58,6 @@
 |ENOG4107QRH | DOM:Sulfatase |
 
 ## Ontologies
-### (Child_2_Parent)
 | child | parent | direct |
 |:---:|:---:|:---:|
 | GO:0008152 | GO:0008150 | 1 |
@@ -71,6 +69,7 @@
 | 9606 | 9604 | 0 |
 
 ## Peptides
+##### ('I' converted to 'L')
 | aaseq | an | missedCleavages | length |
 |:---:|:---:|:---:|:---:|
 | LLLPLFAALCLSQIAHADEGMWLMQQLGR | B2RID1 | 0 | 29 |
