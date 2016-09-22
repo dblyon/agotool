@@ -1,11 +1,10 @@
 from __future__ import print_function
-import operator, os, sys
+import operator, os #, sys
 import pandas as pd
-import numpy as np
+# import numpy as np
+# sys.path.append("./../metaprot/sql/")
 
-sys.path.append("./../metaprot/sql/")
 import query
-
 import go_retriever
 import enrichment
 import userinput

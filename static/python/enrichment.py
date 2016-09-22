@@ -337,24 +337,24 @@ class GOEnrichmentStudy(object):
             if self.o_or_u_or_both == 'underrepresented':
                 # purified or underrepresented --> left_tail or less
                 try:
-                    p_val_uncorrected = fisher_dict[(a,b,c,d)]
-                except KeyError:
+                    p_val_uncorrected = fisher_dict[(a, b, c, d)]
+                except KeyError: # why not tuple instead of list #!!!
                     p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
-                    fisher_dict[(a,b,c,d)] = p_val_uncorrected
+                    fisher_dict[(a, b, c, d)] = p_val_uncorrected
             elif self.o_or_u_or_both == 'overrepresented':
                 # enriched or overrepresented --> right_tail or greater
                 try:
-                    p_val_uncorrected = fisher_dict[(a,b,c,d)]
+                    p_val_uncorrected = fisher_dict[(a, b, c, d)]
                 except KeyError:
                     p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='less')[1]
-                    fisher_dict[(a,b,c,d)] = p_val_uncorrected
+                    fisher_dict[(a, b, c, d)] = p_val_uncorrected
             else:
                 # both --> two_tail or two-sided
                 try:
-                    p_val_uncorrected = fisher_dict[(a,b,c,d)]
+                    p_val_uncorrected = fisher_dict[(a, b, c, d)]
                 except KeyError:
                     p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='two-sided')[1]
-                    fisher_dict[(a,b,c,d)] = p_val_uncorrected
+                    fisher_dict[(a, b, c, d)] = p_val_uncorrected
             one_record = GOEnrichmentRecord(
                 id=goid,
                 p_uncorrected=p_val_uncorrected,
