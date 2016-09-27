@@ -1,9 +1,6 @@
 from __future__ import print_function
 import time, datetime
 
-
-
-
 upkTerm_2_functionAN_dict = {u'Biological process': u'UPK:9999',
                              u'Cellular component': u'UPK:9998',
                              u'Coding sequence diversity': u'UPK:9997',
@@ -12,6 +9,8 @@ upkTerm_2_functionAN_dict = {u'Biological process': u'UPK:9999',
                              u'Domain': u'UPK:9994',
                              u'Ligand': u'UPK:9993',
                              u'Molecular function': u'UPK:9992',
+                             u'Post-translational modification': u'UPK:9991',
+                             u'PTM': u'UPK:9991',
                              u'Technical term': u'UPK:9990'}
 
 humanName_2_functionAN_dict = {u"BP": u"GO:0008150",
@@ -24,12 +23,26 @@ humanName_2_functionAN_dict = {u"BP": u"GO:0008150",
 functionType_term_2_an_dict = {"UPK": upkTerm_2_functionAN_dict,
                                "GO": humanName_2_functionAN_dict}
 
-
 def get_termAN_from_humanName_functionTye(humanName, functionType):
     if humanName is None:
         return ""
     return functionType_term_2_an_dict[functionType][humanName]
 
+def parse_result_child_parent(result):
+    return set([item for sublist in result for item in sublist])
+
+def parse_result_an_child_parent(result):
+    an_2_functions_dict = {}
+    for res in result:
+        an = res[0]
+        function = res[1:]
+        if not an in an_2_functions_dict:
+            for func in function:
+                an_2_functions_dict[an] = {func}
+        else:
+            for func in function:
+                an_2_functions_dict[an].update([func])
+    return an_2_functions_dict
 
 # def get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim"):
 def get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim", backtracking=True):
@@ -68,65 +81,38 @@ def get_association_dict(connection, protein_ans_list, function_type, limit_2_pa
     parameters_dict = {"protein_ans_list": protein_ans_list, "function_type": function_type, "limit_2_parent": get_termAN_from_humanName_functionTye(limit_2_parent, function_type)}
 
     ##### UniProt proteins
-    # join_stmt = ("SELECT protein_2_function.an, protein_2_function.function\n"
-    #              "FROM protein_2_function\n"
-    #              "INNER JOIN functions ON protein_2_function.function=functions.an\n")
 
-    if function_type != "KEGG":
-        if backtracking:
-            join_stmt = ("SELECT protein_2_function.an, ontologies.child, ontologies.parent\n"
-                         "FROM protein_2_function\n"
-                         "INNER JOIN functions ON protein_2_function.function=functions.an\n")
-        else:
-            join_stmt = ("SELECT protein_2_function.an, protein_2_function.function\n"
-                         "FROM protein_2_function\n"
-                         "INNER JOIN functions ON protein_2_function.function=functions.an\n")
+    # !!! do this in java script ToDo
+    # Java script:
+    # if "UPK": set basic_or_slim to "basic" and hide option
+    # if function_type is KEGG or DOM --> set backtracking to False
+    #
+    if function_type == "KEGG" or function_type == "DOM": # #!!! do this in java script ToDo
+        backtracking = False
+
+    if backtracking:
+        join_stmt = ("SELECT protein_2_function.an, ontologies.child, ontologies.parent\n"
+                     "FROM protein_2_function\n"
+                     "INNER JOIN functions ON protein_2_function.function=functions.an\n")
     else:
         join_stmt = ("SELECT protein_2_function.an, protein_2_function.function\n"
                      "FROM protein_2_function\n"
                      "INNER JOIN functions ON protein_2_function.function=functions.an\n")
 
-    # if backtracking:
-    #     join_stmt = ("SELECT protein_2_function.an, protein_2_function.function\n"
-    #                  "FROM protein_2_function\n"
-    #                  "INNER JOIN functions ON protein_2_function.function=functions.an\n")
-    # else:
-    #     join_stmt = ("SELECT protein_2_function.an, ontologies.child\n"
-    #                  "FROM protein_2_function\n"
-    #                  "INNER JOIN functions ON protein_2_function.function=functions.an\n")
-    # if function_type == "KEGG":
-    #     join_stmt = ("SELECT protein_2_function.an, protein_2_function.function\n"
-    #                  "FROM protein_2_function\n"
-    #                  "INNER JOIN functions ON protein_2_function.function=functions.an\n")
-    # elif function_type == "DOM": only for OG_2_Function #!!!
-
     where_stmt = ("WHERE protein_2_function.an IN({protein_ans_list})\n"
                   "AND functions.type='{function_type}'\n").format(**parameters_dict)
 
-    # !!! start (do the same for OG proteins)
-    # extend_stmt = ""
-    # if limit_2_parent is not None:
-    #     extend_stmt += "INNER JOIN ontologies ON ontologies.child=functions.an\n"
-    #     where_stmt += "AND ontologies.parent='{limit_2_parent}'\n".format(**parameters_dict)
-    # if basic_or_slim == "slim":
-    #     extend_stmt += "INNER JOIN go_2_slim ON go_2_slim.an=functions.an\n"
-
-    if function_type != "KEGG":
+    if function_type in {"GO", "UPK"}:
         extend_stmt = "INNER JOIN ontologies ON ontologies.child=functions.an\n"
-        if limit_2_parent is not None:
-            where_stmt += "AND ontologies.parent='{limit_2_parent}'\n".format(**parameters_dict)
         if basic_or_slim == "slim":
             extend_stmt += "INNER JOIN go_2_slim ON go_2_slim.an=functions.an\n"
-
-    # !!! stop
-
-
+    else:
+        # pass # do something with KEGG
+        extend_stmt = ""
     sql_statement = (join_stmt + extend_stmt + where_stmt + ";").replace('"', "'")
-
-    # session = connection.get_session()
     session = connection.get_session()
     result = session.execute(sql_statement).fetchall()
-    session.close()
+    session.close() #!!! test if you need to close, performance
 
     ##### OG proteins
     join_stmt = ("SELECT protein_2_og.an, og_2_function.function\n"
@@ -145,25 +131,26 @@ def get_association_dict(connection, protein_ans_list, function_type, limit_2_pa
         extend_stmt += "INNER JOIN go_2_slim ON go_2_slim.an=functions.an\n"
 
     sql_statement = (join_stmt + extend_stmt + where_stmt + ";").replace('"', "'")
-
-    # session = connection.get_session()
     session = connection.get_session()
     result += session.execute(sql_statement).fetchall()
     for res in result:
         an = res[0]
         function = res[1:]
-        if not an in an_2_functions_dict:
+        if an not in an_2_functions_dict:
             for func in function:
                 an_2_functions_dict[an] = {func}
         else:
             for func in function:
                 an_2_functions_dict[an].update([func])
 
-        # an, function = res
-        # if not an in an_2_functions_dict:
-        #     an_2_functions_dict[an] = {function}
-        # else:
-        #     an_2_functions_dict[an].update([function])
+    if limit_2_parent is not None:
+        sql_statement = ("SELECT ontologies.child, ontologies.parent\n"
+                         "FROM ontologies\n"
+                         "WHERE ontologies.parent='{limit_2_parent}'\n").format(**parameters_dict)
+        session = connection.get_session()
+        limit_2_parent_set = parse_result_child_parent(session.execute(sql_statement).fetchall())
+        for an in an_2_functions_dict:
+            an_2_functions_dict[an] = an_2_functions_dict[an].intersection(limit_2_parent_set)
 
     session.close()
     return an_2_functions_dict
