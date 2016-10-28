@@ -54,3 +54,7 @@ static/js/favicon/
 ssl*
 *.p
 *.tmp
+*.gaf
+*.upk
+*.obo
+

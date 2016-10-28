@@ -2,6 +2,7 @@ import re
 import os
 import cPickle as pickle
 import gzip
+import subprocess
 
 import obo_parser
 import update_server
@@ -71,13 +72,32 @@ class Parser_GO_annotations(object):
             self.organism2ans_dict = {} # key=TaxID(String), val=ListOfANs
             self.an2go_dict = {} # key=AccessionNumber val=ListOfStrings (GO-terms)
 
-    def yield_gz_file_lines(self, fn):
+    def yield_gz_file_lines_slow(self, fn):
         if fn.endswith(".gz"):
             with gzip.open(fn, "rb") as fh:
                 for line in fh:
                     yield line
         else:
             with open(fn, 'r') as fh:
+                for line in fh:
+                    yield line
+
+    def yield_gz_file_lines(self, fn):
+        """
+        adapted from
+        https://codebright.wordpress.com/2011/03/25/139/
+        and
+        https://www.reddit.com/r/Python/comments/2olhrf/fast_gzip_in_python/
+        http://pastebin.com/dcEJRs1i
+        :param fn: String (absolute path)
+        :return: GeneratorFunction (yields String)
+        """
+        if fn.endswith(".gz"):
+            ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
+            for line in ph.stdout:
+                yield line
+        else:
+            with open(fn, "r") as fh:
                 for line in fh:
                     yield line
 

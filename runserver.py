@@ -40,6 +40,8 @@ logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
+DOWNLOADS_DIR = os.path.abspath(os.path.join(webserver_data, "downloads"))
+
 if not app.debug:
     #########################
     # log warnings and errors
@@ -75,8 +77,10 @@ pgoa = go_retriever.Parser_GO_annotations()
 pgoa.unpickle()
 upkp = go_retriever.UniProtKeywordsParser()
 upkp.unpickle()
-obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-                 "basic": webserver_data + r'/OBO/go-basic.obo'}
+# obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
+#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
+obo2file_dict = {"slim": os.path.join(DOWNLOADS_DIR, 'goslim_generic.obo'),
+                 "basic": os.path.join(DOWNLOADS_DIR, 'go-basic.obo')}
 go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
 goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
 
@@ -114,6 +118,7 @@ organism_choices = [
     (u'9606', u'Homo sapiens'),
     (u'3702', u'Arabidopsis thaliana'),
     (u'3055', u'Chlamydomonas reinhardtii'),
+    (u'6239', u'Caenorhabditis elegans'),
     (u'7955', u'Danio rerio'),
     (u'7227', u'Drosophila melanogaster'),
     (u'9796', u'Equus caballus'),
@@ -123,6 +128,7 @@ organism_choices = [
     (u'39947', u'Oryza sativa subsp. japonica'),
     (u'10116', u'Rattus norvegicus'),
     (u'559292', u'Saccharomyces cerevisiae'),
+    (u'284812', u'Schizosaccharomyces pombe'),
     (u'9823', u'Sus scrofa')]
 ################################################################################
 # index.html
@@ -177,8 +183,9 @@ def download_example_data(filename):
 # check user input
 def check_userinput(userinput_fh, abcorr):
     decimal = '.'
+    content = userinput_fh.read()
+    userinput_fh = StringIO.StringIO(content)
     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
-    userinput_fh.seek(0)
     if abcorr:
         if len({'population_an','population_int','sample_an'}.intersection(set(df.columns.tolist()))) == 3:
             try:
@@ -186,8 +193,9 @@ def check_userinput(userinput_fh, abcorr):
             except TypeError:
                 try:
                     decimal = ','
+                    userinput_fh = StringIO.StringIO(content)
                     df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
-                    userinput_fh.seek(0)
+                    # userinput_fh.seek(0)
                     np.histogram(df['population_int'], bins=10)
                 except TypeError:
                     return False, decimal
@@ -369,7 +377,10 @@ def results():
     if request.method == 'POST' and form.validate():
         user_input_file = request.files['userinput_file']
         userinput_fh = StringIO.StringIO(user_input_file.read())
+        content = userinput_fh.read()
+        userinput_fh = StringIO.StringIO(content)
         check, decimal = check_userinput(userinput_fh, form.abcorr.data)
+        userinput_fh = StringIO.StringIO(content)
         if check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -532,8 +543,8 @@ if __name__ == '__main__':
         # app.run('red', 5911, processes=4, debug=False)
         # app.run('localhost', 5000, processes=4, debug=False)
         # app.run(host='localhost',port=443, debug=False, ssl_context=context)
-        # app.run('localhost', 5000, debug=True)
-        app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+        app.run('localhost', 5000, debug=True)
+        # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 
 
 
