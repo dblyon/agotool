@@ -93,7 +93,7 @@ class Parser_GO_annotations(object):
         :return: GeneratorFunction (yields String)
         """
         if fn.endswith(".gz"):
-            ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
+            ph = subprocess.Popen(["zcat", fn], stdout=subprocess.PIPE)
             for line in ph.stdout:
                 yield line
         else:

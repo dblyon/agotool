@@ -239,19 +239,19 @@ if __name__ == '__main__':
     create_directories_if_not_exist()
     ### every month
     taxid_not_retrieved_list = download_go_annotations() # ['284812', '3055', '3880', '39947', '9796']
-    # taxid_not_retrieved_list = ['284812', '3055', '3880', '39947', '9796']
+    #taxid_not_retrieved_list = ['284812', '3055', '3880', '39947', '9796']
     download_go_annotations_all_unfiltered()
     download_go_basic_slim_obo()
     download_UniProt_Keywords_obo()
     download_UniProt_Keywords()
 
     ### NOT every month
-    # download_and_extract_all_annotations_from_eggNOG()
-    # download_bactNOG_annotations()
+    download_and_extract_all_annotations_from_eggNOG()
+    download_bactNOG_annotations()
     print("parsing annotations and pickling results")
     print(sorted(taxid_not_retrieved_list))
     parse_files_and_pickle(taxid_not_retrieved_list) #=['3055', '3880', '39947', '9796'])
-    # cleanup_sessions()
+    cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')
 
 # /Users/dblyon/modules/cpr/agotool/static/data/downloads/goa_uniprot_all.gaf.gz
