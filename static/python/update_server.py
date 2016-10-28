@@ -33,11 +33,17 @@ ORGANISMS = {
     10116: 'rat',
     6239: 'worm', # 6239, Caenorhabditis elegans
     559292: 'yeast', # 559292 instead of 4932
+    284812: 'fission_yeast',
     7955: 'zebrafish',
     3055: 'chlamy',
     9796: 'horse',
     3880: 'medicago',
     39947: 'rice'}
+
+# update for Vytus
+#  4896 [NCBI highest level], Schizosaccharomyces pombe, 284812 UniProt
+#  6239 NCBI, Caenorhabditis elegans, 6239 Uniprot
+
 
 # Schizosaccharomyces pombe 4896
 # ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/proteomes/78.S_pombe.goa
@@ -199,7 +205,7 @@ if __name__ == '__main__':
     create_directories_if_not_exist()
     ### every month
     # taxid_not_retrieved_list = download_go_annotations()
-    download_go_annotations_all_unfiltered()
+    # download_go_annotations_all_unfiltered()
     # download_go_basic_slim_obo()
     # download_UniProt_Keywords_obo()
     # download_UniProt_Keywords()
@@ -208,8 +214,8 @@ if __name__ == '__main__':
     # download_and_extract_all_annotations_from_eggNOG()
     # download_bactNOG_annotations()
 
-    # # parse_files_and_pickle(taxid_not_retrieved_list) #=['9796', '39947', '3880', '3055'])
-    cleanup_sessions()
+    parse_files_and_pickle(taxid_not_retrieved_list) #=['9796', '39947', '3880', '3055'])
+    # cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')
 
 
