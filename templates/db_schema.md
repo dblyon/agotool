@@ -32,12 +32,15 @@
 | KEGG | Metabolic pathways | KEGG:01100 |
 | KEGG | Pentose phosphate pathway | KEGG:00030 |
 | KEGG | Cell cycle | KEGG:04110 |
+| DOID | angiosarcoma | DOID:0001816 |
+| DOID | pterygium | DOID:0002116 |
 
 ## Function_2_definition
 | an | definition |
 |:---:|:---:|
 | UPK:0002 | Protein, or part of a protein, whose three-dimensional structure has been resolved experimentally (for example by X-ray crystallography or NMR spectroscopy) and whose coordinates are available in the PDB database. Can also be used for theoretical models. |
 | GO:0008239 | "Catalysis of the hydrolysis of N-terminal dipeptides from a polypeptide chain." [GOC:mb] |
+| DOID:0001816 | "A malignant Vascular tumor that results_in rapidly proliferating, extensively infiltrating anaplastic cells derived_from blood vessels and derived_from the lining of irregular blood-filled spaces." urls omitted due to formatting and length] |
 
 ## GO_2_Slim
 | an | slim |
@@ -58,15 +61,40 @@
 |ENOG4107QRH | DOM:Sulfatase |
 
 ## Ontologies
-| child | parent | direct |
-|:---:|:---:|:---:|
-| GO:0008152 | GO:0008150 | 1 |
-| GO:0032259 | GO:0008152 | 1 |
-| GO:0032259 | GO:0008150 | 0 |
-| UPK:0440 | UPK:9993 | 0 |
-| UPK:0440 | UPK:9994 | 1 |
-| 9606 | 9605 | 1 |
-| 9606 | 9604 | 0 |
+| child | parent | direct | type |
+|:---:|:---:|:---:|:---:|
+| GO:0008152 | GO:0008150 | 1 | -21 |
+| GO:0032259 | GO:0008152 | 1 | -21 |
+| GO:0032259 | GO:0008150 | 0 | -21 |
+| GO:0072591 | GO:0003674 | 0 | -23 |
+| GO:0097042 | GO:0005575 | 0 | -22 |
+| UPK:0440 | UPK:9993 | 0 | -51 |
+| UPK:0440 | UPK:9994 | 1 | -51 |
+| 9606 | 9605 | 1 | -3 |
+| 9606 | 9604 | 0 | -3 |
+| DOID:0001816 | DOID:4 | 0 | -26 |
+| DOID:0001816 | DOID:0050687 | 0 | -26 |
+| DOID:0001816 | DOID:162 | 0 | -26 |
+| DOID:0001816 | DOID:14566 | 0 | -26 |
+| DOID:0001816 | DOID:1115 | 1 | -26 |
+| DOID:1115 | DOID:0050687 | 1 | -26 |
+| DOID:0050687 | DOID:162 | 1 | -26 |
+| DOID:162 | DOID:14566 | 1 | -26 |
+| DOID:14566 | DOID:4 | 1 | -26 |
+
+id_2_entityTypeNumber_dict = {'GO:0003674': "-23", #'Molecular Function',
+ 'GO:0005575': "-22", #'Cellular Component',
+ 'GO:0008150': "-21", #'Biological Process',
+ 'UPK:9990': "-51", #'Technical term',
+ 'UPK:9991': "-51", #'PTM',
+ 'UPK:9992': "-51", #'Molecular function',
+ 'UPK:9993': "-51", #'Ligand',
+ 'UPK:9994': "-51", #'Domain',
+ 'UPK:9995': "-51", #'Disease',
+ 'UPK:9996': "-51", #'Developmental stage',
+ 'UPK:9997': "-51", #'Coding sequence diversity',
+ 'UPK:9998': "-51", #'Cellular component',
+ 'UPK:9999': "-51"} #'Biological process'}
 
 ## Peptides
 ##### ('I' converted to 'L')

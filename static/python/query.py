@@ -111,6 +111,7 @@ def get_association_dict(connection, protein_ans_list, function_type, limit_2_pa
         extend_stmt = ""
     sql_statement = (join_stmt + extend_stmt + where_stmt + ";").replace('"', "'")
     session = connection.get_session()
+    print(sql_statement)
     result = session.execute(sql_statement).fetchall()
     session.close() #!!! test if you need to close, performance
 

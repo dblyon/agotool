@@ -160,6 +160,16 @@
 <td align="center">Cell cycle</td>
 <td align="center">KEGG:04110</td>
 </tr>
+<tr>
+<td align="center">DOID</td>
+<td align="center">angiosarcoma</td>
+<td align="center">DOID:0001816</td>
+</tr>
+<tr>
+<td align="center">DOID</td>
+<td align="center">pterygium</td>
+<td align="center">DOID:0002116</td>
+</tr>
 </tbody>
 </table>
 
@@ -181,6 +191,10 @@
 <tr>
 <td align="center">GO:0008239</td>
 <td align="center">"Catalysis of the hydrolysis of N-terminal dipeptides from a polypeptide chain." [GOC:mb]</td>
+</tr>
+<tr>
+<td align="center">DOID:0001816</td>
+<td align="center">"A malignant Vascular tumor that results_in rapidly proliferating, extensively infiltrating anaplastic cells derived_from blood vessels and derived_from the lining of irregular blood-filled spaces." urls omitted due to formatting and length]</td>
 </tr>
 </tbody>
 </table>
@@ -263,6 +277,7 @@
 <th align="center">child</th>
 <th align="center">parent</th>
 <th align="center">direct</th>
+<th align="center">type</th>
 </tr>
 </thead>
 <tbody>
@@ -270,39 +285,126 @@
 <td align="center">GO:0008152</td>
 <td align="center">GO:0008150</td>
 <td align="center">1</td>
+<td align="center">-21</td>
 </tr>
 <tr>
 <td align="center">GO:0032259</td>
 <td align="center">GO:0008152</td>
 <td align="center">1</td>
+<td align="center">-21</td>
 </tr>
 <tr>
 <td align="center">GO:0032259</td>
 <td align="center">GO:0008150</td>
 <td align="center">0</td>
+<td align="center">-21</td>
+</tr>
+<tr>
+<td align="center">GO:0072591</td>
+<td align="center">GO:0003674</td>
+<td align="center">0</td>
+<td align="center">-23</td>
+</tr>
+<tr>
+<td align="center">GO:0097042</td>
+<td align="center">GO:0005575</td>
+<td align="center">0</td>
+<td align="center">-22</td>
 </tr>
 <tr>
 <td align="center">UPK:0440</td>
 <td align="center">UPK:9993</td>
 <td align="center">0</td>
+<td align="center">-51</td>
 </tr>
 <tr>
 <td align="center">UPK:0440</td>
 <td align="center">UPK:9994</td>
 <td align="center">1</td>
+<td align="center">-51</td>
 </tr>
 <tr>
 <td align="center">9606</td>
 <td align="center">9605</td>
 <td align="center">1</td>
+<td align="center">-3</td>
 </tr>
 <tr>
 <td align="center">9606</td>
 <td align="center">9604</td>
 <td align="center">0</td>
+<td align="center">-3</td>
+</tr>
+<tr>
+<td align="center">DOID:0001816</td>
+<td align="center">DOID:4</td>
+<td align="center">0</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:0001816</td>
+<td align="center">DOID:0050687</td>
+<td align="center">0</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:0001816</td>
+<td align="center">DOID:162</td>
+<td align="center">0</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:0001816</td>
+<td align="center">DOID:14566</td>
+<td align="center">0</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:0001816</td>
+<td align="center">DOID:1115</td>
+<td align="center">1</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:1115</td>
+<td align="center">DOID:0050687</td>
+<td align="center">1</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:0050687</td>
+<td align="center">DOID:162</td>
+<td align="center">1</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:162</td>
+<td align="center">DOID:14566</td>
+<td align="center">1</td>
+<td align="center">-26</td>
+</tr>
+<tr>
+<td align="center">DOID:14566</td>
+<td align="center">DOID:4</td>
+<td align="center">1</td>
+<td align="center">-26</td>
 </tr>
 </tbody>
 </table>
+
+<p>id_2_entityTypeNumber_dict = {'GO:0003674': "-23", #'Molecular Function',
+ 'GO:0005575': "-22", #'Cellular Component',
+ 'GO:0008150': "-21", #'Biological Process',
+ 'UPK:9990': "-51", #'Technical term',
+ 'UPK:9991': "-51", #'PTM',
+ 'UPK:9992': "-51", #'Molecular function',
+ 'UPK:9993': "-51", #'Ligand',
+ 'UPK:9994': "-51", #'Domain',
+ 'UPK:9995': "-51", #'Disease',
+ 'UPK:9996': "-51", #'Developmental stage',
+ 'UPK:9997': "-51", #'Coding sequence diversity',
+ 'UPK:9998': "-51", #'Cellular component',
+ 'UPK:9999': "-51"} #'Biological process'}</p>
 
 <h2>
 <a id="user-content-peptides" class="anchor" href="#peptides" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Peptides</h2>
