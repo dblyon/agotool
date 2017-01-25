@@ -308,6 +308,9 @@ class Parser_GO_annotations(object):
         :param ans_list: ListOfString or None
         :return: Dict
         """
+        print("#@$"*80)
+        print("QUERY not used")
+        print("#@$" * 80)
         assoc_dict = {}
         if go_parent == "KEGG":
             self.KEGG = True
@@ -338,7 +341,7 @@ class Parser_GO_annotations(object):
         '''
         produce list of GO-terms associated with given AccessionNumber
         limit to child terms of given parent
-        :param an: String
+        :param goterms_list: ListOfString
         :param go_parent: String
         :param obo_dag: GODag Instance
         :return: ListOfString

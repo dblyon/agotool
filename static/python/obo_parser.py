@@ -34,11 +34,6 @@ class OBOReader:
     """
     parse obo file, usually the most updated can be downloaded from
     http://purl.obolibrary.org/obo/go/go-basic.obo
-
-    >>> reader = OBOReader()
-    >>> for rec in reader:
-            print rec
-
     """
 
     def __init__(self, obo_file="go-basic.obo"):

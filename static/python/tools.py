@@ -73,3 +73,35 @@ def commaSepCol2uniqueFlatList(df, colname, sep=";", unique=True):
         return sorted(flat_list)
     else:
         return sorted(set(flat_list))
+
+def convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list):
+    """
+    proteinGroups_list = ['A;B;C']
+    assoc_dict = {'A': set(["a", "b", "c", "d"]),
+    'B': set(["a", "b", "c"]),
+    'C': set(["a", "b", "d"])}
+    create a consensus association dictionary.
+    If 50% or more GOterms are associated with each AN within proteinGroup --> keep, else discard
+    :param assoc_dict: Dict(key: String(UniProt-AccessionNumber), val:SetOfString(e.g.GOterms))
+    :param proteinGroups_list: ListOfString
+    :return: Dict(String(UniProt-AccessionNumbers comma separated), val:SetOfString(e.g.GOterms))
+    """
+    assoc_dict_pg = {}
+    for proteinGroup in proteinGroups_list:
+        nested_associations = []
+        for an in proteinGroup.split(";"):
+            nested_associations.append(list(assoc_dict[an]))
+        number_of_lists = len(nested_associations)
+        flat_list = [item for sublist in nested_associations for item in sublist]
+        consensus_associations = set()
+        for goterm in set(flat_list):
+            if flat_list.count(goterm) >= (number_of_lists / 2.0):
+                consensus_associations.update([goterm])
+        assoc_dict_pg[proteinGroup] = consensus_associations
+    return assoc_dict_pg
+
+
+
+
+
+

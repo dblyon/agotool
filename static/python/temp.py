@@ -41,7 +41,7 @@ class Userinput(object):
             if not is_abundance_correction:
                 pass
                 # switch for reporting that something went wrong to user, or automatically switch method
-                # self.method = "compare_groups"
+                # self.method = "method"
                 # or "characterize study"
 
             self.df_orig = pd.read_csv(self.user_input_fn, sep="\t", decimal=self.decimal)
@@ -476,10 +476,10 @@ if __name__ == "__main__":
     # fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'
     # fn = r'/Users/dblyon/modules/cpr/metaprot/CompareGroups_test.txt'
     # fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_proteinGroups.txt'
-    # study_n = 10.0
-    # pop_n = 20.0
+    # foreground_n = 10.0
+    # background_n = 20.0
     # proteinGroup = True
-    # ui = UserInput_compare_groups(proteinGroup, fn, study_n, pop_n)
+    # ui = UserInput_compare_groups(proteinGroup, fn, foreground_n, background_n)
     # foreground_an = ui.get_foreground_an()
     # # backgound_an = ui.get_background_an()
     # all_unique_an = ui.get_all_unique_ans()

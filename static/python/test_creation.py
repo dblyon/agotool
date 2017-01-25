@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-### TESTING compare_groups = characterize_study
+### TESTING method = characterize_study
 ########################################################################
 ### create Test DataFrame for proteinGroups
 # fn = r"/Users/dblyon/CloudStation/CPR/Ancient_Proteins_Project/Daniel/txt_Jesper/GOenr/MaxPep/protGroup/Perio_vs_Healthy_Bacteriagenus.txt"
@@ -60,14 +60,14 @@ import pandas as pd
 # fn_test = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_v2.txt'
 # dfx.to_csv(fn_test, sep='\t', header=True, index=False)
 
-# # TESTING compare_groups = characterize_study
-# study_n = 10
-# pop_n = 10
-# compare_groups = "characterize_study" # "characterize_study" or "compare_groups"
+# # TESTING method = characterize_study
+# foreground_n = 10
+# background_n = 10
+# method = "characterize_study" # "characterize_study" or "method"
 # go_slim_or_basic = "slim"
 # userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_v2.txt'
 
-# GOid2NumANs_dict_study, go2ans_study_dict = run.run(compare_groups, userinput_fn, study_n, pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+# GOid2NumANs_dict_study, go2ans_study_dict = run.run(method, userinput_fn, foreground_n, background_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
 #         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
 #         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
 #         go_dag, goslim_dag, pgoa, upkp)
@@ -83,14 +83,14 @@ import pandas as pd
 
 # assert sorted(dfx.Num_associations.unique()) == [3, 8, 11]
 
-# # TESTING compare_groups = compare_groups
-# study_n = 10
-# pop_n = 10
-# compare_groups = "compare_groups" # "characterize_study" or "compare_groups"
+# # TESTING method = method
+# foreground_n = 10
+# background_n = 10
+# method = "method" # "characterize_study" or "method"
 # go_slim_or_basic = "slim"
 # userinput_fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_v2.txt'
 
-# header, results = run.run(compare_groups, userinput_fn, study_n, pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+# header, results = run.run(method, userinput_fn, foreground_n, background_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
 #             multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
 #             fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
 #             go_dag, goslim_dag, pgoa, upkp)
@@ -120,10 +120,10 @@ import pandas as pd
 # # print df.shape
 
 # df['ANs_count_study'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
-# cond = df["study_n"] == df["ANs_count_study"]*study_n
+# cond = df["foreground_n"] == df["ANs_count_study"]*foreground_n
 # assert sum(cond) == len(cond)
 # df['ANs_count_pop'] = df['ANs_pop'].apply(lambda x: len(x.split(",")))
-# cond = df["pop_n"] == df["ANs_count"]*pop_n
+# cond = df["background_n"] == df["ANs_count"]*background_n
 # assert sum(cond) == len(cond)
 
 # df_characterize_study.head() # Num_associations == study_count
@@ -143,8 +143,8 @@ import pandas as pd
 
 # df.sort_values("pop_count", ascending=False).head()
 
-# assert sorted(df.study_n.unique()) == [10, 20]
-# assert sorted(df.pop_n.unique()) == [10, 20]
+# assert sorted(df.foreground_n.unique()) == [10, 20]
+# assert sorted(df.background_n.unique()) == [10, 20]
 # assert sorted(df.pop_count.unique()) == [1, 5, 6]
 # assert sorted(df.study_count.unique()) == [3, 8, 11]
 

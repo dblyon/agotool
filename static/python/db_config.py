@@ -12,6 +12,12 @@ class Connect(object):
                 "password": ""}
 
     def __init__(self, echo, testing, do_logging):
+        """
+
+        :param echo:
+        :param testing:
+        :param do_logging: Bool or String (False: no logging; True: debug; Sting: 'debug' or 'warning')
+        """
         self.echo = echo
         self.testing = testing
         self.do_logging = do_logging
@@ -20,7 +26,7 @@ class Connect(object):
         self.Session = sessionmaker(bind=self.engine)
         self.TABLES_DIR = self.get_TABLES_DIR(self.testing)
         self.FN_LOG = self.get_FN_LOG(self.testing)
-        if self.do_logging is not None:
+        if self.do_logging:
             self.log_stuff(self.FN_LOG, self.do_logging)
 
     @staticmethod
@@ -71,6 +77,8 @@ class Connect(object):
         import logging
         if log_level == "warning":
             logging.basicConfig(filename=FN_LOG, level=logging.WARNING)
+        elif log_level == "debug":
+            logging.basicConfig(filename=FN_LOG, level=logging.DEBUG)
         else:
             logging.basicConfig(filename=FN_LOG, level=logging.DEBUG)
         string2log_prefix = "#" * 80 + "\n" + "Current date & time " + time.strftime("%c") + "\n"

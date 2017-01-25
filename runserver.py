@@ -53,7 +53,7 @@ import run, obo_parser, cluster_filter, go_retriever, tools
 
 ECHO = False
 TESTING = False
-DO_LOGGING = None
+DO_LOGGING = False
 connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
@@ -386,7 +386,7 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         default = 0,
         description="""Maximum threshold value of "p_uncorrected".""")
 
-    p_value_mulitpletesting =  fields.FloatField(
+    p_value_multipletesting =  fields.FloatField(
         "FDR-cutoff / p-value multiple testing",
         [validate_float_between_zero_and_one],
         default = 0,
@@ -422,13 +422,16 @@ def results():
         # print(input_fs)
         # input_fs.read()
         # print(input_fs.tell())
+        # print(input_fs)
+        # print(type(input_fs))
         ui = userinput.Userinput(fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=form.num_bins.data, decimal='.', method="abundance_correction")
-        print("#"*80)
-        print(ui.foreground.head())
-        print(ui.background.head())
-        print("#"*80)
+            num_bins=form.num_bins.data, decimal='.', method="abundance_correction", connection=connection)
+        # print("#"*80)
+        # # print("BUBU")
+        # print(ui.foreground.head())
+        # print(ui.background.head())
+        # print("#"*80)
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -440,7 +443,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_mulitpletesting.data)
+                form.p_value_multipletesting.data)
             log_activity(string2log)
 
             header, results = run.run(ui, connection, form.gocat_upk.data,
@@ -449,7 +452,8 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.o_or_u_or_both.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_mulitpletesting.data)
+                form.p_value_multipletesting.data)
+
         else:
             return render_template('info_check_input.html')
 

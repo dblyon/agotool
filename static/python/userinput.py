@@ -4,6 +4,11 @@ from collections import defaultdict
 from StringIO import StringIO
 from itertools import izip_longest
 import tools
+import sys
+
+sys.path.append("../../../metaprot/sql/")
+
+import query
 
 # test for comma vs point separated intensity values
 # test for " enclosed ANs, in general and for protein groups using these
@@ -20,7 +25,7 @@ class Userinput(object):
     """
     def __init__(self, fn=None, foreground_string=None, background_string=None,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=100, decimal='.', method="abundance_correction", foreground_n=None, background_n=None):
+            num_bins=100, decimal='.', method="abundance_correction", foreground_n=None, background_n=None, connection=None):
         self.fn = fn
         self.foreground_string = foreground_string
         self.background_string = background_string
@@ -29,14 +34,15 @@ class Userinput(object):
         self.col_foreground = col_foreground
         self.col_background = col_background
         self.col_intensity = col_intensity
-        self.method = method # "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        self.connection = connection
+        self.method = method # one of: "abundance_correction", "compare_samples", "compare_groups", "characterize"
         # abundance_correction: Foreground vs Background abundance corrected
-        # compare_samples: Foreground vs Background
+        # compare_samples: Foreground vs Background (no abundance correction)
         # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
-        # characterize: Foreground
+        # characterize: Foreground only
         self.foreground_n = foreground_n
         self.background_n = background_n
-        self.housekeeping_dict = {} # Infos for User
+        self.housekeeping_dict = {} # Infos for Usere
         self.parse_input()
         self.check = True
 
@@ -44,68 +50,60 @@ class Userinput(object):
         self.fn.read()
         if self.fn.tell() != 0:
             self.fn.seek(0)
-            print("#" * 80)
-            print("file")
-        else: # do something cool ;)
-            print("#" * 80)
-            print("copy and paste")
-            # use copy & paste field
+        else: # use copy & paste field
             self.fn = StringIO()
-            self.fn.write('foreground\tbackground\tintensity\r')
+            is_abundance_correction = self.fast_check_is_abundance_correction(self.background_string)
+            if is_abundance_correction:
+                header = 'foreground\tbackground\tintensity\r'
+            else:
+                header = 'foreground\tbackground\r'
+            self.fn.write(header)
             for a, b in izip_longest(self.foreground_string.split("\r\n"), self.background_string.split("\r\n"), fillvalue="\t"):
                 self.fn.write(a.strip() + "\t" + b.strip() + "\r")
-            print(self.fn.read())
             self.fn.seek(0)
         is_abundance_correction, self.decimal = self.check_userinput(self.fn)
-        if not is_abundance_correction:
-            self.method = "compare_samples"
-            # switch for reporting that something went wrong to user, or automatically switch method
-            # self.method = "compare_groups"
-            # or "characterize study"
-        # self.fn.seek(0)
-        # self.df_orig = pd.read_csv(self.fn, sep="\t", decimal=self.decimal)
+        if is_abundance_correction:
+            self.method = "abundance_correction"
+        else:
+            self.method = "compare_samples" # switch for reporting that something went wrong to user, or automatically switch method
+        self.df_orig = self.change_column_names(self.df_orig)
         self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
 
-    def cleanupforanalysis(self, df, col_foreground, col_background, col_intensity):
+    def fast_check_is_abundance_correction(self, background_string):
+        string_split = background_string.split("\n", 1)[0].split("\t")
+        try:
+            float(string_split[1])
+        except (IndexError, ValueError) as err_:
+            return False
+        return True
+
+    def change_column_names(self, df):
         """
-        ToDo:
-        summary stats on total number of ANs, redundancy, mapped to which species,
-        remove NaNs, remove duplicates, split protein groups, remove splice variant appendix
-        create 2 DataFrames
-        self.df_all: columns = [foreground_ans, background_ans]
-        --> contains all AccessionNumbers regardless if intensity values present or not
-        self.df_int: columns = [foreground_ans, background_ans, intensity]
-        --> only if intensity value given
-        :return: None
+
+        :param df_orig: Pandas DataFrame
+        :return: Pandas DataFrame
         """
-        # housekeeping
-        self.housekeeping_dict["Foreground_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_foreground]]) # total number of entries, including duplicates and NaNs
-        self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background, col_intensity]])
+        cols = sorted(self.df_orig.columns.tolist())
+        cols = [colname.lower() for colname in cols]
+        if "population" in cols:
+            df = self.rename_cols(df, [("population", "background")])
+        if "sample" in cols:
+            df = self.rename_cols(df, [("sample", "foreground")])
+        return df
 
-        # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
-        self.foreground = df.loc[pd.notnull(df[col_foreground]), [col_foreground]]
-        self.background = df.loc[pd.notnull(df[col_background]), [col_background, col_intensity]]
-
-        # remove splice variant appendix and drop duplicates
-        self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
-        if self.method != "compare_groups":
-            self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
-        self.foreground.index = range(0, len(self.foreground))
-        self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
-        if self.method != "compare_groups":
-            self.background.drop_duplicates(subset=col_background, inplace=True)
-        # housekeeping
-        self.housekeeping_dict["Foreground_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.foreground) # number of entries, excluding duplicates and NaNs
-        self.housekeeping_dict["Background_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.background)
-
-        # set default missing value for notnulls, and create lookup dict for abundances
-        cond = pd.isnull(self.background[col_intensity])
-        self.background.loc[cond, col_intensity] = DEFAULT_MISSING_BIN
-        self.an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]))
-        # housekeeping
-        self.housekeeping_dict["Number_ANs_with_missing_abundance_values"] = sum(cond)
-
-        self.foreground["intensity"] = self.map_intensities_2_foreground()
+    @staticmethod
+    def rename_cols(df, cols2rename_tuple):  # rename to list
+        """
+        rename old to new names and remove old columns
+        :param df: DataFrame
+        :param cols2rename_tuple: [(old1, new1), (old2, new2), ...]
+        :return: DataFrame
+        """
+        for colstuple in cols2rename_tuple:
+            old, new = colstuple
+            df[new] = df[old]
+            del df[old]
+        return df
 
     def check_userinput(self, fh):
         """
@@ -134,6 +132,73 @@ class Userinput(object):
             if len({self.col_background, self.col_foreground}.intersection(set(self.df_orig.columns.tolist()))) == 2:
                 return True, decimal
         return False, decimal
+
+    def cleanupforanalysis(self, df, col_foreground, col_background, col_intensity):
+        """
+        ToDo:
+        summary stats on total number of ANs, redundancy, mapped to which species,
+        remove NaNs, remove duplicates, split protein groups, remove splice variant appendix
+        create 2 DataFrames
+        self.df_all: columns = [foreground_ans, background_ans]
+        --> contains all AccessionNumbers regardless if intensity values present or not
+        self.df_int: columns = [foreground_ans, background_ans, intensity]
+        --> only if intensity value given
+        :return: None
+        """
+        # housekeeping
+        self.housekeeping_dict["Foreground_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_foreground]]) # total number of entries, including duplicates and NaNs
+        if self.method == "abundance_correction":
+            self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background, col_intensity]])
+        else:
+            self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background]])
+
+        # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
+        self.foreground = df.loc[pd.notnull(df[col_foreground]), [col_foreground]]
+        if self.method == "abundance_correction":
+            self.background = df.loc[pd.notnull(df[col_background]), [col_background, col_intensity]]
+        else:
+            self.background = df.loc[pd.notnull(df[col_background]), [col_background]]
+
+        # remove splice variant appendix and drop duplicates
+        self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
+        if self.method != "compare_groups":
+            self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
+        self.foreground.index = range(0, len(self.foreground))
+        self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
+        if self.method != "compare_groups":
+            self.background.drop_duplicates(subset=col_background, inplace=True)
+        # housekeeping
+        self.housekeeping_dict["Foreground_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.foreground) # number of entries, excluding duplicates and NaNs
+        self.housekeeping_dict["Background_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.background)
+
+        # set default missing value for notnulls, and create lookup dict for abundances
+        if self.method == "abundance_correction":
+            cond = pd.isnull(self.background[col_intensity])
+            self.background.loc[cond, col_intensity] = DEFAULT_MISSING_BIN
+            self.an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]))
+
+            # housekeeping
+            self.housekeeping_dict["Number_ANs_with_missing_abundance_values"] = sum(cond)
+
+            self.foreground["intensity"] = self.map_intensities_2_foreground()
+
+        # map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
+        secondary_2_primary_dict = query.map_secondary_2_primary_ANs(self.connection, self.get_all_unique_ANs())
+        df_sec_prim = pd.DataFrame().from_dict(secondary_2_primary_dict, orient="index").reset_index()
+        df_sec_prim.columns = ["secondary", "primary"]
+        self.housekeeping_dict["Seondary_2_Primary_ANs_DF"] = df_sec_prim # ANs that were replaced
+        self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict, ))
+        if self.method != "characterize":
+            self.background[col_background] = self.background[col_background].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
+
+    def replace_secondary_with_primary_ANs(self, ans_string, secondary_2_primary_dict):
+        ans_2_return = []
+        for an in ans_string.split(";"): # if proteinGroup
+            if an in secondary_2_primary_dict:
+                ans_2_return.append(secondary_2_primary_dict[an])
+            else:
+                ans_2_return.append(an)
+        return ";".join(ans_2_return)
 
     @staticmethod
     def create_an_2_intensity_dict(list_of_tuples):
@@ -175,19 +240,9 @@ class Userinput(object):
             intensity_foreground.append(self.an_2_intensity_dict[an_first_in_proteinGroup])
         return pd.Series(intensity_foreground, name="intensity")
 
-    ###################################################
-    #     foreground       |     background     |
-    # -------------------------------------------------
-    # +   a = foregr_count |   c = backgr_count |   r1
-    # -------------------------------------------------
-    # -     b              |       d            |   r2
-    # -------------------------------------------------
-    #     foregr_n         |     backgr_n       |    n
-
-
-    def get_foreground_n(self): #!!!
+    def get_foreground_n(self):
         """
-        "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        "abundance_correction", "compare_samples", "method", "characterize"
         :return: Int
         """
         if self.method == "abundance_correction":
@@ -199,12 +254,11 @@ class Userinput(object):
         elif self.method == "characterize":
             return len(self.foreground)
         else:
-            raise StopIteration
-            # debug, case should not happen
+            raise StopIteration # debug, case should not happen
 
-    def get_background_n(self): #!!!
+    def get_background_n(self):
         """
-        "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        "abundance_correction", "compare_samples", "method", "characterize"
         :return: Int
         """
         if self.method == "abundance_correction": # same as foreground
@@ -214,8 +268,9 @@ class Userinput(object):
         elif self.method == "compare_groups": # redundancies within group, therefore n set by user
             return self.background_n
         elif self.method == "characterize": # only for foreground, not background
-            raise StopIteration
-            # debug, since this last case should not happen
+            return None
+        else:
+            raise StopIteration # debug, case should not happen
 
     def get_sample_an(self):
         return self.foreground[self.col_foreground].tolist()
@@ -252,7 +307,7 @@ class Userinput(object):
             # yield proteinGroups_background.tolist(), proteinGroups_foreground.tolist(), correction_factor, bins_fg
             yield proteinGroups_background.tolist(), correction_factor
 
-    def get_set_foreground_background_ANs(self):
+    def get_all_unique_ANs(self):
         """
         return all unique AccessionNumber provided by the user
         :return: ListOfString
@@ -261,68 +316,12 @@ class Userinput(object):
         ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
         return list(set(ans))
 
-
-
-
-
-
-
-
-
-
-    def write_ans2file(self, ans_list, fn):
-        with open(fn, 'w') as fh:
-            for an in ans_list:
-                fh.write(an + '\n')
-
-    def get_foreground_an_frset(self):
-        '''
-        produce frozenset of AccessionNumbers of foreground frequency (study)
-        if intensity value given
-        :return: FrozenSet of Strings
-        '''
-        return frozenset(self.df_int.loc[pd.notnull(self.df_int[self.col_foreground]), self.col_foreground])
-
-    def get_foreground_an_frset_all(self):
-        '''
-        produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
-        remove NaN
-        :return: SetOfString
-        '''
-        return frozenset(self.df_all.loc[pd.notnull(self.df_all[self.col_foreground]), self.col_foreground])
-
-    def get_foreground_an_frset_genome(self):
-        '''
-        produce all AccessionNumbers with intensity values in 'Observed' column
-        :return: Frozenset of Strings
-        '''
-        col_background = 'Observed Proteome'
-        ui2 = Userinput(self.user_input_fn, self.num_bins, col_foreground=self.col_foreground, col_background=col_background, col_intensity=self.col_intensity, decimal=self.decimal)
-        return ui2.get_foreground_an_frset()
-
-    def get_background_an_set(self):
-        '''
-        produce set of AccessionNumbers of background frequency (background)
-        if intensity value given
-        :return: Set of Strings
-        '''
-        return set(self.df_int[self.col_background])
-
-    def get_background_an_all_set(self):
-        '''
-        produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
-        remove NaN
-        :return: SetOfString
-        '''
-        return set(self.df_all[self.col_background])
-
-    def get_background_an_set_random_foreground(self):
-        '''
-        produce a randomly generated set of AccessionNumbers from background-frequency
-        with the same intensity-distribution as foreground-frequency
-        :return: Set of Strings
-        '''
-        return set(self.get_random_background_ans())
+    def get_all_unique_proteinGroups(self):
+        proteinGroup_list = []
+        proteinGroup_list += self.foreground[self.col_foreground].tolist()
+        if self.method != "characterize":
+            proteinGroup_list += self.background[self.col_background].tolist()
+        return list(set(proteinGroup_list))
 
 
 class Userinput_noAbCorr(Userinput):
@@ -429,17 +428,101 @@ if __name__ == "__main__":
     # fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'
     # fn = r'/Users/dblyon/modules/cpr/metaprot/CompareGroups_test.txt'
     # fn = r'/Users/dblyon/modules/cpr/metaprot/test/GOenrichment_characterize_study_test_DF_proteinGroups.txt'
-    # study_n = 10.0
-    # pop_n = 20.0
+    # foreground_n = 10.0
+    # background_n = 20.0
     # proteinGroup = True
-    # ui = UserInput_compare_groups(proteinGroup, fn, study_n, pop_n)
+    # ui = UserInput_compare_groups(proteinGroup, fn, foreground_n, background_n)
     # foreground_an = ui.get_foreground_an()
     # # backgound_an = ui.get_background_an()
     # all_unique_an = ui.get_all_unique_ans()
     # # print len(foreground_an), len(backgound_an), len(all_unique_an)
     # print len(foreground_an), len(all_unique_an)
-    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast.txt"
-    ui = Userinput(user_input_fn=fn, foreground_string=None, background_string=None, col_foreground='foreground', col_background='background', col_intensity='intensity', num_bins=100, decimal='.', method="abundance_correction")
+    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast_Foreground_Background.txt"
+    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast_Intensity_Sample_Population.txt"
+    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/test.txt"
+    import db_config
+    ECHO = False
+    TESTING = False
+    DO_LOGGING = False
+    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
+
+    import io
+    fn = io.open(fn, mode='r')
+    ui = Userinput(fn=fn, foreground_string=None,
+        background_string=None, col_foreground='foreground',
+        col_background='background', col_intensity='intensity',
+        num_bins=100, decimal='.', method="abundance_correction", connection=connection)
+    # print ui.get_sample_an()
+    # print ui.get_background_n()
+    # print ui.df_orig.head()
+    # sample_an = ui.get_sample_an()
+    # pg = "P0CX55;P0CX56"
+    # print pg in sample_an
+    # cond = ui.df_orig["foreground"] == pg
+    # print sum(cond)
+    # print ui.df_orig
+    # print
+    # print ui.foreground
+
+
+
+
+
+
+    # def write_ans2file(self, ans_list, fn):
+    #     with open(fn, 'w') as fh:
+    #         for an in ans_list:
+    #             fh.write(an + '\n')
+    #
+    # def get_foreground_an_frset(self):
+    #     '''
+    #     produce frozenset of AccessionNumbers of foreground frequency (study)
+    #     if intensity value given
+    #     :return: FrozenSet of Strings
+    #     '''
+    #     return frozenset(self.df_int.loc[pd.notnull(self.df_int[self.col_foreground]), self.col_foreground])
+    #
+    # def get_foreground_an_frset_all(self):
+    #     '''
+    #     produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
+    #     remove NaN
+    #     :return: SetOfString
+    #     '''
+    #     return frozenset(self.df_all.loc[pd.notnull(self.df_all[self.col_foreground]), self.col_foreground])
+    #
+    # def get_foreground_an_frset_genome(self):
+    #     '''
+    #     produce all AccessionNumbers with intensity values in 'Observed' column
+    #     :return: Frozenset of Strings
+    #     '''
+    #     col_background = 'Observed Proteome'
+    #     ui2 = Userinput(self.user_input_fn, self.num_bins, col_foreground=self.col_foreground, col_background=col_background, col_intensity=self.col_intensity, decimal=self.decimal)
+    #     return ui2.get_foreground_an_frset()
+    #
+    # def get_background_an_set(self):
+    #     '''
+    #     produce set of AccessionNumbers of background frequency (background)
+    #     if intensity value given
+    #     :return: Set of Strings
+    #     '''
+    #     return set(self.df_int[self.col_background])
+    #
+    # def get_background_an_all_set(self):
+    #     '''
+    #     produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
+    #     remove NaN
+    #     :return: SetOfString
+    #     '''
+    #     return set(self.df_all[self.col_background])
+    #
+    # def get_background_an_set_random_foreground(self):
+    #     '''
+    #     produce a randomly generated set of AccessionNumbers from background-frequency
+    #     with the same intensity-distribution as foreground-frequency
+    #     :return: Set of Strings
+    #     '''
+    #     return set(self.get_random_background_ans())
+    #
 
 
 
