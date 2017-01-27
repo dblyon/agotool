@@ -23,7 +23,7 @@ def count_terms_proteinGroup_old(ui, assoc_dict, obo_dag, sample_or_background):
     """
     GOid2ANs_dict: key: GOid, val: ListOfAN
     GO2NumProtGroups_dict: key: GOid, val: Int(number of proteinGroups associated with GOterm)
-    redundant count e.g. 8 out of 10 samples --> study_count = 8
+    redundant count e.g. 8 out of 10 samples --> foreground_count = 8
     foreground_n = 10 (1 unique proteinGroup * 10 for foreground_n)
     """
     # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
@@ -57,7 +57,7 @@ def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
     """
     GOid2ANs_dict: key: GOid, val: ListOfAN
     GO2NumProtGroups_dict: key: GOid, val: Int(number of proteinGroups associated with GOterm)
-    redundant count e.g. 8 out of 10 samples --> study_count = 8
+    redundant count e.g. 8 out of 10 samples --> foreground_count = 8
     foreground_n = 10 (1 unique proteinGroup * 10 for foreground_n)
     """
     # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
@@ -87,12 +87,11 @@ def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
         GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
     return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
 
-
 def count_terms_proteinGroup_KEGG(ui, assoc_dict, sample_or_background):
     """
     GOid2ANs_dict: key: GOid, val: ListOfAN
     GO2NumProtGroups_dict: key: GOid, val: Int(number of proteinGroups associated with GOterm)
-    redundant count e.g. 8 out of 10 samples --> study_count = 8
+    redundant count e.g. 8 out of 10 samples --> foreground_count = 8
     foreground_n = 10 (1 unique proteinGroup * 10 for foreground_n)
 
     :param ui: UserInputInstance
@@ -129,25 +128,25 @@ def count_terms_proteinGroup_KEGG(ui, assoc_dict, sample_or_background):
 def count_terms_v2(ans_set, assoc_dict, obo_dag):
     """
     count the number of terms in the study group
-    GOid2NumANs_dict: key=GOid, val=Num of occurrences
-    GOid2ANs_dict: key=GOid, val=ListOfANs
-    count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag
+    association_2_count_dict: key=GOid, val=Num of occurrences
+    association_2_ANs_dict: key=GOid, val=SetOfANs
+    count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag)
     :return: Tuple(dict, dict, int)
     """
-    ans2count = set()
-    GOid2ANs_dict = {}
-    GOid2NumANs_dict = defaultdict(int)
-    for an in (acnum for acnum in ans_set if acnum in assoc_dict):
-        for goterm in assoc_dict[an]:
-            if goterm in obo_dag:
-                ans2count.update([an])
-                goid = obo_dag[goterm].id
-                GOid2NumANs_dict[goid] += 1
-                if not goid in GOid2ANs_dict:
-                    GOid2ANs_dict[goid] = set([an])
+    ans_2_count = set()
+    association_2_ANs_dict = {}
+    association_2_count_dict = defaultdict(int)
+    for an in (AN for AN in ans_set if AN in assoc_dict):
+        for association in assoc_dict[an]:
+            if association in obo_dag:
+                ans_2_count.update([an])
+                association_id = obo_dag[association].id
+                association_2_count_dict[association_id] += 1
+                if not association_id in association_2_ANs_dict:
+                    association_2_ANs_dict[association_id] = set([an])
                 else:
-                    GOid2ANs_dict[goid].update([an])
-    return GOid2NumANs_dict, GOid2ANs_dict, len(ans2count)
+                    association_2_ANs_dict[association_id].update([an])
+    return association_2_count_dict, association_2_ANs_dict, len(ans_2_count)
 
 def count_terms_v2_KEGG(ans_set, assoc_dict):
     """
@@ -275,8 +274,8 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
                         goterm_name = obo_dag[goterm].id
                         term_cnt[goterm_name] += weight_fac
                         if not go2ans_dict.has_key(goterm):
-                            # go2ans_dict[goterm_name] = set([an])
-                            go2ans_dict[goterm_name] = {[an]}
+                            go2ans_dict[goterm_name] = set([an])
+                            # go2ans_dict[goterm_name] = {[an]}
                         else:
                             go2ans_dict[goterm_name].update([an])
                     else:

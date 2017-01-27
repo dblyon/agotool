@@ -4,11 +4,6 @@ from collections import defaultdict
 from StringIO import StringIO
 from itertools import izip_longest
 import tools
-import sys
-
-sys.path.append("../../../metaprot/sql/")
-
-import query
 
 # test for comma vs point separated intensity values
 # test for " enclosed ANs, in general and for protein groups using these
@@ -87,8 +82,14 @@ class Userinput(object):
         cols = [colname.lower() for colname in cols]
         if "population" in cols:
             df = self.rename_cols(df, [("population", "background")])
+        if "population_an" in cols:
+            df = self.rename_cols(df, [("population_an", "background")])
+        if "population_int" in cols:
+            df = self.rename_cols(df, [("population_int", "intensity")])
         if "sample" in cols:
             df = self.rename_cols(df, [("sample", "foreground")])
+        if "sample_an" in cols:
+            df = self.rename_cols(df, [("sample_an", "foreground")])
         return df
 
     @staticmethod
@@ -183,13 +184,20 @@ class Userinput(object):
             self.foreground["intensity"] = self.map_intensities_2_foreground()
 
         # map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
-        secondary_2_primary_dict = query.map_secondary_2_primary_ANs(self.connection, self.get_all_unique_ANs())
-        df_sec_prim = pd.DataFrame().from_dict(secondary_2_primary_dict, orient="index").reset_index()
-        df_sec_prim.columns = ["secondary", "primary"]
-        self.housekeeping_dict["Seondary_2_Primary_ANs_DF"] = df_sec_prim # ANs that were replaced
+        secondary_2_primary_dict = tools.map_secondary_2_primary_ANs(self.connection, self.get_all_unique_ANs())
+        if secondary_2_primary_dict: # not an empty dict
+            df_sec_prim = pd.DataFrame().from_dict(secondary_2_primary_dict, orient="index").reset_index()
+            df_sec_prim.columns = ["secondary", "primary"]
+            self.housekeeping_dict["Seondary_2_Primary_ANs_DF"] = df_sec_prim # ANs that were replaced
+        else:
+            self.housekeeping_dict["Seondary_2_Primary_ANs_DF"] = None
+
         self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict, ))
         if self.method != "characterize":
             self.background[col_background] = self.background[col_background].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
+
+        print()
+
 
     def replace_secondary_with_primary_ANs(self, ans_string, secondary_2_primary_dict):
         ans_2_return = []
@@ -239,6 +247,12 @@ class Userinput(object):
             an_first_in_proteinGroup = proteinGroup.split(";")[0]
             intensity_foreground.append(self.an_2_intensity_dict[an_first_in_proteinGroup])
         return pd.Series(intensity_foreground, name="intensity")
+
+    def get_foreground_an_set(self):
+        return set(self.foreground[self.col_foreground].tolist())
+
+    def get_background_an_set(self):
+        return set(self.background[self.col_background].tolist())
 
     def get_foreground_n(self):
         """
@@ -324,104 +338,104 @@ class Userinput(object):
         return list(set(proteinGroup_list))
 
 
-class Userinput_noAbCorr(Userinput):
+# class Userinput_noAbCorr(Userinput):
+#
+#     def __init__(self, user_input_fn, num_bins=100, col_foreground='foreground_an', col_background='background_an', decimal='.'):
+#         self.user_input_fn = user_input_fn
+#         self.decimal = decimal
+#         self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
+#         self.set_num_bins(num_bins)
+#         self.col_foreground = col_foreground
+#         self.col_background = col_background
+#         self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background)
+#
+#     def cleanupforanalysis(self, df_orig, col_foreground, col_background):
+#         self.foreground_ser = df_orig[col_foreground]
+#         self.background_ser = df_orig[col_background]
+#
+#         # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
+#         cond = pd.notnull(self.foreground_ser)
+#         self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
+#         cond = pd.notnull(self.background_ser)
+#         self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
+#
+#         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> correction: 1 row of first value
+#         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
+#         self.foreground_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.foreground_ser)
+#         self.background_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.background_ser)
+#
+#         # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
+#         cond = pd.notnull(self.foreground_ser)
+#         self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
+#         cond = pd.notnull(self.background_ser)
+#         self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
+#
+#     def get_foreground_an_frset(self):
+#         return frozenset(self.foreground_ser)
+#
+#     def get_background_an_all_set(self):
+#         return set(self.background_ser)
 
-    def __init__(self, user_input_fn, num_bins=100, col_foreground='foreground_an', col_background='background_an', decimal='.'):
-        self.user_input_fn = user_input_fn
-        self.decimal = decimal
-        self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
-        self.set_num_bins(num_bins)
-        self.col_foreground = col_foreground
-        self.col_background = col_background
-        self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background)
 
-    def cleanupforanalysis(self, df_orig, col_foreground, col_background):
-        self.foreground_ser = df_orig[col_foreground]
-        self.background_ser = df_orig[col_background]
-
-        # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.foreground_ser)
-        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
-        cond = pd.notnull(self.background_ser)
-        self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
-
-        # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> correction: 1 row of first value
-        # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-        self.foreground_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.foreground_ser)
-        self.background_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.background_ser)
-
-        # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
-        cond = pd.notnull(self.foreground_ser)
-        self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
-        cond = pd.notnull(self.background_ser)
-        self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
-
-    def get_foreground_an_frset(self):
-        return frozenset(self.foreground_ser)
-
-    def get_background_an_all_set(self):
-        return set(self.background_ser)
-
-
-class UserInput_compare_groups(object):
-
-    def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_foreground='foreground_an', col_background='background_an', decimal='.'):
-        self.proteinGroup = proteinGroup
-        self.user_input_fn = user_input_fn
-        self.study_n = study_n
-        self.pop_n = pop_n
-        self.decimal = decimal
-        self.df = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
-        self.col_foreground = col_foreground
-        self.col_background = col_background
-        self.foreground_ser = self.df[col_foreground]
-        self.background_ser = self.df[col_background]
-
-        # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
-        # DON'T REMOVE DUPLICATES
-        self.foreground_ser = self.foreground_ser.dropna()
-        if not self.proteinGroup:
-            self.foreground_ser = self.foreground_ser.apply(self.grep_first_an_from_proteinGroup)
-
-        self.background_ser = self.background_ser.dropna()
-        if not self.proteinGroup:
-            self.background_ser = self.background_ser.apply(self.grep_first_an_from_proteinGroup)
-
-    def grep_first_an_from_proteinGroup(self, stringi_):
-        try:
-            return stringi_.split(";")[0]
-        except IndexError:
-            return stringi_
-
-    def get_foreground_an(self):
-        return self.foreground_ser
-
-    def get_background_an(self):
-        return self.background_ser
-
-    def split_protGroups_into_unique_list(self, ans_list):
-        temp_list = []
-        for protgroup in ans_list:
-            temp_list += protgroup.split(";")
-        return sorted(set(temp_list))
-
-    def get_all_unique_ans(self, foreground_background_all="all"):
-        if foreground_background_all == "all":
-            ans_list = self.foreground_ser.unique().tolist() + self.background_ser.unique().tolist()
-        elif foreground_background_all == "foreground":
-            ans_list = self.foreground_ser.unique().tolist()
-        elif foreground_background_all == "background":
-            ans_list = self.background_ser.unique().tolist()
-        ans_list = sorted(set(ans_list))
-        if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
-            ans_list = self.split_protGroups_into_unique_list(ans_list)
-        return ans_list
-
-    def get_study_n(self):
-        return self.study_n
-
-    def get_pop_n(self):
-        return self.pop_n
+# class UserInput_compare_groups(object):
+#
+#     def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_foreground='foreground_an', col_background='background_an', decimal='.'):
+#         self.proteinGroup = proteinGroup
+#         self.user_input_fn = user_input_fn
+#         self.study_n = study_n
+#         self.pop_n = pop_n
+#         self.decimal = decimal
+#         self.df = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
+#         self.col_foreground = col_foreground
+#         self.col_background = col_background
+#         self.foreground_ser = self.df[col_foreground]
+#         self.background_ser = self.df[col_background]
+#
+#         # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
+#         # DON'T REMOVE DUPLICATES
+#         self.foreground_ser = self.foreground_ser.dropna()
+#         if not self.proteinGroup:
+#             self.foreground_ser = self.foreground_ser.apply(self.grep_first_an_from_proteinGroup)
+#
+#         self.background_ser = self.background_ser.dropna()
+#         if not self.proteinGroup:
+#             self.background_ser = self.background_ser.apply(self.grep_first_an_from_proteinGroup)
+#
+#     def grep_first_an_from_proteinGroup(self, stringi_):
+#         try:
+#             return stringi_.split(";")[0]
+#         except IndexError:
+#             return stringi_
+#
+#     def get_foreground_an(self):
+#         return self.foreground_ser
+#
+#     def get_background_an(self):
+#         return self.background_ser
+#
+#     def split_protGroups_into_unique_list(self, ans_list):
+#         temp_list = []
+#         for protgroup in ans_list:
+#             temp_list += protgroup.split(";")
+#         return sorted(set(temp_list))
+#
+#     def get_all_unique_ans(self, foreground_background_all="all"):
+#         if foreground_background_all == "all":
+#             ans_list = self.foreground_ser.unique().tolist() + self.background_ser.unique().tolist()
+#         elif foreground_background_all == "foreground":
+#             ans_list = self.foreground_ser.unique().tolist()
+#         elif foreground_background_all == "background":
+#             ans_list = self.background_ser.unique().tolist()
+#         ans_list = sorted(set(ans_list))
+#         if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
+#             ans_list = self.split_protGroups_into_unique_list(ans_list)
+#         return ans_list
+#
+#     def get_study_n(self):
+#         return self.study_n
+#
+#     def get_pop_n(self):
+#         return self.pop_n
 
 
 if __name__ == "__main__":
@@ -439,7 +453,7 @@ if __name__ == "__main__":
     # print len(foreground_an), len(all_unique_an)
     fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast_Foreground_Background.txt"
     fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast_Intensity_Sample_Population.txt"
-    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/test.txt"
+    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/debug.txt"
     import db_config
     ECHO = False
     TESTING = False
@@ -452,8 +466,8 @@ if __name__ == "__main__":
         background_string=None, col_foreground='foreground',
         col_background='background', col_intensity='intensity',
         num_bins=100, decimal='.', method="abundance_correction", connection=connection)
-    # print ui.get_sample_an()
-    # print ui.get_background_n()
+    print len(ui.get_sample_an())
+    print ui.get_background_n()
     # print ui.df_orig.head()
     # sample_an = ui.get_sample_an()
     # pg = "P0CX55;P0CX56"

@@ -126,27 +126,27 @@ import pandas as pd
 # cond = df["background_n"] == df["ANs_count"]*background_n
 # assert sum(cond) == len(cond)
 
-# df_characterize_study.head() # Num_associations == study_count
+# df_characterize_study.head() # Num_associations == foreground_count
 
-# df_compare_groups["study_count"] == df_characterize_study["Num_associations"]
+# df_compare_groups["foreground_count"] == df_characterize_study["Num_associations"]
 
-# df_compare_groups = df[["id", "study_count"]]
-# df_compare_groups.columns = ["GOid", "study_count"]
+# df_compare_groups = df[["id", "foreground_count"]]
+# df_compare_groups.columns = ["GOid", "foreground_count"]
 # df_compare_groups.head()
 
 # df_characterize_study = dfx.copy()
-# df_compare_groups = df[["id", "study_count"]]
-# df_compare_groups.columns = ["GOid", "study_count"]
+# df_compare_groups = df[["id", "foreground_count"]]
+# df_compare_groups.columns = ["GOid", "foreground_count"]
 # dfm = pd.merge(df_compare_groups, df_characterize_study, how='outer')
-# cond = dfm['study_count'] == dfm['Num_associations']
+# cond = dfm['foreground_count'] == dfm['Num_associations']
 # assert sum(cond) == len(cond)
 
-# df.sort_values("pop_count", ascending=False).head()
+# df.sort_values("background_count", ascending=False).head()
 
 # assert sorted(df.foreground_n.unique()) == [10, 20]
 # assert sorted(df.background_n.unique()) == [10, 20]
-# assert sorted(df.pop_count.unique()) == [1, 5, 6]
-# assert sorted(df.study_count.unique()) == [3, 8, 11]
+# assert sorted(df.background_count.unique()) == [1, 5, 6]
+# assert sorted(df.foreground_count.unique()) == [3, 8, 11]
 
 # dfx.head()
 # dfx.sort_values("Num_associations", ascending=True)

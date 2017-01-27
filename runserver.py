@@ -2,29 +2,25 @@ from __future__ import print_function
 
 # standard library
 import os, sys, logging, time, shutil
-import StringIO
-from subprocess import call
+# import StringIO
+# from subprocess import call
 
 # third party
-import pandas as pd
-import numpy as np
-from flask import Flask, render_template, request, send_from_directory, Markup, jsonify
-from flask_restful_swagger import swagger
-from flask_restful import Api
-import flask, flask_sqlalchemy, flask_restless
+# import pandas as pd
+# import numpy as np
+from flask import render_template, request, send_from_directory, Markup #, jsonify, Flask
+# from flask_restful_swagger import swagger
+# from flask_restful import Api
+import flask, flask_sqlalchemy #, flask_restless
 import wtforms
 from wtforms import fields
 import markdown
 
 # local application
-import sys
-sys.path.append("./../metaprot/sql/")
-import db_config, models
+import sys #, models
 sys.path.append('./static/python')
-import userinput
-import run, obo_parser, cluster_filter, go_retriever, tools
-
-
+import userinput, run, obo_parser, cluster_filter, tools # go_retriever
+import db_config # copy of metaprot version
 
 ###############################################################################
 # ToDo:
@@ -48,8 +44,9 @@ import run, obo_parser, cluster_filter, go_retriever, tools
 # - graphical output of
 # - Dia Show or nice images in the background, changing every 1min
 # - All proteins without abundance data were disregarded --> put into extra bin
+# - http://geneontology.org/page/download-ontology --> slim set for Metagenomics
+# -
 ###############################################################################
-
 
 ECHO = False
 TESTING = False
@@ -66,7 +63,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Wrap the Api with swagger.docs. It is a thin wrapper around the Api class that adds some swagger smarts
 # api = swagger.docs(Api(app), apiVersion='0.1')
 ###################################
-
 
 db = flask_sqlalchemy.SQLAlchemy(app)
 db.Model.metadata.reflect(db.engine)
@@ -96,24 +92,23 @@ logger.addHandler(stream_handler)
 
 ###############################################################################
 ##### Create the Flask-Restless API manager.
-manager = flask_restless.APIManager(app, flask_sqlalchemy_db=db)
+# manager = flask_restless.APIManager(app, flask_sqlalchemy_db=db)
 ### Create API endpoints, which will be available at /api/<tablename> by
 ### default. Allowed HTTP methods can be specified as well.
-manager.create_api(models.Proteins, methods=['GET'], primary_key="an", include_columns=["an", "header", "aaseq"])
-manager.create_api(models.Peptides, methods=['GET'], primary_key="aaseq", include_columns=["aaseq", "an", "missedcleavages", "length"])
-manager.create_api(models.Taxa, methods=['GET'], primary_key="taxid", include_columns=["taxname", "taxid", "scientific"])
-manager.create_api(models.Taxid_2_rank, methods=['GET'], primary_key="taxid", include_columns=["taxid", "rank"])
-manager.create_api(models.Ogs, methods=['GET'], primary_key="og", include_columns=["og", "taxid", "description"])
-manager.create_api(models.Functions, methods=['GET'], primary_key="an", include_columns=["an", "type", "name"])
-manager.create_api(models.Ontologies, methods=['GET'], primary_key="child", include_columns=["child", "parent", "direct"])
-manager.create_api(models.Protein_2_og, methods=['GET'], primary_key="an", include_columns=["an", "og"])
-manager.create_api(models.Protein_2_version, methods=['GET'], primary_key="an", include_columns=["an", "version"])
-manager.create_api(models.Og_2_function, methods=['GET'], primary_key="og", include_columns=["og", "function"])
-manager.create_api(models.Protein_2_function, methods=['GET'], primary_key="an", include_columns=["an", "function"])
-manager.create_api(models.Function_2_definition, methods=['GET'], primary_key="function", include_columns=["function", "definition"])
-manager.create_api(models.Go_2_slim, methods=['GET'], primary_key="an", include_columns=["an", "slim"])
-manager.create_api(models.Protein_2_taxid, methods=['GET'], primary_key="an", include_columns=["an", "taxid"])
-
+# manager.create_api(models.Proteins, methods=['GET'], primary_key="an", include_columns=["an", "header", "aaseq"])
+# manager.create_api(models.Peptides, methods=['GET'], primary_key="aaseq", include_columns=["aaseq", "an", "missedcleavages", "length"])
+# manager.create_api(models.Taxa, methods=['GET'], primary_key="taxid", include_columns=["taxname", "taxid", "scientific"])
+# manager.create_api(models.Taxid_2_rank, methods=['GET'], primary_key="taxid", include_columns=["taxid", "rank"])
+# manager.create_api(models.Ogs, methods=['GET'], primary_key="og", include_columns=["og", "taxid", "description"])
+# manager.create_api(models.Functions, methods=['GET'], primary_key="an", include_columns=["an", "type", "name"])
+# manager.create_api(models.Ontologies, methods=['GET'], primary_key="child", include_columns=["child", "parent", "direct"])
+# manager.create_api(models.Protein_2_og, methods=['GET'], primary_key="an", include_columns=["an", "og"])
+# manager.create_api(models.Protein_2_version, methods=['GET'], primary_key="an", include_columns=["an", "version"])
+# manager.create_api(models.Og_2_function, methods=['GET'], primary_key="og", include_columns=["og", "function"])
+# manager.create_api(models.Protein_2_function, methods=['GET'], primary_key="an", include_columns=["an", "function"])
+# manager.create_api(models.Function_2_definition, methods=['GET'], primary_key="function", include_columns=["function", "definition"])
+# manager.create_api(models.Go_2_slim, methods=['GET'], primary_key="an", include_columns=["an", "slim"])
+# manager.create_api(models.Protein_2_taxid, methods=['GET'], primary_key="an", include_columns=["an", "taxid"])
 
 if not app.debug:
     #########################
@@ -150,15 +145,17 @@ max_timeout = 20 # minutes
 # pgoa.unpickle()
 # upkp = go_retriever.UniProtKeywordsParser()
 # upkp.unpickle()
-# obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
-# go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-# goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
-#
-# for go_term in go_dag.keys():
-#     parents = go_dag[go_term].get_all_parents()
-#
-# filter_ = cluster_filter.Filter(go_dag)
+obo2file_dict = {"GO_slim": webserver_data + r'/downloads/goslim_generic.obo',
+                 "GO_basic": webserver_data + r'/downloads/go-basic.obo',
+                 "UPK_all": webserver_data + r'/downloads/keywords-all.obo'}
+upk_dag = obo_parser.GODag(obo_file=obo2file_dict['UPK_all'], upk=True)
+goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['GO_slim'])
+go_dag = obo_parser.GODag(obo_file=obo2file_dict['GO_basic'])
+
+for go_term in go_dag.keys():
+    parents = go_dag[go_term].get_all_parents()
+
+filter_ = cluster_filter.Filter(go_dag)
 
 ################################################################################
 # index.html
@@ -331,8 +328,8 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                               ("BP", "GO Biological Process"),
                                               ("CP", "GO Celluar Compartment"),
                                               ("MF", "GO Molecular Function"),
-                                              ("UPK", "UniProt keywords"),
-                                              ("KEGG", "KEGG pathways")),
+                                              ("UPK", "UniProt keywords")),
+                                              # ("KEGG", "KEGG pathways")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     abcorr = fields.BooleanField("Abundance correction",
@@ -346,9 +343,9 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                                     ("basic", "basic")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
 
-    indent = fields.BooleanField("prepend GO-term level by dots",
+    indent = fields.BooleanField("prepend level of hierarchy by dots",
                                  default="checked",
-                                 description="Add dots to GO-terms to indicate the level in the parental hierarchy.")
+                                 description="Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204'")
 
     multitest_method = fields.SelectField(
         "Method for correction of multiple testing",
@@ -417,21 +414,9 @@ def results():
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
         input_fs = request.files['userinput_file']
-        # print("#"*80)
-        # print("this here")
-        # print(input_fs)
-        # input_fs.read()
-        # print(input_fs.tell())
-        # print(input_fs)
-        # print(type(input_fs))
         ui = userinput.Userinput(fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
             num_bins=form.num_bins.data, decimal='.', method="abundance_correction", connection=connection)
-        # print("#"*80)
-        # # print("BUBU")
-        # print(ui.foreground.head())
-        # print(ui.background.head())
-        # print("#"*80)
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -446,7 +431,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.p_value_multipletesting.data)
             log_activity(string2log)
 
-            header, results = run.run(ui, connection, form.gocat_upk.data,
+            header, results = run.run(go_dag, goslim_dag, upk_dag, ui, connection, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data,
@@ -599,60 +584,4 @@ if __name__ == "__main__":
 ################################################################################
         ### agptool
         # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
-################################################################################
-
-
-# organism_choices_UniProt = [
-#     (u'4932', u'Saccharomyces cerevisiae'), # Yeast
-#     (u'9606', u'Homo sapiens'), # Human
-#     (u'7955', u'Danio rerio'), # Zebrafish
-#     (u'7227', u'Drosophila melanogaster'), # Fly
-#     (u'9796', u'Equus caballus'), # Horse
-#     (u'9031', u'Gallus gallus'), # Chicken
-#     (u'10090', u'Mus musculus'), # Mouse
-#     (u'10116', u'Rattus norvegicus'), # Rat
-#     (u'9823', u'Sus scrofa'), # Pig
-#     (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
-#     (u'3055', u'Chlamydomonas reinhardtii'), # Chlamy
-#     (u'3880', u'Medicago truncatula'), # Medicago
-#     (u'39947', u'Oryza sativa subsp. japonica') # Rice
-#     ]
-
-# organism_choices_GO= [
-#     (u'4932', u'Saccharomyces cerevisiae'), # Yeast
-#     (u'9606', u'Homo sapiens'), # Human
-#     (u'7955', u'Danio rerio'), # Zebrafish
-#     (u'7227', u'Drosophila melanogaster'), # Fly
-#     (u'9031', u'Gallus gallus'), # Chicken
-#     (u'10090', u'Mus musculus'), # Mouse
-#     (u'10116', u'Rattus norvegicus'), # Rat
-#     (u'9823', u'Sus scrofa'), # Pig
-#     (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
-#     ]
-
-################################################################################
-# species2files_dict = {
-#     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
-#     "559292": {'goa_ref_fn': webserver_data + r'/GOA/559292.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/559292.tab'},
-#     "3702": {'goa_ref_fn': webserver_data + r'/GOA/3702.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3702.tab'},
-#     "7955": {'goa_ref_fn': webserver_data + r'/GOA/7955.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7955.tab'},
-#     "7227": {'goa_ref_fn': webserver_data + r'/GOA/7227.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7227.tab'},
-#     "9031": {'goa_ref_fn': webserver_data + r'/GOA/9031.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9031.tab'},
-#     "10090": {'goa_ref_fn': webserver_data + r'/GOA/10090.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10090.tab'},
-#     "10116": {'goa_ref_fn': webserver_data + r'/GOA/10116.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'},
-#     "9823": {'goa_ref_fn': webserver_data + r'/GOA/9823.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9823.tab'},
-#     "9796": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9796.tab'},
-#     "39947": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/39947.tab'},
-#     "3880": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3880.tab'},
-#     "3055": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3055.tab'}}
-#4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
 ################################################################################

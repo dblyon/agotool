@@ -1,10 +1,14 @@
 from __future__ import print_function
 import operator, os, sys
 import pandas as pd
+
+# debug
+from collections import defaultdict
+
 # import numpy as np
 sys.path.append("./../metaprot/sql/")
 
-import query
+# import query
 import go_retriever
 import enrichment
 import userinput
@@ -13,7 +17,7 @@ import cluster_filter
 import tools
 
 
-def run(ui, connection, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
+def run(go_dag, goslim_dag, upk_dag, ui, connection, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
         o_or_u_or_both, backtracking, fold_enrichment_study2pop,
         p_value_uncorrected, p_value_mulitpletesting):
 
@@ -26,19 +30,34 @@ def run(ui, connection, gocat_upk, go_slim_or_basic, indent, multitest_method, a
 
     protein_ans_list = ui.get_all_unique_ANs()
     function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
-    assoc_dict = query.get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=limit_2_parent, basic_or_slim=go_slim_or_basic, backtracking=backtracking)
-
+    assoc_dict = tools.get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=limit_2_parent, basic_or_slim=go_slim_or_basic, backtracking=backtracking)
     # now convert assoc_dict into proteinGroups to consensus assoc_dict
     proteinGroups_list = ui.get_all_unique_proteinGroups()
     assoc_dict_pg = tools.convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list)
-    # function_2_NumANs_foreground, function_2_NumANs_background, foreground_n, background_n
-
-    print(assoc_dict_pg)
-    enrichment_study = enrichment.EnrichmentStudy(ui, multitest_method, alpha, o_or_u_or_both, assoc_dict_pg)
+    assoc_dict.update(assoc_dict_pg)
+    dag = pick_dag_from_function_type_and_basic_or_slim(function_type, go_slim_or_basic, go_dag, goslim_dag, upk_dag)
+    enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk)
     header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
     return header, results
 
-
+def pick_dag_from_function_type_and_basic_or_slim(function_type, go_slim_or_basic, go_dag, goslim_dag, upk_dag):
+    """
+    :param function_type:
+    :param go_slim_or_basic:
+    :param go_dag:
+    :param goslim_dag:
+    :param upk_dag:
+    :return:
+    """
+    if function_type == "GO":
+        if go_slim_or_basic == "slim":
+            return goslim_dag
+        else:
+            return go_dag
+    elif function_type == "UPK":
+        return upk_dag
+    else:
+        raise StopIteration
 
 def get_function_type__and__limit_2_parent(gocat_upk):
     """
@@ -101,7 +120,6 @@ def run_old(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal,
             if go_slim_or_basic == 'slim':
                 assoc_dict = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
         if compare_groups == "characterize_study":
-            # print(gocat_upk)
             gostudy = enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
             return gostudy.GOid2NumANs_dict_study, gostudy.go2ans_study_dict
         elif compare_groups == "method":
@@ -314,13 +332,13 @@ if __name__ == "__main__":
     # GOID2: 8 = 8 associations, and 1 number of ANs
     # GOID3: 3 = 3 associations, and 1 number of ANs
     ### Compare_groups (with GOenrichment_characterize_study_test_DF_v2.txt)
-    # study_count = counts total redundant (NON-unique) number of associations
+    # foreground_count = counts total redundant (NON-unique) number of associations
     # foreground_n = number of unique ANs * sample size
     # ABC123 * 8 (out of 10 samples in study), ABC123 * 5 (out of 10 in population)
     # BCD123 * 3 (out of 10 samples), BCD123 * 1 (out of 10 study)
     # ABC123 associated with GOID1 and GOID2
     # BCD123 associated with GOID1 and GOID3
-    #        study_count   foreground_n   pop_count   background_n
+    #        foreground_count   foreground_n   background_count   background_n
     # GOID1: 8+3           2*10      5+1         2*10
     # GOID2: 8             1*10      5           1*10
     # GOID3: 3             1*10      1           1*10
@@ -397,8 +415,8 @@ if __name__ == "__main__":
     # print(df.shape)
     # assert sorted(df.foreground_n.unique()) == [10, 20]
     # assert sorted(df.background_n.unique()) == [10, 20]
-    # assert sorted(df.pop_count.unique()) == [1, 5, 6]
-    # assert sorted(df.study_count.unique()) == [3, 8, 11]
+    # assert sorted(df.background_count.unique()) == [1, 5, 6]
+    # assert sorted(df.foreground_count.unique()) == [3, 8, 11]
     # df['ANs_count_study'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
     # cond = df["foreground_n"] == df["ANs_count_study"] * foreground_n
     # assert sum(cond) == len(cond) # all are True
@@ -406,10 +424,10 @@ if __name__ == "__main__":
     # cond = df["background_n"] == df["ANs_count"] * background_n
     # assert sum(cond) == len(cond)
     # df_characterize_study = dfx.copy()
-    # df_compare_groups = df[["id", "study_count"]]
-    # df_compare_groups.columns = ["GOid", "study_count"]
+    # df_compare_groups = df[["id", "foreground_count"]]
+    # df_compare_groups.columns = ["GOid", "foreground_count"]
     # dfm = pd.merge(df_compare_groups, df_characterize_study, how='outer')
-    # cond = dfm['study_count'] == dfm['Num_associations']
+    # cond = dfm['foreground_count'] == dfm['Num_associations']
     # assert sum(cond) == len(cond)
     # print("test2 ")
     # ### Test 3

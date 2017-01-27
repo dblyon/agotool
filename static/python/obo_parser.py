@@ -35,9 +35,8 @@ class OBOReader:
     parse obo file, usually the most updated can be downloaded from
     http://purl.obolibrary.org/obo/go/go-basic.obo
     """
-
-    def __init__(self, obo_file="go-basic.obo"):
-
+    def __init__(self, obo_file="go-basic.obo", upk=False):
+        self.upk = upk
         try:
             self._handle = open(obo_file)
         except:
@@ -47,7 +46,6 @@ class OBOReader:
             sys.exit(1)
 
     def __iter__(self):
-
         line = self._handle.readline()
         if not line.startswith(term_tag):
             read_until(self._handle, term_tag)
@@ -55,7 +53,6 @@ class OBOReader:
             yield self.__next__()
 
     def __next__(self):
-
         lines = []
         line = self._handle.readline()
         if not line or line.startswith(typedef_tag):
@@ -73,20 +70,34 @@ class OBOReader:
         rec = GOTerm()
         for line in lines:
             if line.startswith("id:"):
-                rec.id = after_colon(line)
+                id_ = after_colon(line)
+                if self.upk:
+                    id_ = self.replace_KW_with_UPK(id_)
+                # rec.id = after_colon(line)
+                rec.id = id_
             if line.startswith("alt_id:"):
-                rec.alt_ids.append(after_colon(line))
+                # rec.alt_ids.append(after_colon(line))
+                alt_id = after_colon(line)
+                if self.upk:
+                    alt_id = self.replace_KW_with_UPK(alt_id)
+                rec.alt_ids.append(alt_id)
             elif line.startswith("name:"):
                 rec.name = after_colon(line)
             elif line.startswith("namespace:"):
                 rec.namespace = after_colon(line)
             elif line.startswith("is_a:"):
-                rec._parents.append(after_colon(line).split()[0])
+                # rec._parents.append(after_colon(line).split()[0])
+                parents = after_colon(line).split()[0]
+                if self.upk:
+                    parents = self.replace_KW_with_UPK(parents)
+                rec._parents.append(parents)
             elif (line.startswith("is_obsolete:") and
                   after_colon(line) == "true"):
                 rec.is_obsolete = True
-
         return rec
+
+    def replace_KW_with_UPK(self, id_):
+        return id_.replace("KW-", "UPK:")
 
 
 class GOTerm:
@@ -106,10 +117,13 @@ class GOTerm:
         self.is_obsolete = False    # is_obsolete
         self.alt_ids = []           # alternative identifiers
 
-    def __str__(self):
-        obsolete = "obsolete" if self.is_obsolete else ""
-        return "%s\tlevel-%02d\tdepth-%02d\t%s [%s] %s" % (self.id, self.level, self.depth,
-                                               self.name, self.namespace, obsolete)
+    # def __str__(self):
+    #     # obsolete = "obsolete" if self.is_obsolete else ""
+    #     if self.is_obsolete:
+    #         obsolete = "obsolete"
+    #     else:
+    #         obsolete = ""
+    #     return "%s\tlevel-%02d\tdepth-%02d\t%s [%s] %s" % (self.id, self.level, self.depth, self.name, self.namespace, obsolete)
 
     def __repr__(self):
         return "GOTerm('%s')" % (self.id)
@@ -204,18 +218,24 @@ class GOTerm:
 
 class GODag(dict):
 
-    def __init__(self, obo_file="go-basic.obo"):
-        self.load_obo_file(obo_file)
+    def __init__(self, obo_file="go-basic.obo", upk=False):
+        """
+        :param obo_file: String
+        :param upk: Bool (flag to convert UniProtKeyword tag from 'KW-0673' to 'UPK:0673')
+        """
+        self.load_obo_file(obo_file, upk=upk)
 
-    def load_obo_file(self, obo_file):
-        # print("load obo file %s" % obo_file, file=sys.stderr) #!!! switch off or display somewhere specific at some point
-        obo_reader = OBOReader(obo_file)
+    def load_obo_file(self, obo_file, upk):
+        obo_reader = OBOReader(obo_file, upk=upk)
         for rec in obo_reader:
+            # print("#&*"*80)
+            # print(rec)
+            # print("#&*" * 80)
+            # raise StopIteration
             self[rec.id] = rec
             for alt in rec.alt_ids:
                 self[alt] = rec
         self.populate_terms()
-        # print(len(self), "nodes imported", file=sys.stderr) #!!! switch off or display somewhere specific at some point
 
     def populate_terms(self):
 
@@ -263,9 +283,7 @@ class GODag(dict):
         for go_id in ['GO:0008150', 'GO:0003674', 'GO:0005575']:
           self.write_hier(go_id, out, len_dash, max_depth, num_child, short_prt, None) 
 
-    def write_hier(self, GO_id, out=sys.stdout, 
-                       len_dash=1, max_depth=None, num_child=None, short_prt=False,
-                       include_only=None, go_marks=None):
+    def write_hier(self, GO_id, out=sys.stdout, len_dash=1, max_depth=None, num_child=None, short_prt=False, include_only=None, go_marks=None):
         """Write hierarchy for a GO Term."""
         gos_printed = set()
         self[GO_id].write_hier_rec(gos_printed, out, len_dash, max_depth, num_child, 
@@ -281,10 +299,10 @@ class GODag(dict):
         cnts = self.get_cnts_levels_depths_recs(set(self.values()))
         self._write_summary_cnts(cnts, out)
 
-    def write_summary_cnts_rec(self, out=sys.stdout):
-        """Write summary of level and depth counts for active GO Terms."""
-        cnts = self.get_cnts_levels_depths_recs(recs)
-        self._write_summary_cnts(cnts, out)
+    # def write_summary_cnts_rec(self, out=sys.stdout):
+    #     """Write summary of level and depth counts for active GO Terms."""
+    #     cnts = self.get_cnts_levels_depths_recs(recs)
+    #     self._write_summary_cnts(cnts, out)
 
     def _write_summary_cnts(self, cnts, out=sys.stdout):
         """Write summary of level and depth counts for active GO Terms."""
@@ -366,88 +384,88 @@ class GODag(dict):
                                      self[label].name.replace(",", r"\n"))
         return wrapped_label
 
-    def make_graph_pydot(self, recs, nodecolor,
-                     edgecolor, dpi,
-                     draw_parents=True, draw_children=True):
-        """draw AMIGO style network, lineage containing one query record."""
-        import pydot
-        G = pydot.Dot(graph_type='digraph', dpi="{}".format(dpi)) # Directed Graph
-        edgeset = set()
-        usr_ids = [rec.id for rec in recs]
-        for rec in recs:
-            if draw_parents:
-                edgeset.update(rec.get_all_parent_edges())
-            if draw_children:
-                edgeset.update(rec.get_all_child_edges())
+    # def make_graph_pydot(self, recs, nodecolor,
+    #                  edgecolor, dpi,
+    #                  draw_parents=True, draw_children=True):
+    #     """draw AMIGO style network, lineage containing one query record."""
+    #     import pydot
+    #     G = pydot.Dot(graph_type='digraph', dpi="{}".format(dpi)) # Directed Graph
+    #     edgeset = set()
+    #     usr_ids = [rec.id for rec in recs]
+    #     for rec in recs:
+    #         if draw_parents:
+    #             edgeset.update(rec.get_all_parent_edges())
+    #         if draw_children:
+    #             edgeset.update(rec.get_all_child_edges())
+    #
+    #     lw = self._label_wrap
+    #     rec_id_set = set([rec_id for endpts in edgeset for rec_id in endpts])
+    #     nodes = {str(ID):pydot.Node(
+    #           lw(ID).replace("GO:",""),  # Node name
+    #           shape="box",
+    #           style="rounded, filled",
+    #           # Highlight query terms in plum:
+    #           fillcolor="beige" if ID not in usr_ids else "plum",
+    #           color=nodecolor)
+    #             for ID in rec_id_set}
+    #
+    #     # add nodes explicitly via add_node
+    #     for rec_id, node in nodes.items():
+    #         G.add_node(node)
+    #
+    #     for src, target in edgeset:
+    #         # default layout in graphviz is top->bottom, so we invert
+    #         # the direction and plot using dir="back"
+    #         G.add_edge(pydot.Edge(nodes[target], nodes[src],
+    #           shape="normal",
+    #           color=edgecolor,
+    #           label="is_a",
+    #           dir="back"))
+    #
+    #     return G
 
-        lw = self._label_wrap
-        rec_id_set = set([rec_id for endpts in edgeset for rec_id in endpts])
-        nodes = {str(ID):pydot.Node(
-              lw(ID).replace("GO:",""),  # Node name
-              shape="box",
-              style="rounded, filled",
-              # Highlight query terms in plum:
-              fillcolor="beige" if ID not in usr_ids else "plum",
-              color=nodecolor)
-                for ID in rec_id_set}
-
-        # add nodes explicitly via add_node
-        for rec_id, node in nodes.items():
-            G.add_node(node)
-
-        for src, target in edgeset:
-            # default layout in graphviz is top->bottom, so we invert
-            # the direction and plot using dir="back"
-            G.add_edge(pydot.Edge(nodes[target], nodes[src],
-              shape="normal",
-              color=edgecolor,
-              label="is_a",
-              dir="back"))
-
-        return G
-
-    def make_graph_pygraphviz(self, recs, nodecolor,
-                     edgecolor, dpi,
-                     draw_parents=True, draw_children=True):
-        # draw AMIGO style network, lineage containing one query record
-        import pygraphviz as pgv
-
-        G = pgv.AGraph(name="GO tree")
-        edgeset = set()
-        for rec in recs:
-            if draw_parents:
-                edgeset.update(rec.get_all_parent_edges())
-            if draw_children:
-                edgeset.update(rec.get_all_child_edges())
-
-        edgeset = [(self._label_wrap(a), self._label_wrap(b))
-                   for (a, b) in edgeset]
-
-        # add nodes explicitly via add_node
-        # adding nodes implicitly via add_edge misses nodes
-        # without at least one edge
-        for rec in recs:
-            G.add_node(self._label_wrap(rec.id))
-
-        for src, target in edgeset:
-            # default layout in graphviz is top->bottom, so we invert
-            # the direction and plot using dir="back"
-            G.add_edge(target, src)
-
-        G.graph_attr.update(dpi="%d" % dpi)
-        G.node_attr.update(shape="box", style="rounded,filled",
-                           fillcolor="beige", color=nodecolor)
-        G.edge_attr.update(shape="normal", color=edgecolor,
-                           dir="back", label="is_a")
-        # highlight the query terms
-        for rec in recs:
-            try:
-                q = G.get_node(self._label_wrap(rec.id))
-                q.attr.update(fillcolor="plum")
-            except:
-                continue
-
-        return G
+    # def make_graph_pygraphviz(self, recs, nodecolor,
+    #                  edgecolor, dpi,
+    #                  draw_parents=True, draw_children=True):
+    #     # draw AMIGO style network, lineage containing one query record
+    #     import pygraphviz as pgv
+    #
+    #     G = pgv.AGraph(name="GO tree")
+    #     edgeset = set()
+    #     for rec in recs:
+    #         if draw_parents:
+    #             edgeset.update(rec.get_all_parent_edges())
+    #         if draw_children:
+    #             edgeset.update(rec.get_all_child_edges())
+    #
+    #     edgeset = [(self._label_wrap(a), self._label_wrap(b))
+    #                for (a, b) in edgeset]
+    #
+    #     # add nodes explicitly via add_node
+    #     # adding nodes implicitly via add_edge misses nodes
+    #     # without at least one edge
+    #     for rec in recs:
+    #         G.add_node(self._label_wrap(rec.id))
+    #
+    #     for src, target in edgeset:
+    #         # default layout in graphviz is top->bottom, so we invert
+    #         # the direction and plot using dir="back"
+    #         G.add_edge(target, src)
+    #
+    #     G.graph_attr.update(dpi="%d" % dpi)
+    #     G.node_attr.update(shape="box", style="rounded,filled",
+    #                        fillcolor="beige", color=nodecolor)
+    #     G.edge_attr.update(shape="normal", color=edgecolor,
+    #                        dir="back", label="is_a")
+    #     # highlight the query terms
+    #     for rec in recs:
+    #         try:
+    #             q = G.get_node(self._label_wrap(rec.id))
+    #             q.attr.update(fillcolor="plum")
+    #         except:
+    #             continue
+    #
+    #     return G
 
     def draw_lineage(self, recs, nodecolor="mediumseagreen",
                      edgecolor="lightslateblue", dpi=96,
