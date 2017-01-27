@@ -543,8 +543,8 @@ if __name__ == '__main__':
         # app.run('red', 5911, processes=4, debug=False)
         # app.run('localhost', 5000, processes=4, debug=False)
         # app.run(host='localhost',port=443, debug=False, ssl_context=context)
-        app.run('localhost', 5000, debug=True)
-        # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+        #app.run('localhost', 5000, debug=True)
+        app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 
 
 
