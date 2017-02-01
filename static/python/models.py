@@ -412,11 +412,8 @@ def dump_database(tables_2_dump_list, output_dir, fn_out):
 
 
 if __name__ == "__main__":
-    # db = Database(echo=True, testing=True, do_logging=False)
-    import db_config
-    connection = db_config.Connect(echo=True, testing=True, do_logging=False)
-    # create_all(db, for_agotool=True)
-    # create_all(connection, for_agotool=True)
+    connection = db_config.Connect(echo=True, testing=True, do_logging=False, volume_mountpoint="/tables")
+    create_all(connection, for_agotool=True)
 
     ### update these tables and their indices:
     # session = db.get_session()
@@ -426,130 +423,14 @@ if __name__ == "__main__":
     # drop_indices_ = True
     # create_indices = True
     # update_specific_tables(db, tables_2_update_list, drop_indices_, drop_tables_, fill_tables_copy_from_files, create_indices)
-    tables_2_dump_list = ["protein_2_function",
-                          "protein_secondary_2_primary_an",
-                          "ontologies",
-                          "protein_2_og",
-                          "og_2_function",
-                          "go_2_slim",
-                          "functions"]
-    output_dir = r"/Users/dblyon/Downloads"
-    fn_out = "metaprot_agotool.pgsql"
-    dump_database(tables_2_dump_list, output_dir, fn_out)
+    #tables_2_dump_list = ["protein_2_function",
+    #                      "protein_secondary_2_primary_an",
+    #                      "ontologies",
+    #                      "protein_2_og",
+    #                      "og_2_function",
+    #                      "go_2_slim",
+    #                      "functions"]
+    #output_dir = r"/Users/dblyon/Downloads"
+    #fn_out = "metaprot_agotool.pgsql"
+    #dump_database(tables_2_dump_list, output_dir, fn_out)
 
-######################################################################################################################################
-    # ToDo: monthly and yearly updates
-    # check if tables, column_name, index_name exists
-    # start_time = time.time()
-    # create_all()
-
-
-    # drop_tables_ = True
-    # drop_ALL_tables = True
-    # drop_indices_ = True
-    # fill_tables_copy_from_files = True
-    # create_indices = True
-    #
-    # ### connect to db
-    # engine = db_connect(echo=True)
-    # session = Session(bind=engine)
-    #
-    #
-    # # table_colName_tuples_for_indices = [("taxa", "taxid", "taxname", "rank")]
-    # table_2_indices_dict = get_table_2_indices_dict(table_colName_tuples_for_indices)
-    # ## drop tables and their indices
-    # for table_name in table_2_indices_dict:
-    #     indices_list = table_2_indices_dict[table_name]
-    #     if drop_indices_:
-    #         for index_name in indices_list:
-    #             drop_index(session, index_name)
-    #     if drop_tables_:
-    #         result = drop_table(session, table_name)
-    #     session.commit()
-    #
-    # if drop_ALL_tables:
-    #     Base.metadata.drop_all(engine)
-    #     vacuum(full=True)
-    #
-    # ### create tables
-    # create_tables(engine)
-    #
-    # #### fill tables, copy from file
-    # if fill_tables_copy_from_files:
-    #     for table_name in table_2_indices_dict:
-    #         file_name = tableName_2_fileName_dict[table_name]
-    #         result = copy_from_files(session, table_name, file_name)
-    #         session.commit()
-    #
-    # # indices_already_created_list = get_indices_already_created_list(engine)
-    #
-    # #### create indices
-    # if create_indices:
-    #     for table_name in table_2_indices_dict:
-    #         indices_list = table_2_indices_dict[table_name]
-    #         for index_name in indices_list:
-    #             # if index_name in indices_already_created_list:
-    #             #     continue
-    #             column_name = index_name.split("_")[-2]
-    #             result = create_index(session, table_name, column_name, index_name)
-    #             session.commit()
-    # analyze_db(session)
-    # session.commit()
-
-    # print_runtime(start_time)
-
-    #### permissions
-    # table_name = "protein_2_og"
-    # user_name = "guest"
-    # sql_statement = text("GRANT SELECT ON {} TO {}".format(table_name, user_name))
-    # result = session.execute(sql_statement)
-    # session.commit()
-
-    ## test a query
-    # print(session.query(Protein_2_og, Og_2_function).filter(Protein_2_og.an == "belk_c_455_5133").first()) # "AAB95649.1"
-
-
-# EXPLAIN
-# ANALYZE
-
-######################################################################################################################################
-# import sys
-# sys.path.append("./psql")
-# import models
-# import create_files_for_SQL
-# engine = models.db_connect(echo=True)
-# session = models.Session(bind=engine)
-# models.drop_index(session, "proteins_taxid_idx")
-# sql_statement = "ALTER TABLE proteins DROP COLUMN IF EXISTS taxid"
-# result = session.execute(sql_statement)
-# session.commit()
-# models.drop_index(session, "child_2_parent_child_idx")
-# models.drop_index(session, "child_2_parent_parent_idx")
-# result = session.execute("DROP TABLE IF EXISTS child_2_parent")
-# session.commit()
-######################################################################################################################################
-
-
-# def db_connect(echo=False):
-#     """
-#     Performs database connection using database settings
-#     Returns sqlalchemy engine instance
-#     """
-#     return create_engine(URL(**DATABASE), echo=echo)
-#
-# def get_session(): #echo=False
-#     ### connect to db
-#     # engine = db_connect(echo)
-#     # session = Session(bind=engine)
-#     # Session = sessionmaker(bind=engine)
-#     session = Session()
-#     return session
-#
-# def get_session_v2(echo=False):
-#     engine = db_connect(echo=echo)
-#     Session = sessionmaker(bind=engine)
-#     session = Session()
-#     return session
-#
-# engine = db_connect(echo=False)
-# Session = sessionmaker(bind=engine)

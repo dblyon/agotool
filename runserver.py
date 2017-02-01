@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 # standard library
-import os, logging, time
+import os, sys, logging, time, shutil
 # import StringIO
 # from subprocess import call
 
@@ -19,6 +19,7 @@ import markdown
 # local application
 import sys #, models
 sys.path.append('./static/python')
+# sys.path.append(r"/workdir/agotool/static/python")
 import userinput, run, obo_parser, cluster_filter, tools # go_retriever
 import db_config # copy of metaprot version
 
@@ -49,23 +50,27 @@ import db_config # copy of metaprot version
 ###############################################################################
 
 ECHO = False
-TESTING = False
+TESTING = False # which DB are we connecting to ('metaprot' or 'test')
 DO_LOGGING = False
-connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
+debug = False # do not attempt connection to PostgreSQL
+volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
+if not debug:
+    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint)
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
-app.config['SQLALCHEMY_ECHO'] = False
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+if not debug:
+    app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
+    app.config['SQLALCHEMY_ECHO'] = False
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['SQLALCHEMY_RECORD_QUERIES'] = False
 
 ###################################
 # Wrap the Api with swagger.docs. It is a thin wrapper around the Api class that adds some swagger smarts
 # api = swagger.docs(Api(app), apiVersion='0.1')
 ###################################
-
-db = flask_sqlalchemy.SQLAlchemy(app)
-db.Model.metadata.reflect(db.engine)
+if not debug:
+    db = flask_sqlalchemy.SQLAlchemy(app)
+    db.Model.metadata.reflect(db.engine)
 
 webserver_data = os.getcwd() + '/static/data'
 EXAMPLE_FOLDER = webserver_data + '/exampledata'
@@ -572,16 +577,17 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 
 if __name__ == "__main__":
-    # tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
+#     tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
     # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
-    if profiling:
-        app.run('localhost', 5000, debug=True)
-    else:
-        app.run('localhost', 5000, debug=True)
+#     if profiling:
+#         app.run('localhost', 5000, debug=True)
+#     else:
+#         app.run('localhost', 5000, debug=True)
+#     app.run(host='0.0.0.0', debug=True)
 ################################################################################
         ### agptool
-    # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################

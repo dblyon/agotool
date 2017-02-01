@@ -12,10 +12,10 @@ class Connect(object):
     DATABASE = {"drivername": "postgres",
                 "host": "localhost",
                 "port": "5432",
-                "username": "dblyon", # guest
+                "username": "guest",
                 "password": ""}
 
-    def __init__(self, echo, testing, do_logging):
+    def __init__(self, echo, testing, do_logging, volume_mountpoint=None):
         """
         :param echo:
         :param testing:
@@ -24,6 +24,7 @@ class Connect(object):
         self.echo = echo
         self.testing = testing
         self.do_logging = do_logging
+        self.volume_mountpoint = volume_mountpoint
         self.DATABASE = self.get_DATABASE_config()
         self.engine = self.db_connect(self.DATABASE, self.echo)
         self.Session = sessionmaker(bind=self.engine)
@@ -64,12 +65,17 @@ class Connect(object):
             self.DATABASE["database"] = "metaprot"
         return self.DATABASE
 
-    @staticmethod
-    def get_TABLES_DIR(testing):
+    def get_TABLES_DIR(self, testing):
         if testing:
-            TABLES_DIR = r"/Users/dblyon/modules/cpr/metaprot/sql/tables/test"
+            if self.volume_mountpoint is None:
+                TABLES_DIR = r"/Users/dblyon/modules/cpr/metaprot/sql/tables/test"
+            else:
+                TABLES_DIR = os.path.join(self.volume_mountpoint, "test")
         else:
-            TABLES_DIR = r"/Users/dblyon/modules/cpr/metaprot/sql/tables"
+            if self.volume_mountpoint is None:
+                TABLES_DIR = r"/Users/dblyon/modules/cpr/metaprot/sql/tables"
+            else:
+                TABLES_DIR = self.volume_mountpoint
         return TABLES_DIR
 
     @staticmethod
