@@ -3,18 +3,19 @@ import operator, os, sys
 import pandas as pd
 
 # debug
-from collections import defaultdict
+# from collections import defaultdict
 
 # import numpy as np
 sys.path.append("./../metaprot/sql/")
 
 # import query
-import go_retriever
+# import go_retriever
 import enrichment
-import userinput
-import obo_parser
-import cluster_filter
 import tools
+# import userinput
+# import obo_parser
+# import cluster_filter
+
 
 
 def run(go_dag, goslim_dag, upk_dag, ui, connection, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
@@ -30,7 +31,9 @@ def run(go_dag, goslim_dag, upk_dag, ui, connection, gocat_upk, go_slim_or_basic
 
     protein_ans_list = ui.get_all_unique_ANs()
     function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
+    # print(gocat_upk, function_type, limit_2_parent)
     assoc_dict = tools.get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=limit_2_parent, basic_or_slim=go_slim_or_basic, backtracking=backtracking)
+    # print(assoc_dict)
     # now convert assoc_dict into proteinGroups to consensus assoc_dict
     proteinGroups_list = ui.get_all_unique_proteinGroups()
     assoc_dict_pg = tools.convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list)
@@ -81,193 +84,194 @@ def write2file(fn, tsv):
     with open(fn, 'w') as f:
         f.write(tsv)
 
-def run_old(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal,
-            organism, gocat_upk, go_slim_or_basic, indent,
-        multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
-        go_dag, goslim_dag, pgoa, upkp):
-
-    col_sample_an = "sample_an"
-    col_background_an = 'population_an'
-    col_background_int = 'population_int'
-
-    randomSample = False
-
-    if fold_enrichment_study2pop == 0:
-        fold_enrichment_study2pop = None
-    if p_value_mulitpletesting == 0:
-        p_value_mulitpletesting = None
-    if p_value_uncorrected == 0:
-        p_value_uncorrected = None
-
-    if compare_groups:
-        ui = userinput.UserInput_compare_groups(proteinGroup, userinput_fn, study_n, pop_n)
-        ans_list = ui.get_all_unique_ans()
-    elif abcorr:
-        ui = userinput.Userinput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
-    else:
-        ui = userinput.Userinput_noAbCorr(userinput_fn, num_bins, col_sample_an, col_background_an, decimal)
-
-    ### gocat_upk is one of: 'MF', 'BP', 'CP', "all_GO", "UPK"
-    if gocat_upk == "UPK":
-        assoc_dict = upkp.get_association_dict_from_organims(organism)
-        gostudy = enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
-        header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
-        return header, results
-    else:
-        assoc_dict = pgoa.get_association_dict(go_parent=gocat_upk, obo_dag=go_dag, ans_list=ans_list)
-        if not gocat_upk == "KEGG":
-            if go_slim_or_basic == 'slim':
-                assoc_dict = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
-        if compare_groups == "characterize_study":
-            gostudy = enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
-            return gostudy.GOid2NumANs_dict_study, gostudy.go2ans_study_dict
-        elif compare_groups == "method":
-            gostudy = enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
-        header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
-        return header, results
-
-
-class get_startup_objects(object):
-    ### Jan is so smart and nice, we love callable Classes
-    def __init__(self):
-        self.args = self.__get_startup_objects()
-
-    def __call__(self):
-        if self.args is not False:
-            return self.args
-        else:
-            self.args = self.__get_startup_objects()
-            return self.args
-
-    def __get_startup_objects(self):
-        # setting up objects
-        decimal = '.'
-        organism = None
-        gocat_upk = 'all_GO' # "all_GO", "BP", "MF", "CP", "UPK", "KEGG"
-        indent = False
-        multitest_method = 'benjamini_hochberg'
-        alpha = 0.05
-        o_or_u_or_both = 'both'
-        abcorr = False
-        num_bins = 100
-        backtracking = True
-        fold_enrichment_study2pop = 0.0
-        p_value_uncorrected = 0.0
-        p_value_mulitpletesting = 0.0
-        fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
-        go_dag = obo_parser.GODag(obo_file=fn_obo)
-        fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/goslim_generic.obo'
-        goslim_dag = obo_parser.GODag(obo_file=fn_obo)
-        upkp = go_retriever.UniProtKeywordsParser()
-        pgoa = go_retriever.Parser_GO_annotations()
-        pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
-        pgoa.fn_sqlite_kegg = r"/Users/dblyon/modules/cpr/metaprot/HOMD_AN2KEGGname.sqlite"
-        filter_ = cluster_filter.Filter(go_dag)
-        return go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_
+# def run_old(proteinGroup, compare_groups, userinput_fn, study_n, pop_n, decimal,
+#             organism, gocat_upk, go_slim_or_basic, indent,
+#         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+#         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+#         go_dag, goslim_dag, pgoa, upkp):
+#
+#     col_sample_an = "sample_an"
+#     col_background_an = 'population_an'
+#     col_background_int = 'population_int'
+#
+#     randomSample = False
+#
+#     if fold_enrichment_study2pop == 0:
+#         fold_enrichment_study2pop = None
+#     if p_value_mulitpletesting == 0:
+#         p_value_mulitpletesting = None
+#     if p_value_uncorrected == 0:
+#         p_value_uncorrected = None
+#
+#     if compare_groups:
+#         ui = userinput.UserInput_compare_groups(proteinGroup, userinput_fn, study_n, pop_n)
+#         ans_list = ui.get_all_unique_ans()
+#     elif abcorr:
+#         ui = userinput.Userinput(userinput_fn, num_bins, col_sample_an, col_background_an, col_background_int, decimal)
+#     else:
+#         ui = userinput.Userinput_noAbCorr(userinput_fn, num_bins, col_sample_an, col_background_an, decimal)
+#
+#     ### gocat_upk is one of: 'MF', 'BP', 'CP', "all_GO", "UPK"
+#     if gocat_upk == "UPK":
+#         assoc_dict = upkp.get_association_dict_from_organims(organism)
+#         gostudy = enrichment.GOEnrichmentStudy_UPK(ui, assoc_dict, alpha, randomSample, abcorr, o_or_u_or_both, multitest_method)
+#         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected)
+#         return header, results
+#     else:
+#         assoc_dict = pgoa.get_association_dict(go_parent=gocat_upk, obo_dag=go_dag, ans_list=ans_list)
+#         if not gocat_upk == "KEGG":
+#             if go_slim_or_basic == 'slim':
+#                 assoc_dict = go_retriever.gobasic2slims(assoc_dict, go_dag, goslim_dag, backtracking)
+#         if compare_groups == "characterize_study":
+#             gostudy = enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
+#             return gostudy.GOid2NumANs_dict_study, gostudy.go2ans_study_dict
+#         elif compare_groups == "method":
+#             gostudy = enrichment.GOEnrichmentStudy(proteinGroup, compare_groups, ui, assoc_dict, go_dag, alpha, backtracking, randomSample, abcorr, o_or_u_or_both, multitest_method, gocat_upk)
+#         header, results = gostudy.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
+#         return header, results
 
 
-def GO_compare_groups(userinput_fn, go_slim_or_basic, proteinGroup, *args):
-    go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = args
-    study_n = 10
-    pop_n = 10
-    compare_groups = "method"  # "characterize_study" or "method"
-    header, results = run(proteinGroup, compare_groups, userinput_fn, study_n,
-        pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
-        multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
-        go_dag, goslim_dag, pgoa, upkp)
-    if gocat_upk == "KEGG":
-        fn_out = userinput_fn.replace(".txt", "_compare_{}.txt".format(gocat_upk))
-    else:
-        fn_out = userinput_fn.replace(".txt", "_compare_{}.txt".format(go_slim_or_basic))
-    if proteinGroup:
-        fn_out = fn_out.replace(".txt","_protGr.txt")
-    tsv = (u'%s\n%s\n' % (header, u'\n'.join(results)))
-    write2file(fn_out, tsv)
-    df = pd.read_csv(fn_out, sep='\t')
-    if not gocat_upk == "KEGG": # filter results
-        df['level'] = df["id"].apply(go_retriever.get_level, args=(go_dag, ))
-    df['ANs_count'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
-    print(fn_out)
-    df.to_csv(fn_out, sep='\t', header=True, index=False)
-    if not gocat_upk == "KEGG": # filter results
-        fn_out_filtered = fn_out.replace('.txt', "_fltr.txt")
-        results_filtered = filter_.filter_term_lineage(header, results, indent, sort_on='p_uncorrected')
-        tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
-        print(fn_out_filtered)
-        write2file(fn_out_filtered, tsv)
+# class get_startup_objects(object):
+#     ### Jan is so smart and nice, we love callable Classes
+#     def __init__(self):
+#         self.args = self.__get_startup_objects()
+#
+#     def __call__(self):
+#         if self.args is not False:
+#             return self.args
+#         else:
+#             self.args = self.__get_startup_objects()
+#             return self.args
+#
+#     def __get_startup_objects(self):
+#         # setting up objects
+#         decimal = '.'
+#         organism = None
+#         gocat_upk = 'all_GO' # "all_GO", "BP", "MF", "CP", "UPK", "KEGG"
+#         indent = False
+#         multitest_method = 'benjamini_hochberg'
+#         alpha = 0.05
+#         o_or_u_or_both = 'both'
+#         abcorr = False
+#         num_bins = 100
+#         backtracking = True
+#         fold_enrichment_study2pop = 0.0
+#         p_value_uncorrected = 0.0
+#         p_value_mulitpletesting = 0.0
+#         fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/go-basic.obo'
+#         go_dag = obo_parser.GODag(obo_file=fn_obo)
+#         fn_obo = r'/Users/dblyon/modules/cpr/agotool/static/data/OBO/goslim_generic.obo'
+#         goslim_dag = obo_parser.GODag(obo_file=fn_obo)
+#         upkp = go_retriever.UniProtKeywordsParser()
+#         pgoa = go_retriever.Parser_GO_annotations()
+#         pgoa.fn_sqlite = r'/Users/dblyon/modules/cpr/agotool/static/python/AN2GO_UniProt_HOMD.sqlite'
+#         pgoa.fn_sqlite_kegg = r"/Users/dblyon/modules/cpr/metaprot/HOMD_AN2KEGGname.sqlite"
+#         filter_ = cluster_filter.Filter(go_dag)
+#         return go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_
 
 
-def GO_characterize_study(userinput_fn, go_slim_or_basic, proteinGroup, *args):
-    go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = args
-    backtracking = True
-    if gocat_upk == "KEGG":
-        backtracking = False
-    study_n = 10
-    pop_n = 10
-    compare_groups = "characterize_study"
-    term_study, go2ans_study_dict = run(proteinGroup, compare_groups, userinput_fn, study_n,
-        pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
-        multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-        fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
-        go_dag, goslim_dag, pgoa, upkp)
-    basename_split = os.path.basename(userinput_fn).split("_")
-    basename = "_".join([basename_split[0], basename_split[3]])
-    fn_out = os.path.join(os.path.dirname(userinput_fn), basename)
-    if proteinGroup:
-        fn_out = fn_out.replace(".txt","_protGr.txt")
-    sorted_term_study = sorted(term_study.items(), key=operator.itemgetter(1))[::-1]
-    if not gocat_upk == "KEGG":
-        fn_out = fn_out.replace(".txt", "_characterize_{}.txt".format(go_slim_or_basic))
-        dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
-        dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag,))
-        dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag,))
-    else:
-        fn_out = fn_out.replace(".txt", "_characterize_{}.txt".format(gocat_upk))
-        dfx = pd.DataFrame(sorted_term_study, columns=["KEGG", "Num_associations"])
-    print(fn_out)
-    dfx.to_csv(fn_out, sep='\t', header=True, index=False)
+# def GO_compare_groups(userinput_fn, go_slim_or_basic, proteinGroup, *args):
+#     go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = args
+#     study_n = 10
+#     pop_n = 10
+#     compare_groups = "method"  # "characterize_study" or "method"
+#     header, results = run(proteinGroup, compare_groups, userinput_fn, study_n,
+#         pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+#         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+#         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+#         go_dag, goslim_dag, pgoa, upkp)
+#     if gocat_upk == "KEGG":
+#         fn_out = userinput_fn.replace(".txt", "_compare_{}.txt".format(gocat_upk))
+#     else:
+#         fn_out = userinput_fn.replace(".txt", "_compare_{}.txt".format(go_slim_or_basic))
+#     if proteinGroup:
+#         fn_out = fn_out.replace(".txt","_protGr.txt")
+#     tsv = (u'%s\n%s\n' % (header, u'\n'.join(results)))
+#     write2file(fn_out, tsv)
+#     df = pd.read_csv(fn_out, sep='\t')
+#     if not gocat_upk == "KEGG": # filter results
+#         df['level'] = df["id"].apply(go_retriever.get_level, args=(go_dag, ))
+#     df['ANs_count'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
+#     print(fn_out)
+#     df.to_csv(fn_out, sep='\t', header=True, index=False)
+#     if not gocat_upk == "KEGG": # filter results
+#         fn_out_filtered = fn_out.replace('.txt', "_fltr.txt")
+#         results_filtered = filter_.filter_term_lineage(header, results, indent, sort_on='p_uncorrected')
+#         tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
+#         print(fn_out_filtered)
+#         write2file(fn_out_filtered, tsv)
+
+
+# def GO_characterize_study(userinput_fn, go_slim_or_basic, proteinGroup, *args):
+#     go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = args
+#     backtracking = True
+#     if gocat_upk == "KEGG":
+#         backtracking = False
+#     study_n = 10
+#     pop_n = 10
+#     compare_groups = "characterize_study"
+#     term_study, go2ans_study_dict = run(proteinGroup, compare_groups, userinput_fn, study_n,
+#         pop_n, decimal, organism, gocat_upk, go_slim_or_basic, indent,
+#         multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+#         fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+#         go_dag, goslim_dag, pgoa, upkp)
+#     basename_split = os.path.basename(userinput_fn).split("_")
+#     basename = "_".join([basename_split[0], basename_split[3]])
+#     fn_out = os.path.join(os.path.dirname(userinput_fn), basename)
+#     if proteinGroup:
+#         fn_out = fn_out.replace(".txt","_protGr.txt")
+#     sorted_term_study = sorted(term_study.items(), key=operator.itemgetter(1))[::-1]
+#     if not gocat_upk == "KEGG":
+#         fn_out = fn_out.replace(".txt", "_characterize_{}.txt".format(go_slim_or_basic))
+#         dfx = pd.DataFrame(sorted_term_study, columns=["GOid", "Num_associations"])
+#         dfx['description'] = dfx["GOid"].apply(go_retriever.get_description, args=(go_dag,))
+#         dfx['level'] = dfx["GOid"].apply(go_retriever.get_level, args=(go_dag,))
+#     else:
+#         fn_out = fn_out.replace(".txt", "_characterize_{}.txt".format(gocat_upk))
+#         dfx = pd.DataFrame(sorted_term_study, columns=["KEGG", "Num_associations"])
+#     print(fn_out)
+#     dfx.to_csv(fn_out, sep='\t', header=True, index=False)
 
 
 if __name__ == "__main__":
+    pass
     ###  run GO enrichemnt and characterization
-    list_of_tuple_combinations = [('Perio', 'Caries'), ('Perio', 'Healthy'), ('Caries', 'Healthy'), ('Healthy', 'Caries')]
-    get_startup_objects = get_startup_objects()
-    go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = get_startup_objects()
-    go_slim_or_basic = "slim"
-    proteinGroup_list = [True] #, False] ##True]#, False]
-    dir_ = r"/Users/dblyon/CloudStation/CPR/Ancient_Proteins_Project/Daniel/txt_20160429_redFasta_FDR_matchBR/Intensity_Classic/"
-    Homo_Bac_Other_list = ["Bacteria"]#, 'Homo']
-    rank = 'genus'
-    userinput_fn_list = []
-
-    compare_groups = "characterize_study"
-    study_n = 10
-    pop_n = 10
-    gocat_upk = "KEGG"
-    backtracking = False
-
-
-    for Homo_Bac_Other in Homo_Bac_Other_list:
-        for combi in list_of_tuple_combinations:
-            groupA, groupB = combi
-            fn_out = "{}_vs_{}_{}{}.txt".format(groupA, groupB, Homo_Bac_Other, rank)
-            fn_out = os.path.join(dir_, fn_out)
-            userinput_fn_list.append(fn_out)
-    for proteinGroup in proteinGroup_list:
-        for userinput_fn in userinput_fn_list:
-            GO_compare_groups(userinput_fn, go_slim_or_basic, proteinGroup,
-                go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent,
-                multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-                fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
-                filter_)
-            # print(userinput_fn)
-            GO_characterize_study(userinput_fn, go_slim_or_basic, proteinGroup,
-                go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent,
-                multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
-                fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
-                filter_)
+    # list_of_tuple_combinations = [('Perio', 'Caries'), ('Perio', 'Healthy'), ('Caries', 'Healthy'), ('Healthy', 'Caries')]
+    # get_startup_objects = get_startup_objects()
+    # go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent, multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking, fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting, filter_ = get_startup_objects()
+    # go_slim_or_basic = "slim"
+    # proteinGroup_list = [True] #, False] ##True]#, False]
+    # dir_ = r"/Users/dblyon/CloudStation/CPR/Ancient_Proteins_Project/Daniel/txt_20160429_redFasta_FDR_matchBR/Intensity_Classic/"
+    # Homo_Bac_Other_list = ["Bacteria"]#, 'Homo']
+    # rank = 'genus'
+    # userinput_fn_list = []
+    #
+    # compare_groups = "characterize_study"
+    # study_n = 10
+    # pop_n = 10
+    # gocat_upk = "KEGG"
+    # backtracking = False
+    #
+    #
+    # for Homo_Bac_Other in Homo_Bac_Other_list:
+    #     for combi in list_of_tuple_combinations:
+    #         groupA, groupB = combi
+    #         fn_out = "{}_vs_{}_{}{}.txt".format(groupA, groupB, Homo_Bac_Other, rank)
+    #         fn_out = os.path.join(dir_, fn_out)
+    #         userinput_fn_list.append(fn_out)
+    # for proteinGroup in proteinGroup_list:
+    #     for userinput_fn in userinput_fn_list:
+    #         GO_compare_groups(userinput_fn, go_slim_or_basic, proteinGroup,
+    #             go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent,
+    #             multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+    #             fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+    #             filter_)
+    #         # print(userinput_fn)
+    #         GO_characterize_study(userinput_fn, go_slim_or_basic, proteinGroup,
+    #             go_dag, goslim_dag, upkp, pgoa, decimal, organism, gocat_upk, indent,
+    #             multitest_method, alpha, o_or_u_or_both, abcorr, num_bins, backtracking,
+    #             fold_enrichment_study2pop, p_value_uncorrected, p_value_mulitpletesting,
+    #             filter_)
 
 
 

@@ -2,18 +2,21 @@ import os, time
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import MetaData
+metadata = MetaData()
+Base = declarative_base(metadata=metadata)
 
 
 class Connect(object):
     DATABASE = {"drivername": "postgres",
                 "host": "localhost",
                 "port": "5432",
-                "username": "dblyon",
+                "username": "dblyon", # guest
                 "password": ""}
 
     def __init__(self, echo, testing, do_logging):
         """
-
         :param echo:
         :param testing:
         :param do_logging: Bool or String (False: no logging; True: debug; Sting: 'debug' or 'warning')
@@ -21,13 +24,21 @@ class Connect(object):
         self.echo = echo
         self.testing = testing
         self.do_logging = do_logging
-        self.DATABASE = self.get_DATABASE_config(self.testing)
+        self.DATABASE = self.get_DATABASE_config()
         self.engine = self.db_connect(self.DATABASE, self.echo)
         self.Session = sessionmaker(bind=self.engine)
         self.TABLES_DIR = self.get_TABLES_DIR(self.testing)
         self.FN_LOG = self.get_FN_LOG(self.testing)
         if self.do_logging:
             self.log_stuff(self.FN_LOG, self.do_logging)
+
+        self.DATABASE, self.TABLES_DIR, self.FN_LOG = self.get_constants()
+        Base.metadata.reflect(self.engine)
+        file_name_list = [fn for fn in os.listdir(self.TABLES_DIR) if fn.endswith("_table.txt")]
+        self.table_name_list = [fn.lower().replace("_table.txt", "") for fn in file_name_list]
+        self.file_name_list = [os.path.join(self.TABLES_DIR, fn) for fn in file_name_list]
+        ### table_name, column_name_1, column_name_2, ... --> index = tableName_colName_idx
+        self.tableName_2_fileName_dict = dict(zip(self.table_name_list, self.file_name_list))
 
     @staticmethod
     def db_connect(DATABASE, echo):
@@ -46,8 +57,8 @@ class Connect(object):
         session = self.Session()
         return session
 
-    def get_DATABASE_config(self, testing):
-        if testing:
+    def get_DATABASE_config(self):
+        if self.testing:
             self.DATABASE["database"] = "test"
         else:
             self.DATABASE["database"] = "metaprot"

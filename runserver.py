@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 # standard library
-import os, sys, logging, time, shutil
+import os, logging, time
 # import StringIO
 # from subprocess import call
 
@@ -572,7 +572,7 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 
 if __name__ == "__main__":
-    tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
+    # tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
@@ -583,5 +583,5 @@ if __name__ == "__main__":
         app.run('localhost', 5000, debug=True)
 ################################################################################
         ### agptool
-        # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+    # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################

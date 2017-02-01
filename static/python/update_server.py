@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import os, sys, zlib
+import os, sys, zlib, shutil
 import requests, urllib, time
 from subprocess import call
 import go_retriever
@@ -21,24 +21,27 @@ url_eggNOG = r"http://eggnogdb.embl.de/download/latest/all_OG_annotations.tsv.gz
 url_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 
 ORGANISMS = {
-    3702: 'arabidopsis',
-    9031: 'chicken',
-    9913: 'cow', # 9913, Bos taurus
-    44689: 'dicty', # 44689, Dictyostelium discoideum
-    9615: 'dog', # 9615, Canis lupus familiaris
-    7227: 'fly',
-    9606: 'human',
-    10090: 'mouse',
-    9823: 'pig',
-    10116: 'rat',
-    6239: 'worm', # 6239, Caenorhabditis elegans
-    559292: 'yeast', # 559292 instead of 4932
-    284812: 'fission_yeast',
-    7955: 'zebrafish',
-    3055: 'chlamy',
-    9796: 'horse',
-    3880: 'medicago',
-    39947: 'rice'}
+    # 3702: 'arabidopsis',
+    # 9031: 'chicken',
+    # 9913: 'cow', # 9913, Bos taurus
+    # 44689: 'dicty', # 44689, Dictyostelium discoideum
+    # 9615: 'dog', # 9615, Canis lupus familiaris
+    # 7227: 'fly',
+    # 9606: 'human',
+    # 10090: 'mouse',
+    # 9823: 'pig',
+    # 10116: 'rat',
+    # 6239: 'worm', # 6239, Caenorhabditis elegans
+    # 559292: 'yeast', # 559292 instead of 4932
+    # 284812: 'fission_yeast',
+    # 7955: 'zebrafish',
+    # 3055: 'chlamy',
+    # 9796: 'horse',
+    # 3880: 'medicago',
+    # 39947: 'rice',
+    562: 'ecoli'}
+# http://www.uniprot.org/uniprot/?columns=id,keywords&format=tab instead of individual ones
+
 
 # update for Vytus
 #  4896 [NCBI highest level], Schizosaccharomyces pombe, 284812 UniProt
@@ -224,6 +227,14 @@ def parse_files_and_pickle(taxid_not_retrieved_list):
     fn_p = get_fn_UniProtKeywordsParser()
     upkp.pickle(fn_p)
 
+def copy_essential_modules_and_scripts_from_metaprotRepo_2_agotoolRepo():
+    directory = r"/Users/dblyon/modules/cpr/metaprot/sql"
+    fn_list = ["models.py", "db_config.py", "create_db.sh"]
+    output_directory = r"/Users/dblyon/modules/cpr/agotool/static/python"
+    for fn in fn_list:
+        source = os.path.join(directory, fn)
+        destination = os.path.join(output_directory, fn)
+        shutil.copyfile(source, destination)
 
 if __name__ == '__main__':
     # .gaf files are GOA (Gene Ontology Associations)
@@ -231,12 +242,12 @@ if __name__ == '__main__':
     # .obo files are Ontology hierarchy
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
     print("Current date & time " + time.strftime("%c"))
-    create_directories_if_not_exist()
+    # create_directories_if_not_exist()
     ### every month
     # taxid_not_retrieved_list = download_go_annotations()
     # download_go_annotations_all_unfiltered()
-    download_go_basic_slim_obo()
-    download_UniProt_Keywords_obo()
+    # download_go_basic_slim_obo()
+    # download_UniProt_Keywords_obo()
     # download_UniProt_Keywords()
 
     ### NOT every month
@@ -245,7 +256,8 @@ if __name__ == '__main__':
 
     # taxid_not_retrieved_list = ['9796', '39947', '3880', '3055']
     # parse_files_and_pickle(taxid_not_retrieved_list) #=['9796', '39947', '3880', '3055'])
-    cleanup_sessions()
+    # cleanup_sessions()
+    copy_essential_modules_and_scripts_from_metaprotRepo_2_agotoolRepo()
     print("finished update", '\n', '-' * 50, '\n')
 
 
