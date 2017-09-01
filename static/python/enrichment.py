@@ -85,6 +85,41 @@ class EnrichmentStudy(object):
             b = foreground_n - foreground_count
             c = background_count
             d = background_n - background_count
+
+            # Debug START
+            # if a < 0 or b < 0 or c < 0 or d < 0:
+            #     print("#"*80)
+            #     print(a, b, c, d)
+            #     print(association)
+            #     print(foreground_count, background_count)
+            #     print(foreground_n, background_n)
+            #     print("#" * 80)
+                # continue
+            # ################################################################################
+            # (250, 0, 252, -2)
+            # UPK:1185
+            # (250, 252)
+            # (250, 250)
+            # ################################################################################
+            # ################################################################################
+            # (250, 0, 252, -2)
+            # UPK:01
+            # 81
+            # (250, 252)
+            # (250, 250)
+            # ################################################################################
+            # ################################################################################
+            # (250, 0, 252, -2)
+            # UPK:9990
+            # (250, 252)
+            # (250, 250)
+            # ################################################################################
+            # problem: background_count > background_n
+            ### catch exception due to rounding errors. Problem if: background_count > background_n
+            if d < 0:
+                d = 0
+            # Debug STOP
+
             if self.o_or_u_or_both == 'underrepresented':
                 # purified or underrepresented --> left_tail or less
                 try:
