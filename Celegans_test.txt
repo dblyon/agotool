@@ -1,0 +1,4 @@
+population_an	sample_an
+O16850	O16850
+Q968Y9	O17583
+O62305
