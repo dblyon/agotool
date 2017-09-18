@@ -58,3 +58,5 @@ ssl*
 *.upk
 *.obo
 
+
+*log_psql_testing.txt
