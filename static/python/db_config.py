@@ -15,7 +15,6 @@ table_colName_tuples_for_indices_for_agotool = [("protein_2_function", "an", "fu
                                                 ("go_2_slim", "an"),
                                                 ("functions", "an", "type")]
 
-
 class Connect(object):
     DATABASE = {"drivername": "postgres",
                 "host": "localhost",
@@ -64,11 +63,11 @@ class Connect(object):
         engine = create_engine('postgresql+psycopg2://scott:tiger@localhost/mydatabase')
         """
         # return create_engine(URL(**DATABASE), echo=echo)
-        print(self.get_URL())
+        # print(self.get_URL())
         return create_engine(self.get_URL(), echo=echo)
 
     def get_URL(self):
-        #return r"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}".format(**self.DATABASE)
+        # return r"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}".format(**self.DATABASE)
         return r"postgresql+psycopg2:///{}".format(self.DATABASE['database'])
         # return r"postgresql+psycopg2://{}/{}".format(self.DATABASE['username'], self.DATABASE['database'])
 
@@ -128,4 +127,3 @@ if __name__ == "__main__":
     print(c.DATABASE)
     print(c.get_URL())
     # ENV_DB_CONNECTION_DSN = postgresql+psycopg2:///mydatabase
-

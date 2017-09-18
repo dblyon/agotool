@@ -144,5 +144,7 @@ def BenjaminiHochberg(pvals, num_total_tests):
 
 
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+    # import doctest
+    # doctest.testmod()
+    # print(HolmBonferroni([0.01, 0.01, 0.03, 0.05, 0.005], a=0.05).corrected_pvals)
+    print(HolmBonferroni([0.01, 0.05, 0.1], a=0.05).corrected_pvals)

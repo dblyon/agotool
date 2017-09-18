@@ -21,24 +21,24 @@ url_eggNOG = r"http://eggnogdb.embl.de/download/latest/all_OG_annotations.tsv.gz
 url_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 
 ORGANISMS = {
-    # 3702: 'arabidopsis',
-    # 9031: 'chicken',
-    # 9913: 'cow', # 9913, Bos taurus
-    # 44689: 'dicty', # 44689, Dictyostelium discoideum
-    # 9615: 'dog', # 9615, Canis lupus familiaris
-    # 7227: 'fly',
-    # 9606: 'human',
-    # 10090: 'mouse',
-    # 9823: 'pig',
-    # 10116: 'rat',
-    # 6239: 'worm', # 6239, Caenorhabditis elegans
-    # 559292: 'yeast', # 559292 instead of 4932
-    # 284812: 'fission_yeast',
-    # 7955: 'zebrafish',
-    # 3055: 'chlamy',
-    # 9796: 'horse',
-    # 3880: 'medicago',
-    # 39947: 'rice',
+    3702: 'arabidopsis',
+    9031: 'chicken',
+    9913: 'cow', # 9913, Bos taurus
+    44689: 'dicty', # 44689, Dictyostelium discoideum
+    9615: 'dog', # 9615, Canis lupus familiaris
+    7227: 'fly',
+    9606: 'human',
+    10090: 'mouse',
+    9823: 'pig',
+    10116: 'rat',
+    6239: 'worm', # 6239, Caenorhabditis elegans
+    559292: 'yeast', # 559292 instead of 4932
+    284812: 'fission_yeast',
+    7955: 'zebrafish',
+    3055: 'chlamy',
+    9796: 'horse',
+    3880: 'medicago',
+    39947: 'rice',
     562: 'ecoli'}
 # http://www.uniprot.org/uniprot/?columns=id,keywords&format=tab instead of individual ones
 

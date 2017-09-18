@@ -24,6 +24,27 @@ import userinput, run, obo_parser, cluster_filter, tools # go_retriever
 import db_config # copy of metaprot version
 
 ###############################################################################
+#### bokeh visualisation
+from bokeh.embed import components
+from bokeh.plotting import figure
+from bokeh.resources import INLINE
+from bokeh.util.string import encode_utf8
+colors = {
+    'Black': '#000000',
+    'Red':   '#FF0000',
+    'Green': '#00FF00',
+    'Blue':  '#0000FF',
+}
+
+def getitem(obj, item, default):
+    if item not in obj:
+        return default
+    else:
+        return obj[item]
+###############################################################################
+
+
+###############################################################################
 # ToDo:
 # - post DataBase schema for RestAPI lookup
 # - explain sources and update intervals
@@ -55,7 +76,7 @@ DO_LOGGING = False
 debug = False # do not attempt connection to PostgreSQL
 volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
 if not debug:
-    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=True)
+    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 if not debug:
@@ -455,6 +476,41 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                                         form.indent.data, session_id, form=Results_Form())
     return render_template('enrichment.html', form=form)
 
+@app.route("/bokeh")
+def polynomial():
+    """
+    Very simple embedding of a polynomial chart
+    """
+
+    # Grab the inputs arguments from the URL
+    args = flask.request.args
+
+    # Get all the form arguments in the url with defaults
+    color = colors[getitem(args, 'color', 'Black')]
+    _from = int(getitem(args, '_from', 0))
+    to = int(getitem(args, 'to', 10))
+
+    # Create a polynomial line graph with those arguments
+    x = list(range(_from, to + 1))
+    fig = figure(title="Polynomial")
+    fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
+
+    js_resources = INLINE.render_js()
+    css_resources = INLINE.render_css()
+
+    script, div = components(fig)
+    html = flask.render_template(
+        'bokeh.html',
+        plot_script=script,
+        plot_div=div,
+        js_resources=js_resources,
+        css_resources=css_resources,
+        color=color,
+        _from=_from,
+        to=to
+    )
+    return encode_utf8(html)
+
 def generate_result_page(header, results, gocat_upk, indent, session_id, form, errors=()):
     header = header.rstrip().split("\t")
     ellipsis_indices = elipsis(header)
@@ -577,7 +633,7 @@ def fn_suffix2abs_rel_path(suffix, session_id):
 
 
 if __name__ == "__main__":
-#     tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
+    # tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
@@ -586,8 +642,8 @@ if __name__ == "__main__":
 #         app.run('localhost', 5000, debug=True)
 #     else:
 #         app.run('localhost', 5000, debug=True)
-#     app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True)
 ################################################################################
         ### agptool
-    app.run(host='0.0.0.0', port=5911, processes=8, debug=True)
+    # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################
