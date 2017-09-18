@@ -19,7 +19,7 @@ class Connect(object):
     DATABASE = {"drivername": "postgres",
                 "host": "localhost",
                 "port": "5432",
-                "username": "dblyon",
+                "username": "agotool",
                 "password": ""}
 
     def __init__(self, echo, testing, do_logging, volume_mountpoint=None, run_agotool_as_container=False):
