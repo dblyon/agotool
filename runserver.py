@@ -55,7 +55,7 @@ DO_LOGGING = False
 debug = False # do not attempt connection to PostgreSQL
 volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
 if not debug:
-    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint)
+    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=True)
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 if not debug:
@@ -589,5 +589,5 @@ if __name__ == "__main__":
 #     app.run(host='0.0.0.0', debug=True)
 ################################################################################
         ### agptool
-    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+    app.run(host='0.0.0.0', port=5911, processes=8, debug=True)
 ################################################################################
