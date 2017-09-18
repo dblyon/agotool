@@ -21,7 +21,7 @@
                     <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
                     <span>Expects a tab-delimited text-file (".txt" or ".tsv") with the following 3 column-headers: </span>
-                    <li class="bulletpoints_li">"foreground": UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background_an” as the test group is a subset of the background)</li>
+                    <li class="bulletpoints_li">"foreground": UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>
                     <li class="bulletpoints_li">"background": UniProt Accession Numbers (such as "P00359") for all proteins</li>
                     <li class="bulletpoints_li">"intensity": Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)</li>
             <br>
