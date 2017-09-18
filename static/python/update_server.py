@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import os, sys, zlib
+import os, sys, zlib, shutil
 import requests, urllib, time
 from subprocess import call
-
-# my own modules
-import go_retriever
-
+# import go_retriever
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(PYTHON_DIR)
@@ -41,7 +38,9 @@ ORGANISMS = {
     3055: 'chlamy',
     9796: 'horse',
     3880: 'medicago',
-    39947: 'rice'}
+    39947: 'rice',
+    562: 'ecoli'}
+# http://www.uniprot.org/uniprot/?columns=id,keywords&format=tab instead of individual ones
 
 # update for Vytus
 #  4896 [NCBI highest level], Schizosaccharomyces pombe, 284812 UniProt
@@ -197,8 +196,6 @@ def download_bactNOG_annotations():
     print(shellcmd)
     call(shellcmd, shell=True)
 
-################################################################################
-
 def get_fn_pickle_Parser_GO_annotations():
     return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/GOA/Parser_GO_annotations.p'))
 
@@ -206,21 +203,22 @@ def get_fn_UniProtKeywordsParser():
     return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/UniProt_Keywords/UniProtKeywordsParser.p'))
 
 def parse_files_and_pickle(taxid_not_retrieved_list):
-    ### parse Gene Ontology annotations: GO-terms for each AccessionNumber
+    ## parse Gene Ontology annotations: GO-terms for each AccessionNumber
     pgoa = go_retriever.Parser_GO_annotations()
     organisms_set = set([str(taxid) for taxid in ORGANISMS.keys()])
     organisms_specific = organisms_set - set(taxid_not_retrieved_list)
-    # GOA_folder = os.path.join(PROJECT_DIR, 'static/data/GOA')
-    ### 1.) species specific files
+    GOA_folder = os.path.join(PROJECT_DIR, 'static/data/GOA')
+    ## 1.) species specific files
     for taxid in organisms_specific:
         fn = os.path.join(DOWNLOADS_DIR, '%s.gaf' % taxid)
         pgoa.parse_goa_ref(fn, organisms_set={taxid})
-    ### 2.) the remaining species (in taxid_not_retrieved_list)
-    fn = os.path.join(DOWNLOADS_DIR, '%s.gaf.gz' % "goa_uniprot_all")
+
+    ## 2.) the remaining species (in taxid_not_retrieved_list)
+    fn = os.path.join(GOA_folder, '%s.gz' % "uniprot_all")
     pgoa.parse_goa_ref(fn, organisms_set=set(taxid_not_retrieved_list))
     fn_p = get_fn_pickle_Parser_GO_annotations()
     pgoa.pickle(fn_p)
-    ### parse UniProt-keywords
+    ## parse UniProt-keywords
     upkp = go_retriever.UniProtKeywordsParser()
     # UPK_folder = os.path.join(PROJECT_DIR, 'static/data/UniProt_Keywords')
     for taxid in organisms_set:
@@ -236,22 +234,22 @@ if __name__ == '__main__':
     # .obo files are Ontology hierarchy
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
     print("Current date & time " + time.strftime("%c"))
-    create_directories_if_not_exist()
+    # create_directories_if_not_exist()
     ### every month
-    taxid_not_retrieved_list = download_go_annotations() # ['284812', '3055', '3880', '39947', '9796']
-    #taxid_not_retrieved_list = ['284812', '3055', '3880', '39947', '9796']
-    download_go_annotations_all_unfiltered()
-    download_go_basic_slim_obo()
-    download_UniProt_Keywords_obo()
-    download_UniProt_Keywords()
+    # taxid_not_retrieved_list = download_go_annotations()
+    # download_go_annotations_all_unfiltered()
+    # download_go_basic_slim_obo()
+    # download_UniProt_Keywords_obo()
+    # download_UniProt_Keywords()
 
     ### NOT every month
-    download_and_extract_all_annotations_from_eggNOG()
-    download_bactNOG_annotations()
-    print("parsing annotations and pickling results")
-    print(sorted(taxid_not_retrieved_list))
-    parse_files_and_pickle(taxid_not_retrieved_list) #=['3055', '3880', '39947', '9796'])
-    cleanup_sessions()
+    # download_and_extract_all_annotations_from_eggNOG()
+    # download_bactNOG_annotations()
+
+    # taxid_not_retrieved_list = ['9796', '39947', '3880', '3055']
+    # parse_files_and_pickle(taxid_not_retrieved_list) #=['9796', '39947', '3880', '3055'])
+    # cleanup_sessions()
+    # copy_essential_modules_and_scripts_from_metaprotRepo_2_agotoolRepo()
     print("finished update", '\n', '-' * 50, '\n')
 
 # /Users/dblyon/modules/cpr/agotool/static/data/downloads/goa_uniprot_all.gaf.gz
@@ -282,11 +280,3 @@ if __name__ == '__main__':
     # fn_p = get_fn_UniProtKeywordsParser()
     # upkp.pickle(fn_p)
 
-
-
-
-# def get_fn_pickle_Parser_GO_annotations():
-#     return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/GOA/Parser_GO_annotations.p'))
-#
-# def get_fn_UniProtKeywordsParser():
-#     return os.path.abspath(os.path.join(PYTHON_DIR, '../../static/data/UniProt_Keywords/UniProtKeywordsParser.p'))

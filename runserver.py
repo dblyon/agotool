@@ -1,35 +1,90 @@
-# coding=utf-8
+from __future__ import print_function
+
 # standard library
-import os
-import sys
-import StringIO
-import logging
-import time
+import os, sys, logging, time, shutil
+# import StringIO
+# from subprocess import call
 
 # third party
-import flask
-from flask import render_template, request, send_from_directory
+# import pandas as pd
+# import numpy as np
+from flask import render_template, request, send_from_directory, Markup #, jsonify, Flask
+# from flask_restful_swagger import swagger
+# from flask_restful import Api
+import flask, flask_sqlalchemy #, flask_restless
 import wtforms
 from wtforms import fields
-import pandas as pd
-import numpy as np
+import markdown
 
 # local application
-sys.path.append('static/python')
-import run
-import obo_parser
-import cluster_filter
-import go_retriever
+import sys #, models
+sys.path.append('./static/python')
+# sys.path.append(r"/workdir/agotool/static/python")
+import userinput, run, obo_parser, cluster_filter, tools # go_retriever
+import db_config # copy of metaprot version
 
+###############################################################################
+# ToDo:
+# - post DataBase schema for RestAPI lookup
+# - explain sources and update intervals
+# - downloads page for existing fasta
+# - create search page for common user input and convert to
+## e.g.
+## http://localhost:5000/api/functions?q={"filters": [{"name": "type", "val": "DOM", "op": "eq"}]}
+## http://localhost:5000/api/proteins?q={"filters": [{"name": "an", "val": "B2RID1", "op": "eq"}]}
+# - graphical output of enrichment
+# - enter list of TaxIDs --> create fasta for download
+# - tool to convert TaxNames to TaxIDs or rather link to NCBI
+# - Consenus functional annotation for protein groups
+# - check if TaxIDs not in NCBI taxdump, but in HOMD mappings are missing in DB, check if all TaxIDs from Fasta in DB, CHeck if all TaxNames in DB
+# - add other types to Ontologies (not only GO, but also UPK)
+# - DB schema doesn't have theme
+# - userinput report, redundant and unique number of ANs/protein-groups, organisms etc.
+# - create HowTo page
+# - close up/macro picture of ESI or mass spec or something, combine with a histogram similar to the publication
+# - graphical output of
+# - Dia Show or nice images in the background, changing every 1min
+# - All proteins without abundance data were disregarded --> put into extra bin
+# - http://geneontology.org/page/download-ontology --> slim set for Metagenomics
+# -
+###############################################################################
+
+ECHO = False
+TESTING = False # which DB are we connecting to ('metaprot' or 'test')
+DO_LOGGING = False
+debug = False # do not attempt connection to PostgreSQL
+volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
+if not debug:
+    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=True)
+### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
-webserver_data  = os.getcwd() + '/static/data'
+if not debug:
+    app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
+    app.config['SQLALCHEMY_ECHO'] = False
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_RECORD_QUERIES'] = False
+
+###################################
+# Wrap the Api with swagger.docs. It is a thin wrapper around the Api class that adds some swagger smarts
+# api = swagger.docs(Api(app), apiVersion='0.1')
+###################################
+if not debug:
+    db = flask_sqlalchemy.SQLAlchemy(app)
+    db.Model.metadata.reflect(db.engine)
+
+webserver_data = os.getcwd() + '/static/data'
 EXAMPLE_FOLDER = webserver_data + '/exampledata'
 SESSION_FOLDER_ABSOLUTE = webserver_data + '/session'
 SESSION_FOLDER_RELATIVE = '/static/data/session'
+TEMPLATES_FOLDER_ABSOLUTE = os.getcwd() + '/templates'
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
-# Additional path settings for flask
+HOMEDIR = os.path.expanduser("~")
+FN_DATABASE_SCHEMA = os.path.join(HOMEDIR, "modules/cpr/metaprot/sql/DataBase_Schema.md")
+FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
+
+### Additional path settings for flask
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(APP_ROOT, 'data')
 SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
@@ -40,7 +95,28 @@ logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
+
 DOWNLOADS_DIR = os.path.abspath(os.path.join(webserver_data, "downloads"))
+
+###############################################################################
+##### Create the Flask-Restless API manager.
+# manager = flask_restless.APIManager(app, flask_sqlalchemy_db=db)
+### Create API endpoints, which will be available at /api/<tablename> by
+### default. Allowed HTTP methods can be specified as well.
+# manager.create_api(models.Proteins, methods=['GET'], primary_key="an", include_columns=["an", "header", "aaseq"])
+# manager.create_api(models.Peptides, methods=['GET'], primary_key="aaseq", include_columns=["aaseq", "an", "missedcleavages", "length"])
+# manager.create_api(models.Taxa, methods=['GET'], primary_key="taxid", include_columns=["taxname", "taxid", "scientific"])
+# manager.create_api(models.Taxid_2_rank, methods=['GET'], primary_key="taxid", include_columns=["taxid", "rank"])
+# manager.create_api(models.Ogs, methods=['GET'], primary_key="og", include_columns=["og", "taxid", "description"])
+# manager.create_api(models.Functions, methods=['GET'], primary_key="an", include_columns=["an", "type", "name"])
+# manager.create_api(models.Ontologies, methods=['GET'], primary_key="child", include_columns=["child", "parent", "direct"])
+# manager.create_api(models.Protein_2_og, methods=['GET'], primary_key="an", include_columns=["an", "og"])
+# manager.create_api(models.Protein_2_version, methods=['GET'], primary_key="an", include_columns=["an", "version"])
+# manager.create_api(models.Og_2_function, methods=['GET'], primary_key="og", include_columns=["og", "function"])
+# manager.create_api(models.Protein_2_function, methods=['GET'], primary_key="an", include_columns=["an", "function"])
+# manager.create_api(models.Function_2_definition, methods=['GET'], primary_key="function", include_columns=["function", "definition"])
+# manager.create_api(models.Go_2_slim, methods=['GET'], primary_key="an", include_columns=["an", "slim"])
+# manager.create_api(models.Protein_2_taxid, methods=['GET'], primary_key="an", include_columns=["an", "taxid"])
 
 if not app.debug:
     #########################
@@ -73,21 +149,22 @@ max_timeout = 20 # minutes
 
 ################################################################################
 ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-pgoa = go_retriever.Parser_GO_annotations()
-pgoa.unpickle()
-upkp = go_retriever.UniProtKeywordsParser()
-upkp.unpickle()
-# obo2file_dict = {"slim": webserver_data + r'/OBO/goslim_generic.obo',
-#                  "basic": webserver_data + r'/OBO/go-basic.obo'}
-obo2file_dict = {"slim": os.path.join(DOWNLOADS_DIR, 'goslim_generic.obo'),
-                 "basic": os.path.join(DOWNLOADS_DIR, 'go-basic.obo')}
-go_dag = obo_parser.GODag(obo_file=obo2file_dict['basic'])
-goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['slim'])
+# pgoa = go_retriever.Parser_GO_annotations()
+# pgoa.unpickle()
+# upkp = go_retriever.UniProtKeywordsParser()
+# upkp.unpickle()
+obo2file_dict = {"GO_slim": webserver_data + r'/downloads/goslim_generic.obo',
+                 "GO_basic": webserver_data + r'/downloads/go-basic.obo',
+                 "UPK_all": webserver_data + r'/downloads/keywords-all.obo'}
+upk_dag = obo_parser.GODag(obo_file=obo2file_dict['UPK_all'], upk=True)
+goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['GO_slim'])
+go_dag = obo_parser.GODag(obo_file=obo2file_dict['GO_basic'])
 
 for go_term in go_dag.keys():
     parents = go_dag[go_term].get_all_parents()
 
 filter_ = cluster_filter.Filter(go_dag)
+
 ################################################################################
 # species2files_dict = {
 #     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
@@ -133,7 +210,7 @@ organism_choices = [
 ################################################################################
 # index.html
 ################################################################################
-@app.route('/')
+@app.route('/index')
 def index():
     return render_template('index.html')
 
@@ -178,32 +255,25 @@ def download_example_data(filename):
     return send_from_directory(directory=uploads, filename=filename)
 
 ################################################################################
+# db_schema.html
+################################################################################
+@app.route("/db_schema")
+def db_schema():
+    with open(FN_DATABASE_SCHEMA, "r") as fh:
+        content = fh.read()
+    content = Markup(markdown.markdown(content))
+    return render_template("db_schema.html", **locals())
+
+################################################################################
+# howto.html
+################################################################################
+@app.route('/howto')
+def howto():
+    return render_template('howto.html')
+
+################################################################################
 # helper functions
 ################################################################################
-# check user input
-def check_userinput(userinput_fh, abcorr):
-    decimal = '.'
-    content = userinput_fh.read()
-    userinput_fh = StringIO.StringIO(content)
-    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
-    if abcorr:
-        if len({'population_an','population_int','sample_an'}.intersection(set(df.columns.tolist()))) == 3:
-            try:
-                np.histogram(df['population_int'], bins=10)
-            except TypeError:
-                try:
-                    decimal = ','
-                    userinput_fh = StringIO.StringIO(content)
-                    df = pd.read_csv(userinput_fh, sep='\t', decimal=decimal)
-                    # userinput_fh.seek(0)
-                    np.histogram(df['population_int'], bins=10)
-                except TypeError:
-                    return False, decimal
-            return True, decimal
-    else:
-        if len({'population_an', 'sample_an'}.intersection(set(df.columns.tolist()))) == 2:
-            return True, decimal
-    return False, decimal
 
 #####
 # validation of user inputs
@@ -227,13 +297,12 @@ def validate_inflation_factor(form, field):
     if not field.data >= 1.0:
         raise wtforms.ValidationError(" number must be larger than 1")
 
-def validate_inputfile(form, field):
-    filename = request.files['userinput_file'].filename
-    for extension in ALLOWED_EXTENSIONS:
-        if filename.endswith('.' + extension):
-            return True
-    raise wtforms.ValidationError(
-        " file must have a '.txt' or '.tsv' extension")
+# def validate_inputfile(form, field):
+#     filename = request.files['userinput_file'].filename
+#     for extension in ALLOWED_EXTENSIONS:
+#         if filename.endswith('.' + extension):
+#             return True
+#     raise wtforms.ValidationError(" file must have a '.txt' or '.tsv' extension")
 #####
 
 def generate_session_id():
@@ -266,13 +335,8 @@ def elipsis(header):
 # enrichment.html
 ################################################################################
 class Enrichment_Form(wtforms.Form):
-
-    organism = fields.SelectField(u'Select Organism',
-                                  choices = organism_choices,
-                                  description="""Choose the species/organism the identifiers (accession numbers) correspond to.""")
-
     userinput_file = fields.FileField("Choose File",
-                                      [validate_inputfile],
+                                      # [validate_inputfile],
                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
 
 'population_an': UniProt accession numbers (such as 'P00359') for all proteins
@@ -284,13 +348,17 @@ these identifiers should also be present in the 'population_an' as the test grou
 
 If "Abundance correction" is deselected "population_int" can be omitted.""")
 
-    gocat_upk = fields.SelectField("GO-terms / UniProt-keywords",
-                                   choices = (("all_GO", "all 3 GO categories"),
-                                              ("BP", "Biological Process"),
-                                              ("CP", "Celluar Compartment"),
-                                              ("MF", "Molecular Function"),
-                                              ("UPK", "UniProt-keywords")),
-                                   description="""Select either one of three major GO categories (molecular function, biological process, cellular component) or all three or UniProt-keywords.""")
+    foreground_textarea = fields.TextAreaField("Foreground")
+    background_textarea = fields.TextAreaField("Background")
+
+    gocat_upk = fields.SelectField("GO terms, UniProt keywords, KEGG pathways",
+                                   choices = (("all_GO", "all GO categories"),
+                                              ("BP", "GO Biological Process"),
+                                              ("CP", "GO Celluar Compartment"),
+                                              ("MF", "GO Molecular Function"),
+                                              ("UPK", "UniProt keywords")),
+                                              # ("KEGG", "KEGG pathways")),
+                                   description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     abcorr = fields.BooleanField("Abundance correction",
                                  default = "checked",
@@ -299,13 +367,13 @@ that corresponds to the column "population_an" (population accession number) nee
 If "Abundance correction" is deselected "population_int" can be omitted.""")
 
     go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                          choices = (("basic", "basic"),
-                                                     ("slim", "slim")),
+                                          choices = (("slim", "slim"),
+                                                    ("basic", "basic")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
 
-    indent = fields.BooleanField("prepend GO-term level by dots",
+    indent = fields.BooleanField("prepend level of hierarchy by dots",
                                  default="checked",
-                                 description="Add dots to GO-terms to indicate the level in the parental hierarchy.")
+                                 description="Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204'")
 
     multitest_method = fields.SelectField(
         "Method for correction of multiple testing",
@@ -315,7 +383,7 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         description="""Select a method for multiple testing correction.""")
 
     alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-                              default = 0.05, description="""Applied to multiple correction methods "Sidak" and "Holm" to calculate "corrected" p-values.""")
+                              default = 0.05, description="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""")
 
     o_or_u_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("both", "both"),
@@ -343,17 +411,15 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         default = 0,
         description="""Maximum threshold value of "p_uncorrected".""")
 
-    p_value_mulitpletesting =  fields.FloatField(
+    p_value_multipletesting =  fields.FloatField(
         "FDR-cutoff / p-value multiple testing",
         [validate_float_between_zero_and_one],
         default = 0,
         description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.""")
 
-@app.route('/enrichment')
+# @app.route('/enrichment')
+@app.route('/')
 def enrichment():
-    # return render_template('enrichment.html', form=Enrichment_Form(),
-    #                        up_organisms=zip(*organism_choices_UniProt)[0],
-                           # go_organisms=zip(*organism_choices_GO)[0])
     return render_template('enrichment.html', form=Enrichment_Form())
 
 ################################################################################
@@ -375,34 +441,32 @@ def results():
     """
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
-        user_input_file = request.files['userinput_file']
-        userinput_fh = StringIO.StringIO(user_input_file.read())
-        content = userinput_fh.read()
-        userinput_fh = StringIO.StringIO(content)
-        check, decimal = check_userinput(userinput_fh, form.abcorr.data)
-        userinput_fh = StringIO.StringIO(content)
-        if check:
+        input_fs = request.files['userinput_file']
+        ui = userinput.Userinput(fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+            col_foreground='foreground', col_background='background', col_intensity='intensity',
+            num_bins=form.num_bins.data, decimal='.', method="abundance_correction", connection=connection)
+        if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """organism: {}\ngocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
+            string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
 o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nbacktracking: {}\nfold_enrichment_study2pop: {}\n\
-p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.organism.data, form.gocat_upk.data,
+p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_mulitpletesting.data)
+                form.p_value_multipletesting.data)
             log_activity(string2log)
-            header, results = run.run(
-                userinput_fh, decimal, form.organism.data, form.gocat_upk.data,
+
+            header, results = run.run(go_dag, goslim_dag, upk_dag, ui, connection, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
-                form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
+                form.o_or_u_or_both.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_mulitpletesting.data, go_dag,
-                goslim_dag, pgoa, upkp)
+                form.p_value_multipletesting.data)
+
         else:
             return render_template('info_check_input.html')
 
@@ -424,8 +488,8 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form, e
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
-    with open(fn_results_orig_absolute, 'w') as f:
-        f.write(tsv)
+    with open(fn_results_orig_absolute, 'w') as fh:
+        fh.write(tsv)
     return render_template('results.html', header=header, results=results2display, errors=errors,
                            file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
@@ -466,8 +530,8 @@ def results_filtered():
         # filtered results
         file_name, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
         tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
-        with open(fn_results_filtered_absolute, 'w') as f:
-            f.write(tsv)
+        with open(fn_results_filtered_absolute, 'w') as fh:
+            fh.write(tsv)
         header = header.split("\t")
         ellipsis_indices = elipsis(header)
         results2display = []
@@ -533,47 +597,19 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     fn_results_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     return file_name, fn_results_absolute, fn_results_relative
 
+if __name__ == "__main__":
+#     tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
+    # ToDo potential speedup
+    # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
+    # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
+    # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
+#     if profiling:
+#         app.run('localhost', 5000, debug=True)
+#     else:
+#         app.run('localhost', 5000, debug=True)
+#     app.run(host='0.0.0.0', debug=True)
+################################################################################
+        ### agptool
+    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+################################################################################
 
-if __name__ == '__main__':
-
-    if profiling:
-        app.run('localhost', 5000, debug=True)
-    else:
-        # app.run('0.0.0.0', 5911, processes=4, debug=False)
-        # app.run('red', 5911, processes=4, debug=False)
-        # app.run('localhost', 5000, processes=4, debug=False)
-        # app.run(host='localhost',port=443, debug=False, ssl_context=context)
-        #app.run('localhost', 5000, debug=True)
-        app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
-
-
-
-
-
-# organism_choices_UniProt = [
-#     (u'4932', u'Saccharomyces cerevisiae'), # Yeast
-#     (u'9606', u'Homo sapiens'), # Human
-#     (u'7955', u'Danio rerio'), # Zebrafish
-#     (u'7227', u'Drosophila melanogaster'), # Fly
-#     (u'9796', u'Equus caballus'), # Horse
-#     (u'9031', u'Gallus gallus'), # Chicken
-#     (u'10090', u'Mus musculus'), # Mouse
-#     (u'10116', u'Rattus norvegicus'), # Rat
-#     (u'9823', u'Sus scrofa'), # Pig
-#     (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
-#     (u'3055', u'Chlamydomonas reinhardtii'), # Chlamy
-#     (u'3880', u'Medicago truncatula'), # Medicago
-#     (u'39947', u'Oryza sativa subsp. japonica') # Rice
-#     ]
-
-# organism_choices_GO= [
-#     (u'4932', u'Saccharomyces cerevisiae'), # Yeast
-#     (u'9606', u'Homo sapiens'), # Human
-#     (u'7955', u'Danio rerio'), # Zebrafish
-#     (u'7227', u'Drosophila melanogaster'), # Fly
-#     (u'9031', u'Gallus gallus'), # Chicken
-#     (u'10090', u'Mus musculus'), # Mouse
-#     (u'10116', u'Rattus norvegicus'), # Rat
-#     (u'9823', u'Sus scrofa'), # Pig
-#     (u'3702', u'Arabidopsis thaliana'), # Arabidopsis
-#     ]

@@ -3,156 +3,6 @@ from scipy import stats
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
 import ratio
 
-
-class GOEnrichmentRecord(object):
-    """
-    Represents one result (from a single GOTerm) in the GOEnrichmentStudy
-    """
-
-    def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop,
-                 ANs_study, ANs_pop, attributes2add):
-        self.attributes_list = [
-            ('id', '%s'), ('over_under', '%s'),
-            ('perc_associated_study', "%0.3f"),('perc_associated_pop', "%0.3f"),
-            ('fold_enrichment_study2pop', "%0.3f"),('study_count', '%s'),
-            ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'),
-            ('p_uncorrected', "%.3g")]
-        self.id = id
-        self.p_uncorrected = p_uncorrected
-        self.study_count, self.study_n = ratio_in_study
-        self.pop_count, self.pop_n = ratio_in_pop
-        self.ANs_study = ANs_study
-        self.ANs_pop = ANs_pop
-        self.perc_associated_study = self.calc_fold_enrichemnt(
-            self.study_count, self.study_n)
-        self.perc_associated_pop = self.calc_fold_enrichemnt(
-            self.pop_count, self.pop_n)
-        if self.perc_associated_study != -1 and self.perc_associated_pop != -1:
-            self.fold_enrichment_study2pop = self.calc_fold_enrichemnt(
-                self.perc_associated_study, self.perc_associated_pop)
-        else:
-            self.fold_enrichment_study2pop = "-1"
-        self.perc_associated_study = self.perc_associated_study * 100
-        self.perc_associated_pop = self.perc_associated_pop * 100
-        self.attributes_list += attributes2add
-
-    def calc_fold_enrichemnt(self, zaehler, nenner):
-        try:
-            fold_en = float(zaehler) / nenner
-        except ZeroDivisionError:
-            fold_en = -1
-        return fold_en
-
-    def find_goterm(self, go):
-        # if self.id in list(go.keys()):
-        try:
-            self.goterm = go[self.id]
-            self.description = self.goterm.name
-        except KeyError:
-            pass
-
-    def __setattr__(self, name, value):
-        self.__dict__[name] = value
-
-    def update_fields(self, **kwargs):
-        for k, v in kwargs.items():
-            self.__setattr__(k, v)
-
-    def update_remaining_fields(self):
-        if self.perc_associated_study > self.perc_associated_pop:
-            self.over_under = 'o'
-        else:
-            self.over_under = 'u'
-
-    def get_attributenames2write(self, o_or_u_or_both):
-        if o_or_u_or_both == 'both':
-            return [name_format[0] for name_format in self.attributes_list]
-        else:
-            list2return = []
-            for ele in self.attributes_list:
-                if ele[0] != 'over_under':
-                    list2return.append(ele[0])
-            return list2return
-
-    def get_attributes_list(self, o_or_u_or_both):
-        if o_or_u_or_both == 'both':
-            return self.attributes_list
-        else:
-            list2return = []
-            for ele in self.attributes_list:
-                if ele[0] != 'over_under':
-                    list2return.append(ele)
-            return list2return
-
-    def get_attribute_format_list(self, indent, o_or_u_or_both):
-        if indent:
-            attributes_list = [('dot_id', '%s') if x[0] == 'id' else x for x in self.get_attributes_list(o_or_u_or_both)]
-            dots = ''
-            if self.goterm is not None:
-                dots = "." * self.goterm.level
-            self.dot_id = dots + self.id
-        else:
-            attributes_list = self.get_attributes_list(o_or_u_or_both)
-        return attributes_list
-
-    def get_attribute_formatted(self, attr_form):
-        attr, form = attr_form
-        try:
-            val = self.__dict__[attr]
-            attr2write = (form % val) + '\t'
-        except KeyError:
-            attr2write = 'n.a.' + '\t'
-        return attr2write
-
-    def get_line2write(self, indent, o_or_u_or_both):
-        line2write = ''
-        attribute_format_list = self.get_attribute_format_list(indent, o_or_u_or_both)
-        for attr_form in attribute_format_list:
-            line2write += self.get_attribute_formatted(attr_form)
-        return line2write.rstrip()
-
-
-class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
-
-    def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop,
-                 ANs_study, ANs_pop, attributes2add):
-        self.attributes_list = [
-            ('id', '%s'), ('over_under', '%s'),
-            ('perc_associated_study', "%0.3f"),
-            ('perc_associated_pop', "%0.3f"),
-            ('fold_enrichment_study2pop', "%0.3f"), ('study_count', '%s'),
-            ('study_n', '%s'), ('pop_count','%s'), ('pop_n', '%s'),
-            ('p_uncorrected', "%.3g")]
-        self.id = id
-        self.p_uncorrected = p_uncorrected
-        self.study_count, self.study_n = ratio_in_study
-        self.pop_count, self.pop_n = ratio_in_pop
-        self.ANs_study = ANs_study
-        self.ANs_pop = ANs_pop
-        self.perc_associated_study = self.calc_fold_enrichemnt(
-            self.study_count, self.study_n)
-        self.perc_associated_pop = self.calc_fold_enrichemnt(
-            self.pop_count, self.pop_n)
-        if self.perc_associated_study != -1 and self.perc_associated_pop != -1:
-            self.fold_enrichment_study2pop = self.calc_fold_enrichemnt(
-                self.perc_associated_study, self.perc_associated_pop)
-        else:
-            self.fold_enrichment_study2pop = "-1"
-        self.perc_associated_study = self.perc_associated_study * 100
-        self.perc_associated_pop = self.perc_associated_pop * 100
-        self.attributes_list += attributes2add
-
-    def get_attribute_format_list(self, o_or_u_or_both):
-        return self.get_attributes_list(o_or_u_or_both)
-
-    def get_line2write(self, o_or_u_or_both):
-        line2write = ''
-        attribute_format_list = self.get_attribute_format_list(o_or_u_or_both)
-        for attr_form in attribute_format_list:
-            line2write += self.get_attribute_formatted(attr_form)
-        return line2write.rstrip()
-
-
 class GOEnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
@@ -171,28 +21,19 @@ class GOEnrichmentStudy(object):
             self.obo_dag.update_association(self.assoc_dict)
         self.prepare_run()
 
-    def prepare_run(self): # study_n should be the same in genome vs. observed vs. abundance_corrected
-        '''
+    def prepare_run(self): # foreground_n should be the same in genome vs. observed vs. abundance_corrected
+        """
         :return: None
-        '''
+        """
         if self.abcorr:
             self.study_an_frset = self.ui.get_sample_an_frset()
             self.term_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
 
-            if self.randomSample:
-                self.pop_an_set = self.ui.get_background_an_set_random_sample()
-                pop_n  = len(self.pop_an_set)
-                self.term_pop, self.go2ans_pop_dict = ratio.count_terms(self.pop_an_set, self.assoc_dict, self.obo_dag)
-            else:
-                pop_n = study_n
-                self.term_pop, self.go2ans_pop_dict = ratio.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+            pop_n = study_n
+            self.term_pop, self.go2ans_pop_dict = ratio.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
 
         else:
-            if self.ui.col_background_an == 'Genome':
-                self.study_an_frset = self.ui.get_sample_an_frset_genome()
-            else:
-                self.study_an_frset = self.ui.get_sample_an_frset()
-
+            self.study_an_frset = self.ui.get_sample_an_frset()
             self.term_study, self.go2ans_study_dict, study_n = ratio.count_terms_v2(self.study_an_frset, self.assoc_dict, self.obo_dag)
 
             self.pop_an_set = self.ui.get_background_an_all_set()
@@ -227,15 +68,15 @@ class GOEnrichmentStudy(object):
         # what we've got as input:
         #     sample            background    row-sum
         # ----------------------------------------------
-        # +   study_count       pop_count     r1
+        # +   foreground_count       background_count     r1
         # ----------------------------------------------
         # -   c                 d             r2
         # ----------------------------------------------
-        #     study_n           pop_n         n
+        #     foreground_n           background_n         n
         #
         # fisher.pvalue_population() expects:
         #  (a, col_1, r1, n)
-        #  (study_count, study_n, study_count + pop_count, study_n + pop_n)
+        #  (foreground_count, foreground_n, foreground_count + background_count, foreground_n + background_n)
         #
         # equivalent results using the following methods:
         # fisher.pvalue_population(a, col_1, r1, n)
@@ -351,6 +192,155 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                             res = rec.get_line2write(indent, self.o_or_u_or_both)
                             results2write.append(res)
         return header2write.rstrip(), results2write
+
+
+class GOEnrichmentRecord(object):
+    """
+    Represents one result (from a single GOTerm) in the GOEnrichmentStudy
+    """
+
+    def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop,
+                 ANs_study, ANs_pop, attributes2add):
+        self.attributes_list = [
+            ('id', '%s'), ('over_under', '%s'),
+            ('perc_associated_study', "%0.3f"),('perc_associated_pop', "%0.3f"),
+            ('fold_enrichment_study2pop', "%0.3f"),('foreground_count', '%s'),
+            ('foreground_n', '%s'), ('background_count','%s'), ('background_n', '%s'),
+            ('p_uncorrected', "%.3g")]
+        self.id = id
+        self.p_uncorrected = p_uncorrected
+        self.study_count, self.study_n = ratio_in_study
+        self.pop_count, self.pop_n = ratio_in_pop
+        self.ANs_study = ANs_study
+        self.ANs_pop = ANs_pop
+        self.perc_associated_study = self.calc_fold_enrichemnt(
+            self.study_count, self.study_n)
+        self.perc_associated_pop = self.calc_fold_enrichemnt(
+            self.pop_count, self.pop_n)
+        if self.perc_associated_study != -1 and self.perc_associated_pop != -1:
+            self.fold_enrichment_study2pop = self.calc_fold_enrichemnt(
+                self.perc_associated_study, self.perc_associated_pop)
+        else:
+            self.fold_enrichment_study2pop = "-1"
+        self.perc_associated_study = self.perc_associated_study * 100
+        self.perc_associated_pop = self.perc_associated_pop * 100
+        self.attributes_list += attributes2add
+
+    def calc_fold_enrichemnt(self, zaehler, nenner):
+        try:
+            fold_en = float(zaehler) / nenner
+        except ZeroDivisionError:
+            fold_en = -1
+        return fold_en
+
+    def find_goterm(self, go):
+        # if self.id in list(go.keys()):
+        try:
+            self.goterm = go[self.id]
+            self.description = self.goterm.name
+        except KeyError:
+            pass
+
+    def __setattr__(self, name, value):
+        self.__dict__[name] = value
+
+    def update_fields(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
+
+    def update_remaining_fields(self):
+        if self.perc_associated_study > self.perc_associated_pop:
+            self.over_under = 'o'
+        else:
+            self.over_under = 'u'
+
+    def get_attributenames2write(self, o_or_u_or_both):
+        if o_or_u_or_both == 'both':
+            return [name_format[0] for name_format in self.attributes_list]
+        else:
+            list2return = []
+            for ele in self.attributes_list:
+                if ele[0] != 'over_under':
+                    list2return.append(ele[0])
+            return list2return
+
+    def get_attributes_list(self, o_or_u_or_both):
+        if o_or_u_or_both == 'both':
+            return self.attributes_list
+        else:
+            list2return = []
+            for ele in self.attributes_list:
+                if ele[0] != 'over_under':
+                    list2return.append(ele)
+            return list2return
+
+    def get_attribute_format_list(self, indent, o_or_u_or_both):
+        if indent:
+            attributes_list = [('dot_id', '%s') if x[0] == 'id' else x for x in self.get_attributes_list(o_or_u_or_both)]
+            dots = ''
+            if self.goterm is not None:
+                dots = "." * self.goterm.level
+            self.dot_id = dots + self.id
+        else:
+            attributes_list = self.get_attributes_list(o_or_u_or_both)
+        return attributes_list
+
+    def get_attribute_formatted(self, attr_form):
+        attr, form = attr_form
+        try:
+            val = self.__dict__[attr]
+            attr2write = (form % val) + '\t'
+        except KeyError:
+            attr2write = 'n.a.' + '\t'
+        return attr2write
+
+    def get_line2write(self, indent, o_or_u_or_both):
+        line2write = ''
+        attribute_format_list = self.get_attribute_format_list(indent, o_or_u_or_both)
+        for attr_form in attribute_format_list:
+            line2write += self.get_attribute_formatted(attr_form)
+        return line2write.rstrip()
+
+
+class GOEnrichmentRecord_UPK(GOEnrichmentRecord):
+
+    def __init__(self, id, p_uncorrected, ratio_in_study, ratio_in_pop,
+                 ANs_study, ANs_pop, attributes2add):
+        self.attributes_list = [
+            ('id', '%s'), ('over_under', '%s'),
+            ('perc_associated_study', "%0.3f"),
+            ('perc_associated_pop', "%0.3f"),
+            ('fold_enrichment_study2pop', "%0.3f"), ('foreground_count', '%s'),
+            ('foreground_n', '%s'), ('background_count','%s'), ('background_n', '%s'),
+            ('p_uncorrected', "%.3g")]
+        self.id = id
+        self.p_uncorrected = p_uncorrected
+        self.study_count, self.study_n = ratio_in_study
+        self.pop_count, self.pop_n = ratio_in_pop
+        self.ANs_study = ANs_study
+        self.ANs_pop = ANs_pop
+        self.perc_associated_study = self.calc_fold_enrichemnt(
+            self.study_count, self.study_n)
+        self.perc_associated_pop = self.calc_fold_enrichemnt(
+            self.pop_count, self.pop_n)
+        if self.perc_associated_study != -1 and self.perc_associated_pop != -1:
+            self.fold_enrichment_study2pop = self.calc_fold_enrichemnt(
+                self.perc_associated_study, self.perc_associated_pop)
+        else:
+            self.fold_enrichment_study2pop = "-1"
+        self.perc_associated_study = self.perc_associated_study * 100
+        self.perc_associated_pop = self.perc_associated_pop * 100
+        self.attributes_list += attributes2add
+
+    def get_attribute_format_list(self, o_or_u_or_both):
+        return self.get_attributes_list(o_or_u_or_both)
+
+    def get_line2write(self, o_or_u_or_both):
+        line2write = ''
+        attribute_format_list = self.get_attribute_format_list(o_or_u_or_both)
+        for attr_form in attribute_format_list:
+            line2write += self.get_attribute_formatted(attr_form)
+        return line2write.rstrip()
 
 
 class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
@@ -485,15 +475,15 @@ class GOEnrichmentStudy_UPK(GOEnrichmentStudy):
         # what we've got as input:
         #     sample            background    row-sum
         # ----------------------------------------------
-        # +   study_count       pop_count     r1
+        # +   foreground_count       background_count     r1
         # ----------------------------------------------
         # -   c                 d             r2
         # ----------------------------------------------
-        #     study_n           pop_n         n
+        #     foreground_n           background_n         n
         #
         # fisher.pvalue_population() expects:
         #  (a, col_1, r1, n)
-        #  (study_count, study_n, study_count + pop_count, study_n + pop_n)
+        #  (foreground_count, foreground_n, foreground_count + background_count, foreground_n + background_n)
         #
         # equivalent results using the following methods:
         # fisher.pvalue_population(a, col_1, r1, n)

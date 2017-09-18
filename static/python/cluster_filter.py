@@ -21,7 +21,7 @@ class MCL(object):
         # self.set_fh_log(self.abs_path + 'mcl_log.txt')
         self.abs_path = SESSION_FOLDER_ABSOLUTE
         self.set_fh_log(os.path.join(self.abs_path, 'mcl_log.txt'))
-        self.max_timeout =  max_timeout * 60
+        self.max_timeout = max_timeout * 60
         # print("#"*80)
         # print("2. max_timeout {}".format(max_timeout))
 
@@ -105,7 +105,7 @@ class MCL(object):
                 fh.write(line2write)
 
     def mcl_cluster2file(self, mcl_in, inflation_factor, mcl_out):
-        print(self.max_timeout)
+        print("MCL max_timeout:", self.max_timeout)
         cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
         args = shlex.split(cmd_text)
         #ph = subprocess.Popen(args, stdin=None, stdout=self.get_fh_log(), stderr=self.get_fh_log())
@@ -134,7 +134,7 @@ class MCL(object):
                 break
         if t.isAlive():
             os.kill(p.pid, signal.SIGKILL)
-            raise TimeOutException("MCL took to long and was killed:(")
+            raise TimeOutException("MCL took too long and was killed:")
         ###################################################################### --> I like you <3
         ########## in python 3 Popen.wait takes 1 argument          ##########
         ########## ... the name is timeout... guess what it does    ########## ^^ this is my favorite smiley <3
@@ -177,7 +177,7 @@ class Filter(object):
             GOTerm_instance = go_dag[go_term_name]
             self.go_lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
 
-    def filter_term_lineage(self, header, results, indent):
+    def filter_term_lineage(self, header, results, indent, sort_on='p_uncorrected'): #'fold_enrichment_study2pop'
         """
         produce reduced list of results
         from each GO-term lineage (all descendants (children) and ancestors
@@ -185,16 +185,19 @@ class Filter(object):
         :param header: String
         :param results: ListOfString
         :param indent: Bool
+        :param sort_on: String(one of 'p_uncorrected' or 'fold_enrichment_study2pop')
         :return: ListOfString
         """
         results_filtered = []
         blacklist = set(["GO:0008150", "GO:0005575", "GO:0003674"])
         # {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
         header_list = header.split('\t') #!!!
-        index_p = header_list.index('p_uncorrected')
+        index_p = header_list.index(sort_on)
         index_go = header_list.index('id')
         results = [res.split('\t') for res in results]
         results.sort(key=lambda x: float(x[index_p]))
+        if sort_on == "fold_enrichment_study2pop":
+            results = results[::-1]
         for res in results:
             if indent:
                 dot_goterm = res[index_go]

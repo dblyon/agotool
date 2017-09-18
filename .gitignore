@@ -47,7 +47,10 @@ Thumbs.db
 ######################
 *.tab
 *.tsv
+*.txt
 *.obo
+*.gaf
+*.upk
 static/data/session/
 logs/
 static/js/favicon/
@@ -58,5 +61,5 @@ ssl*
 *.upk
 *.obo
 
-
 *log_psql_testing.txt
+

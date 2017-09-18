@@ -14,33 +14,47 @@
     <h2 class="row">ENRICHMENT</h2>
 
         <div class="row">
-            <h3>Upload file</h3>
-            <div class="col-md-5">
+            <h3>Upload a file or copy & paste below</h3>
+            <div class="col-md-10">
                 <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
                     {% if form.userinput_file.errors %}
                     <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
                     <span>Expects a tab-delimited text-file (".txt" or ".tsv") with the following 3 column-headers: </span>
-                    <li class="bulletpoints_li">"population_an": UniProt accession numbers (such as "P00359") for all proteins</li>
-                    <li class="bulletpoints_li">population_int": Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)</li>
-                    <li class="bulletpoints_li">"sample_an": UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “population_an” as the test group is a subset of the population)</li>
+                    <li class="bulletpoints_li">"foreground": UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>
+                    <li class="bulletpoints_li">"background": UniProt Accession Numbers (such as "P00359") for all proteins</li>
+                    <li class="bulletpoints_li">"intensity": Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)</li>
+            <br>
+            <div class="row" id="copy_paste_field">
+                <div class="col-md-5">
+                    {{ form.foreground_textarea.label }}:
+                    {{ form.foreground_textarea(rows="5", class="form-control") }}
+                </div>
+                <div class="col-md-5">
+                    {{ form.background_textarea.label }}:
+                    {{ form.background_textarea(rows="5", class="form-control") }}
+                </div>
+{#              #!!!  <button id="example_button" type="button" class="btn btn-primary">Example</button> #!!! #}
             </div>
-            <div class="col-md-5">
-                <span title="{{ form.organism.description }}" >{{ form.organism.label }}: {{ form.organism() }}</span><br>
-                <span title="{{ form.abcorr.description }}"> {{ form.abcorr.label }}: {{ form.abcorr() }}</span><br>
-                <span class="number" title="{{ form.num_bins.description }}"> {{ form.num_bins.label }}: {{ form.num_bins() }} <br> </span>
-                    {% if form.num_bins.errors %}
-                    <ul class="errors"> {% for error in form.num_bins.errors %} <b> {{ error }} </b> {% endfor %} </ul>
-                    {% endif %}
+            <br>
             </div>
+{#            <div class="col-md-5">#}
+{#                <span title="{{ form.abcorr.description }}"> {{ form.abcorr.label }}: {{ form.abcorr() }}</span><br>#}
+{#                <span class="number" title="{{ form.num_bins.description }}"> {{ form.num_bins.label }}: {{ form.num_bins() }} <br> </span>#}
+{#                    {% if form.num_bins.errors %}#}
+{#                    <ul class="errors"> {% for error in form.num_bins.errors %} <b> {{ error }} </b> {% endfor %} </ul>#}
+{#                    {% endif %}#}
+{#            </div>#}
         </div>
 
         <div class="row">
             <h3>Keyword association</h3>
-            <div class="col-md-5">
+            <div class="col-md-10">
                 <span title="{{ form.gocat_upk.description }}"> {{ form.gocat_upk.label }}: {{ form.gocat_upk() }} <br> </span>
-                <span class="GOT" title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>
-                <span class="GOT" title="{{ form.backtracking.description }}"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>
+{#                <span class="GOT" title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>#}
+{#                <span class="GOT" title="{{ form.backtracking.description }}"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>#}
+                <span class="ONTOLOGY" title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>
+                <span class="ONTOLOGY" title="{{ form.backtracking.description }}"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>
             </div>
         </div>
 
@@ -48,7 +62,8 @@
             <h3>Report options</h3>
             <div class="col-md-5">
                 <span title="{{ form.o_or_u_or_both.description }}"> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }}</span><br>
-                <span class="GOT" title="{{ form.indent.description }}"> {{ form.indent.label }}: {{ form.indent() }}</span><br>
+{#                <span class="GOT" title="{{ form.indent.description }}"> {{ form.indent.label }}: {{ form.indent() }}</span><br>#}
+                <span class="ONTOLOGY" title="{{ form.indent.description }}"> {{ form.indent.label }}: {{ form.indent() }}</span><br>
 
                 <h4>Multiple testing</h4>
                 <span title="{{ form.multitest_method.description }}"> {{ form.multitest_method.label }}: {{ form.multitest_method() }} <br> </span>
@@ -70,10 +85,10 @@
                     <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_uncorrected.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
                 </tr>
-                <tr title="{{ form.p_value_mulitpletesting.description }}"><td class="somename">{{ form.p_value_mulitpletesting.label }}: </td><td>{{ form.p_value_mulitpletesting() }}</td>
-                    {% if form.p_value_mulitpletesting.errors %}
+                <tr title="{{ form.p_value_multipletesting.description }}"><td class="somename">{{ form.p_value_multipletesting.label }}: </td><td>{{ form.p_value_multipletesting() }}</td>
+                    {% if form.p_value_multipletesting.errors %}
                 <tr>
-                    <td colspan="2"><ul class="errors"> {% for error in form.p_value_mulitpletesting.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                    <td colspan="2"><ul class="errors"> {% for error in form.p_value_multipletesting.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
                 </tr>
                 </table>
@@ -81,6 +96,7 @@
         </div>
         <br>
         <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
+        <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
 		<br><br><br><br>
 	</form>
 {#<script>#}
