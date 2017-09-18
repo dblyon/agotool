@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-from StringIO import StringIO
-from itertools import izip_longest
+from io import StringIO # from StringIO import StringIO
+from itertools import zip_longest # from itertools import izip_longest
 import tools
 
 # test for comma vs point separated intensity values

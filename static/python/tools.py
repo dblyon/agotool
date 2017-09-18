@@ -101,9 +101,8 @@ def convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list):
         assoc_dict_pg[proteinGroup] = consensus_associations
     return assoc_dict_pg
 
-######### DB part
-
-
+############################################################################################################
+###################################################### DB part
 upkTerm_2_functionAN_dict = {u'Biological process': u'UPK:9999',
                              u'Cellular component': u'UPK:9998',
                              u'Coding sequence diversity': u'UPK:9997',

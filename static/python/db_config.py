@@ -1,6 +1,6 @@
 import os, time
 from sqlalchemy import create_engine
-from sqlalchemy.engine.url import URL
+# from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import MetaData

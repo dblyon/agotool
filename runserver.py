@@ -428,7 +428,7 @@ class Results_Form(wtforms.Form):
                                          default = 2.0, description="""Enter a number higher than 1.
 Usually a number between 1.1 and 10 is chosen.
 Increasing the value will increase cluster granularity (produce more clusters).
-Some combinations of data and inflation factor can take very long to process. Please be patient.""")
+Certain combinations of data and inflation factor can take very long to process. Please be patient.""")
 
 @app.route('/results', methods=["GET", "POST"])
 def results():
@@ -647,3 +647,5 @@ if __name__ == "__main__":
         ### agptool
     # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################
+# ToDo: All proteins without abundance data are disregarded (will be
+#     placed in a separate bin in next update).
