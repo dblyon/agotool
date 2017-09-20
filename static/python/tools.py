@@ -1,5 +1,7 @@
 from subprocess import call
 from collections import defaultdict
+import datetime, time
+
 
 def get_TOC_2_markdown_file(fn_md):
     toc = ""
@@ -16,7 +18,7 @@ def get_TOC_2_markdown_file(fn_md):
 def write_TOC_2_file(fn_md, fn_out=None):
     """
     import tools
-    fn = r"/Users/dblyon/modules/cpr/metaprot/DataBase_Schema.md"
+    fn = r"/Users/dblyon/modules/cpr/metaprot/DataBase_Schema_FDRiter.md"
     tools.write_TOC_2_file(fn)
     """
     toc = get_TOC_2_markdown_file(fn_md)
@@ -101,9 +103,8 @@ def convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list):
         assoc_dict_pg[proteinGroup] = consensus_associations
     return assoc_dict_pg
 
-######### DB part
-
-
+############################################################################################################
+###################################################### DB part
 upkTerm_2_functionAN_dict = {u'Biological process': u'UPK:9999',
                              u'Cellular component': u'UPK:9998',
                              u'Coding sequence diversity': u'UPK:9997',
@@ -279,6 +280,6 @@ def get_association_dict(connection, protein_ans_list, function_type, limit_2_pa
     session.close()
     return an_2_functions_dict
 
-
-
+def print_runtime(start_time):
+    print("#" * 80, "\n", "--- runtime: {} ---".format(str(datetime.timedelta(seconds=int(time.time() - start_time)))))
 

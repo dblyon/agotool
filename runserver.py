@@ -24,6 +24,27 @@ import userinput, run, obo_parser, cluster_filter, tools # go_retriever
 import db_config # copy of metaprot version
 
 ###############################################################################
+#### bokeh visualisation
+from bokeh.embed import components
+from bokeh.plotting import figure
+from bokeh.resources import INLINE
+from bokeh.util.string import encode_utf8
+colors = {
+    'Black': '#000000',
+    'Red':   '#FF0000',
+    'Green': '#00FF00',
+    'Blue':  '#0000FF',
+}
+
+def getitem(obj, item, default):
+    if item not in obj:
+        return default
+    else:
+        return obj[item]
+###############################################################################
+
+
+###############################################################################
 # ToDo:
 # - post DataBase schema for RestAPI lookup
 # - explain sources and update intervals
@@ -55,7 +76,7 @@ DO_LOGGING = False
 debug = False # do not attempt connection to PostgreSQL
 volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
 if not debug:
-    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=True)
+    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 if not debug:
@@ -81,8 +102,8 @@ app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
 HOMEDIR = os.path.expanduser("~")
-FN_DATABASE_SCHEMA = os.path.join(HOMEDIR, "modules/cpr/metaprot/sql/DataBase_Schema.md")
-FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
+# FN_DATABASE_SCHEMA = os.path.join(HOMEDIR, "modules/cpr/metaprot/sql/DataBase_Schema_FDRiter.md")
+# FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
 
 ### Additional path settings for flask
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -430,7 +451,7 @@ class Results_Form(wtforms.Form):
                                          default = 2.0, description="""Enter a number higher than 1.
 Usually a number between 1.1 and 10 is chosen.
 Increasing the value will increase cluster granularity (produce more clusters).
-Some combinations of data and inflation factor can take very long to process. Please be patient.""")
+Certain combinations of data and inflation factor can take very long to process. Please be patient.""")
 
 @app.route('/results', methods=["GET", "POST"])
 def results():
@@ -477,6 +498,41 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             return generate_result_page(header, results, form.gocat_upk.data,
                                         form.indent.data, session_id, form=Results_Form())
     return render_template('enrichment.html', form=form)
+
+@app.route("/bokeh")
+def polynomial():
+    """
+    Very simple embedding of a polynomial chart
+    """
+
+    # Grab the inputs arguments from the URL
+    args = flask.request.args
+
+    # Get all the form arguments in the url with defaults
+    color = colors[getitem(args, 'color', 'Black')]
+    _from = int(getitem(args, '_from', 0))
+    to = int(getitem(args, 'to', 10))
+
+    # Create a polynomial line graph with those arguments
+    x = list(range(_from, to + 1))
+    fig = figure(title="Polynomial")
+    fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
+
+    js_resources = INLINE.render_js()
+    css_resources = INLINE.render_css()
+
+    script, div = components(fig)
+    html = flask.render_template(
+        'bokeh.html',
+        plot_script=script,
+        plot_div=div,
+        js_resources=js_resources,
+        css_resources=css_resources,
+        color=color,
+        _from=_from,
+        to=to
+    )
+    return encode_utf8(html)
 
 def generate_result_page(header, results, gocat_upk, indent, session_id, form, errors=()):
     header = header.rstrip().split("\t")
@@ -598,7 +654,7 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     return file_name, fn_results_absolute, fn_results_relative
 
 if __name__ == "__main__":
-#     tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
+    # tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
@@ -610,6 +666,13 @@ if __name__ == "__main__":
 #     app.run(host='0.0.0.0', debug=True)
 ################################################################################
         ### agptool
+
     app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################
+
+
+    # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+################################################################################
+# ToDo: All proteins without abundance data are disregarded (will be
+#     placed in a separate bin in next update).
 

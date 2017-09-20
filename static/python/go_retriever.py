@@ -1,12 +1,11 @@
-import re
-import os
-import cPickle as pickle
-import gzip
-
-import sqlite3
-
 import obo_parser
-import update_server
+import os
+
+# import re
+# import cPickle as pickle
+# import gzip
+# import sqlite3
+# import update_server
 
 PYTHON_DIR = os.path.dirname(os.path.realpath(__file__))
 STATIC_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '..'))
