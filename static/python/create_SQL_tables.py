@@ -1,27 +1,20 @@
 import os, json, sys, re, fnmatch, subprocess, time
 import pandas as pd
 from subprocess import call
-sys.path.append("./")
+sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import tools
 
-# UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
 BASH_LOCATION = r"/bin/bash"
-
-PYTHON_DIR = os.path.dirname(os.path.abspath(__file__))
+PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.append(PYTHON_DIR)
-PROJECT_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '../..'))
-DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "static/data/downloads"))
-TABLES_DIR = r"/Users/dblyon/Downloads/tables"
-TEST_DIR = r"/Users/dblyon/Downloads/test"
-POSTGRESQL_DIR =  os.path.abspath(os.path.join(PROJECT_DIR, "static/data/PostgreSQL"))
-STATIC_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "static/data/static"))
-# STATIC_FILES = ["KEGG_AN_2_Pathway_static.txt",
-#                 "KEGG_prot_2_path_dict_file_static.txt",
-#                 "all_OG_annotations.tsv",
-#                 "bactNOG.annotations.tsv",
-#                 "results_AN_2_HMMs_HOMD_UPstyle_201607_AND_HOMD_UPstyle_201508_static.txt"]
-# TABLES_DIR = TEST_DIR
-# TEST_DIR = r"/Volumes/Speedy/PostgreSQL/tables/test"
+PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../..')))
+POSTGRESQL_DIR = os.path.join(PROJECT_DIR, "static/data/PostgreSQL")
+DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
+STATIC_DIR = os.path.join(POSTGRESQL_DIR, "static")
+TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
+TEST_DIR = os.path.join(TABLES_DIR, "test")
+FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.obo", "goslim_generic.obo", "go-basic.obo"]]
+
 
 EMPTY_EGGNOG_JSON_DICT = {"KEGG": {"kegg_pathways": [], "kegg_header": ["Pathway", "SeqCount", "Frequency", "relative_fontsize"]}, "go_terms": {"go_terms": {}, "go_header": ["ID", "GO term", "Evidence", "SeqCount", "Frequency", "relative_fontsize"]}, "domains": {"domains": {}, "dom_header": ["Domain ID", "SeqCount", "Frequency", "relative_fontsize"]}}
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
@@ -39,32 +32,7 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9998': "-51",  # 'Cellular component',
                               'UPK:9999': "-51"}  # 'Biological process'}
 id_2_entityTypeNumber_dict_keys_set = set(id_2_entityTypeNumber_dict.keys())
-## David adaptation and extension
-# Type	entity type
-# -3	NCBI TaxID
-# -21	GO biological process
-# -22	GO cellular component
-# -23	GO molecular function
-# -24	GO other (unused)
-# -26	DOID diseases
-# -51	UPK Biological process
-# -52	UPK Cellular component
-# -53	UPK Coding sequence diversity
-# -54	UPK Developmental stage
-# -55	UPK Disease
-# -56	UPK Domain
-# -57	UPK Ligand
-# -58	UPK Molecular function
-# -59	UPK Post-translational modification
-# -60	UPK Technical term
-# -99	something is wrong
 
-# ORGANISMS = {3702: 'arabidopsis', 9031: 'chicken', 9913: 'cow',  # 9913, Bos taurus
-#     44689: 'dicty',  # 44689, Dictyostelium discoideum
-#     9615: 'dog',  # 9615, Canis lupus familiaris
-#     7227: 'fly', 9606: 'human', 10090: 'mouse', 9823: 'pig', 10116: 'rat', 6239: 'worm',  # 6239, Caenorhabditis elegans
-#     559292: 'yeast',  # 559292 instead of 4932
-#     284812: 'fission_yeast', 7955: 'zebrafish', 3055: 'chlamy', 9796: 'horse', 3880: 'medicago', 39947: 'rice', 562: 'ecoli'}
 
 ##### create test tables for import
 def create_test_tables(num_lines=5000, TABLES_DIR_=None):
@@ -314,7 +282,7 @@ class OBOReader:
         id_, name, definition = "", "", ""
         is_a_list = []
         for line in lines:
-            if line.startswith("id:"):
+            if line.startswith("id_:"):
                 id_ = after_colon(line)
             elif line.startswith("name:"):
                 name = after_colon(line)
@@ -328,8 +296,8 @@ class OBOReader:
 ##### Child_2_Parent_table_UPK.txt, Functions_table_UPK.txt and Function_2_definition_table_UPK.txt
 def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK():
     """
-    id, name --> Functions_table.txt
-    id, is_a_list --> UPKChild_2_UPKParent_table.txt
+    id_, name --> Functions_table.txt
+    id_, is_a_list --> UPKChild_2_UPKParent_table.txt
     :return:
     """
     print("create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK")
@@ -357,8 +325,8 @@ def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_d
 ##### Child_2_Parent_table_GO.txt, Functions_table_GO.txt and Function_2_definition_table_GO.txt
 def create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO():
     """
-    id, name --> Functions_table.txt
-    id, is_a_list --> Child_2_Parent_table_GO.txt
+    id_, name --> Functions_table.txt
+    id_, is_a_list --> Child_2_Parent_table_GO.txt
     :return:
     """
     print("create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO")
@@ -678,7 +646,7 @@ def find_tables_to_remove():
 
 def remove_files(fn_list):
     for fn in fn_list:
-        if fn in STATIC_FILES:
+        if fn in FILES_NOT_2_DELETE:
             continue
         elif "static" in fn:
             continue

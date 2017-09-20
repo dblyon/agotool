@@ -193,7 +193,7 @@ class Filter(object):
         # {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
         header_list = header.split('\t') #!!!
         index_p = header_list.index(sort_on)
-        index_go = header_list.index('id')
+        index_go = header_list.index('id_')
         results = [res.split('\t') for res in results]
         results.sort(key=lambda x: float(x[index_p]))
         if sort_on == "fold_enrichment_study2pop":

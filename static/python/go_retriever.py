@@ -1,13 +1,7 @@
+import sys, os
+PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+sys.path.append(PYTHON_DIR)
 import obo_parser
-import os
-
-# import re
-# import cPickle as pickle
-# import gzip
-# import sqlite3
-# import update_server
-
-PYTHON_DIR = os.path.dirname(os.path.realpath(__file__))
 STATIC_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '..'))
 FN_P_PARSER_GO_ANNOTATIONS = os.path.abspath(os.path.join(STATIC_DIR, "data/GOA/Parser_GO_annotations.p"))
 
@@ -90,10 +84,13 @@ def get_level(goid, go_dag):
 if __name__ == "__main__":
 ################################################################################
 ### try new HOMD_GOA.tsv
-    pgoa = Parser_GO_annotations()
-    fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA_commasepnotlong.tsv'
+    # pgoa = Parser_GO_annotations()
+    # fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA_commasepnotlong.tsv'
     # fn = r'/Users/dblyon/modules/cpr/agotool/static/data/GOA/HOMD_GOA.tsv'
-    pgoa.parse_goa_ref(fn, organisms_set=None)
+    # pgoa.parse_goa_ref(fn, organisms_set=None)
+    print(os.path.abspath(os.path.realpath(__file__)))
+    print(obo_parser)
+
 ################################################################################
     # fn_gz = r"../../static/data/GOA/uniprot_test.gz"
     # organisms_set={u'10090',

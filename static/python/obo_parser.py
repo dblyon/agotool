@@ -1,5 +1,5 @@
-from __future__ import print_function
 import sys
+
 
 try:
     from exceptions import EOFError
@@ -69,11 +69,11 @@ class OBOReader:
 
         rec = GOTerm()
         for line in lines:
-            if line.startswith("id:"):
+            if line.startswith("id_:"):
                 id_ = after_colon(line)
                 if self.upk:
                     id_ = self.replace_KW_with_UPK(id_)
-                # rec.id = after_colon(line)
+                # rec.id_ = after_colon(line)
                 rec.id = id_
             if line.startswith("alt_id:"):
                 # rec.alt_ids.append(after_colon(line))
@@ -123,7 +123,7 @@ class GOTerm:
     #         obsolete = "obsolete"
     #     else:
     #         obsolete = ""
-    #     return "%s\tlevel-%02d\tdepth-%02d\t%s [%s] %s" % (self.id, self.level, self.depth, self.name, self.namespace, obsolete)
+    #     return "%s\tlevel-%02d\tdepth-%02d\t%s [%s] %s" % (self.id_, self.level, self.depth, self.name, self.namespace, obsolete)
 
     def __repr__(self):
         return "GOTerm('%s')" % (self.id)
@@ -143,7 +143,7 @@ class GOTerm:
     # def get_all_parents(self):
     #     all_parents = set()
     #     for p in self.parents:
-    #         all_parents.add(p.id)
+    #         all_parents.add(p.id_)
     #         all_parents |= p.get_all_parents()
     #     return all_parents
 
@@ -216,6 +216,302 @@ class GOTerm:
                 depth, dp)
 
 
+# class GODag(dict):
+#
+#     def __init__(self, obo_file="go-basic.obo", upk=False):
+#         """
+#         :param obo_file: String
+#         :param upk: Bool (flag to convert UniProtKeyword tag from 'KW-0673' to 'UPK:0673')
+#         """
+#         self.load_obo_file(obo_file, upk=upk)
+#
+#     def load_obo_file(self, obo_file, upk):
+#         obo_reader = OBOReader(obo_file, upk=upk)
+#         for rec in obo_reader:
+#             # print("#&*"*80)
+#             # print(rec)
+#             # print("#&*" * 80)
+#             # raise StopIteration
+#             self[rec.id] = rec
+#             for alt in rec.alt_ids:
+#                 self[alt] = rec
+#         self.populate_terms()
+#
+#     def populate_terms(self):
+#
+#         def _init_level(rec):
+#             if rec.level is None:
+#                 if not rec.parents:
+#                     rec.level = 0
+#                 else:
+#                     rec.level = min(_init_level(rec) for rec in rec.parents) + 1
+#             return rec.level
+#
+#         def _init_depth(rec):
+#             if rec.depth is None:
+#                 if not rec.parents:
+#                     rec.depth = 0
+#                 else:
+#                     rec.depth = max(_init_depth(rec) for rec in rec.parents) + 1
+#             return rec.depth
+#
+#         # make the parents references to the GO terms
+#         for rec in self.values():
+#             rec.parents = [self[x] for x in rec._parents]
+#
+#         # populate children and levels
+#         for rec in self.values():
+#             for p in rec.parents:
+#                 if rec not in p.children:
+#                     p.children.append(rec)
+#
+#             if rec.level is None:
+#                 _init_level(rec)
+#
+#             if rec.depth is None:
+#                 _init_depth(rec)
+#
+#     def write_dag(self, out=sys.stdout):
+#         """Write info for all GO Terms in obo file, sorted numerically."""
+#         for rec_id, rec in sorted(self.items()):
+#             print(rec, file=out)
+#
+#     def write_hier_all(self, out=sys.stdout,
+#                       len_dash=1, max_depth=None, num_child=None, short_prt=False):
+#         """Write hierarchy for all GO Terms in obo file."""
+#         # Print: [biological_process, molecular_function, and cellular_component]
+#         for go_id in ['GO:0008150', 'GO:0003674', 'GO:0005575']:
+#           self.write_hier(go_id, out, len_dash, max_depth, num_child, short_prt, None)
+#
+#     def write_hier(self, GO_id, out=sys.stdout, len_dash=1, max_depth=None, num_child=None, short_prt=False, include_only=None, go_marks=None):
+#         """Write hierarchy for a GO Term."""
+#         gos_printed = set()
+#         self[GO_id].write_hier_rec(gos_printed, out, len_dash, max_depth, num_child,
+#             short_prt, include_only, go_marks)
+#
+#     def write_summary_cnts(self, GO_ids, out=sys.stdout):
+#         """Write summary of level and depth counts for specific GO ids."""
+#         cnts = GODag.get_cnts_levels_depths_recs([self[GO] for GO in GO_ids])
+#         self._write_summary_cnts(cnts, out)
+#
+#     def write_summary_cnts_all(self, out=sys.stdout):
+#         """Write summary of level and depth counts for all active GO Terms."""
+#         cnts = self.get_cnts_levels_depths_recs(set(self.values()))
+#         self._write_summary_cnts(cnts, out)
+#
+#     # def write_summary_cnts_rec(self, out=sys.stdout):
+#     #     """Write summary of level and depth counts for active GO Terms."""
+#     #     cnts = self.get_cnts_levels_depths_recs(recs)
+#     #     self._write_summary_cnts(cnts, out)
+#
+#     def _write_summary_cnts(self, cnts, out=sys.stdout):
+#         """Write summary of level and depth counts for active GO Terms."""
+#         # Count level(shortest path to root) and depth(longest path to root)
+#         # values for all unique GO Terms.
+#         max_val = max(max(dep for dep in cnts['depth']),
+#                       max(lev for lev in cnts['level']))
+#         nss = ['biological_process', 'molecular_function', 'cellular_component']
+#         out.write('Dep <-Depth Counts->  <-Level Counts->\n')
+#         out.write('Lev   BP    MF    CC    BP    MF    CC\n')
+#         out.write('--- ----  ----  ----  ----  ----  ----\n')
+#         for i in range(max_val+1):
+#             vals = ['{:>5}'.format(cnts[desc][i][ns]) for desc in cnts for ns in nss]
+#             out.write('{:>02} {}\n'.format(i, ' '.join(vals)))
+#
+#     @staticmethod
+#     def get_cnts_levels_depths_recs(recs):
+#         """Collect counts of levels and depths in a Group of GO Terms."""
+#         cnts = cx.defaultdict(lambda: cx.defaultdict(cx.Counter))
+#         for rec in recs:
+#             if not rec.is_obsolete:
+#                 cnts['level'][rec.level][rec.namespace] += 1
+#                 cnts['depth'][rec.depth][rec.namespace] += 1
+#         return cnts
+#
+#     @staticmethod
+#     def id2int(GO_id): return int(GO_id.replace("GO:", "", 1))
+#
+#     def query_term(self, term, verbose=False):
+#         if term not in self:
+#             print("Term %s not found!" % term, file=sys.stderr)
+#             return
+#
+#         rec = self[term]
+#         print(rec, file=sys.stderr)
+#         if verbose:
+#             print("all parents:", rec.get_all_parents(), file=sys.stderr)
+#             print("all children:", rec.get_all_children(), file=sys.stderr)
+#         return rec
+#
+#     def paths_to_top(self, term, verbose=False):
+#         """ Returns all possible paths to the root node
+#
+#             Each path includes the term given. The order of the path is
+#             top -> bottom, i.e. it starts with the root and ends with the
+#             given term (inclusively).
+#
+#             Parameters:
+#             -----------
+#             - term:
+#                 the id_ of the GO term, where the paths begin (i.e. the
+#                 accession 'GO:0003682')
+#
+#             Returns:
+#             --------
+#             - a list of lists of GO Terms
+#         """
+#         # error handling consistent with original authors
+#         if term not in self:
+#             print("Term %s not found!" % term, file=sys.stderr)
+#             return
+#
+#         def _paths_to_top_recursive(rec):
+#             if rec.level == 0:
+#                 return [[rec]]
+#             paths = []
+#             for parent in rec.parents:
+#                 top_paths = _paths_to_top_recursive(parent)
+#                 for top_path in top_paths:
+#                     top_path.append(rec)
+#                     paths.append(top_path)
+#             return paths
+#
+#         go_term = self[term]
+#         return _paths_to_top_recursive(go_term)
+#
+#     def _label_wrap(self, label):
+#         wrapped_label = r"%s\n%s" % (label,
+#                                      self[label].name.replace(",", r"\n"))
+#         return wrapped_label
+#
+#     # def make_graph_pydot(self, recs, nodecolor,
+#     #                  edgecolor, dpi,
+#     #                  draw_parents=True, draw_children=True):
+#     #     """draw AMIGO style network, lineage containing one query record."""
+#     #     import pydot
+#     #     G = pydot.Dot(graph_type='digraph', dpi="{}".format(dpi)) # Directed Graph
+#     #     edgeset = set()
+#     #     usr_ids = [rec.id_ for rec in recs]
+#     #     for rec in recs:
+#     #         if draw_parents:
+#     #             edgeset.update(rec.get_all_parent_edges())
+#     #         if draw_children:
+#     #             edgeset.update(rec.get_all_child_edges())
+#     #
+#     #     lw = self._label_wrap
+#     #     rec_id_set = set([rec_id for endpts in edgeset for rec_id in endpts])
+#     #     nodes = {str(ID):pydot.Node(
+#     #           lw(ID).replace("GO:",""),  # Node name
+#     #           shape="box",
+#     #           style="rounded, filled",
+#     #           # Highlight query terms in plum:
+#     #           fillcolor="beige" if ID not in usr_ids else "plum",
+#     #           color=nodecolor)
+#     #             for ID in rec_id_set}
+#     #
+#     #     # add nodes explicitly via add_node
+#     #     for rec_id, node in nodes.items():
+#     #         G.add_node(node)
+#     #
+#     #     for src, target in edgeset:
+#     #         # default layout in graphviz is top->bottom, so we invert
+#     #         # the direction and plot using dir="back"
+#     #         G.add_edge(pydot.Edge(nodes[target], nodes[src],
+#     #           shape="normal",
+#     #           color=edgecolor,
+#     #           label="is_a",
+#     #           dir="back"))
+#     #
+#     #     return G
+#
+#     # def make_graph_pygraphviz(self, recs, nodecolor,
+#     #                  edgecolor, dpi,
+#     #                  draw_parents=True, draw_children=True):
+#     #     # draw AMIGO style network, lineage containing one query record
+#     #     import pygraphviz as pgv
+#     #
+#     #     G = pgv.AGraph(name="GO tree")
+#     #     edgeset = set()
+#     #     for rec in recs:
+#     #         if draw_parents:
+#     #             edgeset.update(rec.get_all_parent_edges())
+#     #         if draw_children:
+#     #             edgeset.update(rec.get_all_child_edges())
+#     #
+#     #     edgeset = [(self._label_wrap(a), self._label_wrap(b))
+#     #                for (a, b) in edgeset]
+#     #
+#     #     # add nodes explicitly via add_node
+#     #     # adding nodes implicitly via add_edge misses nodes
+#     #     # without at least one edge
+#     #     for rec in recs:
+#     #         G.add_node(self._label_wrap(rec.id_))
+#     #
+#     #     for src, target in edgeset:
+#     #         # default layout in graphviz is top->bottom, so we invert
+#     #         # the direction and plot using dir="back"
+#     #         G.add_edge(target, src)
+#     #
+#     #     G.graph_attr.update(dpi="%d" % dpi)
+#     #     G.node_attr.update(shape="box", style="rounded,filled",
+#     #                        fillcolor="beige", color=nodecolor)
+#     #     G.edge_attr.update(shape="normal", color=edgecolor,
+#     #                        dir="back", label="is_a")
+#     #     # highlight the query terms
+#     #     for rec in recs:
+#     #         try:
+#     #             q = G.get_node(self._label_wrap(rec.id_))
+#     #             q.attr.update(fillcolor="plum")
+#     #         except:
+#     #             continue
+#     #
+#     #     return G
+#
+#     def draw_lineage(self, recs, nodecolor="mediumseagreen",
+#                      edgecolor="lightslateblue", dpi=96,
+#                      lineage_img="GO_lineage.png", engine="pygraphviz",
+#                      gml=False, draw_parents=True, draw_children=True):
+#         assert engine in GraphEngines
+#         if engine == "pygraphviz":
+#             G = self.make_graph_pygraphviz(recs, nodecolor, edgecolor, dpi,
+#                               draw_parents=draw_parents, draw_children=draw_children)
+#         else:
+#             G = self.make_graph_pydot(recs, nodecolor, edgecolor, dpi,
+#                               draw_parents=draw_parents, draw_children=draw_children)
+#
+#         if gml:
+#             import networkx as nx  # use networkx to do the conversion
+#             pf = lineage_img.rsplit(".", 1)[0]
+#             NG = nx.from_agraph(G) if engine == "pygraphviz" else nx.from_pydot(G)
+#
+#             del NG.graph['node']
+#             del NG.graph['edge']
+#             gmlfile = pf + ".gml"
+#             nx.write_gml(NG, gmlfile)
+#             print("GML graph written to {0}".format(gmlfile), file=sys.stderr)
+#
+#         print(("lineage info for terms %s written to %s" %
+#                              ([rec.id for rec in recs], lineage_img)), file=sys.stderr)
+#
+#         if engine == "pygraphviz":
+#             G.draw(lineage_img, prog="dot")
+#         else:
+#             G.write_png(lineage_img)
+#
+#     def update_association(self, association):
+#         # assoc is a dict: key=AN, val=set of go-terms
+#         bad_terms = set()
+#         for key, terms in list(association.items()): # ? key unused, why not use 'values' ? # Anders: use itervalues to iterate over dict if not changing keys
+#             parents = set()
+#             for term in terms:
+#                 try:
+#                     parents.update(self[term].get_all_parents()) # equivalent to parents.update(self.__getitem__(term).get_all_parents())
+#                 except:
+#                     bad_terms.add(term.strip())
+#             terms.update(parents) # updates the association object with all parent GO-terms of given GO-terms
+#         if bad_terms:
+#             print("number of terms not found: %s" % (len(bad_terms),), file=sys.stderr)
+
 class GODag(dict):
 
     def __init__(self, obo_file="go-basic.obo", upk=False):
@@ -275,18 +571,18 @@ class GODag(dict):
         """Write info for all GO Terms in obo file, sorted numerically."""
         for rec_id, rec in sorted(self.items()):
             print(rec, file=out)
-   
-    def write_hier_all(self, out=sys.stdout, 
+
+    def write_hier_all(self, out=sys.stdout,
                       len_dash=1, max_depth=None, num_child=None, short_prt=False):
         """Write hierarchy for all GO Terms in obo file."""
         # Print: [biological_process, molecular_function, and cellular_component]
         for go_id in ['GO:0008150', 'GO:0003674', 'GO:0005575']:
-          self.write_hier(go_id, out, len_dash, max_depth, num_child, short_prt, None) 
+          self.write_hier(go_id, out, len_dash, max_depth, num_child, short_prt, None)
 
     def write_hier(self, GO_id, out=sys.stdout, len_dash=1, max_depth=None, num_child=None, short_prt=False, include_only=None, go_marks=None):
         """Write hierarchy for a GO Term."""
         gos_printed = set()
-        self[GO_id].write_hier_rec(gos_printed, out, len_dash, max_depth, num_child, 
+        self[GO_id].write_hier_rec(gos_printed, out, len_dash, max_depth, num_child,
             short_prt, include_only, go_marks)
 
     def write_summary_cnts(self, GO_ids, out=sys.stdout):
@@ -308,7 +604,7 @@ class GODag(dict):
         """Write summary of level and depth counts for active GO Terms."""
         # Count level(shortest path to root) and depth(longest path to root)
         # values for all unique GO Terms.
-        max_val = max(max(dep for dep in cnts['depth']), 
+        max_val = max(max(dep for dep in cnts['depth']),
                       max(lev for lev in cnts['level']))
         nss = ['biological_process', 'molecular_function', 'cellular_component']
         out.write('Dep <-Depth Counts->  <-Level Counts->\n')
@@ -327,7 +623,7 @@ class GODag(dict):
                 cnts['level'][rec.level][rec.namespace] += 1
                 cnts['depth'][rec.depth][rec.namespace] += 1
         return cnts
-    
+
     @staticmethod
     def id2int(GO_id): return int(GO_id.replace("GO:", "", 1))
 
@@ -384,89 +680,6 @@ class GODag(dict):
                                      self[label].name.replace(",", r"\n"))
         return wrapped_label
 
-    # def make_graph_pydot(self, recs, nodecolor,
-    #                  edgecolor, dpi,
-    #                  draw_parents=True, draw_children=True):
-    #     """draw AMIGO style network, lineage containing one query record."""
-    #     import pydot
-    #     G = pydot.Dot(graph_type='digraph', dpi="{}".format(dpi)) # Directed Graph
-    #     edgeset = set()
-    #     usr_ids = [rec.id for rec in recs]
-    #     for rec in recs:
-    #         if draw_parents:
-    #             edgeset.update(rec.get_all_parent_edges())
-    #         if draw_children:
-    #             edgeset.update(rec.get_all_child_edges())
-    #
-    #     lw = self._label_wrap
-    #     rec_id_set = set([rec_id for endpts in edgeset for rec_id in endpts])
-    #     nodes = {str(ID):pydot.Node(
-    #           lw(ID).replace("GO:",""),  # Node name
-    #           shape="box",
-    #           style="rounded, filled",
-    #           # Highlight query terms in plum:
-    #           fillcolor="beige" if ID not in usr_ids else "plum",
-    #           color=nodecolor)
-    #             for ID in rec_id_set}
-    #
-    #     # add nodes explicitly via add_node
-    #     for rec_id, node in nodes.items():
-    #         G.add_node(node)
-    #
-    #     for src, target in edgeset:
-    #         # default layout in graphviz is top->bottom, so we invert
-    #         # the direction and plot using dir="back"
-    #         G.add_edge(pydot.Edge(nodes[target], nodes[src],
-    #           shape="normal",
-    #           color=edgecolor,
-    #           label="is_a",
-    #           dir="back"))
-    #
-    #     return G
-
-    # def make_graph_pygraphviz(self, recs, nodecolor,
-    #                  edgecolor, dpi,
-    #                  draw_parents=True, draw_children=True):
-    #     # draw AMIGO style network, lineage containing one query record
-    #     import pygraphviz as pgv
-    #
-    #     G = pgv.AGraph(name="GO tree")
-    #     edgeset = set()
-    #     for rec in recs:
-    #         if draw_parents:
-    #             edgeset.update(rec.get_all_parent_edges())
-    #         if draw_children:
-    #             edgeset.update(rec.get_all_child_edges())
-    #
-    #     edgeset = [(self._label_wrap(a), self._label_wrap(b))
-    #                for (a, b) in edgeset]
-    #
-    #     # add nodes explicitly via add_node
-    #     # adding nodes implicitly via add_edge misses nodes
-    #     # without at least one edge
-    #     for rec in recs:
-    #         G.add_node(self._label_wrap(rec.id))
-    #
-    #     for src, target in edgeset:
-    #         # default layout in graphviz is top->bottom, so we invert
-    #         # the direction and plot using dir="back"
-    #         G.add_edge(target, src)
-    #
-    #     G.graph_attr.update(dpi="%d" % dpi)
-    #     G.node_attr.update(shape="box", style="rounded,filled",
-    #                        fillcolor="beige", color=nodecolor)
-    #     G.edge_attr.update(shape="normal", color=edgecolor,
-    #                        dir="back", label="is_a")
-    #     # highlight the query terms
-    #     for rec in recs:
-    #         try:
-    #             q = G.get_node(self._label_wrap(rec.id))
-    #             q.attr.update(fillcolor="plum")
-    #         except:
-    #             continue
-    #
-    #     return G
-
     def draw_lineage(self, recs, nodecolor="mediumseagreen",
                      edgecolor="lightslateblue", dpi=96,
                      lineage_img="GO_lineage.png", engine="pygraphviz",
@@ -511,6 +724,4 @@ class GODag(dict):
             terms.update(parents) # updates the association object with all parent GO-terms of given GO-terms
         if bad_terms:
             print("number of terms not found: %s" % (len(bad_terms),), file=sys.stderr)
-
-
 

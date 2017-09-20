@@ -1,28 +1,10 @@
-from __future__ import print_function
-
-# standard library
-import os, sys, logging, time, shutil
-# import StringIO
-# from subprocess import call
-
-# third party
-# import pandas as pd
-# import numpy as np
-from flask import render_template, request, send_from_directory, Markup #, jsonify, Flask
-# from flask_restful_swagger import swagger
-# from flask_restful import Api
-import flask, flask_sqlalchemy #, flask_restless
+import os, sys, logging, time
+from flask import render_template, request, send_from_directory
+import flask
 import wtforms
 from wtforms import fields
-import markdown
-
-# local application
-import sys #, models
-sys.path.append('./static/python')
-# sys.path.append(r"/workdir/agotool/static/python")
-import userinput, run, obo_parser, cluster_filter, tools # go_retriever
-import db_config # copy of metaprot version
-
+sys.path.insert(0, os.path.abspath(os.path.realpath('./static/python')))
+import userinput, run, cluster_filter, obo_parser
 ###############################################################################
 #### bokeh visualisation
 from bokeh.embed import components
@@ -33,8 +15,7 @@ colors = {
     'Black': '#000000',
     'Red':   '#FF0000',
     'Green': '#00FF00',
-    'Blue':  '#0000FF',
-}
+    'Blue':  '#0000FF'}
 
 def getitem(obj, item, default):
     if item not in obj:
@@ -70,34 +51,36 @@ def getitem(obj, item, default):
 # -
 ###############################################################################
 
-ECHO = False
-TESTING = False # which DB are we connecting to ('metaprot' or 'test')
-DO_LOGGING = False
-debug = False # do not attempt connection to PostgreSQL
-volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
-if not debug:
-    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
+# ECHO = False
+# TESTING = False # which DB are we connecting to ('metaprot' or 'test')
+# DO_LOGGING = False
+# debug = False # do not attempt connection to PostgreSQL
+# volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
+# if not debug:
+#     connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
+
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
-if not debug:
-    app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
-    app.config['SQLALCHEMY_ECHO'] = False
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# if not debug:
+#     app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
+#     app.config['SQLALCHEMY_ECHO'] = False
+#     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['SQLALCHEMY_RECORD_QUERIES'] = False
 
 ###################################
 # Wrap the Api with swagger.docs. It is a thin wrapper around the Api class that adds some swagger smarts
 # api = swagger.docs(Api(app), apiVersion='0.1')
 ###################################
-if not debug:
-    db = flask_sqlalchemy.SQLAlchemy(app)
-    db.Model.metadata.reflect(db.engine)
-
-webserver_data = os.getcwd() + '/static/data'
-EXAMPLE_FOLDER = webserver_data + '/exampledata'
-SESSION_FOLDER_ABSOLUTE = webserver_data + '/session'
+# if not debug:
+#     db = flask_sqlalchemy.SQLAlchemy(app)
+#     db.Model.metadata.reflect(db.engine)
+current_working_dir = os.getcwd()
+webserver_data = os.path.join(current_working_dir + '/static/data')
+EXAMPLE_FOLDER = os.path.join(webserver_data + '/exampledata')
+SESSION_FOLDER_ABSOLUTE = os.path.join(webserver_data + '/session')
 SESSION_FOLDER_RELATIVE = '/static/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.getcwd() + '/templates'
+TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/templates')
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
@@ -165,21 +148,17 @@ if profiling:
 
 ################################################################################
 ##### Maximum Time for MCL clustering
-max_timeout = 20 # minutes
+max_timeout = 10 # minutes
 ################################################################################
 
 ################################################################################
 ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-# pgoa = go_retriever.Parser_GO_annotations()
-# pgoa.unpickle()
-# upkp = go_retriever.UniProtKeywordsParser()
-# upkp.unpickle()
-obo2file_dict = {"GO_slim": webserver_data + r'/downloads/goslim_generic.obo',
-                 "GO_basic": webserver_data + r'/downloads/go-basic.obo',
-                 "UPK_all": webserver_data + r'/downloads/keywords-all.obo'}
-upk_dag = obo_parser.GODag(obo_file=obo2file_dict['UPK_all'], upk=True)
-goslim_dag = obo_parser.GODag(obo_file=obo2file_dict['GO_slim'])
-go_dag = obo_parser.GODag(obo_file=obo2file_dict['GO_basic'])
+# obo2file_dict = {"GO_slim": os.path.join(webserver_data + r'/PostgreSQL/downloads/goslim_generic.obo'),
+#                  "GO_basic": os.path.join(webserver_data + r'/PostgreSQL/downloads/go-basic.obo'),
+#                  "UPK_all": os.path.join(webserver_data + r'/PostgreSQL/downloads/keywords-all.obo')}
+upk_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
+goslim_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/goslim_generic.obo'))
+go_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/go-basic.obo'))
 
 for go_term in go_dag.keys():
     parents = go_dag[go_term].get_all_parents()
@@ -276,16 +255,16 @@ def download_example_data(filename):
     return send_from_directory(directory=uploads, filename=filename)
 
 ################################################################################
-# db_schema.html
-################################################################################
-@app.route("/db_schema")
-def db_schema():
-    with open(FN_DATABASE_SCHEMA, "r") as fh:
-        content = fh.read()
-    content = Markup(markdown.markdown(content))
-    return render_template("db_schema.html", **locals())
-
-################################################################################
+# # db_schema.html
+# ################################################################################
+# @app.route("/db_schema")
+# def db_schema():
+#     with open(FN_DATABASE_SCHEMA, "r") as fh:
+#         content = fh.read()
+#     content = Markup(markdown.markdown(content))
+#     return render_template("db_schema.html", **locals())
+#
+# ################################################################################
 # howto.html
 ################################################################################
 @app.route('/howto')
@@ -341,9 +320,9 @@ def read_results_file(fn):
 
 def elipsis(header):
     try:
-        ans_index = header.index("ANs_study")
+        ans_index = header.index("ANs_foreground")
     except ValueError:
-        ans_index = header.index("ANs_pop")
+        ans_index = header.index("ANs_background")
         # let flask throw an internal server error
     try:
         description_index = header.index("description")
@@ -465,7 +444,7 @@ def results():
         input_fs = request.files['userinput_file']
         ui = userinput.Userinput(fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=form.num_bins.data, decimal='.', method="abundance_correction", connection=connection)
+            num_bins=form.num_bins.data, decimal='.', method="abundance_correction")
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -480,7 +459,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.p_value_multipletesting.data)
             log_activity(string2log)
 
-            header, results = run.run(go_dag, goslim_dag, upk_dag, ui, connection, form.gocat_upk.data,
+            header, results = run.run(go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data,
@@ -663,13 +642,9 @@ if __name__ == "__main__":
 #         app.run('localhost', 5000, debug=True)
 #     else:
 #         app.run('localhost', 5000, debug=True)
-#     app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True)
 ################################################################################
         ### agptool
-
-    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
-################################################################################
-
 
     # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################

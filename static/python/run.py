@@ -1,24 +1,10 @@
 from __future__ import print_function
-import operator, os, sys
-import pandas as pd
-
-# debug
-# from collections import defaultdict
-
-# import numpy as np
-sys.path.append("./../metaprot/sql/")
-
-# import query
-# import go_retriever
-import enrichment
-import tools
-# import userinput
-# import obo_parser
-# import cluster_filter
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
+import enrichment, tools, query
 
 
-
-def run(go_dag, goslim_dag, upk_dag, ui, connection, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
+def run(go_dag, goslim_dag, upk_dag, ui, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
         o_or_u_or_both, backtracking, fold_enrichment_study2pop,
         p_value_uncorrected, p_value_mulitpletesting):
 
@@ -32,7 +18,7 @@ def run(go_dag, goslim_dag, upk_dag, ui, connection, gocat_upk, go_slim_or_basic
     protein_ans_list = ui.get_all_unique_ANs()
     function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
     # print(gocat_upk, function_type, limit_2_parent)
-    assoc_dict = tools.get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=limit_2_parent, basic_or_slim=go_slim_or_basic, backtracking=backtracking)
+    assoc_dict = query.get_association_dict(protein_ans_list, function_type, limit_2_parent=limit_2_parent, basic_or_slim=go_slim_or_basic, backtracking=backtracking)
     # print(assoc_dict)
     # now convert assoc_dict into proteinGroups to consensus assoc_dict
     proteinGroups_list = ui.get_all_unique_proteinGroups()
@@ -190,7 +176,7 @@ def write2file(fn, tsv):
 #     write2file(fn_out, tsv)
 #     df = pd.read_csv(fn_out, sep='\t')
 #     if not gocat_upk == "KEGG": # filter results
-#         df['level'] = df["id"].apply(go_retriever.get_level, args=(go_dag, ))
+#         df['level'] = df["id_"].apply(go_retriever.get_level, args=(go_dag, ))
 #     df['ANs_count'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
 #     print(fn_out)
 #     df.to_csv(fn_out, sep='\t', header=True, index=False)
@@ -413,7 +399,7 @@ if __name__ == "__main__":
     # print(fn_out)
     # write2file(fn_out, tsv)
     # df = pd.read_csv(fn_out, sep='\t')
-    # df['level'] = df["id"].apply(go_retriever.get_level, args=(go_dag, ))
+    # df['level'] = df["id_"].apply(go_retriever.get_level, args=(go_dag, ))
     # df['ANs_count'] = df['ANs_study'].apply(lambda x: len(x.split(",")))
     # df.to_csv(fn_out, sep='\t', header=True, index=False)
     # print(df.shape)
@@ -428,7 +414,7 @@ if __name__ == "__main__":
     # cond = df["background_n"] == df["ANs_count"] * background_n
     # assert sum(cond) == len(cond)
     # df_characterize_study = dfx.copy()
-    # df_compare_groups = df[["id", "foreground_count"]]
+    # df_compare_groups = df[["id_", "foreground_count"]]
     # df_compare_groups.columns = ["GOid", "foreground_count"]
     # dfm = pd.merge(df_compare_groups, df_characterize_study, how='outer')
     # cond = dfm['foreground_count'] == dfm['Num_associations']

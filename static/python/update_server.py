@@ -5,13 +5,13 @@ import urllib.request
 from subprocess import call
 from retrying import retry
 
-PYTHON_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(PYTHON_DIR)
+PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+sys.path.insert(0, PYTHON_DIR)
 
-PROJECT_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '../..'))
-DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "static/data/downloads"))
+PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../..')))
+DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "static/data/PostgreSQL/downloads"))
 
-DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'static/data', directory) for directory in ["downloads", "session"]]
+DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'static/data/PostgreSQL', directory) for directory in ["downloads", "session"]]
 DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
 
 URL_GENE_ASSOCIATIONS_GOA_UNIPROT = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz"
@@ -21,10 +21,10 @@ URL_GO_basic = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
 URL_GO_slim = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
 URL_eggNOG = r"http://eggnogdb.embl.de/download/latest/all_OG_annotations.tsv.gz"
 URL_bactNOG = r"http://eggnogdb.embl.de/download/latest/data/bactNOG/bactNOG.annotations.tsv.gz"
-URL_UNIPROT_2_KEGG = r"http://www.uniprot.org/uniprot/?query=database:(type:%22KEGG%22)&format=tab&columns=id,database(KEGG)"
+URL_UNIPROT_2_KEGG = r"http://www.uniprot.org/uniprot/?query=database:(type:%22KEGG%22)&format=tab&columns=id_,database(KEGG)"
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
-URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS = r"http://www.uniprot.org/uniprot/?columns=id,keywords&format=tab&compress=yes"
-URL_UniProt_KW = r"http://www.uniprot.org/uniprot/?query=organism:%i&columns=id,keywords&format=tab"
+URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS = r"http://www.uniprot.org/uniprot/?columns=id_,keywords&format=tab&compress=yes"
+URL_UniProt_KW = r"http://www.uniprot.org/uniprot/?query=organism:%i&columns=id_,keywords&format=tab"
 
 ORGANISMS = {
     3702: 'arabidopsis',
@@ -62,7 +62,7 @@ ORGANISMS = {
 # using TaxID 559292 instead of 4932 for yeast
 # 4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
 # Saccharomyces cerevisiae (strain ATCC 204508 / S288c)
-# http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id,keywords&format=tab
+# http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id_,keywords&format=tab
 
 @retry(stop_max_attempt_number=5, wait_exponential_multiplier=50000)
 def download_gzip_file(url, file_name):

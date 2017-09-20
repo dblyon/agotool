@@ -1,9 +1,11 @@
+import sys, os
 import pandas as pd
 import numpy as np
 from collections import defaultdict
 from io import StringIO # from StringIO import StringIO
 from itertools import zip_longest # from itertools import izip_longest
-import tools
+sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+import tools, query
 
 # test for comma vs point separated intensity values
 # test for " enclosed ANs, in general and for protein groups using these
@@ -20,7 +22,7 @@ class Userinput(object):
     """
     def __init__(self, fn=None, foreground_string=None, background_string=None,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=100, decimal='.', method="abundance_correction", foreground_n=None, background_n=None, connection=None):
+            num_bins=100, decimal='.', method="abundance_correction", foreground_n=None, background_n=None):
         self.fn = fn
         self.foreground_string = foreground_string
         self.background_string = background_string
@@ -29,7 +31,6 @@ class Userinput(object):
         self.col_foreground = col_foreground
         self.col_background = col_background
         self.col_intensity = col_intensity
-        self.connection = connection
         self.method = method # one of: "abundance_correction", "compare_samples", "compare_groups", "characterize"
         # abundance_correction: Foreground vs Background abundance corrected
         # compare_samples: Foreground vs Background (no abundance correction)
@@ -183,7 +184,7 @@ class Userinput(object):
             self.foreground["intensity"] = self.map_intensities_2_foreground()
 
         ## map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
-        secondary_2_primary_dict = tools.map_secondary_2_primary_ANs(self.connection, self.get_all_unique_ANs()) #!!! uncomment ToDo uncomment #!!!
+        secondary_2_primary_dict = query.map_secondary_2_primary_ANs(self.get_all_unique_ANs())
         if secondary_2_primary_dict: # not an empty dict
             df_sec_prim = pd.DataFrame().from_dict(secondary_2_primary_dict, orient="index").reset_index()
             df_sec_prim.columns = ["secondary", "primary"]
@@ -344,8 +345,6 @@ class Userinput(object):
         return list(set(proteinGroup_list))
 
 
-
-
 if __name__ == "__main__":
     # fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'
     # fn = r'/Users/dblyon/modules/cpr/metaprot/CompareGroups_test.txt'
@@ -378,361 +377,3 @@ if __name__ == "__main__":
         num_bins=100, decimal='.', method="abundance_correction", connection=connection)
     # print(ui.iter_bins().next())
 
-
-
-
-
-
-
-    # class Userinput_noAbCorr(Userinput):
-    #
-    #     def __init__(self, user_input_fn, num_bins=100, col_foreground='foreground_an', col_background='background_an', decimal='.'):
-    #         self.user_input_fn = user_input_fn
-    #         self.decimal = decimal
-    #         self.df_orig = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
-    #         self.set_num_bins(num_bins)
-    #         self.col_foreground = col_foreground
-    #         self.col_background = col_background
-    #         self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background)
-    #
-    #     def cleanupforanalysis(self, df_orig, col_foreground, col_background):
-    #         self.foreground_ser = df_orig[col_foreground]
-    #         self.background_ser = df_orig[col_background]
-    #
-    #         # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
-    #         cond = pd.notnull(self.foreground_ser)
-    #         self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
-    #         cond = pd.notnull(self.background_ser)
-    #         self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
-    #
-    #         # split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> correction: 1 row of first value
-    #         # remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-    #         self.foreground_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.foreground_ser)
-    #         self.background_ser = self.removeSpliceVariants_takeFirstEntryProteinGroups_Series(self.background_ser)
-    #
-    #         # remove duplicate AccessionNumbers and NaNs from foregroundfrequency and backgroundfrequency AN-cols
-    #         cond = pd.notnull(self.foreground_ser)
-    #         self.foreground_ser = self.foreground_ser.loc[cond, ].drop_duplicates()
-    #         cond = pd.notnull(self.background_ser)
-    #         self.background_ser = self.background_ser.loc[cond, ].drop_duplicates()
-    #
-    #     def get_foreground_an_frset(self):
-    #         return frozenset(self.foreground_ser)
-    #
-    #     def get_background_an_all_set(self):
-    #         return set(self.background_ser)
-
-
-    # class UserInput_compare_groups(object):
-    #
-    #     def __init__(self, proteinGroup, user_input_fn, study_n, pop_n, col_foreground='foreground_an', col_background='background_an', decimal='.'):
-    #         self.proteinGroup = proteinGroup
-    #         self.user_input_fn = user_input_fn
-    #         self.study_n = study_n
-    #         self.pop_n = pop_n
-    #         self.decimal = decimal
-    #         self.df = pd.read_csv(user_input_fn, sep="\t", decimal=self.decimal)
-    #         self.col_foreground = col_foreground
-    #         self.col_background = col_background
-    #         self.foreground_ser = self.df[col_foreground]
-    #         self.background_ser = self.df[col_background]
-    #
-    #         # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
-    #         # DON'T REMOVE DUPLICATES
-    #         self.foreground_ser = self.foreground_ser.dropna()
-    #         if not self.proteinGroup:
-    #             self.foreground_ser = self.foreground_ser.apply(self.grep_first_an_from_proteinGroup)
-    #
-    #         self.background_ser = self.background_ser.dropna()
-    #         if not self.proteinGroup:
-    #             self.background_ser = self.background_ser.apply(self.grep_first_an_from_proteinGroup)
-    #
-    #     def grep_first_an_from_proteinGroup(self, stringi_):
-    #         try:
-    #             return stringi_.split(";")[0]
-    #         except IndexError:
-    #             return stringi_
-    #
-    #     def get_foreground_an(self):
-    #         return self.foreground_ser
-    #
-    #     def get_background_an(self):
-    #         return self.background_ser
-    #
-    #     def split_protGroups_into_unique_list(self, ans_list):
-    #         temp_list = []
-    #         for protgroup in ans_list:
-    #             temp_list += protgroup.split(";")
-    #         return sorted(set(temp_list))
-    #
-    #     def get_all_unique_ans(self, foreground_background_all="all"):
-    #         if foreground_background_all == "all":
-    #             ans_list = self.foreground_ser.unique().tolist() + self.background_ser.unique().tolist()
-    #         elif foreground_background_all == "foreground":
-    #             ans_list = self.foreground_ser.unique().tolist()
-    #         elif foreground_background_all == "background":
-    #             ans_list = self.background_ser.unique().tolist()
-    #         ans_list = sorted(set(ans_list))
-    #         if self.proteinGroup: # split comma sep string of ANs into single ANs and make unique
-    #             ans_list = self.split_protGroups_into_unique_list(ans_list)
-    #         return ans_list
-    #
-    #     def get_study_n(self):
-    #         return self.study_n
-    #
-    #     def get_pop_n(self):
-    #         return self.pop_n
-
-
-
-
-
-    # def write_ans2file(self, ans_list, fn):
-    #     with open(fn, 'w') as fh:
-    #         for an in ans_list:
-    #             fh.write(an + '\n')
-    #
-    # def get_foreground_an_frset(self):
-    #     '''
-    #     produce frozenset of AccessionNumbers of foreground frequency (study)
-    #     if intensity value given
-    #     :return: FrozenSet of Strings
-    #     '''
-    #     return frozenset(self.df_int.loc[pd.notnull(self.df_int[self.col_foreground]), self.col_foreground])
-    #
-    # def get_foreground_an_frset_all(self):
-    #     '''
-    #     produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
-    #     remove NaN
-    #     :return: SetOfString
-    #     '''
-    #     return frozenset(self.df_all.loc[pd.notnull(self.df_all[self.col_foreground]), self.col_foreground])
-    #
-    # def get_foreground_an_frset_genome(self):
-    #     '''
-    #     produce all AccessionNumbers with intensity values in 'Observed' column
-    #     :return: Frozenset of Strings
-    #     '''
-    #     col_background = 'Observed Proteome'
-    #     ui2 = Userinput(self.user_input_fn, self.num_bins, col_foreground=self.col_foreground, col_background=col_background, col_intensity=self.col_intensity, decimal=self.decimal)
-    #     return ui2.get_foreground_an_frset()
-    #
-    # def get_background_an_set(self):
-    #     '''
-    #     produce set of AccessionNumbers of background frequency (background)
-    #     if intensity value given
-    #     :return: Set of Strings
-    #     '''
-    #     return set(self.df_int[self.col_background])
-    #
-    # def get_background_an_all_set(self):
-    #     '''
-    #     produce Set of AccessionNumbers of original DataFrame, regardless of abundance data
-    #     remove NaN
-    #     :return: SetOfString
-    #     '''
-    #     return set(self.df_all[self.col_background])
-    #
-    # def get_background_an_set_random_foreground(self):
-    #     '''
-    #     produce a randomly generated set of AccessionNumbers from background-frequency
-    #     with the same intensity-distribution as foreground-frequency
-    #     :return: Set of Strings
-    #     '''
-    #     return set(self.get_random_background_ans())
-    #
-
-
-
-
-
-####### Dead Code RIP
-# def removeSpliceVariants_splitProteinGrous_Series(self, series):
-#     '''
-#     remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-#     split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
-#     :param series: PandasSeries
-#     :return: Series
-#     '''
-#     list2return = []
-#     templist = []
-#     for ele in series:
-#         templist += ele.split(';')
-#     for ele in templist:
-#         ele_split = ele.split('-')
-#         if len(ele_split) > 1:
-#             list2return.append(ele_split[0])
-#         else:
-#             list2return.append(ele)
-#     return pd.Series(list2return, name=series.name)
-#
-#
-# def removeSpliceVariants_takeFirstEntryProteinGroups_Series(self, series):
-#     list2return = []
-#     templist = []
-#     for ele in series:
-#         ele_split = ele.split(';')
-#         if len(ele_split) > 1:
-#             templist.append(ele_split[0])
-#         else:
-#             templist.append(ele)
-#     for ele in templist:
-#         ele_split = ele.split('-')
-#         if len(ele_split) > 1:
-#             list2return.append(ele_split[0])
-#         else:
-#             list2return.append(ele)
-#     return pd.Series(list2return, name=series.name)
-#
-#
-# def removeSpliceVariants_takeFirstEntryProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
-#     iterrows = dataframe[[colname_an, colname_int]].iterrows()
-#     for row in iterrows:
-#         index = row[0]
-#         an_row = row[1][colname_an]
-#         an_row_split_colon = an_row.split(';')
-#         if len(an_row_split_colon) > 1:
-#             an = an_row_split_colon[0]
-#         else:
-#             an = an_row
-#         an_split_minus = an.split('-')
-#         if len(an_split_minus) > 1:
-#             an = an_split_minus[0]
-#         else:
-#             an = an
-#         dataframe.loc[index, colname_an] = an
-#     return dataframe
-#
-#
-# def removeSpliceVariants_splitProteinGrous_DataFrame(self, dataframe, colname_an, colname_int):
-#     '''
-#     remove splice variant appendix from AccessionNumbers (if present) P04406-2 --> P04406
-#     split AccessionNumber column into mulitple rows P63261;I3L4N8;I3L1U9;I3L3I0 --> 4 rows of values
-#     copy abundance data when adding rows
-#     :param series: PandasDataFrame
-#     :return: Series
-#     '''
-#     df_new = self.splitProteinGroups_DataFrame(dataframe, colname_an, colname_int)
-#     return self.removeSpliceVariants_DataFrame(df_new, colname_an, colname_int)
-#
-#
-# def splitProteinGroups_DataFrame(self, dataframe, colname_an, colname_int):
-#     ans2write_list = []
-#     int2write_list = []
-#     iterrows = dataframe[[colname_an, colname_int]].iterrows()
-#     for row in iterrows:
-#         index = row[0]
-#         int_val = dataframe.loc[index, colname_int]
-#         ans_row = row[1][colname_an]
-#         ans_split_semicol = ans_row.split(';')
-#         len_ans_split_semicol = len(ans_split_semicol)
-#         if len_ans_split_semicol > 1:
-#             ans2write_list += ans_split_semicol
-#             int2write_list += [int_val] * len_ans_split_semicol
-#         else:
-#             ans2write_list.append(ans_row)
-#             int2write_list.append(int_val)
-#     return pd.DataFrame({colname_an: ans2write_list, colname_int: int2write_list})
-#
-#
-# def removeSpliceVariants_DataFrame(self, dataframe, colname_an, colname_int):
-#     # iterrows = dataframe[[colname_an, colname_int]].iterrows()
-#     # for row in iterrows:
-#     for index_, row in dataframe[[colname_an, colname_int]].iterrows():
-#         index = row[0]
-#         an_row = row[1][colname_an]
-#         an_split_minus = an_row.split('-')
-#         len_an_split_minus = len(an_split_minus)
-#         if len_an_split_minus > 1:
-#             dataframe.loc[index, colname_an] = an_split_minus[0]
-#     return dataframe
-#
-# def iter_bins_old(self):
-#     """
-#     for every bin, produce ans-background and weighting-factor of respective bin
-#     weighting-factor = number of foreground-ANs in bin / number background-ANs in bin
-#     :return: Tuple(ListOfSting, Float)
-#     """
-#     hist, bins = np.histogram(self.get_foreground_an_int()[self.col_intensity], bins=self.num_bins)
-#     for index, numinhist in enumerate(hist):
-#         num_ans = numinhist
-#         lower = bins[index]
-#         upper = bins[index + 1]
-#         ans_all_from_bin = self.get_random_an_from_bin(lower, upper, num_ans, get_all_ans=True)
-#         num_ans_all_from_bin = len(ans_all_from_bin)
-#         if num_ans_all_from_bin != 0:
-#             weight_fac = float(numinhist) / num_ans_all_from_bin
-#         else:
-#             weight_fac = 0  # !!! debug
-#             print("Weight factor is Zero")
-#             raise StopIteration
-#         yield (ans_all_from_bin, weight_fac)
-#
-#
-# def get_random_an_from_bin(self, lower, upper, num_ans=1, get_all_ans=False):
-#     '''
-#     produce a random number of AccessionNumbers within given boundaries of Intensity values
-#     where intensity >= lower and intensity < upper.
-#     option: get_all_ans returns all AccessionNumbers in bin
-#     :param lower: Float
-#     :param upper: Float
-#     :param num_ans: Integer
-#     :param get_all_ans: Boolean
-#     :return: ListOfString
-#     '''
-#     df = self.get_background_an_int()
-#     cond1 = df[self.col_intensity] >= lower
-#     cond2 = df[self.col_intensity] <= upper
-#     cond = cond1 & cond2
-#     ans_withinBounds = df.loc[cond, self.col_background]
-#     if len(ans_withinBounds) > 0:
-#         if get_all_ans:
-#             return sorted(ans_withinBounds)
-#         else:
-#             return sorted(np.random.choice(ans_withinBounds, size=num_ans, replace=False))
-#     else:
-#         return []
-
-# def get_foreground_an_int(self):
-#     '''
-#     produce AccessionNumbers with corresponding Intensity of foreground/study
-#     :return: DataFrame
-#     '''
-#     return self.df_int.loc[pd.notnull(self.df_int[self.col_foreground]), [self.col_foreground, self.col_intensity]]
-#
-#
-# def get_background_an_int(self):
-#     '''
-#     produce AccessionNumbers with corresponding Intensity of background/background
-#     :return: DataFrame
-#     '''
-#     return self.df_int[[self.col_background, self.col_intensity]]
-#
-#
-# def concat_and_align_foreground_and_background(self, foreground_ser, background_df):
-#     '''
-#     expects a Series and a DataFrames each containing a column with non-redundant
-#     AccessionNumbers, concatenate by producing the union and aligning the ANs in rows
-#     :param foreground_ser: Pandas.Series
-#     :param background_df: Pandas.DataFrame
-#     :return: DataFrame
-#     '''
-#     foreground_ser.index = foreground_ser.tolist()
-#     background_df.index = background_df[self.col_background].tolist()
-#     return pd.concat([foreground_ser, background_df], axis=1)
-#
-#
-# def get_random_background_ans(self):
-#     '''
-#     produce a randomly generated set of AccessionNumbers from background-frequency
-#     with the same intensity-distribution as foreground-frequency
-#     :return: ListOfString
-#     '''
-#     ans_random_list = []
-#     hist, bins = np.histogram(self.get_foreground_an_int()[self.col_intensity], bins=self.num_bins)
-#     for index, numinhist in enumerate(hist):
-#         num_ans = numinhist
-#         lower = bins[index]
-#         upper = bins[index + 1]
-#         ans_random_list += self.get_random_an_from_bin(lower, upper, num_ans)
-#     return sorted(ans_random_list)
