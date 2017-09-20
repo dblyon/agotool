@@ -86,37 +86,6 @@ class EnrichmentStudy(object):
             b = foreground_n - foreground_count
             c = background_count
             d = background_n - background_count
-
-            # Debug START
-            # if a < 0 or b < 0 or c < 0 or d < 0:
-            #     print("#"*80)
-            #     print(a, b, c, d)
-            #     print(association)
-            #     print(foreground_count, background_count)
-            #     print(foreground_n, background_n)
-            #     print("#" * 80)
-                # continue
-            # ################################################################################
-            # (250, 0, 252, -2)
-            # UPK:1185
-            # (250, 252)
-            # (250, 250)
-            # ################################################################################
-            # ################################################################################
-            # (250, 0, 252, -2)
-            # UPK:01
-            # 81
-            # (250, 252)
-            # (250, 250)
-            # ################################################################################
-            # ################################################################################
-            # (250, 0, 252, -2)
-            # UPK:9990
-            # (250, 252)
-            # (250, 250)
-            # ################################################################################
-            # problem: background_count > background_n
-            ### catch exception due to rounding errors. Problem if: background_count > background_n
             if d < 0:
                 d = 0
             # Debug STOP
@@ -143,7 +112,7 @@ class EnrichmentStudy(object):
                     p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='two-sided')[1]
                     fisher_dict[(a, b, c, d)] = p_val_uncorrected
             one_record = EnrichmentRecord(
-                id=association,
+                id_=association,
                 p_uncorrected=p_val_uncorrected,
                 ratio_in_foreground=(foreground_count, foreground_n),
                 ratio_in_background=(background_count, background_n),
@@ -191,7 +160,7 @@ class EnrichmentStudy(object):
         for rec, val in zip(self.results, corrected_pvals):
             rec.__setattr__("p_" + method_name, val)
 
-    def write_summary2file(self, fn_out, fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent):
+    def write_summary2file(self, fn_out, fold_enrichment_foreground_2_background, p_value_mulitpletesting, p_value_uncorrected, indent):
         multitest_method_name = "p_" + self.multitest_method
         with open(fn_out, 'w') as fh_out:
             if len(self.results) == 0:
@@ -205,7 +174,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
                     rec.update_remaining_fields()
-                    if rec.fold_enrichment_study2pop >= fold_enrichment_study2pop or fold_enrichment_study2pop is None:
+                    if rec.fold_enrichment_study2pop >= fold_enrichment_foreground_2_background or fold_enrichment_foreground_2_background is None:
                         if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                             if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
                                 fh_out.write(rec.get_line2write(indent, self.o_or_u_or_both) + '\n')
@@ -220,7 +189,7 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
         else:
             header_list = modify_header(self.results[0].get_attributenames2write(self.o_or_u_or_both))
             header2write = '\t'.join(header_list) + '\n'
-            results_sorted_by_fold_enrichment_foreground_2_background = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+            results_sorted_by_fold_enrichment_foreground_2_background = sorted(self.results, key=lambda record: record.fold_enrichment_foreground_2_background, reverse=True)
             for rec in results_sorted_by_fold_enrichment_foreground_2_background:
                 rec.update_remaining_fields()
                 # if rec.fold_enrichment_foreground_2_background >= fold_enrichment_foreground_2_background or fold_enrichment_foreground_2_background is None:
@@ -239,31 +208,31 @@ class EnrichmentRecord(object):
     Represents one result (from a single GOTerm) in the GOEnrichmentStudy
     """
 
-    def __init__(self, id, p_uncorrected, ratio_in_foreground, ratio_in_background,
+    def __init__(self, id_, p_uncorrected, ratio_in_foreground, ratio_in_background,
                  ANs_foreground, ANs_background, attributes2add):
         self.attributes_list = [
-            ('id', '%s'), ('over_under', '%s'),
+            ('id_', '%s'), ('over_under', '%s'),
             ('perc_associated_foreground', "%0.3f"),('perc_associated_background', "%0.3f"),
             ('fold_enrichment_foreground_2_background', "%0.3f"),('foreground_count', '%s'),
             ('foreground_n', '%s'), ('background_count','%s'), ('background_n', '%s'),
             ('p_uncorrected', "%.3g")]
-        self.id_ = id
+        self.id_ = id_
         self.p_uncorrected = p_uncorrected
         self.foreground_count, self.foreground_n = ratio_in_foreground
         self.background_count, self.background_n = ratio_in_background
         self.ANs_foreground = ANs_foreground
         self.ANs_background = ANs_background
-        self.perc_associated_study = self.calc_fold_enrichemnt(
+        self.perc_associated_foreground = self.calc_fold_enrichemnt(
             self.foreground_count, self.foreground_n)
-        self.perc_associated_pop = self.calc_fold_enrichemnt(
+        self.perc_associated_background = self.calc_fold_enrichemnt(
             self.background_count, self.background_n)
-        if self.perc_associated_study != -1 and self.perc_associated_pop != -1:
-            self.fold_enrichment_study2pop = self.calc_fold_enrichemnt(
-                self.perc_associated_study, self.perc_associated_pop)
+        if self.perc_associated_foreground != -1 and self.perc_associated_background != -1:
+            self.fold_enrichment_foreground_2_background = self.calc_fold_enrichemnt(
+                self.perc_associated_foreground, self.perc_associated_background)
         else:
-            self.fold_enrichment_study2pop = "-1"
-        self.perc_associated_study = self.perc_associated_study * 100
-        self.perc_associated_pop = self.perc_associated_pop * 100
+            self.fold_enrichment_foreground_2_background = "-1"
+        self.perc_associated_foreground = self.perc_associated_foreground * 100
+        self.perc_associated_background = self.perc_associated_background * 100
         self.attributes_list += attributes2add
 
     @staticmethod
@@ -277,7 +246,7 @@ class EnrichmentRecord(object):
 
     def find_goterm(self, go):
         try:
-            self.goterm = go[self.id]
+            self.goterm = go[self.id_]
             self.description = self.goterm.name
         except KeyError:
             pass
@@ -290,7 +259,7 @@ class EnrichmentRecord(object):
             self.__setattr__(k, v)
 
     def update_remaining_fields(self):
-        if self.perc_associated_study > self.perc_associated_pop:
+        if self.perc_associated_foreground > self.perc_associated_background:
             self.over_under = 'o'
         else:
             self.over_under = 'u'
@@ -317,11 +286,11 @@ class EnrichmentRecord(object):
 
     def get_attribute_format_list(self, indent, o_or_u_or_both):
         if indent:
-            attributes_list = [('dot_id', '%s') if x[0] == 'id' else x for x in self.get_attributes_list(o_or_u_or_both)]
+            attributes_list = [('dot_id', '%s') if x[0] == 'id_' else x for x in self.get_attributes_list(o_or_u_or_both)]
             dots = ''
             if self.goterm is not None:
                 dots = "." * self.goterm.level
-            self.dot_id = dots + self.id
+            self.dot_id = dots + self.id_
         else:
             attributes_list = self.get_attributes_list(o_or_u_or_both)
         return attributes_list

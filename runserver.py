@@ -42,13 +42,11 @@ def getitem(obj, item, default):
 # - add other types to Ontologies (not only GO, but also UPK)
 # - DB schema doesn't have theme
 # - userinput report, redundant and unique number of ANs/protein-groups, organisms etc.
-# - create HowTo page
 # - close up/macro picture of ESI or mass spec or something, combine with a histogram similar to the publication
 # - graphical output of
 # - Dia Show or nice images in the background, changing every 1min
 # - All proteins without abundance data were disregarded --> put into extra bin
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics
-# -
 ###############################################################################
 
 # ECHO = False
@@ -265,11 +263,11 @@ def download_example_data(filename):
 #     return render_template("db_schema.html", **locals())
 #
 # ################################################################################
-# howto.html
+# FAQ.html
 ################################################################################
-@app.route('/howto')
-def howto():
-    return render_template('howto.html')
+@app.route('/FAQ')
+def FAQ():
+    return render_template('FAQ.html')
 
 ################################################################################
 # helper functions
@@ -349,7 +347,7 @@ these identifiers should also be present in the 'population_an' as the test grou
 If "Abundance correction" is deselected "population_int" can be omitted.""")
 
     foreground_textarea = fields.TextAreaField("Foreground")
-    background_textarea = fields.TextAreaField("Background")
+    background_textarea = fields.TextAreaField("Background & Intensity")
 
     gocat_upk = fields.SelectField("GO terms, UniProt keywords, KEGG pathways",
                                    choices = (("all_GO", "all GO categories"),
@@ -367,8 +365,7 @@ that corresponds to the column "population_an" (population accession number) nee
 If "Abundance correction" is deselected "population_int" can be omitted.""")
 
     go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                          choices = (("slim", "slim"),
-                                                    ("basic", "basic")),
+                                          choices = (("basic", "basic"), ("slim", "slim")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
 
     indent = fields.BooleanField("prepend level of hierarchy by dots",
@@ -403,7 +400,7 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
     fold_enrichment_study2pop = fields.FloatField(
         "fold enrichment study/population",
         [validate_number], default = 0,
-        description="""Minimum threshold value of "fold_enrichment_study2pop".""")
+        description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
 
     p_value_uncorrected =  fields.FloatField(
         "p-value uncorrected",
@@ -449,7 +446,7 @@ def results():
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
-o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nbacktracking: {}\nfold_enrichment_study2pop: {}\n\
+o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nbacktracking: {}\nfold_enrichment_foreground_2_background: {}\n\
 p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,

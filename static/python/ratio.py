@@ -19,40 +19,6 @@ def get_goids_from_proteinGroup(proteinGroup, assoc_dict):
         goid_set.update(goid_set_temp)
     return goid_set, ans_list
 
-def count_terms_proteinGroup_old(ui, assoc_dict, obo_dag, sample_or_background):
-    """
-    GOid2ANs_dict: key: GOid, val: ListOfAN
-    GO2NumProtGroups_dict: key: GOid, val: Int(number of proteinGroups associated with GOterm)
-    redundant count e.g. 8 out of 10 samples --> foreground_count = 8
-    foreground_n = 10 (1 unique proteinGroup * 10 for foreground_n)
-    """
-    # counts proteinGroup only once (as one AN) but uses all GOterms associated with it
-    GOid2RedundantNumProtGroups_dict = defaultdict(int) # key: String(GOid), val: Int(redundant Number of proteinGroups,
-    # e.g. if 8 out of 10 samples have proteinGroup --> 8)
-    GOid2ANs_dict = {} # key: GOid, val: ListOfANs (all ANs associated with GOterm)
-    GOid2UniqueNumProtGroups_dict = {} # key: String(GOid), val: Int(NON-redundant Number of proteinGroups,
-    # e.g. if 8 out of 10 samples have proteinGroup --> 1)
-    if sample_or_background == "sample":
-        proteinGroup_list = ui.get_sample_an().dropna().tolist()
-        # redundant list
-    else:
-        proteinGroup_list = ui.get_background_an().dropna().tolist()
-    for protGroup in proteinGroup_list:
-        goid_set, ans_list = get_goids_from_proteinGroup(protGroup, assoc_dict)
-        for goid in goid_set:
-            if goid in obo_dag:
-                if goid not in GOid2RedundantNumProtGroups_dict:
-                    GOid2RedundantNumProtGroups_dict[goid] = 1
-                    GOid2ANs_dict[goid] = set(ans_list)
-                    GOid2UniqueNumProtGroups_dict[goid] = [protGroup]
-                else:
-                    GOid2RedundantNumProtGroups_dict[goid] += 1
-                    GOid2ANs_dict[goid].update(ans_list)
-                    GOid2UniqueNumProtGroups_dict[goid].append(protGroup)
-    for key in GOid2UniqueNumProtGroups_dict:
-        GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
-    return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
-
 def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
     """
     GOid2ANs_dict: key: GOid, val: ListOfAN
@@ -181,7 +147,6 @@ def count_terms(ans_set, assoc_dict, obo_dag):
         for goterm in assoc_dict[an]:
             if goterm in obo_dag:
                 term_cnt[obo_dag[goterm].id] += 1
-                # if not go2ans_dict.has_key(goterm):
                 if goterm not in go2ans_dict:
                     go2ans_dict[goterm] = set([an])
                 else:
@@ -198,7 +163,6 @@ def get_go2ans_dict(assoc_dict):
     for an in assoc_dict:
         goid_list = assoc_dict[an]
         for goid in goid_list:
-            # if not go2ans_dict.has_key(goid):
             if goid not in go2ans_dict:
                 go2ans_dict[goid] = set([an])
             else:
@@ -207,7 +171,7 @@ def get_go2ans_dict(assoc_dict):
 
 def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     """
-    #!!! modify to use protein groups
+    #!!! modify to use protein groups --> handled in Userinput.py or not?
     produce abundance corrected counts of GO-terms of background frequency
     round floats to nearest integer
     Userinput-object includes ANs of sample, and background as well as abundance data
@@ -223,7 +187,6 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     term_cnt = defaultdict(float)
     for ans, weight_fac in ui.iter_bins(): # for every bin, produce ans-background and weighting-factor
         for an in ans:
-            # if assoc_dict.has_key(an):
             if an in assoc_dict:
             # assoc_dict contains GO-terms and their parents (due to obo_dag.update_association)
             # for all ANs of goa_ref UniProt
@@ -237,7 +200,6 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
                         # if not go2ans_dict.has_key(goterm):
                         if goterm not in go2ans_dict:
                             go2ans_dict[goterm_name] = set([an])
-                            # go2ans_dict[goterm_name] = {[an]}
                         else:
                             go2ans_dict[goterm_name].update([an])
                     else:

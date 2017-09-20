@@ -51,7 +51,7 @@ class MCL(object):
 
     def write_JaccardIndexMatrix(self, fn_results, fn_out): #!!! profile this function
         """
-        expects a DataFrame with a 'ANs_study' column,
+        expects a DataFrame with a 'ANs_foreground' column,
         calculates the Jaccard Index for all
         combinations of AN sets.
         :param df: DataFrame
@@ -60,14 +60,14 @@ class MCL(object):
         """
         df = pd.read_csv(fn_results, sep='\t')
         func = lambda x: set(x.split(", "))
-        df["ANs_study_set"] = map(func, df["ANs_study"])
-        index_of_col = df.columns.tolist().index("ANs_study_set")
-        df_ans_study_set = df.values[:, index_of_col]
+        df["ANs_foreground_set"] = map(func, df["ANs_foreground"])
+        index_of_col = df.columns.tolist().index("ANs_foreground_set")
+        df_ans_foreground_set = df.values[:, index_of_col]
         with open(fn_out, 'w') as fh:
             for combi in itertools.combinations(df.index, 2):
                 c1, c2 = combi
-                ans_set1 = df_ans_study_set[c1]
-                ans_set2 = df_ans_study_set[c2]
+                ans_set1 = df_ans_foreground_set[c1]
+                ans_set2 = df_ans_foreground_set[c2]
                 ji = self.jaccard_index_ans_setA2B(ans_set1, ans_set2)
                 line2write = str(c1) + '\t' + str(c2) + '\t' + str(ji) + '\n'
                 fh.write(line2write)
@@ -75,18 +75,18 @@ class MCL(object):
     def results2list_of_sets(self, fn_results):
         with open(fn_results, 'r') as fh:
             lines_split = [ele.strip().split('\t') for ele in fh]
-        ANs_study_index = lines_split[0].index("ANs_study")
+        ANs_foreground_index = lines_split[0].index("ANs_foreground")
         # try:
-        return [set(row[ANs_study_index].split(', ')) for row in lines_split[1:]]
+        return [set(row[ANs_foreground_index].split(', ')) for row in lines_split[1:]]
         # except IndexError:
         #     for row in lines_split[1:]:
         #         try:
-        #             set(row[ANs_study_index].split(', '))
+        #             set(row[ANs_foreground_index].split(', '))
         #         except:
         #             print row
 
 
-        # return [set(row[ANs_study_index].split(', ')) for row in lines_split[1:]]
+        # return [set(row[ANs_foreground_index].split(', ')) for row in lines_split[1:]]
 
     def write_JaccardIndexMatrix_speed(self, fn_results, fn_out):
         list_of_sets = self.results2list_of_sets(fn_results)
@@ -177,7 +177,7 @@ class Filter(object):
             GOTerm_instance = go_dag[go_term_name]
             self.go_lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
 
-    def filter_term_lineage(self, header, results, indent, sort_on='p_uncorrected'): #'fold_enrichment_study2pop'
+    def filter_term_lineage(self, header, results, indent, sort_on='p_uncorrected'): #'fold_enrichment_foreground_2_background'
         """
         produce reduced list of results
         from each GO-term lineage (all descendants (children) and ancestors
@@ -185,7 +185,7 @@ class Filter(object):
         :param header: String
         :param results: ListOfString
         :param indent: Bool
-        :param sort_on: String(one of 'p_uncorrected' or 'fold_enrichment_study2pop')
+        :param sort_on: String(one of 'p_uncorrected' or 'fold_enrichment_foreground_2_background')
         :return: ListOfString
         """
         results_filtered = []
@@ -196,7 +196,7 @@ class Filter(object):
         index_go = header_list.index('id_')
         results = [res.split('\t') for res in results]
         results.sort(key=lambda x: float(x[index_p]))
-        if sort_on == "fold_enrichment_study2pop":
+        if sort_on == "fold_enrichment_foreground_2_background":
             results = results[::-1]
         for res in results:
             if indent:

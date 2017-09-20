@@ -105,7 +105,12 @@
         <li>You can select a reference background proteome (and their corresponding abundance values) appropriate for your organism/cell-line.</li>
         <li>You can compare your foreground to the entire proteome (of your organism/cell-line) and not apply abundance correction.</li>
     </ul>
-
+    <h3>Why is "background n" equal to "foreground n", specially since I've uploaded more Accessions for the background than the foreground?</h3>
+    This is due to the abundance correction method, which aims to compare same sized groups. Therefore the associations (e.g. GO-terms) of the background downscaled to reflect the number of associations of the foreground (see correction-factor "How does aGOtool work?" above).
+    <br>
+    <h3>Why is "percent associated background" equal to Zero?</h3>
+    This can occur when the above described correction-factor is very small, and the summed correction-factors are between 0 and 1, and are subsequently rounded down to zero instead of up to one. e.g. a bin containing many background proteins, but only few foreground proteins will lead to a small correction-factor.
+    <br>
     <h3>I still have questions...</h3>
     Feel free to write me an email <a href="mailto:david.lyon@cpr.ku.dk" class="link"><span>david.lyon@cpr.ku.dk</span></a> </p>
 </br></br>

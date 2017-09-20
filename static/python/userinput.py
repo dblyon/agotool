@@ -54,7 +54,7 @@ class Userinput(object):
             else:
                 header = 'foreground\tbackground\r'
             self.fn.write(header)
-            for a, b in izip_longest(self.foreground_string.split("\r\n"), self.background_string.split("\r\n"), fillvalue="\t"):
+            for a, b in zip_longest(self.foreground_string.split("\r\n"), self.background_string.split("\r\n"), fillvalue="\t"):
                 self.fn.write(a.strip() + "\t" + b.strip() + "\r")
             self.fn.seek(0)
         is_abundance_correction, self.decimal = self.check_userinput(self.fn)
@@ -203,7 +203,6 @@ class Userinput(object):
             cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
             if sum(cond) == 0:  # render info_check_input.html
                 self.check = False
-
 
     def replace_secondary_with_primary_ANs(self, ans_string, secondary_2_primary_dict):
         ans_2_return = []
