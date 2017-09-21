@@ -4,6 +4,9 @@ from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import tools
 
+# ToDo
+# - filter associations based on their presence in ontologies. e.g. AN123 has GO123, GO234, GO345 but GO345 is not in obo, thus kick it out
+
 BASH_LOCATION = r"/bin/bash"
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.append(PYTHON_DIR)
@@ -829,12 +832,13 @@ def create_tables():
     ### - GO_2_Slim
     create_GO_2_Slim_table()
 
-def create_bash_scripts_for_DB():
+def create_bash_scripts_for_DB(testing=False):
     """
     :return: String(executable bash script)
     """
     print("creating bash scripts to for PostgreSQL DB creation")
-
+    if testing:
+        TABLES_DIR = TEST_DIR
     functions_table = os.path.join(TABLES_DIR, "Functions_table.txt")
     function_2_definition_table = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
     go_2_slim_table = os.path.join(TABLES_DIR, "GO_2_Slim_table.txt")
@@ -905,6 +909,9 @@ psql -h localhost -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_o
         ogs_table, og_2_function_table, ontologies_table,
         protein_2_function_table, protein_secondary_2_primary_an_table, protein_2_og_table)
 
+    if testing:
+        postgres_commands = postgres_commands.replace(" agotool", " agtool_test")
+
     fn_out = os.path.join(POSTGRESQL_DIR, "fn_create_DB_copy_and_index_tables.sh")
     with open(fn_out, "w") as fh:
         fh.write(postgres_commands)
@@ -919,16 +926,13 @@ def call_script(BASH_LOCATION, script_fn):
 
 if __name__ == "__main__":
     start_time = time.time()
-    print("Parsing downloaded content and writing tables for PostgreSQL import")
-    create_tables()
-    create_test_tables(50000, r"/Users/dblyon/Downloads/tables")
-    remove_files(find_tables_to_remove())
+    # print("Parsing downloaded content and writing tables for PostgreSQL import")
+    # create_tables()
+    # create_test_tables(50000, r"/Users/dblyon/Downloads/tables")
+    # remove_files(find_tables_to_remove())
 
     ### PostgreSQL DB creation, copy from file and indexing
-    fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB()
+    fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=True)
     print("PostgreSQL DB creation, copy from file, and indexing")
     call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
     tools.print_runtime(start_time)
-
-# ToDo
-# - filter associations based on their presence in ontologies. e.g. AN123 has GO123, GO234, GO345 but GO345 is not in obo, thus kick it out
