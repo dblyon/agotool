@@ -21,10 +21,10 @@ URL_GO_basic = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
 URL_GO_slim = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
 URL_eggNOG = r"http://eggnogdb.embl.de/download/latest/all_OG_annotations.tsv.gz"
 URL_bactNOG = r"http://eggnogdb.embl.de/download/latest/data/bactNOG/bactNOG.annotations.tsv.gz"
-URL_UNIPROT_2_KEGG = r"http://www.uniprot.org/uniprot/?query=database:(type:%22KEGG%22)&format=tab&columns=id_,database(KEGG)"
+URL_UNIPROT_2_KEGG = r"http://www.uniprot.org/uniprot/?query=database:(type:%22KEGG%22)&format=tab&columns=id,database(KEGG)"
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
-URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS = r"http://www.uniprot.org/uniprot/?columns=id_,keywords&format=tab&compress=yes"
-URL_UniProt_KW = r"http://www.uniprot.org/uniprot/?query=organism:%i&columns=id_,keywords&format=tab"
+URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS = r"http://www.uniprot.org/uniprot/?columns=id,keywords&format=tab&compress=yes"
+URL_UniProt_KW = r"http://www.uniprot.org/uniprot/?query=organism:%i&columns=id,keywords&format=tab" # obsolete since retrieving data for all organisms
 
 ORGANISMS = {
     3702: 'arabidopsis',
@@ -223,7 +223,7 @@ def download_go_basic_slim_obo():
         os.rename(tmp_f, file_name)
 
 @retry(stop_max_attempt_number=5, wait_exponential_multiplier=50000)
-def download_UniProt_Keywords():
+def download_UniProt_Keywords(): # obsolete
     for organism in ORGANISMS:
         dl_string = URL_UniProt_KW
         url = (dl_string % organism).replace(' ', '%20')
@@ -272,31 +272,34 @@ def download_bactNOG_annotations():
 
 
 if __name__ == '__main__':
-    # .gaf files are GOA (Gene Ontology Associations)
-    # .upk files are UPK (UniProt Keywords)
-    # .obo files are Ontology hierarchy
+    ### .gaf files are GOA (Gene Ontology Associations)
+    ### .upk files are UPK (UniProt Keywords)
+    ### .obo files are Ontology hierarchy
     print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
     print("Current date & time " + time.strftime("%c"))
     create_directories_if_not_exist()
     ### every month
-    # taxid_not_retrieved_list = download_go_annotations()
-    # download_go_annotations_all_unfiltered()
-    # download_go_basic_slim_obo()
-    # download_UniProt_Keywords_obo()
-    # download_UniProt_Keywords()
-    # download_gzip_file(URL_UNIPROT_SECONDARY_2_PRIMARY_AN, "sec_ac.txt")
-    # download_gzip_file(URL_UNIPROT_2_KEGG, "uniprot_2_kegg_mapping.tab")  # long and slow
-    # ToDo: am I downloading Keywords from UniProt for all and then for specific organisms??
-    # download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
+    taxid_not_retrieved_list = download_go_annotations()
+    download_go_annotations_all_unfiltered()
+    download_go_basic_slim_obo()
+    download_UniProt_Keywords_obo()
+    ### download_UniProt_Keywords() # NOT NECESSARY since already downloading Keywords from UniProt for all available organisms
+    download_gzip_file(URL_UNIPROT_SECONDARY_2_PRIMARY_AN, "sec_ac.txt")
+    download_gzip_file(URL_UNIPROT_2_KEGG, "UniProt_2_KEGG_mapping.tab")  # long and slow
+    download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
+
+    # debug = True
+    # if debug:
+    #     download_gzip_file(URL_UNIPROT_2_KEGG, "UniProt_2_KEGG_mapping.tab")  # long and slowURL_UNIPROT_2_KEGG
+    #     download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
+
 
     ### NOT every month
     # download_and_extract_all_annotations_from_eggNOG()
     # download_bactNOG_annotations()
 
     # taxid_not_retrieved_list = ['9796', '39947', '3880', '3055']
-    # parse_files_and_pickle(taxid_not_retrieved_list) #=['9796', '39947', '3880', '3055'])
-    # cleanup_sessions()
-    # copy_essential_modules_and_scripts_from_metaprotRepo_2_agotoolRepo()
+    cleanup_sessions()
     print("finished update", '\n', '-' * 50, '\n')
 
 

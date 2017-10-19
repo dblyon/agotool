@@ -1,56 +1,56 @@
 #!/bin/bash
-psql -h localhost -d postgres -c "DROP DATABASE agtool_test;"
-psql -h localhost -d postgres -c "CREATE DATABASE agtool_test;"
+psql -h localhost -d postgres -c "DROP DATABASE agotool;"
+psql -h localhost -d postgres -c "CREATE DATABASE agotool;"
 
-psql -h localhost -d agtool_test -c "CREATE TABLE functions (
+psql -h localhost -d agotool -c "CREATE TABLE functions (
     type text,
     name text,
     an text);"
-psql -h localhost -d agtool_test -c "CREATE TABLE function_2_definition (
+psql -h localhost -d agotool -c "CREATE TABLE function_2_definition (
     an text,
     definition text);"
-psql -h localhost -d agtool_test -c "CREATE TABLE go_2_slim (
+psql -h localhost -d agotool -c "CREATE TABLE go_2_slim (
     an text,    
     slim boolean);"
-psql -h localhost -d agtool_test -c "CREATE TABLE ogs (
+psql -h localhost -d agotool -c "CREATE TABLE ogs (
     og text,    
     description text);"
-psql -h localhost -d agtool_test -c "CREATE TABLE og_2_function (
+psql -h localhost -d agotool -c "CREATE TABLE og_2_function (
     og text,
     function text);"
-psql -h localhost -d agtool_test -c "CREATE TABLE ontologies (
+psql -h localhost -d agotool -c "CREATE TABLE ontologies (
     child text,
     parent text,
     direct boolean,
     type integer);"
-psql -h localhost -d agtool_test -c "CREATE TABLE protein_2_function (
+psql -h localhost -d agotool -c "CREATE TABLE protein_2_function (
     an text,
     function text);"    
-psql -h localhost -d agtool_test -c "CREATE TABLE protein_secondary_2_primary_an (
+psql -h localhost -d agotool -c "CREATE TABLE protein_secondary_2_primary_an (
     sec text,
     pri text);"
-psql -h localhost -d agtool_test -c "CREATE TABLE protein_2_og (
+psql -h localhost -d agotool -c "CREATE TABLE protein_2_og (
     an text,
     og text);"
 
-psql -h localhost -d agtool_test -c "COPY functions FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/Functions_table.txt';"
-psql -h localhost -d agtool_test -c "COPY function_2_definition FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/Function_2_definition_table.txt';"
-psql -h localhost -d agtool_test -c "COPY go_2_slim FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/GO_2_Slim_table.txt';"
-psql -h localhost -d agtool_test -c "COPY ogs FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/OGs_table.txt';"
-psql -h localhost -d agtool_test -c "COPY og_2_function FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/OG_2_Function_table.txt';"
-psql -h localhost -d agtool_test -c "COPY ontologies FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/Ontologies_table.txt';"
-psql -h localhost -d agtool_test -c "COPY protein_2_function FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/Protein_2_Function_table.txt';"
-psql -h localhost -d agtool_test -c "COPY protein_secondary_2_primary_an FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/Protein_Secondary_2_Primary_AN_table.txt';"
-psql -h localhost -d agtool_test -c "COPY protein_2_og FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/test/Protein_2_OG_table.txt';"
+psql -h localhost -d agotool -c "COPY functions FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/Functions_table.txt';"
+psql -h localhost -d agotool -c "COPY function_2_definition FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/Function_2_definition_table.txt';"
+psql -h localhost -d agotool -c "COPY go_2_slim FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/GO_2_Slim_table.txt';"
+psql -h localhost -d agotool -c "COPY ogs FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/static/OGs_table_static.txt';"
+psql -h localhost -d agotool -c "COPY og_2_function FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/static/OG_2_Function_table_static.txt';"
+psql -h localhost -d agotool -c "COPY ontologies FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/Ontologies_table.txt';"
+psql -h localhost -d agotool -c "COPY protein_2_function FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/Protein_2_Function_table.txt';"
+psql -h localhost -d agotool -c "COPY protein_secondary_2_primary_an FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/tables/Protein_Secondary_2_Primary_AN_table.txt';"
+psql -h localhost -d agotool -c "COPY protein_2_og FROM '/Users/dblyon/modules/cpr/agotool/static/data/PostgreSQL/static/Protein_2_OG_table_static.txt';"
 
-psql -h localhost -d agtool_test -c "CREATE INDEX functions_an_idx ON functions(an);"
-psql -h localhost -d agtool_test -c "CREATE INDEX function_2_definition_an_idx ON function_2_definition(an);"
-psql -h localhost -d agtool_test -c "CREATE INDEX go_2_slim_an_idx ON go_2_slim(an);"
-psql -h localhost -d agtool_test -c "CREATE INDEX ogs_og_idx ON ogs(og);"
-psql -h localhost -d agtool_test -c "CREATE INDEX og_2_function_og_idx ON og_2_function(og);"
-psql -h localhost -d agtool_test -c "CREATE INDEX ontologies_child_idx ON ontologies(child);"
-psql -h localhost -d agtool_test -c "CREATE INDEX ontologies_direct_idx ON ontologies(direct);"
-psql -h localhost -d agtool_test -c "CREATE INDEX ontologies_type_idx ON ontologies(type);"
-psql -h localhost -d agtool_test -c "CREATE INDEX protein_2_function_an_idx ON protein_2_function(an);"
-psql -h localhost -d agtool_test -c "CREATE INDEX protein_secondary_2_primary_an_sec_idx ON protein_secondary_2_primary_an(sec);"
-psql -h localhost -d agtool_test -c "CREATE INDEX protein_2_og_an_idx ON protein_2_og(an);"
+psql -h localhost -d agotool -c "CREATE INDEX functions_an_idx ON functions(an);"
+psql -h localhost -d agotool -c "CREATE INDEX function_2_definition_an_idx ON function_2_definition(an);"
+psql -h localhost -d agotool -c "CREATE INDEX go_2_slim_an_idx ON go_2_slim(an);"
+psql -h localhost -d agotool -c "CREATE INDEX ogs_og_idx ON ogs(og);"
+psql -h localhost -d agotool -c "CREATE INDEX og_2_function_og_idx ON og_2_function(og);"
+psql -h localhost -d agotool -c "CREATE INDEX ontologies_child_idx ON ontologies(child);"
+psql -h localhost -d agotool -c "CREATE INDEX ontologies_direct_idx ON ontologies(direct);"
+psql -h localhost -d agotool -c "CREATE INDEX ontologies_type_idx ON ontologies(type);"
+psql -h localhost -d agotool -c "CREATE INDEX protein_2_function_an_idx ON protein_2_function(an);"
+psql -h localhost -d agotool -c "CREATE INDEX protein_secondary_2_primary_an_sec_idx ON protein_secondary_2_primary_an(sec);"
+psql -h localhost -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_og(an);"

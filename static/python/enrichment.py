@@ -22,7 +22,7 @@ class EnrichmentStudy(object):
     """
     def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk="all_GO"):
         self.ui = ui
-        self.method = self.ui.method
+        self.method = self.ui.enrichment_method
         self.assoc_dict = assoc_dict
         self.obo_dag = obo_dag
         self.alpha = alpha
@@ -37,6 +37,11 @@ class EnrichmentStudy(object):
         self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_v2(
             self.an_set_foreground, self.assoc_dict, self.obo_dag)
 
+        # abundance_correction: Foreground vs Background abundance corrected
+        # compare_samples: Foreground vs Background (no abundance correction)
+        # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
+        # characterize: Foreground only
+
         if self.method == "abundance_correction":
             background_n = foreground_n
             self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected(
@@ -46,6 +51,17 @@ class EnrichmentStudy(object):
             self.an_set_background = self.ui.get_background_an_set()
             self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_v2(
                 self.an_set_background, self.assoc_dict, self.obo_dag)
+
+        elif self.method == "compare_groups":
+            foreground_n = self.ui.get_foreground_n()
+            background_n = self.ui.get_background_n()
+            self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.bubu()
+
+
+        elif self.method == "characterize":
+            bubu
+
+
 
         else:
             raise StopIteration

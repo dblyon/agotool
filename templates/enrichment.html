@@ -40,6 +40,25 @@
             </div>
             <br>
             </div>
+                <div class="col-md-10">
+                <span title="{{ form.enrichment_method.description }}"> {{ form.enrichment_method.label }}: {{ form.enrichment_method() }} <br> </span>
+                <div class="row">
+                    <div class="foreground_n_background_n">
+                        <div class="col-md-5">
+                        <span class="foreground_n" title="{{ form.foreground_n.description }}"> {{ form.foreground_n.label }}: {{ form.foreground_n }} <br> </span>
+                            {% if form.foreground_n.errors %}
+                            <ul class="errors"> {% for error in form.foreground_n.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-5">
+                        <span class="background_n" title="{{ form.background_n.description }}"> {{ form.background_n.label }}: {{ form.background_n }} <br> </span>
+                            {% if form.background_n.errors %}
+                            <ul class="errors"> {% for error in form.background_n.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+        </div>
         </div>
 
         <div class="row">

@@ -42,6 +42,15 @@ var enrichment_page = (function() {
     });
     $("#multitest_method").change();
 
+// show 'foreground_n and background_n boxes' if "compare_groups" selected
+    $('#enrichment_method').change(function() {
+        var enrichment_method = $('#enrichment_method').val();
+        var choice = enrichment_method != "compare_groups";
+        toggle_if(choice, ".foreground_n_background_n", "");
+    });
+    $("#enrichment_method").change();
+
+
 // hide decimal delimiter and number of bins if abcorr deselected
     $("#abcorr").change(function() {
         var abcorr = $("#abcorr:checked").val();
@@ -53,13 +62,11 @@ var enrichment_page = (function() {
 
 
 // show or hide selectors/tags depending on choice
-var toggle_if = function(choice, tag, placeholder_tag){
+var toggle_if = function(choice, tag){
     if (choice == true) {
         $(tag).hide();
-        //$(placeholder_tag).show();
     } else {
         $(tag).show();
-        //$(placeholder_tag).hide();
     }
 };
 

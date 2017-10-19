@@ -56,18 +56,18 @@ def create_test_tables(num_lines=5000, TABLES_DIR_=None):
                     fh_out.write(line)
                     counter += 1
 
-##### Protein_2_OG_table.txt
+##### Protein_2_OG_table_static.txt
 ### only for HOMD-data since the Bacterial proteins are the only ones mapped to OGs
 ### this relies on previous mapping of bacterial proteins to OGs via Hidden Markov Models from eggNOG using HMMer
 def create_Protein_2_OG_table():
     """
     fn_in HOMD_Protein_2_OG_parsed.txt (AN-Protein, OG1;OG2) from HMMER results
-    fn_outProtein_2_OG_table.txt (AN-Protein, OG1)
+    fn_outProtein_2_OG_table_static.txt (AN-Protein, OG1)
     :return: None
     """
     print("create_Protein_2_OG_table")
     fn_in = os.path.join(STATIC_DIR, "results_AN_2_HMMs_HOMD_UPstyle_201607_AND_HOMD_UPstyle_201508_static.txt")  # HMMER results, previously 'HOMD_AN2NOGname_parsed.txt'
-    fn_out = os.path.join(STATIC_DIR, "Protein_2_OG_table.txt")
+    fn_out = os.path.join(STATIC_DIR, "Protein_2_OG_table_static.txt")
     with open(fn_in, "r") as fh_in:
         with open(fn_out, "w") as fh_out:
             for line in fh_in:
@@ -83,7 +83,7 @@ def create_Protein_2_OG_table():
                     string2write = an + "\t" + hmm + "\n"
                     fh_out.write(string2write)
 
-# #### OG_2_Function_table.txt, OGs_table.txt, and Functions_table_KEGG_DOM.txt
+# #### OG_2_Function_table_static.txt, OGs_table_static.txt, and Functions_table_KEGG_DOM.txt
 # http://eggnogdb.embl.de/download/latest/all_OG_annotations.tsv.gz
 # #### retrieving eggNOG attributes
 def get_og_names():
@@ -164,10 +164,10 @@ def parse_functions(go, KEGG, domains):
 
 def create_OGs_table_and_OG_2_Function_table_and_Functions_table_DOM():
     """
-    # OGs_table.txt --> complete
+    # OGs_table_static.txt --> complete
     # og, taxid, description (taxid = 2 for all bacterial OGs)
 
-    # OG_2_Function_table.txt --> complete
+    # OG_2_Function_table_static.txt --> complete
     # og, function
 
     # Functions_table_KEGG_DOM.txt --> partial
@@ -176,10 +176,10 @@ def create_OGs_table_and_OG_2_Function_table_and_Functions_table_DOM():
     """
     print("create_OGs_table_and_OG_2_Function_table_and_Functions_table_DOM")
     # taxid = "2"
-    fn_ogs = os.path.join(STATIC_DIR, "OGs_table.txt")
-    fn_og_2_func = os.path.join(STATIC_DIR, "OG_2_Function_table.txt")
-    # fn_func_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
-    fn_func_DOM = os.path.join(STATIC_DIR, "Functions_table_DOM.txt") # temporary --> merged into Functions_table.txt, therefore not saved
+    fn_ogs = os.path.join(STATIC_DIR, "OGs_table_static.txt")
+    fn_og_2_func = os.path.join(STATIC_DIR, "OG_2_Function_table_static.txt")
+    # fn_func_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG_static.txt")
+    fn_func_DOM = os.path.join(STATIC_DIR, "Functions_table_DOM_static.txt") # temporary --> merged into Functions_table.txt, therefore not saved
     function_dom_set = set()
     # an_kegg_set = set()
     with open(fn_ogs, "w") as fh_ogs:
@@ -188,7 +188,7 @@ def create_OGs_table_and_OG_2_Function_table_and_Functions_table_DOM():
             with open(fn_func_DOM, "w") as fh_func_DOM:
                 for entry in yield_entry_from_all_annotations():
                     og_name, description, go, KEGG, domains = entry
-                    # OGs_table.txt
+                    # OGs_table_static.txt
                     # og, taxid, description (taxid = 2 for all bacterial OGs)
                     if description != "NA":
                         # line2write_ogs = og_name + "\t" + taxid + "\t" + description + "\n"
@@ -197,13 +197,13 @@ def create_OGs_table_and_OG_2_Function_table_and_Functions_table_DOM():
 
                     functions, pw_name_num = parse_functions(go, KEGG, domains)
                     functions = set(functions)  # remove redundancies
-                    # OG_2_Function_table.txt
+                    # OG_2_Function_table_static.txt
                     # og, function
                     for function_ in functions:
                         line2write_og_2_func = og_name + "\t" + function_ + "\n"
                         fh_og_2_func.write(line2write_og_2_func)
 
-                    # Functions_table_KEGG.txt # obsolete here, since using resource from Lars's frozen KEGG version
+                    # Functions_table_KEGG_static.txt # obsolete here, since using resource from Lars's frozen KEGG version
                     # type_, description, an
                     # type_ = "KEGG"
                     # for name_num in pw_name_num:
@@ -285,7 +285,8 @@ class OBOReader:
         id_, name, definition = "", "", ""
         is_a_list = []
         for line in lines:
-            if line.startswith("id_:"):
+            # if line.startswith("id_:"):
+            if line.startswith("id:"):
                 id_ = after_colon(line)
             elif line.startswith("name:"):
                 name = after_colon(line)
@@ -335,7 +336,6 @@ def create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_def
     print("create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO")
     fn = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
     obo = OBOReader(fn)
-    # fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_GO_temp.txt")
     fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_GO.txt")
     fn_funcs = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
     type_ = "GO"
@@ -668,9 +668,9 @@ def parse_kegg_prot_2_path_file_to_dict(fn):
             kegg_prot_2_path_dict[prot_an] = path_an.split(";")
     return kegg_prot_2_path_dict
 
-def get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF):
+def get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF): #!!! does this file look the way it should???
     """
-    fn = r"/Users/dblyon/modules/cpr/metaprot/sql/downloads/uniprot_2_kegg_mapping.tab"
+    fn = r"/Users/dblyon/modules/cpr/metaprot/sql/downloads/UniProt_2_KEGG_mapping.tab"
     COLUMN_CROSSREF="Cross-reference (KEGG)"
     df = get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF)
     """
@@ -692,7 +692,7 @@ def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)
     ##### flow
     an = "P31946"
 
-    uniprot_2_kegg_mapping.tab
+    UniProt_2_KEGG_mapping.tab
     -->
     "hsa:7529"
 
@@ -711,11 +711,11 @@ def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)
     -->
     04110	Cell cycle
     ################################################################################################################
-    # check if Functions_table_KEGG.txt is equal or subset of pathway.list
+    # check if Functions_table_KEGG_static.txt is equal or subset of pathway.list
     # add KEGG pathway.list to functions table if not existing yet, or rather only use the this resource and not
 
     fn_psm = "Protein_2_Function_table_KEGG.txt"
-    fn = r"/Users/dblyon/modules/cpr/metaprot/sql/downloads/uniprot_2_kegg_mapping.tab"
+    fn = r"/Users/dblyon/modules/cpr/metaprot/sql/downloads/UniProt_2_KEGG_mapping.tab"
     df_up_2_kegg = get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF="Cross-reference (KEGG)")
 
     kegg_prot_2_path_dict = parse_kegg_prot_2_path_file_to_dict(fn)
@@ -731,16 +731,16 @@ def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)
     assoc_dict
 
     but AN in mapping
-    grep "Q6DFV6" uniprot_2_kegg_mapping.tab
+    grep "Q6DFV6" UniProt_2_KEGG_mapping.tab
     --> Q6DFV6	mmu:333564;
 
     e.g. debug usage
     import create_SQL_tables as cst
     DOWNLOADS_DIR = r"/Volumes/Speedy/PostgreSQL/downloads"
     COLUMN_CROSSREF="Cross-reference (KEGG)"
-    fn = os.path.join(DOWNLOADS_DIR, "uniprot_2_kegg_mapping.tab")
+    fn = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
     df_up_2_kegg = cst.get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF)
-    fn = os.path.join(DOWNLOADS_DIR, "kegg_prot_2_path_dict_file_static.txt")
+    fn = os.path.join(DOWNLOADS_DIR, "KEGG_prot_2_path_dict_static.txt")
     kegg_prot_2_path_dict = cst.parse_kegg_prot_2_path_file_to_dict(fn)
     an = "Q6DFV6"
     kegg_an = df_up_2_kegg.loc[df_up_2_kegg["Entry"] == an, "Cross-reference (KEGG)"].values[0].split(";")[0]
@@ -749,11 +749,11 @@ def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)
 
 
     """
-    fn = os.path.join(DOWNLOADS_DIR, "uniprot_2_kegg_mapping.tab")
+    fn = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
     df_up_2_kegg = get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF)
     column_crossref_index = df_up_2_kegg.columns.tolist().index(COLUMN_CROSSREF) + 1
 
-    fn = os.path.join(DOWNLOADS_DIR, "KEGG_prot_2_path_dict_file_static.txt")
+    fn = os.path.join(STATIC_DIR, "KEGG_prot_2_path_dict_static.txt")
     kegg_prot_2_path_dict = parse_kegg_prot_2_path_file_to_dict(fn)
 
     fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
@@ -762,6 +762,7 @@ def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)
         # for index_, row in df_up_2_kegg.iterrows():
         for row in df_up_2_kegg.itertuples():
             up_an = row.Entry
+            # up_an = row["Entry"]
             kegg_prot_ans_string = row[column_crossref_index]
             # up_an = row["Entry"]
             ## three_char_KEGG_code = row["Abb"]
@@ -778,11 +779,11 @@ def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)
                     string_2_write = up_an + "\t" + "KEGG:{}".format(kegg_path[3:]) + "\n"
                     fh.write(string_2_write)
 
-def create_Functions_table_KEGG():
+def create_Functions_table_KEGG(): # STATIC FILE simply provide the finished table
     # static
     type_ = "KEGG"
-    fn_in = os.path.join(DOWNLOADS_DIR, "KEGG_AN_2_Pathway_static.txt")
-    fn_out = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
+    fn_in = os.path.join(STATIC_DIR, "KEGG_AN_2_Pathway_static.txt")
+    fn_out = os.path.join(STATIC_DIR, "Functions_table_KEGG_static.txt")
     with open(fn_out, "w") as fh_out:
         with open(fn_in, "r") as fh_in:
             for line in fh_in:
@@ -805,8 +806,9 @@ def create_tables():
     ### - Functions
     create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
     create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
-    create_Functions_table_KEGG()
-    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt", "Functions_table_KEGG.txt", "Functions_table_DOM.txt"]]
+    ### create_Functions_table_KEGG() # STATIC FILE simply provide the finished table
+    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt"]]
+    fn_list += [os.path.join(STATIC_DIR, fn) for fn in ["Functions_table_KEGG_static.txt", "Functions_table_DOM_static.txt"]]
     fn_out = os.path.join(TABLES_DIR, "Functions_table.txt")
     # dependency on create_OGs_table_and_OG_2_Function_table_and_Functions_table_KEGG_DOM
     concatenate_files(fn_list, fn_out)
@@ -836,17 +838,20 @@ def create_bash_scripts_for_DB(testing=False):
     """
     :return: String(executable bash script)
     """
+    global TABLES_DIR
+    # print("Test dir 2:", TEST_DIR)
+    # print("Tables dir 2:", TABLES_DIR)
     print("creating bash scripts to for PostgreSQL DB creation")
     if testing:
         TABLES_DIR = TEST_DIR
     functions_table = os.path.join(TABLES_DIR, "Functions_table.txt")
     function_2_definition_table = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
     go_2_slim_table = os.path.join(TABLES_DIR, "GO_2_Slim_table.txt")
-    og_2_function_table = os.path.join(TABLES_DIR, "OG_2_Function_table.txt")
-    ogs_table = os.path.join(TABLES_DIR, "OGs_table.txt")
+    og_2_function_table = os.path.join(STATIC_DIR, "OG_2_Function_table_static.txt")
+    ogs_table = os.path.join(STATIC_DIR, "OGs_table_static.txt")
     ontologies_table = os.path.join(TABLES_DIR, "Ontologies_table.txt")
     protein_2_function_table = os.path.join(TABLES_DIR, "Protein_2_Function_table.txt")
-    protein_2_og_table = os.path.join(TABLES_DIR, "Protein_2_OG_table.txt")
+    protein_2_og_table = os.path.join(STATIC_DIR, "Protein_2_OG_table_static.txt")
     protein_secondary_2_primary_an_table = os.path.join(TABLES_DIR, "Protein_Secondary_2_Primary_AN_table.txt")
 
     postgres_commands = '''#!{}
@@ -926,13 +931,13 @@ def call_script(BASH_LOCATION, script_fn):
 
 if __name__ == "__main__":
     start_time = time.time()
-    # print("Parsing downloaded content and writing tables for PostgreSQL import")
+    print("Parsing downloaded content and writing tables for PostgreSQL import")
     # create_tables()
-    # create_test_tables(50000, r"/Users/dblyon/Downloads/tables")
+    # create_test_tables(50000, TABLES_DIR)
     # remove_files(find_tables_to_remove())
 
     ### PostgreSQL DB creation, copy from file and indexing
-    fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=True)
+    fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False)
     print("PostgreSQL DB creation, copy from file, and indexing")
     call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
     tools.print_runtime(start_time)

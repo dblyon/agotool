@@ -97,7 +97,6 @@ logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
-
 DOWNLOADS_DIR = os.path.abspath(os.path.join(webserver_data, "downloads"))
 
 ###############################################################################
@@ -151,9 +150,6 @@ max_timeout = 10 # minutes
 
 ################################################################################
 ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-# obo2file_dict = {"GO_slim": os.path.join(webserver_data + r'/PostgreSQL/downloads/goslim_generic.obo'),
-#                  "GO_basic": os.path.join(webserver_data + r'/PostgreSQL/downloads/go-basic.obo'),
-#                  "UPK_all": os.path.join(webserver_data + r'/PostgreSQL/downloads/keywords-all.obo')}
 upk_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
 goslim_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/goslim_generic.obo'))
 go_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/go-basic.obo'))
@@ -163,48 +159,6 @@ for go_term in go_dag.keys():
 
 filter_ = cluster_filter.Filter(go_dag)
 
-################################################################################
-# species2files_dict = {
-#     "9606": {'goa_ref_fn': webserver_data + r'/GOA/9606.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9606.tab'},
-#     "559292": {'goa_ref_fn': webserver_data + r'/GOA/559292.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/559292.tab'},
-#     "3702": {'goa_ref_fn': webserver_data + r'/GOA/3702.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3702.tab'},
-#     "7955": {'goa_ref_fn': webserver_data + r'/GOA/7955.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7955.tab'},
-#     "7227": {'goa_ref_fn': webserver_data + r'/GOA/7227.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/7227.tab'},
-#     "9031": {'goa_ref_fn': webserver_data + r'/GOA/9031.tsv',
-#            'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9031.tab'},
-#     "10090": {'goa_ref_fn': webserver_data + r'/GOA/10090.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10090.tab'},
-#     "10116": {'goa_ref_fn': webserver_data + r'/GOA/10116.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/10116.tab'},
-#     "9823": {'goa_ref_fn': webserver_data + r'/GOA/9823.tsv',
-#        'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9823.tab'},
-#     "9796": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/9796.tab'},
-#     "39947": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/39947.tab'},
-#     "3880": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3880.tab'},
-#     "3055": {'uniprot_keywords_fn': webserver_data + r'/UniProt_Keywords/3055.tab'}}
-#4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
-################################################################################
-organism_choices = [
-    (u'9606', u'Homo sapiens'),
-    (u'3702', u'Arabidopsis thaliana'),
-    (u'3055', u'Chlamydomonas reinhardtii'),
-    (u'6239', u'Caenorhabditis elegans'),
-    (u'7955', u'Danio rerio'),
-    (u'7227', u'Drosophila melanogaster'),
-    (u'9796', u'Equus caballus'),
-    (u'9031', u'Gallus gallus'),
-    (u'3880', u'Medicago truncatula'),
-    (u'10090', u'Mus musculus'),
-    (u'39947', u'Oryza sativa subsp. japonica'),
-    (u'10116', u'Rattus norvegicus'),
-    (u'559292', u'Saccharomyces cerevisiae'),
-    (u'284812', u'Schizosaccharomyces pombe'),
-    (u'9823', u'Sus scrofa')]
 ################################################################################
 # index.html
 ################################################################################
@@ -358,6 +312,20 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                               # ("KEGG", "KEGG pathways")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
+    enrichment_method = fields.SelectField("Select one of the following methods",
+                                   choices = (("abundance_correction", "abundance_correction"),
+                                              ("compare_samples", "compare_samples"),
+                                              ("compare_groups", "compare_groups"),
+                                              ("characterize", "characterize")),
+                                   description="""abundance_correction: Foreground vs Background abundance corrected
+compare_samples: Foreground vs Background (no abundance correction)
+compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
+characterize: Foreground only""")
+
+    foreground_n = fields.IntegerField("Foreground_n", [validate_integer], default=10, description="""Foreground_n is an integer, defines the number of sample of the foreground.""")
+
+    background_n = fields.IntegerField("Background_n", [validate_integer], default=10, description="""Background_n is an integer, defines the number of sample of the background.""")
+
     abcorr = fields.BooleanField("Abundance correction",
                                  default = "checked",
                                  description="""Apply the abundance correction as described in the publication. A column named "population_int" (population intensity)
@@ -441,7 +409,8 @@ def results():
         input_fs = request.files['userinput_file']
         ui = userinput.Userinput(fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=form.num_bins.data, decimal='.', method="abundance_correction")
+            num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data,
+            foreground_n=form.foreground_n.data, background_n=form.background_n.data)
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -453,7 +422,9 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_multipletesting.data)
+                form.p_value_multipletesting.data,
+                form.enrichment_method.data,
+                form.foreground_n.data, form.background_n.data)
             log_activity(string2log)
 
             header, results = run.run(go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
@@ -638,8 +609,8 @@ if __name__ == "__main__":
 #     if profiling:
 #         app.run('localhost', 5000, debug=True)
 #     else:
-#         app.run('localhost', 5000, debug=True)
-    app.run(host='0.0.0.0', debug=True)
+    app.run('localhost', 5000, debug=True)
+#     app.run(host='0.0.0.0', debug=True)
 ################################################################################
         ### agptool
 

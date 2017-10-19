@@ -22,7 +22,7 @@ class Userinput(object):
     """
     def __init__(self, fn=None, foreground_string=None, background_string=None,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=100, decimal='.', method="abundance_correction", foreground_n=None, background_n=None):
+            num_bins=100, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None):
         self.fn = fn
         self.foreground_string = foreground_string
         self.background_string = background_string
@@ -31,7 +31,7 @@ class Userinput(object):
         self.col_foreground = col_foreground
         self.col_background = col_background
         self.col_intensity = col_intensity
-        self.method = method # one of: "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        self.enrichment_method = enrichment_method # one of: "abundance_correction", "compare_samples", "compare_groups", "characterize"
         # abundance_correction: Foreground vs Background abundance corrected
         # compare_samples: Foreground vs Background (no abundance correction)
         # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
@@ -59,9 +59,9 @@ class Userinput(object):
             self.fn.seek(0)
         is_abundance_correction, self.decimal = self.check_userinput(self.fn)
         if is_abundance_correction:
-            self.method = "abundance_correction"
+            self.enrichment_method = "abundance_correction"
         else:
-            self.method = "compare_samples" # switch for reporting that something went wrong to user, or automatically switch method
+            self.enrichment_method = "compare_samples" # switch for reporting that something went wrong to user, or automatically switch enrichment_method
         self.df_orig = self.change_column_names(self.df_orig)
         self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
 
@@ -116,7 +116,7 @@ class Userinput(object):
         """
         decimal = '.'
         self.df_orig = pd.read_csv(fh, sep='\t', decimal=decimal)
-        if self.method == "abundance_correction":
+        if self.enrichment_method == "abundance_correction":
             if len({self.col_background, self.col_intensity, self.col_foreground}.intersection(set(self.df_orig.columns.tolist()))) == 3:
                 try:
                     np.histogram(self.df_orig.loc[pd.notnull(self.df_orig[self.col_intensity]), self.col_intensity], bins=10)
@@ -148,32 +148,32 @@ class Userinput(object):
         """
         # housekeeping
         self.housekeeping_dict["Foreground_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_foreground]]) # total number of entries, including duplicates and NaNs
-        if self.method == "abundance_correction":
+        if self.enrichment_method == "abundance_correction":
             self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background, col_intensity]])
         else:
             self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background]])
 
         # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
         self.foreground = df.loc[pd.notnull(df[col_foreground]), [col_foreground]]
-        if self.method == "abundance_correction":
+        if self.enrichment_method == "abundance_correction":
             self.background = df.loc[pd.notnull(df[col_background]), [col_background, col_intensity]]
         else:
             self.background = df.loc[pd.notnull(df[col_background]), [col_background]]
 
         # remove splice variant appendix and drop duplicates
         self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
-        if self.method != "compare_groups":
+        if self.enrichment_method != "compare_groups":
             self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
         self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
-        if self.method != "compare_groups":
+        if self.enrichment_method != "compare_groups":
             self.background.drop_duplicates(subset=col_background, inplace=True)
         # housekeeping
         self.housekeeping_dict["Foreground_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.foreground) # number of entries, excluding duplicates and NaNs
         self.housekeeping_dict["Background_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.background)
 
         # set default missing value for notnulls, and create lookup dict for abundances
-        if self.method == "abundance_correction":
+        if self.enrichment_method == "abundance_correction":
             cond = pd.isnull(self.background[col_intensity])
             self.background.loc[cond, col_intensity] = DEFAULT_MISSING_BIN
             self.an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]))
@@ -193,11 +193,11 @@ class Userinput(object):
             self.housekeeping_dict["Seondary_2_Primary_ANs_DF"] = None
 
         self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict, ))
-        if self.method != "characterize":
+        if self.enrichment_method != "characterize":
             self.background[col_background] = self.background[col_background].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
 
         ### sort values for iter bins
-        if self.method == "abundance_correction":
+        if self.enrichment_method == "abundance_correction":
             # self.background.sort_values(self.col_intensity, ascending=True, inplace=True)
             # self.foreground.sort_values(["intensity"], ascending=False, inplace=True)
             cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
@@ -261,32 +261,32 @@ class Userinput(object):
 
     def get_foreground_n(self):
         """
-        "abundance_correction", "compare_samples", "method", "characterize"
+        "abundance_correction", "compare_samples", "enrichment_method", "characterize"
         :return: Int
         """
-        if self.method == "abundance_correction":
+        if self.enrichment_method == "abundance_correction":
             return len(self.foreground)
-        elif self.method == "compare_samples": # no abundance correction
+        elif self.enrichment_method == "compare_samples": # no abundance correction
             return len(self.foreground)
-        elif self.method == "compare_groups": # redundancies within group, therefore n set by user
+        elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user
             return self.foreground_n
-        elif self.method == "characterize":
+        elif self.enrichment_method == "characterize":
             return len(self.foreground)
         else:
             raise StopIteration # debug, case should not happen
 
     def get_background_n(self):
         """
-        "abundance_correction", "compare_samples", "method", "characterize"
+        "abundance_correction", "compare_samples", "compare_groups", "characterize"
         :return: Int
         """
-        if self.method == "abundance_correction": # same as foreground
+        if self.enrichment_method == "abundance_correction": # same as foreground
             return len(self.foreground)
-        elif self.method == "compare_samples": # simply background to compare to
+        elif self.enrichment_method == "compare_samples": # simply background to compare to
             return len(self.background)
-        elif self.method == "compare_groups": # redundancies within group, therefore n set by user
+        elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user
             return self.background_n
-        elif self.method == "characterize": # only for foreground, not background
+        elif self.enrichment_method == "characterize": # only for foreground, not background
             return None
         else:
             raise StopIteration # debug, case should not happen
@@ -339,7 +339,7 @@ class Userinput(object):
     def get_all_unique_proteinGroups(self):
         proteinGroup_list = []
         proteinGroup_list += self.foreground[self.col_foreground].tolist()
-        if self.method != "characterize":
+        if self.enrichment_method != "characterize":
             proteinGroup_list += self.background[self.col_background].tolist()
         return list(set(proteinGroup_list))
 
@@ -373,6 +373,6 @@ if __name__ == "__main__":
     ui = Userinput(fn=fn, foreground_string=None,
         background_string=None, col_foreground='foreground',
         col_background='background', col_intensity='intensity',
-        num_bins=100, decimal='.', method="abundance_correction", connection=connection)
+        num_bins=100, decimal='.', enrichment_method="abundance_correction", connection=connection)
     # print(ui.iter_bins().next())
 
