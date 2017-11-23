@@ -41,7 +41,7 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'KEGG': "-52"}
 
 
-def get_cursor(host='localhost', dbname='agotool', user='dblyon', password=''):
+def get_cursor_old(host='localhost', dbname='agotool', user='dblyon', password=''):
     """
     :param host:
     :param dbname:
@@ -59,8 +59,23 @@ def get_cursor(host='localhost', dbname='agotool', user='dblyon', password=''):
     cursor = conn.cursor()
     return cursor
 
+def get_cursor(dbname='agotool'):
+    """
+    :param dbname:
+    :return: DB Cursor instance object
+    """
+    # Define our connection string
+    conn_string = "dbname='{}'".format(dbname)
+
+    # get a connection, if a connect cannot be made an exception will be raised here
+    conn = psycopg2.connect(conn_string)
+
+    # conn.cursor will return a cursor object, you can use this cursor to perform queries
+    cursor = conn.cursor()
+    return cursor
+
 def query_example(cursor):
-    cursor.execute("SELECT * FROM child_2_parent_table LIMIT 5")
+    cursor.execute("SELECT * FROM functions LIMIT 5")
     records = cursor.fetchall()
     print(records)
 
@@ -361,28 +376,27 @@ def parse_result_child_parent(result):
 
 
 if __name__ == "__main__":
-    pass
-    import pandas as pd
-    import tools
-    # fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_human.txt"
-    fn = r"/Users/dblyon/Downloads/1A_Data_for_web_tool_test_AbundaceCorrection_fUbi.txt"
-    df = pd.read_csv(fn, sep='\t')
-    ans_list = list(df["background"].unique())
-    ans_list = tools.commaSepCol2uniqueFlatList(df, "background", sep=";", unique=True)
-    print(len(ans_list))
-    pqo = PersistentQueryObject()
-    ### 1.)
-    protein_ans_list = ans_list # ['P62805']
-    gocat_upk = "all_GO"
-    basic_or_slim = "basic"
-    association_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim)
-    print(len(association_dict))
-    # ### 2.)
-    secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs(ans_list)
-    # print(len(secondary_2_primary_dict))
-    # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs_v2(ans_list)
-    # print(len(secondary_2_primary_dict))
-
-
-
-
+    print(get_cursor())
+    print(query_example(get_cursor()))
+    print(PersistentQueryObject())
+    # pass
+    # import pandas as pd
+    # import tools
+    # # fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_human.txt"
+    # fn = r"/Users/dblyon/Downloads/1A_Data_for_web_tool_test_AbundaceCorrection_fUbi.txt"
+    # df = pd.read_csv(fn, sep='\t')
+    # ans_list = list(df["background"].unique())
+    # ans_list = tools.commaSepCol2uniqueFlatList(df, "background", sep=";", unique=True)
+    # print(len(ans_list))
+    # pqo = PersistentQueryObject()
+    # ### 1.)
+    # protein_ans_list = ans_list # ['P62805']
+    # gocat_upk = "all_GO"
+    # basic_or_slim = "basic"
+    # association_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim)
+    # print(len(association_dict))
+    # # ### 2.)
+    # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs(ans_list)
+    # # print(len(secondary_2_primary_dict))
+    # # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs_v2(ans_list)
+    # # print(len(secondary_2_primary_dict))
