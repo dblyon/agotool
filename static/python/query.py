@@ -399,5 +399,3 @@ if __name__ == "__main__":
     # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs(ans_list)
     # # print(len(secondary_2_primary_dict))
     # # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs_v2(ans_list)
-    # # print(len(secondary_2_primary_dict))
-

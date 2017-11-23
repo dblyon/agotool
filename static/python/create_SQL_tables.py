@@ -1020,7 +1020,11 @@ if __name__ == "__main__":
         # print(find_tables_to_remove())
         ### PostgreSQL DB creation, copy from file and indexing
         create_test_tables(50000, TABLES_DIR)
+<<<<<<< HEAD
         fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False, foragotool=True)
+=======
+        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=True, foragotool=True)
+>>>>>>> 9ee2bad831120fcfff0611916d45e5f6ddacfbfd
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         tools.print_runtime(start_time)
