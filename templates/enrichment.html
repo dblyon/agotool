@@ -27,7 +27,7 @@
                 Isoforms and comma separated <b>protein-groups</b> e.g. ("O60462-5;A0A024R412;O60462-4") are accepted as well.<br>
             <br>
             <div class="row" id="copy_paste_field">
-                 From - e.g. MS-Excel - select 2 columns (for "Background & Intensity", but only 1 for "Foreground"), copy, and paste into the field below.
+                 From - e.g. MS-Excel - select 1 column for the "Foreground" and either 1 or 2 columns for "Background & Intensity", copy, and paste into the field below. For "abundance_correction" you need a "Background" and "Intensity" values (therfore 2 columns); alternatively you can use only a "Background" without the "Intensity" values, but then please select "compare_samples" from the methods below the copy and paste field.
 
                 <div class="col-md-5">
                     {{ form.foreground_textarea.label }}:
@@ -65,8 +65,10 @@
             <h3>Keyword association</h3>
             <div class="col-md-10">
                 <span title="{{ form.gocat_upk.description }}"> {{ form.gocat_upk.label }}: {{ form.gocat_upk() }} <br> </span>
-                <span class="ONTOLOGY" title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>
-                <span class="ONTOLOGY" title="{{ form.backtracking.description }}"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>
+                <div class="GO_basic_slim_backtracking">
+                    <span class="ONTOLOGY" title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>
+                    <span class="ONTOLOGY" title="{{ form.backtracking.description }}"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>
+                </div>
             </div>
         </div>
 
@@ -110,16 +112,6 @@
         <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
 		<br><br><br><br>
 	</form>
-{#<script>#}
-{#    UP_keywords = [{{ ",".join(up_organisms) }}];#}
-{#    GO_terms = [{{ ",".join(go_organisms) }}];#}
-{#    for (var i=0; i<UP_keywords.length; i++) {#}
-{#        $('#organism [value="' + UP_keywords[i] + '"').addClass("up_keyword");#}
-{#    }#}
-{#    for (var i=0; i<GO_terms.length; i++) {#}
-{#        $('#organism [value="' + GO_terms[i] + '"').addClass("go_term");#}
-{#    }#}
-{#</script>#}
 </div>
 {% endblock content %}
 

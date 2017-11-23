@@ -1,6 +1,8 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from scipy import stats
+from fisher import pvalue
+import numpy as np
 from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
 import ratio
 
@@ -20,7 +22,7 @@ def modify_header(header_list):
 class EnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk="all_GO"):
+    def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk="all_GO", function_type="GO"):
         self.ui = ui
         self.method = self.ui.enrichment_method
         self.assoc_dict = assoc_dict
@@ -31,42 +33,65 @@ class EnrichmentStudy(object):
         self.results = []
         self.backtracking = backtracking
         self.o_or_u_or_both = o_or_u_or_both
+        self.function_type = function_type
 
-        # prepare run
+        ### prepare run
         self.an_set_foreground = self.ui.get_foreground_an_set()
-        self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_v2(
-            self.an_set_foreground, self.assoc_dict, self.obo_dag)
+        # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_v2(self.an_set_foreground, self.assoc_dict, self.obo_dag)
+        self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_manager(self.an_set_foreground, self.assoc_dict, self.obo_dag, self.function_type)
 
         # abundance_correction: Foreground vs Background abundance corrected
         # compare_samples: Foreground vs Background (no abundance correction)
         # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
         # characterize: Foreground only
 
+        run_study_ = True
         if self.method == "abundance_correction":
             background_n = foreground_n
-            self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected(
-                self.ui, self.assoc_dict, self.obo_dag)
+            # self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
+            self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected_manager(self.ui, self.assoc_dict, self.obo_dag, self.function_type)
 
         elif self.method == "compare_samples":
             self.an_set_background = self.ui.get_background_an_set()
-            self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_v2(
-                self.an_set_background, self.assoc_dict, self.obo_dag)
+            # self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_v2(self.an_set_background, self.assoc_dict, self.obo_dag)
+            self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_manager(self.an_set_background, self.assoc_dict, self.obo_dag, self.function_type)
 
         elif self.method == "compare_groups":
             foreground_n = self.ui.get_foreground_n()
             background_n = self.ui.get_background_n()
-            self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.bubu()
+            # foreground_n = len(self.ui.get_foreground_an_set()) * self.ui.get_foreground_n()
+            # print(self.ui.get_foreground_n(), foreground_n)
+            # background_n = len(self.ui.get_background_an_set()) * self.ui.get_background_n()
+            self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
+            self.an_redundant_background = self.ui.get_an_redundant_background()
+            # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_v2(self.an_redundant_foreground, self.assoc_dict, self.obo_dag)
+            self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.function_type)
+            # self.association_2_count_dict_background, self.association_2_ANs_dict_background, unused_an_count = ratio.count_terms_v2(self.an_redundant_background, self.assoc_dict, self.obo_dag)
+            self.association_2_count_dict_background, self.association_2_ANs_dict_background, unused_an_count = ratio.count_terms_manager(self.an_redundant_background, self.assoc_dict, self.obo_dag, self.function_type)
 
-
-        elif self.method == "characterize":
-            bubu
-
-
-
+        elif self.method == "characterize_foreground":
+            self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
+            # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_v2(self.an_redundant_foreground, self.assoc_dict, self.obo_dag)
+            self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.function_type)
+            run_study_ = False
         else:
             raise StopIteration
 
-        self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, foreground_n, background_n)
+        if run_study_:
+            self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, foreground_n, background_n)
+        else:
+            self.characterize_foreground(self.association_2_count_dict_foreground, foreground_n)
+
+    def characterize_foreground(self, association_2_count_dict_foreground, foreground_n):
+        multitest = ("p_" + self.multitest_method, "%.3g")
+        attributes2add_list = [multitest, ('description', '%s'), ('ANs_foreground', '%s'), ('ANs_background', '%s')]
+        for association, foreground_count in association_2_count_dict_foreground.items():
+            one_record = EnrichmentRecord(id_=association, p_uncorrected=np.nan, ratio_in_foreground=(foreground_count, foreground_n),
+                ratio_in_background=(np.nan, np.nan), ANs_foreground=', '.join(self.get_ans_from_association(association, True)),
+                ANs_background="NaN", attributes2add=attributes2add_list)
+            self.results.append(one_record)
+        for rec in self.results:
+            rec.find_goterm(self.obo_dag)
 
     def run_study(self, association_2_count_dict_foreground, association_2_count_dict_background, foreground_n, background_n):
         """
@@ -95,38 +120,58 @@ class EnrichmentStudy(object):
         multitest = ("p_" + self.multitest_method, "%.3g")
         attributes2add_list = [multitest, ('description', '%s'), ('ANs_foreground', '%s')]
         if self.method != "abundance_correction":
-            attributes2add_list.append(('ANs_pop', '%s'))
+            attributes2add_list.append(('ANs_background', '%s'))
+
+        if self.method == "compare_groups":
+            foreground_n_2_multiply = foreground_n
+            background_n_2_multiply = background_n
+
         for association, foreground_count in association_2_count_dict_foreground.items():
             background_count = association_2_count_dict_background[association]
-            a = foreground_count
-            b = foreground_n - foreground_count
-            c = background_count
-            d = background_n - background_count
-            if d < 0:
-                d = 0
-            # Debug STOP
-
-            if self.o_or_u_or_both == 'underrepresented':
-                # purified or underrepresented --> left_tail or less
+            if self.method == "compare_groups":
+                a = foreground_count # number of redundant proteins associated with GO-term
+                foreground_n = len(self.association_2_ANs_dict_foreground[association]) * foreground_n_2_multiply # maximum number of proteins associated with GO-term
                 try:
-                    p_val_uncorrected = fisher_dict[(a, b, c, d)]
-                except KeyError: # why not tuple instead of list #!!!
-                    p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
-                    fisher_dict[(a, b, c, d)] = p_val_uncorrected
-            elif self.o_or_u_or_both == 'overrepresented':
-                # enriched or overrepresented --> right_tail or greater
+                    background_n = len(self.association_2_ANs_dict_background[association]) * background_n_2_multiply  # maximum number of proteins associated with GO-term
+                except KeyError: # association only in foreground but not in background
+                    pass
+                b = foreground_n - foreground_count # maximum number of proteins associated with GO-term minus a
+                c = background_count
+                d = background_n - background_count
+            else:
+                a = foreground_count # number of proteins associated with given GO-term
+                b = foreground_n - foreground_count # number of proteins not associated with GO-term
+                c = background_count
+                d = background_n - background_count
+                if d < 0:
+                    d = 0
+            if self.o_or_u_or_both == 'overrepresented':
+                # enriched or overrepresented --> right_tail or greater (but foreground and background are switched)
                 try:
                     p_val_uncorrected = fisher_dict[(a, b, c, d)]
                 except KeyError:
-                    p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='less')[1]
+                    # p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='less')[1]
+                    p_val_uncorrected = pvalue(a, b, c, d).right_tail
                     fisher_dict[(a, b, c, d)] = p_val_uncorrected
-            else:
+
+            elif self.o_or_u_or_both == 'both':
                 # both --> two_tail or two-sided
                 try:
                     p_val_uncorrected = fisher_dict[(a, b, c, d)]
                 except KeyError:
-                    p_val_uncorrected  = stats.fisher_exact([[a, b], [c, d]], alternative='two-sided')[1]
+                    p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='two-sided')[1]
+                    ### fisher_dict[(a, b, c, d)] = p_val_uncorrected # don't use this version (but the scipy version above) since accuracy drops too much
+            elif self.o_or_u_or_both == 'underrepresented':
+                # purified or underrepresented --> left_tail or less
+                try:
+                    p_val_uncorrected = fisher_dict[(a, b, c, d)]
+                except KeyError: # why not tuple instead of list #!!!
+                    # p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
+                    p_val_uncorrected = pvalue(a, b, c, d).left_tail
                     fisher_dict[(a, b, c, d)] = p_val_uncorrected
+            else:
+                raise StopIteration
+
             one_record = EnrichmentRecord(
                 id_=association,
                 p_uncorrected=p_val_uncorrected,
@@ -137,6 +182,9 @@ class EnrichmentStudy(object):
                 attributes2add=attributes2add_list)
             self.results.append(one_record)
         self.calc_multiple_corrections()
+
+        # print("!@#$%^&*("*80)
+        # print(len(fisher_dict.keys()))
 
     def get_ans_from_association(self, association, foreground):
         if foreground:
@@ -187,7 +235,8 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                 header_list = modify_header(self.results[0].get_attributenames2write(self.o_or_u_or_both))
                 header2write = '\t'.join(header_list) + '\n'
                 fh_out.write(header2write)
-                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+                # results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
+                results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.p_uncorrected)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
                     rec.update_remaining_fields()
                     if rec.fold_enrichment_study2pop >= fold_enrichment_foreground_2_background or fold_enrichment_foreground_2_background is None:
@@ -205,7 +254,8 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
         else:
             header_list = modify_header(self.results[0].get_attributenames2write(self.o_or_u_or_both))
             header2write = '\t'.join(header_list) + '\n'
-            results_sorted_by_fold_enrichment_foreground_2_background = sorted(self.results, key=lambda record: record.fold_enrichment_foreground_2_background, reverse=True)
+            # results_sorted_by_fold_enrichment_foreground_2_background = sorted(self.results, key=lambda record: record.fold_enrichment_foreground_2_background, reverse=True)
+            results_sorted_by_fold_enrichment_foreground_2_background = sorted(self.results, key=lambda record: record.p_uncorrected)
             for rec in results_sorted_by_fold_enrichment_foreground_2_background:
                 rec.update_remaining_fields()
                 # if rec.fold_enrichment_foreground_2_background >= fold_enrichment_foreground_2_background or fold_enrichment_foreground_2_background is None:
@@ -257,7 +307,8 @@ class EnrichmentRecord(object):
             fold_en = float(zaehler) / nenner
         except ZeroDivisionError:
             # fold_en = -1 #!!!
-            fold_en = 1000
+            # fold_en = 1000
+            fold_en = np.inf
         return fold_en
 
     def find_goterm(self, go):
@@ -266,6 +317,11 @@ class EnrichmentRecord(object):
             self.description = self.goterm.name
         except KeyError:
             pass
+        except TypeError:
+            # print("find_goterm", go, type(go), len(go))
+            pass
+    #     kegg_pseudo_dag: description=nam, goterm=id
+
 
     def __setattr__(self, name, value):
         self.__dict__[name] = value

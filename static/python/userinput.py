@@ -5,7 +5,7 @@ from collections import defaultdict
 from io import StringIO # from StringIO import StringIO
 from itertools import zip_longest # from itertools import izip_longest
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import tools, query
+import tools #, query
 
 # test for comma vs point separated intensity values
 # test for " enclosed ANs, in general and for protein groups using these
@@ -20,9 +20,10 @@ class Userinput(object):
     foregroundfreq: Pandas DataFrame 1column
     backgrndfreq: 2D array/Pandas DataFrame, with backgrnd_an, backgrnd_int
     """
-    def __init__(self, fn=None, foreground_string=None, background_string=None,
+    def __init__(self, pqo, fn=None, foreground_string=None, background_string=None,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
             num_bins=100, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None):
+        self.pqo = pqo
         self.fn = fn
         self.foreground_string = foreground_string
         self.background_string = background_string
@@ -31,14 +32,14 @@ class Userinput(object):
         self.col_foreground = col_foreground
         self.col_background = col_background
         self.col_intensity = col_intensity
-        self.enrichment_method = enrichment_method # one of: "abundance_correction", "compare_samples", "compare_groups", "characterize"
-        # abundance_correction: Foreground vs Background abundance corrected
-        # compare_samples: Foreground vs Background (no abundance correction)
-        # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
-        # characterize: Foreground only
+        self.enrichment_method = enrichment_method # one of: "abundance_correction", "compare_samples", "compare_groups", "characterize_foreground"
+        ### abundance_correction: Foreground vs Background abundance corrected
+        ### compare_samples: Foreground vs Background (no abundance correction)
+        ### compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
+        ### characterize_foreground: Foreground only
         self.foreground_n = foreground_n
         self.background_n = background_n
-        self.housekeeping_dict = {} # Infos for Usere
+        self.housekeeping_dict = {} # Infos for User
         self.check = True
         self.parse_input()
 
@@ -46,24 +47,40 @@ class Userinput(object):
         self.fn.read()
         if self.fn.tell() != 0:
             self.fn.seek(0)
+            is_abundance_correction, self.decimal = self.check_userinput(self.fn)
         else: # use copy & paste field
             self.fn = StringIO()
+            self.foreground_string = self.foreground_string.replace("\r\n", "\n")
+            self.background_string = self.background_string.replace("\r\n", "\n")
+            self.foreground_string = self.remove_header_if_present(self.foreground_string, "foreground")
+            self.background_string = self.remove_header_if_present(self.background_string, "background")
             is_abundance_correction = self.fast_check_is_abundance_correction(self.background_string)
             if is_abundance_correction:
-                header = 'foreground\tbackground\tintensity\r'
+                header = 'foreground\tbackground\tintensity\n'
             else:
-                header = 'foreground\tbackground\r'
+                header = 'foreground\tbackground\n'
             self.fn.write(header)
-            for a, b in zip_longest(self.foreground_string.split("\r\n"), self.background_string.split("\r\n"), fillvalue="\t"):
-                self.fn.write(a.strip() + "\t" + b.strip() + "\r")
+            for a, b in zip_longest(self.foreground_string.split("\n"), self.background_string.split("\n"), fillvalue="\t"):
+                self.fn.write(a.strip() + "\t" + b.strip() + "\n")
             self.fn.seek(0)
-        is_abundance_correction, self.decimal = self.check_userinput(self.fn)
-        if is_abundance_correction:
-            self.enrichment_method = "abundance_correction"
-        else:
-            self.enrichment_method = "compare_samples" # switch for reporting that something went wrong to user, or automatically switch enrichment_method
+
+            self.decimal = self.check_decimal(self.fn)
+
         self.df_orig = self.change_column_names(self.df_orig)
-        self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+
+        try:
+            self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        except:
+            self.check = False
+
+    def remove_header_if_present(self, input_string, foreground_or_background):
+        if foreground_or_background == "foreground":
+            if input_string.split("\n")[0].lower() == "foreground":
+                return "\n".join(input_string.split("\n")[1:])
+        else:
+            if input_string.split("\n")[0].lower() == "background\tintensity":
+                return "\n".join(input_string.split("\n")[1:])
+        return input_string
 
     def fast_check_is_abundance_correction(self, background_string):
         string_split = background_string.split("\n", 1)[0].split("\t")
@@ -134,6 +151,34 @@ class Userinput(object):
                 return True, decimal
         return False, decimal
 
+    def check_decimal(self, fh):
+        """
+        test if userinput uses ',' or '.' as a decimal separator
+        and if 3 columns for abundance_correction exist
+        set df attribute
+        :param fh: FileHandle
+        :return: Tuple(Bool, String)
+        """
+        decimal = '.'
+        self.df_orig = pd.read_csv(fh, sep='\t', decimal=decimal)
+        if self.enrichment_method == "abundance_correction":
+            if len({self.col_background, self.col_intensity, self.col_foreground}.intersection(set(self.df_orig.columns.tolist()))) == 3:
+                try:
+                    np.histogram(self.df_orig.loc[pd.notnull(self.df_orig[self.col_intensity]), self.col_intensity], bins=10)
+                except TypeError:
+                    try:
+                        decimal = ','
+                        fh.seek(0)
+                        self.df_orig = pd.read_csv(fh, sep='\t', decimal=decimal)
+                        np.histogram(self.df_orig.loc[pd.notnull(self.df_orig[self.col_intensity]), self.col_intensity], bins=10)
+                    except TypeError:
+                        return decimal
+                return decimal
+        else:
+            if len({self.col_background, self.col_foreground}.intersection(set(self.df_orig.columns.tolist()))) == 2:
+                return decimal
+        return decimal
+
     def cleanupforanalysis(self, df, col_foreground, col_background, col_intensity):
         """
         ToDo:
@@ -150,27 +195,32 @@ class Userinput(object):
         self.housekeeping_dict["Foreground_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_foreground]]) # total number of entries, including duplicates and NaNs
         if self.enrichment_method == "abundance_correction":
             self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background, col_intensity]])
-        else:
+        elif self.enrichment_method != "characterize_foreground":
             self.housekeeping_dict["Background_Number_of_entries_including_duplicates_and_NaNs"] = len(df[[col_background]])
+        else:
+            pass
 
         # remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
         self.foreground = df.loc[pd.notnull(df[col_foreground]), [col_foreground]]
         if self.enrichment_method == "abundance_correction":
             self.background = df.loc[pd.notnull(df[col_background]), [col_background, col_intensity]]
-        else:
+        elif self.enrichment_method != "characterize_foreground":
             self.background = df.loc[pd.notnull(df[col_background]), [col_background]]
+        else:
+            pass
 
         # remove splice variant appendix and drop duplicates
         self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
         if self.enrichment_method != "compare_groups":
             self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
-        self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
-        if self.enrichment_method != "compare_groups":
+        if self.enrichment_method != "characterize_foreground":
+            self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
             self.background.drop_duplicates(subset=col_background, inplace=True)
         # housekeeping
         self.housekeeping_dict["Foreground_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.foreground) # number of entries, excluding duplicates and NaNs
-        self.housekeeping_dict["Background_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.background)
+        if self.enrichment_method != "characterize_foreground":
+            self.housekeeping_dict["Background_Number_of_entries_excluding_duplicates_and_NaNs"] = len(self.background)
 
         # set default missing value for notnulls, and create lookup dict for abundances
         if self.enrichment_method == "abundance_correction":
@@ -184,7 +234,8 @@ class Userinput(object):
             self.foreground["intensity"] = self.map_intensities_2_foreground()
 
         ## map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
-        secondary_2_primary_dict = query.map_secondary_2_primary_ANs(self.get_all_unique_ANs())
+        # secondary_2_primary_dict = query.map_secondary_2_primary_ANs(self.get_all_unique_ANs())
+        secondary_2_primary_dict = self.pqo.map_secondary_2_primary_ANs(self.get_all_unique_ANs())
         if secondary_2_primary_dict: # not an empty dict
             df_sec_prim = pd.DataFrame().from_dict(secondary_2_primary_dict, orient="index").reset_index()
             df_sec_prim.columns = ["secondary", "primary"]
@@ -193,13 +244,12 @@ class Userinput(object):
             self.housekeeping_dict["Seondary_2_Primary_ANs_DF"] = None
 
         self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict, ))
-        if self.enrichment_method != "characterize":
+        if self.enrichment_method != "characterize_foreground":
             self.background[col_background] = self.background[col_background].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
 
         ### sort values for iter bins
         if self.enrichment_method == "abundance_correction":
-            # self.background.sort_values(self.col_intensity, ascending=True, inplace=True)
-            # self.foreground.sort_values(["intensity"], ascending=False, inplace=True)
+            # print(self.foreground)
             cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
             if sum(cond) == 0:  # render info_check_input.html
                 self.check = False
@@ -259,9 +309,15 @@ class Userinput(object):
     def get_background_an_set(self):
         return set(self.background[self.col_background].tolist())
 
+    def get_an_redundant_foreground(self):
+        return self.foreground[self.col_foreground].tolist()
+
+    def get_an_redundant_background(self):
+        return self.background[self.col_background].tolist()
+
     def get_foreground_n(self):
         """
-        "abundance_correction", "compare_samples", "enrichment_method", "characterize"
+        "abundance_correction", "compare_samples", "enrichment_method", "characterize_foreground"
         :return: Int
         """
         if self.enrichment_method == "abundance_correction":
@@ -270,14 +326,14 @@ class Userinput(object):
             return len(self.foreground)
         elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user
             return self.foreground_n
-        elif self.enrichment_method == "characterize":
+        elif self.enrichment_method == "characterize_foreground":
             return len(self.foreground)
         else:
             raise StopIteration # debug, case should not happen
 
     def get_background_n(self):
         """
-        "abundance_correction", "compare_samples", "compare_groups", "characterize"
+        "abundance_correction", "compare_samples", "compare_groups", "characterize_foreground"
         :return: Int
         """
         if self.enrichment_method == "abundance_correction": # same as foreground
@@ -286,7 +342,7 @@ class Userinput(object):
             return len(self.background)
         elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user
             return self.background_n
-        elif self.enrichment_method == "characterize": # only for foreground, not background
+        elif self.enrichment_method == "characterize_foreground": # only for foreground, not background
             return None
         else:
             raise StopIteration # debug, case should not happen
@@ -333,13 +389,14 @@ class Userinput(object):
         :return: ListOfString
         """
         ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
-        ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
+        if self.enrichment_method != "characterize_foreground":
+            ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
         return list(set(ans))
 
     def get_all_unique_proteinGroups(self):
         proteinGroup_list = []
         proteinGroup_list += self.foreground[self.col_foreground].tolist()
-        if self.enrichment_method != "characterize":
+        if self.enrichment_method != "characterize_foreground":
             proteinGroup_list += self.background[self.col_background].tolist()
         return list(set(proteinGroup_list))
 
@@ -361,18 +418,18 @@ if __name__ == "__main__":
     fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast_Intensity_Sample_Population.txt"
     fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/debug.txt"
     fn = r"/Users/dblyon/Downloads/Data for agotool 2017-01-30.txt"
-
-    import db_config
-    ECHO = False
-    TESTING = False
-    DO_LOGGING = False
-    connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
+    fn = r"/Users/dblyon/Downloads/1A_Data_for_web_tool_test_AbundaceCorrection_fUbi.txt"
+    # import db_config
+    # ECHO = False
+    # TESTING = False
+    # DO_LOGGING = False
+    # connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING)
 
     import io
     fn = io.open(fn, mode='r')
     ui = Userinput(fn=fn, foreground_string=None,
         background_string=None, col_foreground='foreground',
         col_background='background', col_intensity='intensity',
-        num_bins=100, decimal='.', enrichment_method="abundance_correction", connection=connection)
+        num_bins=100, decimal='.', enrichment_method="abundance_correction")#, connection=connection)
     # print(ui.iter_bins().next())
 

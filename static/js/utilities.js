@@ -15,22 +15,6 @@ var enrichment_page = (function() {
         var gocat_upk = $('#gocat_upk').val();
         var choice = gocat_upk == "UPK";
         toggle_if(choice, ".GOT", ".GOT_placeholder");
-
-
-        //// hide organimss
-        //if (choice) { // UPK selected
-        //    $('.go_term').hide();
-        //    $('.up_keyword').show();
-        //} else {
-        //    var selected = $('#organism').val();
-        //    var selected_cass = $('#organism option[value="' + selected + '"]').prop('class');
-        //    if (selected_cass == "up_keyword") {
-        //         $('#organism').val('');
-        //    }
-        //    $('.up_keyword').hide();
-        //    $('.go_term').show();
-        //}
-
     });
     $("#gocat_upk").change(); // fire event to hide stuff
 
@@ -50,6 +34,13 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
+// hide 'GO basic or slim' and 'Backtracking parents GO-terms' parameter if 'UniProt keywords' are selected
+    $('#gocat_upk').change(function() {
+        var gocat_upk = $('#gocat_upk').val();
+        var choice = gocat_upk == "UPK" || gocat_upk == "KEGG";
+        toggle_if(choice, ".GO_basic_slim_backtracking", "");
+    });
+    $("#gocat_upk").change();
 
 // hide decimal delimiter and number of bins if abcorr deselected
     $("#abcorr").change(function() {
@@ -60,7 +51,6 @@ var enrichment_page = (function() {
     $("#abcorr").change();
 });
 
-
 // show or hide selectors/tags depending on choice
 var toggle_if = function(choice, tag){
     if (choice == true) {
@@ -70,12 +60,11 @@ var toggle_if = function(choice, tag){
     }
 };
 
-
 // RESTULS PAGE
 var results_page = (function () {
 // hide Filter button if "UPK" == "GOT"
     var gocat_upk = $('input[name=gocat_upk]').val();
-    if (gocat_upk == "UPK") {
+    if (gocat_upk == "UPK" || gocat_upk == "KEGG") {
         $('#submit_filter').parents(".row").hide();
     }
 
@@ -94,13 +83,7 @@ var results_page = (function () {
         }
 
     );
-
-
 });
-
-//var function_name = (function () {
-//
-//});
 
 var toggle_ellipsis = (function(element) {
         $(element).toggleClass("ellipsis")
@@ -115,3 +98,19 @@ var submit_form = (function(form_id, action) {
 
 
 
+//var function_name = (function () {
+//
+//});
+        //// hide organimss
+        //if (choice) { // UPK selected
+        //    $('.go_term').hide();
+        //    $('.up_keyword').show();
+        //} else {
+        //    var selected = $('#organism').val();
+        //    var selected_cass = $('#organism option[value="' + selected + '"]').prop('class');
+        //    if (selected_cass == "up_keyword") {
+        //         $('#organism').val('');
+        //    }
+        //    $('.up_keyword').hide();
+        //    $('.go_term').show();
+        //}

@@ -40,15 +40,17 @@ def count_terms_proteinGroup(ui, assoc_dict, obo_dag, sample_or_background):
     for protGroup in proteinGroup_list:
         goid_set, ans_list = get_goids_from_proteinGroup(protGroup, assoc_dict)
         for goid in goid_set:
-            if goid in obo_dag:
-                if goid not in GOid2RedundantNumProtGroups_dict:
-                    GOid2RedundantNumProtGroups_dict[goid] = 1
-                    GOid2ANs_dict[goid] = set(ans_list)
-                    GOid2UniqueNumProtGroups_dict[goid] = [protGroup]
-                else:
-                    GOid2RedundantNumProtGroups_dict[goid] += 1
-                    GOid2ANs_dict[goid].update(ans_list)
-                    GOid2UniqueNumProtGroups_dict[goid].append(protGroup)
+            ### if goid in obo_dag:
+                    # this assertion should not be neccessary since already check when creating tables for Postgres, hence only GO-term in
+                    # the DB that are also in the current version of obo.
+            if goid not in GOid2RedundantNumProtGroups_dict:
+                GOid2RedundantNumProtGroups_dict[goid] = 1
+                GOid2ANs_dict[goid] = set(ans_list)
+                GOid2UniqueNumProtGroups_dict[goid] = [protGroup]
+            else:
+                GOid2RedundantNumProtGroups_dict[goid] += 1
+                GOid2ANs_dict[goid].update(ans_list)
+                GOid2UniqueNumProtGroups_dict[goid].append(protGroup)
     for key in GOid2UniqueNumProtGroups_dict:
         GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
     return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
@@ -91,6 +93,12 @@ def count_terms_proteinGroup_KEGG(ui, assoc_dict, sample_or_background):
         GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
     return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
 
+def count_terms_manager(ans_set, assoc_dict, obo_dag, method):
+    if method == "KEGG":
+        return count_terms_v2_KEGG(ans_set, assoc_dict)
+    else:
+        return count_terms_v2(ans_set, assoc_dict, obo_dag)
+
 def count_terms_v2(ans_set, assoc_dict, obo_dag):
     """
     count the number of terms in the study group
@@ -104,14 +112,16 @@ def count_terms_v2(ans_set, assoc_dict, obo_dag):
     association_2_count_dict = defaultdict(int)
     for an in (AN for AN in ans_set if AN in assoc_dict):
         for association in assoc_dict[an]:
-            if association in obo_dag:
-                ans_2_count.update([an])
-                association_id = obo_dag[association].id
-                association_2_count_dict[association_id] += 1
-                if not association_id in association_2_ANs_dict:
-                    association_2_ANs_dict[association_id] = set([an])
-                else:
-                    association_2_ANs_dict[association_id].update([an])
+            # if association in obo_dag:
+                # this assertion should not be neccessary since already check when creating tables for Postgres, hence only GO-term in
+                # the DB that are also in the current version of obo.
+            ans_2_count.update([an])
+            association_id = obo_dag[association].id
+            association_2_count_dict[association_id] += 1
+            if not association_id in association_2_ANs_dict:
+                association_2_ANs_dict[association_id] = set([an])
+            else:
+                association_2_ANs_dict[association_id].update([an])
     return association_2_count_dict, association_2_ANs_dict, len(ans_2_count)
 
 def count_terms_v2_KEGG(ans_set, assoc_dict):
@@ -145,12 +155,14 @@ def count_terms(ans_set, assoc_dict, obo_dag):
     term_cnt = defaultdict(int)
     for an in (acnum for acnum in ans_set if acnum in assoc_dict):
         for goterm in assoc_dict[an]:
-            if goterm in obo_dag:
-                term_cnt[obo_dag[goterm].id] += 1
-                if goterm not in go2ans_dict:
-                    go2ans_dict[goterm] = set([an])
-                else:
-                    go2ans_dict[goterm].update([an])
+            # if goterm in obo_dag:
+            # this assertion should not be neccessary since already check when creating tables for Postgres, hence only GO-term in
+            # the DB that are also in the current version of obo.
+            term_cnt[obo_dag[goterm].id] += 1
+            if goterm not in go2ans_dict:
+                go2ans_dict[goterm] = set([an])
+            else:
+                go2ans_dict[goterm].update([an])
     return(term_cnt, go2ans_dict)
 
 def get_go2ans_dict(assoc_dict):
@@ -168,6 +180,12 @@ def get_go2ans_dict(assoc_dict):
             else:
                 go2ans_dict[goid].update([an])
     return go2ans_dict
+
+def count_terms_abundance_corrected_manager(ui, assoc_dict, obo_dag, method):
+    if method == "KEGG":
+        return count_terms_abundance_corrected_KEGG(ui, assoc_dict)
+    else:
+        return count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
 
 def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     """
@@ -194,16 +212,18 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
             # goterms = get_goterms_from_an(an, include_parents=True)
                 goterms = assoc_dict[an]
                 for goterm in goterms:
-                    if goterm in obo_dag:
-                        goterm_name = obo_dag[goterm].id
-                        term_cnt[goterm_name] += weight_fac
-                        # if not go2ans_dict.has_key(goterm):
-                        if goterm not in go2ans_dict:
-                            go2ans_dict[goterm_name] = set([an])
-                        else:
-                            go2ans_dict[goterm_name].update([an])
+                    # if goterm in obo_dag:
+                    # this assertion should not be neccessary since already check when creating tables for Postgres, hence only GO-term in
+                    # the DB that are also in the current version of obo.
+                    goterm_name = obo_dag[goterm].id
+                    term_cnt[goterm_name] += weight_fac
+                    # if not go2ans_dict.has_key(goterm):
+                    if goterm not in go2ans_dict:
+                        go2ans_dict[goterm_name] = set([an])
                     else:
-                        pass
+                        go2ans_dict[goterm_name].update([an])
+                    # else:
+                    #     pass
     for goterm in term_cnt:
         term_cnt[goterm] = int(round(term_cnt[goterm]))
     go2ans2return = {}
@@ -212,6 +232,44 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
         if count >=1:
             go2ans2return[goterm] = go2ans_dict[goterm]
     return term_cnt, go2ans2return
+
+def count_terms_abundance_corrected_KEGG(ui, assoc_dict):
+    """
+    #!!! modify to use protein groups --> handled in Userinput.py or not?
+    produce abundance corrected counts of GO-terms of background frequency
+    round floats to nearest integer
+    Userinput-object includes ANs of sample, and background as well as abundance data
+    produces:
+        term_cnt: key=GOid, val=Num of occurrences
+        go2ans_dict: key=GOid, val=ListOfANs
+    :param ui: Userinput-object
+    :param assoc_dict:  Dict with key=AN, val=set of GO-terms
+    :return: DefaultDict(Float)
+    """
+    go2ans_dict = {}
+    term_cnt = defaultdict(float)
+    for ans, weight_fac in ui.iter_bins(): # for every bin, produce ans-background and weighting-factor
+        for an in ans:
+            if an in assoc_dict:
+                goterms = assoc_dict[an]
+                for goterm in goterms:
+                    goterm_name = goterm
+                    term_cnt[goterm_name] += weight_fac
+                    if goterm not in go2ans_dict:
+                        go2ans_dict[goterm_name] = set([an])
+                    else:
+                        go2ans_dict[goterm_name].update([an])
+                else:
+                    pass
+    for goterm in term_cnt:
+        term_cnt[goterm] = int(round(term_cnt[goterm]))
+    go2ans2return = {}
+    for goterm in term_cnt:
+        count = term_cnt[goterm]
+        if count >=1:
+            go2ans2return[goterm] = go2ans_dict[goterm]
+    return term_cnt, go2ans2return
+
 
 def is_ratio_different(min_ratio, study_go, study_n, pop_go, pop_n):
     """

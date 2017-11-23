@@ -1,4 +1,6 @@
-import sys
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.realpath('./')))
+import query
 
 
 try:
@@ -220,10 +222,6 @@ class GODag(dict):
     def load_obo_file(self, obo_file, upk):
         obo_reader = OBOReader(obo_file, upk=upk)
         for rec in obo_reader:
-            # print("#&*"*80)
-            # print(rec)
-            # print("#&*" * 80)
-            # raise StopIteration
             self[rec.id] = rec
             for alt in rec.alt_ids:
                 self[alt] = rec
@@ -420,6 +418,31 @@ class GODag(dict):
             terms.update(parents) # updates the association object with all parent GO-terms of given GO-terms
         if bad_terms:
             print("number of terms not found: %s" % (len(bad_terms),), file=sys.stderr)
+
+
+class KEGGterm:
+    """
+    GO term, actually contain a lot more properties than interfaced here
+    """
+
+    def __init__(self, id_, name):
+        self.id = id_       # KEGG:NNNNNNN
+        self.name = name              # description
+        # self.namespace = ""         #
+        self.level = 0  # shortest distance from root node
+        self.depth = None  # longest distance from root node
+        self.is_obsolete = False  # is_obsolete
+
+
+class KEGG_pseudo_dag(dict):
+
+    def __init__(self):
+        KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict()
+        # kegg_pseudo_dag: description=name, goterm=id
+        for id_, name in KEGG_id_2_name_dict.items():
+            self[id_] = KEGGterm(id_, name)
+
+
 
 
 

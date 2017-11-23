@@ -1,4 +1,4 @@
-import os, json, sys, re, fnmatch, subprocess, time
+import os, json, sys, re, fnmatch, subprocess, time, multiprocessing
 import pandas as pd
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -17,7 +17,7 @@ STATIC_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
 FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.obo", "goslim_generic.obo", "go-basic.obo"]]
-
+NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
 
 EMPTY_EGGNOG_JSON_DICT = {"KEGG": {"kegg_pathways": [], "kegg_header": ["Pathway", "SeqCount", "Frequency", "relative_fontsize"]}, "go_terms": {"go_terms": {}, "go_header": ["ID", "GO term", "Evidence", "SeqCount", "Frequency", "relative_fontsize"]}, "domains": {"domains": {}, "dom_header": ["Domain ID", "SeqCount", "Frequency", "relative_fontsize"]}}
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
@@ -33,7 +33,8 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9996': "-51",  # 'Developmental stage',
                               'UPK:9997': "-51",  # 'Coding sequence diversity',
                               'UPK:9998': "-51",  # 'Cellular component',
-                              'UPK:9999': "-51"}  # 'Biological process'}
+                              'UPK:9999': "-51",  # 'Biological process'
+                              'KEGG': "-52"}
 id_2_entityTypeNumber_dict_keys_set = set(id_2_entityTypeNumber_dict.keys())
 
 
@@ -310,21 +311,22 @@ def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_d
     fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_UPK.txt")
     fn_funcs = os.path.join(TABLES_DIR, "Functions_table_UPK.txt")
     type_ = "UPK"
-    fn_descr = os.path.join(TABLES_DIR, "Function_2_definition_table_UPK.txt")
+    # fn_descr = os.path.join(TABLES_DIR, "Function_2_definition_table_UPK.txt")
     with open(fn_funcs, "w") as fh_funcs:
         with open(fn_child2parent, "w") as fh_child2parent:
-            with open(fn_descr, "w") as fh_descr:
-                for entry in obo:
-                    id_, name, is_a_list, definition = entry
-                    id_ = id_.replace("KW-", "UPK:")
-                    line2write_func = type_ + "\t" + name + "\t" + id_ + "\n"
-                    fh_funcs.write(line2write_func)
-                    for parent in is_a_list:
-                        parent = parent.replace("KW-", "UPK:")
-                        line2write_cp = id_ + "\t" + parent + "\n"
-                        fh_child2parent.write(line2write_cp)
-                    line2write_descr = id_ + "\t" + definition + "\n"
-                    fh_descr.write(line2write_descr)
+            # with open(fn_descr, "w") as fh_descr:
+            for entry in obo:
+                id_, name, is_a_list, definition = entry
+                id_ = id_.replace("KW-", "UPK:")
+                # line2write_func = type_ + "\t" + name + "\t" + id_ + "\n"
+                line2write_func = type_ + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
+                fh_funcs.write(line2write_func)
+                for parent in is_a_list:
+                    parent = parent.replace("KW-", "UPK:")
+                    line2write_cp = id_ + "\t" + parent + "\n"
+                    fh_child2parent.write(line2write_cp)
+                # line2write_descr = id_ + "\t" + definition + "\n"
+                # fh_descr.write(line2write_descr)
 
 ##### Child_2_Parent_table_GO.txt, Functions_table_GO.txt and Function_2_definition_table_GO.txt
 def create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO():
@@ -339,20 +341,20 @@ def create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_def
     fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_GO.txt")
     fn_funcs = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
     type_ = "GO"
-    fn_descr = os.path.join(TABLES_DIR, "Function_2_definition_table_GO.txt")
+    # fn_descr = os.path.join(TABLES_DIR, "Function_2_definition_table_GO.txt")
     with open(fn_funcs, "w") as fh_funcs:
         with open(fn_child2parent, "w") as fh_child2parent:
-            with open(fn_descr, "w") as fh_descr:
-                for entry in obo:
-                    id_, name, is_a_list, definition = entry
-                    line2write_func = type_ + "\t" + name + "\t" + id_ + "\n"
-                    fh_funcs.write(line2write_func)
-                    for parent in is_a_list:
-                        parent = parent.replace("KW-", "UPK:")
-                        line2write_cp = id_ + "\t" + parent + "\n"
-                        fh_child2parent.write(line2write_cp)
-                    line2write_descr = id_ + "\t" + definition + "\n"
-                    fh_descr.write(line2write_descr)
+            # with open(fn_descr, "w") as fh_descr:
+            for entry in obo:
+                id_, name, is_a_list, definition = entry
+                line2write_func = type_ + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
+                fh_funcs.write(line2write_func)
+                for parent in is_a_list:
+                    parent = parent.replace("KW-", "UPK:")
+                    line2write_cp = id_ + "\t" + parent + "\n"
+                    fh_child2parent.write(line2write_cp)
+                # line2write_descr = id_ + "\t" + definition + "\n"
+                # fh_descr.write(line2write_descr)
 
 def get_parents_iterative(child, child_2_parent_dict):
     """
@@ -459,23 +461,18 @@ def yield_line_uncompressed_or_gz_file(fn):
             for line in fh:
                 yield line
 
-def parse_goa_gaf(fn_in, fn_out, taxid_2_ignore_set=None, protein_2_taxid=False, an_set=None):  # dependency
+# def parse_goa_gaf(fn_in, fn_out, taxid_2_ignore_set=None, protein_2_taxid=False, an_set=None):  # dependency
+def parse_goa_gaf(fn_in, fn_out, functions_set, taxid_2_ignore_set=None):
     """
-    #!!! I hope that the introduction of "an_set" as a parameter doesn't break any code,
-    doing this for Protein_2_TaxID.txt duplicates
     parse UniProt goa_ref file, write to table.txt for SQL
     restrict to taxid_2_ignore_set (TaxIDs as String) if provided
+    also restrict to Functional annotations (GO-terms and UniProt-keywords) that are present in OBO-files)
     :param fn_in: raw String
     :param fn_out: raw String
+    :param functions_set: Set of Strings (Functional annotations (GO-terms and UniProt-keywords) that are present in OBO)
     :param taxid_2_ignore_set: SetOfString (flag to skip TaxIDs)
-    :param protein_2_taxid: Bool (flag to write AN and TaxID)
-    :param an_set: SetOfString
     :return: None
     """
-    return_ = True
-    if an_set is None:
-        an_set = set()
-        return_ = False
     with open(fn_out, "w") as fh_out:
         for line in yield_line_uncompressed_or_gz_file(fn_in):
             if line[0] == "!":
@@ -485,21 +482,15 @@ def parse_goa_gaf(fn_in, fn_out, taxid_2_ignore_set=None, protein_2_taxid=False,
                 if len(line_split) >= 15:
                     an = line_split[1]  # DB_Object_ID
                     goid = line_split[4]  # GO_ID
+                    if goid not in functions_set:
+                        continue
                     taxid = re.match(r"taxon:(\d+)", line_split[12]).groups()[0]
                     # reduce to specific TaxIDs
                     if taxid_2_ignore_set is not None:
                         if taxid in taxid_2_ignore_set:
                             continue
-                    if protein_2_taxid:
-                        if an in an_set:
-                            continue
-                        line2write = an + "\t" + taxid + "\n"
-                        an_set.update([an])
-                    else:
-                        line2write = an + "\t" + goid + "\n"
+                    line2write = an + "\t" + goid + "\n"
                     fh_out.write(line2write)
-    if return_:
-        return an_set
 
 def get_keyword_2_upkan_dict():
     """
@@ -516,21 +507,17 @@ def get_keyword_2_upkan_dict():
             keyword_2_upkan_dict[keyword] = upkan
     return keyword_2_upkan_dict
 
-def parse_upk(fn_in, fn_out, protein_2_taxid=False, an_set=None):
+# def parse_upk(fn_in, fn_out, protein_2_taxid=False, an_set=None):
+def parse_upk(fn_in, fn_out, functions_set):
     """
     parse UniProt-Keywords file, write to table.txt for SQL
     :param fn_in: raw String
     :param fn_out: raw String
-    :param protein_2_taxid: Bool (flag to write AN and TaxID)
-    :param an_set: SetOfString
+    :param functions_set: Set of String
     :return: None
     """
-    return_ = True
-    if an_set is None:
-        an_set = set()
-        return_ = False
     keyword_2_upkan_dict = get_keyword_2_upkan_dict()
-    taxid = os.path.basename(fn_in).replace(".upk", "")
+    # taxid = os.path.basename(fn_in).replace(".upk", "")
     with open(fn_out, "w") as fh_out:
         # with open(fn_in, "r") as fh_in:
         #     fh_in.next() # skip header
@@ -549,64 +536,104 @@ def parse_upk(fn_in, fn_out, protein_2_taxid=False, an_set=None):
                 except KeyError:
                     print("keyword_2_upkan_dict KeyError: {}".format(keyword))
                     continue
-                if protein_2_taxid:
-                    if an in an_set:
-                        continue
-                    line2write = an + "\t" + taxid + "\n"
-                    an_set.update([an])
-                else:
-                    line2write = an + "\t" + upk_an + "\n"
+                if upk_an not in functions_set:
+                    continue
+                line2write = an + "\t" + upk_an + "\n"
                 fh_out.write(line2write)
-    if return_:
-        return an_set
 
-def create_Protein_2_Function_table():
+def create_Protein_2_Function_table(fn_out_temp, verbose=False):
     """
-    #!!! ToDo: check that all associations are in the respective Ontology
+    check that all associations are in the respective Ontology
     e.g. protein with associations A, B, C but C is not in GOterms Ontology any more, therefore remove the association C from protein
     :return:
     """
     print("create_Protein_2_Function_table")
     fn_list_tables, taxid_list_gaf = [], []
-
-    create_Protein_2_Function_table_KEGG()
+    create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="kegg")
     fn_list_tables.append(os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt"))
-
     fn_list = os.listdir(DOWNLOADS_DIR)
+    fn_list = sorted(fn_list)
+    if verbose:
+        print("#"*90, "parsing START")
+    functions_set = get_possible_ontology_functions_set() # GO and UPK not KEGG
     for fn in fn_list:
-        if fn.endswith(".gaf"):
+        if fn.endswith(".gaf"): # do all of these first to collect TaxIDs to ignore when parsing ".gaf.gz"
             taxid = fn.replace(".gaf", "")
             fn_gaf = os.path.join(DOWNLOADS_DIR, fn)
             fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO_{}.txt".format(taxid))
             fn_list_tables.append(fn_out)
-            parse_goa_gaf(fn_gaf, fn_out)
+            parse_goa_gaf(fn_gaf, fn_out, functions_set)
+            if verbose:
+                print(fn, fn_out)
             taxid_list_gaf.append(taxid)  # these TaxIDs have curated/filtered annotations, therefore skip them in unfiltered big file
 
-        elif fn.endswith(".gaf.gz"):
+    for fn in fn_list:
+        if fn.endswith(".gaf.gz"):
             taxid = fn.replace(".gaf.gz", "")
             fn_gaf_gz = os.path.join(DOWNLOADS_DIR, fn)
-            print("Parsing {}".format(fn_gaf_gz))
             fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO_{}.txt".format(taxid))
+            if verbose:
+                print("Parsing {}".format(fn_gaf_gz))
+                print(fn, fn_out)
             fn_list_tables.append(fn_out)
-            parse_goa_gaf(fn_gaf_gz, fn_out, taxid_list_gaf)
+            parse_goa_gaf(fn_gaf_gz, fn_out, functions_set, taxid_2_ignore_set=taxid_list_gaf)
 
         elif fn.endswith(".upk"):
             taxid = fn.replace(".upk", "")
             fn_upk = os.path.join(DOWNLOADS_DIR, fn)
             fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK_{}.txt".format(taxid))
             fn_list_tables.append(fn_out)
-            parse_upk(fn_upk, fn_out)
+            if verbose:
+                print(fn, fn_out)
+            parse_upk(fn_upk, fn_out, functions_set)
 
         elif fn.endswith(".upk.gz"):
             taxid = fn.replace(".upk.gz", "")
             fn_upk = os.path.join(DOWNLOADS_DIR, fn)
             fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK_{}.txt".format(taxid))
             fn_list_tables.append(fn_out)
-            parse_upk(fn_upk, fn_out)
+            if verbose:
+                print(fn, fn_out)
+            parse_upk(fn_upk, fn_out, functions_set)
+    if verbose:
+        print("#" * 90, "parsing STOP")
 
+    # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_temp.txt")
+    if verbose:
+        print("concatenate_files")
+        # print(fn_list_tables, fn_out_temp)
+    concatenate_files(fn_list_tables, fn_out_temp)
+
+def create_Protein_2_Function_table_wide_format(verbose=False):
+    fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_temp.txt")
     fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table.txt")
-    # concatenate_files_and_add_line_numbers(fn_list_tables, fn_out)
-    concatenate_files(fn_list_tables, fn_out)
+    create_Protein_2_Function_table(fn_out_temp, verbose)
+    if verbose:
+        print("converting Protein_2_Function_table to wide format")
+    shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN
+    if verbose:
+        print(shellcmd)
+    call(shellcmd, shell=True)
+    long_2_wide_format(fn_out_temp, fn_out)
+    if verbose:
+        print("done with Protein_2_Function_table")
+
+def long_2_wide_format(fn_in, fn_out):
+    function_list = []
+    with open(fn_in, "r") as fh_in:
+        with open(fn_out, "w") as fh_out:
+            an_last, function_ = fh_in.readline().strip().split("\t")
+            function_list.append(function_)
+            for line in fh_in:
+                an, function_ = line.strip().split("\t")
+                if an == an_last:
+                    function_list.append(function_)
+                else:
+                    fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+                    function_list = []
+                    an_last = an
+                    function_list.append(function_)
+            fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
 
 def parse_secondary_AccessionNumbers(fn):
     line_generator = yield_line_uncompressed_or_gz_file(fn)
@@ -614,7 +641,7 @@ def parse_secondary_AccessionNumbers(fn):
     while not line.startswith("Secondary AC"):
         line = next(line_generator)
         continue
-    line = next(line_generator)
+    _ = next(line_generator)
     for line in line_generator:
         secondary, primary = line.strip().split()
         yield secondary, primary
@@ -643,15 +670,13 @@ def create_GO_2_Slim_table():
 def find_tables_to_remove():
     files_2_remove_list = []
     for fn in os.listdir(TABLES_DIR):
-        if fnmatch.fnmatch(fn, "*_table_*.txt"):
+        if not fnmatch.fnmatch(fn, "*_table.txt") and fnmatch.fnmatch(fn, "*.txt"):
             files_2_remove_list.append(os.path.join(TABLES_DIR, fn))
     return files_2_remove_list
 
 def remove_files(fn_list):
     for fn in fn_list:
         if fn in FILES_NOT_2_DELETE:
-            continue
-        elif "static" in fn:
             continue
         else:
             os.remove(fn)
@@ -680,7 +705,7 @@ def get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF): #!!! does this file look
     df.sort_values(["Abb", COLUMN_CROSSREF], inplace=True)
     return df
 
-def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)"):
+def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-reference (KEGG)"):
     """
     ##### map UniProt AN to KEGG pathways
     ### use UniProt mapping from UniProt protein AN to KEGG protein AN
@@ -746,25 +771,23 @@ def create_Protein_2_Function_table_KEGG(COLUMN_CROSSREF="Cross-reference (KEGG)
     kegg_an = df_up_2_kegg.loc[df_up_2_kegg["Entry"] == an, "Cross-reference (KEGG)"].values[0].split(";")[0]
     print kegg_an
     print kegg_prot_2_path_dict[kegg_an] # --> key error
-
-
     """
-    fn = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
-    df_up_2_kegg = get_df_UniProt_2_KEGG_mapping(fn, COLUMN_CROSSREF)
-    column_crossref_index = df_up_2_kegg.columns.tolist().index(COLUMN_CROSSREF) + 1
+    if fn_in is None:
+        fn_in = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
+    df_up_2_kegg = get_df_UniProt_2_KEGG_mapping(fn_in, COLUMN_CROSSREF)
+    # column_crossref_index = df_up_2_kegg.columns.tolist().index(COLUMN_CROSSREF) + 1
 
     fn = os.path.join(STATIC_DIR, "KEGG_prot_2_path_dict_static.txt")
     kegg_prot_2_path_dict = parse_kegg_prot_2_path_file_to_dict(fn)
 
     fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
     with open(fn_out, "w") as fh:
-        # for every UniProt AN
-        # for index_, row in df_up_2_kegg.iterrows():
         for row in df_up_2_kegg.itertuples():
-            up_an = row.Entry
-            # up_an = row["Entry"]
-            kegg_prot_ans_string = row[column_crossref_index]
-            # up_an = row["Entry"]
+            # up_an = row.Entry
+            up_an = row[1]
+            # kegg_prot_ans_string = row[column_crossref_index]
+            kegg_prot_ans_string = row[2]
+
             ## three_char_KEGG_code = row["Abb"]
             # potentially multiple Cross-referenced KEGG protein ANs
             # kegg_prot_ans_string = row[COLUMN_CROSSREF]
@@ -794,7 +817,7 @@ def create_Functions_table_KEGG(): # STATIC FILE simply provide the finished tab
                 string_2_write = type_ + "\t" + name + "\t" + an + "\n"
                 fh_out.write(string_2_write)
 
-def create_tables():
+def create_tables(verbose=False):
     """
     :return: None
     """
@@ -810,8 +833,14 @@ def create_tables():
     fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt"]]
     fn_list += [os.path.join(STATIC_DIR, fn) for fn in ["Functions_table_KEGG_static.txt", "Functions_table_DOM_static.txt"]]
     fn_out = os.path.join(TABLES_DIR, "Functions_table.txt")
-    # dependency on create_OGs_table_and_OG_2_Function_table_and_Functions_table_KEGG_DOM
+    ### dependency on create_OGs_table_and_OG_2_Function_table_and_Functions_table_KEGG_DOM
     concatenate_files(fn_list, fn_out)
+
+    ### - Function_2_definition (obsolete, since definitions added to Functions_table as a column)
+    #fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Function_2_definition_table_UPK.txt", "Function_2_definition_table_GO.txt"]]
+    #fn_out = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
+    #concatenate_files(fn_list, fn_out)
+
 
     ## - Ontologies (Child_2_Parent)
     fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
@@ -820,32 +849,47 @@ def create_tables():
 
     ### - Protein_2_OG
     ### STATIC FILE simply provide the finished table
-    ## create_Protein_2_OG_table()
+    ### create_Protein_2_OG_table()
 
-    ### - Protein_2_Function
-    create_Protein_2_Function_table()
+    ### - Protein_2_Function (updated, dependency on Ontologies since, only functions that are present in ontology should be assigned)
+    create_Protein_2_Function_table_wide_format(verbose=verbose)
     create_Protein_Secondary_2_Primary_AN()
-
-    ### - Function_2_definition
-    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Function_2_definition_table_UPK.txt", "Function_2_definition_table_GO.txt"]]
-    fn_out = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
-    concatenate_files(fn_list, fn_out)
 
     ### - GO_2_Slim
     create_GO_2_Slim_table()
+    if verbose:
+        print("#"*80, "finished creating all tables")
+
+def get_possible_ontology_functions_set():
+    fn = os.path.join(TABLES_DIR, "Ontologies_table.txt")
+    df = pd.read_csv(fn, sep='\t', header=None)
+    functions_set = set(df[0].tolist() + df[1].tolist())
+    return functions_set
 
 def create_bash_scripts_for_DB(testing=False):
     """
+    psql -h localhost -d agotool -c "CREATE TABLE function_2_definition (
+    an text,
+    definition text);"
+
+    psql -h localhost -d agotool -c "COPY function_2_definition FROM '{}';"
+
+    psql -h localhost -d agotool -c "CREATE INDEX function_2_definition_an_idx ON function_2_definition(an);"
+    psql -h localhost -d agotool -c "CREATE INDEX functions_an_idx ON functions(an);"
+    psql -h localhost -d agotool -c "CREATE INDEX go_2_slim_an_idx ON go_2_slim(an);"
+    psql -h localhost -d agotool -c "CREATE INDEX ontologies_child_idx ON ontologies(child);"
+    psql -h localhost -d agotool -c "CREATE INDEX ontologies_direct_idx ON ontologies(direct);"
+    psql -h localhost -d agotool -c "CREATE INDEX ontologies_type_idx ON ontologies(type);"
+    psql -h localhost -d agotool -c "CREATE INDEX protein_secondary_2_primary_an_sec_idx ON protein_secondary_2_primary_an(sec);"
+
     :return: String(executable bash script)
     """
     global TABLES_DIR
-    # print("Test dir 2:", TEST_DIR)
-    # print("Tables dir 2:", TABLES_DIR)
     print("creating bash scripts to for PostgreSQL DB creation")
     if testing:
         TABLES_DIR = TEST_DIR
     functions_table = os.path.join(TABLES_DIR, "Functions_table.txt")
-    function_2_definition_table = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
+    # function_2_definition_table = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
     go_2_slim_table = os.path.join(TABLES_DIR, "GO_2_Slim_table.txt")
     og_2_function_table = os.path.join(STATIC_DIR, "OG_2_Function_table_static.txt")
     ogs_table = os.path.join(STATIC_DIR, "OGs_table_static.txt")
@@ -861,8 +905,6 @@ psql -h localhost -d postgres -c "CREATE DATABASE agotool;"
 psql -h localhost -d agotool -c "CREATE TABLE functions (
     type text,
     name text,
-    an text);"
-psql -h localhost -d agotool -c "CREATE TABLE function_2_definition (
     an text,
     definition text);"
 psql -h localhost -d agotool -c "CREATE TABLE go_2_slim (
@@ -881,7 +923,7 @@ psql -h localhost -d agotool -c "CREATE TABLE ontologies (
     type integer);"
 psql -h localhost -d agotool -c "CREATE TABLE protein_2_function (
     an text,
-    function text);"    
+    function text ARRAY);"    
 psql -h localhost -d agotool -c "CREATE TABLE protein_secondary_2_primary_an (
     sec text,
     pri text);"
@@ -890,7 +932,6 @@ psql -h localhost -d agotool -c "CREATE TABLE protein_2_og (
     og text);"
 
 psql -h localhost -d agotool -c "COPY functions FROM '{}';"
-psql -h localhost -d agotool -c "COPY function_2_definition FROM '{}';"
 psql -h localhost -d agotool -c "COPY go_2_slim FROM '{}';"
 psql -h localhost -d agotool -c "COPY ogs FROM '{}';"
 psql -h localhost -d agotool -c "COPY og_2_function FROM '{}';"
@@ -899,18 +940,11 @@ psql -h localhost -d agotool -c "COPY protein_2_function FROM '{}';"
 psql -h localhost -d agotool -c "COPY protein_secondary_2_primary_an FROM '{}';"
 psql -h localhost -d agotool -c "COPY protein_2_og FROM '{}';"
 
-psql -h localhost -d agotool -c "CREATE INDEX functions_an_idx ON functions(an);"
-psql -h localhost -d agotool -c "CREATE INDEX function_2_definition_an_idx ON function_2_definition(an);"
-psql -h localhost -d agotool -c "CREATE INDEX go_2_slim_an_idx ON go_2_slim(an);"
 psql -h localhost -d agotool -c "CREATE INDEX ogs_og_idx ON ogs(og);"
 psql -h localhost -d agotool -c "CREATE INDEX og_2_function_og_idx ON og_2_function(og);"
-psql -h localhost -d agotool -c "CREATE INDEX ontologies_child_idx ON ontologies(child);"
-psql -h localhost -d agotool -c "CREATE INDEX ontologies_direct_idx ON ontologies(direct);"
-psql -h localhost -d agotool -c "CREATE INDEX ontologies_type_idx ON ontologies(type);"
 psql -h localhost -d agotool -c "CREATE INDEX protein_2_function_an_idx ON protein_2_function(an);"
-psql -h localhost -d agotool -c "CREATE INDEX protein_secondary_2_primary_an_sec_idx ON protein_secondary_2_primary_an(sec);"
 psql -h localhost -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_og(an);"'''.format(BASH_LOCATION,
-        functions_table, function_2_definition_table, go_2_slim_table,
+        functions_table, go_2_slim_table,
         ogs_table, og_2_function_table, ontologies_table,
         protein_2_function_table, protein_secondary_2_primary_an_table, protein_2_og_table)
 
@@ -930,14 +964,25 @@ def call_script(BASH_LOCATION, script_fn):
     call(shellcmd, shell=True)
 
 if __name__ == "__main__":
-    start_time = time.time()
-    print("Parsing downloaded content and writing tables for PostgreSQL import")
-    # create_tables()
-    # create_test_tables(50000, TABLES_DIR)
-    # remove_files(find_tables_to_remove())
+    debug = True
+    if debug:
+        # start_time = time.time()
+        remove_files(find_tables_to_remove())
+        # print(find_tables_to_remove())
+        ### PostgreSQL DB creation, copy from file and indexing
+        # fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False)
+        # print("PostgreSQL DB creation, copy from file, and indexing")
+        # call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+        # tools.print_runtime(start_time)
+    else:
+        start_time = time.time()
+        print("Parsing downloaded content and writing tables for PostgreSQL import")
+        create_tables(verbose=True)
+        create_test_tables(50000, TABLES_DIR)
+        remove_files(find_tables_to_remove())
 
-    ### PostgreSQL DB creation, copy from file and indexing
-    fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False)
-    print("PostgreSQL DB creation, copy from file, and indexing")
-    call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
-    tools.print_runtime(start_time)
+        ### PostgreSQL DB creation, copy from file and indexing
+        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False)
+        print("PostgreSQL DB creation, copy from file, and indexing")
+        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+        tools.print_runtime(start_time)

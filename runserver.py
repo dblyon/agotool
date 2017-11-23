@@ -4,6 +4,7 @@ import flask
 import wtforms
 from wtforms import fields
 sys.path.insert(0, os.path.abspath(os.path.realpath('./static/python')))
+import query
 import userinput, run, cluster_filter, obo_parser
 ###############################################################################
 #### bokeh visualisation
@@ -27,6 +28,9 @@ def getitem(obj, item, default):
 
 ###############################################################################
 # ToDo:
+# - load 'Ontologies_table' once
+
+
 # - post DataBase schema for RestAPI lookup
 # - explain sources and update intervals
 # - downloads page for existing fasta
@@ -60,6 +64,16 @@ def getitem(obj, item, default):
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 
+profiling = True
+if profiling:
+    from werkzeug.contrib.profiler import ProfilerMiddleware
+    app.config['PROFILE'] = True
+    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=r"/Users/dblyon/Downloads/profiling_agtool") # use qcachegrind to visualize
+    app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[50]) # to view profiled code in shell
+    ## from shell call: "qcachegrind"
+    ## pyprof2calltree -i somethingsomething.prof -o something.prof
+    ## open "something.prof" with qcachegrind -o something.prof
+
 # if not debug:
 #     app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
 #     app.config['SQLALCHEMY_ECHO'] = False
@@ -74,9 +88,9 @@ app = flask.Flask(__name__)
 #     db = flask_sqlalchemy.SQLAlchemy(app)
 #     db.Model.metadata.reflect(db.engine)
 current_working_dir = os.getcwd()
-webserver_data = os.path.join(current_working_dir + '/static/data')
-EXAMPLE_FOLDER = os.path.join(webserver_data + '/exampledata')
-SESSION_FOLDER_ABSOLUTE = os.path.join(webserver_data + '/session')
+WEBSERVER_DATA = os.path.join(current_working_dir + '/static/data')
+EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
+SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
 SESSION_FOLDER_RELATIVE = '/static/data/session'
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/templates')
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
@@ -97,7 +111,7 @@ logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
-DOWNLOADS_DIR = os.path.abspath(os.path.join(webserver_data, "downloads"))
+DOWNLOADS_DIR = os.path.abspath(os.path.join(WEBSERVER_DATA, "downloads"))
 
 ###############################################################################
 ##### Create the Flask-Restless API manager.
@@ -137,22 +151,20 @@ def log_activity(string2log):
     log_activity_fh.write(string2log)
     log_activity_fh.flush()
 
-profiling = False
-if profiling:
-    from werkzeug.contrib.profiler import ProfilerMiddleware
-    app.config['PROFILE'] = True
-    app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[30])
-
 ################################################################################
 ##### Maximum Time for MCL clustering
 max_timeout = 10 # minutes
 ################################################################################
 
 ################################################################################
+#### pre-load objects
+pqo = query.PersistentQueryObject()
 ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-upk_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
-goslim_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/goslim_generic.obo'))
-go_dag = obo_parser.GODag(obo_file=os.path.join(webserver_data + r'/PostgreSQL/downloads/go-basic.obo'))
+upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
+goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/goslim_generic.obo'))
+go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/go-basic.obo'))
+# KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
+KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
 
 for go_term in go_dag.keys():
     parents = go_dag[go_term].get_all_parents()
@@ -308,19 +320,19 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                               ("BP", "GO Biological Process"),
                                               ("CP", "GO Celluar Compartment"),
                                               ("MF", "GO Molecular Function"),
-                                              ("UPK", "UniProt keywords")),
-                                              # ("KEGG", "KEGG pathways")),
+                                              ("UPK", "UniProt keywords"),
+                                              ("KEGG", "KEGG pathways")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     enrichment_method = fields.SelectField("Select one of the following methods",
                                    choices = (("abundance_correction", "abundance_correction"),
                                               ("compare_samples", "compare_samples"),
                                               ("compare_groups", "compare_groups"),
-                                              ("characterize", "characterize")),
+                                              ("characterize_foreground", "characterize_foreground")),
                                    description="""abundance_correction: Foreground vs Background abundance corrected
 compare_samples: Foreground vs Background (no abundance correction)
 compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
-characterize: Foreground only""")
+characterize_foreground: Foreground only""")
 
     foreground_n = fields.IntegerField("Foreground_n", [validate_integer], default=10, description="""Foreground_n is an integer, defines the number of sample of the foreground.""")
 
@@ -351,9 +363,9 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                               default = 0.05, description="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""")
 
     o_or_u_or_both = fields.SelectField("over- or under-represented or both",
-                                        choices = (("both", "both"),
-                                                   ("o", "overrepresented"),
-                                                   ("u", "underrepresented")),
+                                        choices = (("overrepresented", "overrepresented"),
+                                                   ("underrepresented", "underrepresented"),
+                                                   ("both", "both")),
                                         description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
 
     num_bins = fields.IntegerField("Number of bins",
@@ -383,6 +395,7 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.""")
 
 # @app.route('/enrichment')
+
 @app.route('/')
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form())
@@ -407,7 +420,7 @@ def results():
     form = Enrichment_Form(request.form)
     if request.method == 'POST' and form.validate():
         input_fs = request.files['userinput_file']
-        ui = userinput.Userinput(fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+        ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
             num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data,
             foreground_n=form.foreground_n.data, background_n=form.background_n.data)
@@ -425,15 +438,17 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.p_value_multipletesting.data,
                 form.enrichment_method.data,
                 form.foreground_n.data, form.background_n.data)
-            log_activity(string2log)
 
-            header, results = run.run(go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
+            if not app.debug: # temp  remove line and
+                log_activity(string2log) # remove indentation
+
+            header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data,
                 form.backtracking.data, form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
-                form.p_value_multipletesting.data)
+                form.p_value_multipletesting.data, KEGG_pseudo_dag)
 
         else:
             return render_template('info_check_input.html')
@@ -609,8 +624,8 @@ if __name__ == "__main__":
 #     if profiling:
 #         app.run('localhost', 5000, debug=True)
 #     else:
-    app.run('localhost', 5000, debug=True)
-#     app.run(host='0.0.0.0', debug=True)
+#     app.run('localhost', 5000, debug=True, processes=2)
+    app.run(host='0.0.0.0', debug=True, processes=8)
 ################################################################################
         ### agptool
 
@@ -619,3 +634,4 @@ if __name__ == "__main__":
 # ToDo: All proteins without abundance data are disregarded (will be
 #     placed in a separate bin in next update).
 
+    # from fisher import pvalue

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import os, sys, zlib
 import requests, time
-import urllib.request
+import urllib.request, urllib.parse
 from subprocess import call
 from retrying import retry
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.insert(0, PYTHON_DIR)
+import tools
 
 PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../..')))
 DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "static/data/PostgreSQL/downloads"))
@@ -63,6 +64,18 @@ ORGANISMS = {
 # 4932=Saccharomyces cerevisiae  559292=Saccharomyces cerevisiae S288c
 # Saccharomyces cerevisiae (strain ATCC 204508 / S288c)
 # http://www.uniprot.org/uniprot/?query=organism:Saccharomyces cerevisiae (strain ATCC 204508 / S288c)&columns=id_,keywords&format=tab
+
+def get_UniProt_2_KEGG_mapping_URL_for_SPARQL():
+    prefix = r"http://sparql.uniprot.org/sparql?query="
+    rest = """PREFIX up:<http://purl.uniprot.org/core/>
+    PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+    SELECT (SUBSTR(STR(?protein),33) as ?uniprot) (SUBSTR(STR(?db),30) as ?kegg)
+    WHERE
+    {?protein a up:Protein .
+    ?protein rdfs:seeAlso ?db .
+    ?db up:database <http://purl.uniprot.org/database/KEGG>}"""
+    query_encoded = prefix + urllib.parse.quote_plus(rest) + "&format=tab"
+    return query_encoded
 
 @retry(stop_max_attempt_number=5, wait_exponential_multiplier=50000)
 def download_gzip_file(url, file_name):
@@ -272,34 +285,52 @@ def download_bactNOG_annotations():
 
 
 if __name__ == '__main__':
-    ### .gaf files are GOA (Gene Ontology Associations)
-    ### .upk files are UPK (UniProt Keywords)
-    ### .obo files are Ontology hierarchy
-    print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
-    print("Current date & time " + time.strftime("%c"))
-    create_directories_if_not_exist()
-    ### every month
-    taxid_not_retrieved_list = download_go_annotations()
-    download_go_annotations_all_unfiltered()
-    download_go_basic_slim_obo()
-    download_UniProt_Keywords_obo()
-    ### download_UniProt_Keywords() # NOT NECESSARY since already downloading Keywords from UniProt for all available organisms
-    download_gzip_file(URL_UNIPROT_SECONDARY_2_PRIMARY_AN, "sec_ac.txt")
-    download_gzip_file(URL_UNIPROT_2_KEGG, "UniProt_2_KEGG_mapping.tab")  # long and slow
-    download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
+    debug = True
+    if debug:
+        start_time = time.time()
+        print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
+        print("Current date & time " + time.strftime("%c"))
+        # url_UniProt_2_KEGG_SPARQL = get_UniProt_2_KEGG_mapping_URL_for_SPARQL()
+        # fn_out = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
+        # download_file(url_UniProt_2_KEGG_SPARQL, fn_out)
+        print("finished update", '\n', '-' * 50, '\n')
+        create_directories_if_not_exist()
+        ### every month
+        # taxid_not_retrieved_list = download_go_annotations()
+        # download_go_annotations_all_unfiltered()
+        download_go_basic_slim_obo()
+        download_UniProt_Keywords_obo()
+        tools.print_runtime(start_time)
+    else:
+        ### .gaf files are GOA (Gene Ontology Associations)
+        ### .upk files are UPK (UniProt Keywords)
+        ### .obo files are Ontology hierarchy
+        start_time = time.time()
+        print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
+        print("Current date & time " + time.strftime("%c"))
+        create_directories_if_not_exist()
+        ### every month
+        taxid_not_retrieved_list = download_go_annotations()
+        download_go_annotations_all_unfiltered()
+        download_go_basic_slim_obo()
+        download_UniProt_Keywords_obo()
+        ### download_UniProt_Keywords() # NOT NECESSARY since already downloading Keywords from UniProt for all available organisms
+        download_gzip_file(URL_UNIPROT_SECONDARY_2_PRIMARY_AN, "sec_ac.txt")
 
-    # debug = True
-    # if debug:
-    #     download_gzip_file(URL_UNIPROT_2_KEGG, "UniProt_2_KEGG_mapping.tab")  # long and slowURL_UNIPROT_2_KEGG
-    #     download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
+        ### download_gzip_file(URL_UNIPROT_2_KEGG, "UniProt_2_KEGG_mapping.tab")  # long and slow --> use SPARQL version below instead
+        url_UniProt_2_KEGG_SPARQL = get_UniProt_2_KEGG_mapping_URL_for_SPARQL()
+        fn_out = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
+        download_file(url_UniProt_2_KEGG_SPARQL, fn_out)
 
+        download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
 
-    ### NOT every month
-    # download_and_extract_all_annotations_from_eggNOG()
-    # download_bactNOG_annotations()
+        ### NOT every month
+        # download_and_extract_all_annotations_from_eggNOG()
+        # download_bactNOG_annotations()
 
-    # taxid_not_retrieved_list = ['9796', '39947', '3880', '3055']
-    cleanup_sessions()
-    print("finished update", '\n', '-' * 50, '\n')
+        # taxid_not_retrieved_list = ['9796', '39947', '3880', '3055']
+        cleanup_sessions()
+        print("finished update", '\n', '-' * 50, '\n')
+        tools.print_runtime(start_time)
 
 
