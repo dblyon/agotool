@@ -723,9 +723,9 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
 
     /home/purple1/databases/KEGG/genes/organismns/hsa/hsa_pathways.list
     -->
-    hsa:7529	path:hsa04110
-    hsa:7529	path:hsa04114
-    hsa:7529	path:hsa04722
+    hsa:7529    path:hsa04110
+    hsa:7529    path:hsa04114
+    hsa:7529    path:hsa04722
 
     # create Protein_2_Function_table_KEGG.txt
     an = "P31946"
@@ -734,7 +734,7 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
     # create
     /home/purple1/databases/KEGG/pathway/pathway.list
     -->
-    04110	Cell cycle
+    04110    Cell cycle
     ################################################################################################################
     # check if Functions_table_KEGG_static.txt is equal or subset of pathway.list
     # add KEGG pathway.list to functions table if not existing yet, or rather only use the this resource and not
@@ -757,7 +757,7 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
 
     but AN in mapping
     grep "Q6DFV6" UniProt_2_KEGG_mapping.tab
-    --> Q6DFV6	mmu:333564;
+    --> Q6DFV6    mmu:333564;
 
     e.g. debug usage
     import create_SQL_tables as cst
@@ -866,7 +866,7 @@ def get_possible_ontology_functions_set():
     functions_set = set(df[0].tolist() + df[1].tolist())
     return functions_set
 
-def create_bash_scripts_for_DB(testing=False):
+def create_bash_scripts_for_DB(testing=False, foragotool=False):
     """
     psql -h localhost -d agotool -c "CREATE TABLE function_2_definition (
     an text,
@@ -898,7 +898,8 @@ def create_bash_scripts_for_DB(testing=False):
     protein_2_og_table = os.path.join(STATIC_DIR, "Protein_2_OG_table_static.txt")
     protein_secondary_2_primary_an_table = os.path.join(TABLES_DIR, "Protein_Secondary_2_Primary_AN_table.txt")
 
-    postgres_commands = '''#!{}
+    if not foragotool:
+        postgres_commands = '''#!{}
 psql -h localhost -d postgres -c "DROP DATABASE agotool;"
 psql -h localhost -d postgres -c "CREATE DATABASE agotool;"
 
@@ -947,9 +948,57 @@ psql -h localhost -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_o
         functions_table, go_2_slim_table,
         ogs_table, og_2_function_table, ontologies_table,
         protein_2_function_table, protein_secondary_2_primary_an_table, protein_2_og_table)
+    else: #sudo -u postgres
+        postgres_commands = '''#!{}
+psql -d postgres -c "DROP DATABASE agotool;"
+psql -d postgres -c "CREATE DATABASE agotool;"
+
+psql -d agotool -c "CREATE TABLE functions (
+    type text,
+    name text,
+    an text,
+    definition text);"
+psql -d agotool -c "CREATE TABLE go_2_slim (
+    an text,    
+    slim boolean);"
+psql -d agotool -c "CREATE TABLE ogs (
+    og text,    
+    description text);"
+psql -d agotool -c "CREATE TABLE og_2_function (
+    og text,
+    function text);"
+psql -d agotool -c "CREATE TABLE ontologies (
+    child text,
+    parent text,
+    direct boolean,
+    type integer);"
+psql -d agotool -c "CREATE TABLE protein_2_function (
+    an text,
+    function text ARRAY);"    
+psql -d agotool -c "CREATE TABLE protein_secondary_2_primary_an (
+    sec text,
+    pri text);"
+psql -d agotool -c "CREATE TABLE protein_2_og (
+    an text,
+    og text);"
+
+psql -d agotool -c "\copy functions FROM '{}';"
+psql -d agotool -c "\copy go_2_slim FROM '{}';"
+psql -d agotool -c "\copy ogs FROM '{}';"
+psql -d agotool -c "\copy og_2_function FROM '{}';"
+psql -d agotool -c "\copy ontologies FROM '{}';"
+psql -d agotool -c "\copy protein_2_function FROM '{}';"
+psql -d agotool -c "\copy protein_secondary_2_primary_an FROM '{}';"
+psql -d agotool -c "\copy protein_2_og FROM '{}';"
+
+psql -d agotool -c "CREATE INDEX ogs_og_idx ON ogs(og);"
+psql -d agotool -c "CREATE INDEX og_2_function_og_idx ON og_2_function(og);"
+psql -d agotool -c "CREATE INDEX protein_2_function_an_idx ON protein_2_function(an);"
+psql -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_og(an);"'''.format(BASH_LOCATION, functions_table, go_2_slim_table, ogs_table, og_2_function_table, ontologies_table, protein_2_function_table, protein_secondary_2_primary_an_table, protein_2_og_table)
+
 
     if testing:
-        postgres_commands = postgres_commands.replace(" agotool", " agtool_test")
+        postgres_commands = postgres_commands.replace(" agotool", " agotool_test")
 
     fn_out = os.path.join(POSTGRESQL_DIR, "fn_create_DB_copy_and_index_tables.sh")
     with open(fn_out, "w") as fh:
@@ -966,14 +1015,15 @@ def call_script(BASH_LOCATION, script_fn):
 if __name__ == "__main__":
     debug = True
     if debug:
-        # start_time = time.time()
-        remove_files(find_tables_to_remove())
+        start_time = time.time()
+        # remove_files(find_tables_to_remove())
         # print(find_tables_to_remove())
         ### PostgreSQL DB creation, copy from file and indexing
-        # fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False)
-        # print("PostgreSQL DB creation, copy from file, and indexing")
-        # call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
-        # tools.print_runtime(start_time)
+        create_test_tables(50000, TABLES_DIR)
+        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False, foragotool=True)
+        print("PostgreSQL DB creation, copy from file, and indexing")
+        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+        tools.print_runtime(start_time)
     else:
         start_time = time.time()
         print("Parsing downloaded content and writing tables for PostgreSQL import")
@@ -986,3 +1036,4 @@ if __name__ == "__main__":
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         tools.print_runtime(start_time)
+

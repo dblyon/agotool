@@ -64,7 +64,7 @@ def getitem(obj, item, default):
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 
-profiling = True
+profiling = False
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
@@ -315,13 +315,13 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
 
-    gocat_upk = fields.SelectField("GO terms, UniProt keywords, KEGG pathways",
+    gocat_upk = fields.SelectField("GO terms and UniProt keywords",  #, KEGG pathways",
                                    choices = (("all_GO", "all GO categories"),
                                               ("BP", "GO Biological Process"),
                                               ("CP", "GO Celluar Compartment"),
                                               ("MF", "GO Molecular Function"),
-                                              ("UPK", "UniProt keywords"),
-                                              ("KEGG", "KEGG pathways")),
+                                              ("UPK", "UniProt keywords")),
+                                             # ("KEGG", "KEGG pathways")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     enrichment_method = fields.SelectField("Select one of the following methods",
@@ -625,13 +625,9 @@ if __name__ == "__main__":
 #         app.run('localhost', 5000, debug=True)
 #     else:
 #     app.run('localhost', 5000, debug=True, processes=2)
-    app.run(host='0.0.0.0', debug=True, processes=8)
-################################################################################
-        ### agptool
-
-    # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+    #app.run(host='0.0.0.0', debug=True, processes=8)
+    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 ################################################################################
 # ToDo: All proteins without abundance data are disregarded (will be
-#     placed in a separate bin in next update).
+#     placed in a separate bin in next update)
 
-    # from fisher import pvalue
