@@ -951,7 +951,7 @@ psql -h localhost -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_o
     else: #sudo -u postgres
         postgres_commands = '''#!{}
 psql -d postgres -c "DROP DATABASE agotool;"
-psql -d postgres -c "CREATE DATABASE agotool;"
+sudo -u postgres psql postgres -c "CREATE DATABASE agotool OWNER dblyon;"
 
 psql -d agotool -c "CREATE TABLE functions (
     type text,
@@ -994,8 +994,10 @@ psql -d agotool -c "\copy protein_2_og FROM '{}';"
 psql -d agotool -c "CREATE INDEX ogs_og_idx ON ogs(og);"
 psql -d agotool -c "CREATE INDEX og_2_function_og_idx ON og_2_function(og);"
 psql -d agotool -c "CREATE INDEX protein_2_function_an_idx ON protein_2_function(an);"
-psql -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_og(an);"'''.format(BASH_LOCATION, functions_table, go_2_slim_table, ogs_table, og_2_function_table, ontologies_table, protein_2_function_table, protein_secondary_2_primary_an_table, protein_2_og_table)
-
+psql -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_og(an);"
+sudo -u postgres psql agotool -c "CREATE USER agotool;"
+sudo -u postgres psql agotool -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO agotool;"'''.format(BASH_LOCATION, functions_table, go_2_slim_table,
+            ogs_table, og_2_function_table, ontologies_table, protein_2_function_table, protein_secondary_2_primary_an_table, protein_2_og_table)
 
     if testing:
         postgres_commands = postgres_commands.replace(" agotool", " agotool_test")
@@ -1020,11 +1022,7 @@ if __name__ == "__main__":
         # print(find_tables_to_remove())
         ### PostgreSQL DB creation, copy from file and indexing
         create_test_tables(50000, TABLES_DIR)
-<<<<<<< HEAD
         fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False, foragotool=True)
-=======
-        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=True, foragotool=True)
->>>>>>> 9ee2bad831120fcfff0611916d45e5f6ddacfbfd
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         tools.print_runtime(start_time)

@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 sudo systemctl start postgresql
 
 ### create DB --> create_db.sql
@@ -20,11 +20,6 @@ sudo -u postgres psql agotool -c "CREATE USER agotool;"
 sudo -u postgres psql agotool -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO agotool;"
 
 sudo systemctl start postgresql
-
-
-=======
-### debug
-sudo -u postgres psql postgres -c "GRANT ALL PRIVILEGES ON TABLE functions TO agotool;"
 
 
 # cp /Users/dblyon/modules/cpr/metaprot/sql/deprecated_models.py /Users/dblyon/Downloads/agotool_docker/agotool/static/python

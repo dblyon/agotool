@@ -40,24 +40,23 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9999': "-51",  # 'Biological process'
                               'KEGG': "-52"}
 
-
-def get_cursor_old(host='localhost', dbname='agotool', user='dblyon', password=''):
-    """
-    :param host:
-    :param dbname:
-    :param user:
-    :param password:
-    :return: DB Cursor instance object
-    """
-    # Define our connection string
-    conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, user, password)
-
-    # get a connection, if a connect cannot be made an exception will be raised here
-    conn = psycopg2.connect(conn_string)
-
-    # conn.cursor will return a cursor object, you can use this cursor to perform queries
-    cursor = conn.cursor()
-    return cursor
+# def get_cursor_old(host='localhost', dbname='agotool', user='dblyon', password=''):
+#     """
+#     :param host:
+#     :param dbname:
+#     :param user:
+#     :param password:
+#     :return: DB Cursor instance object
+#     """
+#     # Define our connection string
+#     conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, user, password)
+#
+#     # get a connection, if a connect cannot be made an exception will be raised here
+#     conn = psycopg2.connect(conn_string)
+#
+#     # conn.cursor will return a cursor object, you can use this cursor to perform queries
+#     cursor = conn.cursor()
+#     return cursor
 
 def get_cursor(dbname='agotool'):
     """
@@ -120,8 +119,11 @@ class PersistentQueryObject:
         self.secondary_2_primary_an_dict = self.get_secondary_2_primary_an_dict()
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
+        self.kegg_functions_set = self.get_functions_set_from_functions(function_type="KEGG")
+        self.dom_functions_set = self.get_functions_set_from_functions(function_type="DOM")
 
-    def get_secondary_2_primary_an_dict(self):
+    @staticmethod
+    def get_secondary_2_primary_an_dict():
         secondary_2_primary_dict = {}
         cursor = get_cursor()
         sql_statement = "SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an;"
@@ -133,7 +135,8 @@ class PersistentQueryObject:
             secondary_2_primary_dict[secondary] = primary
         return secondary_2_primary_dict
 
-    def get_type_2_association_dict(self):
+    @staticmethod
+    def get_type_2_association_dict():
         cursor = get_cursor()
         sql_statement = "SELECT ontologies.child, ontologies.parent, ontologies.type FROM ontologies;"
         cursor.execute(sql_statement)
@@ -149,7 +152,8 @@ class PersistentQueryObject:
                 type_2_association_dict[type_] = {child, parent}
         return type_2_association_dict
 
-    def get_go_slim_terms(self):
+    @staticmethod
+    def get_go_slim_terms():
         cursor = get_cursor()
         sql_statement = "SELECT go_2_slim.an FROM go_2_slim;"
         cursor.execute(sql_statement)
@@ -158,6 +162,16 @@ class PersistentQueryObject:
         for res in result:
             go_slim_set.update([res[0]])
         return go_slim_set
+
+    @staticmethod
+    def get_functions_set_from_functions(function_type):
+        cursor = get_cursor()
+        cursor.execute("SELECT functions.an FROM functions WHERE functions.type='{}'".format(function_type))
+        result = cursor.fetchall()
+        functions_set = set()
+        for res in result:
+            functions_set.update([res[0]])
+        return functions_set
 
     def map_secondary_2_primary_ANs(self, ans_list):
         """
@@ -224,7 +238,6 @@ class PersistentQueryObject:
                 return self.type_2_association_dict[-23]
             else:
                 return self.type_2_association_dict[-23].intersection(self.go_slim_set)
-
         else:
             print("function_type: '{}' does not exist".format(function_type))
             raise StopIteration
@@ -239,20 +252,22 @@ class PersistentQueryObject:
         an_2_functions_dict = defaultdict(lambda: set())
         if gocat_upk in {"GO", "UPK", "all_GO", "BP", "MF", "CP"}:
             association_set_2_restrict = self.get_ontology_set_of_type(gocat_upk, basic_or_slim)
-            cursor = get_cursor()
-            protein_ans_list = str(protein_ans_list)[1:-1]
-            sql_statement = "SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list)
-            cursor.execute(sql_statement)
-            results = cursor.fetchall()
-            for res in results:
-                an = res[0]
-                associations_list = res[1]
-                an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
-        elif gocat_upk: # KEGG and DOM, not implemented
-            pass
-
+        elif gocat_upk == "KEGG":
+            association_set_2_restrict = self.kegg_functions_set
+        elif gocat_upk == "DOM":
+            association_set_2_restrict = self.dom_functions_set
+        else:
+            raise NotImplementedError
+        cursor = get_cursor()
+        protein_ans_list = str(protein_ans_list)[1:-1]
+        sql_statement = "SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list)
+        cursor.execute(sql_statement)
+        results = cursor.fetchall()
+        for res in results:
+            an = res[0]
+            associations_list = res[1]
+            an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
         return an_2_functions_dict
-
 
 def get_association_dict_old(protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim", backtracking=True):
     """
@@ -376,9 +391,14 @@ def parse_result_child_parent(result):
 
 
 if __name__ == "__main__":
-    print(get_cursor())
-    print(query_example(get_cursor()))
-    print(PersistentQueryObject())
+    cursor = get_cursor()
+    cursor.execute("SELECT * FROM functions WHERE functions.type='KEGG' LIMIT 5")
+    records = cursor.fetchall()
+    print(records)
+
+    # print(get_cursor())
+    # print(query_example(get_cursor()))
+    # print(PersistentQueryObject())
     # pass
     # import pandas as pd
     # import tools

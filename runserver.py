@@ -64,7 +64,7 @@ def getitem(obj, item, default):
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 
-profiling = False
+profiling = True
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
@@ -315,13 +315,13 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
 
-    gocat_upk = fields.SelectField("GO terms and UniProt keywords",  #, KEGG pathways",
+    gocat_upk = fields.SelectField("GO terms, UniProt keywords, or KEGG pathways",
                                    choices = (("all_GO", "all GO categories"),
                                               ("BP", "GO Biological Process"),
                                               ("CP", "GO Celluar Compartment"),
                                               ("MF", "GO Molecular Function"),
-                                              ("UPK", "UniProt keywords")),
-                                             # ("KEGG", "KEGG pathways")),
+                                              ("UPK", "UniProt keywords"),
+                                              ("KEGG", "KEGG pathways")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     enrichment_method = fields.SelectField("Select one of the following methods",
@@ -616,18 +616,13 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     return file_name, fn_results_absolute, fn_results_relative
 
 if __name__ == "__main__":
-    # tools.update_db_schema(FN_DATABASE_SCHEMA, FN_DATABASE_SCHEMA_WITH_LINKS)
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
     # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
-#     if profiling:
-#         app.run('localhost', 5000, debug=True)
-#     else:
-#     app.run('localhost', 5000, debug=True, processes=2)
-    #app.run(host='0.0.0.0', debug=True, processes=8)
-    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
-################################################################################
-# ToDo: All proteins without abundance data are disregarded (will be
-#     placed in a separate bin in next update)
+    # ToDo: All proteins without abundance data are disregarded (will be placed in a separate bin in next update)
+    ################################################################################
+
+    app.run(host='0.0.0.0', debug=True, processes=8)
+    # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 
