@@ -18,7 +18,7 @@
 | KEGG | Pentose phosphate pathway | KEGG:00030 | blabla definition |
 | KEGG | Cell cycle | KEGG:04110 | blabla definition |
 
-## protein_2_function [Protein_2_Function_table.txt] (only one that can't be in memory)
+## protein_2_function [Protein_2_Function_table.txt] (the only one that can't be in memory)
 ##### an(Text, index); function(Text Array) 
 | an | func_array |
 |:---:|:---:|
