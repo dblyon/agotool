@@ -1014,27 +1014,54 @@ def call_script(BASH_LOCATION, script_fn):
     print(shellcmd)
     call(shellcmd, shell=True)
 
-if __name__ == "__main__":
-    debug = True
+def run_PostgreSQL_create_tables_and_build_DB(debug=False, testing=False, foragotool=True, verbose=True):
     if debug:
         start_time = time.time()
         # remove_files(find_tables_to_remove())
         # print(find_tables_to_remove())
         ### PostgreSQL DB creation, copy from file and indexing
         create_test_tables(50000, TABLES_DIR)
-        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False, foragotool=True)
+        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=testing, foragotool=foragotool)
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         tools.print_runtime(start_time)
     else:
         start_time = time.time()
         print("Parsing downloaded content and writing tables for PostgreSQL import")
-        create_tables(verbose=True)
+        create_tables(verbose=verbose)
         create_test_tables(50000, TABLES_DIR)
         remove_files(find_tables_to_remove())
 
         ### PostgreSQL DB creation, copy from file and indexing
-        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=False)
+        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=testing)
+        print("PostgreSQL DB creation, copy from file, and indexing")
+        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+        tools.print_runtime(start_time)
+
+if __name__ == "__main__":
+    debug = False
+    testing = False
+    foragotool = True
+    verbose = True
+    if debug:
+        start_time = time.time()
+        # remove_files(find_tables_to_remove())
+        # print(find_tables_to_remove())
+        ### PostgreSQL DB creation, copy from file and indexing
+        create_test_tables(50000, TABLES_DIR)
+        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=testing, foragotool=foragotool)
+        print("PostgreSQL DB creation, copy from file, and indexing")
+        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+        tools.print_runtime(start_time)
+    else:
+        start_time = time.time()
+        print("Parsing downloaded content and writing tables for PostgreSQL import")
+        create_tables(verbose=verbose)
+        create_test_tables(50000, TABLES_DIR)
+        remove_files(find_tables_to_remove())
+
+        ### PostgreSQL DB creation, copy from file and indexing
+        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=testing)
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         tools.print_runtime(start_time)
