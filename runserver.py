@@ -623,6 +623,6 @@ if __name__ == "__main__":
     # ToDo: All proteins without abundance data are disregarded (will be placed in a separate bin in next update)
     ################################################################################
 
-    app.run(host='0.0.0.0', debug=True, processes=8)
-    # app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+    # app.run(host='0.0.0.0', debug=True, processes=8)
+    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
 
