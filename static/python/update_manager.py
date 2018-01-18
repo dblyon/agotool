@@ -9,7 +9,7 @@ if __name__ == "__main__":
     testing = False
     verbose = True
     print("Downloading resources")
-    download_resources.run_downloads(debug=debug)
+#    download_resources.run_downloads(debug=debug)
     print("finished downloading resources")
     print("Creating SQL tables")
     create_SQL_tables.run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)

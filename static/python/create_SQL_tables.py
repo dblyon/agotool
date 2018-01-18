@@ -475,7 +475,7 @@ def yield_line_uncompressed_or_gz_file(fn):
     :return: GeneratorFunction (yields String)
     """
     if fn.endswith(".gz"):
-        platform = sys.platform()
+        platform = sys.platform
         if platform == "darwin": # OSX: "Darwin"
             ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
         elif platform == "linux": # Debian: "Linux"
