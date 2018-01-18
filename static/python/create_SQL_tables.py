@@ -475,7 +475,14 @@ def yield_line_uncompressed_or_gz_file(fn):
     :return: GeneratorFunction (yields String)
     """
     if fn.endswith(".gz"):
-        ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
+        platform = sys.platform()
+        if platform == "darwin": # OSX: "Darwin"
+            ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
+        elif platform == "linux": # Debian: "Linux"
+            ph = subprocess.Popen(["zcat", fn], stdout=subprocess.PIPE)
+        else:
+            ph = subprocess.Popen(["cat", fn], stdout=subprocess.PIPE)
+
         for line in ph.stdout:
             yield line.decode("utf-8")
     else:

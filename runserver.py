@@ -64,7 +64,7 @@ def getitem(obj, item, default):
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 
-profiling = True
+profiling = False
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
