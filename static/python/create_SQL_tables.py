@@ -639,7 +639,7 @@ def create_Protein_2_Function_table_wide_format(verbose=False):
     create_Protein_2_Function_table(fn_out_temp, verbose)
     if verbose:
         print("converting Protein_2_Function_table to wide format")
-    shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN
+    shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
     if verbose:
         print(shellcmd)
     call(shellcmd, shell=True)
@@ -1201,7 +1201,7 @@ def run_create_tables_for_PostgreSQL(debug=False, testing=False, verbose=True):
         print("Parsing downloaded content and writing tables for PostgreSQL import")
         create_tables(verbose=verbose)
         create_test_tables(50000, TABLES_DIR)
-        remove_files(find_tables_to_remove())
+       # remove_files(find_tables_to_remove())
 
         ### PostgreSQL table file creation, (copy from file and indexing run from .psql script)
         print("PostgreSQL flat files created, ready to read from file and index")
