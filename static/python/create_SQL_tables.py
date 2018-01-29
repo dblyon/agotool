@@ -639,7 +639,12 @@ def create_Protein_2_Function_table_wide_format(verbose=False):
     create_Protein_2_Function_table(fn_out_temp, verbose)
     if verbose:
         print("converting Protein_2_Function_table to wide format")
-    shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
+    platform = sys.platform
+    if platform == "linux":
+        shellcmd = "LC_ALL=C sort --parallel -T /localstorage/temp {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
+    else:
+        shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
+
     if verbose:
         print(shellcmd)
     call(shellcmd, shell=True)
