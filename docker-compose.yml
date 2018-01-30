@@ -1,6 +1,7 @@
 version: '3'
+
 services:
-  db:
+  db: # name
     image: "postgres:9.6.5"
     volumes:
       - "dbdata:/var/lib/postgresql/data"
@@ -27,12 +28,14 @@ services:
       - ./conf.d:/etc/nginx/conf.d
     networks:
       - web_nw
-    depends_on: 
+    depends_on:
       - flaskapp
+
 networks:
   db_nw:
     driver: bridge
   web_nw:
     driver: bridge
+
 volumes:
   dbdata:

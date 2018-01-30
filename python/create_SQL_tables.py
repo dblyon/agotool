@@ -1282,4 +1282,3 @@ if __name__ == "__main__":
         run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)
     else:
         sanity_check_table_dimensions(testing=testing)
-

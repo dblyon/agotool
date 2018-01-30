@@ -3,15 +3,26 @@ from flask import render_template, request, send_from_directory
 import flask
 import wtforms
 from wtforms import fields
-sys.path.insert(0, os.path.abspath(os.path.realpath('./static/python')))
+sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query
 import userinput, run, cluster_filter, obo_parser
+import bokeh
+
+WORK_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+TEMPLATE_DIR = os.path.abspath(os.path.realpath(os.path.join(WORK_DIR, "static/templates")))
+
+###############################################################################
+debug = True
+profiling = False
+###############################################################################
+
 ###############################################################################
 #### bokeh visualisation
-from bokeh.embed import components
-from bokeh.plotting import figure
-from bokeh.resources import INLINE
-from bokeh.util.string import encode_utf8
+if not debug:
+    from bokeh.embed import components
+    from bokeh.plotting import figure
+    from bokeh.resources import INLINE
+    from bokeh.util.string import encode_utf8
 colors = {
     'Black': '#000000',
     'Red':   '#FF0000',
@@ -62,9 +73,9 @@ def getitem(obj, item, default):
 #     connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
 
 ### Create the Flask application and the Flask-SQLAlchemy object.
-app = flask.Flask(__name__)
+# app = flask.Flask(__name__)
+app = flask.Flask(__name__, template_folder=TEMPLATE_DIR)
 
-profiling = False
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
@@ -88,11 +99,11 @@ if profiling:
 #     db = flask_sqlalchemy.SQLAlchemy(app)
 #     db.Model.metadata.reflect(db.engine)
 current_working_dir = os.getcwd()
-WEBSERVER_DATA = os.path.join(current_working_dir + '/static/data')
+WEBSERVER_DATA = os.path.join(current_working_dir + '/data')
 EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
 SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
-SESSION_FOLDER_RELATIVE = '/static/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/templates')
+SESSION_FOLDER_RELATIVE = '/data/session'
+TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/web/templates')
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
@@ -394,10 +405,9 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         default = 0,
         description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.""")
 
-# @app.route('/enrichment')
-
 @app.route('/')
 def enrichment():
+    # return render_template('enrichment.html', form=Enrichment_Form())
     return render_template('enrichment.html', form=Enrichment_Form())
 
 ################################################################################
@@ -624,5 +634,5 @@ if __name__ == "__main__":
     ################################################################################
 
     # app.run(host='0.0.0.0', debug=True, processes=8)
-    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+    app.run(host='0.0.0.0', port=5911, processes=8, debug=debug)
 
