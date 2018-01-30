@@ -6,28 +6,28 @@ from wtforms import fields
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query
 import userinput, run, cluster_filter, obo_parser
-import bokeh
 
 WORK_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 TEMPLATE_DIR = os.path.abspath(os.path.realpath(os.path.join(WORK_DIR, "static/templates")))
 
 ###############################################################################
 debug = True
+preload = False
 profiling = False
 ###############################################################################
 
 ###############################################################################
 #### bokeh visualisation
-if not debug:
-    from bokeh.embed import components
-    from bokeh.plotting import figure
-    from bokeh.resources import INLINE
-    from bokeh.util.string import encode_utf8
-colors = {
-    'Black': '#000000',
-    'Red':   '#FF0000',
-    'Green': '#00FF00',
-    'Blue':  '#0000FF'}
+# if not debug:
+#     from bokeh.embed import components
+#     from bokeh.plotting import figure
+#     from bokeh.resources import INLINE
+#     from bokeh.util.string import encode_utf8
+# colors = {
+#     'Black': '#000000',
+#     'Red':   '#FF0000',
+#     'Green': '#00FF00',
+#     'Blue':  '#0000FF'}
 
 def getitem(obj, item, default):
     if item not in obj:
@@ -169,18 +169,19 @@ max_timeout = 10 # minutes
 
 ################################################################################
 #### pre-load objects
-pqo = query.PersistentQueryObject()
-##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
-goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/goslim_generic.obo'))
-go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/go-basic.obo'))
-# KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
-KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+if preload:
+    pqo = query.PersistentQueryObject()
+    ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+    upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
+    goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/goslim_generic.obo'))
+    go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/go-basic.obo'))
+    # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
+    KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
 
-for go_term in go_dag.keys():
-    parents = go_dag[go_term].get_all_parents()
+    for go_term in go_dag.keys():
+        parents = go_dag[go_term].get_all_parents()
 
-filter_ = cluster_filter.Filter(go_dag)
+    filter_ = cluster_filter.Filter(go_dag)
 
 ################################################################################
 # index.html

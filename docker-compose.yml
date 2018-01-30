@@ -1,14 +1,22 @@
 version: '3'
 
+
 services:
+
   db: # name
     image: "postgres:9.6.5"
     volumes:
       - "dbdata:/var/lib/postgresql/data"
+      - type: volume
+        source: agotool_data
+        target: /agotool_data
+        volume:
+          nocopy: true
     env_file:
       - env_file
     networks:
       - db_nw
+
   flaskapp:
     build: .
     env_file:
@@ -20,6 +28,7 @@ services:
       - web_nw
     depends_on:
       - db
+
   nginx:
     image: "nginx:1.13.5"
     ports:
@@ -31,11 +40,14 @@ services:
     depends_on:
       - flaskapp
 
+
 networks:
   db_nw:
     driver: bridge
   web_nw:
     driver: bridge
 
+
 volumes:
   dbdata:
+  agotool_data:

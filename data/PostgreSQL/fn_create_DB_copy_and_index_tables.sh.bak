@@ -44,3 +44,12 @@ psql -d agotool -c "CREATE INDEX ogs_og_idx ON ogs(og);"
 psql -d agotool -c "CREATE INDEX og_2_function_og_idx ON og_2_function(og);"
 psql -d agotool -c "CREATE INDEX protein_2_function_an_idx ON protein_2_function(an);"
 psql -d agotool -c "CREATE INDEX protein_2_og_an_idx ON protein_2_og(an);"
+
+
+
+
+psql -U postgres -d agotool -c "CREATE TABLE go_2_slim (
+    an text,
+    slim boolean);"
+
+psql -U postgres -d agotool -c "\copy go_2_slim FROM '/var/www/agotool/static/data/PostgreSQL/tables/GO_2_Slim_table.txt';"

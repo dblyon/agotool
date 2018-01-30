@@ -13,3 +13,17 @@ http://127.0.0.1:5000/
 6. have fun
 7. cite us
 8. take a break
+
+### Docker
+1. Bootstrap the DB
+docker-compose up -d db
+docker-compose run --rm flaskapp /bin/bash -c "cd /opt/services/flaskapp/src && python -c  'import database; database.init_db()'"
+docker-compose run --rm flaskapp /bin/bash -c "cd /opt/services/flaskapp/src && python -c  'import database; database.init_db()'"
+
+2. Bring up the cluster
+docker-compose up -d
+
+3. Browse to localhost:8080 to see the app in action.
+
+4. Take down the apps
+docker-compose down
