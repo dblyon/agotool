@@ -88,11 +88,11 @@ if profiling:
 #     db = flask_sqlalchemy.SQLAlchemy(app)
 #     db.Model.metadata.reflect(db.engine)
 current_working_dir = os.getcwd()
-WEBSERVER_DATA = os.path.join(current_working_dir + '/static/data')
-EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
-SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
+WEBSERVER_DATA = os.path.join(current_working_dir, 'data')
+EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA, 'exampledata')
+SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA, 'session')
 SESSION_FOLDER_RELATIVE = '/static/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/templates')
+TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir, 'templates')
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
