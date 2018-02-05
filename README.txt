@@ -83,3 +83,10 @@ https://stackoverflow.com/questions/27735706/docker-add-vs-volume
 docker exec -it 1769d6ea0667 psql -U postgres -d agotool_test "\dt"
 
 docker-compose run --rm flaskapp /bin/bash -c "python /opt/services/flaskapp/src/python/update_manager.py"
+
+
+#### Fixing file stream issues for agotool
+# agotool old virtual server
+files work fine
+copy and paste fields work fine as well
+--> save current state in new git branch (data folders will be missing)

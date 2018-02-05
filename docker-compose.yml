@@ -7,8 +7,8 @@ services:
     image: "postgres:latest"
     volumes:
       - "dbdata:/var/lib/postgresql/data" # named volume, persistent data, lives in special directory from docker
-      - "agotool_data:/agotool_data"
-      #- ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
+#      - "agotool_data:/agotool_data"
+      - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
     env_file:
       - env_file
     networks:
@@ -18,7 +18,7 @@ services:
     build: .
     volumes:
       - .:/opt/services/flaskapp/src
-      - "agotool_data:/agotool_data"
+#      - "agotool_data:/agotool_data"
     env_file:
       - env_file
     networks:
