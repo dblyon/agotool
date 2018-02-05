@@ -26,6 +26,11 @@ SESSION_FOLDER_ABSOLUTE = os.path.join(PROJECT_DIR, 'data/session')
 SESSION_FOLDER_RELATIVE = '/data/session'
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(PROJECT_DIR, 'static/templates')
 
+# obo files for PRELOAD/persistent objects
+FN_KEYWORDS = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/keywords-all.obo")
+FN_GO_SLIM = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/goslim_generic.obo")
+FN_GO_BASIC = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/go-basic.obo")
+
 ##### Maximum Time for MCL clustering
 MAX_TIMEOUT = 10 # minutes
 
@@ -48,4 +53,11 @@ FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.
 NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
 
 # log files
+LOG_DIRECTORY = os.path.join(PROJECT_DIR, "logs")
 LOG_FN_WARNINGS_ERRORS = os.path.join(PROJECT_DIR, "logs/warnings_errors_log.txt")
+LOG_FN_ACTIVITY = os.path.join(PROJECT_DIR, "logs/activity_log.txt")
+if not os.path.exists(LOG_DIRECTORY):
+    os.makedirs(LOG_DIRECTORY)
+if not os.path.exists(LOG_FN_WARNINGS_ERRORS):
+    fh = open(LOG_FN_WARNINGS_ERRORS, "w")
+    fh.close()

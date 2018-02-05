@@ -1,7 +1,7 @@
 from __future__ import print_function
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
-import enrichment, tools #, query
+import enrichment, tools, variables #, query
 
 
 def run(pqo, go_dag, goslim_dag, upk_dag, ui, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
@@ -19,6 +19,9 @@ def run(pqo, go_dag, goslim_dag, upk_dag, ui, gocat_upk, go_slim_or_basic, inden
     function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
 
     assoc_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim=go_slim_or_basic)
+    if variables.DEBUG:
+        print("association dict", assoc_dict)
+
 
     ### now convert assoc_dict into proteinGroups to consensus assoc_dict
     proteinGroups_list = ui.get_all_unique_proteinGroups()

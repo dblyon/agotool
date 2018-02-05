@@ -329,7 +329,7 @@ class Userinput(object):
         elif self.enrichment_method == "characterize_foreground":
             return len(self.foreground)
         else:
-            raise StopIteration # debug, case should not happen
+            raise StopIteration # DEBUG, case should not happen
 
     def get_background_n(self):
         """
@@ -345,7 +345,7 @@ class Userinput(object):
         elif self.enrichment_method == "characterize_foreground": # only for foreground, not background
             return None
         else:
-            raise StopIteration # debug, case should not happen
+            raise StopIteration # DEBUG, case should not happen
 
     def get_sample_an(self):
         return self.foreground[self.col_foreground].tolist()
@@ -416,7 +416,7 @@ if __name__ == "__main__":
     # print len(foreground_an), len(all_unique_an)
     fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast_Foreground_Background.txt"
     fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/exampledata_yeast_Intensity_Sample_Population.txt"
-    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/debug.txt"
+    fn = r"/Users/dblyon/modules/cpr/agotool/static/data/exampledata/DEBUG.txt"
     fn = r"/Users/dblyon/Downloads/Data for agotool 2017-01-30.txt"
     fn = r"/Users/dblyon/Downloads/1A_Data_for_web_tool_test_AbundaceCorrection_fUbi.txt"
     # import db_config

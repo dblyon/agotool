@@ -342,8 +342,8 @@ def run_downloads(debug=False, skip_slow_downloads=False):
         tools.print_runtime(start_time)
 
 if __name__ == '__main__':
-    # debug = False
+    # DEBUG = False
     # skip_slow_downloads = True
-    # run_downloads(debug=debug, skip_slow_downloads=skip_slow_downloads)
+    # run_downloads(DEBUG=DEBUG, skip_slow_downloads=skip_slow_downloads)
     print("DOWNLOADS_DIR", DOWNLOADS_DIR)
 

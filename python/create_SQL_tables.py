@@ -813,7 +813,7 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
     grep "Q6DFV6" UniProt_2_KEGG_mapping.tab
     --> Q6DFV6    mmu:333564;
 
-    e.g. debug usage
+    e.g. DEBUG usage
     import create_SQL_tables as cst
     DOWNLOADS_DIR = r"/Volumes/Speedy/PostgreSQL/downloads"
     COLUMN_CROSSREF="Cross-reference (KEGG)"
@@ -1308,6 +1308,6 @@ if __name__ == "__main__":
     debug = False
     testing = False
     verbose = True
-    # run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)
+    # run_create_tables_for_PostgreSQL(DEBUG=DEBUG, testing=testing, verbose=verbose)
     # sanity_check_table_dimensions(testing=testing)
     create_test_tables(num_lines=5000)

@@ -14,14 +14,18 @@ SESSION_FOLDER_RELATIVE = variables.SESSION_FOLDER_RELATIVE
 TEMPLATES_FOLDER_ABSOLUTE = variables.TEMPLATES_FOLDER_ABSOLUTE
 DOWNLOADS_DIR = variables.DOWNLOADS_DIR
 LOG_FN_WARNINGS_ERRORS = variables.LOG_FN_WARNINGS_ERRORS
-debug = variables.DEBUG
-preload = variables.PRELOAD
-profiling = variables.PROFILING
+LOG_FN_ACTIVITY = variables.LOG_FN_ACTIVITY
+FN_KEYWORDS = variables.FN_KEYWORDS
+FN_GO_SLIM = variables.FN_GO_SLIM
+FN_GO_BASIC = variables.FN_GO_BASIC
+DEBUG = variables.DEBUG
+PRELOAD = variables.PRELOAD
+PROFILING = variables.PROFILING
 ###############################################################################
 
 ###############################################################################
 #### bokeh visualisation
-# if not debug:
+# if not DEBUG:
 #     from bokeh.embed import components
 #     from bokeh.plotting import figure
 #     from bokeh.resources import INLINE
@@ -68,9 +72,9 @@ def getitem(obj, item, default):
 # ECHO = False
 # TESTING = False # which DB are we connecting to ('metaprot' or 'test')
 # DO_LOGGING = False
-# debug = False # do not attempt connection to PostgreSQL
+# DEBUG = False # do not attempt connection to PostgreSQL
 # volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
-# if not debug:
+# if not DEBUG:
 #     connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
 
 ### Create the Flask application and the Flask-SQLAlchemy object.
@@ -78,7 +82,7 @@ def getitem(obj, item, default):
 # app = flask.Flask(__name__, template_folder=TEMPLATE_DIR)
 app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
 
-if profiling:
+if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
     # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=r"/Users/dblyon/Downloads/profiling_agtool") # use qcachegrind to visualize
@@ -87,7 +91,7 @@ if profiling:
     ## pyprof2calltree -i somethingsomething.prof -o something.prof
     ## open "something.prof" with qcachegrind -o something.prof
 
-# if not debug:
+# if not DEBUG:
 #     app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
 #     app.config['SQLALCHEMY_ECHO'] = False
 #     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -97,7 +101,7 @@ if profiling:
 # Wrap the Api with swagger.docs. It is a thin wrapper around the Api class that adds some swagger smarts
 # api = swagger.docs(Api(app), apiVersion='0.1')
 ###################################
-# if not debug:
+# if not DEBUG:
 #     db = flask_sqlalchemy.SQLAlchemy(app)
 #     db.Model.metadata.reflect(db.engine)
 
@@ -156,18 +160,13 @@ if not app.debug:
     #########################
     # log warnings and errors
     from logging import FileHandler
-
-
-    if not os.path.exists(LOG_FN_WARNINGS_ERRORS):
-        fh = open(LOG_FN_WARNINGS_ERRORS, "w")
-        fh.close()
     file_handler = FileHandler(LOG_FN_WARNINGS_ERRORS, mode="a", encoding="UTF-8")
     file_handler.setFormatter(logging.Formatter("#"*80 + "\n" + '%(asctime)s %(levelname)s: %(message)s'))
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
     #########################
     # log activity
-    log_activity_fh = open("./logs/activity_log.txt", "a")
+    log_activity_fh = open(LOG_FN_ACTIVITY, "a")
 
 def log_activity(string2log):
     string2log_prefix = "\n" + "Current date & time " + time.strftime("%c") + "\n"
@@ -182,19 +181,19 @@ MAX_TIMEOUT = variables.MAX_TIMEOUT
 
 ################################################################################
 #### pre-load objects
-if preload:
-    pqo = query.PersistentQueryObject()
-    ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-    upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
-    goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/goslim_generic.obo'))
-    go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/go-basic.obo'))
-    # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
-    KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+# if PRELOAD:
+pqo = query.PersistentQueryObject()
+##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
+go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+# KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
+KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
 
-    for go_term in go_dag.keys():
-        parents = go_dag[go_term].get_all_parents()
+for go_term in go_dag.keys():
+    parents = go_dag[go_term].get_all_parents()
 
-    filter_ = cluster_filter.Filter(go_dag)
+filter_ = cluster_filter.Filter(go_dag)
 
 ################################################################################
 # index.html
@@ -421,7 +420,6 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
 
 @app.route('/')
 def enrichment():
-    # return render_template('enrichment.html', form=Enrichment_Form())
     return render_template('enrichment.html', form=Enrichment_Form())
 
 ################################################################################
@@ -466,8 +464,10 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
-            if debug:
-                print(ui.get_foreground_an_set())
+            # if DEBUG:
+            #     print("#"*80)
+            #     print(ui.get_foreground_an_set())
+            #     print("#" * 80)
 
             header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
@@ -650,6 +650,6 @@ if __name__ == "__main__":
     # ToDo: All proteins without abundance data are disregarded (will be placed in a separate bin in next update)
     ################################################################################
 
-    # app.run(host='0.0.0.0', debug=True, processes=8)
-    app.run(host='0.0.0.0', port=5911, processes=2, debug=debug)
+    # app.run(host='0.0.0.0', DEBUG=True, processes=8)
+    app.run(host='0.0.0.0', port=5911, processes=2, debug=variables.DEBUG)
 
