@@ -1308,6 +1308,6 @@ if __name__ == "__main__":
     debug = False
     testing = False
     verbose = True
-    run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)
-    sanity_check_table_dimensions(testing=testing)
+    # run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)
+    # sanity_check_table_dimensions(testing=testing)
     create_test_tables(num_lines=5000)

@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS functions_temp, go_2_slim_temp, ogs_temp, og_2_function_temp, ontologies_temp, protein_2_function_temp, protein_secondary_2_primary_an_temp, protein_2_og_temp;
+
 CREATE TABLE functions_temp (
     type text,
     name text,

@@ -4,7 +4,7 @@ version: '3'
 services:
 
   db: # name
-    image: "postgres:9.6.5"
+    image: "postgres"
     volumes:
       - "dbdata:/var/lib/postgresql/data" # named volume, persistent data, lives in special directory from docker
       - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
