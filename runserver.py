@@ -88,11 +88,11 @@ if profiling:
 #     db = flask_sqlalchemy.SQLAlchemy(app)
 #     db.Model.metadata.reflect(db.engine)
 current_working_dir = os.getcwd()
-WEBSERVER_DATA = os.path.join(current_working_dir + '/static/data')
-EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
-SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
+WEBSERVER_DATA = os.path.join(current_working_dir, 'data')
+EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA, 'exampledata')
+SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA, 'session')
 SESSION_FOLDER_RELATIVE = '/static/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/templates')
+TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir, 'templates')
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
@@ -160,9 +160,9 @@ max_timeout = 10 # minutes
 #### pre-load objects
 pqo = query.PersistentQueryObject()
 ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
-goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/goslim_generic.obo'))
-go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/go-basic.obo'))
+upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA, 'PostgreSQL/downloads/keywords-all.obo'), upk=True)
+goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA, 'PostgreSQL/downloads/goslim_generic.obo'))
+go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA, 'PostgreSQL/downloads/go-basic.obo'))
 # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
 KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
 
