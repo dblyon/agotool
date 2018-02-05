@@ -47,6 +47,8 @@ docker-compose up -d
 3. get the container id for the PostgreSQL DB
 docker ps
 4. run psql scripts to populate DB (from host run the psql script in the container)
+# First time setup
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/PostgreSQL/create_DBs.psql
 # TESTING
 docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/PostgreSQL/copy_from_file_and_index_TEST.psql
 docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/PostgreSQL/drop_and_rename.psql
