@@ -3,20 +3,30 @@ from flask import render_template, request, send_from_directory
 import flask
 import wtforms
 from wtforms import fields
-sys.path.insert(0, os.path.abspath(os.path.realpath('./static/python')))
-import query
-import userinput, run, cluster_filter, obo_parser
+sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
+import query, userinput, run, cluster_filter, obo_parser
+
+WORK_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+TEMPLATE_DIR = os.path.abspath(os.path.realpath(os.path.join(WORK_DIR, "static/templates")))
+
+###############################################################################
+debug = True
+preload = True
+profiling = False
+###############################################################################
+
 ###############################################################################
 #### bokeh visualisation
-from bokeh.embed import components
-from bokeh.plotting import figure
-from bokeh.resources import INLINE
-from bokeh.util.string import encode_utf8
-colors = {
-    'Black': '#000000',
-    'Red':   '#FF0000',
-    'Green': '#00FF00',
-    'Blue':  '#0000FF'}
+# if not debug:
+#     from bokeh.embed import components
+#     from bokeh.plotting import figure
+#     from bokeh.resources import INLINE
+#     from bokeh.util.string import encode_utf8
+# colors = {
+#     'Black': '#000000',
+#     'Red':   '#FF0000',
+#     'Green': '#00FF00',
+#     'Blue':  '#0000FF'}
 
 def getitem(obj, item, default):
     if item not in obj:
@@ -62,9 +72,9 @@ def getitem(obj, item, default):
 #     connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
 
 ### Create the Flask application and the Flask-SQLAlchemy object.
-app = flask.Flask(__name__)
+# app = flask.Flask(__name__)
+app = flask.Flask(__name__, template_folder=TEMPLATE_DIR)
 
-profiling = False
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
@@ -88,11 +98,11 @@ if profiling:
 #     db = flask_sqlalchemy.SQLAlchemy(app)
 #     db.Model.metadata.reflect(db.engine)
 current_working_dir = os.getcwd()
-WEBSERVER_DATA = os.path.join(current_working_dir + '/static/data')
+WEBSERVER_DATA = os.path.join(current_working_dir + '/data')
 EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
 SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
-SESSION_FOLDER_RELATIVE = '/static/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/templates')
+SESSION_FOLDER_RELATIVE = '/data/session'
+TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/web/templates')
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
@@ -158,6 +168,7 @@ max_timeout = 10 # minutes
 
 ################################################################################
 #### pre-load objects
+# if preload:
 pqo = query.PersistentQueryObject()
 ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
 upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
@@ -394,10 +405,9 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         default = 0,
         description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.""")
 
-# @app.route('/enrichment')
-
 @app.route('/')
 def enrichment():
+    # return render_template('enrichment.html', form=Enrichment_Form())
     return render_template('enrichment.html', form=Enrichment_Form())
 
 ################################################################################
@@ -461,40 +471,40 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                                         form.indent.data, session_id, form=Results_Form())
     return render_template('enrichment.html', form=form)
 
-@app.route("/bokeh")
-def polynomial():
-    """
-    Very simple embedding of a polynomial chart
-    """
-
-    # Grab the inputs arguments from the URL
-    args = flask.request.args
-
-    # Get all the form arguments in the url with defaults
-    color = colors[getitem(args, 'color', 'Black')]
-    _from = int(getitem(args, '_from', 0))
-    to = int(getitem(args, 'to', 10))
-
-    # Create a polynomial line graph with those arguments
-    x = list(range(_from, to + 1))
-    fig = figure(title="Polynomial")
-    fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
-
-    js_resources = INLINE.render_js()
-    css_resources = INLINE.render_css()
-
-    script, div = components(fig)
-    html = flask.render_template(
-        'bokeh.html',
-        plot_script=script,
-        plot_div=div,
-        js_resources=js_resources,
-        css_resources=css_resources,
-        color=color,
-        _from=_from,
-        to=to
-    )
-    return encode_utf8(html)
+# @app.route("/bokeh")
+# def polynomial():
+#     """
+#     Very simple embedding of a polynomial chart
+#     """
+#
+#     # Grab the inputs arguments from the URL
+#     args = flask.request.args
+#
+#     # Get all the form arguments in the url with defaults
+#     color = colors[getitem(args, 'color', 'Black')]
+#     _from = int(getitem(args, '_from', 0))
+#     to = int(getitem(args, 'to', 10))
+#
+#     # Create a polynomial line graph with those arguments
+#     x = list(range(_from, to + 1))
+#     fig = figure(title="Polynomial")
+#     fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
+#
+#     js_resources = INLINE.render_js()
+#     css_resources = INLINE.render_css()
+#
+#     script, div = components(fig)
+#     html = flask.render_template(
+#         'bokeh.html',
+#         plot_script=script,
+#         plot_div=div,
+#         js_resources=js_resources,
+#         css_resources=css_resources,
+#         color=color,
+#         _from=_from,
+#         to=to
+#     )
+#     return encode_utf8(html)
 
 def generate_result_page(header, results, gocat_upk, indent, session_id, form, errors=()):
     header = header.rstrip().split("\t")
@@ -624,5 +634,5 @@ if __name__ == "__main__":
     ################################################################################
 
     # app.run(host='0.0.0.0', debug=True, processes=8)
-    app.run(host='0.0.0.0', port=5911, processes=8, debug=False)
+    app.run(host='0.0.0.0', port=5911, processes=8, debug=debug)
 

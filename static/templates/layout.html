@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
+
     <link rel="icon" type="image/png" href="./static/js/favicon_sund.ico" sizes="16x16" />
 
     <title>a GO tool</title>
@@ -19,10 +20,13 @@
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
     <script src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"></script>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
+
     <script src="{{ url_for('static', filename='js/utilities.js') }}"></script>
+
     {% block head %}
     {% endblock head %}
 </head>
@@ -48,6 +52,8 @@
                     <li><a href="{{ url_for('about') }}">about</a></li>
                 </ul>
                 <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/js/cpr_logo.png"></a></span>
+{#                <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./web/js/cpr_logo.png"></a></span>#}
+
             </div>
         </div>
 

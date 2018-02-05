@@ -8,8 +8,9 @@ if __name__ == "__main__":
     debug = False
     testing = False
     verbose = True
+    skip_slow_downloads = True
     print("Downloading resources")
-#    download_resources.run_downloads(debug=debug)
+    # download_resources.run_downloads(debug=debug, skip_slow_downloads=skip_slow_downloads)
     print("finished downloading resources")
     print("Creating SQL tables")
     create_SQL_tables.run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)

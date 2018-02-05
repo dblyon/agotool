@@ -3,7 +3,7 @@ PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.append(PYTHON_DIR)
 import obo_parser
 STATIC_DIR = os.path.abspath(os.path.join(PYTHON_DIR, '..'))
-FN_P_PARSER_GO_ANNOTATIONS = os.path.abspath(os.path.join(STATIC_DIR, "data/GOA/Parser_GO_annotations.p"))
+# deprecated FN_P_PARSER_GO_ANNOTATIONS = os.path.abspath(os.path.join(STATIC_DIR, "data/GOA/Parser_GO_annotations.p"))
 
 
 def mapslim(go_term, go_dag, goslim_dag):
