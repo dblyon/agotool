@@ -11,7 +11,7 @@ TEMPLATE_DIR = os.path.abspath(os.path.realpath(os.path.join(WORK_DIR, "static/t
 
 ###############################################################################
 debug = True
-preload = True
+preload = False
 profiling = False
 ###############################################################################
 
@@ -168,14 +168,14 @@ max_timeout = 10 # minutes
 
 ################################################################################
 #### pre-load objects
-# if preload:
-pqo = query.PersistentQueryObject()
-##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
-goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/goslim_generic.obo'))
-go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/go-basic.obo'))
-# KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
-KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+if preload:
+    pqo = query.PersistentQueryObject()
+    ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+    upk_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/keywords-all.obo'), upk=True)
+    goslim_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/goslim_generic.obo'))
+    go_dag = obo_parser.GODag(obo_file=os.path.join(WEBSERVER_DATA + r'/PostgreSQL/downloads/go-basic.obo'))
+    # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
+    KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
 
 for go_term in go_dag.keys():
     parents = go_dag[go_term].get_all_parents()
