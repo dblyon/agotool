@@ -181,19 +181,19 @@ MAX_TIMEOUT = variables.MAX_TIMEOUT
 
 ################################################################################
 #### pre-load objects
-# if PRELOAD:
-pqo = query.PersistentQueryObject()
-##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
-goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
-go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-# KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
-KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+if PRELOAD:
+    pqo = query.PersistentQueryObject()
+    ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+    upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+    goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
+    go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+    # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
+    KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
 
-for go_term in go_dag.keys():
-    parents = go_dag[go_term].get_all_parents()
+    for go_term in go_dag.keys():
+        parents = go_dag[go_term].get_all_parents()
 
-filter_ = cluster_filter.Filter(go_dag)
+    filter_ = cluster_filter.Filter(go_dag)
 
 ################################################################################
 # index.html
@@ -440,13 +440,27 @@ def results():
     results_filtered: reduced version of results
     """
     form = Enrichment_Form(request.form)
+    # print('getting here 1')
     if request.method == 'POST' and form.validate():
+        # print('getting here 2.a')
         input_fs = request.files['userinput_file']
-        ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+        # try:
+        #     input_fs = request.files['userinput_file']
+        #     # print("input_fs", input_fs, type(input_fs))
+        # except:
+        #     # print('getting here 2.b')
+        #     # print("input_fs", input_fs, type(input_fs))
+        #     input_fs = None
+
+        ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data,
+            background_string=form.background_textarea.data,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
             num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data,
             foreground_n=form.foreground_n.data, background_n=form.background_n.data)
+
+        print('getting here 2.c')
         if ui.check:
+            print('getting here 3')
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
@@ -464,10 +478,11 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
-            # if DEBUG:
-            #     print("#"*80)
-            #     print(ui.get_foreground_an_set())
-            #     print("#" * 80)
+            if DEBUG:
+                print("#"*80)
+                print(ui.get_foreground_an_set())
+                print("#" * 80)
+            #     return render_template('results_zero.html')
 
             header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
@@ -478,14 +493,17 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.p_value_multipletesting.data, KEGG_pseudo_dag)
 
         else:
+            print('getting here 4')
             return render_template('info_check_input.html')
 
         if len(results) == 0:
+            print('getting here 5')
             return render_template('results_zero.html')
         else:
             session_id = generate_session_id()
             return generate_result_page(header, results, form.gocat_upk.data,
                                         form.indent.data, session_id, form=Results_Form())
+
     return render_template('enrichment.html', form=form)
 
 # @app.route("/bokeh")
@@ -652,4 +670,3 @@ if __name__ == "__main__":
 
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     app.run(host='0.0.0.0', port=5911, processes=2, debug=variables.DEBUG)
-

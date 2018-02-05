@@ -132,7 +132,10 @@ class Userinput(object):
         :return: Tuple(Bool, String)
         """
         decimal = '.'
-        self.df_orig = pd.read_csv(fh, sep='\t', decimal=decimal)
+        try:
+            self.df_orig = pd.read_csv(fh, sep='\t', decimal=decimal)
+        except pd.errors.ParserError:
+            return False, decimal
         if self.enrichment_method == "abundance_correction":
             if len({self.col_background, self.col_intensity, self.col_foreground}.intersection(set(self.df_orig.columns.tolist()))) == 3:
                 try:

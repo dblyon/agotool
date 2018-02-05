@@ -61,6 +61,19 @@ docker exec -it agotool_flask python ./python/update_manager.py
 ? -v "agotool_data:/agotool_data ?
 ##############################################################################
 
+# copy data to named volume
+# spin up another container that deletes itself after it is done
+docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+# as soon as I exit the container will delete itself. Self destruction
+# volume data persists
+
+# alternative to 2 named volumes:
+# 1 volume with 2 sources and 2 different mount points
+
+# scale a service like the flask-app
+docker-compose up -d --scale flaskapp=2
+
+
 
 
 Resources:

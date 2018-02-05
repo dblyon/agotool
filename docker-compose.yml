@@ -4,11 +4,11 @@ version: '3'
 services:
 
   db: # name
-    image: "postgres"
+    image: "postgres:latest"
     volumes:
       - "dbdata:/var/lib/postgresql/data" # named volume, persistent data, lives in special directory from docker
-      #- ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
       - "agotool_data:/agotool_data"
+      #- ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
     env_file:
       - env_file
     networks:
@@ -17,11 +17,10 @@ services:
   flaskapp:
     build: .
     volumes:
+      - .:/opt/services/flaskapp/src
       - "agotool_data:/agotool_data"
     env_file:
       - env_file
-    volumes:
-      - .:/opt/services/flaskapp/src
     networks:
       - db_nw
       - web_nw
@@ -47,6 +46,6 @@ networks:
     driver: bridge
 
 
-volumes:
+volumes: # can be shared
   dbdata:
   agotool_data:
