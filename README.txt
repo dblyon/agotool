@@ -90,3 +90,10 @@ docker-compose run --rm flaskapp /bin/bash -c "python /opt/services/flaskapp/src
 files work fine
 copy and paste fields work fine as well
 --> save current state in new git branch (data folders will be missing)
+### git branch "agodebian" running on Ody
+files work fine (GO, KEGG and UniProt)
+copy and paste fields don't
+### git branch "docker" running on Ody
+files work fine (GO, KEGG and UniProt)
+copy and paste fields don't
+
