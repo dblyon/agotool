@@ -1,7 +1,7 @@
 ## functions [Functions_table.txt]
 #####  type (Text); name(Text); an(Text); definition(Text)
 | type | name | an | definition |
-|:---:|:---:|:---:|
+|:---:|:---:|:---:|:---:|
 | GO | dipeptidyl-peptidase activity | GO:0008239 | blabla definition |
 | GO | sulfuric ester hydrolase activity | GO:0008484 | blabla definition |
 | GO | biological process | GO:0008150 | blabla definition |

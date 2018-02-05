@@ -8,12 +8,16 @@ from retrying import retry
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.insert(0, PYTHON_DIR)
 import tools
+import variables
 
-PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../..')))
-DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "static/data/PostgreSQL/downloads"))
+# PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
+PROJECT_DIR = variables.PROJECT_DIR
+# DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "data/PostgreSQL/downloads"))
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR
 
-DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'static/data/PostgreSQL', directory) for directory in ["downloads", "session"]]
-DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
+# DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'data/PostgreSQL', directory) for directory in ["downloads", "session"]]
+# DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
+DIRECTORIES_LIST = variables.DIRECTORIES_LIST
 
 URL_GENE_ASSOCIATIONS_GOA_UNIPROT = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz"
 URL_GOA = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/{}/goa_{}.gaf.gz"
@@ -136,8 +140,8 @@ def create_directories_if_not_exist():
             os.makedirs(directory)
 
 def cleanup_sessions():
-    _folder = os.path.join(PROJECT_DIR, 'static/data/session')
-    e = 'could not remove %s from static/data/session'
+    _folder = os.path.join(PROJECT_DIR, 'data/session')
+    e = 'could not remove %s from data/session'
     for the_file in os.listdir(_folder):
         file_path = os.path.join(_folder, the_file)
         try:
@@ -283,7 +287,7 @@ def download_bactNOG_annotations():
     print(shellcmd)
     call(shellcmd, shell=True)
 
-def run_downloads(debug=False):
+def run_downloads(debug=False, skip_slow_downloads=False):
     if debug:
         start_time = time.time()
         print('-' * 50, '\n', "updating agotool libraries and cleaning up", '\n')
@@ -309,18 +313,24 @@ def run_downloads(debug=False):
         create_directories_if_not_exist()
         ### every month
         taxid_not_retrieved_list = download_go_annotations()
-        download_go_annotations_all_unfiltered()
+        if skip_slow_downloads:
+            pass
+        else:
+            download_go_annotations_all_unfiltered()
         download_go_basic_slim_obo()
         download_UniProt_Keywords_obo()
         ### download_UniProt_Keywords() # --> NOT NECESSARY since already downloading Keywords from UniProt for all available organisms
         download_gzip_file(URL_UNIPROT_SECONDARY_2_PRIMARY_AN, "sec_ac.txt")
 
-        ### download_gzip_file(URL_UNIPROT_2_KEGG, "UniProt_2_KEGG_mapping.tab")  # long and slow --> use SPARQL version below instead
-        url_UniProt_2_KEGG_SPARQL = get_UniProt_2_KEGG_mapping_URL_for_SPARQL()
-        fn_out = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
-        download_file(url_UniProt_2_KEGG_SPARQL, fn_out)
+        if skip_slow_downloads:
+            pass
+        else:
+            ### download_gzip_file(URL_UNIPROT_2_KEGG, "UniProt_2_KEGG_mapping.tab")  # long and slow --> use SPARQL version below instead
+            url_UniProt_2_KEGG_SPARQL = get_UniProt_2_KEGG_mapping_URL_for_SPARQL()
+            fn_out = os.path.join(DOWNLOADS_DIR, "UniProt_2_KEGG_mapping.tab")
+            download_file(url_UniProt_2_KEGG_SPARQL, fn_out)
 
-        download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
+            download_gzip_file(URL_UNIPROT_KEYWORDS_ALL_ASSOCIATIONS, "uniprot-all-keywords.upk.gz")  # long and slow
 
         ### NOT every month
         # download_and_extract_all_annotations_from_eggNOG()
@@ -332,5 +342,8 @@ def run_downloads(debug=False):
         tools.print_runtime(start_time)
 
 if __name__ == '__main__':
-    debug = False
-    run_downloads(debug=debug)
+    # debug = False
+    # skip_slow_downloads = True
+    # run_downloads(debug=debug, skip_slow_downloads=skip_slow_downloads)
+    print("DOWNLOADS_DIR", DOWNLOADS_DIR)
+

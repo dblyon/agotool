@@ -6,12 +6,9 @@ services:
   db: # name
     image: "postgres:9.6.5"
     volumes:
-      - "dbdata:/var/lib/postgresql/data"
-      - type: volume
-        source: agotool_data
-        target: /agotool_data
-        volume:
-          nocopy: true
+      - "dbdata:/var/lib/postgresql/data" # named volume, persistent data, lives in special directory from docker
+      - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
+#      - "agotool_data:/agotool_data"
     env_file:
       - env_file
     networks:
@@ -19,6 +16,8 @@ services:
 
   flaskapp:
     build: .
+#    volumes:
+#      - "agotool_data:/agotool_data"
     env_file:
       - env_file
     volumes:

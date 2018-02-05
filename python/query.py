@@ -1,5 +1,7 @@
+import os, sys
 from collections import defaultdict
 import psycopg2, math
+
 
 UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
 
@@ -40,25 +42,51 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9999': "-51",  # 'Biological process'
                               'KEGG': "-52"}
 
-# def get_cursor_old(host='localhost', dbname='agotool', user='dblyon', password=''):
-#     """
-#     :param host:
-#     :param dbname:
-#     :param user:
-#     :param password:
-#     :return: DB Cursor instance object
-#     """
-#     # Define our connection string
-#     conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, user, password)
-#
-#     # get a connection, if a connect cannot be made an exception will be raised here
-#     conn = psycopg2.connect(conn_string)
-#
-#     # conn.cursor will return a cursor object, you can use this cursor to perform queries
-#     cursor = conn.cursor()
-#     return cursor
 
-def get_cursor(dbname='agotool'):
+def get_cursor():
+    platform_ = sys.platform
+    if platform_ == "linux":
+        try:
+            USER = os.environ['POSTGRES_USER']
+            PWD = os.environ['POSTGRES_PASSWORD']
+            DBNAME = os.environ['POSTGRES_DB']
+            HOST = 'db'
+            PORT = '5432'
+        except KeyError:
+            print("query.py sais there is something wrong with the Postgres config")
+            raise StopIteration
+        return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+    elif platform_ == "darwin":
+        return get_cursor_ody()
+    else:
+        print("query.get_cursor() doesn't know how to connect to Postgres")
+        raise StopIteration
+
+def get_cursor_docker(host, dbname, user, password, port):
+    """
+    e.g.
+    import os
+    user = os.environ['POSTGRES_USER']
+    pwd = os.environ['POSTGRES_PASSWORD']
+    db = os.environ['POSTGRES_DB']
+    host = 'db'
+    port = '5432'
+    cursor = get_cursor_docker(user=user, password=pwd, host=host, port=port, dbname=db)
+    # Sqlalchemy version: engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
+    """
+    # Define our connection string
+    conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, user, password)
+
+    # engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
+    conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
+    # get a connection, if a connect cannot be made an exception will be raised here
+    conn = psycopg2.connect(conn_string)
+
+    # conn.cursor will return a cursor object, you can use this cursor to perform queries
+    cursor = conn.cursor()
+    return cursor
+
+def get_cursor_ody(dbname='agotool'):
     """
     :param dbname:
     :return: DB Cursor instance object
@@ -391,8 +419,21 @@ def parse_result_child_parent(result):
 
 
 if __name__ == "__main__":
+    # import os
+    # user = os.environ['POSTGRES_USER']
+    # pwd = os.environ['POSTGRES_PASSWORD']
+    # db = os.environ['POSTGRES_DB']
+    # host = 'db'
+    # port = '5432'
+    # print("user", user)
+    # print("pwd", pwd)
+    # print("db", db)
+
+    # cursor = get_cursor()
+    # cursor = get_cursor(host=host, dbname=db, user=user, password="postgres")
     cursor = get_cursor()
-    cursor.execute("SELECT * FROM functions WHERE functions.type='KEGG' LIMIT 5")
+    cursor.execute("SELECT * FROM functions WHERE functions.type='GO' LIMIT 5")
+    cursor.execute("SELECT * FROM protein_2_function WHERE protein_2_function.an='A0A009DWB1'")
     records = cursor.fetchall()
     print(records)
 

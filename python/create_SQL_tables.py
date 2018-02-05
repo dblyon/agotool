@@ -2,25 +2,42 @@ import os, json, sys, re, fnmatch, subprocess, time, multiprocessing
 import pandas as pd
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import tools
-
+import tools, obo_parser, variables
 # ToDo
 # - filter associations based on their presence in ontologies. e.g. AN123 has GO123, GO234, GO345 but GO345 is not in obo, thus kick it out
 
+TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 BASH_LOCATION = r"/bin/bash"
-PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+# PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+PYTHON_DIR = variables.PYTHON_DIR
 sys.path.append(PYTHON_DIR)
-PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../..')))
-POSTGRESQL_DIR = os.path.join(PROJECT_DIR, "static/data/PostgreSQL")
-DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
-STATIC_DIR = os.path.join(POSTGRESQL_DIR, "static")
-TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
-TEST_DIR = os.path.join(TABLES_DIR, "test")
-FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.obo", "goslim_generic.obo", "go-basic.obo"]]
-NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
+
+PROJECT_DIR = variables.PROJECT_DIR
+POSTGRESQL_DIR = variables.POSTGRESQL_DIR
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR
+STATIC_DIR = variables.STATIC_DIR
+TABLES_DIR = variables.TABLES_DIR
+TEST_DIR = variables.TEST_DIR
+FILES_NOT_2_DELETE = variables.FILES_NOT_2_DELETE
+NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
+# PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '..')))
+# PROJECT_DIR = "/agotool_data" # docker volume
+# POSTGRESQL_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL")
+# DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
+# docker = False
+# if docker:
+#     tables_dir = r"/agotool_data/PostgreSQL/tables"
+#     static_dir = r"/agotool_data/PostgreSQL/static"
+# else:
+#     STATIC_DIR = os.path.join(POSTGRESQL_DIR, "static")
+#     TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
+# TEST_DIR = os.path.join(TABLES_DIR, "test")
+
+# FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.obo", "goslim_generic.obo", "go-basic.obo"]]
+# NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
 
 EMPTY_EGGNOG_JSON_DICT = {"KEGG": {"kegg_pathways": [], "kegg_header": ["Pathway", "SeqCount", "Frequency", "relative_fontsize"]}, "go_terms": {"go_terms": {}, "go_header": ["ID", "GO term", "Evidence", "SeqCount", "Frequency", "relative_fontsize"]}, "domains": {"domains": {}, "dom_header": ["Domain ID", "SeqCount", "Frequency", "relative_fontsize"]}}
-TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
+# TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'GO:0005575': "-22",  # 'Cellular Component',
                               'GO:0008150': "-21",  # 'Biological Process',
@@ -68,6 +85,9 @@ def create_test_tables(num_lines=5000, TABLES_DIR_=None):
         TABLES_DIR_ = TABLES_DIR
     fn_list = [os.path.join(TABLES_DIR_, fn) for fn in os.listdir(TABLES_DIR_)]
     fn_list = [fn for fn in fn_list if fn.endswith("_table.txt")]
+    fn_list_static = [os.path.join(STATIC_DIR, fn) for fn in os.listdir(STATIC_DIR)]
+    fn_list_static = [fn for fn in fn_list_static if fn.endswith("_table_static.txt")]
+    fn_list += fn_list_static
     for fn in fn_list:
         counter = 0
         with open(fn, "r") as fh_in:
@@ -1043,7 +1063,7 @@ sudo -u postgres psql agotool -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO
     call(shellcmd, shell=True)
     return fn_out
 
-def create_bash_scripts_for_DB(testing=False):
+def create_psql_script_copy_from_file_and_index(testing=True, execute_cmd_via_python=False):
     """
     removed the following deprecated statements:
     '''
@@ -1056,7 +1076,7 @@ def create_bash_scripts_for_DB(testing=False):
     :return: String(executable bash script)
     """
     global TABLES_DIR
-    print("creating bash scripts to for PostgreSQL DB creation")
+    print("creating psql scripts for PostgreSQL: copy from file and index")
     if testing:
         TABLES_DIR = TEST_DIR
     functions_table = os.path.join(TABLES_DIR, "Functions_table.txt")
@@ -1080,21 +1100,21 @@ psql -d agotool -c "CREATE TABLE go_2_slim_temp (
 psql -d agotool -c "CREATE TABLE ogs_temp (
     og text,    
     description text);"
-psql -d agotool -c "CREATE TABLE og_2_function_temp (
+psql -U postgres -d agotool -c "CREATE TABLE og_2_function_temp (
     og text,
     function text);"
-psql -d agotool -c "CREATE TABLE ontologies_temp (
+psql -U postgres -d agotool -c "CREATE TABLE ontologies_temp (
     child text,
     parent text,
     direct boolean,
     type integer);"
-psql -d agotool -c "CREATE TABLE protein_2_function_temp (
+psql -U postgres -d agotool -c "CREATE TABLE protein_2_function_temp (
     an text,
     function text ARRAY);"    
-psql -d agotool -c "CREATE TABLE protein_secondary_2_primary_an_temp (
+psql -U postgres -d agotool -c "CREATE TABLE protein_secondary_2_primary_an_temp (
     sec text,
     pri text);"
-psql -d agotool -c "CREATE TABLE protein_2_og_temp (
+psql -U postgres  -d agotool -c "CREATE TABLE protein_2_og_temp (
     an text,
     og text);"
 
@@ -1117,47 +1137,51 @@ psql -d agotool -c "CREATE INDEX protein_2_og_an_idx_temp ON protein_2_og_temp(a
     if testing:
         postgres_commands = postgres_commands.replace(" agotool", " agotool_test")
 
-    fn_out = os.path.join(POSTGRESQL_DIR, "fn_create_temp_tables_copy_and_index.sh")
+    fn_out = os.path.join(POSTGRESQL_DIR, "fn_create_temp_tables_copy_and_index.psql")
     with open(fn_out, "w") as fh:
         fh.write(postgres_commands)
-    shellcmd = "chmod 744 {}".format(fn_out)
-    call(shellcmd, shell=True)
+
+    if execute_cmd_via_python:
+        shellcmd = "chmod 744 {}".format(fn_out)
+        call(shellcmd, shell=True)
+
     return fn_out
 
-def deprecated__bash_script_drop_old_tables_rename_temp_tables_and_indices(testing=False):
+def create_psql_script_drop_old_tables_rename_temp_tables_and_indices(testing=True, execute_cmd_via_python=False):
     """
     --> everything is in drop_and_rename.psql #!!!
     """
-    global TABLES_DIR
-    print("dropping old tables and renaming temp tables and indices")
-    if testing:
-        TABLES_DIR = TEST_DIR
+    # global TABLES_DIR
+    print("creating psql scripts for PostgreSQL: drop old tables and rename temp-tables and indices")
+    # if testing:
+    #     TABLES_DIR = TEST_DIR
 
-    postgres_commands = '''#!{}
-psql -d agotool -c "DROP TABLE IF EXISTS functions, go_2_slim, ogs, og_2_function, ontologies, protein_2_function, protein_secondary_2_primary_an, protein_2_og;"        
+    postgres_commands = """DROP TABLE IF EXISTS functions, go_2_slim, ogs, og_2_function, ontologies, protein_2_function, protein_secondary_2_primary_an, protein_2_og;
+ALTER TABLE functions_temp RENAME TO functions;
+ALTER TABLE go_2_slim_temp RENAME TO go_2_slim;
+ALTER TABLE ogs_temp RENAME TO ogs;
+ALTER TABLE og_2_function_temp RENAME TO og_2_function;
+ALTER TABLE ontologies_temp RENAME TO ontologies;
+ALTER TABLE protein_2_function_temp RENAME TO protein_2_function;
+ALTER TABLE protein_secondary_2_primary_an_temp RENAME TO protein_secondary_2_primary_an;
+ALTER TABLE protein_2_og_temp RENAME TO protein_2_og;
 
-psql -d agotool -c "ALTER TABLE functions_temp RENAME TO functions;"
-psql -d agotool -c "ALTER TABLE go_2_slim_temp RENAME TO go_2_slim;"
-psql -d agotool -c "ALTER TABLE ogs_temp RENAME TO ogs;"
-psql -d agotool -c "ALTER TABLE og_2_function_temp RENAME TO og_2_function;"
-psql -d agotool -c "ALTER TABLE ontologies_temp RENAME TO ontologies;"
-psql -d agotool -c "ALTER TABLE protein_2_function_temp RENAME TO protein_2_function;"
-psql -d agotool -c "ALTER TABLE protein_secondary_2_primary_an_temp RENAME TO protein_secondary_2_primary_an;"
-psql -d agotool -c "ALTER TABLE protein_2_og_temp RENAME TO protein_2_og;"
+ALTER INDEX ogs_og_idx_temp RENAME TO ogs_og_idx;
+ALTER INDEX og_2_function_og_idx_temp RENAME TO og_2_function_og_idx;
+ALTER INDEX protein_2_function_an_idx_temp RENAME TO protein_2_function_an_idx;
+ALTER INDEX protein_2_og_an_idx_temp RENAME TO protein_2_og_an_idx;"""
 
-psql -d agotool -c "ALTER INDEX ogs_og_idx_temp RENAME TO ogs_og_idx;"
-psql -d agotool -c "ALTER INDEX og_2_function_og_idx_temp RENAME TO og_2_function_og_idx;"
-psql -d agotool -c "ALTER INDEX protein_2_function_an_idx_temp RENAME TO protein_2_function_an_idx;"
-psql -d agotool -c "ALTER INDEX protein_2_og_an_idx_temp RENAME TO protein_2_og_an_idx;"'''.format(BASH_LOCATION)
+    # if testing:
+    #     postgres_commands = postgres_commands.replace(" agotool", " agotool_test")
 
-    if testing:
-        postgres_commands = postgres_commands.replace(" agotool", " agotool_test")
-
-    fn_out = os.path.join(POSTGRESQL_DIR, "fn_create_temp_tables_copy_and_index.sh")
+    fn_out = os.path.join(POSTGRESQL_DIR, "fn_create_temp_tables_copy_and_index.psql")
     with open(fn_out, "w") as fh:
         fh.write(postgres_commands)
-    shellcmd = "chmod 744 {}".format(fn_out)
-    call(shellcmd, shell=True)
+
+    if execute_cmd_via_python:
+        shellcmd = "chmod 744 {}".format(fn_out)
+        call(shellcmd, shell=True)
+
     return fn_out
 
 def call_script(BASH_LOCATION, script_fn):
@@ -1172,7 +1196,7 @@ def run_PostgreSQL_create_tables_and_build_DB(debug=False, testing=False, verbos
         # print(find_tables_to_remove())
         ### PostgreSQL DB creation, copy from file and indexing
         create_test_tables(50000, TABLES_DIR)
-        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=testing)
+        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         tools.print_runtime(start_time)
@@ -1184,7 +1208,7 @@ def run_PostgreSQL_create_tables_and_build_DB(debug=False, testing=False, verbos
         remove_files(find_tables_to_remove())
 
         ### PostgreSQL DB creation, copy from file and indexing
-        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=testing) # deprecated since calling this directly via .psql file
+        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing) # deprecated since calling this directly via .psql file
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         print("PostgreSQL flat files created, ready to read from file and index")
@@ -1197,19 +1221,21 @@ def run_create_tables_for_PostgreSQL(debug=False, testing=False, verbose=True):
         # print(find_tables_to_remove())
         ### PostgreSQL DB creation, copy from file and indexing
         create_test_tables(50000, TABLES_DIR)
-        fn_create_DB_copy_and_index_tables = create_bash_scripts_for_DB(testing=testing)
+        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
         print("PostgreSQL DB creation, copy from file, and indexing")
         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
         tools.print_runtime(start_time)
     else:
         start_time = time.time()
+        print("#"*80)
         print("Parsing downloaded content and writing tables for PostgreSQL import")
         create_tables(verbose=verbose)
         create_test_tables(50000, TABLES_DIR)
-       # remove_files(find_tables_to_remove())
+        remove_files(find_tables_to_remove())
 
         ### PostgreSQL table file creation, (copy from file and indexing run from .psql script)
         print("PostgreSQL flat files created, ready to read from file and index")
+        print("#" * 80)
         tools.print_runtime(start_time)
 
 def count_line_numbers(fn):
@@ -1234,7 +1260,11 @@ def sanity_check_table_dimensions(testing=False):
             fh.write(basename + ": " + str(lines_count) + "\n")
         fh.write("#"*50 + "\n")
     # count current line numbers
-    table_name_2_number_of_lines_dict_current = parse_table_line_numbers_count_log(line_numbers_count_log)
+    try:
+        table_name_2_number_of_lines_dict_current = parse_table_line_numbers_count_log(line_numbers_count_log)
+    except FileNotFoundError:
+        print("Sanity check for number of lines in PostgreSQL tables could not pass since line_numbers_count_log.txt does not exist.\n")
+        return False
     # compare line numbers
     if are_current_number_of_lines_larger(table_name_2_number_of_lines_dict_previous, table_name_2_number_of_lines_dict_current):
         print("Sanity check for number of lines in PostgreSQL tables passed.\n")
@@ -1275,10 +1305,9 @@ def are_current_number_of_lines_larger(previous_dict, current_dict):
 
 
 if __name__ == "__main__":
-    debug = True
+    debug = False
     testing = False
     verbose = True
-    if not debug:
-        run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)
-    else:
-        sanity_check_table_dimensions(testing=testing)
+    run_create_tables_for_PostgreSQL(debug=debug, testing=testing, verbose=verbose)
+    sanity_check_table_dimensions(testing=testing)
+    create_test_tables(num_lines=5000)
