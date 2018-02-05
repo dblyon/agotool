@@ -4,15 +4,19 @@ import flask
 import wtforms
 from wtforms import fields
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-import query, userinput, run, cluster_filter, obo_parser
-
-WORK_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-TEMPLATE_DIR = os.path.abspath(os.path.realpath(os.path.join(WORK_DIR, "static/templates")))
+import query, userinput, run, cluster_filter, obo_parser, variables
 
 ###############################################################################
-debug = True
-preload = False
-profiling = False
+WEBSERVER_DATA = variables.WEBSERVER_DATA
+EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
+SESSION_FOLDER_ABSOLUTE = variables.SESSION_FOLDER_ABSOLUTE
+SESSION_FOLDER_RELATIVE = variables.SESSION_FOLDER_RELATIVE
+TEMPLATES_FOLDER_ABSOLUTE = variables.TEMPLATES_FOLDER_ABSOLUTE
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR
+LOG_FN_WARNINGS_ERRORS = variables.LOG_FN_WARNINGS_ERRORS
+debug = variables.DEBUG
+preload = variables.PRELOAD
+profiling = variables.PROFILING
 ###############################################################################
 
 ###############################################################################
@@ -39,8 +43,6 @@ def getitem(obj, item, default):
 ###############################################################################
 # ToDo:
 # - load 'Ontologies_table' once
-
-
 # - post DataBase schema for RestAPI lookup
 # - explain sources and update intervals
 # - downloads page for existing fasta
@@ -73,7 +75,8 @@ def getitem(obj, item, default):
 
 ### Create the Flask application and the Flask-SQLAlchemy object.
 # app = flask.Flask(__name__)
-app = flask.Flask(__name__, template_folder=TEMPLATE_DIR)
+# app = flask.Flask(__name__, template_folder=TEMPLATE_DIR)
+app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
 
 if profiling:
     from werkzeug.contrib.profiler import ProfilerMiddleware
@@ -97,23 +100,30 @@ if profiling:
 # if not debug:
 #     db = flask_sqlalchemy.SQLAlchemy(app)
 #     db.Model.metadata.reflect(db.engine)
-current_working_dir = os.getcwd()
-WEBSERVER_DATA = os.path.join(current_working_dir + '/data')
-EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
-SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
-SESSION_FOLDER_RELATIVE = '/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/web/templates')
+
+# TEMPLATE_DIR = os.path.abspath(os.path.realpath(os.path.join(WORK_DIR, "static/templates")))
+# TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/web/templates')
+# current_working_dir = os.getcwd()
+# WEBSERVER_DATA = os.path.join(current_working_dir + '/data')
+# EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
+# SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
+# SESSION_FOLDER_RELATIVE = '/data/session'
+
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 
-HOMEDIR = os.path.expanduser("~")
+
+# HOMEDIR = os.path.expanduser("~")
 # FN_DATABASE_SCHEMA = os.path.join(HOMEDIR, "modules/cpr/metaprot/sql/DataBase_Schema_FDRiter.md")
 # FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
 
 ### Additional path settings for flask
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(APP_ROOT, 'data')
-SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
+APP_ROOT = variables.APP_ROOT
+DATA_DIR = variables.DATA_DIR
+SCRIPT_DIR = variables.SCRIPT_DIR
+# APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+# DATA_DIR = os.path.join(APP_ROOT, 'data')
+# SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
 app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20
 
 logger = logging.getLogger()
@@ -121,7 +131,6 @@ logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
-DOWNLOADS_DIR = os.path.abspath(os.path.join(WEBSERVER_DATA, "downloads"))
 
 ###############################################################################
 ##### Create the Flask-Restless API manager.
@@ -147,7 +156,12 @@ if not app.debug:
     #########################
     # log warnings and errors
     from logging import FileHandler
-    file_handler = FileHandler("./logs/warnings_errors_log.txt", mode="a", encoding="UTF-8")
+
+
+    if not os.path.exists(LOG_FN_WARNINGS_ERRORS):
+        fh = open(LOG_FN_WARNINGS_ERRORS, "w")
+        fh.close()
+    file_handler = FileHandler(LOG_FN_WARNINGS_ERRORS, mode="a", encoding="UTF-8")
     file_handler.setFormatter(logging.Formatter("#"*80 + "\n" + '%(asctime)s %(levelname)s: %(message)s'))
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
@@ -163,7 +177,7 @@ def log_activity(string2log):
 
 ################################################################################
 ##### Maximum Time for MCL clustering
-max_timeout = 10 # minutes
+MAX_TIMEOUT = variables.MAX_TIMEOUT
 ################################################################################
 
 ################################################################################
@@ -177,10 +191,10 @@ if preload:
     # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
     KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
 
-for go_term in go_dag.keys():
-    parents = go_dag[go_term].get_all_parents()
+    for go_term in go_dag.keys():
+        parents = go_dag[go_term].get_all_parents()
 
-filter_ = cluster_filter.Filter(go_dag)
+    filter_ = cluster_filter.Filter(go_dag)
 
 ################################################################################
 # index.html
@@ -452,6 +466,9 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
+            if debug:
+                print(ui.get_foreground_an_set())
+
             header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
@@ -590,7 +607,7 @@ def results_clustered():
     if not form.validate():
         return generate_result_page(header, results, gocat_upk, indent, session_id, form=form)
     try:
-        mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, max_timeout)
+        mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
         cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
     except cluster_filter.TimeOutException:
         return generate_result_page(header, results, gocat_upk, indent, session_id, form=form, errors=['MCL timeout: The maximum time (20min) for clustering has exceeded. Your original results are being displayed.'])
@@ -634,5 +651,5 @@ if __name__ == "__main__":
     ################################################################################
 
     # app.run(host='0.0.0.0', debug=True, processes=8)
-    app.run(host='0.0.0.0', port=5911, processes=8, debug=debug)
+    app.run(host='0.0.0.0', port=5911, processes=2, debug=debug)
 
