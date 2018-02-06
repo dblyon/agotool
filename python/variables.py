@@ -4,13 +4,12 @@ import os, sys, multiprocessing
 DEBUG = True
 PRELOAD = True
 PROFILING = False
-
 DOCKER = False
-platform_ = sys.platform
-if platform_ == "linux":
-    DOCKER = True
-elif platform_ == "darwin":
-    DOCKER = False
+# platform_ = sys.platform
+# if platform_ == "linux":
+#     DOCKER = True
+# elif platform_ == "darwin":
+#     DOCKER = False
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # sys.path.append(PYTHON_DIR)

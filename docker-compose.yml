@@ -28,7 +28,7 @@ services:
       - db
 
   nginx:
-    image: "nginx:1.13.5"
+    image: "nginx:1.13.8"
     ports:
       - "8080:80"
     volumes:

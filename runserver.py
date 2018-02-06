@@ -22,6 +22,8 @@ DEBUG = variables.DEBUG
 PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
 ###############################################################################
+# ToDo 2018
+# - remove empty sets (key=AN, val=set()) from assoc_dict (maybe
 
 ###############################################################################
 #### bokeh visualisation
@@ -443,14 +445,15 @@ def results():
     # print('getting here 1')
     if request.method == 'POST' and form.validate():
         # print('getting here 2.a')
-        input_fs = request.files['userinput_file']
-        # try:
-        #     input_fs = request.files['userinput_file']
-        #     # print("input_fs", input_fs, type(input_fs))
-        # except:
-        #     # print('getting here 2.b')
-        #     # print("input_fs", input_fs, type(input_fs))
-        #     input_fs = None
+        # input_fs = request.files['userinput_file']
+        try:
+            print('getting here 2.b1')
+            input_fs = request.files['userinput_file']
+            print("input_fs", input_fs, type(input_fs))
+        except:
+            print('getting here 2.b2')
+            # print("input_fs", input_fs, type(input_fs))
+            input_fs = None
 
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data,
             background_string=form.background_textarea.data,
@@ -480,7 +483,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
 
             if DEBUG:
                 print("#"*80)
-                print(ui.get_foreground_an_set())
+                # print(ui.get_foreground_an_set())
                 print("#" * 80)
             #     return render_template('results_zero.html')
 
@@ -669,4 +672,5 @@ if __name__ == "__main__":
     ################################################################################
 
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
-    app.run(host='0.0.0.0', port=5911, processes=2, debug=variables.DEBUG)
+    # processes should be "1", otherwise nginx throws 502 errors with large files
+    app.run(host='0.0.0.0', port=5911, processes=1, debug=variables.DEBUG)

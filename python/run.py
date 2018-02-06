@@ -19,14 +19,17 @@ def run(pqo, go_dag, goslim_dag, upk_dag, ui, gocat_upk, go_slim_or_basic, inden
     function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
 
     assoc_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim=go_slim_or_basic)
-    if variables.DEBUG:
-        print("association dict", assoc_dict)
+
+    # if variables.DEBUG:
+    #     print("association dict", assoc_dict)
 
 
     ### now convert assoc_dict into proteinGroups to consensus assoc_dict
     proteinGroups_list = ui.get_all_unique_proteinGroups()
     assoc_dict_pg = tools.convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list)
     assoc_dict.update(assoc_dict_pg)
+    # assoc_dict: remove ANs with empty set as values
+    assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1}
     dag = pick_dag_from_function_type_and_basic_or_slim(function_type, go_slim_or_basic, go_dag, goslim_dag, upk_dag, KEGG_pseudo_dag)
     enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk, function_type)
     header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)

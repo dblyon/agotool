@@ -84,16 +84,28 @@ docker exec -it 1769d6ea0667 psql -U postgres -d agotool_test "\dt"
 
 docker-compose run --rm flaskapp /bin/bash -c "python /opt/services/flaskapp/src/python/update_manager.py"
 
-
-#### Fixing file stream issues for agotool
-# agotool old virtual server
+##########################################################################################
+############################## Fixing file stream issues for agotool
+### agotool old virtual server
 files work fine
 copy and paste fields work fine as well
 --> save current state in new git branch (data folders will be missing)
 ### git branch "agodebian" running on Ody
 files work fine (GO, KEGG and UniProt)
 copy and paste fields don't
+--> check out requirments_debian.txt for difference?
+--> python 3.4.2 instead of 3.6.
 ### git branch "docker" running on Ody
 files work fine (GO, KEGG and UniProt)
 copy and paste fields don't
+### docker running on Ody
+files DON'T work
 
+# processes should be "1", otherwise nginx throws 502 errors with large files
+app.run(host='0.0.0.0', port=5911, processes=1, debug=variables.DEBUG)
+
+nginx settings:
+proxy_request_buffering off;
+proxy_buffering off;
+
+##########################################################################################

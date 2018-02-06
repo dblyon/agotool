@@ -44,9 +44,11 @@ class Userinput(object):
         self.parse_input()
 
     def parse_input(self):
-        self.fn.read()
-        if self.fn.tell() != 0:
-            self.fn.seek(0)
+        if self.fn is not None:
+            # self.fn.read()
+
+        # if self.fn.tell() != 0:
+        #     self.fn.seek(0)
             is_abundance_correction, self.decimal = self.check_userinput(self.fn)
         else: # use copy & paste field
             self.fn = StringIO()
