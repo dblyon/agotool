@@ -24,6 +24,18 @@ RUN apt-get update \
         libatlas-base-dev \
     && apt-get clean
 
+# Install MCL for clustering, install before python packages in case these change
+RUN mkdir -p /software
+RUN cd /software \
+    && wget http://micans.org/mcl/src/mcl-14-137.tar.gz \
+    && tar -xzvf mcl-14-137.tar.gz \
+    && rm mcl-14-137.tar.gz \
+    && cd /software/mcl-14-137 \
+    && ./configure \
+    && make install \
+    && cd /software \
+    && rm -rf /software/mcl-14-137
+
 # Install Python packages
 RUN pip install --upgrade pip \
     && pip install \
@@ -37,22 +49,10 @@ RUN mkdir -p /opt/services/flaskapp/src
 #VOLUME ["/opt/services/flaskapp/src"]
 # We copy the requirements.txt file first to avoid cache invalidations
 RUN echo $PYTHONPATH
-COPY requirements.txt /opt/services/flaskapp/src/
+COPY ./app/requirements.txt /opt/services/flaskapp/src/
 WORKDIR /opt/services/flaskapp/src
 RUN pip install -r requirements.txt
 COPY . /opt/services/flaskapp/src
-
-# Install MCL for clustering
-RUN mkdir -p /software
-RUN cd /software \
-    && wget http://micans.org/mcl/src/mcl-14-137.tar.gz \
-    && tar -xzvf mcl-14-137.tar.gz \
-    && rm mcl-14-137.tar.gz \
-    && cd /software/mcl-14-137 \
-    && ./configure \
-    && make install \
-    && cd /software \
-    && rm -rf /software/mcl-14-137
 
 WORKDIR /opt/services/flaskapp/src
 EXPOSE 5911
