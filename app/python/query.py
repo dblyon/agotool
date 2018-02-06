@@ -297,6 +297,7 @@ class PersistentQueryObject:
             an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
         return an_2_functions_dict
 
+
 def get_association_dict_old(protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim", backtracking=True):
     """
     # def get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim"):

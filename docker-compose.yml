@@ -1,26 +1,37 @@
 version: '3'
 
-
 services:
 
   db: # name
-    image: "postgres:latest"
+    image: "postgres:10"
     volumes:
-      - "dbdata:/var/lib/postgresql/data" # named volume, persistent data, lives in special directory from docker
-#      - "agotool_data:/agotool_data"
-      - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
+      # named volume, persistent data, lives in special directory from docker
+      # created to build Postgres data in it, even if Postgres container is removed Postgres data persists.
+      - "dbdata:/var/lib/postgresql/data"
+
+      # named volume. to copy data into with e.g.
+      # docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+      - "agotool_data:/agotool_data"
+
+      # bind mount to mount files from the host to the container
+      # - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
     env_file:
-      - env_file
+      - ./app/env_file
     networks:
       - db_nw
 
   flaskapp:
     build: .
     volumes:
-      - .:/opt/services/flaskapp/src
-#      - "agotool_data:/agotool_data"
+      # bind mounted volume from host, e.g. RW access from container.
+      # use git to push/pull changes. set source to git repo directory e.g. /var/www/agotool on virtual server
+#      - .:/opt/services/flaskapp/src
+      - ./app/:/opt/services/flaskapp/src
+
+      # named volume. persistent data container that is managed by docker.
+      - "agotool_data:/agotool_data"
     env_file:
-      - env_file
+      - ./app/env_file
     networks:
       - db_nw
       - web_nw

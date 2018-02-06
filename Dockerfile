@@ -41,5 +41,19 @@ COPY requirements.txt /opt/services/flaskapp/src/
 WORKDIR /opt/services/flaskapp/src
 RUN pip install -r requirements.txt
 COPY . /opt/services/flaskapp/src
+
+# Install MCL for clustering
+RUN mkdir -p /software
+RUN cd /software \
+    && wget http://micans.org/mcl/src/mcl-14-137.tar.gz \
+    && tar -xzvf mcl-14-137.tar.gz \
+    && rm mcl-14-137.tar.gz \
+    && cd /software/mcl-14-137 \
+    && ./configure \
+    && make install \
+    && cd /software \
+    && rm -rf /software/mcl-14-137
+
+WORKDIR /opt/services/flaskapp/src
 EXPOSE 5911
 CMD ["python", "runserver.py"]

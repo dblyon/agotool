@@ -4,7 +4,7 @@ import os, sys, multiprocessing
 DEBUG = True
 PRELOAD = True
 PROFILING = False
-DOCKER = False
+DOCKER = True
 # platform_ = sys.platform
 # if platform_ == "linux":
 #     DOCKER = True
@@ -23,7 +23,10 @@ WEBSERVER_DATA = os.path.join(PROJECT_DIR, 'data')
 EXAMPLE_FOLDER = os.path.join(PROJECT_DIR, 'data/exampledata')
 SESSION_FOLDER_ABSOLUTE = os.path.join(PROJECT_DIR, 'data/session')
 SESSION_FOLDER_RELATIVE = '/data/session'
-TEMPLATES_FOLDER_ABSOLUTE = os.path.join(PROJECT_DIR, 'static/templates')
+
+FLASK_DATA = "/opt/services/flaskapp/src"
+TEMPLATES_FOLDER_ABSOLUTE = os.path.join(FLASK_DATA, 'static/templates')
+
 
 # obo files for PRELOAD/persistent objects
 FN_KEYWORDS = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/keywords-all.obo")

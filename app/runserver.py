@@ -23,7 +23,9 @@ PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
 ###############################################################################
 # ToDo 2018
-# - remove empty sets (key=AN, val=set()) from assoc_dict (maybe
+# - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
+# - install MCL clustering on flask container
+# -
 
 ###############################################################################
 #### bokeh visualisation
@@ -186,6 +188,7 @@ MAX_TIMEOUT = variables.MAX_TIMEOUT
 if PRELOAD:
     pqo = query.PersistentQueryObject()
     ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+    # print("FN_KEYWORDS", FN_KEYWORDS)
     upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
     goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
     go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
@@ -442,17 +445,10 @@ def results():
     results_filtered: reduced version of results
     """
     form = Enrichment_Form(request.form)
-    # print('getting here 1')
     if request.method == 'POST' and form.validate():
-        # print('getting here 2.a')
-        # input_fs = request.files['userinput_file']
         try:
-            print('getting here 2.b1')
             input_fs = request.files['userinput_file']
-            print("input_fs", input_fs, type(input_fs))
         except:
-            print('getting here 2.b2')
-            # print("input_fs", input_fs, type(input_fs))
             input_fs = None
 
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data,
@@ -461,9 +457,7 @@ def results():
             num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data,
             foreground_n=form.foreground_n.data, background_n=form.background_n.data)
 
-        print('getting here 2.c')
         if ui.check:
-            print('getting here 3')
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
@@ -481,12 +475,6 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
-            if DEBUG:
-                print("#"*80)
-                # print(ui.get_foreground_an_set())
-                print("#" * 80)
-            #     return render_template('results_zero.html')
-
             header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
@@ -496,11 +484,9 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.p_value_multipletesting.data, KEGG_pseudo_dag)
 
         else:
-            print('getting here 4')
             return render_template('info_check_input.html')
 
         if len(results) == 0:
-            print('getting here 5')
             return render_template('results_zero.html')
         else:
             session_id = generate_session_id()
@@ -553,11 +539,13 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form, e
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
+    print("fn_results_orig_absolute", fn_results_orig_absolute)
+    print("fn_results_orig_relative", fn_results_orig_relative)
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
     with open(fn_results_orig_absolute, 'w') as fh:
         fh.write(tsv)
     return render_template('results.html', header=header, results=results2display, errors=errors,
-                           file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices,
+                           file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
 
 ################################################################################

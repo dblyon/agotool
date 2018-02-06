@@ -84,6 +84,29 @@ docker exec -it 1769d6ea0667 psql -U postgres -d agotool_test "\dt"
 
 docker-compose run --rm flaskapp /bin/bash -c "python /opt/services/flaskapp/src/python/update_manager.py"
 
+### Tree structure of repo
+.
+├── app
+│   ├── conf.d
+│   ├── python
+│   └── static
+│       ├── css
+│       ├── js
+│       └── templates
+└── data
+    ├── Background_Reference_Proteomes
+    ├── PostgreSQL
+    │   ├── downloads
+    │   ├── static
+    │   └── tables
+    │       └── test
+    ├── exampledata
+    ├── logs
+    └── session
+
+
+
+
 ##########################################################################################
 ############################## Fixing file stream issues for agotool
 ### agotool old virtual server
