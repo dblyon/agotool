@@ -5,6 +5,7 @@ DEBUG = True
 PRELOAD = True
 PROFILING = False
 DOCKER = True
+skip_slow_downloads = True
 # platform_ = sys.platform
 # if platform_ == "linux":
 #     DOCKER = True
