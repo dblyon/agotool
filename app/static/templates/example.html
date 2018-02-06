@@ -1,7 +1,11 @@
 {% extends "layout.html" %}
+
 {% block head %}
+
 {% endblock head %}
+
 {% block content %}
+
 <div class="container-fluid">
     <h3>Example data</h3>
     <br>
@@ -16,12 +20,36 @@
         <td><a href="{{ url_for('download_example_data', filename='ExampleData_GObasic_results_orig.txt') }}">GO-term (basic) results</a> and</td>
         <td><a href="{{ url_for('download_example_data', filename='ExampleData_UniProtKeywords_results_orig.txt') }}">UniProt-keywords results</a></td>
 </div>
+{# ONLY TEMP DEBUG STUFF BELOW #}
+{#        <div class="row">#}
+{#            <div class="col-md-2">#}
+{#                <br>#}
+{#                <a name="file_path" href="{{ url_for('download_example_data', filename='ExampleData.txt') }}" class="btn btn-primary">Download results</a>#}
+{#            </div>#}
+{#            <div class="col-md-5">#}
+{#                <h4>Download results file</h4>#}
+{#                Lorem ipsum dolor amet fixie subway tile cray literally. Trust fund synth lo-fi yuccie keffiyeh fingerstache kinfolk. Ethical subway tile hot chicken, sriracha humblebrag dreamcatcher forage pok pok literally. Food truck small batch irony, tofu plaid swag celiac 3 wolf moon mixtape four loko coloring book gastropub taiyaki. Four dollar toast snackwave everyday carry, meh hell of disrupt yuccie celiac pour-over. Unicorn 8-bit vice viral portland palo santo YOLO kombucha VHS four dollar toast chia lumbersexual fixie roof party.#}
+{#            </div>#}
+{#        </div>#}
 
-        <div class="row">
-            <h4>Download results file</h4>
+
 {#            <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>#}
-            <a name="file_path" href="{{ url_for('download_example_data', filename='ExampleData.txt') }}" class="btn btn-primary">Download results</a>
+{#            <a name="file_path" href="{{ url_for('download_example_data', filename='ExampleData.txt') }}" class="btn btn-primary">Download results</a>#}
 {#          <a href="{{ url_for('name of python function', filename='fn to serve') }}">some text</a>#}
-        </div>
-        <br>
+{#        </div></div>#}
+
+{#    <div class="row" id="copy_paste_field">#}
+{#        <div class="col-md-5">#}
+{#            bubu#}
+{#            {{ form.foreground_textarea.label }}:#}
+{#            {{ form.foreground_textarea(rows="5", class="form-control") }}#}
+{#        </div>#}
+{#        <div class="col-md-5">#}
+{#            gaga#}
+{#            {{ form.background_textarea.label }}:#}
+{#            {{ form.background_textarea(rows="5", class="form-control") }}#}
+{#        </div>#}
+{#    </div>#}
+
+{#        <br>#}
 {% endblock content %}

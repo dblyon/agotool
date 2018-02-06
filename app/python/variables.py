@@ -37,14 +37,18 @@ FN_GO_BASIC = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/go-basic.obo")
 MAX_TIMEOUT = 10 # minutes
 
 # Flask app
-APP_ROOT = PROJECT_DIR
+APP_ROOT = FLASK_DATA
 DATA_DIR = os.path.join(APP_ROOT, 'data')
-SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
+# SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
+STATIC_DIR = os.path.join(APP_ROOT, 'static')
 
 # automatic updates
 POSTGRESQL_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL")
 TABLES_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL/tables")
-STATIC_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL/static")
+
+#!!! NAME COLLISION
+STATIC_POSTGRES_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL/static")
+
 TEST_DIR = os.path.join(TABLES_DIR, "test")
 DOWNLOADS_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL/downloads")
 DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'data/PostgreSQL', directory) for directory in ["downloads", "session"]]

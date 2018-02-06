@@ -5,7 +5,6 @@ import wtforms
 from wtforms import fields
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, cluster_filter, obo_parser, variables
-
 ###############################################################################
 WEBSERVER_DATA = variables.WEBSERVER_DATA
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -21,35 +20,13 @@ FN_GO_BASIC = variables.FN_GO_BASIC
 DEBUG = variables.DEBUG
 PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
-# Maximum Time for MCL clustering
-MAX_TIMEOUT = variables.MAX_TIMEOUT
+MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 ###############################################################################
 # ToDo 2018
 # - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
 # - install MCL clustering on flask container --> DONE
 # - fix download results button link
 # - update bootstrap version
-###############################################################################
-#### bokeh visualisation
-# if not DEBUG:
-#     from bokeh.embed import components
-#     from bokeh.plotting import figure
-#     from bokeh.resources import INLINE
-#     from bokeh.util.string import encode_utf8
-# colors = {
-#     'Black': '#000000',
-#     'Red':   '#FF0000',
-#     'Green': '#00FF00',
-#     'Blue':  '#0000FF'}
-
-def getitem(obj, item, default):
-    if item not in obj:
-        return default
-    else:
-        return obj[item]
-###############################################################################
-
-
 ###############################################################################
 # ToDo:
 # - load 'Ontologies_table' once
@@ -75,17 +52,15 @@ def getitem(obj, item, default):
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics
 ###############################################################################
 
-# ECHO = False
-# TESTING = False # which DB are we connecting to ('metaprot' or 'test')
-# DO_LOGGING = False
-# DEBUG = False # do not attempt connection to PostgreSQL
-# volume_mountpoint=None # mount point set at 'docker run -v LocalPath:MountPoint'
-# if not DEBUG:
-#     connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
-
+###############################################################################
+def getitem(obj, item, default):
+    if item not in obj:
+        return default
+    else:
+        return obj[item]
+###############################################################################
 ### Create the Flask application and the Flask-SQLAlchemy object.
-app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE,
-static_url_path=variables.SESSION_FOLDER_ABSOLUTE)
+app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
 
 if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
@@ -96,69 +71,19 @@ if PROFILING:
     ## pyprof2calltree -i somethingsomething.prof -o something.prof
     ## open "something.prof" with qcachegrind -o something.prof
 
-# if not DEBUG:
-#     app.config['SQLALCHEMY_DATABASE_URI'] = connection.get_URL()
-#     app.config['SQLALCHEMY_ECHO'] = False
-#     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# app.config['SQLALCHEMY_RECORD_QUERIES'] = False
-
-###################################
-# Wrap the Api with swagger.docs. It is a thin wrapper around the Api class that adds some swagger smarts
-# api = swagger.docs(Api(app), apiVersion='0.1')
-###################################
-# if not DEBUG:
-#     db = flask_sqlalchemy.SQLAlchemy(app)
-#     db.Model.metadata.reflect(db.engine)
-
-# TEMPLATE_DIR = os.path.abspath(os.path.realpath(os.path.join(WORK_DIR, "static/templates")))
-# TEMPLATES_FOLDER_ABSOLUTE = os.path.join(current_working_dir + '/web/templates')
-# current_working_dir = os.getcwd()
-# WEBSERVER_DATA = os.path.join(current_working_dir + '/data')
-# EXAMPLE_FOLDER = os.path.join(WEBSERVER_DATA + '/exampledata')
-# SESSION_FOLDER_ABSOLUTE = os.path.join(WEBSERVER_DATA + '/session')
-# SESSION_FOLDER_RELATIVE = '/data/session'
-
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
-
-# HOMEDIR = os.path.expanduser("~")
-# FN_DATABASE_SCHEMA = os.path.join(HOMEDIR, "modules/cpr/metaprot/sql/DataBase_Schema_FDRiter.md")
-# FN_DATABASE_SCHEMA_WITH_LINKS = os.path.join(TEMPLATES_FOLDER_ABSOLUTE, "db_schema.md")
-
 ### Additional path settings for flask
 APP_ROOT = variables.APP_ROOT
 DATA_DIR = variables.DATA_DIR
-SCRIPT_DIR = variables.SCRIPT_DIR
-# APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-# DATA_DIR = os.path.join(APP_ROOT, 'data')
-# SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
+STATIC_DIR = variables.STATIC_DIR
 app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20
 
 logger = logging.getLogger()
 logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
-
-###############################################################################
-##### Create the Flask-Restless API manager.
-# manager = flask_restless.APIManager(app, flask_sqlalchemy_db=db)
-### Create API endpoints, which will be available at /api/<tablename> by
-### default. Allowed HTTP methods can be specified as well.
-# manager.create_api(models.Proteins, methods=['GET'], primary_key="an", include_columns=["an", "header", "aaseq"])
-# manager.create_api(models.Peptides, methods=['GET'], primary_key="aaseq", include_columns=["aaseq", "an", "missedcleavages", "length"])
-# manager.create_api(models.Taxa, methods=['GET'], primary_key="taxid", include_columns=["taxname", "taxid", "scientific"])
-# manager.create_api(models.Taxid_2_rank, methods=['GET'], primary_key="taxid", include_columns=["taxid", "rank"])
-# manager.create_api(models.Ogs, methods=['GET'], primary_key="og", include_columns=["og", "taxid", "description"])
-# manager.create_api(models.Functions, methods=['GET'], primary_key="an", include_columns=["an", "type", "name"])
-# manager.create_api(models.Ontologies, methods=['GET'], primary_key="child", include_columns=["child", "parent", "direct"])
-# manager.create_api(models.Protein_2_og, methods=['GET'], primary_key="an", include_columns=["an", "og"])
-# manager.create_api(models.Protein_2_version, methods=['GET'], primary_key="an", include_columns=["an", "version"])
-# manager.create_api(models.Og_2_function, methods=['GET'], primary_key="og", include_columns=["og", "function"])
-# manager.create_api(models.Protein_2_function, methods=['GET'], primary_key="an", include_columns=["an", "function"])
-# manager.create_api(models.Function_2_definition, methods=['GET'], primary_key="function", include_columns=["function", "definition"])
-# manager.create_api(models.Go_2_slim, methods=['GET'], primary_key="an", include_columns=["an", "slim"])
-# manager.create_api(models.Protein_2_taxid, methods=['GET'], primary_key="an", include_columns=["an", "taxid"])
 
 if not app.debug:
     #########################
@@ -179,9 +104,8 @@ def log_activity(string2log):
     log_activity_fh.flush()
 
 ################################################################################
-
+# pre-load objects
 ################################################################################
-#### pre-load objects
 if PRELOAD:
     pqo = query.PersistentQueryObject()
     ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
@@ -269,9 +193,7 @@ def FAQ():
 ################################################################################
 # helper functions
 ################################################################################
-
-#####
-# validation of user inputs
+##### validation of user inputs
 def validate_float_larger_zero_smaller_one(form, field):
     if not 0 < field.data < 1:
         raise wtforms.ValidationError(" number must be: 0 < number < 1")
