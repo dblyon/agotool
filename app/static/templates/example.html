@@ -1,11 +1,7 @@
 {% extends "layout.html" %}
-
 {% block head %}
-
 {% endblock head %}
-
 {% block content %}
-
 <div class="container-fluid">
     <h3>Example data</h3>
     <br>
@@ -20,5 +16,12 @@
         <td><a href="{{ url_for('download_example_data', filename='ExampleData_GObasic_results_orig.txt') }}">GO-term (basic) results</a> and</td>
         <td><a href="{{ url_for('download_example_data', filename='ExampleData_UniProtKeywords_results_orig.txt') }}">UniProt-keywords results</a></td>
 </div>
-	
+
+        <div class="row">
+            <h4>Download results file</h4>
+{#            <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>#}
+            <a name="file_path" href="{{ url_for('download_example_data', filename='ExampleData.txt') }}" class="btn btn-primary">Download results</a>
+{#          <a href="{{ url_for('name of python function', filename='fn to serve') }}">some text</a>#}
+        </div>
+        <br>
 {% endblock content %}

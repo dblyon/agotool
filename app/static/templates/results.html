@@ -55,7 +55,8 @@
 
         <div class="row">
             <h4>Download results file</h4>
-            <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>
+{#            <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>#}
+            <a name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}" class="btn btn-primary">Download results</a>
         </div>
         <br>
 </div>

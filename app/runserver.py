@@ -21,12 +21,14 @@ FN_GO_BASIC = variables.FN_GO_BASIC
 DEBUG = variables.DEBUG
 PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
+# Maximum Time for MCL clustering
+MAX_TIMEOUT = variables.MAX_TIMEOUT
 ###############################################################################
 # ToDo 2018
 # - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
-# - install MCL clustering on flask container
-# -
-
+# - install MCL clustering on flask container --> DONE
+# - fix download results button link
+# - update bootstrap version
 ###############################################################################
 #### bokeh visualisation
 # if not DEBUG:
@@ -82,9 +84,8 @@ def getitem(obj, item, default):
 #     connection = db_config.Connect(echo=ECHO, testing=TESTING, do_logging=DO_LOGGING, volume_mountpoint=volume_mountpoint, run_agotool_as_container=False)
 
 ### Create the Flask application and the Flask-SQLAlchemy object.
-# app = flask.Flask(__name__)
-# app = flask.Flask(__name__, template_folder=TEMPLATE_DIR)
-app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
+app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE,
+static_url_path=variables.SESSION_FOLDER_ABSOLUTE)
 
 if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
@@ -118,8 +119,8 @@ if PROFILING:
 # SESSION_FOLDER_RELATIVE = '/data/session'
 
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
+app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
-
 
 # HOMEDIR = os.path.expanduser("~")
 # FN_DATABASE_SCHEMA = os.path.join(HOMEDIR, "modules/cpr/metaprot/sql/DataBase_Schema_FDRiter.md")
@@ -138,7 +139,6 @@ logger = logging.getLogger()
 logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
-
 
 ###############################################################################
 ##### Create the Flask-Restless API manager.
@@ -178,9 +178,6 @@ def log_activity(string2log):
     log_activity_fh.write(string2log)
     log_activity_fh.flush()
 
-################################################################################
-##### Maximum Time for MCL clustering
-MAX_TIMEOUT = variables.MAX_TIMEOUT
 ################################################################################
 
 ################################################################################
@@ -245,6 +242,11 @@ def example():
 @app.route('/example/<path:filename>', methods=['GET', 'POST'])
 def download_example_data(filename):
     uploads = app.config['EXAMPLE_FOLDER']
+    return send_from_directory(directory=uploads, filename=filename)
+
+@app.route('/results/<path:filename>', methods=['GET', 'POST'])
+def download_results_data(filename):
+    uploads = app.config['SESSION_FOLDER']
     return send_from_directory(directory=uploads, filename=filename)
 
 ################################################################################
@@ -495,41 +497,6 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
 
     return render_template('enrichment.html', form=form)
 
-# @app.route("/bokeh")
-# def polynomial():
-#     """
-#     Very simple embedding of a polynomial chart
-#     """
-#
-#     # Grab the inputs arguments from the URL
-#     args = flask.request.args
-#
-#     # Get all the form arguments in the url with defaults
-#     color = colors[getitem(args, 'color', 'Black')]
-#     _from = int(getitem(args, '_from', 0))
-#     to = int(getitem(args, 'to', 10))
-#
-#     # Create a polynomial line graph with those arguments
-#     x = list(range(_from, to + 1))
-#     fig = figure(title="Polynomial")
-#     fig.line(x, [i ** 2 for i in x], color=color, line_width=2)
-#
-#     js_resources = INLINE.render_js()
-#     css_resources = INLINE.render_css()
-#
-#     script, div = components(fig)
-#     html = flask.render_template(
-#         'bokeh.html',
-#         plot_script=script,
-#         plot_div=div,
-#         js_resources=js_resources,
-#         css_resources=css_resources,
-#         color=color,
-#         _from=_from,
-#         to=to
-#     )
-#     return encode_utf8(html)
-
 def generate_result_page(header, results, gocat_upk, indent, session_id, form, errors=()):
     header = header.rstrip().split("\t")
     ellipsis_indices = elipsis(header)
@@ -545,7 +512,7 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form, e
     with open(fn_results_orig_absolute, 'w') as fh:
         fh.write(tsv)
     return render_template('results.html', header=header, results=results2display, errors=errors,
-                           file_path=fn_results_orig_relative, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
+                           file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
 
 ################################################################################

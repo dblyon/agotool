@@ -22,7 +22,7 @@ else: # relative path on host
 WEBSERVER_DATA = os.path.join(PROJECT_DIR, 'data')
 EXAMPLE_FOLDER = os.path.join(PROJECT_DIR, 'data/exampledata')
 SESSION_FOLDER_ABSOLUTE = os.path.join(PROJECT_DIR, 'data/session')
-SESSION_FOLDER_RELATIVE = '/data/session'
+SESSION_FOLDER_RELATIVE = 'data/session'
 
 FLASK_DATA = "/opt/services/flaskapp/src"
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(FLASK_DATA, 'static/templates')
