@@ -6,7 +6,6 @@ from wtforms import fields
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, cluster_filter, obo_parser, variables
 ###############################################################################
-WEBSERVER_DATA = variables.WEBSERVER_DATA
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
 SESSION_FOLDER_ABSOLUTE = variables.SESSION_FOLDER_ABSOLUTE
 SESSION_FOLDER_RELATIVE = variables.SESSION_FOLDER_RELATIVE
@@ -74,10 +73,6 @@ if PROFILING:
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
-### Additional path settings for flask
-APP_ROOT = variables.APP_ROOT
-DATA_DIR = variables.DATA_DIR
-STATIC_DIR = variables.STATIC_DIR
 app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20
 
 logger = logging.getLogger()
@@ -109,7 +104,6 @@ def log_activity(string2log):
 if PRELOAD:
     pqo = query.PersistentQueryObject()
     ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-    # print("FN_KEYWORDS", FN_KEYWORDS)
     upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
     goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
     go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
@@ -427,15 +421,13 @@ def generate_result_page(header, results, gocat_upk, indent, session_id, form, e
         results2display.append(res.split('\t'))
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
-    fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
-    print("fn_results_orig_absolute", fn_results_orig_absolute)
-    print("fn_results_orig_relative", fn_results_orig_relative)
+    # fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
     with open(fn_results_orig_absolute, 'w') as fh:
         fh.write(tsv)
     return render_template('results.html', header=header, results=results2display, errors=errors,
                            file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
-                           gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form)
+                           gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
 
 ################################################################################
 # results_back.html
@@ -464,14 +456,14 @@ def results_filtered():
     session_id = request.form['session_id']
 
     # original unfiltered/clustered results
-    file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+    file_name_orig, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
 
     if not gocat_upk == "UPK":
         results_filtered = filter_.filter_term_lineage(header, results, indent)
 
         # filtered results
-        file_name, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
+        file_name_filtered, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
         tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
         with open(fn_results_filtered_absolute, 'w') as fh:
             fh.write(tsv)
@@ -485,7 +477,7 @@ def results_filtered():
         string2log += """gocat_upk: {}\nindent: {}\n""".format(gocat_upk, indent)
         log_activity(string2log)
         return render_template('results_filtered.html', header=header, results=results2display, errors=[],
-                               file_path_orig=fn_results_orig_relative, file_path_filtered=fn_results_filtered_relative,
+                               file_path_orig=file_name_orig, file_path_filtered=file_name_filtered,
                                ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id)
     else:
         return render_template('index.html')
@@ -508,7 +500,7 @@ def results_clustered():
         mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
         cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
     except cluster_filter.TimeOutException:
-        return generate_result_page(header, results, gocat_upk, indent, session_id, form=form, errors=['MCL timeout: The maximum time (20min) for clustering has exceeded. Your original results are being displayed.'])
+        return generate_result_page(header, results, gocat_upk, indent, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)])
 
     num_clusters = len(cluster_list)
     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
@@ -530,7 +522,7 @@ def results_clustered():
     string2log += """gocat_upk: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(gocat_upk, indent, num_clusters, inflation_factor)
     log_activity(string2log)
     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
-                           file_path_orig=fn_results_orig_relative, file_path_mcl=fn_results_clustered_relative,
+                           file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
                            ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id,
                            num_clusters=num_clusters, inflation_factor=inflation_factor)
 

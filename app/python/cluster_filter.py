@@ -54,7 +54,7 @@ class MCL(object):
         expects a DataFrame with a 'ANs_foreground' column,
         calculates the Jaccard Index for all
         combinations of AN sets.
-        :param df: DataFrame
+        :param fn_results: String
         :param fn_out: rawString
         :return: None
         """
@@ -76,17 +76,7 @@ class MCL(object):
         with open(fn_results, 'r') as fh:
             lines_split = [ele.strip().split('\t') for ele in fh]
         ANs_foreground_index = lines_split[0].index("ANs_foreground")
-        # try:
         return [set(row[ANs_foreground_index].split(', ')) for row in lines_split[1:]]
-        # except IndexError:
-        #     for row in lines_split[1:]:
-        #         try:
-        #             set(row[ANs_foreground_index].split(', '))
-        #         except:
-        #             print row
-
-
-        # return [set(row[ANs_foreground_index].split(', ')) for row in lines_split[1:]]
 
     def write_JaccardIndexMatrix_speed(self, fn_results, fn_out):
         list_of_sets = self.results2list_of_sets(fn_results)
@@ -105,8 +95,12 @@ class MCL(object):
                 fh.write(line2write)
 
     def mcl_cluster2file(self, mcl_in, inflation_factor, mcl_out):
-        print("MCL max_timeout:", self.max_timeout)
-        cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+        # print("MCL max_timeout:", self.max_timeout)
+        # cmd_text = """mcl %s -I %d --abc -o %s""" % (mcl_in, inflation_factor, mcl_out)
+        cmd_text = """mcl {} -I {} --abc -o {}""".format(mcl_in, inflation_factor, mcl_out)
+        # print("#"*80)
+        # print("MCL: ", cmd_text)
+        # print("#" * 80)
         args = shlex.split(cmd_text)
         #ph = subprocess.Popen(args, stdin=None, stdout=self.get_fh_log(), stderr=self.get_fh_log())
 #        self.pid = ph.pid
@@ -117,11 +111,9 @@ class MCL(object):
                 self.process = ph
                 self.pid = ph.pid
                 ph.wait()
-        kwargs = {
-            "stdin" : None,
-            "stdout" : self.get_fh_log(),
-            "stderr" : self.get_fh_log()
-        }
+        kwargs = {"stdin" : None,
+                  "stdout" : self.get_fh_log(),
+                  "stderr" : self.get_fh_log()}
         p = my_process()
         t = threading.Thread(target=p.open, args=(args,), kwargs=kwargs)
         t.start()

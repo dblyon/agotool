@@ -31,8 +31,6 @@ docker-compose down
 ##############################################################################
 
 
-
-
 psql -U postgres -d postgres -f ./copy_from_file_and_index_TEST.psql
 tables_dir = r"/agotool_data/PostgreSQL/tables"
 static_dir = r"/agotool_data/PostgreSQL/static"
@@ -57,11 +55,14 @@ docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/Postgr
 docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
 
 5. monthly UPDATES
-docker exec -it agotool_flask python ./python/update_manager.py
-? -v "agotool_data:/agotool_data ?
-##############################################################################
+docker exec -it agotool_flask_1 python ./python/update_manager.py
+docker run --rm -it agotool_flask_1 python ./python/update_manager.py
+# spin up another instance of agotool_flaskapp image as temporary container that is removed after the commands finish
+docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp python ./app/python/update_manager.py
+docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
 
-# copy data to named volume
+##############################################################################
+##### copy data to named volume
 # spin up another container that deletes itself after it is done
 docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
 # as soon as I exit the container will delete itself. Self destruction
@@ -69,16 +70,14 @@ docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "
 
 # alternative to 2 named volumes:
 # 1 volume with 2 sources and 2 different mount points
-
+##############################################################################
 # scale a service like the flask-app
 docker-compose up -d --scale flaskapp=2
 
 
 
-
 Resources:
 https://stackoverflow.com/questions/27735706/docker-add-vs-volume
-
 
 docker exec -it 1769d6ea0667 psql -U postgres -d agotool_test "\dt"
 
@@ -104,31 +103,14 @@ docker-compose run --rm flaskapp /bin/bash -c "python /opt/services/flaskapp/src
     ├── logs
     └── session
 
-
-
-
-##########################################################################################
-############################## Fixing file stream issues for agotool
-### agotool old virtual server
-files work fine
-copy and paste fields work fine as well
---> save current state in new git branch (data folders will be missing)
-### git branch "agodebian" running on Ody
-files work fine (GO, KEGG and UniProt)
-copy and paste fields don't
---> check out requirments_debian.txt for difference?
---> python 3.4.2 instead of 3.6.
-### git branch "docker" running on Ody
-files work fine (GO, KEGG and UniProt)
-copy and paste fields don't
-### docker running on Ody
-files DON'T work
-
+###############################################################################
+### Fixing file stream issues for agotool
+--> solution was fixing the jinja templating, specifically the URLs
+for the files using flask serve_files_from_directory and the following
 # processes should be "1", otherwise nginx throws 502 errors with large files
 app.run(host='0.0.0.0', port=5911, processes=1, debug=variables.DEBUG)
+###############################################################################
 
-nginx settings:
-proxy_request_buffering off;
-proxy_buffering off;
-
-##########################################################################################
+### fixing MCL clustering
+docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+mcl /agotool_data/data/session/mcl_in_91_1518002421.200194.txt -I 1 --abc -o /agotool_data/data/session/mcl_out_91_1518002421.200194.txt

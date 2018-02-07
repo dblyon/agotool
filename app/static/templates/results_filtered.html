@@ -20,7 +20,8 @@
 
         <div class="row">
             <h4>Download filtered results file</h4>
-            <a name="file_path_filtered" href="{{ file_path_filtered }}" class="btn btn-primary">Download filtered results</a>
+{#            <a name="file_path_filtered" href="{{ file_path_filtered }}" class="btn btn-primary">Download filtered results</a>#}
+            <a name="file_path_filtered" href="{{ url_for('download_results_data', filename=file_path_filtered) }}" class="btn btn-primary">Download filtered results</a>
         </div>
         <br>
 

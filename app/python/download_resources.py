@@ -10,14 +10,9 @@ sys.path.insert(0, PYTHON_DIR)
 import tools
 import variables
 
-# PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
-PROJECT_DIR = variables.PROJECT_DIR
-# DOWNLOADS_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "data/PostgreSQL/downloads"))
 DOWNLOADS_DIR = variables.DOWNLOADS_DIR
-
-# DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'data/PostgreSQL', directory) for directory in ["downloads", "session"]]
-# DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
 DIRECTORIES_LIST = variables.DIRECTORIES_LIST
+SESSION_FOLDER_ABSOLUTE = variables.SESSION_FOLDER_ABSOLUTE
 
 URL_GENE_ASSOCIATIONS_GOA_UNIPROT = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz"
 URL_GOA = "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/{}/goa_{}.gaf.gz"
@@ -140,8 +135,9 @@ def create_directories_if_not_exist():
             os.makedirs(directory)
 
 def cleanup_sessions():
-    _folder = os.path.join(PROJECT_DIR, 'data/session')
-    e = 'could not remove %s from data/session'
+    # _folder = os.path.join(PROJECT_DIR, 'data/session')
+    _folder = SESSION_FOLDER_ABSOLUTE
+    e = 'could not remove %s from session'
     for the_file in os.listdir(_folder):
         file_path = os.path.join(_folder, the_file)
         try:

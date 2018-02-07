@@ -1,70 +1,63 @@
-import os, sys, multiprocessing
+import os, multiprocessing
 
+##############
 # settings
 DEBUG = True
 PRELOAD = True
 PROFILING = False
 DOCKER = True
 skip_slow_downloads = True
-# platform_ = sys.platform
-# if platform_ == "linux":
-#     DOCKER = True
-# elif platform_ == "darwin":
-#     DOCKER = False
+##############
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-# sys.path.append(PYTHON_DIR)
-
 if DOCKER:
-    PROJECT_DIR = "/agotool_data" # docker volume
+    APP_DIR = "/opt/services/flaskapp/src"
+    DATA_DIR = "/agotool_data/data"
 else: # relative path on host
-    PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
+    APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
+    DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
 
-WEBSERVER_DATA = os.path.join(PROJECT_DIR, 'data')
-EXAMPLE_FOLDER = os.path.join(PROJECT_DIR, 'data/exampledata')
-SESSION_FOLDER_ABSOLUTE = os.path.join(PROJECT_DIR, 'data/session')
+# WEBSERVER_DATA = DATA_DIR #os.path.join(PROJECT_DIR, 'data')
+EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata") #os.path.join(PROJECT_DIR, 'data/exampledata')
+SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session') #os.path.join(PROJECT_DIR, 'data/session')
 SESSION_FOLDER_RELATIVE = 'data/session'
 
-FLASK_DATA = "/opt/services/flaskapp/src"
-TEMPLATES_FOLDER_ABSOLUTE = os.path.join(FLASK_DATA, 'static/templates')
-
+# FLASK_DATA = APP_DIR
+TEMPLATES_FOLDER_ABSOLUTE = os.path.join(APP_DIR, 'static/templates')
 
 # obo files for PRELOAD/persistent objects
-FN_KEYWORDS = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/keywords-all.obo")
-FN_GO_SLIM = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/goslim_generic.obo")
-FN_GO_BASIC = os.path.join(WEBSERVER_DATA, "PostgreSQL/downloads/go-basic.obo")
+FN_KEYWORDS = os.path.join(DATA_DIR, "PostgreSQL/downloads/keywords-all.obo")
+FN_GO_SLIM = os.path.join(DATA_DIR, "PostgreSQL/downloads/goslim_generic.obo")
+FN_GO_BASIC = os.path.join(DATA_DIR, "PostgreSQL/downloads/go-basic.obo")
 
 ##### Maximum Time for MCL clustering
-MAX_TIMEOUT = 10 # minutes
+MAX_TIMEOUT = 5 # minutes
 
 # Flask app
-APP_ROOT = FLASK_DATA
-DATA_DIR = os.path.join(APP_ROOT, 'data')
-# SCRIPT_DIR = os.path.join(APP_ROOT, 'scripts')
-STATIC_DIR = os.path.join(APP_ROOT, 'static')
+STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')
 
 # automatic updates
-POSTGRESQL_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL")
-TABLES_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL/tables")
-
-#!!! NAME COLLISION
-STATIC_POSTGRES_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL/static")
-
+POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
+TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
+STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
-DOWNLOADS_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL/downloads")
-DIRECTORIES_LIST = [os.path.join(PROJECT_DIR, 'data/PostgreSQL', directory) for directory in ["downloads", "session"]]
-DIRECTORIES_LIST.append(os.path.join(PROJECT_DIR, 'logs'))
+DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
+
+DIRECTORIES_LIST = [os.path.join(DATA_DIR, 'PostgreSQL/downloads'),
+                    os.path.join(DATA_DIR, 'logs'),
+                    os.path.join(DATA_DIR, 'session')]
 FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.obo", "goslim_generic.obo", "go-basic.obo"]]
+
+# log files
+LOG_DIRECTORY = os.path.join(DATA_DIR, "logs")
+LOG_FN_WARNINGS_ERRORS = os.path.join(LOG_DIRECTORY, "warnings_errors_log.txt")
+LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
+if not os.path.exists(LOG_DIRECTORY):
+    os.makedirs(LOG_DIRECTORY)
+for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS]:
+    if not os.path.exists(fn):
+        fh = open(fn, "w")
+        fh.close()
 
 # CPU usage during updates (for "sort --parallel")
 NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
-
-# log files
-LOG_DIRECTORY = os.path.join(PROJECT_DIR, "logs")
-LOG_FN_WARNINGS_ERRORS = os.path.join(PROJECT_DIR, "logs/warnings_errors_log.txt")
-LOG_FN_ACTIVITY = os.path.join(PROJECT_DIR, "logs/activity_log.txt")
-if not os.path.exists(LOG_DIRECTORY):
-    os.makedirs(LOG_DIRECTORY)
-if not os.path.exists(LOG_FN_WARNINGS_ERRORS):
-    fh = open(LOG_FN_WARNINGS_ERRORS, "w")
-    fh.close()

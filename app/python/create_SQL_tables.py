@@ -3,38 +3,18 @@ import pandas as pd
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import tools, obo_parser, variables
-# ToDo
-# - filter associations based on their presence in ontologies. e.g. AN123 has GO123, GO234, GO345 but GO345 is not in obo, thus kick it out
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
-BASH_LOCATION = r"/bin/bash"
-# PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+BASH_LOCATION = r"/usr/bin/env bash"
 PYTHON_DIR = variables.PYTHON_DIR
-sys.path.append(PYTHON_DIR)
-
-PROJECT_DIR = variables.PROJECT_DIR
+LOG_DIRECTORY = variables.LOG_DIRECTORY
 POSTGRESQL_DIR = variables.POSTGRESQL_DIR
 DOWNLOADS_DIR = variables.DOWNLOADS_DIR
-STATIC_DIR = variables.STATIC_DIR
+STATIC_DIR = variables.STATIC_POSTGRES_DIR
 TABLES_DIR = variables.TABLES_DIR
 TEST_DIR = variables.TEST_DIR
 FILES_NOT_2_DELETE = variables.FILES_NOT_2_DELETE
 NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
-# PROJECT_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '..')))
-# PROJECT_DIR = "/agotool_data" # docker volume
-# POSTGRESQL_DIR = os.path.join(PROJECT_DIR, "data/PostgreSQL")
-# DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
-# docker = False
-# if docker:
-#     tables_dir = r"/agotool_data/PostgreSQL/tables"
-#     static_dir = r"/agotool_data/PostgreSQL/static"
-# else:
-#     STATIC_DIR = os.path.join(POSTGRESQL_DIR, "static")
-#     TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
-# TEST_DIR = os.path.join(TABLES_DIR, "test")
-
-# FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.obo", "goslim_generic.obo", "go-basic.obo"]]
-# NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
 
 EMPTY_EGGNOG_JSON_DICT = {"KEGG": {"kegg_pathways": [], "kegg_header": ["Pathway", "SeqCount", "Frequency", "relative_fontsize"]}, "go_terms": {"go_terms": {}, "go_header": ["ID", "GO term", "Evidence", "SeqCount", "Frequency", "relative_fontsize"]}, "domains": {"domains": {}, "dom_header": ["Domain ID", "SeqCount", "Frequency", "relative_fontsize"]}}
 # TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
@@ -603,7 +583,7 @@ def create_Protein_2_Function_table(fn_out_temp, verbose=False):
     fn_list = os.listdir(DOWNLOADS_DIR)
     fn_list = sorted(fn_list)
     if verbose:
-        print("#"*90, "parsing START")
+        print("#"*80, "parsing START")
     functions_set = get_possible_ontology_functions_set() # GO and UPK not KEGG
     for fn in fn_list:
         if fn.endswith(".gaf"): # do all of these first to collect TaxIDs to ignore when parsing ".gaf.gz"
@@ -661,7 +641,7 @@ def create_Protein_2_Function_table_wide_format(verbose=False):
         print("converting Protein_2_Function_table to wide format")
     platform = sys.platform
     if platform == "linux":
-        shellcmd = "LC_ALL=C sort --parallel -T /localstorage/temp {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
+        shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
     else:
         shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
 
@@ -1250,8 +1230,13 @@ def sanity_check_table_dimensions(testing=False):
     table_name_2_absolute_path_dict = get_table_name_2_absolute_path_dict(testing)
     fn_list = sorted(table_name_2_absolute_path_dict.values())
     # count previous line numbers
-    line_numbers_count_log = os.path.join(os.path.join(PROJECT_DIR, "logs"), "table_line_numbers_count_log.txt")
-    table_name_2_number_of_lines_dict_previous = parse_table_line_numbers_count_log(line_numbers_count_log)
+    line_numbers_count_log = os.path.join(LOG_DIRECTORY, "table_line_numbers_count_log.txt")
+    try:
+        table_name_2_number_of_lines_dict_previous = parse_table_line_numbers_count_log(line_numbers_count_log)
+    except FileNotFoundError:
+        print("Sanity check for number of lines in PostgreSQL tables could not pass since line_numbers_count_log.txt does not exist.\n")
+        return False
+    # table_name_2_number_of_lines_dict_previous = parse_table_line_numbers_count_log(line_numbers_count_log)
     with open(line_numbers_count_log, "a+") as fh:
         fh.write("### Current date & time " + time.strftime("%c") + "\n")
         for fn in fn_list:
@@ -1260,11 +1245,12 @@ def sanity_check_table_dimensions(testing=False):
             fh.write(basename + ": " + str(lines_count) + "\n")
         fh.write("#"*50 + "\n")
     # count current line numbers
-    try:
-        table_name_2_number_of_lines_dict_current = parse_table_line_numbers_count_log(line_numbers_count_log)
-    except FileNotFoundError:
-        print("Sanity check for number of lines in PostgreSQL tables could not pass since line_numbers_count_log.txt does not exist.\n")
-        return False
+    table_name_2_number_of_lines_dict_current = parse_table_line_numbers_count_log(line_numbers_count_log)
+    # try:
+    #     table_name_2_number_of_lines_dict_current = parse_table_line_numbers_count_log(line_numbers_count_log)
+    # except FileNotFoundError:
+    #     print("Sanity check for number of lines in PostgreSQL tables could not pass since line_numbers_count_log.txt does not exist.\n")
+    #     return False
     # compare line numbers
     if are_current_number_of_lines_larger(table_name_2_number_of_lines_dict_previous, table_name_2_number_of_lines_dict_current):
         print("Sanity check for number of lines in PostgreSQL tables passed.\n")
@@ -1311,3 +1297,5 @@ if __name__ == "__main__":
     # run_create_tables_for_PostgreSQL(DEBUG=DEBUG, testing=testing, verbose=verbose)
     # sanity_check_table_dimensions(testing=testing)
     create_test_tables(num_lines=5000)
+    sanity_check_table_dimensions(testing=False)
+    sanity_check_table_dimensions(testing=True)
