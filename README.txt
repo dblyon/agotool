@@ -48,15 +48,13 @@ docker ps
 # First time setup
 docker exec -it agotool_db_1 psql -U postgres -d postgres -f /agotool_data/PostgreSQL/create_DBs.psql
 # TESTING
-docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/PostgreSQL/copy_from_file_and_index_TEST.psql
-docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/PostgreSQL/drop_and_rename.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f ./app/postgres/copy_from_file_and_index_TEST.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f ./app/postgres/drop_and_rename.psql
 # real DB/not testing
-docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/copy_from_file_and_index.psql
-docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool -f ./app/postgres/copy_from_file_and_index.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool -f ./app/postgres/drop_and_rename.psql
 
 5. monthly UPDATES
-docker exec -it agotool_flask_1 python ./python/update_manager.py
-docker run --rm -it agotool_flask_1 python ./python/update_manager.py
 # spin up another instance of agotool_flaskapp image as temporary container that is removed after the commands finish
 docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp python ./app/python/update_manager.py
 docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
@@ -65,6 +63,7 @@ docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_d
 ##### copy data to named volume
 # spin up another container that deletes itself after it is done
 docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+
 # as soon as I exit the container will delete itself. Self destruction
 # volume data persists
 
