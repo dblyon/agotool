@@ -46,7 +46,8 @@ docker-compose up -d
 docker ps
 4. run psql scripts to populate DB (from host run the psql script in the container)
 # First time setup
-docker exec -it agotool_db_1 psql -U postgres -d postgres -f /agotool_data/PostgreSQL/create_DBs.psql
+docker exec -it agotool_db_1 psql -U postgres -d postgres -f /agotool_data/data/PostgreSQL/create_DBs.psql
+docker exec -it agotool_db_1 --volume "agotool_agotool_data:/agotool_data" psql -U postgres -d postgres -f ./app/sql/create_DBs.psql
 # TESTING
 docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f ./app/postgres/copy_from_file_and_index_TEST.psql
 docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f ./app/postgres/drop_and_rename.psql
@@ -62,7 +63,8 @@ docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_d
 ##############################################################################
 ##### copy data to named volume
 # spin up another container that deletes itself after it is done
-docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+docker run --rm -it --volume /agotool_data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+docker run --rm -it --volume /agotool_data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data/data /agotool_data/
 
 # as soon as I exit the container will delete itself. Self destruction
 # volume data persists

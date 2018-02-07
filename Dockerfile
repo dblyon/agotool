@@ -22,6 +22,8 @@ RUN apt-get update \
         libblas-dev \
         liblapack-dev \
         libatlas-base-dev \
+        rsync \
+        tree \
     && apt-get clean
 
 # Install MCL for clustering, install before python packages in case these change
