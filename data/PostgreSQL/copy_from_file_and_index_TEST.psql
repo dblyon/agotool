@@ -29,14 +29,14 @@ CREATE TABLE protein_2_og_temp (
     an text,
     og text);
 
-\copy functions_temp FROM '/agotool_data/PostgreSQL/tables/test/Functions_table.txt';
-\copy go_2_slim_temp FROM '/agotool_data/PostgreSQL/tables/test/GO_2_Slim_table.txt';
-\copy ogs_temp FROM '/agotool_data/PostgreSQL/tables/test/OG_2_Function_table_static.txt';
-\copy og_2_function_temp FROM '/agotool_data/PostgreSQL/tables/test/OGs_table_static.txt';
-\copy ontologies_temp FROM '/agotool_data/PostgreSQL/tables/test/Ontologies_table.txt';
-\copy protein_2_function_temp FROM '/agotool_data/PostgreSQL/tables/test/Protein_2_Function_table.txt';
-\copy protein_secondary_2_primary_an_temp FROM '/agotool_data/PostgreSQL/tables/test/Protein_2_OG_table_static.txt';
-\copy protein_2_og_temp FROM '/agotool_data/PostgreSQL/tables/test/Protein_Secondary_2_Primary_AN_table.txt';
+\copy functions_temp FROM '/agotool_data/data/PostgreSQL/tables/test/Functions_table.txt';
+\copy go_2_slim_temp FROM '/agotool_data/data/PostgreSQL/tables/test/GO_2_Slim_table.txt';
+\copy ogs_temp FROM '/agotool_data/data/PostgreSQL/tables/test/OG_2_Function_table_static.txt';
+\copy og_2_function_temp FROM '/agotool_data/data/PostgreSQL/tables/test/OGs_table_static.txt';
+\copy ontologies_temp FROM '/agotool_data/data/PostgreSQL/tables/test/Ontologies_table.txt';
+\copy protein_2_function_temp FROM '/agotool_data/data/PostgreSQL/tables/test/Protein_2_Function_table.txt';
+\copy protein_secondary_2_primary_an_temp FROM '/agotool_data/data/PostgreSQL/tables/test/Protein_2_OG_table_static.txt';
+\copy protein_2_og_temp FROM '/agotool_data/data/PostgreSQL/tables/test/Protein_Secondary_2_Primary_AN_table.txt';
 
 CREATE INDEX ogs_og_idx_temp ON ogs_temp(og);
 CREATE INDEX og_2_function_og_idx_temp ON og_2_function_temp(og);

@@ -63,8 +63,10 @@ docker run --rm -it --name secinstance --volume "agotool_agotool_data:/agotool_d
 ##############################################################################
 ##### copy data to named volume
 # spin up another container that deletes itself after it is done
+docker run --rm -it --volume /data_from_ody:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data/data /agotool_data/
+
 docker run --rm -it --volume /agotool_data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
-docker run --rm -it --volume /agotool_data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data/data /agotool_data/
+
 
 # as soon as I exit the container will delete itself. Self destruction
 # volume data persists
@@ -72,6 +74,34 @@ docker run --rm -it --volume /agotool_data:/mounted_data --volume "agotool_agoto
 # alternative to 2 named volumes:
 # 1 volume with 2 sources and 2 different mount points
 ##############################################################################
+
+##############################################################################
+### installation on red hat virtual server
+# copy static data to server (can be deleted after copying it to named volume)
+rsync -avr /Users/dblyon/modules/cpr/agotool/data david@10.34.6.24:/data_from_ody/
+# pull github repo
+git clone ...
+or
+cd /var/www/agotool
+git pull origin docker
+# build the images
+docker-compose build
+# copy data to named volume (spin up another container that deletes itself after it is done)
+docker run --rm -it --volume /data_from_ody:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data/data /agotool_data/
+# delete data if needed
+rm -rf /data_from_ody
+# test DB
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_TEST.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
+# populate DB for real
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
+
+
+##############################################################################
+
+
+
 # scale a service like the flask-app
 docker-compose up -d --scale flaskapp=2
 
@@ -83,8 +113,8 @@ https://stackoverflow.com/questions/27735706/docker-add-vs-volume
 docker exec -it 1769d6ea0667 psql -U postgres -d agotool_test "\dt"
 
 docker-compose run --rm flaskapp /bin/bash -c "python /opt/services/flaskapp/src/python/update_manager.py"
-
-### Tree structure of repo
+###############################################################################
+### Tree structure of repo local version
 .
 ├── app
 │   ├── conf.d
@@ -103,6 +133,31 @@ docker-compose run --rm flaskapp /bin/bash -c "python /opt/services/flaskapp/src
     ├── exampledata
     ├── logs
     └── session
+
+### on virtual server named volume
+/agotool_data/
+└── data
+    ├── Background_Reference_Proteomes
+    ├── PostgreSQL
+    │   ├── downloads
+    │   ├── static
+    │   └── tables
+    │       └── test
+    ├── exampledata
+    ├── logs
+    └── session
+
+# and in /opt/services/flaskapp/src
+.
+├── conf.d
+├── python
+│   └── __pycache__
+└── static
+    ├── css
+    ├── js
+    └── templates
+###############################################################################
+
 
 ###############################################################################
 ### Fixing file stream issues for agotool
