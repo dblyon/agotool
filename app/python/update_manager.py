@@ -8,7 +8,6 @@ if __name__ == "__main__":
     debug = False
     testing = False
     verbose = True
-    skip_slow_downloads = True
     print("Downloading resources")
     download_resources.run_downloads(debug=debug, skip_slow_downloads=variables.skip_slow_downloads)
     print("finished downloading resources")

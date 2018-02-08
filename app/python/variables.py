@@ -6,7 +6,7 @@ DEBUG = True
 PRELOAD = True
 PROFILING = False
 DOCKER = True
-skip_slow_downloads = True
+skip_slow_downloads = False
 ##############
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
