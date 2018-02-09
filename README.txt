@@ -1,5 +1,6 @@
 ##############################################################################
 ### installation on red hat virtual server
+### installation on red hat virtual server
 # copy static data to server (can be deleted after copying it to named volume)
 rsync -avr /Users/dblyon/modules/cpr/agotool/data david@10.34.6.24:/data_from_ody/
 # pull github repo
@@ -173,3 +174,12 @@ else
     sudo -u agotool python3 runserver.py >> /var/www/agotool/logs/runserver.log 2>&1 &
 fi
 ##############################################################################
+# Lars automatic updates
+bitbucket/github
+    webhooks on C++ repo
+Dockerhub
+    build settings
+        trigger URL
+paste webhook m dockerhub to bitbucket
+
+
