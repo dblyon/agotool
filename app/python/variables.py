@@ -55,7 +55,7 @@ LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
 LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
 if not os.path.exists(LOG_DIRECTORY):
     os.makedirs(LOG_DIRECTORY)
-for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS]:
+for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS, LOG_FN_UPDATES]:
     if not os.path.exists(fn):
         fh = open(fn, "w")
         fh.close()
