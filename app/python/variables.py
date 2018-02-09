@@ -2,7 +2,7 @@ import os, multiprocessing
 
 ##############
 # settings
-DEBUG = True
+DEBUG = False
 PRELOAD = True
 PROFILING = False
 DOCKER = True
@@ -52,6 +52,7 @@ FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.
 LOG_DIRECTORY = os.path.join(DATA_DIR, "logs")
 LOG_FN_WARNINGS_ERRORS = os.path.join(LOG_DIRECTORY, "warnings_errors_log.txt")
 LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
+LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
 if not os.path.exists(LOG_DIRECTORY):
     os.makedirs(LOG_DIRECTORY)
 for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS]:

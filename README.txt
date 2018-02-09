@@ -15,6 +15,8 @@ docker-compose build
 docker run --rm -it --volume /data_from_ody:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data/data /agotool_data/
 # delete data if needed
 rm -rf /data_from_ody
+# download newest resources
+docker run --rm -it --name update --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp python ./app/python/update_manager.py
 # test DB
 docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_TEST.psql
 docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
@@ -100,7 +102,9 @@ docker exec -it agotool_db_1 psql -U postgres -d agotool -f /Users/dblyon/module
 # spin up another instance of agotool_flaskapp image as temporary container that is removed after the commands finish
 docker run --rm -it --name update --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp python ./app/python/update_manager.py
 # check out the named volume
-docker run --rm -it --name check --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+docker run --rm -it --name checkvolume --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+# check out the Postgres DB
+docker run --rm -it --name checkdb --volume "dbdata:/var/lib/postgresql/data" postgres bash
 ##############################################################################
 ##### copy data to named volume
 # spin up another container that deletes itself after it is done
@@ -120,7 +124,7 @@ for the files using flask serve_files_from_directory and the following
 # processes should be "1", otherwise nginx throws 502 errors with large files
 app.run(host='0.0.0.0', port=5911, processes=1, debug=variables.DEBUG)
 ##############################################################################
-# deprecated below
+# deprecated readme below
 To run the server locally follow these steps:
 
 1. clone repository from https://github.com/dblyon/agotool.git
@@ -136,3 +140,36 @@ http://127.0.0.1:5000/
 6. have fun
 7. cite us
 8. take a break
+##############################################################################
+##### crontab on red hat virtual server
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=root
+
+# For details see man 4 crontabs
+
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name  command to be executed
+
+# added David Lyon
+0 4 1 * * root /var/www/agotool/app/update_DB.sh >> /agotool_data/data/logs/updates_log.txt 2>&1 &
+#30 *   * * *   dblyon  /home/dblyon/bin/restart_if_down.sh
+##############################################################################
+### restart if down, deprecated and needs debugging
+#!/bin/bash
+if ps aux | grep "python3 runserver.py" > /dev/null
+then
+    echo "Running"
+else
+    echo "Stopped"
+    mail -s "aGOtool is restarting" dblyon@gmail.com < /var/www/agotool/logs/update.log
+    cd /var/www/agotool
+    sudo -u agotool python3 runserver.py >> /var/www/agotool/logs/runserver.log 2>&1 &
+fi
+##############################################################################

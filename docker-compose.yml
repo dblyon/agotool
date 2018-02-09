@@ -15,6 +15,7 @@ services:
 
       # bind mount to mount files from the host to the container
       # - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
+
     env_file:
       - ./app/env_file
     networks:
@@ -25,11 +26,11 @@ services:
     volumes:
       # bind mounted volume from host, e.g. RW access from container.
       # use git to push/pull changes. set source to git repo directory e.g. /var/www/agotool on virtual server
-#      - .:/opt/services/flaskapp/src
       - ./app/:/opt/services/flaskapp/src
 
       # named volume. persistent data container that is managed by docker.
       - "agotool_data:/agotool_data"
+
     env_file:
       - ./app/env_file
     networks:
