@@ -1,6 +1,5 @@
 ##############################################################################
 ### installation on red hat virtual server
-### installation on red hat virtual server
 # copy static data to server (can be deleted after copying it to named volume)
 rsync -avr /Users/dblyon/modules/cpr/agotool/data david@10.34.6.24:/data_from_ody/
 # pull github repo
@@ -118,30 +117,6 @@ docker run --rm -it --volume /agotool_data:/mounted_data --volume "agotool_agoto
 # alternative to 2 named volumes:
 # 1 volume with 2 sources and 2 different mount points
 ##############################################################################
-##############################################################################
-### Fixing file stream issues for agotool
---> solution was fixing the jinja templating, specifically the URLs
-for the files using flask serve_files_from_directory and the following
-# processes should be "1", otherwise nginx throws 502 errors with large files
-app.run(host='0.0.0.0', port=5911, processes=1, debug=variables.DEBUG)
-##############################################################################
-# deprecated readme below
-To run the server locally follow these steps:
-
-1. clone repository from https://github.com/dblyon/agotool.git
-2. execute 'static/python/update_server.py' to retrieve dependencies, which will be downloaded to 'static/data'
-3. change the last line of code in 'runserver.py'
-from:
-app.run('0.0.0.0', 5911, processes=4, debug=False)
-to:
-app.run('localhost', 5000, processes=4, debug=False) # or something similar
-4. execute 'runserver.py'
-5. interact with the servers through your browser of choice at
-http://127.0.0.1:5000/
-6. have fun
-7. cite us
-8. take a break
-##############################################################################
 ##### crontab on red hat virtual server
 SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -174,12 +149,44 @@ else
     sudo -u agotool python3 runserver.py >> /var/www/agotool/logs/runserver.log 2>&1 &
 fi
 ##############################################################################
-# Lars automatic updates
+#### backup and restore docker named volume
+# backup
+docker run --rm \
+  --volume [DOCKER_COMPOSE_PREFIX]_[VOLUME_NAME]:/[TEMPORARY_DIRECTORY_TO_STORE_VOLUME_DATA] \
+  --volume $(pwd):/[TEMPORARY_DIRECTORY_TO_STORE_BACKUP_FILE] \
+  ubuntu \
+  tar cvf /[TEMPORARY_DIRECTORY_TO_STORE_BACKUP_FILE]/[BACKUP_FILENAME].tar /[TEMPORARY_DIRECTORY_TO_STORE_VOLUME_DATA]
+# e.g.
+docker run --rm --volume agotool_agotool_data:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar cvf /bind_mount_dir/named_volume_agotool_data_backup_20180209.tar /named_volume_dir
+docker run --rm --volume agotool_dbdata:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar cvf /bind_mount_dir/named_volume_dbdata_backup_20180209.tar /named_volume_dir
+# restore
+docker run --rm \
+  --volume [DOCKER_COMPOSE_PREFIX]_[VOLUME_NAME]:/[TEMPORARY_DIRECTORY_STORING_EXTRACTED_BACKUP] \
+  --volume $(pwd):/[TEMPORARY_DIRECTORY_TO_STORE_BACKUP_FILE] \
+  ubuntu \
+  tar xvf /[TEMPORARY_DIRECTORY_TO_STORE_BACKUP_FILE]/[BACKUP_FILENAME].tar -C /[TEMPORARY_DIRECTORY_STORING_EXTRACTED_BACKUP] --strip 1
+# e.g.
+docker run --rm --volume agotool_agotool_data:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar xvf /bind_mount_dir/named_volume_agotool_data_backup_20180209.tar -C /named_volume_dir --strip 1
+docker run --rm --volume agotool_dbdata:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar xvf /bind_mount_dir/named_volume_dbdata_backup_20180209.tar -C /named_volume_dir --strip 1
+##############################################################################
+### tag and push flaskapp to dockerhub/docker cloud
+docker tag 3d5c5b99296e dblyon/agotool_flaskapp
+docker push dblyon/agotool_flaskapp
+##############################################################################
+# ToDo
+# - push to dockerhub --> done
+# - set branch docker to master --> done
+# - create webhooks a la Lars (see below)
+        git commit and push
+        --> github/bitbucket notifies Dockerhug
+        --> Dockerhub builds image
+        --> missing piece: server pulls image and starts it up
+
+# Lars automatic updates/webhooks
 bitbucket/github
     webhooks on C++ repo
 Dockerhub
     build settings
         trigger URL
 paste webhook m dockerhub to bitbucket
-
-
+##############################################################################
