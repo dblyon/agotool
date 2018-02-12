@@ -1,27 +1,38 @@
 version: '3'
 
-
 services:
 
   db: # name
-    image: "postgres:9.6.5"
+    image: "postgres:10"
     volumes:
-      - "dbdata:/var/lib/postgresql/data" # named volume, persistent data, lives in special directory from docker
-      - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
-#      - "agotool_data:/agotool_data"
+      # named volume, persistent data, lives in special directory from docker
+      # created to build Postgres data in it, even if Postgres container is removed Postgres data persists.
+      - "dbdata:/var/lib/postgresql/data"
+
+      # named volume. to copy data into with e.g.
+      # docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+      - "agotool_data:/agotool_data"
+
+      # bind mount to mount files from the host to the container
+      # - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
+
     env_file:
-      - env_file
+      - ./app/env_file
     networks:
       - db_nw
 
   flaskapp:
     build: .
-#    volumes:
-#      - "agotool_data:/agotool_data"
-    env_file:
-      - env_file
     volumes:
-      - .:/opt/services/flaskapp/src
+      # bind mounted volume from host, e.g. RW access from container.
+      # use git to push/pull changes. set source to git repo directory e.g. /var/www/agotool on virtual server
+      - ./app/:/opt/services/flaskapp/src
+
+      # named volume. persistent data container that is managed by docker.
+      - "agotool_data:/agotool_data"
+
+    env_file:
+      - ./app/env_file
     networks:
       - db_nw
       - web_nw
@@ -29,11 +40,11 @@ services:
       - db
 
   nginx:
-    image: "nginx:1.13.5"
+    image: "nginx:1.13.8"
     ports:
       - "8080:80"
     volumes:
-      - ./conf.d:/etc/nginx/conf.d
+      - ./app/conf.d:/etc/nginx/conf.d
     networks:
       - web_nw
     depends_on:
@@ -47,6 +58,6 @@ networks:
     driver: bridge
 
 
-volumes:
+volumes: # can be shared
   dbdata:
   agotool_data:

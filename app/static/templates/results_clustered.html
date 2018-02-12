@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function() {
+              results_page();
+          });
+      </script>
+{% endblock head %}
+
+{% block content %}
+<div class="container-fluid">
+    <form id="form" method="Post" action="results_back" enctype="multipart/form-data">
+
+        <div class="row">
+            <h4>Back to original results</h4>
+            <button id="submit_back" type="button" onclick="submit_form('form', 'results_back')" class="btn btn-primary">Back</button>
+        </div>
+        <br>
+
+        <div class="row">
+            <h4>Download clustered results file</h4>
+{#            <a name="file_path_mcl" href="{{ file_path_mcl }}" class="btn btn-primary">Download clustered results</a>#}
+            <a name="file_path_mcl" href="{{ url_for('download_results_data', filename=file_path_mcl) }}" class="btn btn-primary">Download clustered results</a>
+        </div>
+        <br>
+
+        <input type="hidden" style="display: none;" name="file_path_orig" value="{{ file_path_orig }}">
+        <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">
+        <input type="hidden" style="display: none;" name="gocat_upk" value="{{ gocat_upk }}">
+        <input type="hidden" style="display: none;" name="indent" value="{{ indent }}">
+
+    </form>
+</div>
+
+    {% if errors != [] %}
+    <h4>Errors</h4>
+        {% for error in errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    {% endif %}
+
+{% endblock content %}
+
+{% block table %}
+    <h5 class="table_simple_dbl"> Clusters are delineated by black rows. {{ num_clusters  }}  clusters found, using an inflation-factor of {{ inflation_factor }} </h5>
+    <table class="table table-striped table-bordered table_simple_dbl">
+        <thead>
+            <tr>
+            {% for h in header%}
+                <th>{{ h.replace('_', ' ') }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+
+         <tbody>
+         {% for results in results2display %}
+             {% for result_row in results %}
+                 <tr>
+                 {% for r in result_row %}
+                     <td title="click to show all"><div class="ellipsis long_row" onclick="toggle_ellipsis(this)">{{ r }}</div></td>
+                 {% endfor %}
+                 </tr>
+             {% endfor %}
+             <tr><td class="MCL_cluster_separator" colspan="{{ results[0] | length }}"></td></tr>
+         {% endfor %}
+         </tbody>
+    </table>
+
+{% endblock table %}
