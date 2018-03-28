@@ -190,3 +190,41 @@ Dockerhub
         trigger URL
 paste webhook m dockerhub to bitbucket
 ##############################################################################
+### asking Tim to change email address
+docker run --rm -it --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+##############################################################################
+###### @ UZH IMLS
+# build the images
+docker-compose build
+# copy data to named volume (spin up another container that deletes itself after it is done)
+docker run --rm -it --volume /mnt/mnemo5/dblyon/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data /agotool_data/
+# download newest resources
+docker run --rm -it --name update --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp python ./app/python/update_manager.py
+# run containers and create "dbdata" volume
+docker-compose up -d
+
+# change preload to False in ../app/python/variables.py, PRELOAD = False
+vim /var/www/agotool/app/python/variables.py
+
+docker run --rm -it --name work --volume /mnt/mnemo5/dblyon/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+
+### up next
+# test DB
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_TEST.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
+
+
+docker run --rm -it --name test --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+
+#### DEBUG
+# change docker default location to store files
+# check disk usage of default storage loaction
+sudo du -sh /var/lib/docker
+788K	/var/lib/docker
+
+#### How to store data
+# Postgres data in named volume "dbdata"
+- "dbdata:/var/lib/postgresql/data"
+# Otherwise might be a better solution to not have another named volume like at CPR/SUND
+# but a bind mount
+- /mnt/mnemo5/dblyon/agotool/data:/agotool_data

@@ -11,10 +11,11 @@ services:
 
       # named volume. to copy data into with e.g.
       # docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
-      - "agotool_data:/agotool_data"
+      # - "agotool_data:/agotool_data"
 
       # bind mount to mount files from the host to the container
-      # - ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
+      #- ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
+      - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
 
     env_file:
       - ./app/env_file

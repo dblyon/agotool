@@ -24,6 +24,7 @@ RUN apt-get update \
         libatlas-base-dev \
         rsync \
         tree \
+        vim \
     && apt-get clean
 
 # Install MCL for clustering, install before python packages in case these change
