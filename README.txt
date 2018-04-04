@@ -228,3 +228,9 @@ sudo du -sh /var/lib/docker
 # Otherwise might be a better solution to not have another named volume like at CPR/SUND
 # but a bind mount
 - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
+
+# bubu was here from ody
+
+# R SYNC between Ody and Atlas
+rsync -av --exclude .git /Users/dblyon/modules/cpr/agotool /mnt/mnemo5/dblyon/agotool
+rsync -av --exclude .git dblyon@imlslnx-atlas.uzh.ch:/mnt/mnemo5/dblyon/agotool /Users/dblyon/modules/cpr/agotool
