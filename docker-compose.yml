@@ -15,7 +15,8 @@ services:
 
       # bind mount to mount files from the host to the container
       #- ./data:/agotool_data # bind mounted volume from host, e.g. RW access from container.
-      - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
+#      - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
+      - /mnt/mnemo5/dblyon/agotool:/agotool_data
 
     env_file:
       - ./app/env_file
@@ -23,14 +24,16 @@ services:
       - db_nw
 
   flaskapp:
-    build: .
+    build: . # uncomment to build from Dockerfile, else pull from dockerhub
+    image: dblyon/python_agotool:latest
     volumes:
       # bind mounted volume from host, e.g. RW access from container.
       # use git to push/pull changes. set source to git repo directory e.g. /var/www/agotool on virtual server
-      - ./app/:/opt/services/flaskapp/src
+#      - ./app/:/opt/services/flaskapp/src
+      - /mnt/mnemo5/dblyon/agotool/app/:/opt/services/flaskapp/src
 
-      # named volume. persistent data container that is managed by docker.
-      - "agotool_data:/agotool_data"
+#       named volume. persistent data container that is managed by docker.
+#      - "agotool_data:/agotool_data"
 
     env_file:
       - ./app/env_file
@@ -61,4 +64,4 @@ networks:
 
 volumes: # can be shared
   dbdata:
-  agotool_data:
+#  agotool_data:

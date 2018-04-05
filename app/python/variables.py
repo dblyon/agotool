@@ -2,11 +2,15 @@ import os, multiprocessing
 
 ##############
 # settings
+PRELOAD = False #
+skip_slow_downloads = True
+skip_downloads_completely = False
+
 DEBUG = False
-PRELOAD = True
-PROFILING = False
+PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 DOCKER = True
-skip_slow_downloads = False
+TESTING = False
+VERBOSE = True
 ##############
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))

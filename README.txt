@@ -194,8 +194,42 @@ paste webhook m dockerhub to bitbucket
 docker run --rm -it --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
 ##############################################################################
 ###### @ UZH IMLS
+# change preload to False in ../app/python/variables.py, PRELOAD = False
+otherwise flask needs access to Postgres which isn't populated yet
+
 # build the images
 docker-compose build
+
+# pushed to image to dockerhub
+export DOCKER_ID_USER="dblyon"
+docker login
+docker push dblyon/python_agotool
+
+# commented out the "build" line in order to pull from dockerhub next time instead of building from Dockerfile
+  flaskapp:
+  # build: . # uncomment to build from Dockerfile, else pull from dockerhub
+    image: dblyon/python_agotool:latest
+
+# start the containers
+docker-compose up -d
+
+# tmux and download newest resources and create DB files for import
+docker run --rm -it --name update --user 5009:5009 --volume /mnt/mnemo5/dblyon/agotool:/agotool_data dblyon/python_agotool python ./app/python/update_manager.py
+
+
+# test DB
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_TEST.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
+# populate DB for real
+docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/data/PostgreSQL/copy_from_file_and_index.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
+# change "preload" to True, change "skip_slow_downloads" to False, change "debug" to False
+
+##############################################################################
+# really executed above
+# scratch below
+
+
 # copy data to named volume (spin up another container that deletes itself after it is done)
 docker run --rm -it --volume /mnt/mnemo5/dblyon/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data /agotool_data/
 # download newest resources
@@ -229,8 +263,36 @@ sudo du -sh /var/lib/docker
 # but a bind mount
 - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
 
-# bubu was here from ody
 
-# R SYNC between Ody and Atlas
-rsync -av --exclude .git /Users/dblyon/modules/cpr/agotool /mnt/mnemo5/dblyon/agotool
-rsync -av --exclude .git dblyon@imlslnx-atlas.uzh.ch:/mnt/mnemo5/dblyon/agotool /Users/dblyon/modules/cpr/agotool
+docker run --rm -it --name test --volume /mnt/mnemo5/dblyon/agotool:/agotool_data centos bash
+docker exec -it bash
+
+### RSYNC between Ody and Atlas
+rsync -av --exclude .git /Users/dblyon/modules/cpr/agotool/ dblyon@imlslnx-atlas.uzh.ch:/mnt/mnemo5/dblyon/agotool
+rsync -av --exclude .git dblyon@imlslnx-atlas.uzh.ch:/mnt/mnemo5/dblyon/agotool/ /Users/dblyon/modules/cpr/agotool
+
+##########################################################################################
+### Tim at SUND to change email address
+# log into virtual server
+
+# change files locally at
+# There are 2 files which would have to be edited:
+vim /var/www/agotool/app/static/templates/FAQ.html (1x at the bottom)
+vim /var/www/agotool/app/static/templates/about.html (2x at the top and in the middle)
+
+# stop the docker containers
+docker-compose down
+
+# build the images again, which should incorporate the local changes
+docker-compose build
+
+# start the docker containers again
+docker-compose up -d --scale flaskapp=2
+
+# check that things are running correctly, this should list 4 containers (2x flaskapp, 1x postgres, 1x nginx)
+docker ps
+##########################################################################################
+
+
+docker run --rm -it --name test --user 5009:5009 --volume /mnt/mnemo5/dblyon/agotool:/agotool_data dblyon/python_agotool bash
+docker exec -it agotool_flaskapp_1 bash
