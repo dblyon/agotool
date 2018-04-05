@@ -296,3 +296,60 @@ docker ps
 
 docker run --rm -it --name test --user 5009:5009 --volume /mnt/mnemo5/dblyon/agotool:/agotool_data dblyon/python_agotool bash
 docker exec -it agotool_flaskapp_1 bash
+
+##########################################################################################
+### @ Ody, local version
+### file structure locally, dblyon@Ody ...modules/cpr/agotool restapi
+$ tree -d
+.
+├── app
+│   ├── conf.d
+│   ├── python
+│   │   └── __pycache__
+│   └── static
+│       ├── css
+│       ├── js
+│       └── templates
+└── data
+    ├── Background_Reference_Proteomes
+    ├── PostgreSQL
+    │   ├── downloads
+    │   ├── static
+    │   └── tables
+    │       └── test
+    ├── exampledata
+    ├── logs
+    └── session
+
+# set "PRELOAD = False"
+vim /app/python/variables.py
+
+# build the images
+docker-compose build
+
+# run containers
+docker-compose up -d
+
+# copy data to named volume (spin up another container that deletes itself after it is done)
+docker run --rm -it --volume /Users/dblyon/modules/cpr/agotool:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data/data /agotool_data/
+
+# delete data if needed, skipped (for later to save disk space)
+rm -rf /Users/dblyon/modules/cpr/agotool/data
+
+# download newest resources, skipped
+docker run --rm -it --name update --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp python ./app/python/update_manager.py
+
+# test DB
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_TEST.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool_test -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
+
+# populate DB for real
+docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/data/PostgreSQL/copy_from_file_and_index.psql
+docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/data/PostgreSQL/drop_and_rename.psql
+
+# change "preload" to True
+# change "debug" to False
+vim /var/www/agotool/app/python/variables.py
+
+# run the app with new settings
+docker-compose up -d

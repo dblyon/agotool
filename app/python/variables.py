@@ -2,11 +2,11 @@ import os, multiprocessing
 
 ##############
 # settings
-PRELOAD = False #
+PRELOAD = True #
 skip_slow_downloads = True
-skip_downloads_completely = False
+skip_downloads_completely = True
 
-DEBUG = False
+DEBUG = True
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 DOCKER = True
 TESTING = False
