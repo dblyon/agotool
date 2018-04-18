@@ -438,11 +438,35 @@ class KEGGterm:
 class KEGG_pseudo_dag(dict):
 
     def __init__(self):
-        KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict()
+        # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict()
+        KEGG_id_2_name_dict = query.get_function_type_id_2_name_dict("KEGG")
         # kegg_pseudo_dag: description=name, goterm=id
         for id_, name in KEGG_id_2_name_dict.items():
             self[id_] = KEGGterm(id_, name)
 
+
+class DOMterm:
+    """
+    Domain 'term'
+    """
+
+    def __init__(self, id_, name):
+        self.id = id_       # DOM:NNNNNNN
+        self.name = name              # description
+        # self.namespace = ""         #
+        self.level = 0  # shortest distance from root node
+        self.depth = None  # longest distance from root node
+        self.is_obsolete = False  # is_obsolete
+
+
+class DOM_pseudo_dag(dict):
+
+    def __init__(self):
+        # DOM_id_2_name_dict = query.get_DOM_id_2_name_dict()
+        DOM_id_2_name_dict = query.get_function_type_id_2_name_dict("DOM")
+        # DOM_pseudo_dag: description=name, DOM_term=id
+        for id_, name in DOM_id_2_name_dict.items():
+            self[id_] = DOMterm(id_, name)
 
 
 

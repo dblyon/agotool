@@ -25,6 +25,11 @@
 | P31946 | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 | O9O21O | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 
+## STRING version might require long format for speed?
+| P31946 | {"UPK:0002"} |
+| P31946 | {"GO:0019899"} |
+| P31946 | {"KEGG:04110"} |
+
 ## protein_secondary_2_primary_an [Protein_Secondary_2_Primary_AN_table.txt]
 ##### Secondary (Text); Prim(Text) ("Primary" is a reserved PostgreSQL word)
 | sec | pri |
@@ -57,7 +62,7 @@
 | KFI94664.1 | ENOG4105CJD |
 
 ## OGs [OGs_table.txt]
-##### og(Text; index-column); taxid(Integer); description(Text)
+##### og(Text; index-column); description(Text)
 | og | description |
 |:---:|:---:|
 | ENOG4105CZH | peptidase |

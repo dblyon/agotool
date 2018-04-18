@@ -14,7 +14,8 @@ import tools #, query
 
 DEFAULT_MISSING_BIN = -1
 
-class Userinput(object):
+
+class Userinput:
     """
     expects 2 arrays,
     foregroundfreq: Pandas DataFrame 1column
@@ -45,10 +46,6 @@ class Userinput(object):
 
     def parse_input(self):
         if self.fn is not None:
-            # self.fn.read()
-
-        # if self.fn.tell() != 0:
-        #     self.fn.seek(0)
             is_abundance_correction, self.decimal = self.check_userinput(self.fn)
         else: # use copy & paste field
             self.fn = StringIO()
@@ -94,7 +91,7 @@ class Userinput(object):
 
     def change_column_names(self, df):
         """
-        :param df_orig: Pandas DataFrame
+        :param df: Pandas DataFrame
         :return: Pandas DataFrame
         """
         cols = sorted(self.df_orig.columns.tolist())
@@ -404,6 +401,66 @@ class Userinput(object):
         if self.enrichment_method != "characterize_foreground":
             proteinGroup_list += self.background[self.col_background].tolist()
         return list(set(proteinGroup_list))
+
+
+class API_input(Userinput):
+    # separator = "%0d" # according to existing STRING API "%0d", in example below "%0d" gets translated to "\r"
+    # r = requests.post("http://localhost:8080/string_api",
+    #                   params={"output_format": "json",
+    #                           "identifiers": "7227.FBpp0074373%0d7227.FBpp0077451%0d7227.FBpp0077788%0d7227.FBpp0078993%0d7227.FBpp0079060%0d7227.FBpp0079448",
+    #                           "species": 7227, "caller_identity": "www.aweseome_app.org"})
+    # intensities.replace("\r", "%0d").split("%0d")
+
+    def __init__(self, pqo,
+            foreground_string=None, background_string=None, background_intensity=None,
+            # col_foreground='foreground', col_background='background', col_intensity='intensity',
+            num_bins=100, enrichment_method="abundance_correction", foreground_n=None, background_n=None):
+        self.pqo = pqo
+        self.df_orig = pd.DataFrame()
+        self.foreground_string = foreground_string
+        self.background_string = background_string
+        self.background_intensity = background_intensity
+        self.decimal = "."
+        self.num_bins = num_bins
+        self.col_foreground = "foreground"
+        self.col_background = "background"
+        self.col_intensity = "intensity"
+        self.enrichment_method = enrichment_method # one of: "abundance_correction", "compare_samples", "compare_groups", "characterize_foreground"
+        ### abundance_correction: Foreground vs Background abundance corrected
+        ### compare_samples: Foreground vs Background (no abundance correction)
+        ### compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
+        ### characterize_foreground: Foreground only
+        self.foreground_n = foreground_n
+        self.background_n = background_n
+        self.housekeeping_dict = {} # Infos for User
+        self.check = True
+        self.parse_input()
+
+    def parse_input(self):
+        self.df_orig["foreground"] = pd.Series(self._replace_and_split(self.foreground_string))
+        if self.background_string is not None:
+            self.df_orig["background"] = pd.Series(self._replace_and_split(self.background_string))
+        if self.background_intensity is not None:
+            if "." in self.background_intensity:
+                pass
+            elif "," in self.background_intensity:
+                self.decimal = ","
+                # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
+                self.background_intensity = self.background_intensity.replace(",", ".")
+            else: # other checks could be done, but is this really necessary?
+                raise StopIteration
+            self.df_orig["intensity"]= pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+
+        try:
+            self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        except:
+            self.check = False
+
+    @staticmethod
+    def _replace_and_split(string_):
+        return string_.replace("\r", "%0d").split("%0d")
+
+
 
 
 if __name__ == "__main__":

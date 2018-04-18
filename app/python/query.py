@@ -1,9 +1,14 @@
 import os, sys
 from collections import defaultdict
 import psycopg2, math
-
+sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
+import variables, obo_parser
 
 UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
+FN_KEYWORDS = variables.FN_KEYWORDS
+FN_GO_SLIM = variables.FN_GO_SLIM
+FN_GO_BASIC = variables.FN_GO_BASIC
+
 
 upkTerm_2_functionAN_dict = {u'Biological process': u'UPK:9999',
                              u'Cellular component': u'UPK:9998',
@@ -118,6 +123,31 @@ def get_KEGG_id_2_name_dict():
         id_2_name_dict[id_] = name
     return id_2_name_dict
 
+def get_DOM_id_2_name_dict():
+    cursor = get_cursor()
+    sql_statement = "SELECT functions.an, functions.name FROM functions WHERE functions.type='DOM'"
+    cursor.execute(sql_statement)
+    result = cursor.fetchall()
+    id_2_name_dict = {}
+    for res in result:
+        id_ = res[0]
+        name = res[1]
+        id_2_name_dict[id_] = name
+    return id_2_name_dict
+
+def get_function_type_id_2_name_dict(function_type):
+    cursor = get_cursor()
+    sql_statement = "SELECT functions.an, functions.name FROM functions WHERE functions.type='{}'".format(function_type)
+    cursor.execute(sql_statement)
+    result = cursor.fetchall()
+    id_2_name_dict = {}
+    for res in result:
+        id_ = res[0]
+        name = res[1]
+        id_2_name_dict[id_] = name
+    return id_2_name_dict
+
+
 def map_secondary_2_primary_ANs(ans_list):
     """
     map secondary UniProt ANs to primary ANs,
@@ -141,14 +171,39 @@ def map_secondary_2_primary_ANs(ans_list):
 class PersistentQueryObject:
     """
     used to query protein 2 functional associations
-    only protein_2_function is queried in Postgres, everything else is in memory
+    only protein_2_function is queried in Postgres,
+    everything else is in memory but still deposited in the DB any way
     """
     def __init__(self):
         self.secondary_2_primary_an_dict = self.get_secondary_2_primary_an_dict()
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
-        self.kegg_functions_set = self.get_functions_set_from_functions(function_type="KEGG")
-        self.dom_functions_set = self.get_functions_set_from_functions(function_type="DOM")
+        self.KEGG_functions_set = self.get_functions_set_from_functions(function_type="KEGG")
+        self.DOM_functions_set = self.get_functions_set_from_functions(function_type="DOM")
+        # precompute set of functions to restrict funtional associations to
+        #  might need speed overhaul #!!!
+        self.UPK_functions_set = self.get_ontology_set_of_type("UPK", "")
+        self.BP_basic_functions_set = self.get_ontology_set_of_type("BP", "basic")
+        self.MF_basic_functions_set = self.get_ontology_set_of_type("MF", "basic")
+        self.CP_basic_functions_set = self.get_ontology_set_of_type("CP", "basic")
+
+        ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+        upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+        self.upk_dag = upk_dag
+
+        goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
+        self.goslim_dag = goslim_dag
+
+        go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+        for go_term in go_dag.keys():
+            parents = go_dag[go_term].get_all_parents()
+        self.go_dag = go_dag
+
+        KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+        self.KEGG_pseudo_dag = KEGG_pseudo_dag
+
+        DOM_pseudo_dag = obo_parser.DOM_pseudo_dag()
+        self.DOM_pseudo_dag = DOM_pseudo_dag
 
     @staticmethod
     def get_secondary_2_primary_an_dict():
@@ -281,9 +336,9 @@ class PersistentQueryObject:
         if gocat_upk in {"GO", "UPK", "all_GO", "BP", "MF", "CP"}:
             association_set_2_restrict = self.get_ontology_set_of_type(gocat_upk, basic_or_slim)
         elif gocat_upk == "KEGG":
-            association_set_2_restrict = self.kegg_functions_set
+            association_set_2_restrict = self.KEGG_functions_set
         elif gocat_upk == "DOM":
-            association_set_2_restrict = self.dom_functions_set
+            association_set_2_restrict = self.DOM_functions_set
         else:
             raise NotImplementedError
         cursor = get_cursor()
@@ -297,6 +352,40 @@ class PersistentQueryObject:
             an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
         return an_2_functions_dict
 
+    def get_association_dict_split_by_category(self, protein_ans_list):
+        """
+        #!!! is speed an issue? if so restructure protein_2_function table in DB to long format !?
+        STRING version, get all functional associations but split them by category
+        :param protein_ans_list: ListOfString
+        :return: Dict(key: AN, val: SetOfAssociations)
+        """
+        an_2_functions_dict_BP = defaultdict(lambda: set())
+        an_2_functions_dict_CP = defaultdict(lambda: set())
+        an_2_functions_dict_MF = defaultdict(lambda: set())
+        an_2_functions_dict_UPK = defaultdict(lambda: set())
+        an_2_functions_dict_KEGG = defaultdict(lambda: set())
+        an_2_functions_dict_DOM = defaultdict(lambda: set())
+
+        cursor = get_cursor()
+        protein_ans_list = str(protein_ans_list)[1:-1]
+        sql_statement = "SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list)
+        cursor.execute(sql_statement)
+        results = cursor.fetchall()
+        for res in results:
+            an, associations_list = res
+            an_2_functions_dict_BP[an] = set(associations_list).intersection(self.BP_basic_functions_set)
+            an_2_functions_dict_CP[an] = set(associations_list).intersection(self.CP_basic_functions_set)
+            an_2_functions_dict_MF[an] = set(associations_list).intersection(self.MF_basic_functions_set)
+            an_2_functions_dict_UPK[an] = set(associations_list).intersection(self.UPK_functions_set)
+            an_2_functions_dict_KEGG[an] = set(associations_list).intersection(self.KEGG_functions_set)
+            an_2_functions_dict_DOM[an] = set(associations_list).intersection(self.DOM_functions_set)
+
+        return {"BP": an_2_functions_dict_BP,
+                "CP": an_2_functions_dict_CP,
+                "MF": an_2_functions_dict_MF,
+                "UPK": an_2_functions_dict_UPK,
+                "KEGG": an_2_functions_dict_KEGG,
+                "DOM": an_2_functions_dict_DOM}
 
 def get_association_dict_old(protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim", backtracking=True):
     """

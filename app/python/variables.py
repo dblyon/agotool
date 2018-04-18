@@ -2,16 +2,18 @@ import os, multiprocessing
 
 ##############
 # settings
-PRELOAD = True #
-skip_slow_downloads = True
+PRELOAD = True # pre-load objects DB connection necessary
+skip_slow_downloads = True # 2 large slow downloads that take 30min to multiple hours to download
 skip_downloads_completely = True
 
-DEBUG = True
+DEBUG = True # for flask and some internals for printing, set to False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
-DOCKER = True
-TESTING = False
+DOCKER = True # run DB locally vs. dockerized
+TESTING = False # small testing subset of files for DB import, checking settings
 VERBOSE = True
 ##############
+
+function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if DOCKER:

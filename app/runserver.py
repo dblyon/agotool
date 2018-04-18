@@ -1,10 +1,15 @@
 import os, sys, logging, time
-from flask import render_template, request, send_from_directory
 import flask
+from flask import render_template, request, send_from_directory, jsonify
+from flask.views import MethodView
+from flask_restful import reqparse, abort, Api, Resource
 import wtforms
 from wtforms import fields
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, cluster_filter, obo_parser, variables
+import json
+from lxml import etree
+
 ###############################################################################
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
 SESSION_FOLDER_ABSOLUTE = variables.SESSION_FOLDER_ABSOLUTE
@@ -24,8 +29,10 @@ MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 # ToDo 2018
 # - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
 # - install MCL clustering on flask container --> DONE
-# - fix download results button link
+# - fix download results button link --> DONE
 # - update bootstrap version
+# - put proteins without abundance data into separate cluster
+# - re-write "write_summary2file_web" to take additional argument output_format={tsv, tsv-no-header, json, xml}
 ###############################################################################
 # ToDo:
 # - load 'Ontologies_table' once
@@ -60,6 +67,7 @@ def getitem(obj, item, default):
 ###############################################################################
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
+
 
 if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
@@ -104,16 +112,307 @@ def log_activity(string2log):
 if PRELOAD:
     pqo = query.PersistentQueryObject()
     ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-    upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
-    goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
-    go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-    # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict() # delete
-    KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+    # --> happening in pqo instead of here in runserver
 
-    for go_term in go_dag.keys():
-        parents = go_dag[go_term].get_all_parents()
+    # upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+    # pqo.upk_dag = upk_dag
+    #
+    # goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
+    # pqo.goslim_dag = goslim_dag
+    #
+    # go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+    # for go_term in go_dag.keys():
+    #     parents = go_dag[go_term].get_all_parents()
+    # pqo.go_dag = go_dag
+    #
+    # KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+    # pqo.KEGG_pseudo_dag = KEGG_pseudo_dag
+    #
+    # DOM_pseudo_dag = obo_parser.DOM_pseudo_dag()
+    # pqo.DOM_pseudo_dag = DOM_pseudo_dag
 
-    filter_ = cluster_filter.Filter(go_dag)
+    filter_ = cluster_filter.Filter(pqo.go_dag)
+
+################################################################################
+# REST API
+################################################################################
+### from https://code.tutsplus.com/tutorials/building-restful-apis-with-flask-diy--cms-26625
+# class Test_API(MethodView):
+#
+#     def get(self):
+#         result = {"something_something": 123,
+#                   "bubu": "else",
+#                   "x": 3.33}
+#         return jsonify(result)
+#         # return result
+#
+#     def post(self):
+#         # print("#"*10, "request.args start")
+#         # print(request.args)
+#         # print("#" * 10, "request.args stop")
+#         # return jsonify(request.form.to_dict())
+#         return jsonify(request.args)
+#
+# test_api_view =  Test_API.as_view('test_api_view')
+# app.add_url_rule('/test_api/', view_func=test_api_view, methods=['GET', 'POST'])
+# app.add_url_rule('/test_api/<int:id>', view_func=test_api_view, methods=['GET'])
+
+
+### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
+### API
+api = Api(app)
+parser = reqparse.RequestParser()
+
+# parser.add_argument("AAA")
+
+class Test_API_v2(Resource):
+
+    def get(self):
+        # result = {"something_something": 123, "bubu": "else", "x": 3.33}
+        # return jsonify(result)
+        return self.post()
+
+    def post(self):
+        args = parser.parse_args()
+        return jsonify(args)
+
+api.add_resource(Test_API_v2, '/test_api_v2')
+
+
+################################################################################
+### STRING arguments/parameters
+parser.add_argument("identifiers", type=str,
+    #!!! create better help text
+    help="Required parameter for multiple items, e.g. DRD1_HUMAN%0dDRD2_HUMAN")
+
+parser.add_argument("species", type=int,
+    help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
+    default=9606)
+
+parser.add_argument("output_format", type=str,
+    help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}",
+    default="json")
+
+# STRING method is "enrichment", has nothing to do with aGOtool settings
+parser.add_argument("method", type=str,
+    help="Getting functional enrichment",
+    default="enrichment")
+
+parser.add_argument("caller_identity", type=str,
+    help="Your identifier for us e.g. www.my_awesome_app.com",
+    default=None) # ? do I need default value ?
+
+class STRING_API(Resource):
+    """
+    get enrichment for all available functional associations not 'just' one category
+    """
+
+    def get(self, output_format="json"):
+        # return jsonify({"README": "You've reached the STRING functional enrichment, we're not available at the moment. "
+        #                           "Please leave a message or use the 'POST' method to use our service. see INSERT LINK HERE #!!! "})
+        return self.post(output_format)
+
+    def post(self, output_format="json"):
+        """
+        watch out for difference between passing parameter through
+        - part of the path (url) is variable in resource
+        - or parameters of form
+
+        e.g.
+        r = requests.post('http://localhost:8080/string_api/tsv/enrichment', params={"output_format": "xkcd"})
+        print(r.json())
+        print(r.url)
+        --> {'output_format from params/data': 'xkcd', 'output_format from url': 'tsv'}
+        --> http://localhost:8080/string_api/tsv/enrichment?output_format=xkcd
+        :param output_format:
+        :return:
+        """
+        # args_dict = parser.parse_args()
+        # # return jsonify({"output_format from url": output_format, "output_format from params/data": args_dict["output_format"]})
+        # return jsonify(args_dict)
+        args_dict = parser.parse_args()
+
+        ui = userinput.API_input(pqo,
+            foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
+            num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
+            foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
+
+        results_all_function_types = run.run_STRING_enrichment(pqo, #go_dag, goslim_dag, upk_dag,
+            ui, args_dict["gocat_upk"], args_dict["go_slim_or_basic"], args_dict["indent"],
+            args_dict["multitest_method"], args_dict["alpha"],
+            args_dict["o_or_u_or_both"], args_dict["backtracking"], args_dict["fold_enrichment_study2pop"],
+            args_dict["p_value_uncorrected"], args_dict["p_value_multipletesting"])
+
+        return format_multiple_results(args_dict.output_format, results_all_function_types)
+
+api.add_resource(STRING_API, "/string_api", "/string_api/<output_format>", "/string_api/<output_format>/enrichment")
+
+################################################################################
+### aGOtool arguments/parameters
+parser.add_argument("foreground", type=str,
+    help="UniProt Accession Numbers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
+         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
+         "Isoforms are accepted. Delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
+    default=None)
+
+parser.add_argument("background", type=str,
+    help="UniProt Accession Numbers for all proteins in the background (the population, the group you want to compare your foreground to) "
+         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
+         "delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
+    default=None)
+
+parser.add_argument("intensity", type=str,
+    help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "
+         "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
+         "e.g. '12.3%0d3.4' ",
+    default=None)
+
+parser.add_argument("gocat_upk", type=str,
+    help="One or all three categories of GO terms, UniProt keywords, or KEGG pathways, one of {all_GO, BP, CP, MF, UPK, KEGG}",
+    default="UPK")
+
+parser.add_argument("enrichment_method", type=str,
+    help="""abundance_correction: Foreground vs Background abundance corrected; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; characterize_foreground: Foreground only""",
+    default="characterize_foreground")
+
+parser.add_argument("foreground_n", type=int,
+    help="Foreground_n is an integer, defines the number of sample of the foreground.",
+    default=10)
+
+parser.add_argument("background_n", type=int,
+    help="Background_n is an integer, defines the number of sample of the background.",
+    default=10)
+
+parser.add_argument("abcorr", type=bool,
+    help="""Apply the abundance correction as described in the publication. A column named "background_int" (background intensity) that corresponds to the column "background_an" (background accession number) needs to be provided, when selecting this option. If "Abundance correction" is deselected "background_int" can be omitted.""",
+    default=True)
+
+parser.add_argument("go_slim_or_basic", type=str,
+    help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
+    default="basic")
+
+parser.add_argument("indent", type=bool,
+    help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
+    default=True)
+
+parser.add_argument("multitest_method", type=str,
+    help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
+    default="benjamini_hochberg")
+
+parser.add_argument("alpha", type=float,
+    help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
+    default=0.05)
+
+parser.add_argument("o_or_u_or_both", type=str,
+    help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.",
+    default="overrepresented")
+
+parser.add_argument("num_bins", type=int,
+    help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.",
+    default=100)
+
+parser.add_argument("backtracking", type=bool,
+    help="Include all parent GO-terms, Backtracking parent GO-terms. Typically this is 'True', only set to 'False' for a good reason.",
+    default=True)
+
+parser.add_argument("fold_enrichment_study2pop", type=float,
+    help="Apply a filter for the minimum threshold value of fold enrichment study/population.",
+    default=0)
+
+parser.add_argument("p_value_uncorrected", type=float,
+    help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
+    default=0)
+
+parser.add_argument("p_value_multipletesting", type=float,
+    help="Apply a filter (value between 0 and 1) for the maximum value for the corrected p-value (FDR-cutoff)",
+    default=0)
+
+
+class API_agotool(Resource):
+
+    def get(self):
+        # result = {"header": "agotool functional enrichment REST API",
+        #           "body": "Please use the 'POST' method to use function enrichment."}
+        # return jsonify(result)
+        return self.post()
+
+    def post(self):
+        args_dict = parser.parse_args()
+
+        ui = userinput.API_input(pqo,
+            foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
+            num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
+            foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
+
+        header, results = run.run(pqo, #go_dag, goslim_dag, upk_dag,
+            ui, args_dict["gocat_upk"], args_dict["go_slim_or_basic"], args_dict["indent"],
+            args_dict["multitest_method"], args_dict["alpha"],
+            args_dict["o_or_u_or_both"], args_dict["backtracking"], args_dict["fold_enrichment_study2pop"],
+            args_dict["p_value_uncorrected"], args_dict["p_value_multipletesting"]) #, KEGG_pseudo_dag)
+
+        return format_results(args_dict.output_format, header, results)
+
+# api_agotool_view = API_agotool.as_view('api_agotool_view')
+# app.add_url_rule('/api_agotool', view_func=api_agotool_view, methods=['GET', 'POST'])
+# app.add_url_rule('/api_agotool/', view_func=api_agotool_view, methods=['GET', 'POST'])
+# app.add_url_rule('/api_agotool/<int:id>', view_func=api_agotool_view, methods=['GET'])
+api.add_resource(API_agotool, "/api_agotool", "/api_agotool/")
+
+def format_results(output_format, header, results):
+    """
+    :param output_format: String (one of {json, tsv, tsv-no-header, xml}
+    :param header: String
+    :param results: List of String
+    :return: Json or String
+    """
+    if output_format == "json":
+        header = header.split("\t")
+        return jsonify([dict(zip(header, row.split("\t"))) for row in results])
+    elif output_format == "tsv":
+        return header + "\n" + "\n".join(results)
+    elif output_format == "tsv-no-header":
+        return "\n".join(results)
+    elif output_format == "xml":
+        return create_xml_tree(header, results)
+    else:
+        return jsonify({"README": "You've provided '{}' as the output_format, but unfortunately we don't recognize/support this method. Please select one of {json, tsv, tsv-no-header, xml} ".format(output_method)})
+
+def format_multiple_results(output_format, results_all_function_types):
+    """
+    :param output_format: String
+    :param results_all_function_types: Dict (key: function_type , val: Tuple(header, results))
+    :return: Json or String
+    """
+    # print(results_all_function_types)
+    # return format_results(output_format, results_all_function_types[0][0], results_all_function_types[0][1])
+    if output_format == "json":
+        dict_2_return = {}
+        for functype_header_results in results_all_function_types.items():
+            functype, header_results = functype_header_results
+            header, results = header_results
+            header = header.split("\t")
+            dict_2_return[functype] = [dict(zip(header, row.split("\t"))) for row in results]
+        return jsonify(dict_2_return)
+    # elif output_format == "tsv":
+    #     return header + "\n" + "\n".join(results)
+    # elif output_format == "tsv-no-header":
+    #     return "\n".join(results)
+    # elif output_format == "xml":
+    #     return create_xml_tree(header, results)
+    else:
+        return jsonify({"README": "You've provided '{}' as the output_format, but unfortunately we don't recognize/support this method. Please select one of {json, tsv, tsv-no-header, xml} ".format(output_method)})
+
+
+def create_xml_tree(header, results):
+    xml_tree = etree.Element("EnrichmentResult")
+    header = header.split("\t")
+    for row in results:
+        child = etree.SubElement(xml_tree, "record")
+        for tag_content in zip(header, row.split("\t")):
+            tag, content = tag_content
+            etree.SubElement(child, tag).text = content
+    return etree.tostring(xml_tree, pretty_print=True, xml_declaration=True, encoding="utf-8")#.decode("UTF-8")
+
 
 ################################################################################
 # index.html
@@ -250,11 +549,11 @@ class Enrichment_Form(wtforms.Form):
                                       # [validate_inputfile],
                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
 
-'population_an': UniProt accession numbers (such as 'P00359') for all proteins
+'background': UniProt accession numbers (such as 'P00359') for all proteins
 
-'population_int': Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)
+'intensity': Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)
 
-'sample_an': UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment,
+'foreground': UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment,
 these identifiers should also be present in the 'population_an' as the test group is a subset of the population)
 
 If "Abundance correction" is deselected "population_int" can be omitted.""")
@@ -366,7 +665,7 @@ def results():
     if request.method == 'POST' and form.validate():
         try:
             input_fs = request.files['userinput_file']
-        except:
+        except: #!!! check out which exceptions can occur
             input_fs = None
 
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data,
