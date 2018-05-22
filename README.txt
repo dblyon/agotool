@@ -1,4 +1,10 @@
 ##############################################################################
+### push to dockerhub
+export DOCKER_ID_USER="dblyon"
+docker login
+docker tag agotool dblyon/agotool
+docker push dblyon/agotool
+##############################################################################
 ### installation on red hat virtual server
 # copy static data to server (can be deleted after copying it to named volume)
 rsync -avr /Users/dblyon/modules/cpr/agotool/data david@10.34.6.24:/data_from_ody/
@@ -353,3 +359,69 @@ vim /var/www/agotool/app/python/variables.py
 
 # run the app with new settings
 docker-compose up -d
+
+##### Pytest run tests in test_userinput.py
+# test works but flask crashes "error code 247", restart flask with docker-compose up -d
+docker exec -it agotool_flaskapp_1 pytest -v ./python/test_userinput.py
+--> /opt/services/flaskapp/src/env_file
+## connect container to network
+docker run --rm -it --network="agotool_db_nw" --name testing --volume "agotool_agotool_data:/agotool_data" --volume "agotool_dbdata:/dbdata" agotool_flaskapp bash
+# check DB connection
+cd app/python
+python
+import query
+c = query.get_cursor_docker(host="db", dbname="agotool", user="postgres", password="USE_YOUR_PASSWORD", port="5432")
+# pass environmental variables at container creation
+docker run --rm -it --network="agotool_db_nw" --name testing -e POSTGRES_USER="postgres" -e POSTGRES_PASSWORD="USE_YOUR_PASSWORD" -e POSTGRES_DB="agotool" -e APP_SECRET_KEY="USE_YOUR_SECRET_KEY" --volume "agotool_agotool_data:/agotool_data" --volume "agotool_dbdata:/dbdata" agotool bash
+# ImportMismatchError from pytest
+docker run --rm -it --network="agotool_db_nw" --name testing -e POSTGRES_USER="postgres" -e POSTGRES_PASSWORD="USE_YOUR_PASSWORD" -e POSTGRES_DB="agotool" -e APP_SECRET_KEY="USE_YOUR_SECRET_KEY" --volume "agotool_agotool_data:/agotool_data" --volume "agotool_dbdata:/dbdata" agotool pytest -v ./app/python/test_userinput.py
+--> /opt/services/flaskapp/src/app/env_file
+docker run --rm -it --network="agotool_db_nw" --name testing -e POSTGRES_USER="postgres" -e POSTGRES_PASSWORD="USE_YOUR_PASSWORD" -e POSTGRES_DB="agotool" -e APP_SECRET_KEY="USE_YOUR_SECRET_KEY" --volume "agotool_agotool_data:/agotool_data" --volume "agotool_dbdata:/dbdata" agotool bash
+
+### connect to PostgreSQL container from host
+psql --host localhost -U postgres -d agotool
+
+
+### error 247
+docker-compose up
+--> 3 containers running
+docker exec -it agotool_flaskapp_1 pytest -v ./python/test_userinput.py
+--> works but error/crash "agotool_flaskapp_1 exited with code 247"
+docker-compose up -d
+--> restart flaskapp
+docker run --rm -it --network="agotool_db_nw" --name testing -e POSTGRES_USER="postgres" -e POSTGRES_PASSWORD="USE_YOUR_PASSWORD" -e POSTGRES_DB="agotool" -e APP_SECRET_KEY="USE_YOUR_SECRET_KEY" --volume "agotool_agotool_data:/agotool_data" --volume "agotool_dbdata:/dbdata" agotool pytest -v ./app/python/test_userinput.py
+--> py._path.local.LocalPath.ImportMismatchError: ('conftest', '/opt/services/flaskapp/src/python/conftest.py', local('/opt/services/flaskapp/src/app/python/conftest.py'))
+    ERROR: could not load /opt/services/flaskapp/src/app/python/conftest.py
+Why is there a dicrepancy in the path:
+docker exec -it agotool_flaskapp_1 bash
+--> /opt/services/flaskapp/src/python/test_userinput.py
+vs
+docker run --rm -it --network="agotool_db_nw" --name testing -e POSTGRES_USER="postgres" -e POSTGRES_PASSWORD="USE_YOUR_PASSWORD" -e POSTGRES_DB="agotool" -e APP_SECRET_KEY="USE_YOUR_SECRET_KEY" --volume "agotool_agotool_data:/agotool_data" --volume "agotool_dbdata:/dbdata" agotool bash
+--> /opt/services/flaskapp/src/app/python/test_userinput.py
+
+docker run --rm -it --volume "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool bash
+docker run --rm -it --network="agotool_db_nw" --name testing -e POSTGRES_USER="postgres" -e POSTGRES_PASSWORD="USE_YOUR_PASSWORD" -e POSTGRES_DB="agotool" -e APP_SECRET_KEY="USE_YOUR_SECRET_KEY" --volume "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool pytest -v ./app/python/test_userinput.py
+
+
+$ docker volume ls
+DRIVER              VOLUME NAME
+local               agotool_agotool_data
+local               agotool_dbdata
+
+$ docker volume ls
+DRIVER              VOLUME NAME
+local               agotool_agotool_data
+local               agotool_agotool_dbdata
+local               agotool_dbdata
+
+
+### PYTEST workaround to flask crashing due to unknown reason
+# run docker without preloading so the website will not work, but the connection to the DB will be established and therefore
+# the python container will not crash
+# set PRELOAD = False # pre-load objects DB connection necessary --> fast load
+# to load DB
+docker-compose up
+# repeatedly call the following, while editing pytest tests (flask dies, but DB stays alive and load is quick)
+docker exec -it agotool_flaskapp_1 pytest -v ./python/test_userinput.py
+docker exec -it agotool_flaskapp_1 pytest -vx ./python/test_userinput.py --pdb
+

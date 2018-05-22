@@ -62,5 +62,6 @@ ssl*
 *.gaf
 *.upk
 *.obo
-
+gene_association.*
+*uniprot-proteome*
 *log_psql_testing.txt

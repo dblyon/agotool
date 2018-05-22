@@ -25,10 +25,18 @@
 | P31946 | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 | O9O21O | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 
+## protein_2_function_long #!!! ? for STRING
 ## STRING version might require long format for speed?
-| P31946 | {"UPK:0002"} |
-| P31946 | {"GO:0019899"} |
+| P31946 | {"UPK:0002", "UPK:0003"} |
+| P31946 | {"GO:0019899", "GO:0012345"} |
 | P31946 | {"KEGG:04110"} |
+
+## taxid_2_proteins [TaxID_2_Proteins_table.txt] #!!! ? for STRING in order to have "genome" as available enrichment
+#####
+| taxid | an_array |
+|:---:|:---:|
+| 9606 | {"P31946", "P04637", ...} |
+| 10090 | {"P02340", ...} |
 
 ## protein_secondary_2_primary_an [Protein_Secondary_2_Primary_AN_table.txt]
 ##### Secondary (Text); Prim(Text) ("Primary" is a reserved PostgreSQL word)

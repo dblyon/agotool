@@ -189,7 +189,7 @@ def count_terms_abundance_corrected_manager(ui, assoc_dict, obo_dag, method):
 
 def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     """
-    #!!! modify to use protein groups --> handled in Userinput.py or not?
+    modify to use protein groups --> handled in Userinput.py
     produce abundance corrected counts of GO-terms of background frequency
     round floats to nearest integer
     Userinput-object includes ANs of sample, and background as well as abundance data

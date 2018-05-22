@@ -1,4 +1,7 @@
 ./data/Background_Reference_Proteomes
 ./data/PostgreSQL
 ./data/session
-
+__pycache__
+./app/__pycache__
+.pytest_cache
+./app/.pytest_cache

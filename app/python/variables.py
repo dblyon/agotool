@@ -2,13 +2,14 @@ import os, multiprocessing
 
 ##############
 # settings
-PRELOAD = True # pre-load objects DB connection necessary
+PRELOAD = False # pre-load objects DB connection necessary
 skip_slow_downloads = True # 2 large slow downloads that take 30min to multiple hours to download
 skip_downloads_completely = True
 
 DEBUG = True # for flask and some internals for printing, set to False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
-DOCKER = True # run DB locally vs. dockerized
+DOCKER = True
+DB_DOCKER = True # use local vs dockerized Postgres
 TESTING = False # small testing subset of files for DB import, checking settings
 VERBOSE = True
 ##############
@@ -59,12 +60,39 @@ LOG_DIRECTORY = os.path.join(DATA_DIR, "logs")
 LOG_FN_WARNINGS_ERRORS = os.path.join(LOG_DIRECTORY, "warnings_errors_log.txt")
 LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
 LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
-if not os.path.exists(LOG_DIRECTORY):
-    os.makedirs(LOG_DIRECTORY)
-for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS, LOG_FN_UPDATES]:
-    if not os.path.exists(fn):
-        fh = open(fn, "w")
-        fh.close()
+
+def makedirs_():
+    if not os.path.exists(LOG_DIRECTORY):
+        os.makedirs(LOG_DIRECTORY)
+    for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS, LOG_FN_UPDATES]:
+        if not os.path.exists(fn):
+            fh = open(fn, "w")
+            fh.close()
 
 # CPU usage during updates (for "sort --parallel")
 NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
+
+def parse_env_file(fn):
+    """
+    fn = r'/Users/dblyon/modules/cpr/agotool/app/env_file'
+    :param fn: String
+    :return: Dict
+    """
+    param_2_val_dict = {}
+    with open(fn, "r") as fh:
+        for line in fh:
+            if not line.startswith("#"):
+                try:
+                    key, val = line.strip().split("=")
+                    param_2_val_dict[key] = val
+                except ValueError: # whitespace, empty lines
+                    pass
+    return param_2_val_dict
+
+# if DB_DOCKER:
+#     param_2_val_dict = parse_env_file(os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file")))
+# else:
+#     param_2_val_dict = parse_env_file(os.path.join(APP_DIR, "env_file"))
+fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
+# print("VARIABLES env_file bubu: ", fn)
+param_2_val_dict = parse_env_file(fn)

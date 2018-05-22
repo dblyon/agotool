@@ -1,8 +1,12 @@
 import os, sys
 from collections import defaultdict
 import psycopg2, math
+import pytest # should this be disabled for performance later?
+
+# import user modules
 sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
 import variables, obo_parser
+
 
 UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
 FN_KEYWORDS = variables.FN_KEYWORDS
@@ -62,7 +66,20 @@ def get_cursor():
             raise StopIteration
         return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
     elif platform_ == "darwin":
-        return get_cursor_ody()
+        if not variables.DB_DOCKER: # use local Postgres
+            return get_cursor_ody()
+        else: # connect to docker Postgres container
+            # USER = "postgres"
+            # PWD = "USE_YOUR_PASSWORD"
+            # DBNAME = "agotool"
+            HOST = 'localhost'
+            PORT = '5432'
+            # fn = os.path.join(os.path.dirname(os.path.abspath(os.path.realpath(__file__))), "env_file")
+            # print(fn)
+            # param_2_val_dict = parse_env_file(fn)
+            param_2_val_dict = variables.param_2_val_dict
+            # return get_cursor_ody_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+            return get_cursor_ody_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
     else:
         print("query.get_cursor() doesn't know how to connect to Postgres")
         raise StopIteration
@@ -80,7 +97,7 @@ def get_cursor_docker(host, dbname, user, password, port):
     # Sqlalchemy version: engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
     """
     # Define our connection string
-    conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, user, password)
+    # conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, user, password)
 
     # engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
     conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
@@ -106,6 +123,15 @@ def get_cursor_ody(dbname='agotool'):
     cursor = conn.cursor()
     return cursor
 
+def get_cursor_ody_connect_2_docker(host, dbname, user, password, port):
+    conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
+    # get a connection, if a connect cannot be made an exception will be raised here
+    conn = psycopg2.connect(conn_string)
+
+    # conn.cursor will return a cursor object, you can use this cursor to perform queries
+    cursor = conn.cursor()
+    return cursor
+
 def query_example(cursor):
     cursor.execute("SELECT * FROM functions LIMIT 5")
     records = cursor.fetchall()
@@ -121,6 +147,7 @@ def get_KEGG_id_2_name_dict():
         id_ = res[0]
         name = res[1]
         id_2_name_dict[id_] = name
+    cursor.close()
     return id_2_name_dict
 
 def get_DOM_id_2_name_dict():
@@ -133,6 +160,7 @@ def get_DOM_id_2_name_dict():
         id_ = res[0]
         name = res[1]
         id_2_name_dict[id_] = name
+    cursor.close()
     return id_2_name_dict
 
 def get_function_type_id_2_name_dict(function_type):
@@ -145,8 +173,8 @@ def get_function_type_id_2_name_dict(function_type):
         id_ = res[0]
         name = res[1]
         id_2_name_dict[id_] = name
+    cursor.close()
     return id_2_name_dict
-
 
 def map_secondary_2_primary_ANs(ans_list):
     """
@@ -165,6 +193,7 @@ def map_secondary_2_primary_ANs(ans_list):
         secondary = res[0]
         primary = res[1]
         secondary_2_primary_dict[secondary] = primary
+    cursor.close()
     return secondary_2_primary_dict
 
 
@@ -216,6 +245,7 @@ class PersistentQueryObject:
             secondary = res[0]
             primary = res[1]
             secondary_2_primary_dict[secondary] = primary
+        cursor.close()
         return secondary_2_primary_dict
 
     @staticmethod
@@ -233,6 +263,7 @@ class PersistentQueryObject:
                 type_2_association_dict[type_].update([child, parent])
             else:
                 type_2_association_dict[type_] = {child, parent}
+        cursor.close()
         return type_2_association_dict
 
     @staticmethod
@@ -244,6 +275,7 @@ class PersistentQueryObject:
         go_slim_set = set()
         for res in result:
             go_slim_set.update([res[0]])
+        cursor.close()
         return go_slim_set
 
     @staticmethod
@@ -254,6 +286,7 @@ class PersistentQueryObject:
         functions_set = set()
         for res in result:
             functions_set.update([res[0]])
+        cursor.close()
         return functions_set
 
     def map_secondary_2_primary_ANs(self, ans_list):
@@ -350,6 +383,7 @@ class PersistentQueryObject:
             an = res[0]
             associations_list = res[1]
             an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
+        cursor.close()
         return an_2_functions_dict
 
     def get_association_dict_split_by_category(self, protein_ans_list):
@@ -380,6 +414,7 @@ class PersistentQueryObject:
             an_2_functions_dict_KEGG[an] = set(associations_list).intersection(self.KEGG_functions_set)
             an_2_functions_dict_DOM[an] = set(associations_list).intersection(self.DOM_functions_set)
 
+        cursor.close()
         return {"BP": an_2_functions_dict_BP,
                 "CP": an_2_functions_dict_CP,
                 "MF": an_2_functions_dict_MF,
@@ -497,6 +532,7 @@ def get_association_dict_old(protein_ans_list, function_type, limit_2_parent=Non
         limit_2_parent_set = parse_result_child_parent(result)
         for an in an_2_functions_dict:
             an_2_functions_dict[an] = an_2_functions_dict[an].intersection(limit_2_parent_set)
+    cursor.close()
     return an_2_functions_dict
 
 def get_termAN_from_humanName_functionType(functionType, humanName):
@@ -526,6 +562,8 @@ if __name__ == "__main__":
     cursor.execute("SELECT * FROM protein_2_function WHERE protein_2_function.an='A0A009DWB1'")
     records = cursor.fetchall()
     print(records)
+    cursor.close()
+
 
     # print(get_cursor())
     # print(query_example(get_cursor()))

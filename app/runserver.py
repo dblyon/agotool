@@ -11,6 +11,7 @@ import json
 from lxml import etree
 
 ###############################################################################
+variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
 SESSION_FOLDER_ABSOLUTE = variables.SESSION_FOLDER_ABSOLUTE
 SESSION_FOLDER_RELATIVE = variables.SESSION_FOLDER_RELATIVE
@@ -31,31 +32,14 @@ MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 # - install MCL clustering on flask container --> DONE
 # - fix download results button link --> DONE
 # - update bootstrap version
-# - put proteins without abundance data into separate cluster
-# - re-write "write_summary2file_web" to take additional argument output_format={tsv, tsv-no-header, json, xml}
-###############################################################################
-# ToDo:
-# - load 'Ontologies_table' once
-# - post DataBase schema for RestAPI lookup
-# - explain sources and update intervals
-# - downloads page for existing fasta
-# - create search page for common user input and convert to
-## e.g.
-## http://localhost:5000/api/functions?q={"filters": [{"name": "type", "val": "DOM", "op": "eq"}]}
-## http://localhost:5000/api/proteins?q={"filters": [{"name": "an", "val": "B2RID1", "op": "eq"}]}
-# - graphical output of enrichment
-# - enter list of TaxIDs --> create fasta for download
-# - tool to convert TaxNames to TaxIDs or rather link to NCBI
-# - Consenus functional annotation for protein groups
-# - check if TaxIDs not in NCBI taxdump, but in HOMD mappings are missing in DB, check if all TaxIDs from Fasta in DB, CHeck if all TaxNames in DB
-# - add other types to Ontologies (not only GO, but also UPK)
-# - DB schema doesn't have theme
-# - userinput report, redundant and unique number of ANs/protein-groups, organisms etc.
-# - close up/macro picture of ESI or mass spec or something, combine with a histogram similar to the publication
-# - graphical output of
-# - Dia Show or nice images in the background, changing every 1min
 # - All proteins without abundance data were disregarded --> put into extra bin
-# - http://geneontology.org/page/download-ontology --> slim set for Metagenomics
+# - re-write "write_summary2file_web" to take additional argument output_format={tsv, tsv-no-header, json, xml}
+# - implement enrichment method "genome", user supplies NCBI_TaxID, DB table
+# - Profile code
+# - graphical output of enrichment
+# - Consenus functional annotation for protein groups --> done
+# - add other types to Ontologies (not only GO, but also UPK) --> done
+# - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
 ###############################################################################
 
 ###############################################################################
@@ -81,7 +65,7 @@ if PROFILING:
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
-app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20
+app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20 #* 100
 
 logger = logging.getLogger()
 logger.level = logging.DEBUG
@@ -202,14 +186,12 @@ parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
 
-class STRING_API(Resource):
+class API_STRING(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
     """
 
     def get(self, output_format="json"):
-        # return jsonify({"README": "You've reached the STRING functional enrichment, we're not available at the moment. "
-        #                           "Please leave a message or use the 'POST' method to use our service. see INSERT LINK HERE #!!! "})
         return self.post(output_format)
 
     def post(self, output_format="json"):
@@ -219,18 +201,17 @@ class STRING_API(Resource):
         - or parameters of form
 
         e.g.
-        r = requests.post('http://localhost:8080/string_api/tsv/enrichment', params={"output_format": "xkcd"})
+        r = requests.post('http://localhost:8080/api_string/tsv/enrichment', params={"output_format": "xkcd"})
         print(r.json())
         print(r.url)
         --> {'output_format from params/data': 'xkcd', 'output_format from url': 'tsv'}
-        --> http://localhost:8080/string_api/tsv/enrichment?output_format=xkcd
+        --> http://localhost:8080/api_string/tsv/enrichment?output_format=xkcd
         :param output_format:
         :return:
         """
-        # args_dict = parser.parse_args()
-        # # return jsonify({"output_format from url": output_format, "output_format from params/data": args_dict["output_format"]})
-        # return jsonify(args_dict)
         args_dict = parser.parse_args()
+        print("args_dict:", args_dict)
+
 
         ui = userinput.API_input(pqo,
             foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
@@ -245,7 +226,7 @@ class STRING_API(Resource):
 
         return format_multiple_results(args_dict.output_format, results_all_function_types)
 
-api.add_resource(STRING_API, "/string_api", "/string_api/<output_format>", "/string_api/<output_format>/enrichment")
+api.add_resource(API_STRING, "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
 ################################################################################
 ### aGOtool arguments/parameters
@@ -331,13 +312,22 @@ parser.add_argument("p_value_multipletesting", type=float,
 class API_agotool(Resource):
 
     def get(self):
-        # result = {"header": "agotool functional enrichment REST API",
-        #           "body": "Please use the 'POST' method to use function enrichment."}
-        # return jsonify(result)
         return self.post()
 
     def post(self):
         args_dict = parser.parse_args()
+        print("#"*66)
+        print("args_dict:")
+        for item in args_dict.items():
+            print(item)
+        print("#" * 66)
+        # print("foreground:", args_dict["foreground"])
+        # print("background:", args_dict["background"])
+        # print("intensity:", args_dict["intensity"])
+        # print("num_bins:", args_dict["num_bins"])
+        # print("enrichment_method:", args_dict["enrichment_method"])
+        # print("foreground_n:", args_dict["foreground_n"])
+        # print("background_n:", args_dict["background_n"])
 
         ui = userinput.API_input(pqo,
             foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
@@ -352,10 +342,6 @@ class API_agotool(Resource):
 
         return format_results(args_dict.output_format, header, results)
 
-# api_agotool_view = API_agotool.as_view('api_agotool_view')
-# app.add_url_rule('/api_agotool', view_func=api_agotool_view, methods=['GET', 'POST'])
-# app.add_url_rule('/api_agotool/', view_func=api_agotool_view, methods=['GET', 'POST'])
-# app.add_url_rule('/api_agotool/<int:id>', view_func=api_agotool_view, methods=['GET'])
 api.add_resource(API_agotool, "/api_agotool", "/api_agotool/")
 
 def format_results(output_format, header, results):
@@ -369,7 +355,9 @@ def format_results(output_format, header, results):
         header = header.split("\t")
         return jsonify([dict(zip(header, row.split("\t"))) for row in results])
     elif output_format == "tsv":
-        return header + "\n" + "\n".join(results)
+        stuff_2_return = header + "\n" + "\n".join(results)
+        # print(stuff_2_return)
+        return stuff_2_return
     elif output_format == "tsv-no-header":
         return "\n".join(results)
     elif output_format == "xml":
@@ -383,8 +371,6 @@ def format_multiple_results(output_format, results_all_function_types):
     :param results_all_function_types: Dict (key: function_type , val: Tuple(header, results))
     :return: Json or String
     """
-    # print(results_all_function_types)
-    # return format_results(output_format, results_all_function_types[0][0], results_all_function_types[0][1])
     if output_format == "json":
         dict_2_return = {}
         for functype_header_results in results_all_function_types.items():
@@ -393,15 +379,8 @@ def format_multiple_results(output_format, results_all_function_types):
             header = header.split("\t")
             dict_2_return[functype] = [dict(zip(header, row.split("\t"))) for row in results]
         return jsonify(dict_2_return)
-    # elif output_format == "tsv":
-    #     return header + "\n" + "\n".join(results)
-    # elif output_format == "tsv-no-header":
-    #     return "\n".join(results)
-    # elif output_format == "xml":
-    #     return create_xml_tree(header, results)
     else:
-        return jsonify({"README": "You've provided '{}' as the output_format, but unfortunately we don't recognize/support this method. Please select one of {json, tsv, tsv-no-header, xml} ".format(output_method)})
-
+        raise NotImplementedError
 
 def create_xml_tree(header, results):
     xml_tree = etree.Element("EnrichmentResult")
@@ -692,13 +671,16 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
-            header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
-                form.go_slim_or_basic.data, form.indent.data,
-                form.multitest_method.data, form.alpha.data,
-                form.o_or_u_or_both.data,
-                form.backtracking.data, form.fold_enrichment_study2pop.data,
-                form.p_value_uncorrected.data,
-                form.p_value_multipletesting.data, KEGG_pseudo_dag)
+            # header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
+            #     form.go_slim_or_basic.data, form.indent.data,
+            #     form.multitest_method.data, form.alpha.data,
+            #     form.o_or_u_or_both.data,
+            #     form.backtracking.data, form.fold_enrichment_study2pop.data,
+            #     form.p_value_uncorrected.data,
+            #     form.p_value_multipletesting.data, KEGG_pseudo_dag)
+            header, results = run.run(pqo, ui, form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+                form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data, form.backtracking.data,
+                form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)
 
         else:
             return render_template('info_check_input.html')
