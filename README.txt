@@ -425,3 +425,7 @@ docker-compose up
 docker exec -it agotool_flaskapp_1 pytest -v ./python/test_userinput.py
 docker exec -it agotool_flaskapp_1 pytest -vx ./python/test_userinput.py --pdb
 
+# copy example data
+# You can think of a trailing / on a source as meaning "copy the contents of this directory" as opposed to "copy the directory by name"
+docker run --rm -it --volume /Users/dblyon/modules/cpr/agotool:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool rsync -avr /mounted_data/data/exampledata/ /agotool_data/data/exampledata
+

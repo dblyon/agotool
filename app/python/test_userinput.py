@@ -25,17 +25,17 @@ foreground_0 = pd.DataFrame({'foreground': {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: '
 background_0 = pd.DataFrame({'background': {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O'},
                              'intensity': {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 2.0, 7: 3.0, 8: 4.0, 9: 5.0, 10: 6.0, 11: 7.0, 12: 8.0, 13: 9.0, 14: 10.0}})
 
-### example1: foreground is proper subset of background, everything has an abundance value
+### example1: foreground is a proper subset of the background, everything has an abundance value
 foreground_1 = pd.DataFrame({'foreground': {0: 'Q9UHI6', 1: 'Q13075', 2: 'A6NDB9', 3: 'A6NFR9', 4: 'O95359', 5: 'D6RGG6', 6: 'Q9BRQ0', 7: 'P09629', 8: 'Q9Y6G5', 9: 'Q96KG9'},
                              'intensity': {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0, 4: 5.0, 5: 6.0, 6: 7.0, 7: 8.0, 8: 9.0, 9: 10.0}})
 background_1 = pd.DataFrame({'background': {0: 'P13747', 1: 'Q6VB85', 2: 'Q8N8S7', 3: 'Q8WXE0', 4: 'Q9UHI6', 5: 'Q9UQ03', 6: 'Q13075', 7: 'A6NDB9', 8: 'A6NFR9', 9: 'O95359', 10: 'D6RGG6', 11: 'Q9BRQ0', 12: 'P09629', 13: 'Q9Y6G5', 14: 'Q96KG9'},
                              'intensity': {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 2.0, 7: 3.0, 8: 4.0, 9: 5.0, 10: 6.0, 11: 7.0, 12: 8.0, 13: 9.0, 14: 10.0}})
-### example2: foreground is proper subset of background, not everything has an abundance value
+### example2: foreground is a proper subset of the background, not everything has an abundance value
 foreground_2 = pd.DataFrame({'foreground': {0: 'Q9UHI6', 1: 'Q13075', 2: 'A6NDB9', 3: 'A6NFR9', 4: 'O95359', 5: 'D6RGG6', 6: 'Q9BRQ0', 7: 'P09629', 8: 'Q9Y6G5', 9: 'Q96KG9'},
                              'intensity': {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0, 4: 5.0, 5: 6.0, 6: 7.0, 7: 8.0, 8: -1.0, 9: -1.0}})
 background_2 = pd.DataFrame({'background': {0: 'Q9UHI6', 1: 'Q13075', 2: 'A6NDB9', 3: 'A6NFR9', 4: 'O95359', 5: 'D6RGG6', 6: 'Q9BRQ0', 7: 'P09629', 8: 'Q9Y6G5', 9: 'Q96KG9', 10: 'Q8WXE0', 11: 'Q6VB85', 12: 'P13747', 13: 'Q9UQ03', 14: 'Q8N8S7'},
                              'intensity': {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0, 4: 5.0, 5: 6.0, 6: 7.0, 7: 8.0, 8: -1.0, 9: -1.0, 10: -1.0, 11: -1.0, 12: -1.0, 13: -1.0, 14: -1.0}})
-### example3: foreground is not a proper subset of background, not everything has an abundance value
+### example3: foreground is not a proper subset of the background, not everything has an abundance value
 foreground_3 = pd.DataFrame({'foreground': {0: 'Q9UHI6', 1: 'Q13075', 2: 'A6NDB9', 3: 'A6NFR9', 4: 'O95359', 5: 'D6RGG6', 6: 'Q9BRQ0', 7: 'P09629', 8: 'Q9Y6G5', 9: 'Q96KG9'},
                              'intensity': {0: 1.0, 1: 2.0, 2: 3.0, 3: 4.0, 4: 5.0, 5: 6.0, 6: 7.0, 7: 8.0, 8: -1.0, 9: -1.0}})
 background_3 = pd.DataFrame({'background': {0: 'ABC123', 1: 'Q13075', 2: 'A6NDB9', 3: 'A6NFR9', 4: 'O95359', 5: 'D6RGG6', 6: 'Q9BRQ0', 7: 'P09629', 8: 'Q9Y6G5', 9: 'Q96KG9', 10: 'Q8WXE0', 11: 'Q6VB85', 12: 'P13747', 13: 'Q9UQ03', 14: 'Q8N8S7'},
@@ -50,22 +50,32 @@ foreground_background_2_test = [pytest.mark.xfail((foreground_empty, background_
                                 (foreground_2, background_2),
                                 (foreground_3, background_3)]
 
-example_ids = ["edge case, empty DFs with NaNs",
-               "edge case: nested empty list",
-               "edge case: empty list",
-               "edge case: None",
-               "edge case: nonsense ANs",
-               "example1: foreground is proper subset of background, everything has an abundance value",
-               "example2: foreground is proper subset of background, not everything has an abundance value",
-               "example3: foreground is not a proper subset of background, not everything has an abundance value"]
+ids_foreground_background_2_test = ["edge case, empty DFs with NaNs",
+                                    "edge case: nested empty list",
+                                    "edge case: empty list",
+                                    "edge case: None",
+                                    "edge case: nonsense ANs",
+                                    "example1: foreground is proper subset of background, everything has an abundance value",
+                                    "example2: foreground is proper subset of background, not everything has an abundance value",
+                                    "example3: foreground is not a proper subset of background, not everything has an abundance value"]
 
-@pytest.fixture(params=foreground_background_2_test, ids=example_ids)
-def params_fixture_foreground_background_2_test(request):
+@pytest.fixture(params=foreground_background_2_test, ids=ids_foreground_background_2_test)
+def fixture_foreground_background_2_test(request):
     return request.param
 
 
-def test_ui_API_check(pqo, params_fixture_foreground_background_2_test):
-    foreground, background = params_fixture_foreground_background_2_test
+foreground_2_test = []
+
+example_ids_foreground_2_test = []
+
+@pytest.fixture(params=foreground_2_test, ids=example_ids_foreground_2_test)
+def fixture_foreground(request):
+    return request.param
+
+
+
+def test_ui_API_check(pqo, fixture_foreground_background_2_test):
+    foreground, background = fixture_foreground_background_2_test
     num_bins = 100
     fg = "%0d".join(foreground.loc[foreground.foreground.notnull(), "foreground"].tolist())
     bg = "%0d".join(background.loc[background.background.notnull(), "background"].tolist())
@@ -73,14 +83,26 @@ def test_ui_API_check(pqo, params_fixture_foreground_background_2_test):
     ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=num_bins)
     assert ui.check == True
 
-def test_Userinput_check_parse_and_cleanup_FN(pqo):
+def test_Userinput_check_parse_and_cleanup_FN_point(pqo):
     fn_example_data = os.path.join(variables.EXAMPLE_FOLDER, "ExampleData.txt")
     ui = userinput.Userinput(pqo=pqo, fn=fn_example_data, num_bins=100)
     assert ui.check_parse == True
     assert ui.check_cleanup == True
 
-def test_Userinput_check_parse_and_cleanup_copy_and_paste(pqo, params_fixture_foreground_background_2_test):
-    foreground, background = params_fixture_foreground_background_2_test
+def test_Userinput_check_parse_and_cleanup_FN_comma(pqo):
+    fn_example_data = os.path.join(variables.EXAMPLE_FOLDER, "HeLa_Ubi_exampledata.txt")
+    ui = userinput.Userinput(pqo=pqo, fn=fn_example_data, num_bins=100)
+    assert ui.check_parse == True
+    assert ui.check_cleanup == True
+
+def test_Userinput_check_parse_and_cleanup_FN_missing(pqo):
+    fn_example_data = os.path.join(variables.EXAMPLE_FOLDER, "This_does_not_exist_and_therefore_can_not_be_parsed.txt")
+    ui = userinput.Userinput(pqo=pqo, fn=fn_example_data, num_bins=100)
+    assert ui.check_parse == False
+    assert ui.check_cleanup == False
+
+def test_Userinput_check_parse_and_cleanup_copy_and_paste(pqo, fixture_foreground_background_2_test):
+    foreground, background = fixture_foreground_background_2_test
     num_bins = 100
     fg = "\n".join(foreground.loc[foreground.foreground.notnull(), "foreground"].tolist())
     bg = background.loc[background.background.notnull(), "background"].tolist()
@@ -93,10 +115,9 @@ def test_Userinput_check_parse_and_cleanup_copy_and_paste(pqo, params_fixture_fo
     assert ui.check_parse == True
     assert ui.check_cleanup == True
 
-def test_iter_bins_API_input(pqo, params_fixture_foreground_background_2_test):
-    foreground, background = params_fixture_foreground_background_2_test
+def test_iter_bins_API_input(pqo, fixture_foreground_background_2_test):
+    foreground, background = fixture_foreground_background_2_test
     num_bins = 100
-    # DEFAULT_MISSING_BIN = -1
 
     fg = "%0d".join(foreground.loc[foreground.foreground.notnull(), "foreground"].tolist())
     bg = "%0d".join(background.loc[background.background.notnull(), "background"].tolist())
@@ -108,32 +129,14 @@ def test_iter_bins_API_input(pqo, params_fixture_foreground_background_2_test):
         # every weighting factor is a float
         assert type(weight_fac) == float
         counter += 1
-
-    # every AN in foreground needs to have an abundance value
-    #  --> but those with missing abundance vals are all in the same bin (and therefore only count once all together)
-    # foreground proteins that don't exist in background (since foreground proper subset of background) mess up the count and need to be added
-    #  --> all of them fall within the missing vals bin of the foreground, but the ANs don't appear in the background
-    # missing_in_background = ui.get_foreground_an_set() - ui.get_background_an_set()
-    # if len(missing_in_background) > 0:
-    #     counter += 1
-
-    # proteins with abundance info
-    # cond = ui.foreground["intensity"] > DEFAULT_MISSING_BIN
-    # number_of_proteins = foreground[cond].shape[0]
-
-    # number_of_bins_used = len(pd.cut(foreground["intensity"], bins=num_bins, retbins=True)[1])
     number_of_bins_used = pd.cut(ui.foreground["intensity"], bins=100, retbins=False).drop_duplicates().shape[0]
-
-    # if any proteins fall within missing bin count as one since they get grouped together
-    # if sum(-cond) > 0:
-    #     number_of_bins_used += 1
     assert counter == number_of_bins_used
 
 
 ### test cleanup for analysis for all 4 different enrichment methods
 ### via class REST_API_input
-def test_cleanupforanalysis_abundance_correction_REST_API(pqo, params_fixture_foreground_background_2_test):
-    foreground_input, background_input = params_fixture_foreground_background_2_test
+def test_cleanupforanalysis_abundance_correction_REST_API(pqo, fixture_foreground_background_2_test):
+    foreground_input, background_input = fixture_foreground_background_2_test
     num_bins = 100
     enrichment_method = "abundance_correction"
     foreground_n = None
@@ -174,8 +177,8 @@ def test_cleanupforanalysis_abundance_correction_REST_API(pqo, params_fixture_fo
     assert non_decreasing(foreground_intensity.tolist()) == True
     assert non_decreasing(background_intensity.tolist()) == True
 
-def test_cleanupforanalysis_characterize_foreground_REST_API(pqo, params_fixture_foreground_background_2_test):
-    foreground_input, background_input = params_fixture_foreground_background_2_test
+def test_cleanupforanalysis_characterize_foreground_REST_API(pqo, fixture_foreground_background_2_test):
+    foreground_input, background_input = fixture_foreground_background_2_test
     num_bins = 100
     enrichment_method = "characterize_foreground"
     foreground_n = None
@@ -197,8 +200,8 @@ def test_cleanupforanalysis_characterize_foreground_REST_API(pqo, params_fixture
     # no duplicates
     assert foreground.duplicated().any() == False
 
-def test_cleanupforanalysis_compare_samples_REST_API(pqo, params_fixture_foreground_background_2_test):
-    foreground_input, background_input = params_fixture_foreground_background_2_test
+def test_cleanupforanalysis_compare_samples_REST_API(pqo, fixture_foreground_background_2_test):
+    foreground_input, background_input = fixture_foreground_background_2_test
     num_bins = 100
     enrichment_method = "compare_samples"
     foreground_n = None
@@ -225,8 +228,8 @@ def test_cleanupforanalysis_compare_samples_REST_API(pqo, params_fixture_foregro
     assert foreground.duplicated().any() == False
     assert background.duplicated().any() == False
 
-def test_cleanupforanalysis_compare_groups_REST_API(pqo, params_fixture_foreground_background_2_test):
-    foreground_input, background_input = params_fixture_foreground_background_2_test
+def test_cleanupforanalysis_compare_groups_REST_API(pqo, fixture_foreground_background_2_test):
+    foreground_input, background_input = fixture_foreground_background_2_test
     num_bins = 100
     enrichment_method = "compare_groups"
     foreground_n = None
@@ -258,8 +261,8 @@ def test_cleanupforanalysis_compare_groups_REST_API(pqo, params_fixture_foregrou
     assert background.duplicated().sum() >= background_df_orig[background_df_orig.notnull()].duplicated().sum()
 
 ### via class Userinput
-def test_cleanupforanalysis_abundance_correction_Userinput(pqo, params_fixture_foreground_background_2_test):
-    foreground, background = params_fixture_foreground_background_2_test
+def test_cleanupforanalysis_abundance_correction_Userinput(pqo, fixture_foreground_background_2_test):
+    foreground, background = fixture_foreground_background_2_test
     num_bins = 100
     fg = "\n".join(foreground.loc[foreground.foreground.notnull(), "foreground"].tolist())
     bg = background.loc[background.background.notnull(), "background"].tolist()
@@ -300,8 +303,8 @@ def test_cleanupforanalysis_abundance_correction_Userinput(pqo, params_fixture_f
     assert non_decreasing(foreground_intensity.tolist()) == True
     assert non_decreasing(background_intensity.tolist()) == True
 
-def test_cleanupforanalysis_characterize_foreground_Userinput(pqo, params_fixture_foreground_background_2_test):
-    foreground, background = params_fixture_foreground_background_2_test
+def test_cleanupforanalysis_characterize_foreground_Userinput(pqo, fixture_foreground_background_2_test):
+    foreground, background = fixture_foreground_background_2_test
     num_bins = 100
     fg = "\n".join(foreground.loc[foreground.foreground.notnull(), "foreground"].tolist())
     enrichment_method = "characterize_foreground"
@@ -318,10 +321,10 @@ def test_cleanupforanalysis_characterize_foreground_Userinput(pqo, params_fixtur
     # no duplicates
     assert foreground.duplicated().any() == False
 
-def test_cleanupforanalysis_compare_samples_Userinput(pqo, params_fixture_foreground_background_2_test):
+def test_cleanupforanalysis_compare_samples_Userinput(pqo, fixture_foreground_background_2_test):
     num_bins = 100
     enrichment_method = "compare_samples"
-    foreground, background = params_fixture_foreground_background_2_test
+    foreground, background = fixture_foreground_background_2_test
     fg = "\n".join(foreground.loc[foreground.foreground.notnull(), "foreground"].tolist())
     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=num_bins, enrichment_method=enrichment_method)
@@ -342,10 +345,10 @@ def test_cleanupforanalysis_compare_samples_Userinput(pqo, params_fixture_foregr
     assert foreground.duplicated().any() == False
     assert background.duplicated().any() == False
 
-def test_cleanupforanalysis_compare_groups_Userinput(pqo, params_fixture_foreground_background_2_test):
+def test_cleanupforanalysis_compare_groups_Userinput(pqo, fixture_foreground_background_2_test):
     num_bins = 100
     enrichment_method = "compare_groups"
-    foreground, background = params_fixture_foreground_background_2_test
+    foreground, background = fixture_foreground_background_2_test
     fg = "\n".join(foreground.loc[foreground.foreground.notnull(), "foreground"].tolist())
     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=num_bins, enrichment_method=enrichment_method)
@@ -371,11 +374,10 @@ def test_cleanupforanalysis_compare_groups_Userinput(pqo, params_fixture_foregro
     assert background.duplicated().sum() >= background_df_orig[background_df_orig.notnull()].duplicated().sum()
 
 
-
-
 ### helper functions
 def non_decreasing(L):
     """
     https://stackoverflow.com/questions/4983258/python-how-to-check-list-monotonicity
     """
     return all(x<=y for x, y in zip(L, L[1:]))
+

@@ -43,7 +43,10 @@ class Userinput:
         self.foreground_n = foreground_n
         self.background_n = background_n
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
-        self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        if self.check_parse:
+            self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        else:
+            self.check_cleanup = False
 
     def parse_input(self):
         if self.fn is None: # use copy & paste field
@@ -67,7 +70,10 @@ class Userinput:
             else:
                 self.fn.write(self.foreground_string)
             self.fn.seek(0)
-        df_orig, decimal, check_parse = self.check_decimal(self.fn)
+        try:
+            df_orig, decimal, check_parse = self.check_decimal(self.fn)
+        except FileNotFoundError:
+            return None, ".", False
         return df_orig, decimal, check_parse
 
     def cleanupforanalysis(self, df, col_foreground, col_background, col_intensity):
