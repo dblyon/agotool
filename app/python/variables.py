@@ -2,15 +2,15 @@ import os, multiprocessing
 
 ############################
 # settings
-PRELOAD = False # pre-load objects DB connection necessary
+PRELOAD = False # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
 DOCKER = True # local vs. dockerized version
-DB_DOCKER = True # use local vs dockerized Postgres
+DB_DOCKER = True # use local vs dockerized Postgres, in query.py
 DEBUG = True # for flask and some internals for printing, set to False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
-TESTING = False # small testing subset of files for DB import, checking settings
+TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout
 ############################
 

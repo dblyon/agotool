@@ -12,9 +12,9 @@ services:
       # named volume. to copy data into with e.g.
       # docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
       # needed to build DB from files (copy from file)
-       - "agotool_data:/agotool_data" # version 1
-       #- ./data:/agotool_data # version 2
-      # bind mount to mount files from the host to the container
+       #- "agotool_data:/agotool_data" # version 1
+       - .:/agotool_data # version 2, bind mount to mount files from the host to the container
+
 ### Atlas
 #      - /mnt/mnemo5/dblyon/agotool:/agotool_data
 
@@ -38,13 +38,15 @@ services:
 ### Ody
 # local changes are reflected in docker
       - ./app/:/opt/services/flaskapp/src
+### needed for access to download new resources
+      #- "agotool_data:/agotool_data" # version 1
+      - .:/agotool_data # version 2, # bind mounted volume from host, e.g. RW access from container.
+
 ### Atlas
 #      - /mnt/mnemo5/dblyon/agotool/app/:/opt/services/flaskapp/src
 ### Ody
 #       named volume. persistent data container that is managed by docker.
-# needed for access to download new resources
-      - "agotool_data:/agotool_data" # version 1
-      #- ./data:/agotool_data # version 2, # bind mounted volume from host, e.g. RW access from container.
+
 
     env_file:
       - ./app/env_file
