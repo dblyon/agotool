@@ -72,3 +72,4 @@ htmlcov/
 .coverage
 STRING_ToDo_readme.txt
 
+data/PostgreSQL/downloads/*
