@@ -22,7 +22,7 @@ def modify_header(header_list):
 class EnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, ui, assoc_dict, obo_dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk="all_GO", function_type="GO"):
+    def __init__(self, ui, assoc_dict, obo_dag, alpha, o_or_u_or_both, multitest_method, gocat_upk="all_GO", function_type="GO"):
         self.ui = ui
         self.method = self.ui.enrichment_method
         self.assoc_dict = assoc_dict
@@ -31,7 +31,6 @@ class EnrichmentStudy(object):
         self.multitest_method = multitest_method
         self.gocat_upk = gocat_upk
         self.results = []
-        self.backtracking = backtracking
         self.o_or_u_or_both = o_or_u_or_both
         self.function_type = function_type
 

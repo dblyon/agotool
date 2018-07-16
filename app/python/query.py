@@ -137,31 +137,31 @@ def query_example(cursor):
     records = cursor.fetchall()
     print(records)
 
-def get_KEGG_id_2_name_dict():
-    cursor = get_cursor()
-    sql_statement = "SELECT functions.an, functions.name FROM functions WHERE functions.type='KEGG'"
-    cursor.execute(sql_statement)
-    result = cursor.fetchall()
-    id_2_name_dict = {}
-    for res in result:
-        id_ = res[0]
-        name = res[1]
-        id_2_name_dict[id_] = name
-    cursor.close()
-    return id_2_name_dict
-
-def get_DOM_id_2_name_dict():
-    cursor = get_cursor()
-    sql_statement = "SELECT functions.an, functions.name FROM functions WHERE functions.type='DOM'"
-    cursor.execute(sql_statement)
-    result = cursor.fetchall()
-    id_2_name_dict = {}
-    for res in result:
-        id_ = res[0]
-        name = res[1]
-        id_2_name_dict[id_] = name
-    cursor.close()
-    return id_2_name_dict
+# def get_KEGG_id_2_name_dict():
+#     cursor = get_cursor()
+#     sql_statement = "SELECT functions.an, functions.name FROM functions WHERE functions.type='KEGG'"
+#     cursor.execute(sql_statement)
+#     result = cursor.fetchall()
+#     id_2_name_dict = {}
+#     for res in result:
+#         id_ = res[0]
+#         name = res[1]
+#         id_2_name_dict[id_] = name
+#     cursor.close()
+#     return id_2_name_dict
+#
+# def get_DOM_id_2_name_dict():
+#     cursor = get_cursor()
+#     sql_statement = "SELECT functions.an, functions.name FROM functions WHERE functions.type='DOM'"
+#     cursor.execute(sql_statement)
+#     result = cursor.fetchall()
+#     id_2_name_dict = {}
+#     for res in result:
+#         id_ = res[0]
+#         name = res[1]
+#         id_2_name_dict[id_] = name
+#     cursor.close()
+#     return id_2_name_dict
 
 def get_function_type_id_2_name_dict(function_type):
     cursor = get_cursor()
@@ -223,10 +223,14 @@ class PersistentQueryObject:
         goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
         self.goslim_dag = goslim_dag
 
+        # go_dag.update_association() #???
         go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
         for go_term in go_dag.keys():
-            parents = go_dag[go_term].get_all_parents()
+            _ = go_dag[go_term].get_all_parents()
         self.go_dag = go_dag
+
+        # for backtracking
+        self.child_2_parent_dict = self.get_child_2_parent_dict()
 
         KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
         self.KEGG_pseudo_dag = KEGG_pseudo_dag
@@ -328,6 +332,7 @@ class PersistentQueryObject:
         :param go_slim_or_basic: String ("slim" or "basic")
         :return: Set of String
         """
+        #!!! potential speed up with "|=" instead of ".union()"
         if function_type == "all_GO":
             if go_slim_or_basic == "basic":
                 return self.type_2_association_dict[-21].union(self.type_2_association_dict[-22]).union(self.type_2_association_dict[-23])
@@ -358,11 +363,12 @@ class PersistentQueryObject:
             print("function_type: '{}' does not exist".format(function_type))
             raise StopIteration
 
-    def get_association_dict(self, protein_ans_list, gocat_upk, basic_or_slim):
+    def get_association_dict(self, protein_ans_list, gocat_upk, basic_or_slim, backtracking=True):
         """
         :param protein_ans_list: ListOfString
         :param gocat_upk: String (one of "GO", "UPK", "KEGG", "DOM")
         :param basic_or_slim: String (one of "basic" or "slim")
+        :param backtracking: Bool (Flag to add parents of functional terms)
         :return: Dict(key: AN, val: SetOfAssociations)
         """
         an_2_functions_dict = defaultdict(lambda: set())
@@ -384,13 +390,24 @@ class PersistentQueryObject:
             associations_list = res[1]
             an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
         cursor.close()
+        if backtracking:
+            an_2_functions_dict = self.backtrack_child_terms(an_2_functions_dict, self.child_2_parent_dict)
+            # for an, functions in an_2_functions_dict.items():
+            #     parents_temp = set()
+            #     for function_ in functions:
+            #         try:
+            #             parents_temp = parents_temp.union(self.child_2_parent_dict[function_])
+            #         except KeyError:
+            #             pass
+            #     an_2_functions_dict[an] = an_2_functions_dict[an].union(parents_temp)
         return an_2_functions_dict
 
-    def get_association_dict_split_by_category(self, protein_ans_list):
+    def get_association_dict_split_by_category(self, protein_ans_list, backtracking=True):
         """
         #!!! is speed an issue? if so restructure protein_2_function table in DB to long format !?
         STRING version, get all functional associations but split them by category
         :param protein_ans_list: ListOfString
+        :param backtracking: Bool (Flag to add parents of functional terms)
         :return: Dict(key: AN, val: SetOfAssociations)
         """
         an_2_functions_dict_BP = defaultdict(lambda: set())
@@ -415,12 +432,66 @@ class PersistentQueryObject:
             an_2_functions_dict_DOM[an] = set(associations_list).intersection(self.DOM_functions_set)
 
         cursor.close()
+        if backtracking:
+            an_2_functions_dict_BP = self.backtrack_child_terms(an_2_functions_dict_BP, self.child_2_parent_dict)
+            an_2_functions_dict_CP = self.backtrack_child_terms(an_2_functions_dict_CP, self.child_2_parent_dict)
+            an_2_functions_dict_MF = self.backtrack_child_terms(an_2_functions_dict_MF, self.child_2_parent_dict)
+            an_2_functions_dict_UPK = self.backtrack_child_terms(an_2_functions_dict_UPK, self.child_2_parent_dict)
+
         return {"BP": an_2_functions_dict_BP,
                 "CP": an_2_functions_dict_CP,
                 "MF": an_2_functions_dict_MF,
                 "UPK": an_2_functions_dict_UPK,
                 "KEGG": an_2_functions_dict_KEGG,
                 "DOM": an_2_functions_dict_DOM}
+
+    @staticmethod
+    def get_child_2_parent_dict(direct=False, type_=None, verbose=False):
+        """
+        SELECT ontologies.child, ontologies.parent FROM ontologies WHERE ontologies.type='-23' AND ontologies.direct=TRUE;
+        :param direct: Bool (Flag to retrieve only direct parents or not)
+        :param type_: None or Integer (restrict to entity-type, e.g. -21 for GO-terms of 'Biological process'
+        :param verbose: Bool (Flag to print infos)
+        :return: Dictionary ( key=child (String), val=set of parents (String) )
+        """
+        cursor = get_cursor()
+        select_statement = "SELECT ontologies.child, ontologies.parent FROM ontologies"
+        extend_stmt = ""
+        if type_ is not None:
+            extend_stmt += " WHERE ontologies.type='{}'".format(type_)
+            if direct:
+                extend_stmt += " AND ontologies.direct=TRUE"
+        else:
+            if direct:
+                extend_stmt += " WHERE ontologies.direct=TRUE"
+
+        sql_statement = select_statement + extend_stmt + ";"
+        cursor.execute(sql_statement)
+        results = cursor.fetchall()
+        child_2_parent_dict = {}
+        if verbose:
+            print(sql_statement)
+            print("Number of rows fetched: ", len(results))
+        for res in results:
+            child, parent = res
+            if child not in child_2_parent_dict:
+                child_2_parent_dict[child] = {parent}
+            else:
+                child_2_parent_dict[child].update([parent])
+        cursor.close()
+        return child_2_parent_dict
+
+    @staticmethod
+    def backtrack_child_terms(an_2_functions_dict, child_2_parent_dict):
+        for an, functions in an_2_functions_dict.items():
+            parents_temp = set()
+            for function_ in functions:
+                try:
+                    parents_temp = parents_temp.union(child_2_parent_dict[function_])
+                except KeyError:
+                    pass
+            an_2_functions_dict[an] = an_2_functions_dict[an].union(parents_temp)
+        return an_2_functions_dict
 
 def get_association_dict_old(protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim", backtracking=True):
     """

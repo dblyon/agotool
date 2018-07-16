@@ -33,11 +33,37 @@
 
 ## protein_2_function_long #!!! ? for STRING
 ## STRING version might require long format for speed?
+##### AccessionNumber(Text); function_array(Text Array); Type(Integer)
 | an | func_array | type |
 |:---:|:---:|:---:|
-| P31946 | {"UPK:0002", "UPK:0003"} | UPK |
-| P31946 | {"GO:0019899", "GO:0012345"} | GO |
-| P31946 | {"KEGG:04110"} | KEGG |
+| P31946 | {"UPK:0002", "UPK:0003"} | -51 |
+| P31946 | {"GO:0019899"} | -23 |
+| P31946 | {"GO:0051220"} | -21 |
+| P31946 | {"KEGG:04110"} | -52 |
+
+## entity_types [entity_types_table.txt]
+##### AccessionNumber(Text); ID(Integer); Name(Text)
+| an | id | name |
+|:---:|:---:|:---:|
+| GO:0003674 | -23 | Molecular Function |
+| GO:0005575 | -22 | Cellular Component |
+| GO:0008150 | -21 | Biological Process |
+| UPK:9990 | -51 | Technical term |
+| UPK:9991 | -51 | PTM |
+| UPK:9992 | -51 | Molecular function |
+| UPK:9993 | -51 | Ligand |
+| UPK:9994 | -51 | Domain |
+| UPK:9995 | -51 | Disease |
+| UPK:9996 | -51 | Developmental stage |
+| UPK:9997 | -51 | Coding sequence diversity |
+| UPK:9998 | -51 | Cellular component |
+| UPK:9999 | -51 | Biological process |
+| KEGG | -52 | KEGG |
+| SMART | -53 | SMART |
+| Interpro | -54 | Interpro |
+| Pfam | -55 | Pfam |
+| PMID | -56 | PMID |
+
 
 ## taxid_2_proteins [TaxID_2_Proteins_table.txt] #!!! ? for STRING in order to have "genome" as available enrichment
 #####

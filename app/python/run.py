@@ -20,7 +20,7 @@ def run(pqo, ui,
     # function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
     function_type = get_function_type__and__limit_2_parent(gocat_upk)
 
-    assoc_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim=go_slim_or_basic)
+    assoc_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim=go_slim_or_basic, backtracking=backtracking)
 
     ### now convert assoc_dict into proteinGroups to consensus assoc_dict
     proteinGroups_list = ui.get_all_unique_proteinGroups()
@@ -30,7 +30,7 @@ def run(pqo, ui,
     assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1}
     # dag = pick_dag_from_function_type_and_basic_or_slim(function_type, go_slim_or_basic, pqo.go_dag, pqo.goslim_dag, pqo.upk_dag, KEGG_pseudo_dag)
     dag = pick_dag_from_function_type_and_basic_or_slim(function_type, go_slim_or_basic, pqo)
-    enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk, function_type)
+    enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, o_or_u_or_both, multitest_method, gocat_upk, function_type)
     header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
     return header, results
 
@@ -47,13 +47,16 @@ def run_STRING_enrichment(pqo, ui,
         p_value_uncorrected = None
 
     protein_ans_list = ui.get_all_unique_ANs()
+    #!!! speed up preload most commonly used model organisms and their associations as associations_dict_meta_something_something
+    # then simply update the missing part from the foreground
+
     # function_type, limit_2_parent = get_function_type__and__limit_2_parent(gocat_upk)
     # function_type = get_function_type__and__limit_2_parent(gocat_upk)
 
     # only do query once for STRING style enrichment
     # get assocations for everything (query DB once) but split them up into categories
     # assoc_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim=go_slim_or_basic)
-    assoc_dict_metadict = pqo.get_association_dict_split_by_category(protein_ans_list)
+    assoc_dict_metadict = pqo.get_association_dict_split_by_category(protein_ans_list, backtracking)
 
     #!!! strip protein-Group support for speed?
     ### now convert assoc_dict into proteinGroups to consensus assoc_dict
@@ -72,7 +75,7 @@ def run_STRING_enrichment(pqo, ui,
 
         # assoc_dict: remove ANs with empty set as values
         assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1}
-        enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, backtracking, o_or_u_or_both, multitest_method, gocat_upk, function_type)
+        enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, o_or_u_or_both, multitest_method, gocat_upk, function_type)
         header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
         results_all_function_types[function_type] = (header, results)
     return results_all_function_types

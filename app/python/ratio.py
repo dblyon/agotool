@@ -206,7 +206,7 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
     for ans, weight_fac in ui.iter_bins(): # for every bin, produce ans-background and weighting-factor
         for an in ans:
             if an in assoc_dict:
-            # assoc_dict contains GO-terms and their parents (due to obo_dag.update_association)
+            # assoc_dict contains GO-terms and their parents (due to obo_dag.update_association) #!!!
             # for all ANs of goa_ref UniProt
             # if AN not in dict, no GO-term associated
             # goterms = get_goterms_from_an(an, include_parents=True)

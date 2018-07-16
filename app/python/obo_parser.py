@@ -165,7 +165,8 @@ class GOTerm:
         self.alt_ids = []           # alternative identifiers
 
     def __repr__(self):
-        return "GOTerm('%s')" % (self.id)
+        # return "GOTerm('%s')" % (self.id)
+        return "GOTerm({})".format(self.id)
 
     def has_parent(self, term):
         for p in self.parents:
@@ -193,7 +194,7 @@ class GOTerm:
             self.all_parents = set()
             for p in self.parents:
                 self.all_parents.add(p.id)
-                self.all_parents |= p.get_all_parents()
+                self.all_parents |= p.get_all_parents() # same as union of sets, but faster
         return self.all_parents
 
     def get_all_children(self):
@@ -333,11 +334,6 @@ class GODag(dict):
         """Write summary of level and depth counts for all active GO Terms."""
         cnts = self.get_cnts_levels_depths_recs(set(self.values()))
         self._write_summary_cnts(cnts, out)
-
-    # def write_summary_cnts_rec(self, out=sys.stdout):
-    #     """Write summary of level and depth counts for active GO Terms."""
-    #     cnts = self.get_cnts_levels_depths_recs(recs)
-    #     self._write_summary_cnts(cnts, out)
 
     def _write_summary_cnts(self, cnts, out=sys.stdout):
         """Write summary of level and depth counts for active GO Terms."""

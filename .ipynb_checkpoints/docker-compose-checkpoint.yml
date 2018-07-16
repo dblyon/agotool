@@ -18,7 +18,7 @@ services:
 ### Atlas
 #      - /mnt/mnemo5/dblyon/agotool:/agotool_data
 
-    ports: # expose post in order to connect to PostgreSQL
+    ports: # expose port in order to connect to PostgreSQL
       - "5432:5432"
 
     env_file:
