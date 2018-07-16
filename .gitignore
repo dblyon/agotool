@@ -64,3 +64,4 @@ ssl*
 *.obo
 
 *log_psql_testing.txt
+data/PostgreSQL/downloads/*
