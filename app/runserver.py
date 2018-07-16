@@ -31,15 +31,29 @@ MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 # - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
 # - install MCL clustering on flask container --> DONE
 # - fix download results button link --> DONE
+# - Consenus functional annotation for protein groups --> DONE
+# - add other types to Ontologies (not only GO, but also UPK) --> DONE
+
+# - All proteins without abundance data were disregarded --> put into extra bin --> DONE?
+
 # - update bootstrap version
-# - All proteins without abundance data were disregarded --> put into extra bin
+# - update documentation specifically about foreground and background
+
 # - re-write "write_summary2file_web" to take additional argument output_format={tsv, tsv-no-header, json, xml}
 # - implement enrichment method "genome", user supplies NCBI_TaxID, DB table
-# - Profile code
+# - Profile code --> speed improvements tools.convert_assoc_dict_2_proteinGroupsAssocDict
 # - graphical output of enrichment
-# - Consenus functional annotation for protein groups --> done
-# - add other types to Ontologies (not only GO, but also UPK) --> done
+
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
+# - update "info_check_input.html" with REST API usage infos
+# - write parser for STRING input
+# - offer option to omit testing GO-terms with few associations (e.g. 10)
+# - offer to user Pax-DB background proteomes
+# - offer example to be set automatically
+
+
+# ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
+# ? - protein-groups: is there different functional information for isoforms
 ###############################################################################
 
 ###############################################################################
@@ -57,8 +71,9 @@ if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
     # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=r"/Users/dblyon/Downloads/profiling_agtool") # use qcachegrind to visualize
+    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=variables.DATA_DIR) # use qcachegrind to visualize
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[50]) # to view profiled code in shell
-    ## from shell call: "qcachegrind"
+    ## iterm: "qcachegrind"
     ## pyprof2calltree -i somethingsomething.prof -o something.prof
     ## open "something.prof" with qcachegrind -o something.prof
 
@@ -210,20 +225,21 @@ class API_STRING(Resource):
         :return:
         """
         args_dict = parser.parse_args()
-        print("args_dict:", args_dict)
-
-
-        ui = userinput.API_input(pqo,
+        ui = userinput.REST_API_input(pqo,
             foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
             num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
             foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
-
-        results_all_function_types = run.run_STRING_enrichment(pqo, #go_dag, goslim_dag, upk_dag,
-            ui, args_dict["gocat_upk"], args_dict["go_slim_or_basic"], args_dict["indent"],
-            args_dict["multitest_method"], args_dict["alpha"],
-            args_dict["o_or_u_or_both"], args_dict["backtracking"], args_dict["fold_enrichment_study2pop"],
-            args_dict["p_value_uncorrected"], args_dict["p_value_multipletesting"])
-
+        results_all_function_types = run.run_STRING_enrichment(pqo, ui,
+            args_dict["gocat_upk"],
+            args_dict["go_slim_or_basic"],
+            args_dict["indent"],
+            args_dict["multitest_method"],
+            args_dict["alpha"],
+            args_dict["o_or_u_or_both"],
+            args_dict["backtracking"],
+            args_dict["fold_enrichment_study2pop"],
+            args_dict["p_value_uncorrected"],
+            args_dict["p_value_multipletesting"])
         return format_multiple_results(args_dict.output_format, results_all_function_types)
 
 api.add_resource(API_STRING, "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
@@ -316,33 +332,31 @@ class API_agotool(Resource):
 
     def post(self):
         args_dict = parser.parse_args()
-        print("#"*66)
-        print("args_dict:")
-        for item in args_dict.items():
-            print(item)
-        print("#" * 66)
-        # print("foreground:", args_dict["foreground"])
-        # print("background:", args_dict["background"])
-        # print("intensity:", args_dict["intensity"])
-        # print("num_bins:", args_dict["num_bins"])
-        # print("enrichment_method:", args_dict["enrichment_method"])
-        # print("foreground_n:", args_dict["foreground_n"])
-        # print("background_n:", args_dict["background_n"])
 
-        ui = userinput.API_input(pqo,
+        ui = userinput.REST_API_input(pqo,
             foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
             num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
             foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
-
-        header, results = run.run(pqo, #go_dag, goslim_dag, upk_dag,
-            ui, args_dict["gocat_upk"], args_dict["go_slim_or_basic"], args_dict["indent"],
-            args_dict["multitest_method"], args_dict["alpha"],
-            args_dict["o_or_u_or_both"], args_dict["backtracking"], args_dict["fold_enrichment_study2pop"],
-            args_dict["p_value_uncorrected"], args_dict["p_value_multipletesting"]) #, KEGG_pseudo_dag)
-
-        return format_results(args_dict.output_format, header, results)
+        if ui.check:
+            header, results = run.run(pqo, ui,
+                args_dict["gocat_upk"],
+                args_dict["go_slim_or_basic"],
+                args_dict["indent"],
+                args_dict["multitest_method"],
+                args_dict["alpha"],
+                args_dict["o_or_u_or_both"],
+                args_dict["backtracking"],
+                args_dict["fold_enrichment_study2pop"],
+                args_dict["p_value_uncorrected"],
+                args_dict["p_value_multipletesting"])
+            return format_results(args_dict.output_format, header, results)
+        else:
+            return help_page(args_dict)
 
 api.add_resource(API_agotool, "/api_agotool", "/api_agotool/")
+
+def help_page(args_dict):
+    pass
 
 def format_results(output_format, header, results):
     """
@@ -356,7 +370,6 @@ def format_results(output_format, header, results):
         return jsonify([dict(zip(header, row.split("\t"))) for row in results])
     elif output_format == "tsv":
         stuff_2_return = header + "\n" + "\n".join(results)
-        # print(stuff_2_return)
         return stuff_2_return
     elif output_format == "tsv-no-header":
         return "\n".join(results)
@@ -671,13 +684,6 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
-            # header, results = run.run(pqo, go_dag, goslim_dag, upk_dag, ui, form.gocat_upk.data,
-            #     form.go_slim_or_basic.data, form.indent.data,
-            #     form.multitest_method.data, form.alpha.data,
-            #     form.o_or_u_or_both.data,
-            #     form.backtracking.data, form.fold_enrichment_study2pop.data,
-            #     form.p_value_uncorrected.data,
-            #     form.p_value_multipletesting.data, KEGG_pseudo_dag)
             header, results = run.run(pqo, ui, form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data, form.backtracking.data,
                 form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)

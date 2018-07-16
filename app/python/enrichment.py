@@ -288,12 +288,12 @@ class EnrichmentRecord(object):
         self.background_count, self.background_n = ratio_in_background
         self.ANs_foreground = ANs_foreground
         self.ANs_background = ANs_background
-        self.perc_associated_foreground = self.calc_fold_enrichemnt(
+        self.perc_associated_foreground = self.calc_fold_enrichment(
             self.foreground_count, self.foreground_n)
-        self.perc_associated_background = self.calc_fold_enrichemnt(
+        self.perc_associated_background = self.calc_fold_enrichment(
             self.background_count, self.background_n)
         if self.perc_associated_foreground != -1 and self.perc_associated_background != -1:
-            self.fold_enrichment_foreground_2_background = self.calc_fold_enrichemnt(
+            self.fold_enrichment_foreground_2_background = self.calc_fold_enrichment(
                 self.perc_associated_foreground, self.perc_associated_background)
         else:
             self.fold_enrichment_foreground_2_background = "-1"
@@ -302,7 +302,7 @@ class EnrichmentRecord(object):
         self.attributes_list += attributes2add
 
     @staticmethod
-    def calc_fold_enrichemnt(zaehler, nenner):
+    def calc_fold_enrichment(zaehler, nenner):
         try:
             fold_en = float(zaehler) / nenner
         except ZeroDivisionError:

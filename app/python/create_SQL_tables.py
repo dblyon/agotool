@@ -3,6 +3,7 @@ import pandas as pd
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import tools, obo_parser, variables
+from obo_parser import OBOReader_2_text
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 BASH_LOCATION = r"/usr/bin/env bash"
@@ -17,7 +18,6 @@ FILES_NOT_2_DELETE = variables.FILES_NOT_2_DELETE
 NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 
 EMPTY_EGGNOG_JSON_DICT = {"KEGG": {"kegg_pathways": [], "kegg_header": ["Pathway", "SeqCount", "Frequency", "relative_fontsize"]}, "go_terms": {"go_terms": {}, "go_header": ["ID", "GO term", "Evidence", "SeqCount", "Frequency", "relative_fontsize"]}, "domains": {"domains": {}, "dom_header": ["Domain ID", "SeqCount", "Frequency", "relative_fontsize"]}}
-# TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'GO:0005575': "-22",  # 'Cellular Component',
                               'GO:0008150': "-21",  # 'Biological Process',
@@ -268,56 +268,48 @@ def after_colon(line):
     # macro for getting anything after the :
     return line.split(":", 1)[1].strip()
 
-class OBOReader:
-    """
-    parse obo file, usually the most updated can be downloaded from
-    http://purl.obolibrary.org/obo/go/go-basic.obo
-    e.g.
-    reader = OBOReader()
-    for rec in reader:
-        print(rec)
-    """
-
-    def __init__(self, obo_file):
-        try:
-            self._handle = open(obo_file, "r")
-        except:
-            sys.exit(1)
-
-    def __iter__(self):
-        line = self._handle.readline()
-        if not line.startswith(TERM_TAG):
-            read_until(self._handle, TERM_TAG)
-        while 1:
-            yield self.__next__()
-
-    def __next__(self):
-        lines = []
-        line = self._handle.readline()
-        if not line or line.startswith(TYPEDEF_TAG):
-            raise StopIteration
-
-        # read until the next tag and save everything in between
-        while 1:
-            pos = self._handle.tell()  # save current postion for roll-back
-            line = self._handle.readline()
-            if not line or (line.startswith(TYPEDEF_TAG) or line.startswith(TERM_TAG)):
-                self._handle.seek(pos)  # roll-back
-                break
-            lines.append(line)
-        id_, name, definition = "", "", ""
-        is_a_list = []
-        for line in lines:
-            # if line.startswith("id_:"):
-            if line.startswith("id:"):
-                id_ = after_colon(line)
-            elif line.startswith("name:"):
-                name = after_colon(line)
-            elif line.startswith("def:"):
-                definition = after_colon(line)
-            elif line.startswith("is_a:"):
-                is_a_list.append(after_colon(line).split()[0])
-        return id_, name, is_a_list, definition
+# class OBOReader_2_text:
+#
+#     def __init__(self, obo_file):
+#         try:
+#             self._handle = open(obo_file, "r")
+#         except:
+#             sys.exit(1)
+#
+#     def __iter__(self):
+#         line = self._handle.readline()
+#         if not line.startswith(TERM_TAG):
+#             read_until(self._handle, TERM_TAG)
+#         while 1:
+#             yield self.__next__()
+#
+#     def __next__(self):
+#         lines = []
+#         line = self._handle.readline()
+#         if not line or line.startswith(TYPEDEF_TAG):
+#             raise StopIteration
+#
+#         # read until the next tag and save everything in between
+#         while 1:
+#             pos = self._handle.tell()  # save current postion for roll-back
+#             line = self._handle.readline()
+#             if not line or (line.startswith(TYPEDEF_TAG) or line.startswith(TERM_TAG)):
+#                 self._handle.seek(pos)  # roll-back
+#                 break
+#             lines.append(line)
+#         id_, name, definition = "", "", ""
+#         is_a_list = []
+#         for line in lines:
+#             # if line.startswith("id_:"):
+#             if line.startswith("id:"):
+#                 id_ = after_colon(line)
+#             elif line.startswith("name:"):
+#                 name = after_colon(line)
+#             elif line.startswith("def:"):
+#                 definition = after_colon(line)
+#             elif line.startswith("is_a:"):
+#                 is_a_list.append(after_colon(line).split()[0])
+#         return id_, name, is_a_list, definition
 
 
 ##### Child_2_Parent_table_UPK.txt, Functions_table_UPK.txt and Function_2_definition_table_UPK.txt
@@ -329,7 +321,7 @@ def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_d
     """
     print("create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK")
     fn = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
-    obo = OBOReader(fn)
+    obo = OBOReader_2_text(fn)
     fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_UPK.txt")
     fn_funcs = os.path.join(TABLES_DIR, "Functions_table_UPK.txt")
     type_ = "UPK"
@@ -359,7 +351,7 @@ def create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_def
     """
     print("create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO")
     fn = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
-    obo = OBOReader(fn)
+    obo = OBOReader_2_text(fn)
     fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_GO.txt")
     fn_funcs = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
     type_ = "GO"
@@ -693,7 +685,7 @@ def create_Protein_Secondary_2_Primary_AN():
 def create_GO_2_Slim_table():
     print("create_GO_2_Slim_table")
     fn = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
-    obo = OBOReader(fn)
+    obo = OBOReader_2_text(fn)
     fn_out = os.path.join(TABLES_DIR, "GO_2_Slim_table.txt")
     with open(fn_out, "w") as fh_out:
         for entry in obo:

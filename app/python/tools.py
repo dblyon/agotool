@@ -38,6 +38,7 @@ def convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list):
     """
     # A.) could try to make redundant list of GOterms and count them
     # B.) Dict (e.g. defaultdict with lambda: 0) that counts associations from each set and then sort by counts (values) take
+    # C.) cast string of ANs (proteinGroups) to array
     assoc_dict_pg = {}
     for proteinGroup in proteinGroups_list:
         nested_associations = []

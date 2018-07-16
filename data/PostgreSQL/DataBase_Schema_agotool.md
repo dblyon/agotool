@@ -25,11 +25,19 @@
 | P31946 | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 | O9O21O | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 
+#!!!
+- cluster the DB #!!!
+- array of arrays
+
+
+
 ## protein_2_function_long #!!! ? for STRING
 ## STRING version might require long format for speed?
-| P31946 | {"UPK:0002", "UPK:0003"} |
-| P31946 | {"GO:0019899", "GO:0012345"} |
-| P31946 | {"KEGG:04110"} |
+| an | func_array | type |
+|:---:|:---:|:---:|
+| P31946 | {"UPK:0002", "UPK:0003"} | UPK |
+| P31946 | {"GO:0019899", "GO:0012345"} | GO |
+| P31946 | {"KEGG:04110"} | KEGG |
 
 ## taxid_2_proteins [TaxID_2_Proteins_table.txt] #!!! ? for STRING in order to have "genome" as available enrichment
 #####

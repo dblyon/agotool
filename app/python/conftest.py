@@ -8,12 +8,11 @@ import query
 @pytest.fixture(scope='session')
 def pqo():
     """
-    get pqo (Persistent Query Object
+    get pqo (Persistent Query Object)
     """
     return query.PersistentQueryObject()
 
 @pytest.fixture(scope='session')
 def get_something():
     """A session scope fixture."""
-    return "nobody expects the spanish inquisition"
-
+    return "Bubu was here"

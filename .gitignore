@@ -65,3 +65,10 @@ ssl*
 gene_association.*
 *uniprot-proteome*
 *log_psql_testing.txt
+
+# pytest #
+######################
+htmlcov/
+.coverage
+STRING_ToDo_readme.txt
+

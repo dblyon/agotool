@@ -5,15 +5,17 @@ from collections import defaultdict
 from io import StringIO # from StringIO import StringIO
 from itertools import zip_longest # from itertools import izip_longest
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import tools #, query
 
-pd.options.mode.chained_assignment = None
+import tools, variables #, query
+
+if variables.PD_WARNING_OFF:
+    pd.options.mode.chained_assignment = None
 
 # ToDo check if values need to be sorted for both input types (classes)
 
 
 DEFAULT_MISSING_BIN = -1
-
+NUM_BINS = 100
 
 class Userinput:
     """
@@ -29,7 +31,7 @@ class Userinput:
     """
     def __init__(self, pqo, fn=None, foreground_string=None, background_string=None,
             col_foreground='foreground', col_background='background', col_intensity='intensity',
-            num_bins=100, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None):
+            num_bins=NUM_BINS, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None):
         self.pqo = pqo
         self.fn = fn
         self.foreground_string = foreground_string
@@ -42,11 +44,14 @@ class Userinput:
         self.enrichment_method = enrichment_method
         self.foreground_n = foreground_n
         self.background_n = background_n
+        self.check = False
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
             self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
         else:
             self.check_cleanup = False
+        if self.check_parse and self.check_cleanup:
+            self.check = True
 
     def parse_input(self):
         if self.fn is None: # use copy & paste field
@@ -54,15 +59,18 @@ class Userinput:
             self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), "foreground")
             if self.enrichment_method != "characterize_foreground":
                 self.background_string = self.remove_header_if_present(self.background_string.replace("\r\n", "\n"), "background")
-            is_abundance_correction = self.fast_check_is_abundance_correction(self.background_string)
-            if is_abundance_correction:
-                header = 'foreground\tbackground\tintensity\n'
+            if self.enrichment_method == "abundance_correction":
+                is_abundance_correction = self.fast_check_is_abundance_correction(self.background_string)
+                if is_abundance_correction:
+                    header = 'foreground\tbackground\tintensity\n'
+                else:
+                    return False, False, False
             elif self.enrichment_method in {"compare_samples", "compare_groups"}:
                 header = 'foreground\tbackground\n'
             elif self.enrichment_method == "characterize_foreground":
                 header = 'foreground\n'
             else:
-                raise StopIteration
+                return False, False, False
             self.fn.write(header)
             if self.enrichment_method != "characterize_foreground":
                 for a, b in zip_longest(self.foreground_string.split("\n"), self.background_string.split("\n"), fillvalue="\t"):
@@ -70,10 +78,10 @@ class Userinput:
             else:
                 self.fn.write(self.foreground_string)
             self.fn.seek(0)
-        try:
+        try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
         except FileNotFoundError:
-            return None, ".", False
+            return False, False, False
         return df_orig, decimal, check_parse
 
     def cleanupforanalysis(self, df, col_foreground, col_background, col_intensity):
@@ -85,22 +93,30 @@ class Userinput:
 
         ### remove NaNs from foregroundfrequency and backgroundfrequency AN-cols
         self.foreground = df.loc[pd.notnull(df[col_foreground]), [col_foreground]]
+
+        ### check if foreground empty
+        if self.foreground.shape[0] == 0:
+            return self.foreground, self.background, False
+
         if self.enrichment_method == "abundance_correction": # abundance_correction
-            # self.background = df.loc[pd.notnull(df[col_background]), [col_background, col_intensity]]
             self.background = df[[col_background, col_intensity]]
             # set default missing value for NaNs
             self.background.loc[pd.isnull(df[col_background]), col_intensity] = DEFAULT_MISSING_BIN
-        elif self.enrichment_method in {"compare_samples", "compare_groups"}: # elif self.enrichment_method != "characterize_foreground":
+        elif self.enrichment_method in {"compare_samples", "compare_groups"}:
             self.background = df.loc[pd.notnull(df[col_background]), [col_background]]
         else:
             pass
+
+        ### check if background is empty
+        if self.enrichment_method != "characterize_foreground":
+            if self.background.shape[0] == 0:
+                return self.foreground, self.background, False
 
         ### remove splice variant appendix and drop duplicates
         try:
             self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
         except AttributeError: # np.nan can't be split
             return self.foreground, self.background, False
-        #if self.enrichment_method in {"abundance_correction", "compare_samples", "characterize_foreground"}:
         if self.enrichment_method != "compare_groups": # abundance_correction
             self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
@@ -131,7 +147,6 @@ class Userinput:
                 check_cleanup = False
             self.foreground = self.foreground.sort_values(["intensity", "foreground"])
             self.background = self.background.sort_values(["intensity", "background"])
-
         return self.foreground, self.background, check_cleanup
 
     def check_decimal(self, fn):
@@ -142,7 +157,7 @@ class Userinput:
         :param fn: FileName
         :return: (DF_orig, Decimal(a String), check_parse(a Boolean))
         """
-        decimal = '.'
+        decimal = "."
         check_parse = False
         df_orig = None
 
@@ -150,6 +165,8 @@ class Userinput:
             df_orig = pd.read_csv(fn, sep='\t', decimal=decimal)
             check_parse = True
         except pd.errors.ParserError:
+            # import pdb
+            # pdb.set_trace()
             return df_orig, decimal, check_parse
 
         if self.enrichment_method == "abundance_correction":
@@ -158,14 +175,21 @@ class Userinput:
                 try:
                     np.histogram(df_orig.loc[pd.notnull(df_orig[self.col_intensity]), self.col_intensity], bins=10)
                     check_parse = True
+                    return df_orig, decimal, check_parse
                 except TypeError:
-                    try:
-                        decimal = ','
-                        df_orig = pd.read_csv(fn, sep='\t', decimal=decimal)
-                        np.histogram(df_orig.loc[pd.notnull(df_orig[self.col_intensity]), self.col_intensity], bins=10)
-                        check_parse = True
-                    except TypeError:
-                        pass
+                    pass
+                try:
+                    if not isinstance(fn, str):
+                        fn.seek(0)
+                    decimal = ","
+                    df_orig = pd.read_csv(fn, sep='\t', decimal=decimal)
+                    np.histogram(df_orig.loc[pd.notnull(df_orig[self.col_intensity]), self.col_intensity], bins=10)
+                    check_parse = True
+                    return df_orig, decimal, check_parse
+                except TypeError:
+                    check_parse = False
+        # import pdb
+        # pdb.set_trace()
         return df_orig, decimal, check_parse
 
     @staticmethod
@@ -185,7 +209,7 @@ class Userinput:
         except AttributeError:
             return False
         try:
-            float(string_split[1])
+            float(string_split[1].replace(",", "."))
         except (IndexError, ValueError) as _:
             return False
         return True
@@ -308,77 +332,6 @@ class Userinput:
     def get_sample_an(self):
         return self.foreground[self.col_foreground].tolist()
 
-    # deprecated
-    def iter_bins_old(self):
-        """
-        map foreground proteinGroups to background abundance values,
-        split foreground proteinGroups into bins based on abundance,
-        calculate a correction factor for each bin (num proteinGroups foreground / num proteinGroups background),
-        yield background proteinGroups and correction factor for each bin
-        :return: Tuple(ListOfString(';' sep ANs), correction factor)
-        """
-        cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
-        bins = pd.cut(self.foreground.loc[cond, "intensity"], bins=self.num_bins, retbins=True)[1]
-        # bins = [DEFAULT_MISSING_BIN - 1] + list(bins) # ToDo investigate and fix
-        # print(self.foreground.head())
-        groups_fg = self.foreground.groupby(pd.cut(self.foreground["intensity"], bins=bins))
-        groups_bg = self.background.groupby(pd.cut(self.background[self.col_intensity], bins=bins))
-        for group_fg, group_bg in zip(groups_fg, groups_bg):
-            # bins_fg = group_fg[0]
-            # bins_bg = group_bg[0]
-            # assert bins_fg == bins_bg
-            proteinGroups_foreground = group_fg[1][self.col_foreground]
-            proteinGroups_background = group_bg[1][self.col_background]
-            len_proteinGroups_foreground = len(proteinGroups_foreground) * 1.0
-            len_proteinGroups_background = len(proteinGroups_background) * 1.0
-            try:
-                correction_factor = len_proteinGroups_foreground / len_proteinGroups_background
-            except ZeroDivisionError:
-                # since the foreground is assumed to be a proper subset of the background, anything in the foreground must also be in the background
-                correction_factor = 1
-                proteinGroups_background = proteinGroups_foreground
-            if len_proteinGroups_foreground == 0:
-                continue
-            # yield proteinGroups_background.tolist(), proteinGroups_foreground.tolist(), correction_factor, bins_fg
-            yield proteinGroups_background.tolist(), correction_factor
-
-    # deprecated
-    @staticmethod
-    def iter_bins_static(foreground, background, DEFAULT_MISSING_BIN=-1, num_bins=100):
-        """
-        map foreground proteinGroups to background abundance values,
-        split foreground proteinGroups into bins based on abundance,
-        calculate a correction factor for each bin (num proteinGroups foreground / num proteinGroups background),
-        yield background proteinGroups and correction factor for each bin
-        :param foreground: DataFrame(foreground(string), intensity(float))
-        :param background: DataFrame(background(string), intensity(float))
-        :param DEFAULT_MISSING_BIN: Float or Int
-        :param num_bins: Int
-        :return: Tuple(ListOfString(';' sep ANs), correction factor)
-        """
-        # take subset of foreground with proper abundance values and create bins
-        cond = foreground["intensity"] > DEFAULT_MISSING_BIN
-        bins = pd.cut(foreground.loc[cond, "intensity"], bins=num_bins, retbins=True)[1]
-        # add missing bin for the remainder of proteins
-        bins = np.insert(bins, 0, DEFAULT_MISSING_BIN - 1)  # bins = [DEFAULT_MISSING_BIN - 1] + list(bins)
-        # cut foreground and background into bins
-        groups_fg = foreground.groupby(pd.cut(foreground["intensity"], bins=bins))
-        groups_bg = background.groupby(pd.cut(background["intensity"], bins=bins))
-        for group_fg, group_bg in zip(groups_fg, groups_bg):
-            proteinGroups_foreground = group_fg[1]["foreground"]
-            proteinGroups_background = group_bg[1]["background"]
-            len_proteinGroups_foreground = len(proteinGroups_foreground) * 1.0
-            len_proteinGroups_background = len(proteinGroups_background) * 1.0
-            try:
-                correction_factor = len_proteinGroups_foreground / len_proteinGroups_background
-            except ZeroDivisionError:
-                # since the foreground is assumed to be a proper subset of the background, anything in the foreground must also be in the background
-                correction_factor = 1
-                proteinGroups_background = proteinGroups_foreground
-            if len_proteinGroups_foreground == 0:
-                continue
-            yield proteinGroups_background.tolist(), correction_factor
-
     def iter_bins(self):
         """
         map foreground proteinGroups to background abundance values,
@@ -432,13 +385,12 @@ class REST_API_input(Userinput):
 
     def __init__(self, pqo,
             foreground_string=None, background_string=None, background_intensity=None,
-            num_bins=100, enrichment_method="abundance_correction", foreground_n=None, background_n=None):
+            num_bins=NUM_BINS, enrichment_method="abundance_correction", foreground_n=None, background_n=None):
         self.pqo = pqo
         self.df_orig = pd.DataFrame()
         self.foreground_string = foreground_string
         self.background_string = background_string
         self.background_intensity = background_intensity
-        self.decimal = "."
         self.num_bins = num_bins
         self.col_foreground = "foreground"
         self.col_background = "background"
@@ -446,26 +398,44 @@ class REST_API_input(Userinput):
         self.enrichment_method = enrichment_method
         self.foreground_n = foreground_n
         self.background_n = background_n
-        self.df_orig = self.parse_input()
-        self.foreground, self.background, self.check = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        self.check = False
+        # self.decimal = "."
+        # self.df_orig = self.parse_input()
+        # self.foreground, self.background, self.check = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        self.df_orig, self.decimal, self.check_parse = self.parse_input()
+        if self.check_parse:
+            self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+        else:
+            self.check_cleanup = False
+        if self.check_parse and self.check_cleanup:
+            self.check = True
 
     def parse_input(self):
+        check_parse = False
+        decimal = "."
         df_orig = pd.DataFrame()
         if self.background_string is not None:
             df_orig["background"] = pd.Series(self._replace_and_split(self.background_string))
-        if self.background_intensity is not None:
+        # if self.background_intensity is not None:
+        if self.enrichment_method == "abundance_correction":
             if "." in self.background_intensity:
                 pass
             elif "," in self.background_intensity:
-                self.decimal = ","
+                decimal = ","
                 # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
                 self.background_intensity = self.background_intensity.replace(",", ".")
             else: # other checks could be done, but is this really necessary?
-                raise StopIteration
-            df_orig["intensity"] = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+                pass
+            try:
+                df_orig["intensity"] = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+            except ValueError:
+                return df_orig, decimal, check_parse
+        else:
+            df_orig["intensity"] = DEFAULT_MISSING_BIN
         # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
         df_orig["foreground"] = pd.Series(self._replace_and_split(self.foreground_string))
-        return df_orig
+        check_parse = True
+        return df_orig, decimal, check_parse
 
     @staticmethod
     def _replace_and_split(string_):
@@ -525,3 +495,6 @@ if __name__ == "__main__":
         print(counter, ans, weight_fac)
         counter += 1
 
+    # foreground_almost_empty = pd.Series(name="foreground", data={0: np.nan, 1: "Q9UHI6", 2: np.nan})
+    # background_no_intensity = pd.DataFrame({'background': {0: 'P13747', 1: 'Q6VB85', 2: 'Q8N8S7', 3: 'Q8WXE0', 4: 'Q9UHI6', 5: 'Q9UQ03', 6: 'Q13075', 7: 'A6NDB9', 8: 'A6NFR9', 9: 'O95359', 10: 'D6RGG6', 11: 'Q9BRQ0', 12: 'P09629', 13: 'Q9Y6G5', 14: 'Q96KG9'}, 'intensity': {0: np.nan, 1: np.nan, 2: np.nan, 3: np.nan, 4: np.nan, 5: np.nan, 6: np.nan, 7: np.nan, 8: np.nan, 9: np.nan, 10: np.nan, 11: np.nan, 12: np.nan, 13: np.nan, 14: np.nan}})
+    # "compare_samples"

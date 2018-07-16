@@ -4,11 +4,10 @@ sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
 import enrichment, tools, variables #, query
 
 
-def run(pqo,
-        # go_dag, goslim_dag, upk_dag,
-        ui, gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
+def run(pqo, ui,
+        gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
         o_or_u_or_both, backtracking, fold_enrichment_study2pop,
-        p_value_uncorrected, p_value_mulitpletesting): #, KEGG_pseudo_dag):
+        p_value_uncorrected, p_value_mulitpletesting):
 
     if fold_enrichment_study2pop == 0:
         fold_enrichment_study2pop = None
@@ -35,9 +34,7 @@ def run(pqo,
     header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
     return header, results
 
-def run_STRING_enrichment(pqo,
-        # go_dag, goslim_dag, upk_dag,
-        ui,
+def run_STRING_enrichment(pqo, ui,
         gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
         o_or_u_or_both, backtracking, fold_enrichment_study2pop,
         p_value_uncorrected, p_value_mulitpletesting):

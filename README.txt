@@ -423,7 +423,13 @@ local               agotool_dbdata
 docker-compose up
 # repeatedly call the following, while editing pytest tests (flask dies, but DB stays alive and load is quick)
 docker exec -it agotool_flaskapp_1 pytest -v ./python/test_userinput.py
+# Debugging
 docker exec -it agotool_flaskapp_1 pytest -vx ./python/test_userinput.py --pdb
+# Code coverage
+docker exec -it agotool_flaskapp_1 pytest --cov
+# failed tests run first
+docker exec -it agotool_flaskapp_1 pytest -vxff ./python/test_userinput.py
+
 
 # copy example data
 # You can think of a trailing / on a source as meaning "copy the contents of this directory" as opposed to "copy the directory by name"

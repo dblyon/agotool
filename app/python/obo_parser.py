@@ -10,7 +10,7 @@ except ImportError:
 
 import collections as cx
 
-typedef_tag, term_tag = "[Typedef]", "[Term]"
+TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 
 GraphEngines = ("pygraphviz", "pydot")
 
@@ -50,22 +50,22 @@ class OBOReader:
 
     def __iter__(self):
         line = self._handle.readline()
-        if not line.startswith(term_tag):
-            read_until(self._handle, term_tag)
+        if not line.startswith(TERM_TAG):
+            read_until(self._handle, TERM_TAG)
         while 1:
             yield self.__next__()
 
     def __next__(self):
         lines = []
         line = self._handle.readline()
-        if not line or line.startswith(typedef_tag):
+        if not line or line.startswith(TYPEDEF_TAG):
             raise StopIteration
 
         # read until the next tag and save everything in between
         while 1:
             pos = self._handle.tell()   # save current postion for roll-back
             line = self._handle.readline()
-            if not line or (line.startswith(typedef_tag) or line.startswith(term_tag)):
+            if not line or (line.startswith(TYPEDEF_TAG) or line.startswith(TERM_TAG)):
                 self._handle.seek(pos)  # roll-back
                 break
             lines.append(line)
@@ -101,6 +101,50 @@ class OBOReader:
 
     def replace_KW_with_UPK(self, id_):
         return id_.replace("KW-", "UPK:")
+
+
+class OBOReader_2_text(OBOReader):
+
+    # def __init__(self, obo_file):
+    #     try:
+    #         self._handle = open(obo_file, "r")
+    #     except:
+    #         sys.exit(1)
+
+    # def __iter__(self):
+    #     line = self._handle.readline()
+    #     if not line.startswith(TERM_TAG):
+    #         read_until(self._handle, TERM_TAG)
+    #     while 1:
+    #         yield self.__next__()
+
+    def __next__(self):
+        lines = []
+        line = self._handle.readline()
+        if not line or line.startswith(TYPEDEF_TAG):
+            raise StopIteration
+
+        # read until the next tag and save everything in between
+        while 1:
+            pos = self._handle.tell()  # save current postion for roll-back
+            line = self._handle.readline()
+            if not line or (line.startswith(TYPEDEF_TAG) or line.startswith(TERM_TAG)):
+                self._handle.seek(pos)  # roll-back
+                break
+            lines.append(line)
+        id_, name, definition = "", "", ""
+        is_a_list = []
+        for line in lines:
+            # if line.startswith("id_:"):
+            if line.startswith("id:"):
+                id_ = after_colon(line)
+            elif line.startswith("name:"):
+                name = after_colon(line)
+            elif line.startswith("def:"):
+                definition = after_colon(line)
+            elif line.startswith("is_a:"):
+                is_a_list.append(after_colon(line).split()[0])
+        return id_, name, is_a_list, definition
 
 
 class GOTerm:
