@@ -25,11 +25,10 @@
 | P31946 | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 | O9O21O | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
 
-#!!!
+
+#!!! ToDo
 - cluster the DB #!!!
 - array of arrays
-
-
 
 ## protein_2_function_long #!!! ? for STRING
 ## STRING version might require long format for speed?
