@@ -19,28 +19,18 @@
 | KEGG | Cell cycle | KEGG:04110 | blabla definition |
 
 ## protein_2_function [Protein_2_Function_table.txt] (the only one that can't be in memory)
-##### an(Text, index); function(Text Array) 
-| an | func_array |
-|:---:|:---:|
-| P31946 | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
-| O9O21O | {"UPK:0002", "GO:0019899", "KEGG:04110"} |
-
-
-#!!! ToDo
-- cluster the DB #!!!
-- array of arrays
-
-## protein_2_function_long #!!! ? for STRING
-## STRING version might require long format for speed?
-##### AccessionNumber(Text); function_array(Text Array); Type(Integer)
-| an | func_array | type |
+##### ? ENSP with or without TaxID prefix ?
+##### ? add column with TaxID --> 1. to cluster DB   2. TaxID 2 proteins becomes superfluous (but probably faster) ?
+##### ? if ENSP have TaxID as prefix then clustering according to "TaxID" column becomes unnecessary
+##### AccessionNumber(Text); function_array(Text Array); EntityType(Integer)
+| an | func_array | etype |
 |:---:|:---:|:---:|
 | P31946 | {"UPK:0002", "UPK:0003"} | -51 |
 | P31946 | {"GO:0019899"} | -23 |
 | P31946 | {"GO:0051220"} | -21 |
 | P31946 | {"KEGG:04110"} | -52 |
 
-## entity_types [entity_types_table.txt]
+## entity_types [Entity_types_table.txt]
 ##### AccessionNumber(Text); ID(Integer); Name(Text)
 | an | id | name |
 |:---:|:---:|:---:|
@@ -63,19 +53,12 @@
 | Pfam | -55 | Pfam |
 | PMID | -56 | PMID |
 
-
-## taxid_2_proteins [TaxID_2_Proteins_table.txt] #!!! ? for STRING in order to have "genome" as available enrichment
-#####
+## taxid_2_proteins [TaxID_2_Proteins_table.txt]
+##### TaxID (Integer); AccessionNumber_Array (Text Array)
 | taxid | an_array |
 |:---:|:---:|
 | 9606 | {"P31946", "P04637", ...} |
 | 10090 | {"P02340", ...} |
-
-## protein_secondary_2_primary_an [Protein_Secondary_2_Primary_AN_table.txt]
-##### Secondary (Text); Prim(Text) ("Primary" is a reserved PostgreSQL word)
-| sec | pri |
-|:---:|:---:|
-| A0A021WW06 | P40417 |
 
 ## go_2_slim [GO_2_Slim_table.txt]
 ##### an(Text); slim(Boolean)
@@ -95,24 +78,12 @@
 | UPK:0440 | UPK:9993 | 0 | -51 |
 | UPK:0440 | UPK:9994 | 1 | -51 |
 
-## Protein_2_OG [Protein_2_OG_table.txt]
-##### an(Text, index-column); og(Text)
-| an | og |
-|:---:|:---:|
-| belk_c_455_5138 | ENOG4107WHC |
-| KFI94664.1 | ENOG4105CJD |
 
-## OGs [OGs_table.txt]
-##### og(Text; index-column); description(Text)
-| og | description |
-|:---:|:---:|
-| ENOG4105CZH | peptidase |
-| ENOG4107QRH | Arylsulfatase (Ec 3.1.6.1) |
 
-## OG_2_Function [OG_2_Function_table.txt]
-##### og(Text, index-column); function(Text)
-| og | function |
+
+# ?! Deprecated !?
+## protein_secondary_2_primary_an [Protein_Secondary_2_Primary_AN_table.txt]
+##### Secondary (Text); Prim(Text) ("Primary" is a reserved PostgreSQL word)
+| sec | pri |
 |:---:|:---:|
-|ENOG4107QRH | KEGG:00140 |
-|ENOG4107QRH | GO:0008484 |
-|ENOG4107QRH | DOM:Sulfatase |
+| A0A021WW06 | P40417 |

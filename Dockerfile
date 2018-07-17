@@ -56,6 +56,8 @@ COPY ./app/requirements.txt /opt/services/flaskapp/src/
 WORKDIR /opt/services/flaskapp/src
 RUN pip install -r requirements.txt
 COPY . /opt/services/flaskapp/src
+# just to add some simple alias(es)
+COPY ./app/.bashrc /root/.bashrc
 
 WORKDIR /opt/services/flaskapp/src
 EXPOSE 5911

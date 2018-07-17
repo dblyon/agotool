@@ -1,0 +1,45 @@
+import gzip
+
+rule map_string2interpro:
+    input:
+        # string2uniprot = '/mnt/mnemo4/damian/STRING_derived_v11/uniprot/string_2_uniprot_1_to_1.jan2018.tsv.gz',
+        string2uniprot = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/domain_assignment/full_uniprot_2_string.jan_2018.tsv',
+        # uniprot2interpro = '/mnt/gaia/davide/eggnog/domain_benchmark/interpro.64/protein2ipr.dat.gz'
+        uniprot2interpro = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/domain_assignment/protein2ipr.dat.gz'
+    output:
+        string2interpro = 'string2interpro.dat.gz'
+    run:
+        # read string to uniprot mapping and reverse
+        # input line e.g. 742765.HMPREF9457_01522 [TAB] G1WQX1
+        uniprot2string = {}
+        # with gzip.open(input.string2uniprot,'rt') as f:
+        with open(input.string2uniprot, 'r') as fh_string2uniprot:
+            for line in fh_string2uniprot:
+                if line.startswith('#'):
+                    continue
+                # string_id, uniprot_ac = line.rstrip().split('\t')
+                split_ = line.strip().split()
+                uniprot_ac = split_[1].split("|")[0]
+                string_id = split_[2]
+                uniprot2string[uniprot_ac] = string_id
+
+        # read uniprot to interpro mapping and map to string (one to many, i.e. string_id:list_interpro_entries)
+        # input line e.g.  G1WQX1 [TAB] IPR021778 [TAB] Domain of unknown function DUF3343 [TAB] PF11823 [TAB] 8 [TAB] 68
+        string2interpro = {}
+        with gzip.open(input.uniprot2interpro,'rt') as f:
+            for line in f:
+                l = line.split('\t')
+                uniprot_ac = l[0]
+
+                if uniprot_ac in uniprot2string:
+                    string_id = uniprot2string[uniprot_ac]
+                    if string_id not in string2interpro:
+                        string2interpro[string_id] = []
+                    string2interpro[string_id].append(line)
+
+        # write out string2interpro mapping
+        # output line e.g. 742765.HMPREF9457_01522 [TAB] G1WQX1 [TAB] IPR021778 [TAB] Domain of unknown function DUF3343 [TAB] PF11823 [TAB] 8 [TAB] 68
+        with gzip.open(output.string2interpro,'wt') as f:
+            for string_id in string2interpro:
+                for line in string2interpro[string_id]:
+                    f.write('%s\t%s'%(string_id,line))

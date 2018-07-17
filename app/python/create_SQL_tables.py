@@ -16,6 +16,7 @@ TABLES_DIR = variables.TABLES_DIR
 TEST_DIR = variables.TEST_DIR
 FILES_NOT_2_DELETE = variables.FILES_NOT_2_DELETE
 NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
+VERSION_ = variables.VERSION_
 
 EMPTY_EGGNOG_JSON_DICT = {"KEGG": {"kegg_pathways": [], "kegg_header": ["Pathway", "SeqCount", "Frequency", "relative_fontsize"]}, "go_terms": {"go_terms": {}, "go_header": ["ID", "GO term", "Evidence", "SeqCount", "Frequency", "relative_fontsize"]}, "domains": {"domains": {}, "dom_header": ["Domain ID", "SeqCount", "Frequency", "relative_fontsize"]}}
 id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
@@ -33,6 +34,199 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9999': "-51",  # 'Biological process'
                               'KEGG': "-52"}
 id_2_entityTypeNumber_dict_keys_set = set(id_2_entityTypeNumber_dict.keys())
+
+# def run_PostgreSQL_create_tables_and_build_DB(debug=False, testing=False, verbose=True):
+#     if debug:
+#         start_time = time.time()
+#         # remove_files(find_tables_to_remove())
+#         # print(find_tables_to_remove())
+#         ### PostgreSQL DB creation, copy from file and indexing
+#         create_test_tables(50000, TABLES_DIR)
+#         fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
+#         print("PostgreSQL DB creation, copy from file, and indexing")
+#         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+#         tools.print_runtime(start_time)
+#     else:
+#         start_time = time.time()
+#         print("Parsing downloaded content and writing tables for PostgreSQL import")
+#         create_tables(verbose=verbose)
+#         create_test_tables(50000, TABLES_DIR)
+#         remove_files(find_tables_to_remove())
+#
+#         ### PostgreSQL DB creation, copy from file and indexing
+#         fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing) # deprecated since calling this directly via .psql file
+#         print("PostgreSQL DB creation, copy from file, and indexing")
+#         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+#         print("PostgreSQL flat files created, ready to read from file and index")
+#         tools.print_runtime(start_time)
+
+def run_create_tables_for_PostgreSQL(debug=False, testing=False, verbose=True, version_="STRING"):
+    if version_ == "STRING":
+        run_create_tables_for_PostgreSQL_STRING(debug=debug, testing=testing, verbose=verbose)
+    elif version_ == "aGOtool":
+        run_create_tables_for_PostgreSQL_aGOtool(debug=debug, testing=testing, verbose=verbose)
+    else:
+        print("version: ", version_, " unknown")
+        raise NotImplementedError
+
+def run_create_tables_for_PostgreSQL_aGOtool(debug=False, testing=False, verbose=True):
+    if debug:
+        start_time = time.time()
+        # remove_files(find_tables_to_remove())
+        # print(find_tables_to_remove())
+        ### PostgreSQL DB creation, copy from file and indexing
+        create_test_tables(50000, TABLES_DIR)
+        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
+        print("PostgreSQL DB creation, copy from file, and indexing")
+        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+        tools.print_runtime(start_time)
+    else:
+        start_time = time.time()
+        print("#"*80)
+        print("Parsing downloaded content and writing tables for PostgreSQL import")
+        create_tables(verbose=verbose)
+        create_test_tables(50000, TABLES_DIR)
+        remove_files(find_tables_to_remove())
+
+        ### PostgreSQL table file creation, (copy from file and indexing run from .psql script)
+        print("PostgreSQL flat files created, ready to read from file and index")
+        print("#" * 80)
+        tools.print_runtime(start_time)
+
+def run_create_tables_for_PostgreSQL_STRING(debug=False, testing=False, verbose=True, delete_files=False):
+    if debug:
+        start_time = time.time()
+        ### PostgreSQL DB creation, copy from file and indexing
+        create_test_tables(50000, TABLES_DIR)
+        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
+        print("PostgreSQL DB creation, copy from file, and indexing")
+        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
+        tools.print_runtime(start_time)
+    else:
+        start_time = time.time()
+        print("#"*80)
+        print("Parsing downloaded content and writing tables for PostgreSQL import")
+        create_tables_STRING(verbose=verbose)
+        create_test_tables(50000, TABLES_DIR)
+        remove_files(find_tables_to_remove())
+
+        ### PostgreSQL table file creation, (copy from file and indexing run from .psql script)
+        print("PostgreSQL flat files created, ready to read from file and index")
+        print("#" * 80)
+        tools.print_runtime(start_time)
+
+def create_tables(verbose=False):
+    """
+    :return: None
+    """
+    ### - OGs
+    ### - OG_2_Function
+    ### STATIC FILE simply provide the finished table
+    ### create_OGs_table_and_OG_2_Function_table_and_Functions_table_DOM()
+
+    ### - Functions
+    create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
+    create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
+    ### create_Functions_table_KEGG() # STATIC FILE simply provide the finished table
+    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt"]]
+    fn_list += [os.path.join(STATIC_DIR, fn) for fn in ["Functions_table_KEGG_static.txt", "Functions_table_DOM_static.txt"]]
+    fn_out = os.path.join(TABLES_DIR, "Functions_table.txt")
+    ### dependency on create_OGs_table_and_OG_2_Function_table_and_Functions_table_KEGG_DOM
+    concatenate_files(fn_list, fn_out)
+
+    ### - Function_2_definition (obsolete, since definitions added to Functions_table as a column)
+    #fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Function_2_definition_table_UPK.txt", "Function_2_definition_table_GO.txt"]]
+    #fn_out = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
+    #concatenate_files(fn_list, fn_out)
+
+
+    ## - Ontologies (Child_2_Parent)
+    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
+    fn_out = os.path.join(TABLES_DIR, "Ontologies_table.txt")
+    create_Ontologies_table(fn_list, fn_out)
+
+    ### - Protein_2_OG
+    ### STATIC FILE simply provide the finished table
+    ### create_Protein_2_OG_table()
+
+    ### - Protein_2_Function (updated, dependency on Ontologies since, only functions that are present in ontology should be assigned)
+    create_Protein_2_Function_table_wide_format(verbose=verbose)
+    create_Protein_Secondary_2_Primary_AN()
+
+    ### - GO_2_Slim
+    create_GO_2_Slim_table()
+    if verbose:
+        print("#"*80, "finished creating all tables")
+
+def create_tables_STRING(verbose=True, delete_files=False):
+    tables_to_remove_temp = []
+    ### - Protein_2_Function_table
+    ### - Protein_2_Function_table_Interpro
+    fn_in = os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz")
+    fn_in_temp = fn_in + "_temp"
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
+    create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=NUMBER_OF_PROCESSES, verbose=verbose)
+    if delete_files:
+        tables_to_remove_temp.append(fn_in_temp)
+
+
+
+    if verbose:
+        print("#"*80, "finished creating all tables")
+    if delete_files:
+        remove_files(find_tables_to_remove() + tables_to_remove_temp)
+        print("#" * 80, "removing temp files and temp_tables")
+
+
+def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
+    """
+    :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz)
+    :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz_temp)
+    :param fn_out: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_InterPro.txt)
+    :param number_of_processes: Integer (number of cores, shouldn't be too high since Disks are probably the bottleneck even with SSD, e.g. max 4)
+    :param verbose: Bool (flag to print infos)
+    :return: None
+    """
+    ### sort by fn_in first column (data is most probably already sorted, but we need to be certain), gunzip necessary for sort !?
+    ### e.g. of line "1298865.H978DRAFT_0001  A0A010P2C8      IPR011990       Tetratricopeptide-like helical domain superfamily       G3DSA:1.25.40.10        182     292"
+    if number_of_processes > 4:
+        number_of_processes = 4
+    platform = sys.platform
+    if platform == "linux":
+        # shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)  # sort in-place on first column which is ENSP
+        shellcmd = "LC_ALL=C sort --parallel {} -k1 <(gunzip -c '{}') > '{}'".format(number_of_processes, fn_in, fn_in_temp)
+    else:
+        # shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)  # use GNU sort
+        shellcmd = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c '{}') > '{}'".format(number_of_processes, fn_in, fn_in_temp)
+    if verbose:
+        print(shellcmd)
+    # is the output is NOT zipped
+    call(shellcmd, shell=True)
+
+    with open(fn_out, "w") as fh_out:
+        for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
+            # ('1298865.H978DRAFT_0001', ['IPR011990', 'IPR011990', 'IPR011990', 'IPR013026', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734'])
+            fh_out.write(ENSP + "\t" + "{" + ",".join(InterProID_list) + "}\n")
+
+def parse_string2interpro_yield_entry(fn_in):
+    # "1298865.H978DRAFT_0001  A0A010P2C8      IPR011990       Tetratricopeptide-like helical domain superfamily       G3DSA:1.25.40.10        182     292"
+    InterProID_list = []
+    did_first = False
+    for line in yield_line_uncompressed_or_gz_file(fn_in):
+        ENSP, UniProtAN, InterProID, *rest = line.split()
+        if not did_first:
+            ENSP_previous = ENSP
+            did_first = True
+        if ENSP == ENSP_previous:
+            InterProID_list.append(InterProID)
+        else:
+            yield (ENSP_previous, InterProID_list)
+            InterProID_list = [InterProID]
+            ENSP_previous = ENSP
+    yield (ENSP_previous, InterProID_list)
+
+
+
 
 def get_table_name_2_absolute_path_dict(testing=False):
     global TABLES_DIR
@@ -55,7 +249,6 @@ def get_table_name_2_absolute_path_dict(testing=False):
                                        "protein_2_og_table": protein_2_og_table,
                                        "protein_secondary_2_primary_an_table": protein_secondary_2_primary_an_table}
     return table_name_2_absolute_path_dict
-
 
 ##### create test tables for import
 def create_test_tables(num_lines=5000, TABLES_DIR_=None):
@@ -267,50 +460,6 @@ def read_until(fh, start):
 def after_colon(line):
     # macro for getting anything after the :
     return line.split(":", 1)[1].strip()
-
-# class OBOReader_2_text:
-#
-#     def __init__(self, obo_file):
-#         try:
-#             self._handle = open(obo_file, "r")
-#         except:
-#             sys.exit(1)
-#
-#     def __iter__(self):
-#         line = self._handle.readline()
-#         if not line.startswith(TERM_TAG):
-#             read_until(self._handle, TERM_TAG)
-#         while 1:
-#             yield self.__next__()
-#
-#     def __next__(self):
-#         lines = []
-#         line = self._handle.readline()
-#         if not line or line.startswith(TYPEDEF_TAG):
-#             raise StopIteration
-#
-#         # read until the next tag and save everything in between
-#         while 1:
-#             pos = self._handle.tell()  # save current postion for roll-back
-#             line = self._handle.readline()
-#             if not line or (line.startswith(TYPEDEF_TAG) or line.startswith(TERM_TAG)):
-#                 self._handle.seek(pos)  # roll-back
-#                 break
-#             lines.append(line)
-#         id_, name, definition = "", "", ""
-#         is_a_list = []
-#         for line in lines:
-#             # if line.startswith("id_:"):
-#             if line.startswith("id:"):
-#                 id_ = after_colon(line)
-#             elif line.startswith("name:"):
-#                 name = after_colon(line)
-#             elif line.startswith("def:"):
-#                 definition = after_colon(line)
-#             elif line.startswith("is_a:"):
-#                 is_a_list.append(after_colon(line).split()[0])
-#         return id_, name, is_a_list, definition
-
 
 ##### Child_2_Parent_table_UPK.txt, Functions_table_UPK.txt and Function_2_definition_table_UPK.txt
 def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK():
@@ -843,49 +992,6 @@ def create_Functions_table_KEGG(): # STATIC FILE simply provide the finished tab
                 string_2_write = type_ + "\t" + name + "\t" + an + "\n"
                 fh_out.write(string_2_write)
 
-def create_tables(verbose=False):
-    """
-    :return: None
-    """
-    ### - OGs
-    ### - OG_2_Function
-    ### STATIC FILE simply provide the finished table
-    ### create_OGs_table_and_OG_2_Function_table_and_Functions_table_DOM()
-
-    ### - Functions
-    create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
-    create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
-    ### create_Functions_table_KEGG() # STATIC FILE simply provide the finished table
-    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt"]]
-    fn_list += [os.path.join(STATIC_DIR, fn) for fn in ["Functions_table_KEGG_static.txt", "Functions_table_DOM_static.txt"]]
-    fn_out = os.path.join(TABLES_DIR, "Functions_table.txt")
-    ### dependency on create_OGs_table_and_OG_2_Function_table_and_Functions_table_KEGG_DOM
-    concatenate_files(fn_list, fn_out)
-
-    ### - Function_2_definition (obsolete, since definitions added to Functions_table as a column)
-    #fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Function_2_definition_table_UPK.txt", "Function_2_definition_table_GO.txt"]]
-    #fn_out = os.path.join(TABLES_DIR, "Function_2_definition_table.txt")
-    #concatenate_files(fn_list, fn_out)
-
-
-    ## - Ontologies (Child_2_Parent)
-    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
-    fn_out = os.path.join(TABLES_DIR, "Ontologies_table.txt")
-    create_Ontologies_table(fn_list, fn_out)
-
-    ### - Protein_2_OG
-    ### STATIC FILE simply provide the finished table
-    ### create_Protein_2_OG_table()
-
-    ### - Protein_2_Function (updated, dependency on Ontologies since, only functions that are present in ontology should be assigned)
-    create_Protein_2_Function_table_wide_format(verbose=verbose)
-    create_Protein_Secondary_2_Primary_AN()
-
-    ### - GO_2_Slim
-    create_GO_2_Slim_table()
-    if verbose:
-        print("#"*80, "finished creating all tables")
-
 def get_possible_ontology_functions_set():
     fn = os.path.join(TABLES_DIR, "Ontologies_table.txt")
     df = pd.read_csv(fn, sep='\t', header=None)
@@ -1161,55 +1267,6 @@ def call_script(BASH_LOCATION, script_fn):
     print(shellcmd)
     call(shellcmd, shell=True)
 
-def run_PostgreSQL_create_tables_and_build_DB(debug=False, testing=False, verbose=True):
-    if debug:
-        start_time = time.time()
-        # remove_files(find_tables_to_remove())
-        # print(find_tables_to_remove())
-        ### PostgreSQL DB creation, copy from file and indexing
-        create_test_tables(50000, TABLES_DIR)
-        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
-        print("PostgreSQL DB creation, copy from file, and indexing")
-        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
-        tools.print_runtime(start_time)
-    else:
-        start_time = time.time()
-        print("Parsing downloaded content and writing tables for PostgreSQL import")
-        create_tables(verbose=verbose)
-        create_test_tables(50000, TABLES_DIR)
-        remove_files(find_tables_to_remove())
-
-        ### PostgreSQL DB creation, copy from file and indexing
-        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing) # deprecated since calling this directly via .psql file
-        print("PostgreSQL DB creation, copy from file, and indexing")
-        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
-        print("PostgreSQL flat files created, ready to read from file and index")
-        tools.print_runtime(start_time)
-
-def run_create_tables_for_PostgreSQL(debug=False, testing=False, verbose=True):
-    if debug:
-        start_time = time.time()
-        # remove_files(find_tables_to_remove())
-        # print(find_tables_to_remove())
-        ### PostgreSQL DB creation, copy from file and indexing
-        create_test_tables(50000, TABLES_DIR)
-        fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
-        print("PostgreSQL DB creation, copy from file, and indexing")
-        call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
-        tools.print_runtime(start_time)
-    else:
-        start_time = time.time()
-        print("#"*80)
-        print("Parsing downloaded content and writing tables for PostgreSQL import")
-        create_tables(verbose=verbose)
-        create_test_tables(50000, TABLES_DIR)
-        remove_files(find_tables_to_remove())
-
-        ### PostgreSQL table file creation, (copy from file and indexing run from .psql script)
-        print("PostgreSQL flat files created, ready to read from file and index")
-        print("#" * 80)
-        tools.print_runtime(start_time)
-
 def count_line_numbers(fn):
     i = 0 # if file can't be opened
     with open(fn, "r") as fh:
@@ -1283,11 +1340,15 @@ def are_current_number_of_lines_larger(previous_dict, current_dict):
 
 
 if __name__ == "__main__":
-    debug = False
-    testing = False
-    verbose = True
+    ### aGOtool
+    # debug = False
+    # testing = False
+    # verbose = True
     # run_create_tables_for_PostgreSQL(DEBUG=DEBUG, testing=testing, verbose=verbose)
     # sanity_check_table_dimensions(testing=testing)
-    create_test_tables(num_lines=5000)
-    sanity_check_table_dimensions(testing=False)
-    sanity_check_table_dimensions(testing=True)
+    # create_test_tables(num_lines=5000)
+    # sanity_check_table_dimensions(testing=False)
+    # sanity_check_table_dimensions(testing=True)
+
+    ### STRING
+    create_tables_STRING(verbose=True, delete_files=False)
