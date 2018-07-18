@@ -3,11 +3,11 @@ import gzip
 rule map_string2interpro:
     input:
         # string2uniprot = '/mnt/mnemo4/damian/STRING_derived_v11/uniprot/string_2_uniprot_1_to_1.jan2018.tsv.gz',
-        string2uniprot = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/domain_assignment/full_uniprot_2_string.jan_2018.tsv',
+        string2uniprot = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/full_uniprot_2_string.jan_2018.tsv',
         # uniprot2interpro = '/mnt/gaia/davide/eggnog/domain_benchmark/interpro.64/protein2ipr.dat.gz'
-        uniprot2interpro = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/domain_assignment/protein2ipr.dat.gz'
+        uniprot2interpro = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/protein2ipr.dat.gz'
     output:
-        string2interpro = 'string2interpro.dat.gz'
+        string2interpro = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz'
     run:
         # read string to uniprot mapping and reverse
         # input line e.g. 742765.HMPREF9457_01522 [TAB] G1WQX1

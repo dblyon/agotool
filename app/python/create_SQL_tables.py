@@ -180,6 +180,7 @@ def create_tables_STRING(verbose=True, delete_files=False):
 
 def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
     """
+    #!!! fix bug later
     :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz)
     :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz_temp)
     :param fn_out: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_InterPro.txt)
@@ -187,21 +188,29 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_o
     :param verbose: Bool (flag to print infos)
     :return: None
     """
-    ### sort by fn_in first column (data is most probably already sorted, but we need to be certain), gunzip necessary for sort !?
+    ### sort by fn_in first column (data is most probably already sorted, but we need to be certain for the parser that follows)
+    ### unzip first, then sort to enable parallel sorting
+    ### is the output is NOT zipped, but the     
     ### e.g. of line "1298865.H978DRAFT_0001  A0A010P2C8      IPR011990       Tetratricopeptide-like helical domain superfamily       G3DSA:1.25.40.10        182     292"
-    if number_of_processes > 4:
-        number_of_processes = 4
+    if number_of_processes > 8:
+        number_of_processes = 8
     platform = sys.platform
+
+    shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
     if platform == "linux":
-        # shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)  # sort in-place on first column which is ENSP
-        shellcmd = "LC_ALL=C sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+        #  no error but empty file produced, probably due to ">" not "-o"
+        # shellcmd = "sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+        shellcmd_2 = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
     else:
-        # shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)  # use GNU sort
-        shellcmd = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+        # shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+        shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
     if verbose:
-        print(shellcmd)
-    # is the output is NOT zipped
-    call(shlex.split(shellcmd), shell=True)
+        print(shellcmd_1)
+    call(shlex.split(shellcmd_1), shell=True) # !!!
+    if verbose:
+        print(shellcmd_2)
+    call(shlex.split(shellcmd_2), shell=True) # !!!
+
 
     with open(fn_out, "w") as fh_out:
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
