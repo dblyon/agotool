@@ -190,26 +190,34 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_o
     """
     ### sort by fn_in first column (data is most probably already sorted, but we need to be certain for the parser that follows)
     ### unzip first, then sort to enable parallel sorting
-    ### is the output is NOT zipped, but the     
+    ### is the output is NOT zipped, but the
     ### e.g. of line "1298865.H978DRAFT_0001  A0A010P2C8      IPR011990       Tetratricopeptide-like helical domain superfamily       G3DSA:1.25.40.10        182     292"
     if number_of_processes > 8:
         number_of_processes = 8
     platform = sys.platform
 
-    shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
-    if platform == "linux":
-        #  no error but empty file produced, probably due to ">" not "-o"
-        # shellcmd = "sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
-        shellcmd_2 = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-    else:
-        # shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
-        shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-    if verbose:
-        print(shellcmd_1)
-    call(shlex.split(shellcmd_1), shell=True) # !!!
-    if verbose:
-        print(shellcmd_2)
-    call(shlex.split(shellcmd_2), shell=True) # !!!
+    bash_script_temp_fn = "bash_scipt_temp.sh"
+    with open(bash_script_temp_fn, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
+        fh.write(shellcmd_1 + "\n")
+        if platform == "linux":
+            #  no error but empty file produced, probably due to ">" not "-o"
+            # shellcmd = "sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+            shellcmd_2 = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+        else:
+            # shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+            shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+        fh.write(shellcmd_2)
+        # if verbose:
+        #     print(shellcmd_1)
+        # call(shellcmd_1, shell=True) # !!!
+        # if verbose:
+        #     print(shellcmd_2)
+        # call(shellcmd_2, shell=True) # !!!
+    # this should be simpler but it works for and there were issues with the other versions (calling the shellcmds via subprocess.call or subprocess.Popen)
+    subprocess.call("chmod 744 ./bash_script_temp.sh", shell=True)
+    subprocess.call("./bash_script_temp.sh", shell=True)
 
 
     with open(fn_out, "w") as fh_out:
