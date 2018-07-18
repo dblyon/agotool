@@ -1,4 +1,4 @@
-import os, json, sys, re, fnmatch, subprocess, time #, multiprocessing
+import os, json, sys, re, fnmatch, subprocess, time, shlex  #, multiprocessing
 import pandas as pd
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -194,14 +194,14 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_o
     platform = sys.platform
     if platform == "linux":
         # shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)  # sort in-place on first column which is ENSP
-        shellcmd = "LC_ALL=C sort --parallel {} -k1 <(gunzip -c '{}') > '{}'".format(number_of_processes, fn_in, fn_in_temp)
+        shellcmd = "LC_ALL=C sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
     else:
         # shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)  # use GNU sort
-        shellcmd = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c '{}') > '{}'".format(number_of_processes, fn_in, fn_in_temp)
+        shellcmd = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
     if verbose:
         print(shellcmd)
     # is the output is NOT zipped
-    call(shellcmd, shell=True)
+    call(shlex.split(shellcmd), shell=True)
 
     with open(fn_out, "w") as fh_out:
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
