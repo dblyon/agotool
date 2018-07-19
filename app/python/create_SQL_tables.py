@@ -17,11 +17,14 @@ TEST_DIR = variables.TEST_DIR
 FILES_NOT_2_DELETE = variables.FILES_NOT_2_DELETE
 NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 VERSION_ = variables.VERSION_
+PLATFORM = sys.platform
+
 
 EMPTY_EGGNOG_JSON_DICT = {"KEGG": {"kegg_pathways": [], "kegg_header": ["Pathway", "SeqCount", "Frequency", "relative_fontsize"]}, "go_terms": {"go_terms": {}, "go_header": ["ID", "GO term", "Evidence", "SeqCount", "Frequency", "relative_fontsize"]}, "domains": {"domains": {}, "dom_header": ["Domain ID", "SeqCount", "Frequency", "relative_fontsize"]}}
 id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'GO:0005575': "-22",  # 'Cellular Component',
                               'GO:0008150': "-21",  # 'Biological Process',
+                              "GO:OBSOLETE": "-24", # "GO obsolete
                               'UPK:9990': "-51",  # 'Technical term',
                               'UPK:9991': "-51",  # 'PTM',
                               'UPK:9992': "-51",  # 'Molecular function',
@@ -32,33 +35,15 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9997': "-51",  # 'Coding sequence diversity',
                               'UPK:9998': "-51",  # 'Cellular component',
                               'UPK:9999': "-51",  # 'Biological process'
-                              'KEGG': "-52"}
+                              "UniProtKeywords": "-51",
+                              'KEGG': "-52", # KEGG
+                              "SMART": "-53", # SMART domains
+                              "INTERPRO": "-54", # Interpro domains
+                              "PFAM": "-55", # Pfam domains
+                              "PMID": "-56"} # Pubmed identifiers
+
 id_2_entityTypeNumber_dict_keys_set = set(id_2_entityTypeNumber_dict.keys())
 
-# def run_PostgreSQL_create_tables_and_build_DB(debug=False, testing=False, verbose=True):
-#     if debug:
-#         start_time = time.time()
-#         # remove_files(find_tables_to_remove())
-#         # print(find_tables_to_remove())
-#         ### PostgreSQL DB creation, copy from file and indexing
-#         create_test_tables(50000, TABLES_DIR)
-#         fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing)
-#         print("PostgreSQL DB creation, copy from file, and indexing")
-#         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
-#         tools.print_runtime(start_time)
-#     else:
-#         start_time = time.time()
-#         print("Parsing downloaded content and writing tables for PostgreSQL import")
-#         create_tables(verbose=verbose)
-#         create_test_tables(50000, TABLES_DIR)
-#         remove_files(find_tables_to_remove())
-#
-#         ### PostgreSQL DB creation, copy from file and indexing
-#         fn_create_DB_copy_and_index_tables = create_psql_script_copy_from_file_and_index(testing=testing) # deprecated since calling this directly via .psql file
-#         print("PostgreSQL DB creation, copy from file, and indexing")
-#         call_script(BASH_LOCATION, fn_create_DB_copy_and_index_tables)
-#         print("PostgreSQL flat files created, ready to read from file and index")
-#         tools.print_runtime(start_time)
 
 def run_create_tables_for_PostgreSQL(debug=False, testing=False, verbose=True, version_="STRING"):
     if version_ == "STRING":
@@ -93,7 +78,7 @@ def run_create_tables_for_PostgreSQL_aGOtool(debug=False, testing=False, verbose
         print("#" * 80)
         tools.print_runtime(start_time)
 
-def run_create_tables_for_PostgreSQL_STRING(debug=False, testing=False, verbose=True, delete_files=False):
+def run_create_tables_for_PostgreSQL_STRING(debug=False, testing=False, verbose=True, delete_temp_files=False):
     if debug:
         start_time = time.time()
         ### PostgreSQL DB creation, copy from file and indexing
@@ -108,7 +93,8 @@ def run_create_tables_for_PostgreSQL_STRING(debug=False, testing=False, verbose=
         print("Parsing downloaded content and writing tables for PostgreSQL import")
         create_tables_STRING(verbose=verbose)
         create_test_tables(50000, TABLES_DIR)
-        remove_files(find_tables_to_remove())
+        if delete_temp_files:
+            remove_files(find_tables_to_remove())
 
         ### PostgreSQL table file creation, (copy from file and indexing run from .psql script)
         print("PostgreSQL flat files created, ready to read from file and index")
@@ -156,31 +142,141 @@ def create_tables(verbose=False):
     ### - GO_2_Slim
     create_GO_2_Slim_table()
     if verbose:
-        print("#"*80, "finished creating all tables")
+        print("#"*80, "\n", "### finished creating all tables")
 
-def create_tables_STRING(verbose=True, delete_files=False):
+
+    ### - Entity_types_table.txt
+    # static table, edit manually
+
+def create_tables_STRING(verbose=True, delete_temp_files=False):
     tables_to_remove_temp = []
+    if NUMBER_OF_PROCESSES > 8:
+        number_of_processes = 8
+
+    ### - Ontologies (Child_2_Parent)
+    # create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
+    # create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
+    # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
+    # fn_out = os.path.join(TABLES_DIR, "Ontologies_table.txt")
+    # create_Ontologies_table(fn_list, fn_out)
+
+
+    ### - GO_2_Slim_table
+    # create_GO_2_Slim_table()
+
+
     ### - Protein_2_Function_table
     ### - Protein_2_Function_table_Interpro
-    fn_in = os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz")
-    fn_in_temp = fn_in + "_temp"
-    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
-    create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=NUMBER_OF_PROCESSES, verbose=verbose)
-    if delete_files:
-        tables_to_remove_temp.append(fn_in_temp)
+    # fn_in = os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz")
+    # fn_in_temp = fn_in + "_temp"
+    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
+    # create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    # if delete_temp_files:
+    #     tables_to_remove_temp.append(fn_in_temp)
 
+    ### - Protein_2_Function_table_SMART
+    # fn_in = os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.sql")
+    # fn_in_temp = fn_in + "_temp"
+    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
+    # create_Protein_2_Function_table_SMART(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    # if delete_temp_files:
+    #     tables_to_remove_temp.append(fn_in_temp)
+
+    ### - Protein_2_Function_table_GO
+    # fn_in = os.path.join(DOWNLOADS_DIR, "string_go.tsv.gz")
+    # fn_in_temp = fn_in + "_temp"
+    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
+    # create_Protein_2_Function_table_GO(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    # if delete_temp_files:
+    #     tables_to_remove_temp.append(fn_in_temp)
+
+    ### - Protein_2_Function_table_UniProtKeyword
+    # fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
+    # fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
+    # fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.tsv")
+    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtKeyword.txt")
+    # create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat,        fn_in_uniprot_2_string, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+
+    ### - Protein_2_Function_table_KEGG
+    # fn_in = os.path.join(DOWNLOADS_DIR, "pathway.list")
+    # fn_out = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
+    # create_Functions_table_KEGG(fn_in=fn_in, fn_out=fn_out)
+    #
+    # fn_in = os.path.join(DOWNLOADS_DIR, "kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv")
+    # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
+    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
+    # create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    """
+    # sanity check for number of ENSP to KEGG matches
+    # sum the counts of ENSPs in the original mapping (ignoring KEGG-functions with "CONN")
+    # cat kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv | grep -v "CONN" | cut -f 3 | paste -sd+ | bc
+    # compare to # $ wc -l Protein_2_Function_table_KEGG_temp.txt --> 7614709
+    """
+
+    ### - Functions_table (dependency on "create_Functions_table_KEGG")
+    # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt", "Functions_table_KEGG.txt"]]
+    # fn_out = os.path.join(TABLES_DIR, "Functions_table.txt")
+    # concatenate_files(fn_list, fn_out)
+
+    ### - TaxID_2_Proteins_table
+    # fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
+    # fn_out_temp = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt_sorted_temp.txt")
+    # fn_out = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table.txt")
+    # create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+
+
+
+    # ToDo check output if looks correct --> looks good
+    # $ grep "583355\.Caka_1660" Protein_2_Function_table_UniProtKeyword.txt
 
 
     if verbose:
         print("#"*80, "finished creating all tables")
-    if delete_files:
+    if delete_temp_files:
         remove_files(find_tables_to_remove() + tables_to_remove_temp)
         print("#" * 80, "removing temp files and temp_tables")
 
+def create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=1, verbose=True):
+    # sort by first column
+    bash_script_temp_fn = "bash_script_sort_Proteomes_input_table_temp.sh"
+    with open(bash_script_temp_fn, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        if PLATFORM == "linux":
+            shellcmd = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in, fn_out_temp)
+        else:
+            shellcmd = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in, fn_out_temp)
+        fh.write(shellcmd)
+    if verbose:
+        print("Creating TaxID_2_Proteins_table.txt")
+        print("Proteomes_input_table_temp.txt needs sorting, doing it now")
+    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+
+    if verbose:
+        print("parsing Proteomes_input_table_temp.txt")
+    # now parse and transform into wide format
+    with open(fn_out_temp, "r") as fh_in:
+        with open(fn_out, "w") as fh_out:
+            ENSP_list = []
+            did_first = False
+            for line in fh_in:
+                # 287.DR97_1012   6412
+                # 287.DR97_1013   6413
+                ENSP, *rest = line.strip().split()
+                TaxID = ENSP[:ENSP.index(".")]
+                if not did_first:
+                    TaxID_previous = TaxID
+                    did_first = True
+                if TaxID == TaxID_previous:
+                    ENSP_list.append(ENSP)
+                else:
+                    fh_out.write(TaxID_previous + "\t" + "{" + str(sorted(set(ENSP_list)))[1:-1].replace(" ", "").replace("'", '"') + "}\n")
+                    ENSP_list = [ENSP]
+                    TaxID_previous = TaxID
+            fh_out.write(TaxID_previous + "\t" + "{" + str(sorted(set(ENSP_list)))[1:-1].replace(" ", "").replace("'", '"') + "}\n")
 
 def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
     """
-    #!!! fix bug later
     :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz)
     :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz_temp)
     :param fn_out: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_InterPro.txt)
@@ -192,38 +288,351 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_o
     ### unzip first, then sort to enable parallel sorting
     ### is the output is NOT zipped, but the
     ### e.g. of line "1298865.H978DRAFT_0001  A0A010P2C8      IPR011990       Tetratricopeptide-like helical domain superfamily       G3DSA:1.25.40.10        182     292"
-    if number_of_processes > 8:
-        number_of_processes = 8
-    platform = sys.platform
+    if verbose:
+        print("\ncreate_Protein_2_Function_table_InterPro")
 
-    bash_script_temp_fn = "bash_scipt_temp.sh"
+    bash_script_temp_fn = "bash_script_gunzip_sort_InterPro.sh"
     with open(bash_script_temp_fn, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
         shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
         fh.write(shellcmd_1 + "\n")
-        if platform == "linux":
-            #  no error but empty file produced, probably due to ">" not "-o"
+        if PLATFORM == "linux":
+            # this should be simpler but it works for and there were issues with the other versions (calling the shellcmds via subprocess.call or subprocess.Popen)
+            # no error with first version but empty file produced, probably due to ">" not "-o"
             # shellcmd = "sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
             shellcmd_2 = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
         else:
             # shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
             shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
         fh.write(shellcmd_2)
-        # if verbose:
-        #     print(shellcmd_1)
-        # call(shellcmd_1, shell=True) # !!!
-        # if verbose:
-        #     print(shellcmd_2)
-        # call(shellcmd_2, shell=True) # !!!
-    # this should be simpler but it works for and there were issues with the other versions (calling the shellcmds via subprocess.call or subprocess.Popen)
-    subprocess.call("chmod 744 ./bash_script_temp.sh", shell=True)
-    subprocess.call("./bash_script_temp.sh", shell=True)
+    if verbose:
+        print("gunzip and sorting string2interpro.dat.gz")
+    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
-
+    if verbose:
+        print("parsing previous result to produce Protein_2_Function_table_InterPro.txt")
+    entityType_InterPro = id_2_entityTypeNumber_dict["INTERPRO"]
     with open(fn_out, "w") as fh_out:
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
             # ('1298865.H978DRAFT_0001', ['IPR011990', 'IPR011990', 'IPR011990', 'IPR013026', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734'])
-            fh_out.write(ENSP + "\t" + "{" + ",".join(InterProID_list) + "}\n")
+            InterProID_list = sorted(set(InterProID_list))
+            if len(InterProID_list) >= 1:
+                fh_out.write(ENSP + "\t" + "{" + str(InterProID_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_InterPro + "\n")
+    if verbose:
+        print("done with create_Protein_2_Function_table_InterPro\n")
+
+def create_Protein_2_Function_table_SMART(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
+    """
+    :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string11_dom_prot_full.sql)
+    :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string11_dom_prot_full.sql_temp)
+    :param fn_out: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_SMART.txt)
+    :param number_of_processes: Integer (number of cores, shouldn't be too high since Disks are probably the bottleneck even with SSD, e.g. max 8 !?)
+    :param verbose: Bool (flag to print infos)
+    :return: None
+    """
+    if verbose:
+        print("\ncreate_Protein_2_Function_table_SMART")
+
+    bash_script_temp_fn = "bash_script_sort_SMART.sh"
+    with open(bash_script_temp_fn, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        if PLATFORM == "linux":
+            shellcmd_2 = "sort --parallel {} -k2 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
+        else:
+            shellcmd_2 = "LC_ALL=C gsort --parallel {} -k2 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
+        fh.write(shellcmd_2)
+    if verbose:
+        print("sorting string11_dom_prot_full.sql")
+    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+
+    if verbose:
+        print("parsing previous result to produce create_Protein_2_Function_table_SMART.txt")
+    entityType_SMART = id_2_entityTypeNumber_dict["SMART"]
+    with open(fn_out, "w") as fh_out:
+        for ENSP, SMART_list in parse_string11_dom_prot_full_yield_entry(fn_in_temp):
+            SMART_list = sorted(set(SMART_list))
+            if len(SMART_list) >= 1:
+                fh_out.write(ENSP + "\t" + "{" + str(SMART_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_SMART + "\n")
+    if verbose:
+        print("done with create_Protein_2_Function_table_SMART\n")
+
+def create_Protein_2_Function_table_GO(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
+    """
+    :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_go.tsv.gz)
+    :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_go.tsv.gz_temp)
+    :param fn_out: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_GO.txt)
+    :param number_of_processes: Integer (number of cores, shouldn't be too high since Disks are probably the bottleneck even with SSD, e.g. max 4)
+    :param verbose: Bool (flag to print infos)
+    :return: None
+    """
+    ### e.g. of lines
+    # 1001530 PMSV_1450       -21     GO:0000302      UniProtKB-EC    IEA     2       FALSE   http://www.uniprot.org/uniprot/SODF_PHOLE
+    # 1000565 METUNv1_03599   -23     GO:0003824      UniProtKB-EC    IEA     2       FALSE   http://www.uniprot.org/uniprot/GMAS_METUF
+    if verbose:
+        print("\ncreate_Protein_2_Function_table_GO")
+
+    bash_script_temp_fn = "bash_script_gunzip_sort_GO.sh"
+    with open(bash_script_temp_fn, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
+        fh.write(shellcmd_1 + "\n")
+        if PLATFORM == "linux":
+            shellcmd_2 = "sort --parallel {} -k1,2 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+        else:
+            shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1,2 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+        fh.write(shellcmd_2)
+    if verbose:
+        print("gunzip and sorting string_go.tsv.gz")
+    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+
+    if verbose:
+        print("parsing previous result to produce Protein_2_Function_table_GO.txt")
+    with open(fn_out, "w") as fh_out:
+        for ENSP, GOterm_list, entityType in parse_string_go_yield_entry(fn_in_temp):
+            if entityType == "-24":
+                continue
+            GOterm_list = sorted(set(GOterm_list))
+            if len(GOterm_list) >= 1:
+                fh_out.write(ENSP + "\t" + "{" + str(GOterm_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType + "\n")
+    if verbose:
+        print("done with create_Protein_2_Function_table_GO\n")
+
+def create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out, number_of_processes=1,  verbose=True):
+    if verbose:
+        print("\ncreate_Protein_2_Function_table_UniProtKeywords")
+    uniprot_2_string_missing_mapping = []
+    uniprot_2_ENSPs_dict = parse_full_uniprot_2_string(fn_in_uniprot_2_string)
+    entityType_UniProtKeywords = id_2_entityTypeNumber_dict["UniProtKeywords"]
+    with open(fn_out, "w") as fh_out:
+        for UniProtAN_list, KeyWords_list in parse_uniprot_dat_dump_yield_entry(fn_in_uniprot_SwissProt_dat):
+            for UniProtAN in UniProtAN_list:
+                try:
+                    ENSP_list = uniprot_2_ENSPs_dict[UniProtAN]
+                except KeyError:
+                    uniprot_2_string_missing_mapping.append(UniProtAN)
+                    continue
+                for ENSP in ENSP_list:
+                    if len(KeyWords_list) >= 1:
+                        fh_out.write(ENSP + "\t" + "{" + str(KeyWords_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
+
+        for UniProtAN_list, KeyWords_list in parse_uniprot_dat_dump_yield_entry(fn_in_uniprot_TrEMBL_dat):
+            for UniProtAN in UniProtAN_list:
+                try:
+                    ENSP_list = uniprot_2_ENSPs_dict[UniProtAN]
+                except KeyError:
+                    uniprot_2_string_missing_mapping.append(UniProtAN)
+                    continue
+                for ENSP in ENSP_list:
+                    if len(KeyWords_list) >= 1:
+                        fh_out.write(ENSP + "\t" + "{" + str(KeyWords_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
+
+    # table Protein_2_Function_table_UniProtKeywords.txt needs sorting
+    bash_script_temp_fn = "bash_script_gunzip_sort_UniProtKeywords.sh"
+    with open(bash_script_temp_fn, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        if PLATFORM == "linux":
+            shellcmd = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out, fn_out)
+        else:
+            shellcmd = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out, fn_out)
+        fh.write(shellcmd)
+    if verbose:
+        print("Protein_2_Function_table_UniProtKeywords.txt needs sorting, doing it now")
+    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+
+    if verbose:
+        print("done with create_Protein_2_Function_table_UniProtKeywords\n")
+    if len(uniprot_2_string_missing_mapping) > 0:
+        print("#!$%^@"*80)
+        print("writing uniprot_2_string_missing_mapping to log file\n", os.path.join(LOG_DIRECTORY, "create_SQL_tables_STRING.log"))
+        print("number of uniprot_2_string_missing_mapping", len(uniprot_2_string_missing_mapping))
+        print("number of uniprot_2_ENSPs_dict keys", len(uniprot_2_ENSPs_dict.keys()))
+        print("#!$%^@" * 80)
+        with open(os.path.join(LOG_DIRECTORY, "create_SQL_tables_STRING.log"), "a+") as fh:
+            fh.write(";".join(uniprot_2_string_missing_mapping))
+
+def create_Protein_2_Function_table_KEGG_STRING(fn_in, fn_out_temp, fn_out, number_of_processes=1, verbose=True):
+    # create long format of ENSP 2 KEGG table
+    with open(fn_in, "r") as fh_in:
+        with open(fn_out_temp, "w") as fh_out:
+            for line in fh_in:
+                TaxID, KEGG, num_ENSPs, *ENSPs = line.split()
+                if KEGG.startswith("CONN_"):
+                    continue
+                else: # e.g. bced00190 or rhi00290
+                    KEGG = KEGG[-5:]
+                # add TaxID to complete the ENSP
+                ENSPs = [TaxID + "." + ENSP for ENSP in ENSPs]
+                for ENSP in ENSPs:
+                    fh_out.write(ENSP + "\t" + "KEGG:" + KEGG + "\n")
+
+    # sort by first column and transform to wide format
+    bash_script_temp_fn = "bash_script_sort_Protein_2_Function_table_KEGG_temp.sh"
+    with open(bash_script_temp_fn, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        if PLATFORM == "linux":
+            shellcmd = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)
+        else:
+            shellcmd = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)
+        fh.write(shellcmd)
+    if verbose:
+        print("Protein_2_Function_table_KEGG_temp.txt needs sorting, doing it now")
+    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+
+    # convert long to wide format and add entity type
+    entityType_UniProtKeywords = id_2_entityTypeNumber_dict["KEGG"]
+    long_2_wide_format(fn_out_temp, fn_out, entityType_UniProtKeywords)
+
+def parse_uniprot_dat_dump_yield_entry(fn_in):
+    """
+    yield parsed entry from UniProt DB dump file
+    :param fn_in:
+    :return:
+    """
+    for entry in yield_entry_UniProt_dat_dump(fn_in):
+        UniProtAN_list, UniProtAN, Keywords_string = [], "", ""
+        for line in entry:
+            line_code = line[:2]
+            rest = line[2:].strip()
+            if line_code == "AC":
+                UniProtAN_list += [UniProtAN.strip() for UniProtAN in rest.split(";") if len(UniProtAN) > 0]
+            elif line_code == "KW":
+                Keywords_string += rest
+        UniProtAN_list = sorted(set(UniProtAN_list))
+        Keywords_list = sorted(set(Keywords_string.split(";")))
+        # remove empty strings from keywords_list
+        Keywords_list = [cleanup_Keyword(keyword) for keyword in Keywords_list if len(keyword) > 0]
+        yield (UniProtAN_list, Keywords_list)
+
+def cleanup_Keyword(keyword):
+    """
+    remove stuff after '{'
+    remove '.' at last keyword
+    remove last ',' in string
+    "ATP-binding{ECO:0000256|HAMAP-Rule:MF_00175,","Chaperone{ECO:0000256|HAMAP-Rule:MF_00175,","Completeproteome{ECO:0000313|Proteomes:UP000005019}","ECO:0000256|SAAS:SAAS00645729}","ECO:0000256|SAAS:SAAS00645733}","ECO:0000256|SAAS:SAAS00645738}.","ECO:0000256|SAAS:SAAS00701776}","ECO:0000256|SAAS:SAAS00701780,ECO:0000313|EMBL:EGK73413.1}","Hydrolase{ECO:0000313|EMBL:EGK73413.1}","Metal-binding{ECO:0000256|HAMAP-Rule:MF_00175,","Nucleotide-binding{ECO:0000256|HAMAP-Rule:MF_00175,","Protease{ECO:0000313|EMBL:EGK73413.1}","Referenceproteome{ECO:0000313|Proteomes:UP000005019}","Zinc{ECO:0000256|HAMAP-Rule:MF_00175,ECO:0000256|SAAS:SAAS00645735}","Zinc-finger{ECO:0000256|HAMAP-Rule:MF_00175,"
+    :param keyword:
+    :return:
+    """
+    try:
+        index_ = keyword.index("{")
+    except ValueError:
+        index_ = False
+    if index_:
+        keyword = keyword[:index_]
+    return keyword.replace(".", "").strip()
+
+def yield_entry_UniProt_dat_dump(fn_in):
+    """
+    yield a single entry, delimited by '//' at the end
+    of UniProt DB dump files
+    fn_in = "uniprot_sprot.dat.gz"
+    '//         Terminator                        Once; ends an entry'
+    # ID   D5EJT0_CORAD            Unreviewed;       296 AA.
+    # AC   D5EJT0;
+    # DT   15-JUN-2010, integrated into UniProtKB/TrEMBL.
+    # DT   15-JUN-2010, sequence version 1.
+    # DT   25-OCT-2017, entry version 53.
+    # DE   SubName: Full=Binding-protein-dependent transport systems inner membrane component {ECO:0000313|EMBL:ADE54679.1};
+    # GN   OrderedLocusNames=Caka_1660 {ECO:0000313|EMBL:ADE54679.1};
+    # OS   Coraliomargarita akajimensis (strain DSM 45221 / IAM 15411 / JCM 23193
+    # OS   / KCTC 12865 / 04OKA010-24).
+    # OC   Bacteria; Verrucomicrobia; Opitutae; Puniceicoccales;
+    # OC   Puniceicoccaceae; Coraliomargarita.
+    # OX   NCBI_TaxID=583355 {ECO:0000313|EMBL:ADE54679.1, ECO:0000313|Proteomes:UP000000925};
+    # RN   [1] {ECO:0000313|EMBL:ADE54679.1, ECO:0000313|Proteomes:UP000000925}
+    # RP   NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA].
+    # RC   STRAIN=DSM 45221 / IAM 15411 / JCM 23193 / KCTC 12865
+    # RC   {ECO:0000313|Proteomes:UP000000925};
+    # RX   PubMed=21304713; DOI=10.4056/sigs.952166;
+    # RA   Mavromatis K., Abt B., Brambilla E., Lapidus A., Copeland A.,
+    # RA   Deshpande S., Nolan M., Lucas S., Tice H., Cheng J.F., Han C.,
+    # RA   Detter J.C., Woyke T., Goodwin L., Pitluck S., Held B., Brettin T.,
+    # RA   Tapia R., Ivanova N., Mikhailova N., Pati A., Liolios K., Chen A.,
+    # RA   Palaniappan K., Land M., Hauser L., Chang Y.J., Jeffries C.D.,
+    # RA   Rohde M., Goker M., Bristow J., Eisen J.A., Markowitz V.,
+    # RA   Hugenholtz P., Klenk H.P., Kyrpides N.C.;
+    # RT   "Complete genome sequence of Coraliomargarita akajimensis type strain
+    # RT   (04OKA010-24).";
+    # RL   Stand. Genomic Sci. 2:290-299(2010).
+    # CC   -!- SUBCELLULAR LOCATION: Cell membrane
+    # CC       {ECO:0000256|RuleBase:RU363032}; Multi-pass membrane protein
+    # CC       {ECO:0000256|RuleBase:RU363032}.
+    # CC   -!- SIMILARITY: Belongs to the binding-protein-dependent transport
+    # CC       system permease family. {ECO:0000256|RuleBase:RU363032,
+    # CC       ECO:0000256|SAAS:SAAS00723689}.
+    # CC   -----------------------------------------------------------------------
+    # CC   Copyrighted by the UniProt Consortium, see http://www.uniprot.org/terms
+    # CC   Distributed under the Creative Commons Attribution-NoDerivs License
+    # CC   -----------------------------------------------------------------------
+    # DR   EMBL; CP001998; ADE54679.1; -; Genomic_DNA.
+    # DR   RefSeq; WP_013043401.1; NC_014008.1.
+    # DR   STRING; 583355.Caka_1660; -.
+    # DR   EnsemblBacteria; ADE54679; ADE54679; Caka_1660.
+    # DR   KEGG; caa:Caka_1660; -.
+    # DR   eggNOG; ENOG4105C2T; Bacteria.
+    # DR   eggNOG; COG1173; LUCA.
+    # DR   HOGENOM; HOG000171367; -.
+    # DR   KO; K15582; -.
+    # DR   OMA; PTGIWWT; -.
+    # DR   OrthoDB; POG091H0048; -.
+    # DR   Proteomes; UP000000925; Chromosome.
+    # DR   GO; GO:0016021; C:integral component of membrane; IEA:UniProtKB-KW.
+    # DR   GO; GO:0005886; C:plasma membrane; IEA:UniProtKB-SubCell.
+    # DR   GO; GO:0006810; P:transport; IEA:UniProtKB-KW.
+    # DR   CDD; cd06261; TM_PBP2; 1.
+    # DR   Gene3D; 1.10.3720.10; -; 1.
+    # DR   InterPro; IPR000515; MetI-like.
+    # DR   InterPro; IPR035906; MetI-like_sf.
+    # DR   InterPro; IPR025966; OppC_N.
+    # DR   Pfam; PF00528; BPD_transp_1; 1.
+    # DR   Pfam; PF12911; OppC_N; 1.
+    # DR   SUPFAM; SSF161098; SSF161098; 1.
+    # DR   PROSITE; PS50928; ABC_TM1; 1.
+    # PE   3: Inferred from homology;
+    # KW   Cell membrane {ECO:0000256|SAAS:SAAS00894688};
+    # KW   Complete proteome {ECO:0000313|Proteomes:UP000000925};
+    # KW   Membrane {ECO:0000256|RuleBase:RU363032,
+    # KW   ECO:0000256|SAAS:SAAS00893669};
+    # KW   Reference proteome {ECO:0000313|Proteomes:UP000000925};
+    # KW   Transmembrane {ECO:0000256|RuleBase:RU363032,
+    # KW   ECO:0000256|SAAS:SAAS00894237};
+    # KW   Transmembrane helix {ECO:0000256|RuleBase:RU363032,
+    # KW   ECO:0000256|SAAS:SAAS00894527};
+    # KW   Transport {ECO:0000256|RuleBase:RU363032,
+    # KW   ECO:0000256|SAAS:SAAS00723738}.
+    # FT   TRANSMEM     34     53       Helical. {ECO:0000256|RuleBase:RU363032}.
+    # FT   TRANSMEM     94    119       Helical. {ECO:0000256|RuleBase:RU363032}.
+    # FT   TRANSMEM    131    150       Helical. {ECO:0000256|RuleBase:RU363032}.
+    # FT   TRANSMEM    156    175       Helical. {ECO:0000256|RuleBase:RU363032}.
+    # FT   TRANSMEM    214    239       Helical. {ECO:0000256|RuleBase:RU363032}.
+    # FT   TRANSMEM    259    282       Helical. {ECO:0000256|RuleBase:RU363032}.
+    # FT   DOMAIN       92    282       ABC transmembrane type-1.
+    # FT                                {ECO:0000259|PROSITE:PS50928}.
+    # SQ   SEQUENCE   296 AA;  32279 MW;  3DB3B060376AFDB5 CRC64;
+    #      MIKQQREAKA VSVAATSLGQ DAWERLKRNN MARIGGTLFA IITALCIVGP WLLPHSYDAQ
+    #      NLAYGAQGPS WQHLLGTDDL GRDLLVRILV GGRISIGVGF AASLVALIIG VSYGALAGYI
+    #      GGRTESVMMR FVDAVYALPF TMIVIILTVT FDEKSIFLIF MAIGLVEWLT MARIVRGQTK
+    #      ALRQLNYIDA ARTMGASHLS ILTRHILPNL LGPVIVFTTL TIPAVILLES ILSFLGLGVQ
+    #      PPMSSWGILI NEGADKIDIY PWLLIFPALF FSLTIFALNF IGDGLRDALD PKESQH
+    # //
+    """
+    lines_list = []
+    for line in yield_line_uncompressed_or_gz_file(fn_in):
+        line = line.strip()
+        if not line.startswith("//"):
+            lines_list.append(line)
+        else:
+            yield lines_list
+            lines_list = []
+    if lines_list:
+        if len(lines_list[0]) == 0:
+            return None
+    else:
+        yield lines_list
 
 def parse_string2interpro_yield_entry(fn_in):
     # "1298865.H978DRAFT_0001  A0A010P2C8      IPR011990       Tetratricopeptide-like helical domain superfamily       G3DSA:1.25.40.10        182     292"
@@ -242,8 +651,87 @@ def parse_string2interpro_yield_entry(fn_in):
             ENSP_previous = ENSP
     yield (ENSP_previous, InterProID_list)
 
+def parse_string11_dom_prot_full_yield_entry(fn_in):
+    # "Pfam:Pyr_redox_2        1144343.PMI41_01295     5       165     28.8000000000000007     3.50000000000000024e-08 0       0"
+    PFAM_list = []
+    did_first = False
+    for line in yield_line_uncompressed_or_gz_file(fn_in):
+        PFAM_or_something, ENSP, *rest = line.split()
+        if PFAM_or_something.startswith("Pfam:"):
+            PFAM = PFAM_or_something.replace("Pfam:", "") # e.g. "Pfam:DUF3149", DUF3149
+        else:
+            continue
+        if not did_first:
+            ENSP_previous = ENSP
+            did_first = True
+        if ENSP == ENSP_previous:
+            PFAM_list.append(PFAM)
+        else:
+            yield (ENSP_previous, PFAM_list)
+            PFAM_list = [PFAM]
+            ENSP_previous = ENSP
+    yield (ENSP_previous, PFAM_list)
 
+def parse_string_go_yield_entry(fn_in):
+    # "9606    ENSP00000281154 -24     GO:0019861      UniProtKB       CURATED 5       TRUE    http://www.uniprot.org/uniprot/ADT4_HUMAN"
+    GOterm_list = []
+    did_first = False
+    for line in yield_line_uncompressed_or_gz_file(fn_in):
+        TaxID, ENSP_without_TaxID, EntityType, GOterm, *rest = line.split()
+        ENSP = TaxID + "." + ENSP_without_TaxID
+        if not did_first:
+            ENSP_previous = ENSP
+            did_first = True
+        if ENSP == ENSP_previous:
+            GOterm_list.append(GOterm)
+        else:
+            yield (ENSP_previous, GOterm_list, EntityType)
+            GOterm_list = [GOterm]
+            ENSP_previous = ENSP
+    yield (ENSP_previous, GOterm_list, EntityType)
 
+def parse_full_uniprot_2_string(fn_in):
+    """
+    #species   uniprot_ac|uniprot_id   string_id   identity   bit_score
+    742765  G1WQX1|G1WQX1_9FIRM     742765.HMPREF9457_01522 100.0   211.0
+    742765  G1WQX2|G1WQX2_9FIRM     742765.HMPREF9457_01523 100.0   70.5
+    """
+    uniprot_2_ENSPs_dict = {}
+    with open(fn_in, "r") as fh:
+        next(fh) # skip header line
+        for line in fh:
+            taxid, uniprot_ac_and_uniprot_id, ENSP, *rest= line.strip().split()
+            uniprot = uniprot_ac_and_uniprot_id.split("|")[0]
+            if not uniprot in uniprot_2_ENSPs_dict :
+                uniprot_2_ENSPs_dict[uniprot] = [ENSP]
+            else: # it can be a one to many mapping (1 UniProtAN to multiple ENSPs)
+                uniprot_2_ENSPs_dict[uniprot].append(ENSP)
+    return uniprot_2_ENSPs_dict
+
+def yield_line_uncompressed_or_gz_file(fn):
+    """
+    adapted from
+    https://codebright.wordpress.com/2011/03/25/139/
+    and
+    https://www.reddit.com/r/Python/comments/2olhrf/fast_gzip_in_python/
+    http://pastebin.com/dcEJRs1i
+    :param fn: String (absolute path)
+    :return: GeneratorFunction (yields String)
+    """
+    if fn.endswith(".gz"):
+        if PLATFORM == "darwin": # OSX: "Darwin"
+            ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
+        elif PLATFORM == "linux": # Debian: "Linux"
+            ph = subprocess.Popen(["zcat", fn], stdout=subprocess.PIPE)
+        else:
+            ph = subprocess.Popen(["cat", fn], stdout=subprocess.PIPE)
+
+        for line in ph.stdout:
+            yield line.decode("utf-8")
+    else:
+        with open(fn, "r") as fh:
+            for line in fh:
+                yield line
 
 def get_table_name_2_absolute_path_dict(testing=False):
     global TABLES_DIR
@@ -622,31 +1110,6 @@ def concatenate_files(fn_list, fn_out):
 ##### Protein_2_Funtion_table.txt
 # for UniProt AccessionNumbers, UniProt-Keywords and GO-terms
 # HOMD ANs are mapped via OGs
-def yield_line_uncompressed_or_gz_file(fn):
-    """
-    adapted from
-    https://codebright.wordpress.com/2011/03/25/139/
-    and
-    https://www.reddit.com/r/Python/comments/2olhrf/fast_gzip_in_python/
-    http://pastebin.com/dcEJRs1i
-    :param fn: String (absolute path)
-    :return: GeneratorFunction (yields String)
-    """
-    if fn.endswith(".gz"):
-        platform = sys.platform
-        if platform == "darwin": # OSX: "Darwin"
-            ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
-        elif platform == "linux": # Debian: "Linux"
-            ph = subprocess.Popen(["zcat", fn], stdout=subprocess.PIPE)
-        else:
-            ph = subprocess.Popen(["cat", fn], stdout=subprocess.PIPE)
-
-        for line in ph.stdout:
-            yield line.decode("utf-8")
-    else:
-        with open(fn, "r") as fh:
-            for line in fh:
-                yield line
 
 # def parse_goa_gaf(fn_in, fn_out, taxid_2_ignore_set=None, protein_2_taxid=False, an_set=None):  # dependency
 def parse_goa_gaf(fn_in, fn_out, functions_set, taxid_2_ignore_set=None):
@@ -797,8 +1260,7 @@ def create_Protein_2_Function_table_wide_format(verbose=False):
     create_Protein_2_Function_table(fn_out_temp, verbose)
     if verbose:
         print("converting Protein_2_Function_table to wide format")
-    platform = sys.platform
-    if platform == "linux":
+    if PLATFORM == "linux":
         shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
     else:
         shellcmd = "LC_ALL=C gsort --parallel {} {} -o {}".format(NUMBER_OF_PROCESSES, fn_out_temp, fn_out_temp)  # sort in-place on first column which is protein_AN # was gsort previously
@@ -810,7 +1272,7 @@ def create_Protein_2_Function_table_wide_format(verbose=False):
     if verbose:
         print("done with Protein_2_Function_table")
 
-def long_2_wide_format(fn_in, fn_out):
+def long_2_wide_format(fn_in, fn_out, etype=None):
     function_list = []
     with open(fn_in, "r") as fh_in:
         with open(fn_out, "w") as fh_out:
@@ -821,11 +1283,19 @@ def long_2_wide_format(fn_in, fn_out):
                 if an == an_last:
                     function_list.append(function_)
                 else:
-                    fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+                    if etype is None:
+                        fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+                    else:
+                        fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\t" + etype + "\n")
+
                     function_list = []
                     an_last = an
                     function_list.append(function_)
-            fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+            # fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+            if etype is None:
+                fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+            else:
+                fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\t" + etype + "\n")
 
 def parse_secondary_AccessionNumbers(fn):
     line_generator = yield_line_uncompressed_or_gz_file(fn)
@@ -994,11 +1464,14 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
                     string_2_write = up_an + "\t" + "KEGG:{}".format(kegg_path[3:]) + "\n"
                     fh.write(string_2_write)
 
-def create_Functions_table_KEGG(): # STATIC FILE simply provide the finished table
-    # static
+def create_Functions_table_KEGG(fn_in=None, fn_out=None):
+    # NOT static for STRING
+    # static for aGOtool (at least CPR version hosted @ ku.sund.dk)
     type_ = "KEGG"
-    fn_in = os.path.join(STATIC_DIR, "KEGG_AN_2_Pathway_static.txt")
-    fn_out = os.path.join(STATIC_DIR, "Functions_table_KEGG_static.txt")
+    if fn_in is None:
+        fn_in = os.path.join(STATIC_DIR, "KEGG_AN_2_Pathway_static.txt")
+    if fn_out is None:
+        fn_out = os.path.join(STATIC_DIR, "Functions_table_KEGG_static.txt")
     with open(fn_out, "w") as fh_out:
         with open(fn_in, "r") as fh_in:
             for line in fh_in:
@@ -1368,4 +1841,4 @@ if __name__ == "__main__":
     # sanity_check_table_dimensions(testing=True)
 
     ### STRING
-    create_tables_STRING(verbose=True, delete_files=False)
+    create_tables_STRING(verbose=True, delete_temp_files=False)

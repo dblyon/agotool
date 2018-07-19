@@ -1,0 +1,19 @@
+# https://bitbucket.org/larsjuhljensen/tagger/
+Type	entity type
+any > 0	Proteins of species with this NCBI tax id
+-1	chemicals
+-2	NCBI species taxonomy id (tagging species)
+-3	NCBI species taxonomy id (tagging proteins)
+-11	Wikipedia
+-21	GO biological process
+-22	GO cellular component
+-23	GO molecular function
+-24	GO other (unused)
+-25	BTO tissues
+-26	DOID diseases
+-27	ENVO environments
+-28	APO phenotypes
+-29	FYPO phenotypes
+-30	MPheno phenotypes
+-31	NBO behaviors
+-36	mammalian phenotypes
