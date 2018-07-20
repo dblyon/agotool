@@ -1,6 +1,7 @@
 FROM python:3.5
 
 MAINTAINER David Lyon <dblyon@gmail.com>
+#USER dblyon
 
 ENV PYTHONUNBUFFERED 1
 ENV HOME /root
