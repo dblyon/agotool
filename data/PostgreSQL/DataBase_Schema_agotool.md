@@ -24,7 +24,6 @@
 | KEGG | Cell cycle | KEGG:04110 | blabla definition |
 
 ## protein_2_function [Protein_2_Function_table.txt] (the only one that can't be in memory)
-##### ToDO concatenate files and sort
 ##### PMID missing
 ##### ? ENSP with or without TaxID prefix ? --> with
 ##### ? add column with TaxID --> 1. to cluster DB   2. TaxID 2 proteins becomes superfluous (but probably faster) ? --> no
@@ -81,13 +80,14 @@
 | 9606 | {"P31946", "P04637", ...} |
 | 10090 | {"P02340", ...} |
 
+
 ## go_2_slim [GO_2_Slim_table.txt] --> DONE
 ##### an(Text); slim(Boolean)
 | an | slim |
 |:---:|:---:|
 | GO:0000003 | 1 |
 
-# ? deprecated ?
+
 ## ontologies [Ontologies_table.txt] --> DONE
 ##### child(Text); parent(Text); direct(Integer); type(Integer)
 | child | parent | direct | type |

@@ -4,6 +4,7 @@ from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import tools, obo_parser, variables
 from obo_parser import OBOReader_2_text
+import obo_parser
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 BASH_LOCATION = r"/usr/bin/env bash"
@@ -91,7 +92,7 @@ def run_create_tables_for_PostgreSQL_STRING(debug=False, testing=False, verbose=
         start_time = time.time()
         print("#"*80)
         print("Parsing downloaded content and writing tables for PostgreSQL import")
-        create_tables_STRING(verbose=verbose)
+        create_tables_STRING(verbose=verbose, delete_temp_files=delete_temp_files)
         create_test_tables(50000, TABLES_DIR)
         if delete_temp_files:
             remove_files(find_tables_to_remove())
@@ -148,10 +149,19 @@ def create_tables(verbose=False):
     ### - Entity_types_table.txt
     # static table, edit manually
 
-def create_tables_STRING(verbose=True, delete_temp_files=False):
+def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=True):
     tables_to_remove_temp = []
     if NUMBER_OF_PROCESSES > 8:
         number_of_processes = 8
+    if clear_log_files:
+        fn_list = [os.path.join(LOG_DIRECTORY, fn) for fn in os.listdir(LOG_DIRECTORY) if fn.startswith("create_SQL_tables_")]
+        for fn in fn_list:
+            print("removing/clearing for new input {}".format(fn))
+            os.remove(fn)
+
+    GO_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "go-basic.obo"), upk=False)
+    KEGG_dag = obo_parser.KEGG_dag(obo_file=os.path.join(DOWNLOADS_DIR, "keywords-all.obo"), upk=True)
+
 
     ### - Ontologies (Child_2_Parent)
     # create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
@@ -186,16 +196,17 @@ def create_tables_STRING(verbose=True, delete_temp_files=False):
     # fn_in = os.path.join(DOWNLOADS_DIR, "string_go.tsv.gz")
     # fn_in_temp = fn_in + "_temp"
     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
-    # create_Protein_2_Function_table_GO(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    # create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
     # if delete_temp_files:
     #     tables_to_remove_temp.append(fn_in_temp)
 
     ### - Protein_2_Function_table_UniProtKeyword
-    # fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
-    # fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
-    # fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.tsv")
-    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtKeyword.txt")
-    # create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat,        fn_in_uniprot_2_string, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
+    fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
+    fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.tsv")
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtKeyword.txt")
+    UPK_Name_2_AN_dict = get_keyword_2_upkan_dict() # depends on create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK
+    create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, KEGG_dag, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
     ### - Protein_2_Function_table_KEGG
     # fn_in = os.path.join(DOWNLOADS_DIR, "pathway.list")
@@ -358,8 +369,9 @@ def create_Protein_2_Function_table_SMART(fn_in, fn_in_temp, fn_out, number_of_p
     if verbose:
         print("done with create_Protein_2_Function_table_SMART\n")
 
-def create_Protein_2_Function_table_GO(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
+def create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
     """
+    :param GO_dag: Dict like object
     :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_go.tsv.gz)
     :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_go.tsv.gz_temp)
     :param fn_out: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_GO.txt)
@@ -385,28 +397,100 @@ def create_Protein_2_Function_table_GO(fn_in, fn_in_temp, fn_out, number_of_proc
         fh.write(shellcmd_2)
     if verbose:
         print("gunzip and sorting string_go.tsv.gz")
-    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+    # ToDo uncomment below #!!!
+    # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
+    GOterms_not_in_obo = []
     if verbose:
         print("parsing previous result to produce Protein_2_Function_table_GO.txt")
     with open(fn_out, "w") as fh_out:
-        for ENSP, GOterm_list, entityType in parse_string_go_yield_entry(fn_in_temp):
-            if entityType == "-24":
-                continue
-            GOterm_list = sorted(set(GOterm_list))
+        for ENSP, GOterm_list, _ in parse_string_go_yield_entry(fn_in_temp):
+            # if entityType == "-24":
+            #     continue
+            # GOterm_list = sorted(set(GOterm_list))
+            GOterm_list, GOterms_not_in_obo_temp = get_all_parent_terms(GOterm_list, GO_dag)
+            GOterms_not_in_obo += GOterms_not_in_obo_temp
             if len(GOterm_list) >= 1:
-                fh_out.write(ENSP + "\t" + "{" + str(GOterm_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType + "\n")
+                # fh_out.write(ENSP + "\t" + "{" + str(GOterm_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType + "\n")
+                MFs, CPs, BPs = divide_into_categories(GOterm_list, GO_dag)
+                if MFs:
+                    fh_out.write(ENSP + "\t" + "{" + str(MFs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + id_2_entityTypeNumber_dict['GO:0003674'] + "\n")
+                if CPs:
+                    fh_out.write(ENSP + "\t" + "{" + str(CPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + id_2_entityTypeNumber_dict['GO:0005575'] + "\n")
+                if BPs:
+                    fh_out.write(ENSP + "\t" + "{" + str(BPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + id_2_entityTypeNumber_dict['GO:0008150'] + "\n")
+    # id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
+    #                               'GO:0005575': "-22",  # 'Cellular Component',
+    #                               'GO:0008150': "-21",  # 'Biological Process',
+    GOterms_not_in_obo = sorted(set(GOterms_not_in_obo))
+    fn_log = os.path.join(LOG_DIRECTORY, "create_SQL_tables_GOterms_not_in_OBO.log")
+    with open(fn_log, "w") as fh_out:
+        fh_out.write(";".join(GOterms_not_in_obo))
     if verbose:
+        print("Number of GO terms not in OBO: ", len(GOterms_not_in_obo))
         print("done with create_Protein_2_Function_table_GO\n")
 
-def create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out, number_of_processes=1,  verbose=True):
+def get_all_parent_terms(GOterm_list, GO_dag):
+    """
+    backtracking to root
+    :param GOterm_list: List of String
+    :param GO_dag: Dict like object
+    :return: List of String
+    """
+    parents = []
+    not_in_obo = []
+    for GOterm in GOterm_list:
+        try:
+            parents += GO_dag[GOterm].get_all_parents()
+        except KeyError: # remove GOterm from DB since not in OBO #!!! ToDo check with the boss
+            # parents += [GOterm]
+            not_in_obo.append(GOterm)
+    return sorted(set(parents)), sorted(set(not_in_obo))
+
+def map_keyword_name_2_AN(UPK_Name_2_AN_dict, KeyWords_list):
+    UPK_ANs, UPKs_not_in_obo_temp = [], []
+    for keyword in KeyWords_list:
+        try:
+            AN = UPK_Name_2_AN_dict[keyword]
+        except KeyError:
+            UPKs_not_in_obo_temp.append(keyword)
+            continue
+        UPK_ANs.append(AN)
+    return UPK_ANs, UPKs_not_in_obo_temp
+
+def divide_into_categories(GOterm_list, GO_dag):
+    """
+    split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
+    'GO:0003674': "-23",  # 'Molecular Function',
+    'GO:0005575': "-22",  # 'Cellular Component',
+    'GO:0008150': "-21",  # 'Biological Process',
+    :param GOterm_list: List of String
+    :param GO_dag: Dict like object
+    :return: Tuple (List of String x 3)
+    """
+    MFs, CPs, BPs = [], [], []
+    for term in GOterm_list:
+        if term == "GO:0003674" or GO_dag[term].has_parent("GO:0003674"):
+            MFs.append(term)
+        elif term == "GO:0005575" or GO_dag[term].has_parent("GO:0005575"):
+            CPs.append(term)
+        elif term == "GO:0008150" or GO_dag[term].has_parent("GO:0008150"):
+            BPs.append(term)
+        else:
+            print("GOterm {} not in OBO".format(term))
+    return sorted(MFs), sorted(CPs), sorted(BPs)
+
+def create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, KEGG_dag, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out, number_of_processes=1,  verbose=True):
     if verbose:
         print("\ncreate_Protein_2_Function_table_UniProtKeywords")
     uniprot_2_string_missing_mapping = []
     uniprot_2_ENSPs_dict = parse_full_uniprot_2_string(fn_in_uniprot_2_string)
     entityType_UniProtKeywords = id_2_entityTypeNumber_dict["UniProtKeywords"]
+    UPKs_not_in_obo_list = []
     with open(fn_out, "w") as fh_out:
+        if verbose:
+            print("parsing {}".format(fn_in_uniprot_SwissProt_dat))
         for UniProtAN_list, KeyWords_list in parse_uniprot_dat_dump_yield_entry(fn_in_uniprot_SwissProt_dat):
             for UniProtAN in UniProtAN_list:
                 try:
@@ -416,8 +500,14 @@ def create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, 
                     continue
                 for ENSP in ENSP_list:
                     if len(KeyWords_list) >= 1:
+                        UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, KeyWords_list)
+                        UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+                        KeyWords_list, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, KEGG_dag)
+                        UPKs_not_in_obo_list += UPKs_not_in_obo_temp
                         fh_out.write(ENSP + "\t" + "{" + str(KeyWords_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
 
+        if verbose:
+            print("parsing {}".format(fn_in_uniprot_TrEMBL_dat))
         for UniProtAN_list, KeyWords_list in parse_uniprot_dat_dump_yield_entry(fn_in_uniprot_TrEMBL_dat):
             for UniProtAN in UniProtAN_list:
                 try:
@@ -427,6 +517,10 @@ def create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, 
                     continue
                 for ENSP in ENSP_list:
                     if len(KeyWords_list) >= 1:
+                        UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, KeyWords_list)
+                        UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+                        KeyWords_list, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, KEGG_dag)
+                        UPKs_not_in_obo_list += UPKs_not_in_obo_temp
                         fh_out.write(ENSP + "\t" + "{" + str(KeyWords_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
 
     # table Protein_2_Function_table_UniProtKeywords.txt needs sorting
@@ -443,8 +537,11 @@ def create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, 
     subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
     subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
-    if verbose:
-        print("done with create_Protein_2_Function_table_UniProtKeywords\n")
+    UPKs_not_in_obo_list = sorted(set(UPKs_not_in_obo_list))
+    fn_log = os.path.join(LOG_DIRECTORY, "create_SQL_tables_UniProtKeywords_not_in_OBO.log")
+    with open(fn_log, "w") as fh_out:
+        fh_out.write(";".join(UPKs_not_in_obo_list))
+
     if len(uniprot_2_string_missing_mapping) > 0:
         print("#!$%^@"*80)
         print("writing uniprot_2_string_missing_mapping to log file\n", os.path.join(LOG_DIRECTORY, "create_SQL_tables_STRING.log"))
@@ -453,6 +550,10 @@ def create_Protein_2_Function_table_UniProtKeyword(fn_in_uniprot_SwissProt_dat, 
         print("#!$%^@" * 80)
         with open(os.path.join(LOG_DIRECTORY, "create_SQL_tables_STRING.log"), "a+") as fh:
             fh.write(";".join(uniprot_2_string_missing_mapping))
+
+    if verbose:
+        print("Number of UniProt Keywords not in OBO: ", len(UPKs_not_in_obo_list))
+        print("done with create_Protein_2_Function_table_UniProtKeywords\n")
 
 def create_Protein_2_Function_table_KEGG_STRING(fn_in, fn_out_temp, fn_out, number_of_processes=1, verbose=True):
     # create long format of ENSP 2 KEGG table
@@ -673,6 +774,11 @@ def parse_string11_dom_prot_full_yield_entry(fn_in):
     yield (ENSP_previous, PFAM_list)
 
 def parse_string_go_yield_entry(fn_in):
+    """
+    careful the entity type will NOT (necessarily) be consistent as multiple annotations are given
+    :param fn_in:
+    :return:
+    """
     # "9606    ENSP00000281154 -24     GO:0019861      UniProtKB       CURATED 5       TRUE    http://www.uniprot.org/uniprot/ADT4_HUMAN"
     GOterm_list = []
     did_first = False

@@ -71,5 +71,5 @@ gene_association.*
 htmlcov/
 .coverage
 STRING_ToDo_readme.txt
-
+.pytest_cache/
 data/PostgreSQL/downloads/*

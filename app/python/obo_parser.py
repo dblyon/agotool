@@ -165,7 +165,6 @@ class GOTerm:
         self.alt_ids = []           # alternative identifiers
 
     def __repr__(self):
-        # return "GOTerm('%s')" % (self.id)
         return "GOTerm({})".format(self.id)
 
     def has_parent(self, term):
@@ -476,13 +475,25 @@ class KEGGterm:
 
 
 class KEGG_pseudo_dag(dict):
-
+    """
+    depends on DB
+    """
     def __init__(self):
         # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict()
         KEGG_id_2_name_dict = query.get_function_type_id_2_name_dict("KEGG")
         # kegg_pseudo_dag: description=name, goterm=id
         for id_, name in KEGG_id_2_name_dict.items():
             self[id_] = KEGGterm(id_, name)
+
+class KEGG_dag(GODag):
+
+    def __init__(self, obo_file="keywords-all.obo", upk=True):
+        """
+        :param obo_file: String
+        :param upk: Bool (flag to convert UniProtKeyword tag from 'KW-0673' to 'UPK:0673')
+        """
+        super().__init__(obo_file=obo_file, upk=upk)
+        # self.load_obo_file(obo_file, upk=upk)
 
 
 class DOMterm:
