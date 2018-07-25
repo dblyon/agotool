@@ -10,7 +10,7 @@ services:
       # named volume. to copy data into with e.g.
       # docker run --rm -it --volume ~/modules/cpr/agotool/data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
       # needed to build DB from files (copy from file)
-       #- "agotool_data:/agotool_data" # version 1
+      # - "agotool_data:/agotool_data" # version 1
        - .:/agotool_data # version 2, bind mount to mount files from the host to the container
 ### Atlas
     # - /mnt/mnemo5/dblyon/agotool:/agotool_data
@@ -30,13 +30,15 @@ services:
       # use git to push/pull changes. set source to git repo directory e.g. /var/www/agotool on virtual server
 ### Ody
       # local changes are reflected in docker
-      # - ./app/:/opt/services/flaskapp/src
+      - ./app/:/opt/services/flaskapp/src
 ### needed for access to download new resources
-      - "agotool_data:/agotool_data" # version 1 (works for Atlas to run the container but no obo files found, but only in this mode does the flaskapp have write access)
-      # - .:/agotool_data # version 2, # bind mounted volume from host, e.g. RW access from container.
+      # - "agotool_data:/agotool_data" # version 1 (works for Atlas to run the container but no obo files found, but only in this mode does the flaskapp have write access)
+      - .:/agotool_data # version 2, # bind mounted volume from host, e.g. RW access from container.
       # - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
 ### Atlas
-      - /mnt/mnemo5/dblyon/agotool/app/:/opt/services/flaskapp/src
+      # if named-volume then flaskapp can write, but doesn't have the necessary data --> copy data into named-volume !?
+      # if bind-mount it should have the data, BUT since docker run as root which doesn't exits? on host no access ?
+      # - /mnt/mnemo5/dblyon/agotool/app/:/opt/services/flaskapp/src
 ### Ody
         # named volume. persistent data container that is managed by docker.
     env_file:

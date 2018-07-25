@@ -485,6 +485,7 @@ class KEGG_pseudo_dag(dict):
         for id_, name in KEGG_id_2_name_dict.items():
             self[id_] = KEGGterm(id_, name)
 
+
 class KEGG_dag(GODag):
 
     def __init__(self, obo_file="keywords-all.obo", upk=True):

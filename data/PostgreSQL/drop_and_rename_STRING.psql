@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS functions, protein_2_function, entity_types, taxid_2_protein, go_2_slim, ontologies;
+
+ALTER TABLE functions_temp RENAME TO functions;
+ALTER TABLE protein_2_function_temp RENAME TO protein_2_function;
+ALTER TABLE entity_types_temp RENAME TO entity_types;
+ALTER TABLE taxid_2_protein_temp RENAME TO taxid_2_protein;
+ALTER TABLE go_2_slim_temp RENAME TO go_2_slim;
+ALTER TABLE ontologies_temp RENAME TO ontologies;
+
+ALTER INDEX protein_2_function_an_etype_idx_temp RENAME TO protein_2_function_an_etype_idx;

@@ -435,3 +435,18 @@ docker exec -it agotool_flaskapp_1 pytest -vxff ./python/test_userinput.py
 # You can think of a trailing / on a source as meaning "copy the contents of this directory" as opposed to "copy the directory by name"
 docker run --rm -it --volume /Users/dblyon/modules/cpr/agotool:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool rsync -avr /mounted_data/data/exampledata/ /agotool_data/data/exampledata
 
+#### building working DB for STRING version_
+# create DBs
+docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/data/PostgreSQL/create_DBs.psql
+# test DB
+docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_TEST_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/data/PostgreSQL/drop_and_rename_STRING.psql
+# populate DB for real
+docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/data/PostgreSQL/drop_and_rename_STRING.psql
+# change "preload" to True, change "skip_slow_downloads" to False, change "debug" to False
+vim /var/www/agotool/app/python/variables.py
+--> tadaaa it should work now
+### scale a service like the flask-app
+docker-compose up -d --scale flaskapp=2
+##############################################################################
