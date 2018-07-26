@@ -34,13 +34,13 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
-// hide 'GO basic or slim' and 'Backtracking parents GO-terms' parameter if 'UniProt keywords' are selected
-    $('#gocat_upk').change(function() {
-        var gocat_upk = $('#gocat_upk').val();
-        var choice = gocat_upk == "UPK" || gocat_upk == "KEGG";
-        toggle_if(choice, ".GO_basic_slim_backtracking", "");
-    });
-    $("#gocat_upk").change();
+// // hide 'GO basic or slim' and 'Backtracking parents GO-terms' parameter if 'UniProt keywords' are selected
+//     $('#gocat_upk').change(function() {
+//         var gocat_upk = $('#gocat_upk').val();
+//         var choice = gocat_upk == "UPK" || gocat_upk == "KEGG";
+//         toggle_if(choice, ".GO_basic_slim_backtracking", "");
+//     });
+//     $("#gocat_upk").change();
 
 // hide decimal delimiter and number of bins if abcorr deselected
     $("#abcorr").change(function() {

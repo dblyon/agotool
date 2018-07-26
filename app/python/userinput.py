@@ -135,10 +135,11 @@ class Userinput:
             self.foreground["intensity"] = self.map_intensities_2_foreground(self.foreground[col_foreground], an_2_intensity_dict )
 
         ### map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
-        secondary_2_primary_dict = self.pqo.map_secondary_2_primary_ANs(self.get_all_unique_ANs())
-        self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
-        if self.enrichment_method != "characterize_foreground":
-            self.background[col_background] = self.background[col_background].copy().apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
+        if variables.VERSION_ == "aGOtool":
+            secondary_2_primary_dict = self.pqo.map_secondary_2_primary_ANs(self.get_all_unique_ANs())
+            self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
+            if self.enrichment_method != "characterize_foreground":
+                self.background[col_background] = self.background[col_background].copy().apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
 
         ### sort values for iter bins
         if self.enrichment_method == "abundance_correction":

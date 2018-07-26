@@ -70,9 +70,8 @@ app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
 if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
-    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=r"/Users/dblyon/Downloads/profiling_agtool") # use qcachegrind to visualize
-    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=variables.DATA_DIR) # use qcachegrind to visualize
-    app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[50]) # to view profiled code in shell
+    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[50]) # to view profiled code in shell
+    app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=variables.DATA_DIR) # use qcachegrind to visualize
     ## iterm: "qcachegrind"
     ## pyprof2calltree -i somethingsomething.prof -o something.prof
     ## open "something.prof" with qcachegrind -o something.prof
@@ -83,7 +82,7 @@ ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20 #* 100
 
 logger = logging.getLogger()
-logger.level = logging.DEBUG
+# logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
@@ -109,26 +108,13 @@ def log_activity(string2log):
 # pre-load objects
 ################################################################################
 if PRELOAD:
-    pqo = query.PersistentQueryObject()
-    ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-    # --> happening in pqo instead of here in runserver
-
-    # upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
-    # pqo.upk_dag = upk_dag
-    #
-    # goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
-    # pqo.goslim_dag = goslim_dag
-    #
-    # go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-    # for go_term in go_dag.keys():
-    #     parents = go_dag[go_term].get_all_parents()
-    # pqo.go_dag = go_dag
-    #
-    # KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
-    # pqo.KEGG_pseudo_dag = KEGG_pseudo_dag
-    #
-    # DOM_pseudo_dag = obo_parser.DOM_pseudo_dag()
-    # pqo.DOM_pseudo_dag = DOM_pseudo_dag
+    if variables.VERSION_ == "aGOtool":
+        pqo = query.PersistentQueryObject()
+    elif variables.VERSION_ == "STRING":
+        pqo = query.PersistentQueryObject_STRING()
+    else:
+        print("VERSION_ {} not implemented".format(variables.VERSION_))
+        raise NotImplementedError
 
     filter_ = cluster_filter.Filter(pqo.go_dag)
 
@@ -236,7 +222,7 @@ class API_STRING(Resource):
             args_dict["multitest_method"],
             args_dict["alpha"],
             args_dict["o_or_u_or_both"],
-            args_dict["backtracking"],
+            # args_dict["backtracking"],
             args_dict["fold_enrichment_study2pop"],
             args_dict["p_value_uncorrected"],
             args_dict["p_value_multipletesting"])
@@ -308,9 +294,9 @@ parser.add_argument("num_bins", type=int,
     help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.",
     default=100)
 
-parser.add_argument("backtracking", type=bool,
-    help="Include all parent GO-terms, Backtracking parent GO-terms. Typically this is 'True', only set to 'False' for a good reason.",
-    default=True)
+# parser.add_argument("backtracking", type=bool,
+#     help="Include all parent GO-terms, Backtracking parent GO-terms. Typically this is 'True', only set to 'False' for a good reason.",
+#     default=True)
 
 parser.add_argument("fold_enrichment_study2pop", type=float,
     help="Apply a filter for the minimum threshold value of fold enrichment study/population.",
@@ -345,7 +331,7 @@ class API_agotool(Resource):
                 args_dict["multitest_method"],
                 args_dict["alpha"],
                 args_dict["o_or_u_or_both"],
-                args_dict["backtracking"],
+                # args_dict["backtracking"],
                 args_dict["fold_enrichment_study2pop"],
                 args_dict["p_value_uncorrected"],
                 args_dict["p_value_multipletesting"])
@@ -611,9 +597,9 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                    default = 100,
                                    description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
 
-    backtracking = fields.BooleanField("Backtracking parent GO-terms",
-                                       default = "checked",
-                                       description="Include all parent GO-terms.")
+    # backtracking = fields.BooleanField("Backtracking parent GO-terms",
+    #                                    default = "checked",
+    #                                    description="Include all parent GO-terms.")
 
     fold_enrichment_study2pop = fields.FloatField(
         "fold enrichment study/population",
@@ -670,12 +656,12 @@ def results():
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
-o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nbacktracking: {}\nfold_enrichment_foreground_2_background: {}\n\
+o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\n\
 p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
-                form.backtracking.data, form.fold_enrichment_study2pop.data,
+                form.fold_enrichment_study2pop.data,
                 form.p_value_uncorrected.data,
                 form.p_value_multipletesting.data,
                 form.enrichment_method.data,
@@ -684,9 +670,18 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
-            header, results = run.run(pqo, ui, form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
-                form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data, form.backtracking.data,
-                form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)
+            if variables.VERSION_ == "STRING":
+                header, results = run.run_STRING_enrichment(pqo, ui,
+                    form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data, form.multitest_method.data, form.alpha.data,
+                    form.o_or_u_or_both.data, form.fold_enrichment_study2pop.data,
+                    form.p_value_uncorrected.data, form.p_value_multipletesting.data)
+
+            elif variables.VERSION_ == "aGOtool":
+                header, results = run.run(pqo, ui, form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+                                    form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data,
+                                    form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)
+            else:
+                raise NotImplementedError
 
         else:
             return render_template('info_check_input.html')

@@ -12,7 +12,7 @@ UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
 FN_KEYWORDS = variables.FN_KEYWORDS
 FN_GO_SLIM = variables.FN_GO_SLIM
 FN_GO_BASIC = variables.FN_GO_BASIC
-
+VERSION_ = variables.VERSION_
 
 upkTerm_2_functionAN_dict = {u'Biological process': u'UPK:9999',
                              u'Cellular component': u'UPK:9998',
@@ -199,12 +199,17 @@ def map_secondary_2_primary_ANs(ans_list):
 
 class PersistentQueryObject:
     """
+    aGOtool version
     used to query protein 2 functional associations
     only protein_2_function is queried in Postgres,
     everything else is in memory but still deposited in the DB any way
     """
     def __init__(self):
+        # self.version_ = VERSION_
+        # if self.version_ == "aGOtool":
         self.secondary_2_primary_an_dict = self.get_secondary_2_primary_an_dict()
+        # else:
+        #     self.secondary_2_primary_an_dict = None
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
         self.KEGG_functions_set = self.get_functions_set_from_functions(function_type="KEGG")
@@ -363,7 +368,7 @@ class PersistentQueryObject:
             print("function_type: '{}' does not exist".format(function_type))
             raise StopIteration
 
-    def get_association_dict(self, protein_ans_list, gocat_upk, basic_or_slim, backtracking=True):
+    def get_association_dict(self, protein_ans_list, gocat_upk, basic_or_slim): #, backtracking=True):
         """
         :param protein_ans_list: ListOfString
         :param gocat_upk: String (one of "GO", "UPK", "KEGG", "DOM")
@@ -390,8 +395,8 @@ class PersistentQueryObject:
             associations_list = res[1]
             an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
         cursor.close()
-        if backtracking:
-            an_2_functions_dict = self.backtrack_child_terms(an_2_functions_dict, self.child_2_parent_dict)
+        # if backtracking:
+        an_2_functions_dict = self.backtrack_child_terms(an_2_functions_dict, self.child_2_parent_dict)
             # for an, functions in an_2_functions_dict.items():
             #     parents_temp = set()
             #     for function_ in functions:
@@ -402,7 +407,7 @@ class PersistentQueryObject:
             #     an_2_functions_dict[an] = an_2_functions_dict[an].union(parents_temp)
         return an_2_functions_dict
 
-    def get_association_dict_split_by_category(self, protein_ans_list, backtracking=True):
+    def get_association_dict_split_by_category(self, protein_ans_list): #, backtracking=True):
         """
         #!!! is speed an issue? if so restructure protein_2_function table in DB to long format !?
         STRING version, get all functional associations but split them by category
@@ -432,11 +437,11 @@ class PersistentQueryObject:
             an_2_functions_dict_DOM[an] = set(associations_list).intersection(self.DOM_functions_set)
 
         cursor.close()
-        if backtracking:
-            an_2_functions_dict_BP = self.backtrack_child_terms(an_2_functions_dict_BP, self.child_2_parent_dict)
-            an_2_functions_dict_CP = self.backtrack_child_terms(an_2_functions_dict_CP, self.child_2_parent_dict)
-            an_2_functions_dict_MF = self.backtrack_child_terms(an_2_functions_dict_MF, self.child_2_parent_dict)
-            an_2_functions_dict_UPK = self.backtrack_child_terms(an_2_functions_dict_UPK, self.child_2_parent_dict)
+        # if backtracking:
+        an_2_functions_dict_BP = self.backtrack_child_terms(an_2_functions_dict_BP, self.child_2_parent_dict)
+        an_2_functions_dict_CP = self.backtrack_child_terms(an_2_functions_dict_CP, self.child_2_parent_dict)
+        an_2_functions_dict_MF = self.backtrack_child_terms(an_2_functions_dict_MF, self.child_2_parent_dict)
+        an_2_functions_dict_UPK = self.backtrack_child_terms(an_2_functions_dict_UPK, self.child_2_parent_dict)
 
         return {"BP": an_2_functions_dict_BP,
                 "CP": an_2_functions_dict_CP,
@@ -493,118 +498,190 @@ class PersistentQueryObject:
             an_2_functions_dict[an] = an_2_functions_dict[an].union(parents_temp)
         return an_2_functions_dict
 
-def get_association_dict_old(protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim", backtracking=True):
+class PersistentQueryObject_STRING(PersistentQueryObject):
     """
-    # def get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim"):
-    e.g.
-    function_type = "GO"
-    limit_2_parent = u"Biological Process"
-    basic_or_slim = "basic"
-    protein_ans_list = ['Q9XC60', 'P40417']
-    assoc_dict = query.get_association_dict(protein_ans_list, function_type, limit_2_parent, basic_or_slim)
-
-    GO-term categories:
-        "BP" "GO:0008150"
-        "CP" "GO:0005575"
-        "MF" "GO:0003674"
-    UniProt-Keyword categories:
-        Biological process
-        Cellular component
-        Coding sequence diversity
-        Developmental stage
-        Disease
-        Domain
-        Ligand
-        Molecular function
-        Post-translational modification
-        Technical term
-    :param protein_ans_list: ListOfString (AccessionNumbers of Proteins)
-    :param function_type: String (one of "GO", "UPK", "KEGG", "DOM")
-    :param limit_2_parent: String (e.g. "BP", "CP", "MF", "Technical term", "Biological process", etc.)
-    :param basic_or_slim: String (one of "basic", "slim")
-    :param backtracking: Bool
-    :return: Dict(key=AN, val=set of String)
+    used to query protein 2 functional associations
+    only protein_2_function is queried in Postgres,
+    everything else is in memory but still deposited in the DB any way
     """
-    cursor = get_cursor()
-    protein_ans_list = str(protein_ans_list)[1:-1]
-    # an_2_functions_dict = {}
-    an_2_functions_dict = defaultdict(lambda: set())
-    parameters_dict = {"protein_ans_list": protein_ans_list, "function_type": function_type, "limit_2_parent": get_termAN_from_humanName_functionType(function_type, limit_2_parent)}
+    def __init__(self):
+        # super(PersistentQueryObject, self).__init__() # py2 and py3
+        # super().__init__() # py3
 
-    ##### UniProt proteins
+        self.type_2_association_dict = self.get_type_2_association_dict()
+        self.go_slim_set = self.get_go_slim_terms()
+        self.KEGG_functions_set = self.get_functions_set_from_functions(function_type="KEGG")
 
-    # !!! do this in java script ToDo
-    # Java script:
-    # if function_type is KEGG or DOM --> set backtracking to False
+        # ToDo not in DB yet
+        # self.DOM_functions_set = self.get_functions_set_from_functions(function_type="DOM")
 
-    if function_type == "KEGG" or function_type == "DOM": #!!! do this in java script ToDo
-        backtracking = False
-    elif function_type == "UPK": #!!! do this in java script ToDo
-        basic_or_slim = "basic"
+        # # precompute set of functions to restrict funtional associations to
+        # #  might need speed overhaul #!!!
+        # self.UPK_functions_set = self.get_ontology_set_of_type("UPK", "")
+        # self.BP_basic_functions_set = self.get_ontology_set_of_type("BP", "basic")
+        # self.MF_basic_functions_set = self.get_ontology_set_of_type("MF", "basic")
+        # self.CP_basic_functions_set = self.get_ontology_set_of_type("CP", "basic")
 
-    if backtracking:
-        join_stmt = ("SELECT protein_2_function.an, ontologies.child, ontologies.parent\n"
-                     "FROM protein_2_function\n"
-                     "INNER JOIN functions ON protein_2_function.function=functions.an\n")
-    else:
-        join_stmt = ("SELECT protein_2_function.an, protein_2_function.function\n"
-                     "FROM protein_2_function\n"
-                     "INNER JOIN functions ON protein_2_function.function=functions.an\n")
+        ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+        self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+        self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
 
-    where_stmt = ("WHERE protein_2_function.an IN({protein_ans_list})\n"
-                  "AND functions.type='{function_type}'\n").format(**parameters_dict)
+        # go_dag.update_association() #???
+        self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+        # for go_term in go_dag.keys():
+        #     _ = go_dag[go_term].get_all_parents()
+        #     go_dag[go_term].update_association()
+        # self.go_dag = go_dag
 
-    if function_type in {"GO", "UPK"}:
-        extend_stmt = "INNER JOIN ontologies ON ontologies.child=functions.an\n"
-        if basic_or_slim == "slim":
-            extend_stmt += "INNER JOIN go_2_slim ON go_2_slim.an=functions.an\n"
-    else:
-        # pass # do something with KEGG
-        extend_stmt = ""
-    sql_statement = (join_stmt + extend_stmt + where_stmt + ";").replace('"', "'")
-    cursor.execute(sql_statement)
-    result = cursor.fetchall()
+        # for backtracking
+        # self.child_2_parent_dict = self.get_child_2_parent_dict()
 
-    ##### OG proteins
-    join_stmt = ("SELECT protein_2_og.an, og_2_function.function\n"
-                 "FROM protein_2_og\n"
-                 "INNER JOIN og_2_function ON protein_2_og.og=og_2_function.og\n"
-                 "INNER JOIN functions ON og_2_function.function=functions.an\n")
+        self.KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+        # todo
+        # self.DOM_pseudo_dag = obo_parser.DOM_pseudo_dag()
+        self.DOM_pseudo_dag = "ToDo later since data missing"
 
-    where_stmt = ("WHERE protein_2_og.an IN({protein_ans_list})\n"
-                  "AND functions.type='{function_type}'\n").format(**parameters_dict)
+    def get_association_dict_split_by_category(self, protein_ans_list):
+        """
+        backtracking is always True, since already backtracked functional associations in DB
+        :param protein_ans_list: ListOfString
+        :return: etype_2_association_dict(key=entity_type(String), val=Dict(key=AN(String), val=SetOfFunctions(String)))
+        """
+        ### key=entity_type(String), val=Dict(key=AN, val=SetOfFunctions)
+        etype_2_association_dict = {"-21": {}, # | GO:0008150 | -21 | GO biological process |
+                          "-22": {}, # | GO:0005575 | -22 | GO cellular component |
+                          "-23": {}, # | GO:0003674 | -23 | GO molecular function |
+                          "-51": {}, # UniProt keywords
+                          "-52": {}, # KEGG
+                          "-53": {}, # SMART
+                          "-54": {}, # InterPro
+                          "-55": {}, # PFAM
+                          "-56": {}  # PMID
+                          }
 
-    extend_stmt = ""
-    if limit_2_parent is not None:
-        extend_stmt += "INNER JOIN ontologies ON ontologies.child=functions.an\n"
-        where_stmt += "AND ontologies.parent='{limit_2_parent}'\n".format(**parameters_dict)
-    if basic_or_slim == "slim":
-        extend_stmt += "INNER JOIN go_2_slim ON go_2_slim.an=functions.an\n"
-
-    sql_statement = (join_stmt + extend_stmt + where_stmt + ";").replace('"', "'")
-    cursor.execute(sql_statement)
-    result += cursor.fetchall()
-    for res in result:
-        an = res[0]
-        function_ = res[1:]
-        if an not in an_2_functions_dict:
-            for func in function_:
-                an_2_functions_dict[an] = {func}
-        else:
-            for func in function_:
-                an_2_functions_dict[an].update([func])
-
-    if limit_2_parent is not None:
-        sql_statement = ("SELECT ontologies.child, ontologies.parent\n"
-                         "FROM ontologies\n"
-                         "WHERE ontologies.parent='{limit_2_parent}'\n").format(**parameters_dict)
+        cursor = get_cursor()
+        protein_ans_list = str(protein_ans_list)[1:-1]
+        sql_statement = "SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list)
         cursor.execute(sql_statement)
-        result = cursor.fetchall()
-        limit_2_parent_set = parse_result_child_parent(result)
-        for an in an_2_functions_dict:
-            an_2_functions_dict[an] = an_2_functions_dict[an].intersection(limit_2_parent_set)
-    cursor.close()
-    return an_2_functions_dict
+        results = cursor.fetchall()
+        for res in results:
+            an, associations_list, etype = res
+            etype_2_association_dict[str(etype)][an] = set(associations_list)
+        # cursor.close()
+        return etype_2_association_dict
+
+# def get_association_dict_old(protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim", backtracking=True):
+#     """
+#     # def get_association_dict(connection, protein_ans_list, function_type, limit_2_parent=None, basic_or_slim="slim"):
+#     e.g.
+#     function_type = "GO"
+#     limit_2_parent = u"Biological Process"
+#     basic_or_slim = "basic"
+#     protein_ans_list = ['Q9XC60', 'P40417']
+#     assoc_dict = query.get_association_dict(protein_ans_list, function_type, limit_2_parent, basic_or_slim)
+#
+#     GO-term categories:
+#         "BP" "GO:0008150"
+#         "CP" "GO:0005575"
+#         "MF" "GO:0003674"
+#     UniProt-Keyword categories:
+#         Biological process
+#         Cellular component
+#         Coding sequence diversity
+#         Developmental stage
+#         Disease
+#         Domain
+#         Ligand
+#         Molecular function
+#         Post-translational modification
+#         Technical term
+#     :param protein_ans_list: ListOfString (AccessionNumbers of Proteins)
+#     :param function_type: String (one of "GO", "UPK", "KEGG", "DOM")
+#     :param limit_2_parent: String (e.g. "BP", "CP", "MF", "Technical term", "Biological process", etc.)
+#     :param basic_or_slim: String (one of "basic", "slim")
+#     :param backtracking: Bool
+#     :return: Dict(key=AN, val=set of String)
+#     """
+#     cursor = get_cursor()
+#     protein_ans_list = str(protein_ans_list)[1:-1]
+#     # an_2_functions_dict = {}
+#     an_2_functions_dict = defaultdict(lambda: set())
+#     parameters_dict = {"protein_ans_list": protein_ans_list, "function_type": function_type, "limit_2_parent": get_termAN_from_humanName_functionType(function_type, limit_2_parent)}
+#
+#     ##### UniProt proteins
+#
+#     # !!! do this in java script ToDo
+#     # Java script:
+#     # if function_type is KEGG or DOM --> set backtracking to False
+#
+#     if function_type == "KEGG" or function_type == "DOM": #!!! do this in java script ToDo
+#         backtracking = False
+#     elif function_type == "UPK": #!!! do this in java script ToDo
+#         basic_or_slim = "basic"
+#
+#     if backtracking:
+#         join_stmt = ("SELECT protein_2_function.an, ontologies.child, ontologies.parent\n"
+#                      "FROM protein_2_function\n"
+#                      "INNER JOIN functions ON protein_2_function.function=functions.an\n")
+#     else:
+#         join_stmt = ("SELECT protein_2_function.an, protein_2_function.function\n"
+#                      "FROM protein_2_function\n"
+#                      "INNER JOIN functions ON protein_2_function.function=functions.an\n")
+#
+#     where_stmt = ("WHERE protein_2_function.an IN({protein_ans_list})\n"
+#                   "AND functions.type='{function_type}'\n").format(**parameters_dict)
+#
+#     if function_type in {"GO", "UPK"}:
+#         extend_stmt = "INNER JOIN ontologies ON ontologies.child=functions.an\n"
+#         if basic_or_slim == "slim":
+#             extend_stmt += "INNER JOIN go_2_slim ON go_2_slim.an=functions.an\n"
+#     else:
+#         # pass # do something with KEGG
+#         extend_stmt = ""
+#     sql_statement = (join_stmt + extend_stmt + where_stmt + ";").replace('"', "'")
+#     cursor.execute(sql_statement)
+#     result = cursor.fetchall()
+#
+#     ##### OG proteins
+#     join_stmt = ("SELECT protein_2_og.an, og_2_function.function\n"
+#                  "FROM protein_2_og\n"
+#                  "INNER JOIN og_2_function ON protein_2_og.og=og_2_function.og\n"
+#                  "INNER JOIN functions ON og_2_function.function=functions.an\n")
+#
+#     where_stmt = ("WHERE protein_2_og.an IN({protein_ans_list})\n"
+#                   "AND functions.type='{function_type}'\n").format(**parameters_dict)
+#
+#     extend_stmt = ""
+#     if limit_2_parent is not None:
+#         extend_stmt += "INNER JOIN ontologies ON ontologies.child=functions.an\n"
+#         where_stmt += "AND ontologies.parent='{limit_2_parent}'\n".format(**parameters_dict)
+#     if basic_or_slim == "slim":
+#         extend_stmt += "INNER JOIN go_2_slim ON go_2_slim.an=functions.an\n"
+#
+#     sql_statement = (join_stmt + extend_stmt + where_stmt + ";").replace('"', "'")
+#     cursor.execute(sql_statement)
+#     result += cursor.fetchall()
+#     for res in result:
+#         an = res[0]
+#         function_ = res[1:]
+#         if an not in an_2_functions_dict:
+#             for func in function_:
+#                 an_2_functions_dict[an] = {func}
+#         else:
+#             for func in function_:
+#                 an_2_functions_dict[an].update([func])
+#
+#     if limit_2_parent is not None:
+#         sql_statement = ("SELECT ontologies.child, ontologies.parent\n"
+#                          "FROM ontologies\n"
+#                          "WHERE ontologies.parent='{limit_2_parent}'\n").format(**parameters_dict)
+#         cursor.execute(sql_statement)
+#         result = cursor.fetchall()
+#         limit_2_parent_set = parse_result_child_parent(result)
+#         for an in an_2_functions_dict:
+#             an_2_functions_dict[an] = an_2_functions_dict[an].intersection(limit_2_parent_set)
+#     cursor.close()
+#     return an_2_functions_dict
 
 def get_termAN_from_humanName_functionType(functionType, humanName):
     if humanName is None:

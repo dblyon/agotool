@@ -50,7 +50,7 @@
                     <li><a href="{{ url_for('FAQ') }}">FAQ</a></li>
                     <li><a href="{{ url_for('about') }}">about</a></li>
                 </ul>
-                <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/cpr_logo.png"></a></span>
+{#                <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/cpr_logo.png"></a></span>#}
             </div>
         </div>
 
@@ -66,5 +66,13 @@
     {% block optionals %}
     {% endblock optionals %}
     </div>
+
+{#    ToDo#}
+{#    <div id="footer">#}
+{#        {% block footer %}#}
+{#        <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/cpr_logo.png"></a></span>#}
+{#        {% endblock %}#}
+{#    </div>#}
+
 </body>
 </html>
