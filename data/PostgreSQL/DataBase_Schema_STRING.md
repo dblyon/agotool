@@ -36,7 +36,7 @@
 
 
 
-## entity_types [Entity_types_table_STRING.txt] --> DONE
+## entity_types [Entity_types_table_STRING.txt]
 ##### AccessionNumber(Text); EntityType(Integer); Name(Text)
 | an | etype | name |
 |:---:|:---:|:---:|
@@ -73,15 +73,15 @@
 | mammalian phenotypes | -36 | mammalian phenotypes |
 
 
-## taxid_2_proteins [TaxID_2_Proteins_table_STRING.txt] --> DONE
-##### TaxID (Integer); AccessionNumber_Array (Text Array)
-| taxid | an_array |
-|:---:|:---:|
-| 9606 | {"P31946", "P04637", ...} |
-| 10090 | {"P02340", ...} |
+## taxid_2_protein [TaxID_2_Protein_table_STRING.txt]
+##### TaxID (Integer); AccessionNumber_Array (Text Array); Count (Integer)
+| taxid | an_array | count |
+|:---:|:---:|:---:|
+| 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 |
+| 1000565 | {"1000565.METUNv1_00006","1000565.METUNv1_00011","1000565.METUNv1_00018","1000565.METUNv1_00019", ...} | 12345 |
 
 
-## go_2_slim [GO_2_Slim_table_STRING.txt] --> DONE
+## go_2_slim [GO_2_Slim_table_STRING.txt]
 ##### an(Text); slim(Boolean)
 | an | slim |
 |:---:|:---:|
@@ -99,4 +99,22 @@
 | GO:0072591 | GO:0003674 | 0 | -23 |
 | UPK:0440 | UPK:9993 | 0 | -51 |
 | UPK:0440 | UPK:9994 | 1 | -51 |
+
+
+## association_2_ANs [Association_2_ANs_table_STRING.txt] --> ToDo
+##### etype(Integer); association(Text); an_array(Text Array); taxid(Integer)
+| etype | association | an_array | taxid |
+|:---:|:---:|:---:|:---:|
+| -21 | 'GO:0006810' | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } | 9606 |
+| -21 | 'GO:0006897' | {'9606.ENSP00000000412', ...} | 9606 |
+| -21 | 'GO:0006898' | {'9606.ENSP00000000412', ...} | 9606 |
+
+
+## association_2_count [Association_2_count_table_STRING.txt] --> ToDo
+##### association(Text); count(Integer); etype(Integer); taxid(Integer)
+| association | count | etype | taxid |
+|:---:|:---:|:---:|:---:|
+| 'GO:0006810' | 3 | -21 | 9606 |
+| 'GO:0006897' | 2 | -21 | 9606 |
+| 'GO:0006898' | 1 | -21 | 9606 |
 

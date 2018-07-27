@@ -112,9 +112,6 @@ def count_terms_v2(ans_set, assoc_dict, obo_dag):
     association_2_count_dict = defaultdict(int)
     for an in (AN for AN in ans_set if AN in assoc_dict):
         for association in assoc_dict[an]:
-            # if association in obo_dag:
-                # this assertion should not be neccessary since already check when creating tables for Postgres, hence only GO-term in
-                # the DB that are also in the current version of obo.
             ans_2_count.update([an])
             association_id = obo_dag[association].id
             association_2_count_dict[association_id] += 1

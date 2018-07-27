@@ -59,6 +59,49 @@ def run_STRING_enrichment(pqo, ui,
             results_all_function_types[entity_type] = (header, results)
     return results_all_function_types
 
+def run_STRING_enrichment_speed(pqo, ui,
+        gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
+        o_or_u_or_both, fold_enrichment_study2pop,
+        p_value_uncorrected, p_value_mulitpletesting, taxid):
+    if fold_enrichment_study2pop == 0:
+        fold_enrichment_study2pop = None
+    if p_value_mulitpletesting == 0:
+        p_value_mulitpletesting = None
+    if p_value_uncorrected == 0:
+        p_value_uncorrected = None
+
+    # etype_2_association_dict_taxid = pqo.get_association_dict_split_by_category_taxid(taxid)
+    ### ToDo
+    # create "method" "genome" (for background)
+    # no background has to be provided, but TaxID is being used
+    #   - for association dict ? --> only for selected species this could be stored in memory?
+    #   - precomputed counts for each TaxID in DB
+    # self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n
+    # self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_manager(self.an_set_background, self.assoc_dict, self.obo_dag, self.function_type)
+    # for api string calls don't do cleanup?
+
+    protein_ans_list = ui.get_all_unique_ANs()
+    etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
+    results_all_function_types = {}
+    for entity_type in etype_2_association_dict.keys(): #variables.entity_types:
+        # ToDo not implemented yet
+        if entity_type not in {"-21",  # | GO:0008150 | -21 | GO biological process |
+                               "-22",  # | GO:0005575 | -22 | GO cellular component |
+                               "-23",  # | GO:0003674 | -23 | GO molecular function |
+                               "-51",  # UniProt keywords
+                               "-52"}:  # KEGG
+            continue
+        dag = pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, pqo)
+        assoc_dict = etype_2_association_dict[entity_type]
+        if bool(assoc_dict): # not empty dictionary
+            ### assoc_dict: remove ANs with empty set as values --> don't think this is necessary since these rows should not exist in DB
+            # assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1}
+            enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, o_or_u_or_both, multitest_method, gocat_upk, entity_type)
+            header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
+            results_all_function_types[entity_type] = (header, results)
+    return results_all_function_types
+
+
 def pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, pqo):
     if entity_type in {'-21', '-22', '-23'}:
         if go_slim_or_basic == "slim":

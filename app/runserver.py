@@ -74,7 +74,9 @@ if PROFILING:
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=variables.DATA_DIR) # use qcachegrind to visualize
     ## iterm: "qcachegrind"
     ## pyprof2calltree -i somethingsomething.prof -o something.prof
+    ## /Users/dblyon/anaconda3/envs/agotool/bin/pyprof2calltree -i POST.api_string.002346ms.1532618366.200CharacterizeForeground.prof -o POST.api_string.002346ms.1532618366.200CharacterizeForeground.prof.qcg
     ## open "something.prof" with qcachegrind -o something.prof
+
 
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
@@ -228,7 +230,7 @@ class API_STRING(Resource):
             args_dict["p_value_multipletesting"])
         return format_multiple_results(args_dict.output_format, results_all_function_types)
 
-api.add_resource(API_STRING, "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
+api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
 ################################################################################
 ### aGOtool arguments/parameters

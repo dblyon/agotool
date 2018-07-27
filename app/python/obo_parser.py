@@ -450,15 +450,14 @@ class KEGG_pseudo_dag(dict):
             self[id_] = KEGGterm(id_, name)
 
 
-class KEGG_dag(GODag):
-
-    def __init__(self, obo_file="keywords-all.obo", upk=True):
-        """
-        :param obo_file: String
-        :param upk: Bool (flag to convert UniProtKeyword tag from 'KW-0673' to 'UPK:0673')
-        """
-        super().__init__(obo_file=obo_file, upk=upk)
-        # self.load_obo_file(obo_file, upk=upk)
+# class KEGG_dag(GODag):
+#
+#     def __init__(self, obo_file="keywords-all.obo", upk=True):
+#         """
+#         :param obo_file: String
+#         :param upk: Bool (flag to convert UniProtKeyword tag from 'KW-0673' to 'UPK:0673')
+#         """
+#         super().__init__(obo_file=obo_file, upk=upk)
 
 
 class DOMterm:

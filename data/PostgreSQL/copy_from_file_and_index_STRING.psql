@@ -15,7 +15,8 @@ CREATE TABLE entity_types_temp (
     name text);
 CREATE TABLE taxid_2_protein_temp (
     taxid integer,
-    an_array text ARRAY);
+    an_array text ARRAY,
+    count integer);
 CREATE TABLE go_2_slim_temp (
     an text,
     slim boolean);
@@ -25,12 +26,12 @@ CREATE TABLE ontologies_temp (
     direct boolean,
     type integer);
 
-\copy functions_temp FROM '/agotool_data/data/PostgreSQL/tables/Functions_table_STRING.txt';
-\copy protein_2_function_temp FROM '/agotool_data/data/PostgreSQL/tables/Protein_2_Function_table_STRING.txt';
-\copy entity_types_temp FROM '/agotool_data/data/PostgreSQL/tables/Entity_types_table_STRING.txt';
-\copy taxid_2_protein_temp FROM '/agotool_data/data/PostgreSQL/tables/TaxID_2_Proteins_table_STRING.txt';
-\copy go_2_slim_temp FROM '/agotool_data/data/PostgreSQL/tables/GO_2_Slim_table_STRING.txt';
-\copy ontologies_temp FROM '/agotool_data/data/PostgreSQL/tables/Ontologies_table_STRING.txt';
+\copy functions_temp FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
+\copy protein_2_function_temp FROM '/agotool_data/PostgreSQL/tables/Protein_2_Function_table_STRING.txt';
+\copy entity_types_temp FROM '/agotool_data/PostgreSQL/tables/Entity_types_table_STRING.txt';
+\copy taxid_2_protein_temp FROM '/agotool_data/PostgreSQL/tables/TaxID_2_Proteins_table_STRING.txt';
+\copy go_2_slim_temp FROM '/agotool_data/PostgreSQL/tables/GO_2_Slim_table_STRING.txt';
+\copy ontologies_temp FROM '/agotool_data/PostgreSQL/tables/Ontologies_table_STRING.txt';
 
 CREATE INDEX protein_2_function_an_etype_idx_temp ON protein_2_function_temp (an, etype);
 CLUSTER protein_2_function_temp USING protein_2_function_an_etype_idx_temp;

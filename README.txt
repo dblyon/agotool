@@ -439,11 +439,14 @@ docker run --rm -it --volume /Users/dblyon/modules/cpr/agotool:/mounted_data --v
 # create DBs
 docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/data/PostgreSQL/create_DBs.psql
 # test DB
-docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_TEST_STRING.psql
-docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/data/PostgreSQL/drop_and_rename_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/PostgreSQL/copy_from_file_and_index_TEST_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/PostgreSQL/temp.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/temp.psql
+
 # populate DB for real
-docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql
-docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/data/PostgreSQL/drop_and_rename_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/copy_from_file_and_index_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql
 # change "preload" to True, change "skip_slow_downloads" to False, change "debug" to False
 vim /var/www/agotool/app/python/variables.py
 --> tadaaa it should work now
