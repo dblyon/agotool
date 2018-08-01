@@ -108,7 +108,8 @@ class Userinput:
             pass
 
         ### check if background is empty
-        if self.enrichment_method != "characterize_foreground":
+        # if self.enrichment_method != "characterize_foreground":
+        if self.enrichment_method not in {"characterize_foreground", "genome"}:
             if self.background.shape[0] == 0:
                 return self.foreground, self.background, False
 
@@ -120,7 +121,8 @@ class Userinput:
         if self.enrichment_method != "compare_groups": # abundance_correction
             self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
-        if self.enrichment_method != "characterize_foreground": # abundance_correction
+        # if self.enrichment_method != "characterize_foreground": # abundance_correction
+        if self.enrichment_method not in {"characterize_foreground", "genome"}:
             try:
                 self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
             except AttributeError:
@@ -370,7 +372,7 @@ class Userinput:
         :return: ListOfString
         """
         ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
-        if self.enrichment_method != "characterize_foreground":
+        if self.enrichment_method not in {"characterize_foreground", "genome"}:
             ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
         return list(set(ans))
 

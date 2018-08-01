@@ -7,11 +7,11 @@ skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to downl
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = False # local (bind-mounted volume if DOCKER=False --> version 1) vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
+DOCKER = True # local (bind-mounted volume if DOCKER=False --> version 1) vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 
 DB_DOCKER = True # use local vs dockerized Postgres, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING = True # profiling flaskapp --> check stdout, set to False in production
+PROFILING =  True #True # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
@@ -20,18 +20,28 @@ VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the prog
 
 function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
 entity_types = {'-21', '-22', '-23', '-51', '-52', '-53', '-54', '-55', '-56'}
+# "-21": {},  # | GO:0008150 | -21 | GO biological process |
+# "-22": {},  # | GO:0005575 | -22 | GO cellular component |
+# "-23": {},  # | GO:0003674 | -23 | GO molecular function |
+# "-51": {},  # UniProt keywords
+# "-52": {},  # KEGG
+# "-53": {},  # SMART
+# "-54": {},  # InterPro
+# "-55": {},  # PFAM
+# "-56": {}   # PMID
+entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
 
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # e.g. '/opt/services/flaskapp/src/python'
 if DOCKER:
     APP_DIR = "/opt/services/flaskapp/src"
-    # DATA_DIR = "/agotool_data/data"
+    DATA_DIR = "/agotool_data"
 else: # relative path on host
     APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
-    # DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
+    DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
 
-DATA_DIR = "/agotool_data"
+# DATA_DIR = "/agotool_data"
 
 # WEBSERVER_DATA = DATA_DIR #os.path.join(PROJECT_DIR, 'data')
 EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata") #os.path.join(PROJECT_DIR, 'data/exampledata')

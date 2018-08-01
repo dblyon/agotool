@@ -139,17 +139,20 @@ def query_example():
     cursor.close()
     print(records)
 
-def get_function_type_id_2_name_dict(function_type):
+def get_results_of_statement(sql_statement):
     cursor = get_cursor()
-    sql_statement = "SELECT functions.an, functions.name FROM functions WHERE functions.type='{}'".format(function_type)
     cursor.execute(sql_statement)
     result = cursor.fetchall()
+    cursor.close()
+    return result
+
+def get_function_type_id_2_name_dict(function_type):
+    result = get_results_of_statement("SELECT functions.an, functions.name FROM functions WHERE functions.etype='{}'".format(function_type))
     id_2_name_dict = {}
     for res in result:
         id_ = res[0]
         name = res[1]
         id_2_name_dict[id_] = name
-    cursor.close()
     return id_2_name_dict
 
 def map_secondary_2_primary_ANs(ans_list):
@@ -159,11 +162,8 @@ def map_secondary_2_primary_ANs(ans_list):
     :param ans_list: ListOfString
     :return: Dict (key: String(Secondary AN), val: String(Primary AN))
     """
-    cursor = get_cursor()
     ans_list = str(ans_list)[1:-1]
-    sql_statement = "SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an WHERE protein_secondary_2_primary_an.sec IN({})".format(ans_list)
-    cursor.execute(sql_statement)
-    result = cursor.fetchall()
+    result = get_results_of_statement("SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an WHERE protein_secondary_2_primary_an.sec IN({})".format(ans_list))
     secondary_2_primary_dict = {}
     for res in result:
         secondary = res[0]
@@ -219,26 +219,20 @@ class PersistentQueryObject:
         DOM_pseudo_dag = obo_parser.DOM_pseudo_dag()
         self.DOM_pseudo_dag = DOM_pseudo_dag
 
+
     @staticmethod
     def get_secondary_2_primary_an_dict():
         secondary_2_primary_dict = {}
-        cursor = get_cursor()
-        sql_statement = "SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an;"
-        cursor.execute(sql_statement)
-        result = cursor.fetchall()
+        result = get_results_of_statement("SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an;")
         for res in result:
             secondary = res[0]
             primary = res[1]
             secondary_2_primary_dict[secondary] = primary
-        cursor.close()
         return secondary_2_primary_dict
 
     @staticmethod
     def get_type_2_association_dict():
-        cursor = get_cursor()
-        sql_statement = "SELECT ontologies.child, ontologies.parent, ontologies.type FROM ontologies;"
-        cursor.execute(sql_statement)
-        result = cursor.fetchall()
+        result = get_results_of_statement("SELECT ontologies.child, ontologies.parent, ontologies.etype FROM ontologies;")
         type_2_association_dict = {}
         for res in result:
             child = res[0]
@@ -248,30 +242,22 @@ class PersistentQueryObject:
                 type_2_association_dict[type_].update([child, parent])
             else:
                 type_2_association_dict[type_] = {child, parent}
-        cursor.close()
         return type_2_association_dict
 
     @staticmethod
     def get_go_slim_terms():
-        cursor = get_cursor()
-        sql_statement = "SELECT go_2_slim.an FROM go_2_slim;"
-        cursor.execute(sql_statement)
-        result = cursor.fetchall()
+        result = get_results_of_statement("SELECT go_2_slim.an FROM go_2_slim;")
         go_slim_set = set()
         for res in result:
             go_slim_set.update([res[0]])
-        cursor.close()
         return go_slim_set
 
     @staticmethod
     def get_functions_set_from_functions(function_type):
-        cursor = get_cursor()
-        cursor.execute("SELECT functions.an FROM functions WHERE functions.type='{}'".format(function_type))
-        result = cursor.fetchall()
+        result = get_results_of_statement("SELECT functions.an FROM functions WHERE functions.type='{}'".format(function_type))
         functions_set = set()
         for res in result:
             functions_set.update([res[0]])
-        cursor.close()
         return functions_set
 
     def map_secondary_2_primary_ANs(self, ans_list):
@@ -341,7 +327,7 @@ class PersistentQueryObject:
             else:
                 return self.type_2_association_dict[-23].intersection(self.go_slim_set)
         else:
-            print("function_type: '{}' does not exist".format(function_type))
+            print("entity_type: '{}' does not exist".format(function_type))
             raise StopIteration
 
     def get_association_dict(self, protein_ans_list, gocat_upk, basic_or_slim): #, backtracking=True):
@@ -361,16 +347,12 @@ class PersistentQueryObject:
             association_set_2_restrict = self.DOM_functions_set
         else:
             raise NotImplementedError
-        cursor = get_cursor()
         protein_ans_list = str(protein_ans_list)[1:-1]
-        sql_statement = "SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list)
-        cursor.execute(sql_statement)
-        results = cursor.fetchall()
-        for res in results:
+        result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list))
+        for res in result:
             an = res[0]
             associations_list = res[1]
             an_2_functions_dict[an] = set(associations_list).intersection(association_set_2_restrict)
-        cursor.close()
         # if backtracking:
         an_2_functions_dict = self.backtrack_child_terms(an_2_functions_dict, self.child_2_parent_dict)
             # for an, functions in an_2_functions_dict.items():
@@ -383,49 +365,6 @@ class PersistentQueryObject:
             #     an_2_functions_dict[an] = an_2_functions_dict[an].union(parents_temp)
         return an_2_functions_dict
 
-    # def get_association_dict_split_by_category(self, protein_ans_list): #, backtracking=True):
-    #     """
-    #     #!!! is speed an issue? if so restructure protein_2_function table in DB to long format !?
-    #     STRING version, get all functional associations but split them by category
-    #     :param protein_ans_list: ListOfString
-    #     :param backtracking: Bool (Flag to add parents of functional terms)
-    #     :return: Dict(key: AN, val: SetOfAssociations)
-    #     """
-    #     an_2_functions_dict_BP = defaultdict(lambda: set())
-    #     an_2_functions_dict_CP = defaultdict(lambda: set())
-    #     an_2_functions_dict_MF = defaultdict(lambda: set())
-    #     an_2_functions_dict_UPK = defaultdict(lambda: set())
-    #     an_2_functions_dict_KEGG = defaultdict(lambda: set())
-    #     an_2_functions_dict_DOM = defaultdict(lambda: set())
-    #
-    #     cursor = get_cursor()
-    #     protein_ans_list = str(protein_ans_list)[1:-1]
-    #     sql_statement = "SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list)
-    #     cursor.execute(sql_statement)
-    #     results = cursor.fetchall()
-    #     for res in results:
-    #         an, associations_list = res
-    #         an_2_functions_dict_BP[an] = set(associations_list).intersection(self.BP_basic_functions_set)
-    #         an_2_functions_dict_CP[an] = set(associations_list).intersection(self.CP_basic_functions_set)
-    #         an_2_functions_dict_MF[an] = set(associations_list).intersection(self.MF_basic_functions_set)
-    #         an_2_functions_dict_UPK[an] = set(associations_list).intersection(self.UPK_functions_set)
-    #         an_2_functions_dict_KEGG[an] = set(associations_list).intersection(self.KEGG_functions_set)
-    #         an_2_functions_dict_DOM[an] = set(associations_list).intersection(self.DOM_functions_set)
-    #
-    #     cursor.close()
-    #     # if backtracking:
-    #     an_2_functions_dict_BP = self.backtrack_child_terms(an_2_functions_dict_BP, self.child_2_parent_dict)
-    #     an_2_functions_dict_CP = self.backtrack_child_terms(an_2_functions_dict_CP, self.child_2_parent_dict)
-    #     an_2_functions_dict_MF = self.backtrack_child_terms(an_2_functions_dict_MF, self.child_2_parent_dict)
-    #     an_2_functions_dict_UPK = self.backtrack_child_terms(an_2_functions_dict_UPK, self.child_2_parent_dict)
-    #
-    #     return {"BP": an_2_functions_dict_BP,
-    #             "CP": an_2_functions_dict_CP,
-    #             "MF": an_2_functions_dict_MF,
-    #             "UPK": an_2_functions_dict_UPK,
-    #             "KEGG": an_2_functions_dict_KEGG,
-    #             "DOM": an_2_functions_dict_DOM}
-
     @staticmethod
     def get_child_2_parent_dict(direct=False, type_=None, verbose=False):
         """
@@ -435,7 +374,6 @@ class PersistentQueryObject:
         :param verbose: Bool (Flag to print infos)
         :return: Dictionary ( key=child (String), val=set of parents (String) )
         """
-        cursor = get_cursor()
         select_statement = "SELECT ontologies.child, ontologies.parent FROM ontologies"
         extend_stmt = ""
         if type_ is not None:
@@ -447,19 +385,17 @@ class PersistentQueryObject:
                 extend_stmt += " WHERE ontologies.direct=TRUE"
 
         sql_statement = select_statement + extend_stmt + ";"
-        cursor.execute(sql_statement)
-        results = cursor.fetchall()
+        result = get_results_of_statement(sql_statement)
         child_2_parent_dict = {}
         if verbose:
             print(sql_statement)
-            print("Number of rows fetched: ", len(results))
-        for res in results:
+            print("Number of rows fetched: ", len(result))
+        for res in result:
             child, parent = res
             if child not in child_2_parent_dict:
                 child_2_parent_dict[child] = {parent}
             else:
                 child_2_parent_dict[child].update([parent])
-        cursor.close()
         return child_2_parent_dict
 
     @staticmethod
@@ -486,10 +422,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
-        self.KEGG_functions_set = self.get_functions_set_from_functions(function_type="KEGG")
 
-        # ToDo not in DB yet
-        # self.DOM_functions_set = self.get_functions_set_from_functions(function_type="DOM")
+        # deprecated
+        # self.KEGG_functions_set = self.get_functions_set_from_functions(entity_type="KEGG")
+        # self.DOM_functions_set = self.get_functions_set_from_functions(entity_type="DOM")
 
         ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
         self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
@@ -505,10 +441,21 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         # for backtracking
         # self.child_2_parent_dict = self.get_child_2_parent_dict()
 
-        self.KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
-        # todo
-        # self.DOM_pseudo_dag = obo_parser.DOM_pseudo_dag()
-        self.DOM_pseudo_dag = "ToDo later since data missing"
+        # self.KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
+        self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
+        # todo uncomment when Functions_table contains relevant data
+        # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
+        # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
+        # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
+        # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
+
+        self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
+
+    def get_proteome_count_from_taxid(self, taxid):
+        try:
+            return self.taxid_2_proteome_count[taxid]
+        except KeyError:
+            return False
 
     def get_association_dict_split_by_category(self, protein_ans_list):
         """
@@ -516,29 +463,26 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         :param protein_ans_list: ListOfString
         :return: etype_2_association_dict(key=entity_type(String), val=Dict(key=AN(String), val=SetOfFunctions(String)))
         """
+        etype_2_association_dict = {}
+        for etype in variables.entity_types:
+            etype_2_association_dict[etype] = {}
         ### key=entity_type(String), val=Dict(key=AN, val=SetOfFunctions)
-        etype_2_association_dict = {"-21": {}, # | GO:0008150 | -21 | GO biological process |
-                          "-22": {}, # | GO:0005575 | -22 | GO cellular component |
-                          "-23": {}, # | GO:0003674 | -23 | GO molecular function |
-                          "-51": {}, # UniProt keywords
-                          "-52": {}, # KEGG
-                          "-53": {}, # SMART
-                          "-54": {}, # InterPro
-                          "-55": {}, # PFAM
-                          "-56": {}  # PMID
-                          }
-
-        cursor = get_cursor()
+#        etype_2_association_dict = {"-21": {}, # | GO:0008150 | -21 | GO biological process |
+#                          "-22": {}, # | GO:0005575 | -22 | GO cellular component |
+#                          "-23": {}, # | GO:0003674 | -23 | GO molecular function |
+#                          "-51": {}, # UniProt keywords
+#                          "-52": {}, # KEGG
+#                          "-53": {}, # SMART
+#                          "-54": {}, # InterPro
+#                          "-55": {}, # PFAM
+#                          "-56": {}  # PMID
+#                          }
         protein_ans_list = str(protein_ans_list)[1:-1]
-        sql_statement = "SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list)
-        cursor.execute(sql_statement)
-        results = cursor.fetchall()
-        for res in results:
+        result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list))
+        for res in result:
             an, associations_list, etype = res
             etype_2_association_dict[str(etype)][an] = set(associations_list)
-        # cursor.close()
         return etype_2_association_dict
-
 
 
 def get_termAN_from_humanName_functionType(functionType, humanName):
@@ -554,20 +498,38 @@ def get_taxids():
     return all TaxIDs from taxid_2_proteins as sorted List of Integers
     :return: List of Integers
     """
-    cursor = get_cursor()
-    cursor.execute("SELECT taxid_2_protein.taxid FROM taxid_2_protein")
-    records = cursor.fetchall()
-    cursor.close()
-    return sorted([rec for rec in records])
+    result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein")
+    return sorted([rec[0] for rec in result])
 
 def get_proteins_of_taxid(taxid):
-    cursor = get_cursor()
-    cursor.execute("SELECT taxid_2_protein.an_array FROM taxid_2_protein WHERE taxid_2_protein.taxid={}".format(taxid))
-    records = cursor.fetchall()
-    cursor.close()
-    return sorted(records[0])
+    result = get_results_of_statement("SELECT taxid_2_protein.an_array FROM taxid_2_protein WHERE taxid_2_protein.taxid={}".format(taxid))
+    return sorted(result[0][0])
 
+def get_TaxID_2_proteome_count_dict():
+    taxid_2_proteome_count_dict = {}
+    result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count FROM taxid_2_protein;")
+    for res in result:
+        taxid, count = res
+        taxid_2_proteome_count_dict[taxid] = count
+    return taxid_2_proteome_count_dict
 
+def get_association_2_counts_split_by_entity(taxid):
+    result = get_results_of_statement("SELECT * FROM function_2_ensp WHERE function_2_ensp.taxid={}".format(taxid))
+
+    # to avoid checking for etype for each record, #!!!
+    etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, etype_2_background_n = {}, {}, {}
+    for etype in variables.entity_types_with_data_in_functions_table:
+        etype_2_association_2_count_dict_background[etype] = {}
+        etype_2_association_2_ANs_dict_background[etype] = {}
+        etype_2_background_n[etype] = {}
+
+    for rec in result:
+        _, etype, association, background_count, background_n, an_array = rec
+        etype = str(etype)
+        etype_2_association_2_count_dict_background[etype][association] = background_count
+        etype_2_association_2_ANs_dict_background[etype][association] = set(an_array)
+        etype_2_background_n[etype] = background_n
+    return etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, etype_2_background_n
 
 if __name__ == "__main__":
     # import os

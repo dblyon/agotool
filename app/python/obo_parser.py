@@ -432,32 +432,45 @@ class KEGGterm:
     def __init__(self, id_, name):
         self.id = id_       # KEGG:NNNNNNN
         self.name = name              # description
-        # self.namespace = ""         #
+        self.level = 0  # shortest distance from root node
+        self.depth = None  # longest distance from root node
+        self.is_obsolete = False  # is_obsolete
+
+class Functional_term:
+    """
+    GO term, actually contain a lot more properties than interfaced here
+    """
+
+    def __init__(self, id_, name):
+        self.id = id_       # KEGG:NNNNNNN
+        self.name = name              # description
         self.level = 0  # shortest distance from root node
         self.depth = None  # longest distance from root node
         self.is_obsolete = False  # is_obsolete
 
 
+
 class KEGG_pseudo_dag(dict):
     """
     depends on DB
+    kegg_pseudo_dag: description=name, goterm=id
     """
     def __init__(self):
-        # KEGG_id_2_name_dict = query.get_KEGG_id_2_name_dict()
         KEGG_id_2_name_dict = query.get_function_type_id_2_name_dict("KEGG")
         # kegg_pseudo_dag: description=name, goterm=id
         for id_, name in KEGG_id_2_name_dict.items():
             self[id_] = KEGGterm(id_, name)
 
+class Pseudo_dag(dict):
+    """
+    depends on DB
+    pseudo_dag: description=name, goterm=id
+    """
+    def __init__(self, etype):
+        Function_id_2_name_dict = query.get_function_type_id_2_name_dict(etype)
+        for id_, name in Function_id_2_name_dict.items():
+            self[id_] = Functional_term(id_, name)
 
-# class KEGG_dag(GODag):
-#
-#     def __init__(self, obo_file="keywords-all.obo", upk=True):
-#         """
-#         :param obo_file: String
-#         :param upk: Bool (flag to convert UniProtKeyword tag from 'KW-0673' to 'UPK:0673')
-#         """
-#         super().__init__(obo_file=obo_file, upk=upk)
 
 
 class DOMterm:

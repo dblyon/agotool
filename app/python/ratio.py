@@ -93,7 +93,9 @@ def count_terms_proteinGroup_KEGG(ui, assoc_dict, sample_or_background):
         GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
     return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
 
-def count_terms_manager(ans_set, assoc_dict, obo_dag, method):
+def count_terms_manager(ans_set, assoc_dict, obo_dag=None, method="not_KEGG"):
+    if obo_dag is None:
+        return count_terms_v3(ans_set, assoc_dict)
     if method == "KEGG":
         return count_terms_v2_KEGG(ans_set, assoc_dict)
     else:
@@ -120,6 +122,29 @@ def count_terms_v2(ans_set, assoc_dict, obo_dag):
             else:
                 association_2_ANs_dict[association_id].update([an])
     return association_2_count_dict, association_2_ANs_dict, len(ans_2_count)
+
+def count_terms_v3(ans_set, assoc_dict):
+    """
+    # ToDo write test for counter functions
+    # goterm: 'GO:0007610' has secondary id 'GO:0044708' --> if resolved at table creation not a problem otherwise it is
+    count the number of terms in the study group
+    association_2_count_dict: key=GOid, val=Num of occurrences
+    association_2_ANs_dict: key=GOid, val=SetOfANs
+    count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag)
+    :return: Tuple(dict, dict, int)
+    """
+    ans_counter = 0
+    association_2_ANs_dict = {}
+    association_2_count_dict = defaultdict(int)
+    for an in (AN for AN in ans_set if AN in assoc_dict):
+        ans_counter += 1
+        for association in assoc_dict[an]:
+            association_2_count_dict[association] += 1
+            if not association in association_2_ANs_dict:
+                association_2_ANs_dict[association] = {an}
+            else:
+                association_2_ANs_dict[association] |= {an} # update dict
+    return association_2_count_dict, association_2_ANs_dict, ans_counter
 
 def count_terms_v2_KEGG(ans_set, assoc_dict):
     """
@@ -216,11 +241,11 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
                     term_cnt[goterm_name] += weight_fac
                     # if not go2ans_dict.has_key(goterm):
                     if goterm not in go2ans_dict:
-                        go2ans_dict[goterm_name] = set([an])
+                        # go2ans_dict[goterm_name] = set([an])
+                        go2ans_dict[goterm_name] = {an}
                     else:
-                        go2ans_dict[goterm_name].update([an])
-                    # else:
-                    #     pass
+                        # go2ans_dict[goterm_name].update([an])
+                        go2ans_dict[goterm_name] |= {an}
     for goterm in term_cnt:
         term_cnt[goterm] = int(round(term_cnt[goterm]))
     go2ans2return = {}
@@ -253,9 +278,11 @@ def count_terms_abundance_corrected_KEGG(ui, assoc_dict):
                     goterm_name = goterm
                     term_cnt[goterm_name] += weight_fac
                     if goterm not in go2ans_dict:
-                        go2ans_dict[goterm_name] = set([an])
+                        # go2ans_dict[goterm_name] = set([an])
+                        go2ans_dict[goterm_name] = {an}
                     else:
-                        go2ans_dict[goterm_name].update([an])
+                        # go2ans_dict[goterm_name].update([an])
+                        go2ans_dict[goterm_name] |= {an}
                 else:
                     pass
     for goterm in term_cnt:
@@ -266,7 +293,6 @@ def count_terms_abundance_corrected_KEGG(ui, assoc_dict):
         if count >=1:
             go2ans2return[goterm] = go2ans_dict[goterm]
     return term_cnt, go2ans2return
-
 
 def is_ratio_different(min_ratio, study_go, study_n, pop_go, pop_n):
     """
@@ -280,14 +306,4 @@ def is_ratio_different(min_ratio, study_go, study_n, pop_go, pop_n):
     if s > p:
         return s / p > min_ratio
     return p / s > min_ratio
-
-
-
-
-
-
-
-
-
-
 

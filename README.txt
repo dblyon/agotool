@@ -425,6 +425,7 @@ docker-compose up
 docker exec -it agotool_flaskapp_1 pytest -v ./python/test_userinput.py
 # Debugging
 docker exec -it agotool_flaskapp_1 pytest -vx ./python/test_userinput.py --pdb
+docker exec -it agotool_flaskapp_1 pytest -vx ./python/test_query.py --pdb
 # Code coverage
 docker exec -it agotool_flaskapp_1 pytest --cov
 # failed tests run first
@@ -443,7 +444,7 @@ docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/
 docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql
 docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/PostgreSQL/temp.psql
 docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/temp.psql
-
+docker exec -it agotool_flaskapp_1 python ./python/create_SQL_tables.py
 # populate DB for real
 docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/copy_from_file_and_index_STRING.psql
 docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql

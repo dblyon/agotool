@@ -5,18 +5,17 @@
 ##### Domains ToDo missing
 ##### ? definition --> STRING?
 #####  type (Text); name(Text); an(Text); definition(Text)
-| type | name | an | definition |
+| etype | type | name | an | definition |
 |:---:|:---:|:---:|:---:|
-| GO | mitochondrion inheritance | GO:0000001 | "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764] |
-| GO | mitochondrial genome maintenance | GO:0000002 | "The maintenance of the structure and integrity of the mitochondrial genome; includes replication and segregation of the mitochondrial chromosome." [GOC:ai, GOC:vw] |
-| KEGG | Metabolic pathways | KEGG:01100 |
-| KEGG | Biosynthesis of secondary metabolites | KEGG:01110 |
-| KEGG | Microbial metabolism in diverse environments | KEGG:01120 |
-| UPK | 2Fe-2S | UPK:0001 | "Protein which contains at least one 2Fe-2S iron-sulfur cluster: 2 iron atoms complexed to 2 inorganic sulfides and 4 sulfur atoms of cysteines from the protein." [] |
-| UPK | 3D-structure | UPK:0002 | "Protein, or part of a protein, whose three-dimensional structure has been resolved experimentally (for example by X-ray crystallography or NMR spectroscopy) and whose coordinates are available in the PDB database. Can also be used for theoretical models." [] |
-| UPK | 3Fe-4S | UPK:0003 | "Protein which contains at least one 3Fe-4S iron-sulfur cluster: 3 iron atoms complexed to 4 inorganic sulfides and 3 sulfur atoms of cysteines from the protein. In a number of iron-sulfur proteins, the 4Fe-4S cluster can be reversibly converted by oxidation and loss of one iron ion to a 3Fe-4S cluster." [] |
-| UPK | 4Fe-4S | UPK:0004 | "Protein which contains at least one 4Fe-4S iron-sulfur cluster: 4 iron atoms complexed to 4 inorganic sulfides and 4 sulfur atoms of cysteines from the protein. In a number of iron-sulfur proteins, the 4Fe-4S cluster can be reversibly converted by oxidation and loss of one iron ion to a 3Fe-4S cluster." [] |
-| UPK | Abscisic acid biosynthesis | UPK:0937 | "Protein involved in the synthesis of abscisic acid (ABA) (5-(1-hydroxy-2,6,6,trimethyl-4-oxocyclohex-2-en-1-y1)-3-methylpenta-2,4-dienoic acid). ABA is a plant hormone which play a role in many aspects of plant growth, development and cellular signaling (e.g. seed dormancy, seed maturation, vegetative growth and responses to various environmental stimuli such as stomatal closure during drought). This phytohormone can be synthesized from farnesyl diphosphate (direct C15 pathway) or from 9-cis-violaxanthine (indirect C40 pathway)." [] |
+| -21 | GO | mitochondrion inheritance | GO:0000001 | "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764] |
+| -21 | GO | mitochondrial genome maintenance | GO:0000002 | "The maintenance of the structure and integrity of the mitochondrial genome; includes replication and segregation of the mitochondrial chromosome." [GOC:ai, GOC:vw] |
+| -52 | KEGG | Metabolic pathways | KEGG:01100 |
+| -52 | KEGG | Biosynthesis of secondary metabolites | KEGG:01110 |
+| -52 | KEGG | Microbial metabolism in diverse environments | KEGG:01120 |
+| -51 | UPK | 2Fe-2S | UPK:0001 | "Protein which contains at least one 2Fe-2S iron-sulfur cluster: 2 iron atoms complexed to 2 inorganic sulfides and 4 sulfur atoms of cysteines from the protein." [] |
+| -51 | UPK | 3D-structure | UPK:0002 | "Protein, or part of a protein, whose three-dimensional structure has been resolved experimentally (for example by X-ray crystallography or NMR spectroscopy) and whose coordinates are available in the PDB database. Can also be used for theoretical models." [] |
+| -51 | UPK | 4Fe-4S | UPK:0004 | "Protein which contains at least one 4Fe-4S iron-sulfur cluster: 4 iron atoms complexed to 4 inorganic sulfides and 4 sulfur atoms of cysteines from the protein. In a number of iron-sulfur proteins, the 4Fe-4S cluster can be reversibly converted by oxidation and loss of one iron ion to a 3Fe-4S cluster." [] |
+| -51 | UPK | Abscisic acid biosynthesis | UPK:0937 | "Protein involved in the synthesis of abscisic acid (ABA) (5-(1-hydroxy-2,6,6,trimethyl-4-oxocyclohex-2-en-1-y1)-3-methylpenta-2,4-dienoic acid). ABA is a plant hormone which play a role in many aspects of plant growth, development and cellular signaling (e.g. seed dormancy, seed maturation, vegetative growth and responses to various environmental stimuli such as stomatal closure during drought). This phytohormone can be synthesized from farnesyl diphosphate (direct C15 pathway) or from 9-cis-violaxanthine (indirect C40 pathway)." [] |
 
 
 ## protein_2_function [Protein_2_Function_table_STRING.txt]
@@ -88,9 +87,9 @@
 | GO:0000003 | 1 |
 
 
-## ontologies [Ontologies_table_STRING.txt] --> DONE
-##### child(Text); parent(Text); direct(Boolean); type(Integer)
-| child | parent | direct | type |
+## ontologies [Ontologies_table_STRING.txt]
+##### child(Text); parent(Text); direct(Boolean); etype(Integer)
+| child | parent | direct | etype |
 |:---:|:---:|:---:|:---:|
 | GO:0008152 | GO:0008150 | 1 | -21 |
 | GO:0032259 | GO:0008152 | 1 | -21 |
@@ -101,20 +100,17 @@
 | UPK:0440 | UPK:9994 | 1 | -51 |
 
 
-## association_2_ANs [Association_2_ANs_table_STRING.txt] --> ToDo
-##### etype(Integer); association(Text); an_array(Text Array); taxid(Integer)
-| etype | association | an_array | taxid |
-|:---:|:---:|:---:|:---:|
-| -21 | 'GO:0006810' | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } | 9606 |
-| -21 | 'GO:0006897' | {'9606.ENSP00000000412', ...} | 9606 |
-| -21 | 'GO:0006898' | {'9606.ENSP00000000412', ...} | 9606 |
+## function_2_ENSP [Function_2_ENSP_STRING.txt]
+##### taxid(Integer); etype(Integer); association(Text); count(Integer); an_array(Text Array)
+##### taxid_index, taxid_etype_index, cluster_taxid_etype
+##### background_count: number of ENSPs per given association
+##### use taxid_2_protein for counts instead of background_n: number of ENSPs with any kind of association, should be used since number of ENSPs in proteome could be larger than those that have association info in general
+| taxid | etype | association | background_count | background_n | an_array |
+|:---:|:---:|:---:|:---:|:---:|
+| 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } |
+| 9606 | -21 | 'GO:0006897' | 2 | 3919 | {'9606.ENSP00000000412', ...} |
+| 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'9606.ENSP00000000412'}|
 
-
-## association_2_count [Association_2_count_table_STRING.txt] --> ToDo
-##### association(Text); count(Integer); etype(Integer); taxid(Integer)
-| association | count | etype | taxid |
-|:---:|:---:|:---:|:---:|
-| 'GO:0006810' | 3 | -21 | 9606 |
-| 'GO:0006897' | 2 | -21 | 9606 |
-| 'GO:0006898' | 1 | -21 | 9606 |
-
+# ToDo
+# write test: check association_dict of random ENSPs is proper subset of association_dict_proteome
+# remove ANs_background from method "genome"

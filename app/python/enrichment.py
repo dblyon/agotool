@@ -22,64 +22,90 @@ def modify_header(header_list):
 class EnrichmentStudy(object):
     """Runs Fisher's exact test, as well as multiple corrections
     """
-    def __init__(self, ui, assoc_dict, obo_dag, alpha, o_or_u_or_both, multitest_method, gocat_upk="all_GO", function_type="GO"):
+    def __init__(self, ui, assoc_dict, obo_dag, enrichment_method="genome", alpha=0.05, o_or_u_or_both="overrepresented", multitest_method="benjamini_hochberg", entity_type="-51", #entity_type="GO", gocat_upk="all_GO",
+            association_2_count_dict_background=None, association_2_ANs_dict_background=None, background_n=None):
         self.ui = ui
-        self.method = self.ui.enrichment_method
+        self.method = enrichment_method
         self.assoc_dict = assoc_dict
         self.obo_dag = obo_dag
         self.alpha = alpha
         self.multitest_method = multitest_method
-        self.gocat_upk = gocat_upk
+        # self.gocat_upk = gocat_upk
         self.results = []
         self.o_or_u_or_both = o_or_u_or_both
-        self.function_type = function_type
+        self.entity_type = entity_type
 
         ### prepare run
         self.an_set_foreground = self.ui.get_foreground_an_set()
-        # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_v2(self.an_set_foreground, self.assoc_dict, self.obo_dag)
-        self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_manager(self.an_set_foreground, self.assoc_dict, self.obo_dag, self.function_type)
+        self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, self.foreground_n = ratio.count_terms_manager(self.an_set_foreground, self.assoc_dict, self.obo_dag, self.entity_type)
 
         # abundance_correction: Foreground vs Background abundance corrected
+        # genome: Foreground vs Proteome (no abundance correction)
         # compare_samples: Foreground vs Background (no abundance correction)
         # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
         # characterize: Foreground only
 
-        run_study_ = True
+        # run_study_ = True
         if self.method == "abundance_correction":
-            background_n = foreground_n
-            # self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected(self.ui, self.assoc_dict, self.obo_dag)
-            self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected_manager(self.ui, self.assoc_dict, self.obo_dag, self.function_type)
-
+            self.run_abundance_correction()
+            # self.background_n = self.foreground_n
+            # self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected_manager(self.ui, self.assoc_dict, self.obo_dag, self.entity_type)
+        elif self.method == "genome":
+            self.run_genome(association_2_count_dict_background, association_2_ANs_dict_background, background_n)
+            # self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = association_2_count_dict_background, association_2_ANs_dict_background, background_n
         elif self.method == "compare_samples":
-            self.an_set_background = self.ui.get_background_an_set()
-            # self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_v2(self.an_set_background, self.assoc_dict, self.obo_dag)
-            self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_manager(self.an_set_background, self.assoc_dict, self.obo_dag, self.function_type)
-
+            self.run_compare_samples()
+            # self.an_set_background = self.ui.get_background_an_set()
+            # self.association_2_count_dict_background, self.association_2_ANs_dict_background, background_n = ratio.count_terms_manager(self.an_set_background, self.assoc_dict, self.obo_dag, self.entity_type)
         elif self.method == "compare_groups":
-            foreground_n = self.ui.get_foreground_n()
-            background_n = self.ui.get_background_n()
-            # foreground_n = len(self.ui.get_foreground_an_set()) * self.ui.get_foreground_n()
-            # print(self.ui.get_foreground_n(), foreground_n)
-            # background_n = len(self.ui.get_background_an_set()) * self.ui.get_background_n()
-            self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
-            self.an_redundant_background = self.ui.get_an_redundant_background()
-            # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_v2(self.an_redundant_foreground, self.assoc_dict, self.obo_dag)
-            self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.function_type)
-            # self.association_2_count_dict_background, self.association_2_ANs_dict_background, unused_an_count = ratio.count_terms_v2(self.an_redundant_background, self.assoc_dict, self.obo_dag)
-            self.association_2_count_dict_background, self.association_2_ANs_dict_background, unused_an_count = ratio.count_terms_manager(self.an_redundant_background, self.assoc_dict, self.obo_dag, self.function_type)
-
+            self.run_compare_groups()
+            # self.foreground_n = self.ui.get_foreground_n()
+            # self.background_n = self.ui.get_background_n()
+            # self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
+            # self.an_redundant_background = self.ui.get_an_redundant_background()
+            # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.entity_type)
+            # self.association_2_count_dict_background, self.association_2_ANs_dict_background, unused_an_count = ratio.count_terms_manager(self.an_redundant_background, self.assoc_dict, self.obo_dag, self.entity_type)
         elif self.method == "characterize_foreground":
-            self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
-            # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_v2(self.an_redundant_foreground, self.assoc_dict, self.obo_dag)
-            self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.function_type)
-            run_study_ = False
+            self.run_characterize_foreground()
+            # self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
+            # self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.entity_type)
+            # run_study_ = False
         else:
-            raise StopIteration
+            raise NotImplementedError
 
-        if run_study_:
-            self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, foreground_n, background_n)
-        else:
-            self.characterize_foreground(self.association_2_count_dict_foreground, foreground_n)
+        # if run_study_:
+        #     self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, self.foreground_n, self.background_n)
+        # else:
+        #     self.characterize_foreground(self.association_2_count_dict_foreground, self.foreground_n)
+
+    def run_abundance_correction(self):
+        self.background_n = self.foreground_n
+        self.association_2_count_dict_background, self.association_2_ANs_dict_background = ratio.count_terms_abundance_corrected_manager(self.ui, self.assoc_dict, self.obo_dag, self.entity_type)
+        self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, self.foreground_n, self.background_n)
+
+    def run_genome(self, association_2_count_dict_background, association_2_ANs_dict_background, background_n):
+        self.association_2_count_dict_background, self.association_2_ANs_dict_background, self.background_n = association_2_count_dict_background, association_2_ANs_dict_background, background_n
+        self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, self.foreground_n, self.background_n)
+
+    def run_compare_samples(self):
+        self.an_set_background = self.ui.get_background_an_set()
+        self.association_2_count_dict_background, self.association_2_ANs_dict_background, self.background_n = ratio.count_terms_manager(self.an_set_background, self.assoc_dict, self.obo_dag, self.entity_type)
+        self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, self.foreground_n, self.background_n)
+
+    def run_compare_groups(self):
+        self.foreground_n = self.ui.get_foreground_n()
+        self.background_n = self.ui.get_background_n()
+        self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
+        self.an_redundant_background = self.ui.get_an_redundant_background()
+        self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.entity_type)
+        self.association_2_count_dict_background, self.association_2_ANs_dict_background, unused_an_count = ratio.count_terms_manager(self.an_redundant_background, self.assoc_dict, self.obo_dag, self.entity_type)
+        self.run_study(self.association_2_count_dict_foreground, self.association_2_count_dict_background, self.foreground_n, self.background_n)
+
+    def run_characterize_foreground(self):
+        self.an_redundant_foreground = self.ui.get_an_redundant_foreground()
+        self.association_2_count_dict_foreground, self.association_2_ANs_dict_foreground, unused_an_count = ratio.count_terms_manager(self.an_redundant_foreground, self.assoc_dict, self.obo_dag, self.entity_type)
+        self.characterize_foreground(self.association_2_count_dict_foreground, self.foreground_n)
+
 
     def characterize_foreground(self, association_2_count_dict_foreground, foreground_n):
         multitest = ("p_" + self.multitest_method, "%.3g")
@@ -118,7 +144,7 @@ class EnrichmentStudy(object):
         fisher_dict = {}
         multitest = ("p_" + self.multitest_method, "%.3g")
         attributes2add_list = [multitest, ('description', '%s'), ('ANs_foreground', '%s')]
-        if self.method != "abundance_correction":
+        if self.method not in {"abundance_correction", "genome"}:
             attributes2add_list.append(('ANs_background', '%s'))
 
         if self.method == "compare_groups":
@@ -176,8 +202,8 @@ class EnrichmentStudy(object):
                 p_uncorrected=p_val_uncorrected,
                 ratio_in_foreground=(foreground_count, foreground_n),
                 ratio_in_background=(background_count, background_n),
-                ANs_foreground = ', '.join(self.get_ans_from_association(association, True)),
-                ANs_background = ', '.join(self.get_ans_from_association(association, False)),
+                ANs_foreground = ';'.join(self.get_ans_from_association(association, True)),
+                ANs_background = ';'.join(self.get_ans_from_association(association, False)),
                 attributes2add=attributes2add_list)
             self.results.append(one_record)
         self.calc_multiple_corrections()
@@ -202,14 +228,15 @@ class EnrichmentStudy(object):
         pvals = [r.p_uncorrected for r in self.results]
         all_methods = ("bonferroni", "sidak", "holm", "benjamini_hochberg", "fdr")
         method_name = self.multitest_method
-        if method_name == "bonferroni":
+
+        if method_name == 'benjamini_hochberg':
+            corrected_pvals = BenjaminiHochberg(pvals, len(self.results))
+        elif method_name == "bonferroni":
             corrected_pvals = Bonferroni(pvals, self.alpha).corrected_pvals
         elif method_name == "sidak":
             corrected_pvals = Sidak(pvals, self.alpha).corrected_pvals
         elif method_name == "holm":
             corrected_pvals = HolmBonferroni(pvals, self.alpha).corrected_pvals
-        elif method_name == 'benjamini_hochberg':
-            corrected_pvals = BenjaminiHochberg(pvals, len(self.results))
         else:
             raise Exception("multiple test correction methods must be "
                             "one of %s" % all_methods)
@@ -234,7 +261,6 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
                 header_list = modify_header(self.results[0].get_attributenames2write(self.o_or_u_or_both))
                 header2write = '\t'.join(header_list) + '\n'
                 fh_out.write(header2write)
-                # results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.fold_enrichment_study2pop, reverse=True)
                 results_sorted_by_fold_enrichment_study2pop = sorted(self.results, key=lambda record: record.p_uncorrected)
                 for rec in results_sorted_by_fold_enrichment_study2pop:
                     rec.update_remaining_fields()
@@ -253,15 +279,11 @@ missing (but option selected)\n\n\nDon't hesitate to contact us for feedback or 
         else:
             header_list = modify_header(self.results[0].get_attributenames2write(self.o_or_u_or_both))
             header2write = '\t'.join(header_list) + '\n'
-            # results_sorted_by_fold_enrichment_foreground_2_background = sorted(self.results, key=lambda record: record.fold_enrichment_foreground_2_background, reverse=True)
             results_sorted_by_fold_enrichment_foreground_2_background = sorted(self.results, key=lambda record: record.p_uncorrected)
             for rec in results_sorted_by_fold_enrichment_foreground_2_background:
                 rec.update_remaining_fields()
-                # if rec.fold_enrichment_foreground_2_background >= fold_enrichment_foreground_2_background or fold_enrichment_foreground_2_background is None:
                 if fold_enrichment_foreground_2_background is None or rec.fold_enrichment_foreground_2_background >= fold_enrichment_foreground_2_background:
-                    # if rec.__dict__[multitest_method_name] <= p_value_mulitpletesting or p_value_mulitpletesting is None:
                     if p_value_mulitpletesting is None or rec.__dict__[multitest_method_name] <= p_value_mulitpletesting:
-                        # if rec.p_uncorrected <= p_value_uncorrected or p_value_uncorrected is None:
                         if p_value_uncorrected is None or rec.p_uncorrected <= p_value_uncorrected:
                             res = rec.get_line2write(indent, self.o_or_u_or_both)
                             results2write.append(res)

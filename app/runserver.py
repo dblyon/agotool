@@ -84,7 +84,7 @@ ALLOWED_EXTENSIONS = {'txt', 'tsv'}
 app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20 #* 100
 
 logger = logging.getLogger()
-# logger.level = logging.DEBUG
+logger.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
@@ -172,7 +172,7 @@ parser.add_argument("identifiers", type=str,
     #!!! create better help text
     help="Required parameter for multiple items, e.g. DRD1_HUMAN%0dDRD2_HUMAN")
 
-parser.add_argument("species", type=int,
+parser.add_argument("taxid", type=int,
     help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
     default=9606)
 
@@ -213,22 +213,36 @@ class API_STRING(Resource):
         :return:
         """
         args_dict = parser.parse_args()
+        if args_dict.enrichment_method == "genome":
+            background_n = pqo.get_proteome_count_from_taxid(int(args_dict["taxid"]))
+            # print("_"*80, "background_n:", background_n)
+            if not background_n:
+                args_dict["WARNING/ERROR"] = "WARNING/ERROR: 'species': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["species"])
+                return help_page(args_dict)
+        else:
+            background_n = None
+
         ui = userinput.REST_API_input(pqo,
-            foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
-            num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
+            foreground_string=args_dict["foreground"], background_string=args_dict["background"],
+            background_intensity=args_dict["intensity"], num_bins=args_dict["num_bins"],
+            enrichment_method=args_dict["enrichment_method"],
             foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
-        results_all_function_types = run.run_STRING_enrichment(pqo, ui,
-            args_dict["gocat_upk"],
-            args_dict["go_slim_or_basic"],
-            args_dict["indent"],
-            args_dict["multitest_method"],
-            args_dict["alpha"],
-            args_dict["o_or_u_or_both"],
-            # args_dict["backtracking"],
-            args_dict["fold_enrichment_study2pop"],
-            args_dict["p_value_uncorrected"],
-            args_dict["p_value_multipletesting"])
-        return format_multiple_results(args_dict.output_format, results_all_function_types)
+        if ui.check:
+            results_all_function_types = run.run_STRING_enrichment_speed(pqo, ui,
+                # args_dict["gocat_upk"],
+                args_dict["go_slim_or_basic"],
+                args_dict["indent"],
+                args_dict["multitest_method"],
+                args_dict["alpha"],
+                args_dict["o_or_u_or_both"],
+                args_dict["fold_enrichment_study2pop"],
+                args_dict["p_value_uncorrected"],
+                args_dict["p_value_multipletesting"],
+                args_dict["taxid"], background_n)
+            return format_multiple_results(args_dict.output_format, results_all_function_types)
+        else:
+            args_dict["WARNING/ERROR"] = "WARNING/ERROR: UserInput check not passed, please check your input and/or compare it to the examples."
+            return help_page(args_dict)
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
@@ -257,7 +271,7 @@ parser.add_argument("gocat_upk", type=str,
     default="UPK")
 
 parser.add_argument("enrichment_method", type=str,
-    help="""abundance_correction: Foreground vs Background abundance corrected; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; characterize_foreground: Foreground only""",
+    help="""abundance_correction: Foreground vs Background abundance corrected; genome: provided foreground vs genome; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; characterize_foreground: Foreground only""",
     default="characterize_foreground")
 
 parser.add_argument("foreground_n", type=int,
@@ -296,10 +310,6 @@ parser.add_argument("num_bins", type=int,
     help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.",
     default=100)
 
-# parser.add_argument("backtracking", type=bool,
-#     help="Include all parent GO-terms, Backtracking parent GO-terms. Typically this is 'True', only set to 'False' for a good reason.",
-#     default=True)
-
 parser.add_argument("fold_enrichment_study2pop", type=float,
     help="Apply a filter for the minimum threshold value of fold enrichment study/population.",
     default=0)
@@ -333,7 +343,6 @@ class API_agotool(Resource):
                 args_dict["multitest_method"],
                 args_dict["alpha"],
                 args_dict["o_or_u_or_both"],
-                # args_dict["backtracking"],
                 args_dict["fold_enrichment_study2pop"],
                 args_dict["p_value_uncorrected"],
                 args_dict["p_value_multipletesting"])
@@ -369,7 +378,7 @@ def format_results(output_format, header, results):
 def format_multiple_results(output_format, results_all_function_types):
     """
     :param output_format: String
-    :param results_all_function_types: Dict (key: function_type , val: Tuple(header, results))
+    :param results_all_function_types: Dict (key: entity_type , val: Tuple(header, results))
     :return: Json or String
     """
     if output_format == "json":
@@ -380,6 +389,8 @@ def format_multiple_results(output_format, results_all_function_types):
             header = header.split("\t")
             dict_2_return[functype] = [dict(zip(header, row.split("\t"))) for row in results]
         return jsonify(dict_2_return)
+    elif output_format == "tsv":
+        return results_all_function_types
     else:
         raise NotImplementedError
 
@@ -551,7 +562,8 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     enrichment_method = fields.SelectField("Select one of the following methods",
-                                   choices = (("abundance_correction", "abundance_correction"),
+                                   choices = (("genome", "genome"),
+                                              ("abundance_correction", "abundance_correction"),
                                               ("compare_samples", "compare_samples"),
                                               ("compare_groups", "compare_groups"),
                                               ("characterize_foreground", "characterize_foreground")),
@@ -598,10 +610,6 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                    [validate_integer],
                                    default = 100,
                                    description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
-
-    # backtracking = fields.BooleanField("Backtracking parent GO-terms",
-    #                                    default = "checked",
-    #                                    description="Include all parent GO-terms.")
 
     fold_enrichment_study2pop = fields.FloatField(
         "fold enrichment study/population",
@@ -673,10 +681,10 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 log_activity(string2log) # remove indentation
 
             if variables.VERSION_ == "STRING":
-                header, results = run.run_STRING_enrichment(pqo, ui,
+                header, results = run.run_STRING_enrichment_speed(pqo, ui,
                     form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data, form.multitest_method.data, form.alpha.data,
                     form.o_or_u_or_both.data, form.fold_enrichment_study2pop.data,
-                    form.p_value_uncorrected.data, form.p_value_multipletesting.data)
+                    form.p_value_uncorrected.data, form.p_value_multipletesting.data, taxid)
 
             elif variables.VERSION_ == "aGOtool":
                 header, results = run.run(pqo, ui, form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,

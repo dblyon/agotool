@@ -149,7 +149,7 @@ def create_tables(verbose=False):
     ### - Entity_types_table.txt
     # static table, edit manually
 
-def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=False):
+def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=False, number_of_processes=1):
     tables_to_remove_temp = []
     if NUMBER_OF_PROCESSES > 8:
         number_of_processes = 8
@@ -195,7 +195,7 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
     #     tables_to_remove_temp.append(fn_in_temp)
 
     ### - Protein_2_Function_table_GO
-    # fn_in = os.path.join(DOWNLOADS_DIR, "string_go.tsv.gz")
+    # fn_in = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz"
     # fn_in_temp = fn_in + "_temp"
     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
     # create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
@@ -221,7 +221,7 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
     # sum the counts of ENSPs in the original mapping (ignoring KEGG-functions with "CONN")
     # cat kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv | grep -v "CONN" | cut -f 3 | paste -sd+ | bc
     # compare to # $ wc -l Protein_2_Function_table_KEGG_temp.txt --> 7614709
-    """
+    # """
     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in
     #            ["Protein_2_Function_table_GO.txt",
     #             "Protein_2_Function_table_InterPro.txt",
@@ -248,11 +248,11 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
     # fn_out = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
     # create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
-    ### - Association_2_ANs_table
+    ### - Functions_2_ENSP_table
     ##### dependency on creating DB first
-    fn_out = os.path.join(TABLES_DIR, "Associations_2_ANs_table_STRING.txt")
+    fn_out = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
     pqo = query.PersistentQueryObject_STRING()
-    create_associations_2_ans_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
     if verbose:
         print("#"*80 + "\n##### " + "finished creating all tables")
@@ -276,20 +276,41 @@ def sort_file(fn_in, fn_out, columns="1", fn_bash_script=None, number_of_process
     subprocess.call("./{}".format(fn_bash_script), shell=True)
     os.remove(fn_bash_script)
 
-def create_associations_2_ans_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose):
+def gunzip_file(fn_in, fn_out=None):
+    fn_bash_script = "bash_script_sort_{}.sh".format(os.path.basename(fn_in))
+    with open(fn_bash_script, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        if fn_out is None:
+            fn_out = fn_in + "_temp"
+        shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_out)
+        fh.write(shellcmd_1 + "\n")
+    subprocess.call("chmod 744 ./{}".format(fn_bash_script), shell=True)
+    subprocess.call("./{}".format(fn_bash_script), shell=True)
+    os.remove(fn_bash_script)
+
+def create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=1, verbose=True):
     taxid_list = query.get_taxids()
     with open(fn_out, "w") as fh_out:
-        for taxid in taxid_list:
-            ans_list = query.get_proteins_of_taxid(taxid)
-            for etype in {"-21",  # | GO:0008150 | -21 | GO biological process |
-                       "-22",  # | GO:0005575 | -22 | GO cellular component |
-                       "-23",  # | GO:0003674 | -23 | GO molecular function |
-                       "-51",  # UniProt keywords
-                       "-52"}:  # KEGG
-                
-        association_2_count_dict, association_2_ANs_dict, count_n = ratio.count_terms_manager(an_set, assoc_dict, obo_dag, function_type)
-        fh_out.write(etype + "\t" + association + "\t" + an_array + "\t" + taxid + "\n")
-    sort_file(fn_out, fn_out, columns="4,1", number_of_processes=number_of_processes, verbose=verbose)
+        for taxid in sorted(taxid_list):
+            ans_list = sorted(query.get_proteins_of_taxid(taxid))
+            etype_2_association_dict = pqo.get_association_dict_split_by_category(ans_list)
+            for etype in sorted(variables.entity_types_with_data_in_functions_table):
+                assoc_dict = etype_2_association_dict[etype]
+                association_2_count_dict, association_2_ANs_dict, ans_counter = ratio.count_terms_manager(set(ans_list), assoc_dict)
+                # ans_counter --> number of AccessionNumbers with any association = background_n
+                # association_2_count_dict --> number of associations per given Association” = background_count
+                for association, ans in association_2_ANs_dict.items():
+                    assert ans_counter >= association_2_count_dict[association]
+                    fh_out.write(str(taxid) + "\t" + etype + "\t" + association + "\t" + str(association_2_count_dict[association]) + "\t" + str(ans_counter) + "\t" + format_list_of_string_2_postgres_array(ans) + "\n")
+    sort_file(fn_out, fn_out, columns="1,2", number_of_processes=number_of_processes, verbose=verbose)
+
+def format_list_of_string_2_postgres_array(list_of_string):
+    """
+    removes internal spaces
+    :param list_of_string: List of String
+    :return: String
+    """
+    return "{" + str(list_of_string)[1:-1].replace(" ", "").replace("'", '"') + "}"
 
 def create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=1, verbose=True):
     sort_file(fn_in, fn_out_temp, columns="1", fn_bash_script="bash_script_sort_Proteomes_input_table_temp.sh", number_of_processes=number_of_processes, verbose=verbose)
@@ -327,11 +348,12 @@ def create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processe
                     ENSP_list.append(ENSP)
                 else:
                     ENSPs_2_write = sorted(set(ENSP_list))
-                    fh_out.write(TaxID_previous + "\t" + "{" + str(ENSPs_2_write)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + str(len(ENSPs_2_write)) + "\n")
+                    # fh_out.write(TaxID_previous + "\t" + "{" + str(ENSPs_2_write)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + str(len(ENSPs_2_write)) + "\n")
+                    fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
                     ENSP_list = [ENSP]
                     TaxID_previous = TaxID
             ENSPs_2_write = sorted(set(ENSP_list))
-            fh_out.write(TaxID_previous + "\t" + "{" + str(ENSPs_2_write)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + str(len(ENSPs_2_write)) + "\n")
+            fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
 def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
     """
@@ -349,24 +371,27 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_o
     if verbose:
         print("\ncreate_Protein_2_Function_table_InterPro")
 
-    bash_script_temp_fn = "bash_script_gunzip_sort_InterPro.sh"
-    with open(bash_script_temp_fn, "w") as fh:
-        fh.write("#!/usr/bin/env bash\n")
-        shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
-        fh.write(shellcmd_1 + "\n")
-        if PLATFORM == "linux":
-            # this should be simpler but it works for and there were issues with the other versions (calling the shellcmds via subprocess.call or subprocess.Popen)
-            # no error with first version but empty file produced, probably due to ">" not "-o"
-            # shellcmd = "sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
-            shellcmd_2 = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-        else:
-            # shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
-            shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-        fh.write(shellcmd_2)
-    if verbose:
-        print("gunzip and sorting string2interpro.dat.gz")
-    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+    # bash_script_temp_fn = "bash_script_gunzip_sort_InterPro.sh"
+    gunzip_file(fn_in, fn_in_temp)
+    sort_file(fn_in_temp, fn_in_temp, "1", number_of_processes, verbose)
+
+    # with open(bash_script_temp_fn, "w") as fh:
+    #     fh.write("#!/usr/bin/env bash\n")
+    #     shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
+    #     fh.write(shellcmd_1 + "\n")
+    #     if PLATFORM == "linux":
+    #         # this should be simpler but it works for and there were issues with the other versions (calling the shellcmds via subprocess.call or subprocess.Popen)
+    #         # no error with first version but empty file produced, probably due to ">" not "-o"
+    #         # shellcmd = "sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+    #         shellcmd_2 = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+    #     else:
+    #         # shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
+    #         shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+    #     fh.write(shellcmd_2)
+    # if verbose:
+    #     print("gunzip and sorting string2interpro.dat.gz")
+    # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
     if verbose:
         print("parsing previous result to produce Protein_2_Function_table_InterPro.txt")
@@ -418,6 +443,8 @@ def create_Protein_2_Function_table_SMART(fn_in, fn_in_temp, fn_out, number_of_p
 
 def create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
     """
+    secondary GOids are converted to primary GOids
+    e.g. goterm: 'GO:0007610' has secondary id 'GO:0044708', thus if 'GO:0044708' is associated it will be mapped to 'GO:0007610'
     :param GO_dag: Dict like object
     :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_go.tsv.gz)
     :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_go.tsv.gz_temp)
@@ -432,21 +459,22 @@ def create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number
     if verbose:
         print("\ncreate_Protein_2_Function_table_GO")
 
-    # ToDo stuff into function
-    bash_script_temp_fn = "bash_script_gunzip_sort_GO.sh"
-    with open(bash_script_temp_fn, "w") as fh:
-        fh.write("#!/usr/bin/env bash\n")
-        shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
-        fh.write(shellcmd_1 + "\n")
-        if PLATFORM == "linux":
-            shellcmd_2 = "sort --parallel {} -k1,2 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-        else:
-            shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1,2 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-        fh.write(shellcmd_2)
+    # bash_script_temp_fn = "bash_script_gunzip_sort_GO.sh"
+    gunzip_file(fn_in, fn_in_temp)
+    sort_file(fn_in_temp, fn_in_temp, columns="1,2", number_of_processes=number_of_processes)
+    # with open(bash_script_temp_fn, "w") as fh:
+    #     fh.write("#!/usr/bin/env bash\n")
+    #     shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
+    #     fh.write(shellcmd_1 + "\n")
+    #     if PLATFORM == "linux":
+    #         shellcmd_2 = "sort --parallel {} -k1,2 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+    #     else:
+    #         shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1,2 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
+    #     fh.write(shellcmd_2)
     if verbose:
         print("gunzip and sorting string_go.tsv.gz")
-    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+    # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
     GOterms_not_in_obo = []
     if verbose:
@@ -523,18 +551,10 @@ def create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, 
                         fh_out.write(ENSP + "\t" + "{" + str(KeyWords_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
 
     ### table Protein_2_Function_table_UniProtKeywords.txt needs sorting
-    bash_script_temp_fn = "bash_script_gunzip_sort_UniProtKeywords.sh"
-    with open(bash_script_temp_fn, "w") as fh:
-        fh.write("#!/usr/bin/env bash\n")
-        if PLATFORM == "linux":
-            shellcmd = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out, fn_out)
-        else:
-            shellcmd = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out, fn_out)
-        fh.write(shellcmd)
-    if verbose:
-        print("Protein_2_Function_table_UniProtKeywords.txt needs sorting, doing it now")
-    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+    # bash_script_temp_fn = "bash_script_gunzip_sort_UniProtKeywords.sh"
+    fn_out_temp = fn_out + "_temp"
+    gunzip_file(fn_out, fn_out_temp)
+    sort_file(fn_out_temp, fn_out_temp, columns="1", number_of_processes=number_of_processes, verbose=verbose)
 
     UPKs_not_in_obo_list = sorted(set(UPKs_not_in_obo_list))
     fn_log = os.path.join(LOG_DIRECTORY, "create_SQL_tables_UniProtKeywords_not_in_OBO.log")
@@ -629,11 +649,11 @@ def divide_into_categories(GOterm_list, GO_dag,
 #     MFs, CPs, BPs, not_in_OBO = [], [], [], []
     for term in GOterm_list:
         if term == "GO:0003674" or GO_dag[term].has_parent("GO:0003674"):
-            MFs.append(term)
+            MFs.append(GO_dag[term].id)
         elif term == "GO:0005575" or GO_dag[term].has_parent("GO:0005575"):
-            CPs.append(term)
+            CPs.append(GO_dag[term].id)
         elif term == "GO:0008150" or GO_dag[term].has_parent("GO:0008150"):
-            BPs.append(term)
+            BPs.append(GO_dag[term].id)
         else:
             try:
                 GO_id = GO_dag[term].id
@@ -645,6 +665,16 @@ def divide_into_categories(GOterm_list, GO_dag,
             else:
                 MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
     return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
+
+def get_entity_type_from_GO_term(term, GO_dag):
+    if term == "GO:0003674" or GO_dag[term].has_parent("GO:0003674"):
+        return "-23"
+    elif term == "GO:0005575" or GO_dag[term].has_parent("GO:0005575"):
+        return "-22"
+    elif term == "GO:0008150" or GO_dag[term].has_parent("GO:0008150"):
+        return "-21"
+    else:
+        return "-24"
 
 def parse_uniprot_dat_dump_yield_entry(fn_in):
     """
@@ -842,6 +872,8 @@ def parse_string_go_yield_entry(fn_in):
     did_first = False
     for line in yield_line_uncompressed_or_gz_file(fn_in):
         TaxID, ENSP_without_TaxID, EntityType, GOterm, *rest = line.split()
+        if not GOterm.startswith("GO:"):
+            continue
         ENSP = TaxID + "." + ENSP_without_TaxID
         if not did_first:
             ENSP_previous = ENSP
@@ -1148,7 +1180,8 @@ def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_d
     obo = OBOReader_2_text(fn)
     fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_UPK.txt")
     fn_funcs = os.path.join(TABLES_DIR, "Functions_table_UPK.txt")
-    type_ = "UPK"
+    # type_ = "UPK"
+    etype = "-51"
     # fn_descr = os.path.join(TABLES_DIR, "Function_2_definition_table_UPK.txt")
     with open(fn_funcs, "w") as fh_funcs:
         with open(fn_child2parent, "w") as fh_child2parent:
@@ -1157,7 +1190,8 @@ def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_d
                 id_, name, is_a_list, definition = entry
                 id_ = id_.replace("KW-", "UPK:")
                 # line2write_func = type_ + "\t" + name + "\t" + id_ + "\n"
-                line2write_func = type_ + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
+                # line2write_func = type_ + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
+                line2write_func = etype + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
                 fh_funcs.write(line2write_func)
                 for parent in is_a_list:
                     parent = parent.replace("KW-", "UPK:")
@@ -1176,16 +1210,19 @@ def create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_def
     print("create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO")
     fn = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
     obo = OBOReader_2_text(fn)
+    GO_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "go-basic.obo"), upk=False)
     fn_child2parent = os.path.join(TABLES_DIR, "Child_2_Parent_table_GO.txt")
     fn_funcs = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
-    type_ = "GO"
+    # type_ = "GO"
     # fn_descr = os.path.join(TABLES_DIR, "Function_2_definition_table_GO.txt")
     with open(fn_funcs, "w") as fh_funcs:
         with open(fn_child2parent, "w") as fh_child2parent:
             # with open(fn_descr, "w") as fh_descr:
             for entry in obo:
                 id_, name, is_a_list, definition = entry
-                line2write_func = type_ + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
+                # line2write_func = type_ + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
+                etype =  get_entity_type_from_GO_term(id_, GO_dag)
+                line2write_func = etype + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
                 fh_funcs.write(line2write_func)
                 for parent in is_a_list:
                     parent = parent.replace("KW-", "UPK:")
@@ -1581,11 +1618,11 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
 
     # DEBUG:
     no KEGG associations for given protein AN from mouse SwissProt entry
-    function_type = "KEGG"
+    entity_type = "KEGG"
     limit_2_parent = None
     basic_or_slim = "basic"
     protein_ans_list = ["Q6DFV6"]
-    assoc_dict = query.get_association_dict(connection, protein_ans_list, function_type, limit_2_parent, basic_or_slim)
+    assoc_dict = query.get_association_dict(connection, protein_ans_list, entity_type, limit_2_parent, basic_or_slim)
     assoc_dict
 
     but AN in mapping
@@ -1638,7 +1675,8 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
 def create_Functions_table_KEGG(fn_in=None, fn_out=None, verbose=True):
     # NOT static for STRING
     # static for aGOtool (at least CPR version hosted @ ku.sund.dk)
-    type_ = "KEGG"
+    # type_ = "KEGG"
+    etype = "-52"
     placeholder_for_definition = ""
     if fn_in is None:
         fn_in = os.path.join(STATIC_DIR, "KEGG_AN_2_Pathway_static.txt")
@@ -1653,7 +1691,8 @@ def create_Functions_table_KEGG(fn_in=None, fn_out=None, verbose=True):
                     continue
                 an, name = line.strip().split("\t")
                 an = "KEGG:" + an
-                string_2_write = type_ + "\t" + name + "\t" + an + "\t"+ placeholder_for_definition + "\n"
+                # string_2_write = type_ + "\t" + name + "\t" + an + "\t"+ placeholder_for_definition + "\n"
+                string_2_write = etype + "\t" + name + "\t" + an + "\t"+ placeholder_for_definition + "\n"
                 fh_out.write(string_2_write)
 
 def get_possible_ontology_functions_set():

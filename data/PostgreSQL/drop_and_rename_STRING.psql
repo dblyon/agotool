@@ -6,5 +6,7 @@ ALTER TABLE entity_types_temp RENAME TO entity_types;
 ALTER TABLE taxid_2_protein_temp RENAME TO taxid_2_protein;
 ALTER TABLE go_2_slim_temp RENAME TO go_2_slim;
 ALTER TABLE ontologies_temp RENAME TO ontologies;
+ALTER TABLE function_2_ensp_temp RENAME TO function_2_ensp;
 
 ALTER INDEX protein_2_function_an_etype_idx_temp RENAME TO protein_2_function_an_etype_idx;
+ALTER INDEX function_2_ensp_taxid_etype_idx_temp RENAME TO function_2_ensp_taxid_etype_idx;

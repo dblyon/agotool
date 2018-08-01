@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS functions_temp, protein_2_function_temp, entity_types_temp, taxid_2_protein_temp, go_2_slim_temp, ontologies_temp;
 
 CREATE TABLE functions_temp (
-    type text,
+    etype text,
     name text,
     an text,
     definition text);
@@ -24,7 +24,14 @@ CREATE TABLE ontologies_temp (
     child text,
     parent text,
     direct boolean,
-    type integer);
+    etype integer);
+CREATE TABLE function_2_ensp_temp (
+    taxid integer,
+    etype integer,
+    association text,
+    background_count integer,
+    background_n integer,
+    an_array text ARRAY);
 
 \copy functions_temp FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
 \copy protein_2_function_temp FROM '/agotool_data/PostgreSQL/tables/Protein_2_Function_table_STRING.txt';
@@ -32,40 +39,13 @@ CREATE TABLE ontologies_temp (
 \copy taxid_2_protein_temp FROM '/agotool_data/PostgreSQL/tables/TaxID_2_Proteins_table_STRING.txt';
 \copy go_2_slim_temp FROM '/agotool_data/PostgreSQL/tables/GO_2_Slim_table_STRING.txt';
 \copy ontologies_temp FROM '/agotool_data/PostgreSQL/tables/Ontologies_table_STRING.txt';
+\copy function_2_ensp_temp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
 
 CREATE INDEX protein_2_function_an_etype_idx_temp ON protein_2_function_temp (an, etype);
 CLUSTER protein_2_function_temp USING protein_2_function_an_etype_idx_temp;
 
--- ERROR MESSAGE
---$ docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql
---psql:/agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql:1: NOTICE:  table "functions_temp" does not exist, skipping
---psql:/agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql:1: NOTICE:  table "protein_2_function_temp" does not exist, skipping
---psql:/agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql:1: NOTICE:  table "entity_types_temp" does not exist, skipping
---psql:/agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql:1: NOTICE:  table "taxid_2_protein_temp" does not exist, skipping
---psql:/agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql:1: NOTICE:  table "go_2_slim_temp" does not exist, skipping
---psql:/agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql:1: NOTICE:  table "ontologies_temp" does not exist, skipping
---DROP TABLE
---CREATE TABLE
---CREATE TABLE
---CREATE TABLE
---CREATE TABLE
---CREATE TABLE
---CREATE TABLE
---COPY 48957
---COPY 49733306
---COPY 31
---COPY 5090
---COPY 149
---COPY 573189
---CREATE INDEX
---psql:/agotool_data/data/PostgreSQL/copy_from_file_and_index_STRING.psql:36: ERROR:  could not write block 627362 of temporary file: No space left on device
+CREATE INDEX function_2_ensp_taxid_idx_temp ON function_2_ensp_temp (taxid);
+CREATE INDEX function_2_ensp_taxid_etype_idx_temp ON function_2_ensp_temp (taxid, etype);
+CLUSTER function_2_ensp_temp USING function_2_ensp_taxid_etype_idx_temp;
 
--- potential solution
--- docker system prune
--- docker system prune -a --volumes
-
-
---DROP INDEX IF EXISTS protein_2_function_an_etype_idx_temp;
---CREATE INDEX protein_2_function_an_etype_idx_temp ON protein_2_function_temp (an, etype);
---VACUUM FULL;
---CLUSTER protein_2_function_temp USING protein_2_function_an_etype_idx_temp;
+CREATE INDEX taxid_2_protein_taxid_idx_temp ON taxid_2_protein_temp (taxid);
