@@ -11,15 +11,16 @@ DOCKER = True # local (bind-mounted volume if DOCKER=False --> version 1) vs. do
 
 DB_DOCKER = True # use local vs dockerized Postgres, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING =  True #True # profiling flaskapp --> check stdout, set to False in production
+PROFILING = False #True # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = True # print stuff to stdout
+VERBOSE = True #False # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 ############################
 
 function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
-entity_types = {'-21', '-22', '-23', '-51', '-52', '-53', '-54', '-55', '-56'}
+# entity_types = {'-21', '-22', '-23', '-51', '-52', '-53', '-54', '-55', '-56'}
+entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
 # "-21": {},  # | GO:0008150 | -21 | GO biological process |
 # "-22": {},  # | GO:0005575 | -22 | GO cellular component |
 # "-23": {},  # | GO:0003674 | -23 | GO molecular function |
@@ -29,7 +30,13 @@ entity_types = {'-21', '-22', '-23', '-51', '-52', '-53', '-54', '-55', '-56'}
 # "-54": {},  # InterPro
 # "-55": {},  # PFAM
 # "-56": {}   # PMID
-entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
+# entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
+entity_types_with_data_in_functions_table = {-21, -22, -23, -51, -52}
+functionType_2_entityType_dict = {"BP": -21,
+                                  "CP": -22,
+                                  "MF": -23,
+                                  "UPK": -51,
+                                  "KEGG": -52}
 
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))

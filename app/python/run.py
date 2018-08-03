@@ -4,119 +4,87 @@ sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
 import enrichment, tools, variables, query
 
 
-def run(pqo, ui,
-        gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
-        o_or_u_or_both, fold_enrichment_study2pop,
-        p_value_uncorrected, p_value_mulitpletesting):
-    if fold_enrichment_study2pop == 0:
-        fold_enrichment_study2pop = None
-    if p_value_mulitpletesting == 0:
-        p_value_mulitpletesting = None
-    if p_value_uncorrected == 0:
-        p_value_uncorrected = None
-    protein_ans_list = ui.get_all_unique_ANs()
-    function_type = get_function_type__and__limit_2_parent(gocat_upk)
-    assoc_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim=go_slim_or_basic)
-    ### now convert assoc_dict into proteinGroups to consensus assoc_dict
-    proteinGroups_list = ui.get_all_unique_proteinGroups()
-    assoc_dict_pg = tools.convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list)
-    assoc_dict.update(assoc_dict_pg)
-    # assoc_dict: remove ANs with empty set as values
-    assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1}
-    dag = pick_dag_from_function_type_and_basic_or_slim(function_type, go_slim_or_basic, pqo)
-    enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, o_or_u_or_both, multitest_method, gocat_upk, function_type)
-    header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
-    return header, results
+# def run(pqo, ui,
+#         gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
+#         o_or_u_or_both, fold_enrichment_for2background,
+#         p_value_uncorrected, p_value_mulitpletesting):
+#     if fold_enrichment_for2background == 0:
+#         fold_enrichment_for2background = None
+#     if p_value_mulitpletesting == 0:
+#         p_value_mulitpletesting = None
+#     if p_value_uncorrected == 0:
+#         p_value_uncorrected = None
+#     protein_ans_list = ui.get_all_unique_ANs()
+#     function_type = get_function_type__and__limit_2_parent(gocat_upk)
+#     assoc_dict = pqo.get_association_dict(protein_ans_list, gocat_upk, basic_or_slim=go_slim_or_basic)
+#     ### now convert assoc_dict into proteinGroups to consensus assoc_dict
+#     proteinGroups_list = ui.get_all_unique_proteinGroups()
+#     assoc_dict_pg = tools.convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list)
+#     assoc_dict.update(assoc_dict_pg)
+#     # assoc_dict: remove ANs with empty set as values
+#     assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1}
+#     dag = pick_dag_from_function_type_and_basic_or_slim(function_type, go_slim_or_basic, pqo)
+#     enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, o_or_u_or_both, multitest_method, gocat_upk, function_type)
+#     header, results = enrichment_study.write_summary2file_web(fold_enrichment_for2background, p_value_mulitpletesting, p_value_uncorrected, indent)
+#     return header, results
 
-def run_STRING_enrichment(pqo, ui,
-        gocat_upk, go_slim_or_basic, indent, multitest_method, alpha,
-        o_or_u_or_both, fold_enrichment_study2pop,
-        p_value_uncorrected, p_value_mulitpletesting):
-    if fold_enrichment_study2pop == 0:
-        fold_enrichment_study2pop = None
-    if p_value_mulitpletesting == 0:
-        p_value_mulitpletesting = None
+def run_STRING_enrichment(pqo, ui, enrichment_method="compare_samples",
+        limit_2_entity_type=None, go_slim_or_basic="basic", indent=True,
+        multitest_method="Benjamini_Hochberg", alpha=0.05, o_or_u_or_both="both",
+        fold_enrichment_for2background=None, p_value_uncorrected=None, FDR_cutoff=None, output_format="json"):
+    if FDR_cutoff == 0:
+        FDR_cutoff = None
+    if fold_enrichment_for2background == 0:
+        fold_enrichment_for2background = None
     if p_value_uncorrected == 0:
         p_value_uncorrected = None
     protein_ans_list = ui.get_all_unique_ANs()
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
     results_all_function_types = {}
-    for entity_type in etype_2_association_dict.keys(): #variables.entity_types:
-        # ToDo not implemented yet
-        if entity_type not in variables.entity_types_with_data_in_functions_table:
-            continue
+    if limit_2_entity_type is None:
+        entity_types_2_use = variables.entity_types_with_data_in_functions_table
+    else:
+        entity_types_2_use = limit_2_entity_type
+    for entity_type in entity_types_2_use:
         dag = pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, pqo)
         assoc_dict = etype_2_association_dict[entity_type]
-        if bool(assoc_dict): # not empty dictionary
-            ### assoc_dict: remove ANs with empty set as values --> don't think this is necessary since these rows should not exist in DB
-            # assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1}
-            enrichment_study = enrichment.EnrichmentStudy(ui, assoc_dict, dag, alpha, o_or_u_or_both, multitest_method, gocat_upk, entity_type)
-            header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
-            results_all_function_types[entity_type] = (header, results)
+        if bool(assoc_dict):
+            enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method, alpha=alpha,
+                                                          o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type,
+                                                          indent=indent)
+            result = enrichment_study.get_result(output_format, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
+            results_all_function_types[entity_type] = result
     return results_all_function_types
 
-def run_STRING_enrichment_speed(pqo, ui,
-        go_slim_or_basic, indent, multitest_method, alpha,
-        o_or_u_or_both, fold_enrichment_study2pop,
-        p_value_uncorrected, p_value_mulitpletesting, taxid, background_n=None):
-
-    if fold_enrichment_study2pop == 0:
-        fold_enrichment_study2pop = None
-    if p_value_mulitpletesting == 0:
-        p_value_mulitpletesting = None
-    if p_value_uncorrected == 0:
-        p_value_uncorrected = None
+def run_STRING_enrichment_genome(pqo, ui, taxid, background_n=None, output_format="json", FDR_cutoff=None):
     enrichment_method = ui.enrichment_method
-    # print("-"*20)
-    # print("enrichment_method: ", enrichment_method)
-    # print("-"*20)
     protein_ans_list = ui.get_all_unique_ANs()
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
     results_all_function_types = {}
-    if enrichment_method == "genome":
-        # ensps_taxid = query.get_proteins_of_taxid(taxid)
-        etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, _ = query.get_association_2_counts_split_by_entity(taxid)
-        # don't use etype_2_background_n but background_n above instead
-
-    ### ToDo
-    # create "method" "genome" (for background)
-    # no background has to be provided, but TaxID is being used
-    #   - for association dict ? --> only for selected species this could be stored in memory?
-    #   - precomputed counts for each TaxID in DB
-    # for api string calls don't do cleanup?
-
-    # ToDo not implemented yet for all asoiciations
+    etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]
     for entity_type in variables.entity_types_with_data_in_functions_table:
-        dag = pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, pqo)
+        dag = pick_dag_from_entity_type_and_basic_or_slim(entity_type, "basic", pqo)
         assoc_dict = etype_2_association_dict[entity_type]
         if bool(assoc_dict): # not empty dictionary
-            ### assoc_dict: remove ANs with empty set as values --> don't think this is necessary since these rows should not exist in DB
-            # assoc_dict = {key: val for key, val in assoc_dict.items() if len(val) >= 1},
-            if enrichment_method == "genome":
-                enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method,
-                    alpha=alpha, o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type,
-                    association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type],
-                    association_2_ANs_dict_background=etype_2_association_2_ANs_dict_background[entity_type],
-                    background_n=background_n)
-            else:
-                enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method,
-                    alpha=alpha, o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type)
-            header, results = enrichment_study.write_summary2file_web(fold_enrichment_study2pop, p_value_mulitpletesting, p_value_uncorrected, indent)
-            results_all_function_types[entity_type] = (header, results)
+            enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method,
+                o_or_u_or_both="overrepresented", multitest_method="Benjamini_Hochberg", entity_type=entity_type,
+                association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type],
+                background_n=background_n)
+            result = enrichment_study.get_result(output_format, FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
+            results_all_function_types[entity_type] = result
     return results_all_function_types
-
 
 def pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, pqo):
-    if entity_type in {'-21', '-22', '-23'}:
-        if go_slim_or_basic == "slim":
-            return pqo.goslim_dag
-        else:
+    if entity_type in {-21, -22, -23}:
+        if go_slim_or_basic == "basic":
             return pqo.go_dag
-    elif entity_type == "-51":
+        else:
+            return pqo.goslim_dag
+    elif entity_type == -51:
         return pqo.upk_dag
-    elif entity_type == "-52":
+    elif entity_type == -52:
         return pqo.kegg_pseudo_dag
-    elif entity_type in {"-53", "-54", "-55", "-56"}:
+    elif entity_type in {-53, -54, -55, -56}:
         return pqo.DOM_pseudo_dag
     else:
         raise StopIteration

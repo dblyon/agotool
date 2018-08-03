@@ -29,9 +29,9 @@ def get_something():
     return "Bubu was here"
 
 
-taxid_list = [9606, 10090, 4932,
+taxid_list = [9606, 10090, 4932, 511145,
               1038869, 32051]
-taxname_list = ["Homo sapiens", "Mus musculus", "Saccharomyces cerevisiae",
+taxname_list = ["Homo sapiens", "Mus musculus", "Saccharomyces cerevisiae", "Escherichia coli str. K-12 substr. MG1655",
                 "Paraburkholderia mimosarum",
                 "Synechococcus sp. WH 7803"]
 

@@ -100,7 +100,7 @@
 | UPK:0440 | UPK:9994 | 1 | -51 |
 
 
-## function_2_ENSP [Function_2_ENSP_STRING.txt]
+## function_2_ENSP [Function_2_ENSP_table_STRING.txt]
 ##### taxid(Integer); etype(Integer); association(Text); count(Integer); an_array(Text Array)
 ##### taxid_index, taxid_etype_index, cluster_taxid_etype
 ##### background_count: number of ENSPs per given association

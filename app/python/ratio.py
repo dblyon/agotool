@@ -93,10 +93,10 @@ def count_terms_proteinGroup_KEGG(ui, assoc_dict, sample_or_background):
         GOid2UniqueNumProtGroups_dict[key] = len(set(GOid2UniqueNumProtGroups_dict[key]))
     return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
 
-def count_terms_manager(ans_set, assoc_dict, obo_dag=None, method="not_KEGG"):
+def count_terms_manager(ans_set, assoc_dict, obo_dag=None, entity_type="-51"):
     if obo_dag is None:
         return count_terms_v3(ans_set, assoc_dict)
-    if method == "KEGG":
+    if entity_type == "52": #method == "KEGG" (KEGG entity_type: "52")
         return count_terms_v2_KEGG(ans_set, assoc_dict)
     else:
         return count_terms_v2(ans_set, assoc_dict, obo_dag)
@@ -133,18 +133,18 @@ def count_terms_v3(ans_set, assoc_dict):
     count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag)
     :return: Tuple(dict, dict, int)
     """
-    ans_counter = 0
+    # ans_counter = 0
     association_2_ANs_dict = {}
     association_2_count_dict = defaultdict(int)
     for an in (AN for AN in ans_set if AN in assoc_dict):
-        ans_counter += 1
+        # ans_counter += 1
         for association in assoc_dict[an]:
             association_2_count_dict[association] += 1
             if not association in association_2_ANs_dict:
                 association_2_ANs_dict[association] = {an}
             else:
                 association_2_ANs_dict[association] |= {an} # update dict
-    return association_2_count_dict, association_2_ANs_dict, ans_counter
+    return association_2_count_dict, association_2_ANs_dict, len(ans_set) #ans_counter
 
 def count_terms_v2_KEGG(ans_set, assoc_dict):
     """

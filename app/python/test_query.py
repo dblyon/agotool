@@ -15,7 +15,7 @@ def test_precomputed_associations_counts(pqo_STRING, TaxIDs):
     taxid = TaxIDs
     ENSPs_proteome = query.get_proteins_of_taxid(taxid)
     # A
-    etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, etype_2_background_n = query.get_association_2_counts_split_by_entity(taxid)
+    etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, etype_2_background_n = query.get_association_2_count_ANs_background_split_by_entity(taxid)
     etype_2_association_dict = pqo_STRING.get_association_dict_split_by_category(set(ENSPs_proteome))
     for etype in variables.entity_types_with_data_in_functions_table:
         # B

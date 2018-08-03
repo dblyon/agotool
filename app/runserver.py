@@ -26,6 +26,7 @@ DEBUG = variables.DEBUG
 PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
 MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
+functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 ###############################################################################
 # ToDo 2018
 # - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
@@ -66,17 +67,15 @@ def getitem(obj, item, default):
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
 
-
 if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
     # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[50]) # to view profiled code in shell
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=variables.DATA_DIR) # use qcachegrind to visualize
     ## iterm: "qcachegrind"
+    ## source activate agotool
     ## pyprof2calltree -i somethingsomething.prof -o something.prof
-    ## /Users/dblyon/anaconda3/envs/agotool/bin/pyprof2calltree -i POST.api_string.002346ms.1532618366.200CharacterizeForeground.prof -o POST.api_string.002346ms.1532618366.200CharacterizeForeground.prof.qcg
     ## open "something.prof" with qcachegrind -o something.prof
-
 
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
@@ -120,51 +119,10 @@ if PRELOAD:
 
     filter_ = cluster_filter.Filter(pqo.go_dag)
 
-################################################################################
-# REST API
-################################################################################
-### from https://code.tutsplus.com/tutorials/building-restful-apis-with-flask-diy--cms-26625
-# class Test_API(MethodView):
-#
-#     def get(self):
-#         result = {"something_something": 123,
-#                   "bubu": "else",
-#                   "x": 3.33}
-#         return jsonify(result)
-#         # return result
-#
-#     def post(self):
-#         # print("#"*10, "request.args start")
-#         # print(request.args)
-#         # print("#" * 10, "request.args stop")
-#         # return jsonify(request.form.to_dict())
-#         return jsonify(request.args)
-#
-# test_api_view =  Test_API.as_view('test_api_view')
-# app.add_url_rule('/test_api/', view_func=test_api_view, methods=['GET', 'POST'])
-# app.add_url_rule('/test_api/<int:id>', view_func=test_api_view, methods=['GET'])
-
-
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API
 api = Api(app)
 parser = reqparse.RequestParser()
-
-# parser.add_argument("AAA")
-
-class Test_API_v2(Resource):
-
-    def get(self):
-        # result = {"something_something": 123, "bubu": "else", "x": 3.33}
-        # return jsonify(result)
-        return self.post()
-
-    def post(self):
-        args = parser.parse_args()
-        return jsonify(args)
-
-api.add_resource(Test_API_v2, '/test_api_v2')
-
 
 ################################################################################
 ### STRING arguments/parameters
@@ -181,13 +139,97 @@ parser.add_argument("output_format", type=str,
     default="json")
 
 # STRING method is "enrichment", has nothing to do with aGOtool settings
-parser.add_argument("method", type=str,
-    help="Getting functional enrichment",
-    default="enrichment")
+# parser.add_argument("method", type=str,
+#     help="Getting functional enrichment",
+#     default="enrichment")
 
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
+
+parser.add_argument("FDR_cutoff", type=float,
+    help="False Discovery Rate minimum cutoff e.g. 0.05, default= no cutoff",
+    default=None)
+
+parser.add_argument("limit_2_entity_type", type=str,
+    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-51' (for GO molecular function and UniProt Keywords")
+
+################################################################################
+### aGOtool arguments/parameters
+parser.add_argument("foreground", type=str,
+    help="UniProt Accession Numbers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
+         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
+         "Isoforms are accepted. Delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
+    default=None)
+
+parser.add_argument("background", type=str,
+    help="UniProt Accession Numbers for all proteins in the background (the population, the group you want to compare your foreground to) "
+         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
+         "delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
+    default=None)
+
+parser.add_argument("intensity", type=str,
+    help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "
+         "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
+         "e.g. '12.3%0d3.4' ",
+    default=None)
+
+# parser.add_argument("gocat_upk", type=str,
+#     help="One or all three categories of GO terms, UniProt keywords, or KEGG pathways, one of {all_GO, BP, CP, MF, UPK, KEGG}",
+#     default="UPK") # deprecated for REST API, but used in web-form
+
+parser.add_argument("enrichment_method", type=str,
+    help="""abundance_correction: Foreground vs Background abundance corrected; genome: provided foreground vs genome; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; characterize_foreground: Foreground only""",
+    default="characterize_foreground")
+
+parser.add_argument("foreground_n", type=int,
+    help="Foreground_n is an integer, defines the number of sample of the foreground.",
+    default=10)
+
+parser.add_argument("background_n", type=int,
+    help="Background_n is an integer, defines the number of sample of the background.",
+    default=10)
+
+# parser.add_argument("abcorr", type=str,
+#     help="""Apply the abundance correction as described in the publication. A column named "background_int" (background intensity) that corresponds to the column "background_an" (background accession number) needs to be provided, when selecting this option. If "Abundance correction" is deselected "background_int" can be omitted.""",
+#     default="True")
+
+parser.add_argument("go_slim_or_basic", type=str,
+    help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
+    default="basic")
+
+parser.add_argument("indent", type=str,
+    help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
+    default="True") # should be boolean, but this works better
+
+parser.add_argument("multitest_method", type=str,
+    help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
+    default="benjamini_hochberg")
+
+parser.add_argument("alpha", type=float,
+    help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
+    default=0.05)
+
+parser.add_argument("o_or_u_or_both", type=str,
+    help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.",
+    default="overrepresented")
+
+parser.add_argument("num_bins", type=int,
+    help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.",
+    default=100)
+
+parser.add_argument("fold_enrichment_for2background", type=float,
+    help="Apply a filter for the minimum threshold value of fold enrichment foreground/background.",
+    default=0)
+
+parser.add_argument("p_value_uncorrected", type=float,
+    help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
+    default=0)
+
+parser.add_argument("p_value_multipletesting", type=float,
+    help="Apply a filter (value between 0 and 1) for the maximum value for the corrected p-value (FDR-cutoff)",
+    default=0)
+
 
 class API_STRING(Resource):
     """
@@ -213,11 +255,11 @@ class API_STRING(Resource):
         :return:
         """
         args_dict = parser.parse_args()
+        args_dict["indent"] = string_2_bool(args_dict["indent"])
         if args_dict.enrichment_method == "genome":
-            background_n = pqo.get_proteome_count_from_taxid(int(args_dict["taxid"]))
-            # print("_"*80, "background_n:", background_n)
+            background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
             if not background_n:
-                args_dict["WARNING/ERROR"] = "WARNING/ERROR: 'species': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["species"])
+                args_dict["WARNING/ERROR"] = "WARNING/ERROR: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
         else:
             background_n = None
@@ -228,132 +270,73 @@ class API_STRING(Resource):
             enrichment_method=args_dict["enrichment_method"],
             foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
         if ui.check:
-            results_all_function_types = run.run_STRING_enrichment_speed(pqo, ui,
-                # args_dict["gocat_upk"],
-                args_dict["go_slim_or_basic"],
-                args_dict["indent"],
-                args_dict["multitest_method"],
-                args_dict["alpha"],
-                args_dict["o_or_u_or_both"],
-                args_dict["fold_enrichment_study2pop"],
-                args_dict["p_value_uncorrected"],
-                args_dict["p_value_multipletesting"],
-                args_dict["taxid"], background_n)
-            return format_multiple_results(args_dict.output_format, results_all_function_types)
+            if args_dict["enrichment_method"] == "genome":
+                results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, taxid=args_dict["taxid"],
+                    background_n=background_n, output_format=args_dict["output_format"], FDR_cutoff=args_dict["FDR_cutoff"])
+            else:
+                results_all_function_types = run.run_STRING_enrichment(pqo, ui,
+                    enrichment_method=args_dict["enrichment_method"],
+                    limit_2_entity_type=args_dict["limit_2_entity_type"],
+                    go_slim_or_basic=args_dict["go_slim_or_basic"],
+                    indent=args_dict["indent"],
+                    multitest_method=args_dict["multitest_method"],
+                    alpha=args_dict["alpha"],
+                    o_or_u_or_both=args_dict["o_or_u_or_both"],
+                    fold_enrichment_for2background=args_dict["fold_enrichment_for2background"],
+                    p_value_uncorrected=args_dict["p_value_uncorrected"],
+                    FDR_cutoff=args_dict["FDR_cutoff"],
+                    output_format=args_dict["output_format"])
+
+                # def run_STRING_enrichment(pqo, ui, enrichment_method="compare_samples", limit_2_entity_type=None, go_slim_or_basic="basic", indent=True, multitest_method="Benjamini_Hochberg", alpha=0.05, o_or_u_or_both="both", fold_enrichment_for2background=None, p_value_uncorrected=None, FDR_cutoff=None, output_format="json"):
+
+            return results_all_function_types
+            # return format_multiple_results(args_dict.output_format, results_all_function_types)
         else:
             args_dict["WARNING/ERROR"] = "WARNING/ERROR: UserInput check not passed, please check your input and/or compare it to the examples."
             return help_page(args_dict)
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
-################################################################################
-### aGOtool arguments/parameters
-parser.add_argument("foreground", type=str,
-    help="UniProt Accession Numbers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
-         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
-         "Isoforms are accepted. Delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
-    default=None)
+def string_2_bool(string_):
+    string_ = string_.strip().lower()
+    if string_ == "true" or string_ == "1":
+        return True
+    elif string_ == "false" or string_ == "0":
+        return False
+    else:
+        raise NotImplementedError
 
-parser.add_argument("background", type=str,
-    help="UniProt Accession Numbers for all proteins in the background (the population, the group you want to compare your foreground to) "
-         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
-         "delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
-    default=None)
-
-parser.add_argument("intensity", type=str,
-    help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "
-         "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
-         "e.g. '12.3%0d3.4' ",
-    default=None)
-
-parser.add_argument("gocat_upk", type=str,
-    help="One or all three categories of GO terms, UniProt keywords, or KEGG pathways, one of {all_GO, BP, CP, MF, UPK, KEGG}",
-    default="UPK")
-
-parser.add_argument("enrichment_method", type=str,
-    help="""abundance_correction: Foreground vs Background abundance corrected; genome: provided foreground vs genome; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; characterize_foreground: Foreground only""",
-    default="characterize_foreground")
-
-parser.add_argument("foreground_n", type=int,
-    help="Foreground_n is an integer, defines the number of sample of the foreground.",
-    default=10)
-
-parser.add_argument("background_n", type=int,
-    help="Background_n is an integer, defines the number of sample of the background.",
-    default=10)
-
-parser.add_argument("abcorr", type=bool,
-    help="""Apply the abundance correction as described in the publication. A column named "background_int" (background intensity) that corresponds to the column "background_an" (background accession number) needs to be provided, when selecting this option. If "Abundance correction" is deselected "background_int" can be omitted.""",
-    default=True)
-
-parser.add_argument("go_slim_or_basic", type=str,
-    help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
-    default="basic")
-
-parser.add_argument("indent", type=bool,
-    help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
-    default=True)
-
-parser.add_argument("multitest_method", type=str,
-    help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
-    default="benjamini_hochberg")
-
-parser.add_argument("alpha", type=float,
-    help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
-    default=0.05)
-
-parser.add_argument("o_or_u_or_both", type=str,
-    help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.",
-    default="overrepresented")
-
-parser.add_argument("num_bins", type=int,
-    help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.",
-    default=100)
-
-parser.add_argument("fold_enrichment_study2pop", type=float,
-    help="Apply a filter for the minimum threshold value of fold enrichment study/population.",
-    default=0)
-
-parser.add_argument("p_value_uncorrected", type=float,
-    help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
-    default=0)
-
-parser.add_argument("p_value_multipletesting", type=float,
-    help="Apply a filter (value between 0 and 1) for the maximum value for the corrected p-value (FDR-cutoff)",
-    default=0)
-
-
-class API_agotool(Resource):
-
-    def get(self):
-        return self.post()
-
-    def post(self):
-        args_dict = parser.parse_args()
-
-        ui = userinput.REST_API_input(pqo,
-            foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
-            num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
-            foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
-        if ui.check:
-            header, results = run.run(pqo, ui,
-                args_dict["gocat_upk"],
-                args_dict["go_slim_or_basic"],
-                args_dict["indent"],
-                args_dict["multitest_method"],
-                args_dict["alpha"],
-                args_dict["o_or_u_or_both"],
-                args_dict["fold_enrichment_study2pop"],
-                args_dict["p_value_uncorrected"],
-                args_dict["p_value_multipletesting"])
-            return format_results(args_dict.output_format, header, results)
-        else:
-            return help_page(args_dict)
-
-api.add_resource(API_agotool, "/api_agotool", "/api_agotool/")
+# class API_agotool(Resource):
+#
+#     def get(self):
+#         return self.post()
+#
+#     def post(self):
+#         args_dict = parser.parse_args()
+#
+#         ui = userinput.REST_API_input(pqo,
+#             foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
+#             num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
+#             foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
+#         if ui.check:
+#             header, results = run.run(pqo, ui,
+#                 args_dict["gocat_upk"],
+#                 args_dict["go_slim_or_basic"],
+#                 args_dict["indent"],
+#                 args_dict["multitest_method"],
+#                 args_dict["alpha"],
+#                 args_dict["o_or_u_or_both"],
+#                 args_dict["fold_enrichment_for2background"],
+#                 args_dict["p_value_uncorrected"],
+#                 args_dict["p_value_multipletesting"])
+#             return format_results(args_dict.output_format, header, results)
+#         else:
+#             return help_page(args_dict)
+#
+# api.add_resource(API_agotool, "/api_agotool", "/api_agotool/")
 
 def help_page(args_dict):
-    pass
+    return jsonify(args_dict)
 
 def format_results(output_format, header, results):
     """
@@ -552,13 +535,14 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
 
-    gocat_upk = fields.SelectField("GO terms, UniProt keywords, or KEGG pathways",
-                                   choices = (("all_GO", "all GO categories"),
-                                              ("BP", "GO Biological Process"),
-                                              ("CP", "GO Celluar Compartment"),
-                                              ("MF", "GO Molecular Function"),
-                                              ("UPK", "UniProt keywords"),
-                                              ("KEGG", "KEGG pathways")),
+    limit_2_entity_type = fields.SelectField("GO terms, UniProt keywords, or KEGG pathways",
+
+                                   choices = (({-21, -22, -23}, "all GO categories"),
+                                              ({-21}, "GO Biological Process"),
+                                              ({-22}, "GO Celluar Compartment"),
+                                              ({-23}, "GO Molecular Function"),
+                                              ({-51}, "UniProt keywords"),
+                                              ({-52}, "KEGG pathways")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     enrichment_method = fields.SelectField("Select one of the following methods",
@@ -611,8 +595,8 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
                                    default = 100,
                                    description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
 
-    fold_enrichment_study2pop = fields.FloatField(
-        "fold enrichment study/population",
+    fold_enrichment_for2background = fields.FloatField(
+        "fold enrichment foreground/background",
         [validate_number], default = 0,
         description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
 
@@ -671,7 +655,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
-                form.fold_enrichment_study2pop.data,
+                form.fold_enrichment_for2background.data,
                 form.p_value_uncorrected.data,
                 form.p_value_multipletesting.data,
                 form.enrichment_method.data,
@@ -681,43 +665,63 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                 log_activity(string2log) # remove indentation
 
             if variables.VERSION_ == "STRING":
-                header, results = run.run_STRING_enrichment_speed(pqo, ui,
-                    form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data, form.multitest_method.data, form.alpha.data,
-                    form.o_or_u_or_both.data, form.fold_enrichment_study2pop.data,
-                    form.p_value_uncorrected.data, form.p_value_multipletesting.data, taxid)
+                results_all_function_types = run.run_STRING_enrichment(pqo, ui,
+                    enrichment_method=form.enrichment_method.data,
+                    limit_2_entity_type=form.limit_2_entity_type.data,
+                    go_slim_or_basic=form.go_slim_or_basic.data,
+                    indent=form.indent.data,
+                    multitest_method=form.multitest_method.data,
+                    alpha=form.alpha.data,
+                    o_or_u_or_both=form.o_or_u_or_both.alpha,
+                    fold_enrichment_for2background=form.fold_enrichment_for2background.data,
+                    p_value_uncorrected=form.p_value_uncorrected.data,
+                    FDR_cutoff=form.FDR_cutoff.data,
+                    output_format=form.output_format.data)
 
             elif variables.VERSION_ == "aGOtool":
                 header, results = run.run(pqo, ui, form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
                                     form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data,
-                                    form.fold_enrichment_study2pop.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)
+                                    form.fold_enrichment_for2background.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)
             else:
                 raise NotImplementedError
 
         else:
             return render_template('info_check_input.html')
 
-        if len(results) == 0:
+        if len(results_all_function_types) == 0:
             return render_template('results_zero.html')
-        else:
+        elif len(form.limit_2_entity_type.data) == 1:
             session_id = generate_session_id()
-            return generate_result_page(header, results, form.gocat_upk.data,
-                                        form.indent.data, session_id, form=Results_Form())
+            return generate_result_page(results_all_function_types[form.limit_2_entity_type.data], form.gocat_upk.data,
+                form.indent.data, session_id, form=Results_Form())
+        else:
+            raise NotImplementedError
+            # session_id = generate_session_id()
+            # return generate_result_page(results_all_function_types, form.gocat_upk.data,
+            #                             form.indent.data, session_id, form=Results_Form())
 
     return render_template('enrichment.html', form=form)
 
-def generate_result_page(header, results, gocat_upk, indent, session_id, form, errors=()):
-    header = header.rstrip().split("\t")
+def generate_result_page(df, gocat_upk, indent, session_id, form, errors=()):
+    # header = header.rstrip().split("\t")
+    if len(results_all_function_types) == 1:
+        df = results_all_function_types
+    df = df.applymap(str)
+    header = df.columns.tolist()
+    results = df.values.tolist()
+    results_2_display = ["\t".join(row) for row in results]
     ellipsis_indices = elipsis(header)
-    results2display = []
-    for res in results:
-        results2display.append(res.split('\t'))
+    # results2display = []
+    # for res in results:
+    #     results2display.append(res.split('\t'))
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     # fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
-    tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
+    # tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
+    tsv = df.to_csv(sep="\t", header=True, index=False)
     with open(fn_results_orig_absolute, 'w') as fh:
         fh.write(tsv)
-    return render_template('results.html', header=header, results=results2display, errors=errors,
+    return render_template('results.html', header=header, results=results_2_display, errors=errors,
                            file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
                            gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
 

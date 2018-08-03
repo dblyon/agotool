@@ -9,8 +9,11 @@ from ratio import count_terms
 
 class AbstractCorrection(object):
 
-    def __init__(self, pvals, a=.05):
-        self.pvals = self.corrected_pvals = np.array(pvals)
+    def __init__(self, pvals, a=.05, array=False):
+        if array:
+            self.pvals = self.corrected_pvals = pvals
+        else:
+            self.pvals = self.corrected_pvals = np.array(pvals)
         self.n = len(self.pvals)    # number of multiple tests
         self.a = a                  # type-1 error cutoff for each test
         self.set_correction()
@@ -116,17 +119,21 @@ def calc_qval_dbl(study_n, pop_n, pop, assoc, term_pop, obo_dag, T=500):
                         format(i, T, smallest_p), file=sys.stderr)
     return distribution
 
-def BenjaminiHochberg(pvals, num_total_tests):
-    '''
+def BenjaminiHochberg(pvals, num_total_tests, array=False):
+    """
     expects a sorted (ascending) list of uncorrected p-values
     and the total number of tests
     http://stats.stackexchange.com/questions/870/multiple-hypothesis-testing-correction-with-benjamini-hochberg-p-values-or-q-va
     http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1074290335
     :param pvals: ListOfFloat
     :param num_total_tests: Integer
+    :param array: Bool (flag to indicate if pvals are numpy array or list)
     :return: ListOfFloat
-    '''
-    p_values = np.array(pvals)
+    """
+    if array:
+        p_values = pvals # already passing np.array
+    else:
+        p_values = np.array(pvals)
     p_values_corrected = []
     prev_bh_value = 0
     for i, p_value in enumerate(p_values):

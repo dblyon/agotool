@@ -450,6 +450,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
 
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
+        # taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
+        self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity()
 
     def get_proteome_count_from_taxid(self, taxid):
         try:
@@ -481,7 +483,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list))
         for res in result:
             an, associations_list, etype = res
-            etype_2_association_dict[str(etype)][an] = set(associations_list)
+            etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
 
@@ -513,7 +515,7 @@ def get_TaxID_2_proteome_count_dict():
         taxid_2_proteome_count_dict[taxid] = count
     return taxid_2_proteome_count_dict
 
-def get_association_2_counts_split_by_entity(taxid):
+def get_association_2_count_ANs_background_split_by_entity(taxid):
     result = get_results_of_statement("SELECT * FROM function_2_ensp WHERE function_2_ensp.taxid={}".format(taxid))
 
     # to avoid checking for etype for each record, #!!!
@@ -525,11 +527,30 @@ def get_association_2_counts_split_by_entity(taxid):
 
     for rec in result:
         _, etype, association, background_count, background_n, an_array = rec
-        etype = str(etype)
+        # etype = str(etype)
         etype_2_association_2_count_dict_background[etype][association] = background_count
         etype_2_association_2_ANs_dict_background[etype][association] = set(an_array)
         etype_2_background_n[etype] = background_n
     return etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, etype_2_background_n
+
+def get_association_2_counts_split_by_entity():
+    # get all taxids to create a taxid to entity type and associations lookup
+    taxids = [taxid for taxid in get_taxids()]
+    taxid_2_etype_2_association_2_count_dict = {taxid: {} for taxid in taxids}
+    # create dict for each entity type of relevance (in order to avoid checking for existence each time afterwards)
+    for taxid in taxids:
+        etype_2_association_2_count_dict = taxid_2_etype_2_association_2_count_dict[taxid]
+        for etype in variables.entity_types_with_data_in_functions_table:
+            etype_2_association_2_count_dict[etype] = {}
+
+    result = get_results_of_statement("SELECT function_2_ensp.taxid, function_2_ensp.etype, function_2_ensp.association, function_2_ensp.background_count FROM function_2_ensp;")
+    for rec in result:
+        taxid, etype, association, background_count= rec
+        # etype = str(etype)
+        taxid = taxid
+        taxid_2_etype_2_association_2_count_dict[taxid][etype][association] = background_count
+    return taxid_2_etype_2_association_2_count_dict
+
 
 if __name__ == "__main__":
     # import os
