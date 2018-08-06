@@ -4,18 +4,18 @@
 ##### KEGG --> DONE (definition missing, placeholder empty string)
 ##### Domains ToDo missing
 ##### ? definition --> STRING?
-#####  type (Text); name(Text); an(Text); definition(Text)
-| etype | type | name | an | definition |
+#####  etype (Text); name(Text); an(Text); definition(Text)
+| etype | name | an | definition |
 |:---:|:---:|:---:|:---:|
-| -21 | GO | mitochondrion inheritance | GO:0000001 | "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764] |
-| -21 | GO | mitochondrial genome maintenance | GO:0000002 | "The maintenance of the structure and integrity of the mitochondrial genome; includes replication and segregation of the mitochondrial chromosome." [GOC:ai, GOC:vw] |
-| -52 | KEGG | Metabolic pathways | KEGG:01100 |
-| -52 | KEGG | Biosynthesis of secondary metabolites | KEGG:01110 |
-| -52 | KEGG | Microbial metabolism in diverse environments | KEGG:01120 |
-| -51 | UPK | 2Fe-2S | UPK:0001 | "Protein which contains at least one 2Fe-2S iron-sulfur cluster: 2 iron atoms complexed to 2 inorganic sulfides and 4 sulfur atoms of cysteines from the protein." [] |
-| -51 | UPK | 3D-structure | UPK:0002 | "Protein, or part of a protein, whose three-dimensional structure has been resolved experimentally (for example by X-ray crystallography or NMR spectroscopy) and whose coordinates are available in the PDB database. Can also be used for theoretical models." [] |
-| -51 | UPK | 4Fe-4S | UPK:0004 | "Protein which contains at least one 4Fe-4S iron-sulfur cluster: 4 iron atoms complexed to 4 inorganic sulfides and 4 sulfur atoms of cysteines from the protein. In a number of iron-sulfur proteins, the 4Fe-4S cluster can be reversibly converted by oxidation and loss of one iron ion to a 3Fe-4S cluster." [] |
-| -51 | UPK | Abscisic acid biosynthesis | UPK:0937 | "Protein involved in the synthesis of abscisic acid (ABA) (5-(1-hydroxy-2,6,6,trimethyl-4-oxocyclohex-2-en-1-y1)-3-methylpenta-2,4-dienoic acid). ABA is a plant hormone which play a role in many aspects of plant growth, development and cellular signaling (e.g. seed dormancy, seed maturation, vegetative growth and responses to various environmental stimuli such as stomatal closure during drought). This phytohormone can be synthesized from farnesyl diphosphate (direct C15 pathway) or from 9-cis-violaxanthine (indirect C40 pathway)." [] |
+| -21 | mitochondrion inheritance | GO:0000001 | "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764] |
+| -21 | mitochondrial genome maintenance | GO:0000002 | "The maintenance of the structure and integrity of the mitochondrial genome; includes replication and segregation of the mitochondrial chromosome." [GOC:ai, GOC:vw] |
+| -52 | Metabolic pathways | KEGG:01100 |
+| -52 | Biosynthesis of secondary metabolites | KEGG:01110 |
+| -52 | Microbial metabolism in diverse environments | KEGG:01120 |
+| -51 | 2Fe-2S | UPK:0001 | "Protein which contains at least one 2Fe-2S iron-sulfur cluster: 2 iron atoms complexed to 2 inorganic sulfides and 4 sulfur atoms of cysteines from the protein." [] |
+| -51 | 3D-structure | UPK:0002 | "Protein, or part of a protein, whose three-dimensional structure has been resolved experimentally (for example by X-ray crystallography or NMR spectroscopy) and whose coordinates are available in the PDB database. Can also be used for theoretical models." [] |
+| -51 | 4Fe-4S | UPK:0004 | "Protein which contains at least one 4Fe-4S iron-sulfur cluster: 4 iron atoms complexed to 4 inorganic sulfides and 4 sulfur atoms of cysteines from the protein. In a number of iron-sulfur proteins, the 4Fe-4S cluster can be reversibly converted by oxidation and loss of one iron ion to a 3Fe-4S cluster." [] |
+| -51 | Abscisic acid biosynthesis | UPK:0937 | "Protein involved in the synthesis of abscisic acid (ABA) (5-(1-hydroxy-2,6,6,trimethyl-4-oxocyclohex-2-en-1-y1)-3-methylpenta-2,4-dienoic acid). ABA is a plant hormone which play a role in many aspects of plant growth, development and cellular signaling (e.g. seed dormancy, seed maturation, vegetative growth and responses to various environmental stimuli such as stomatal closure during drought). This phytohormone can be synthesized from farnesyl diphosphate (direct C15 pathway) or from 9-cis-violaxanthine (indirect C40 pathway)." [] |
 
 
 ## protein_2_function [Protein_2_Function_table_STRING.txt]

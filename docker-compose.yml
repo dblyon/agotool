@@ -24,7 +24,7 @@ services:
 
   flaskapp:
     image: "agotool"
-    build: . # uncomment to build from Dockerfile, else pull from dockerhub
+    build: #. # uncomment to build from Dockerfile, else pull from dockerhub
     # image: dblyon/python_agotool:latest
     volumes:
       # bind mounted volume from host, e.g. RW access from container.

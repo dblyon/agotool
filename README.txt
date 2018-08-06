@@ -164,6 +164,9 @@ docker run --rm \
   tar cvf /[TEMPORARY_DIRECTORY_TO_STORE_BACKUP_FILE]/[BACKUP_FILENAME].tar /[TEMPORARY_DIRECTORY_TO_STORE_VOLUME_DATA]
 # e.g.
 docker run --rm --volume agotool_agotool_data:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar cvf /bind_mount_dir/named_volume_agotool_data_backup_20180209.tar /named_volume_dir
+
+
+
 docker run --rm --volume agotool_dbdata:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar cvf /bind_mount_dir/named_volume_dbdata_backup_20180209.tar /named_volume_dir
 # restore
 docker run --rm \
@@ -174,6 +177,23 @@ docker run --rm \
 # e.g.
 docker run --rm --volume agotool_agotool_data:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar xvf /bind_mount_dir/named_volume_agotool_data_backup_20180209.tar -C /named_volume_dir --strip 1
 docker run --rm --volume agotool_dbdata:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar xvf /bind_mount_dir/named_volume_dbdata_backup_20180209.tar -C /named_volume_dir --strip 1
+
+##### beta version on aquarius
+### backup
+docker run --rm --volume agotool_agotool_data:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar cvf /bind_mount_dir/named_volume_agotool_data_backup_20180903.tar /named_volume_dir
+docker run --rm --volume agotool_dbdata:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar cvf /bind_mount_dir/named_volume_dbdata_backup_20180903.tar /named_volume_dir
+
+### copy files
+rsync -avv -e 'ssh -p 22222' /Users/dblyon/modules/cpr/agotool/named_volume_agotool_data_backup_20180903.tar dblyon@aquarius.meringlab.org://home/dblyon/agotool/data/named_volume_dbdata_backup_20180903.tar
+rsync -avv -e 'ssh -p 22222' ./named_volume_dbdata_backup_20180903.tar dblyon@aquarius.meringlab.org://home/dblyon/agotool/data/named_volume_dbdata_backup_20180903.tar
+
+### restore on aquarius
+docker run --rm --volume agotool_agotool_data:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar xvf /bind_mount_dir/named_volume_agotool_data_backup_20180903.tar -C /named_volume_dir --strip 1
+docker run --rm --volume agotool_dbdata:/named_volume_dir --volume $(pwd):/bind_mount_dir ubuntu tar xvf /bind_mount_dir/named_volume_dbdata_backup_20180903.tar -C /named_volume_dir --strip 1
+
+
+
+
 ##############################################################################
 ### tag and push flaskapp to dockerhub/docker cloud
 docker tag 3d5c5b99296e dblyon/agotool_flaskapp
