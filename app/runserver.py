@@ -649,9 +649,9 @@ def results():
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """gocat_upk: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
+            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
 o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\n\
-p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.data,
+p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data,
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
@@ -679,7 +679,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
                     output_format=form.output_format.data)
 
             elif variables.VERSION_ == "aGOtool":
-                header, results = run.run(pqo, ui, form.gocat_upk.data, form.go_slim_or_basic.data, form.indent.data,
+                header, results = run.run(pqo, ui, form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.indent.data,
                                     form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data,
                                     form.fold_enrichment_for2background.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)
             else:
@@ -692,7 +692,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
             return render_template('results_zero.html')
         elif len(form.limit_2_entity_type.data) == 1:
             session_id = generate_session_id()
-            return generate_result_page(results_all_function_types[form.limit_2_entity_type.data], form.gocat_upk.data,
+            return generate_result_page(results_all_function_types[form.limit_2_entity_type.data], form.limit_2_entity_type.data,
                 form.indent.data, session_id, form=Results_Form())
         else:
             raise NotImplementedError
@@ -702,7 +702,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.gocat_upk.
 
     return render_template('enrichment.html', form=form)
 
-def generate_result_page(df, gocat_upk, indent, session_id, form, errors=()):
+def generate_result_page(df, limit_2_entity_type, indent, session_id, form, errors=()):
     # header = header.rstrip().split("\t")
     if len(results_all_function_types) == 1:
         df = results_all_function_types
@@ -723,7 +723,8 @@ def generate_result_page(df, gocat_upk, indent, session_id, form, errors=()):
         fh.write(tsv)
     return render_template('results.html', header=header, results=results_2_display, errors=errors,
                            file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
-                           gocat_upk=gocat_upk, indent=indent, session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
+                           limit_2_entity_type=limit_2_entity_type, indent=indent,
+                           session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
 
 ################################################################################
 # results_back.html
@@ -736,11 +737,11 @@ def results_back():
     as initially
     """
     session_id = request.form['session_id']
-    gocat_upk = request.form['gocat_upk']
+    limit_2_entity_type = request.form['limit_2_entity_type']
     indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
-    return generate_result_page(header, results, gocat_upk, indent, session_id, form=Results_Form())
+    return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=Results_Form())
 
 ################################################################################
 # results_filtered.html
@@ -748,14 +749,14 @@ def results_back():
 @app.route('/results_filtered', methods=["GET", "POST"])
 def results_filtered():
     indent = request.form['indent']
-    gocat_upk = request.form['gocat_upk']
+    limit_2_entity_type = request.form['limit_2_entity_type']
     session_id = request.form['session_id']
 
     # original unfiltered/clustered results
     file_name_orig, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
 
-    if not gocat_upk == "UPK":
+    if limit_2_entity_type in {-21, -22, -23}:
         results_filtered = filter_.filter_term_lineage(header, results, indent)
 
         # filtered results
@@ -770,11 +771,11 @@ def results_filtered():
             results2display.append(res.split('\t'))
         ip = request.environ['REMOTE_ADDR']
         string2log = "ip: " + ip + "\n" + "Request: results_filtered" + "\n"
-        string2log += """gocat_upk: {}\nindent: {}\n""".format(gocat_upk, indent)
+        string2log += """limit_2_entity_type: {}\nindent: {}\n""".format(limit_2_entity_type, indent)
         log_activity(string2log)
         return render_template('results_filtered.html', header=header, results=results2display, errors=[],
                                file_path_orig=file_name_orig, file_path_filtered=file_name_filtered,
-                               ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id)
+                               ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id)
     else:
         return render_template('index.html')
 
@@ -786,17 +787,17 @@ def results_clustered():
     form = Results_Form(request.form)
     inflation_factor = form.inflation_factor.data
     session_id = request.form['session_id']
-    gocat_upk = request.form['gocat_upk']
+    limit_2_entity_type = request.form['limit_2_entity_type ']
     indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
     if not form.validate():
-        return generate_result_page(header, results, gocat_upk, indent, session_id, form=form)
+        return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form)
     try:
         mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
         cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
     except cluster_filter.TimeOutException:
-        return generate_result_page(header, results, gocat_upk, indent, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)])
+        return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)])
 
     num_clusters = len(cluster_list)
     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
@@ -815,11 +816,11 @@ def results_clustered():
     ellipsis_indices = elipsis(header)
     ip = request.environ['REMOTE_ADDR']
     string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
-    string2log += """gocat_upk: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(gocat_upk, indent, num_clusters, inflation_factor)
+    string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, indent, num_clusters, inflation_factor)
     log_activity(string2log)
     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
                            file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
-                           ellipsis_indices=ellipsis_indices, gocat_upk=gocat_upk, indent=indent, session_id=session_id,
+                           ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id,
                            num_clusters=num_clusters, inflation_factor=inflation_factor)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
@@ -838,4 +839,4 @@ if __name__ == "__main__":
 
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
-    app.run(host='0.0.0.0', port=5911, processes=1, debug=variables.DEBUG)
+    app.run(host='0.0.0.0', port=5912, processes=1, debug=variables.DEBUG)

@@ -64,7 +64,7 @@
         <div class="row">
             <h3>Keyword association</h3>
             <div class="col-md-10">
-                <span title="{{ form.gocat_upk.description }}"> {{ form.gocat_upk.label }}: {{ form.gocat_upk() }} <br> </span>
+                <span title="{{ form.limit_2_entity_type.description }}"> {{ form.limit_2_entity_type.label }}: {{ form.limit_2_entity_type() }} <br> </span>
 {#                <div class="GO_basic_slim_backtracking">#}
 {#                    <span class="ONTOLOGY" title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>#}
 {#                    <span class="ONTOLOGY" title="{{ form.backtracking.description }}"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>#}
@@ -88,9 +88,9 @@
             <div class="col-md-5">
                 <h4>Filter results</h4>
                 <table>
-                <tr title="{{ form.fold_enrichment_study2pop.description }}"><td class="somename">{{ form.fold_enrichment_study2pop.label }}: </td><td>{{ form.fold_enrichment_study2pop() }}</td>
-                    {% if form.fold_enrichment_study2pop.errors %}
-                    <tr><td colspan="2"><ul class="errors"> {% for error in form.fold_enrichment_study2pop.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                <tr title="{{ form.fold_enrichment_for2background.description }}"><td class="somename">{{ form.fold_enrichment_for2background.label }}: </td><td>{{ form.fold_enrichment_for2background() }}</td>
+                    {% if form.fold_enrichment_for2background.errors %}
+                    <tr><td colspan="2"><ul class="errors"> {% for error in form.fold_enrichment_for2background.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
                 </tr>
                 <tr  title="{{ form.p_value_uncorrected.description }}"><td class="somename">{{ form.p_value_uncorrected.label }}: </td><td>{{ form.p_value_uncorrected() }}</td>

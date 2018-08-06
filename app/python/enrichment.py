@@ -105,7 +105,8 @@ class EnrichmentStudy(object):
 
     def get_result(self, output_format="json", FDR_cutoff=None, fold_enrichment_for2background=None, p_value_uncorrected=None):
         self.df = self.filter_results(self.df, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
-        self.df["p_uncorrected"] = self.df["p_uncorrected"].apply(lambda x: "{:.2E}".format(Decimal(x)))
+        if self.method != "characterize_foreground": # since no p-values available
+            self.df["p_uncorrected"] = self.df["p_uncorrected"].apply(lambda x: "{:.2E}".format(Decimal(x)))
         if output_format == "json":
             return self.df.to_json(orient='records')
         elif output_format == "tsv":
@@ -219,7 +220,10 @@ class EnrichmentStudy(object):
                     p_val_uncorrected = fisher_dict[(a, b, c, d)]
                 except KeyError:
                     # p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='less')[1]
-                    p_val_uncorrected = pvalue(a, b, c, d).right_tail
+                    if a == c and b == d:
+                        p_val_uncorrected = 1
+                    else:
+                        p_val_uncorrected = pvalue(a, b, c, d).right_tail
                     fisher_dict[(a, b, c, d)] = p_val_uncorrected
             elif self.o_or_u_or_both == 'both':
                 # both --> two_tail or two-sided
@@ -234,7 +238,10 @@ class EnrichmentStudy(object):
                     p_val_uncorrected = fisher_dict[(a, b, c, d)]
                 except KeyError: # why not tuple instead of list #!!!
                     # p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
-                    p_val_uncorrected = pvalue(a, b, c, d).left_tail
+                    if a == c and b == d:
+                        p_val_uncorrected = 1
+                    else:
+                        p_val_uncorrected = pvalue(a, b, c, d).left_tail
                     fisher_dict[(a, b, c, d)] = p_val_uncorrected
             else:
                 raise StopIteration

@@ -61,5 +61,5 @@ COPY . /opt/services/flaskapp/src
 COPY ./app/.bashrc /root/.bashrc
 
 WORKDIR /opt/services/flaskapp/src
-EXPOSE 5911
+EXPOSE 5912
 CMD ["python", "runserver.py"]
