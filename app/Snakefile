@@ -3,7 +3,7 @@ import gzip
 rule map_string2interpro:
     input:
         # string2uniprot = '/mnt/mnemo4/damian/STRING_derived_v11/uniprot/string_2_uniprot_1_to_1.jan2018.tsv.gz',
-        string2uniprot = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/full_uniprot_2_string.jan_2018.tsv',
+        string2uniprot = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/full_uniprot_2_string.jan_2018.clean.tsv',
         # uniprot2interpro = '/mnt/gaia/davide/eggnog/domain_benchmark/interpro.64/protein2ipr.dat.gz'
         uniprot2interpro = '/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/protein2ipr.dat.gz'
     output:

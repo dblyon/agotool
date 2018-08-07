@@ -248,7 +248,7 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
     create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
     ### - Functions_2_ENSP_table
-    ##### dependency on creating DB first
+    ##### dependency on creating DB first #!!!
     fn_out = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
     pqo = query.PersistentQueryObject_STRING()
     create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose)
