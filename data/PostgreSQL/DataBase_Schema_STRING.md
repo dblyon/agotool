@@ -16,6 +16,8 @@
 | -51 | 3D-structure | UPK:0002 | "Protein, or part of a protein, whose three-dimensional structure has been resolved experimentally (for example by X-ray crystallography or NMR spectroscopy) and whose coordinates are available in the PDB database. Can also be used for theoretical models." [] |
 | -51 | 4Fe-4S | UPK:0004 | "Protein which contains at least one 4Fe-4S iron-sulfur cluster: 4 iron atoms complexed to 4 inorganic sulfides and 4 sulfur atoms of cysteines from the protein. In a number of iron-sulfur proteins, the 4Fe-4S cluster can be reversibly converted by oxidation and loss of one iron ion to a 3Fe-4S cluster." [] |
 | -51 | Abscisic acid biosynthesis | UPK:0937 | "Protein involved in the synthesis of abscisic acid (ABA) (5-(1-hydroxy-2,6,6,trimethyl-4-oxocyclohex-2-en-1-y1)-3-methylpenta-2,4-dienoic acid). ABA is a plant hormone which play a role in many aspects of plant growth, development and cellular signaling (e.g. seed dormancy, seed maturation, vegetative growth and responses to various environmental stimuli such as stomatal closure during drought). This phytohormone can be synthesized from farnesyl diphosphate (direct C15 pathway) or from 9-cis-violaxanthine (indirect C40 pathway)." [] |
+| -53 | 14_3_3 | SM00101 | "14-3-3 homologues; 14-3-3 homologues mediates signal transduction..." |
+| -53 | 35EXOc | SM00474 | "3'-5' exonuclease; 3\' -5' exonuclease proofreading domain presen..." |
 
 
 ## protein_2_function [Protein_2_Function_table_STRING.txt]
@@ -31,7 +33,7 @@
 | 9606.ENSP00000000233 | {"IPR005225","IPR006689","IPR024156","IPR027417"} | -54 |
 | 9606.ENSP00000000233 | {"KEGG:04144"} | -52 |
 | 9606.ENSP00000000233 | {"UPK:0002","UPK:0181","UPK:0333","UPK:0342","UPK:0449","UPK:0472","UPK:0519","UPK:0547","UPK:0653","UPK:0813","UPK:0931","UPK:0963","UPK:1185","UPK:9990","UPK:9991","UPK:9993","UPK:9998","UPK:9999"} | -51 |
-| 9606.ENSP00000000412 | {"ATG27","Man-6-P_recep"} | -53 |
+| 9606.ENSP00000000412 | {"ATG27","Man-6-P_recep"} | -55 |
 
 
 ## entity_types [Entity_types_table_STRING.txt]
