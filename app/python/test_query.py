@@ -78,13 +78,13 @@ def test_ENSP_overlap_of_DB():
         assert len(ensp_taxid_2_protein.intersection(ensp_protein_2_function)) == len_ensp_protein_2_function
         assert len(ensp_taxid_2_protein.union(ensp_protein_2_function)) == len_ensp_taxid_2_protein
 
-def test_bubu(pqo_STRING):
+def test_(pqo_STRING):
     """
     all functional associations of given taxid and ensp from protein_2_function need be present in function_2_ensp
     """
     # generator to retrieve row by row from table is not supported by psycopg2 module that accesses PostgreSQL for python
     # therefore reading table used for DB generation 'copy from file'
-    pqo_STRING
+    taxid_2_etype_2_association_2_count_dict_background = pqo_STRING.taxid_2_etype_2_association_2_count_dict_background
     fn = variables.TABLES_DIR("Protein_2_Function_table_STRING.txt")
     with open(fn, "r") as fh:
         for line in fh:
@@ -92,7 +92,7 @@ def test_bubu(pqo_STRING):
             taxid = int(ENSP[:ENSP.find(".")])
             etype = int(etype)
             association_array = literal_eval(association_array)
-
-
+            # assert len(association_array) ==
+            association_2_count_dict = taxid_2_etype_2_association_2_count_dict_background[taxid][etype]
 
 

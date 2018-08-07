@@ -164,89 +164,88 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
             with open(fn, "a+") as fh:
                 fh.write("\n{}\n{}\n".format("######\n# Current Date and Time", datetime.datetime.now().isoformat()))
 
-    # GO_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "go-basic.obo"), upk=False)
-    # UPK_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "keywords-all.obo"), upk=True)
+    GO_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "go-basic.obo"), upk=False)
+    UPK_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "keywords-all.obo"), upk=True)
 
     ### - Ontologies (Child_2_Parent)
-    # create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
-    # create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
-    # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
-    # fn_out = os.path.join(TABLES_DIR, "Ontologies_table_STRING.txt")
-    # create_Ontologies_table(fn_list, fn_out)
+    create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
+    create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
+    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
+    fn_out = os.path.join(TABLES_DIR, "Ontologies_table_STRING.txt")
+    create_Ontologies_table(fn_list, fn_out)
 
     ### - GO_2_Slim_table
-    # create_GO_2_Slim_table(fn_out=os.path.join(TABLES_DIR, "GO_2_Slim_table_STRING.txt"))
+    create_GO_2_Slim_table(fn_out=os.path.join(TABLES_DIR, "GO_2_Slim_table_STRING.txt"))
 
     ##### - Protein_2_Function_table
     ### - Protein_2_Function_table_Interpro
-    # fn_in = os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz")
-    # fn_in_temp = fn_in + "_temp"
-    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
-    # create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
-    # if delete_temp_files:
-    #     tables_to_remove_temp.append(fn_in_temp)
+    fn_in = os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz")
+    fn_in_temp = fn_in + "_temp"
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
+    create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    if delete_temp_files:
+        tables_to_remove_temp.append(fn_in_temp)
 
     ### - Protein_2_Function_table_SMART
-    # fn_in = os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.sql")
-    # fn_in_temp = fn_in + "_temp"
-    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
-    # create_Protein_2_Function_table_SMART(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
-    # if delete_temp_files:
-    #     tables_to_remove_temp.append(fn_in_temp)
+    fn_in = os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.sql")
+    fn_in_temp = fn_in + "_temp"
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
+    create_Protein_2_Function_table_SMART(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    if delete_temp_files:
+        tables_to_remove_temp.append(fn_in_temp)
 
     ### - Protein_2_Function_table_GO
-    # fn_in = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz"
-    # fn_in_temp = fn_in + "_temp"
-    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
-    # create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
-    # if delete_temp_files:
-    #     tables_to_remove_temp.append(fn_in_temp)
+    fn_in = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz"
+    fn_in_temp = fn_in + "_temp"
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
+    create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    if delete_temp_files:
+        tables_to_remove_temp.append(fn_in_temp)
 
     ### - Protein_2_Function_table_UniProtKeyword
-    # fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
-    # fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
-    # fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.tsv")
-    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtKeyword.txt")
-    # UPK_Name_2_AN_dict = get_keyword_2_upkan_dict() # depends on create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK
-    # create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out, number_of_processes=number_of_processes, verbose=verbose)
-
+    fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
+    fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
+    fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtKeyword.txt")
+    UPK_Name_2_AN_dict = get_keyword_2_upkan_dict() # depends on create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK
+    create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
     ### - Protein_2_Function_table_KEGG
-    # fn_in = os.path.join(DOWNLOADS_DIR, "kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv")
-    # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
-    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
-    # create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    fn_in = os.path.join(DOWNLOADS_DIR, "kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv")
+    fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
+    create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
     """
     # sanity check for number of ENSP to KEGG matches
     # sum the counts of ENSPs in the original mapping (ignoring KEGG-functions with "CONN")
     # cat kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv | grep -v "CONN" | cut -f 3 | paste -sd+ | bc
     # compare to # $ wc -l Protein_2_Function_table_KEGG_temp.txt --> 7614709
     # """
-    # fn_list = [os.path.join(TABLES_DIR, fn) for fn in
-    #            ["Protein_2_Function_table_GO.txt",
-    #             "Protein_2_Function_table_InterPro.txt",
-    #             "Protein_2_Function_table_KEGG.txt",
-    #             "Protein_2_Function_table_SMART.txt",
-    #             "Protein_2_Function_table_UniProtKeyword.txt"]]
-    # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-    # concatenate_files(fn_list, fn_out)
-    # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+    fn_list = [os.path.join(TABLES_DIR, fn) for fn in
+               ["Protein_2_Function_table_GO.txt",
+                "Protein_2_Function_table_InterPro.txt",
+                "Protein_2_Function_table_KEGG.txt",
+                "Protein_2_Function_table_SMART.txt",
+                "Protein_2_Function_table_UniProtKeyword.txt"]]
+    fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+    concatenate_files(fn_list, fn_out)
+    sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
 
     ### - Functions_table (dependency on "create_Functions_table_KEGG")
     ##### - Functions_table_KEGG
-    # fn_in = os.path.join(DOWNLOADS_DIR, "pathway.list")
-    # fn_out = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
-    # create_Functions_table_KEGG(fn_in=fn_in, fn_out=fn_out)
-    # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt", "Functions_table_KEGG.txt"]]
-    # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
-    # print("creating {} by concatenation and sorting".format(fn_out))
-    # concatenate_files(fn_list, fn_out)
+    fn_in = os.path.join(DOWNLOADS_DIR, "pathway.list")
+    fn_out = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
+    create_Functions_table_KEGG(fn_in=fn_in, fn_out=fn_out)
+    fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt", "Functions_table_KEGG.txt"]]
+    fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+    print("creating {} by concatenation and sorting".format(fn_out))
+    concatenate_files(fn_list, fn_out)
 
     ### - TaxID_2_Proteins_table
-    # fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
-    # fn_out_temp = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt_sorted_temp.txt")
-    # fn_out = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
-    # create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+    fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
+    fn_out_temp = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt_sorted_temp.txt")
+    fn_out = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+    create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
     ### - Functions_2_ENSP_table
     ##### dependency on creating DB first
