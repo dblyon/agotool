@@ -35,9 +35,6 @@ def test_count_terms_v3(random_foreground_background, pqo_STRING):
         association_2_count_dict_v3, association_2_ANs_dict_v3, ans_counter_v3 = ratio.count_terms_v3(set(background), assoc_dict)
         assert association_2_count_dict_v2 == association_2_count_dict_v3
         assert association_2_ANs_dict_v2 == association_2_ANs_dict_v3
-        # assert ans_counter_v2 == ans_counter_v3
-        # assert association_2_count_dict_v2 <= association_2_count_dict_v3
-        # assert association_2_ANs_dict_v2.items() <= association_2_ANs_dict_v3.items()
         assert ans_counter_v2 <= ans_counter_v3
 
 def test_EnrichmentStudy_genome(random_foreground_background, pqo_STRING):
@@ -59,7 +56,7 @@ def test_EnrichmentStudy_genome(random_foreground_background, pqo_STRING):
     ui = userinput.REST_API_input(pqo_STRING,
         foreground_string=format_for_REST_API(foreground),
         background_string=format_for_REST_API(background),
-        enrichment_method="genome", background_n=len(background))
+        enrichment_method="genome") #, background_n=len(background))
     etype_2_association_dict_foreground = pqo_STRING.get_association_dict_split_by_category(foreground)
     etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, _ = query.get_association_2_count_ANs_background_split_by_entity(taxid)
     for entity_type in variables.entity_types_with_data_in_functions_table:
@@ -74,6 +71,7 @@ def test_EnrichmentStudy_genome(random_foreground_background, pqo_STRING):
                 background_n=background_n)
             result = enrichment_study.get_result(output_format)
             assert result # not an empty dict
+
 
 def test_run_STRING_enrichment(pqo_STRING):
     ### STRING example #1

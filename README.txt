@@ -458,7 +458,7 @@ docker run --rm -it --volume /Users/dblyon/modules/cpr/agotool:/mounted_data --v
 
 #### building working DB for STRING version_
 # create DBs
-docker exec -it agotool_db_1 psql -U postgres -d agotool -f /agotool_data/data/PostgreSQL/create_DBs.psql
+docker exec -it agotool_db_1 psql -U postgres -d postgres -f /agotool_data/PostgreSQL/create_DBs.psql
 # test DB
 docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/PostgreSQL/copy_from_file_and_index_TEST_STRING.psql
 docker exec -it agotool_db_1 psql -U postgres -d gostring_test -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql

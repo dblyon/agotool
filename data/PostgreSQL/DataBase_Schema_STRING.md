@@ -34,7 +34,6 @@
 | 9606.ENSP00000000412 | {"ATG27","Man-6-P_recep"} | -53 |
 
 
-
 ## entity_types [Entity_types_table_STRING.txt]
 ##### AccessionNumber(Text); EntityType(Integer); Name(Text)
 | an | etype | name |
@@ -109,8 +108,7 @@
 |:---:|:---:|:---:|:---:|:---:|
 | 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } |
 | 9606 | -21 | 'GO:0006897' | 2 | 3919 | {'9606.ENSP00000000412', ...} |
-| 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'9606.ENSP00000000412'}|
+| 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'9606.ENSP00000000412'} |
 
 # ToDo
 # write test: check association_dict of random ENSPs is proper subset of association_dict_proteome
-# remove ANs_background from method "genome"

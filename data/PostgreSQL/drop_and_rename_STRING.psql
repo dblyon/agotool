@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS functions, protein_2_function, entity_types, taxid_2_protein, go_2_slim, ontologies;
+DROP TABLE IF EXISTS functions, protein_2_function, entity_types, taxid_2_protein, go_2_slim, ontologies, function_2_ensp;
 
 ALTER TABLE functions_temp RENAME TO functions;
 ALTER TABLE protein_2_function_temp RENAME TO protein_2_function;

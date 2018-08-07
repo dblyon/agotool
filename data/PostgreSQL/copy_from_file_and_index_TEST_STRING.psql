@@ -25,6 +25,14 @@ CREATE TABLE ontologies_temp (
     parent text,
     direct boolean,
     type integer);
+CREATE TABLE function_2_ensp_temp (
+    taxid integer,
+    etype integer,
+    association text,
+    background_count integer,
+    background_n integer,
+    an_array text ARRAY);
+
 
 \copy functions_temp FROM '/agotool_data/PostgreSQL/tables/test/Functions_table_STRING.txt';
 \copy protein_2_function_temp FROM '/agotool_data/PostgreSQL/tables/test/Protein_2_Function_table_STRING.txt';
@@ -32,6 +40,10 @@ CREATE TABLE ontologies_temp (
 \copy taxid_2_protein_temp FROM '/agotool_data/PostgreSQL/tables/test/TaxID_2_Proteins_table_STRING.txt';
 \copy go_2_slim_temp FROM '/agotool_data/PostgreSQL/tables/test/GO_2_Slim_table_STRING.txt';
 \copy ontologies_temp FROM '/agotool_data/PostgreSQL/tables/test/Ontologies_table_STRING.txt';
+\copy function_2_ensp_temp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
 
 CREATE INDEX protein_2_function_an_etype_idx_temp ON protein_2_function_temp (an, etype);
 CLUSTER protein_2_function_temp USING protein_2_function_an_etype_idx_temp;
+CREATE INDEX function_2_ensp_taxid_idx_temp ON function_2_ensp_temp (taxid);
+CREATE INDEX function_2_ensp_taxid_etype_idx_temp ON function_2_ensp_temp (taxid, etype);
+CLUSTER function_2_ensp_temp USING function_2_ensp_taxid_etype_idx_temp;

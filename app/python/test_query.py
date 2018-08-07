@@ -6,6 +6,8 @@ import numpy as np
 from itertools import zip_longest
 import pytest
 import random
+from ast import literal_eval
+
 
 import variables, ratio, query, run
 
@@ -57,31 +59,40 @@ def test_association_2_count_dict(pqo_STRING, random_foreground_background):
             assert association in association_2_count_dict_background_v2
             assert association in association_2_ANs_dict_background_v2
 
+def test_ENSP_overlap_of_DB():
+    """
+    - ENSPs of taxid_2_protein_table are the superset of ENSPs of protein_2_function_table
+
+    foreground with functional association also has to be in the precomputed background
+    TaxID_2_Protein_table_STRING: ENSPs expected to be the superset of Protein_2_Function_table_STRING
+    Protein_2_Function_table_STRING
+    Function_2_ENSP_table_STRING
+    """
+    for taxid in query.get_taxids():
+        ensp_taxid_2_protein = set(query.get_proteins_of_taxid(taxid))
+        ensp_protein_2_function = {ele[0] for ele in query.get_results_of_statement("SELECT protein_2_function.an FROM protein_2_function WHERE protein_2_function.an ~ '^{}\.'".format(taxid))}
+        # ensp_function_2_ensp = None
+        len_ensp_taxid_2_protein = len(ensp_taxid_2_protein)
+        len_ensp_protein_2_function = len(ensp_protein_2_function)
+        assert len_ensp_taxid_2_protein >= len_ensp_protein_2_function
+        assert len(ensp_taxid_2_protein.intersection(ensp_protein_2_function)) == len_ensp_protein_2_function
+        assert len(ensp_taxid_2_protein.union(ensp_protein_2_function)) == len_ensp_taxid_2_protein
+
+def test_bubu(pqo_STRING):
+    """
+    all functional associations of given taxid and ensp from protein_2_function need be present in function_2_ensp
+    """
+    # generator to retrieve row by row from table is not supported by psycopg2 module that accesses PostgreSQL for python
+    # therefore reading table used for DB generation 'copy from file'
+    pqo_STRING
+    fn = variables.TABLES_DIR("Protein_2_Function_table_STRING.txt")
+    with open(fn, "r") as fh:
+        for line in fh:
+            ENSP, association_array, etype = line.strip().split()
+            taxid = int(ENSP[:ENSP.find(".")])
+            etype = int(etype)
+            association_array = literal_eval(association_array)
 
 
-# def test_backtracking(pqo):
-#     an = "P31946"
-#     #!!! ToDo change to ENSP
-#     # this test does not make sense for denormalized STRING version of DB having
-#     functions_set_no_backtracking = pqo.get_association_dict([an], "all_GO", "basic", backtracking=False)[an]
-#     functions_set_with_backtracking = pqo.get_association_dict([an], "all_GO", "basic", backtracking=True)[an]
 
 
-### performance testing with and without backtracking
-# In [5]: len(ans)
-# Out[5]: 201
-#
-# In [6]: %timeit pqo.get_association_dict(ans, "all_GO", "basic", backtracking=False)
-# 17 ms ± 952 µs per loop (mean ± std. dev. of 7 runs, 1 loop each)
-#
-# In [7]: %timeit pqo.get_association_dict(ans, "all_GO", "basic", backtracking=True)
-# 32.3 ms ± 1.13 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
-#
-# In [9]: len(ans2)
-# Out[9]: 2001
-#
-# In [10]: %timeit pqo.get_association_dict(ans2, "all_GO", "basic", backtracking=True)
-# 169 ms ± 11.8 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-#
-# In [11]: %timeit pqo.get_association_dict(ans2, "all_GO", "basic", backtracking=False)
-# 65 ms ± 1.19 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)

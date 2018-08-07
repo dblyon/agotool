@@ -261,8 +261,14 @@ class EnrichmentStudy(object):
             p_uncorrected_list.append(p_val_uncorrected)
             percent_associated_foreground.append("{0:.2f}".format(round(self.calc_ratio(foreground_count, foreground_n), 2)))
             percent_associated_background.append("{0:.2f}".format(round(self.calc_ratio(background_count, background_n), 2)))
-            ANs_foreground_list.append(';'.join(self.association_2_ANs_dict_foreground[association]))
-            ANs_background_list.append(';'.join(self.association_2_ANs_dict_background[association]))
+            try:
+                ANs_foreground_list.append(';'.join(self.association_2_ANs_dict_foreground[association]))
+            except KeyError:
+                ANs_foreground_list.append('NaN')
+            try:
+                ANs_background_list.append(';'.join(self.association_2_ANs_dict_background[association]))
+            except KeyError:
+                ANs_background_list.append('NaN')
             foreground_count_list.append(foreground_count)
             background_count_list.append(background_count)
             foreground_n_list.append(foreground_n)
@@ -312,7 +318,10 @@ class EnrichmentStudy(object):
         fisher_dict = {}
         id_list, description_list, p_uncorrected_list, ANs_foreground_list, foreground_count_list = [], [], [], [], []
         for association, foreground_count in association_2_count_dict_foreground.items():
+            # try:
             background_count = association_2_count_dict_background[association]
+            # except KeyError:
+                # background_count = np.nan
             a = foreground_count # number of proteins associated with given GO-term
             b = foreground_n - foreground_count # number of proteins not associated with GO-term
             c = background_count
