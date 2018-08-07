@@ -372,7 +372,7 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_o
 
     # bash_script_temp_fn = "bash_script_gunzip_sort_InterPro.sh"
     gunzip_file(fn_in, fn_in_temp)
-    sort_file(fn_in_temp, fn_in_temp, "1", number_of_processes, verbose)
+    sort_file(fn_in_temp, fn_in_temp, columns="1", number_of_processes=number_of_processes, verbose=verbose)
 
     # with open(bash_script_temp_fn, "w") as fh:
     #     fh.write("#!/usr/bin/env bash\n")

@@ -7,7 +7,7 @@ skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to downl
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = True # local (bind-mounted volume if DOCKER=False --> version 1) vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
+DOCKER = False #True # local (bind-mounted volume if DOCKER=False --> version 1) vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 
 DB_DOCKER = True # use local vs dockerized Postgres, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
