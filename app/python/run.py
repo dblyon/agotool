@@ -59,6 +59,8 @@ def run_STRING_enrichment(pqo, ui, enrichment_method="compare_samples",
 def run_STRING_enrichment_genome(pqo, ui, taxid, background_n=None, output_format="json", FDR_cutoff=None):
     enrichment_method = ui.enrichment_method
     protein_ans_list = ui.get_all_unique_ANs()
+    # check that all ENSPs are of given taxid
+    # ToDo
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
     results_all_function_types = {}
     etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]

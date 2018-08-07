@@ -1,16 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 
-import pandas as pd
-import numpy as np
-from itertools import zip_longest
-import pytest
-import random
-from ast import literal_eval
-
-
 import variables, ratio, query, run
-
 
 
 def test_precomputed_associations_counts(pqo_STRING, TaxIDs):
@@ -81,26 +72,18 @@ def test_ENSP_consistency_of_DB():
 def test_functional_association_consistency_of_DB(pqo_STRING):
     """
     all functional associations of given taxid and ensp from protein_2_function need be present in function_2_ensp
+    since the ENSPs of the background don't matter for the p-value calculation, but only the lookup of association to number of ENSPs (counts)
+    let's compare the precalculated counts to foreground counts of the proteome (the latter being generated from the protein_2_function_table rather to lookup ENSPs
+    to also check for consistency between ENSPs of protein_2_function_table and taxid_2_protein_table
     """
-    # generator to retrieve row by row from table is not supported by psycopg2 module that accesses PostgreSQL for python
-    # therefore reading table used for DB generation 'copy from file'
     taxid_2_etype_2_association_2_count_dict_background = pqo_STRING.taxid_2_etype_2_association_2_count_dict_background
-    # fn = variables.TABLES_DIR("Protein_2_Function_table_STRING.txt")
-    # with open(fn, "r") as fh:
-    #     for line in fh:
-    #         ENSP, association_array, etype = line.strip().split()
-    #         taxid = int(ENSP[:ENSP.find(".")])
-    #         etype = int(etype)
-    #         association_array = literal_eval(association_array)
-    #         # assert len(association_array) ==
-
     for taxid in query.get_taxids():
-        # grep ENSPs from protein_2_function table (instead of taxid_2_protein_table)
+        # grep ENSPs from protein_2_function table (instead of taxid_2_protein_table) --> use as foreground
         ensp_protein_2_function = {ele[0] for ele in query.get_results_of_statement("SELECT protein_2_function.an FROM protein_2_function WHERE protein_2_function.an ~ '^{}\.'".format(taxid))}
-        #
-        etype_2_association_dict = query.get_association_dict_split_by_category(ensp_protein_2_function)
+        etype_2_association_dict = query.get_association_dict_split_by_category(ensp_protein_2_function) # etype_2_association_dict(key=entity_type(String), val=Dict(key=AN(String), val=SetOfFunctions(String)))
         for etype in etype_2_association_dict.keys():
-            association_2_count_dict = taxid_2_etype_2_association_2_count_dict_background[taxid][etype]
+            association_2_count_dict_background = taxid_2_etype_2_association_2_count_dict_background[taxid][etype]
             association_2_count_dict_foreground, association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_v3(an_set_foreground=ensp_protein_2_function, assoc_dict=etype_2_association_dict[etype])
+            assert association_2_ANs_dict_foreground == association_2_count_dict_background
 
 

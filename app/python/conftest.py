@@ -3,8 +3,6 @@
 import pytest
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import pandas as pd
-import numpy as np
 import random
 
 import query, userinput
@@ -40,16 +38,18 @@ def TaxIDs(request):
     return request.param
 
 @pytest.fixture(scope="session")
-def random_foreground_background(TaxIDs):
-    taxid = TaxIDs
-    background = query.get_proteins_of_taxid(taxid)
-    foreground = random.sample(background, 200)
-    return foreground, background, taxid
+def random_foreground_background(): # used TaxIDs fixture previously, but now it it random on TaxID level as well
+    for _ in range(10):
+        taxid = random.choice(query.get_taxids())
+        background = query.get_proteins_of_taxid(taxid)
+        foreground = random.sample(background, 200)
+        return foreground, background, taxid
 
-@pytest.fixture(scope="session")
-def ui_genome(random_foreground_background):
-    foreground, background = random_foreground_background
-    ui = userinput.U
+# @pytest.fixture(scope="session")
+# def ui_genome(random_foreground_background):
+#     foreground, background = random_foreground_background
+#     ui = userinput.U
+
 
 ### STRING examples
 # Example #1 Protein name: trpA; Organism: Escherichia coli K12_MG1655
@@ -61,3 +61,12 @@ taxid_2 = 4932
 # Example #3 Protein name: smoothened; Organism: Mus musculus
 ENSPs_3 = ['10090.ENSMUSP00000001812', '10090.ENSMUSP00000002708', '10090.ENSMUSP00000021921', '10090.ENSMUSP00000025791', '10090.ENSMUSP00000026474', '10090.ENSMUSP00000030443', '10090.ENSMUSP00000054837', '10090.ENSMUSP00000084430', '10090.ENSMUSP00000099623', '10090.ENSMUSP00000106137', '10090.ENSMUSP00000107498']
 taxid_3 = 10090
+ids_ = ["Protein name: trpA; Organism: Escherichia coli K12_MG1655", "Protein name: CDC15; Organism: Saccharomyces cerevisiae", "Protein name: smoothened; Organism: Mus musculus"]
+
+@pytest.fixture(params=[(ENSPs_1, taxid_1), (ENSPs_2, taxid_2), (ENSPs_3, taxid_3)], ids=ids_, scope="session")
+def STRING_examples(request):
+    return request.param
+
+
+
+

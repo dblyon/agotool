@@ -1,9 +1,9 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 
-import pytest
-from collections import defaultdict
-import requests
+# import pytest
+# from collections import defaultdict
+# import requests
 
 import variables, ratio, query, userinput, enrichment, run
 

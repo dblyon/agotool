@@ -59,6 +59,7 @@ RUN pip install -r requirements.txt
 COPY . /opt/services/flaskapp/src
 # just to add some simple alias(es)
 COPY ./app/.bashrc /root/.bashrc
+COPY ./data/PostgreSQL/downloads/*obo /agotool_data/PostgreSQL/downloads/
 
 WORKDIR /opt/services/flaskapp/src
 EXPOSE 5912
