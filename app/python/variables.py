@@ -44,12 +44,12 @@ PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # e.g. '/opt/services/flaskapp/src/python'
 if DOCKER:
     APP_DIR = "/opt/services/flaskapp/src"
-    DATA_DIR = "/agotool_data"
+    # DATA_DIR = "/agotool_data"
 else: # relative path on host
     APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
-    DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
+    # DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
 
-# DATA_DIR = "/agotool_data"
+DATA_DIR = "/agotool_data"
 
 # WEBSERVER_DATA = DATA_DIR #os.path.join(PROJECT_DIR, 'data')
 EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata") #os.path.join(PROJECT_DIR, 'data/exampledata')

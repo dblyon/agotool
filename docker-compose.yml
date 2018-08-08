@@ -13,9 +13,10 @@ services:
       # - "agotool_data:/agotool_data" # version 1, named-volume
       # - .:/agotool_data # version 2, bind mount, to mount files from the host to the container
      ### Ody
-     # - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
+      # - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
      ### Atlas
-      - /mnt/mnemo5/dblyon/agotool/data/:/agotool_data
+      # - /mnt/mnemo5/dblyon/agotool/data/:/agotool_data # change from mnemo5 to local HDD
+      - /home/dblyon/agotool/data/:/agotool_data
     # ports: # expose port in order to connect to PostgreSQL
      #  - "5432:5432"
     env_file:
@@ -38,7 +39,8 @@ services:
       ### Ody
       # - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
-      - /mnt/mnemo5/dblyon/agotool/data/:/agotool_data
+      # - /mnt/mnemo5/dblyon/agotool/data/:/agotool_data
+      - /home/dblyon/agotool/data/:/agotool_data
     env_file:
       - ./app/env_file
     networks:
