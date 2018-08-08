@@ -1,13 +1,15 @@
 import os, multiprocessing
 
 ############################
-# settings
+### settings
 PRELOAD = False # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = False #True # local (bind-mounted volume if DOCKER=False --> version 1) vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
+DOCKER = False
+## local (bind-mounted volume if DOCKER=False --> version 1)
+## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 
 DB_DOCKER = True # use local vs dockerized Postgres, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
@@ -37,7 +39,6 @@ functionType_2_entityType_dict = {"BP": -21,
                                   "MF": -23,
                                   "UPK": -51,
                                   "KEGG": -52}
-
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # e.g. '/opt/services/flaskapp/src/python'
