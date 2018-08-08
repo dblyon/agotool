@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS functions_temp, protein_2_function_temp, entity_types_temp, taxid_2_protein_temp, go_2_slim_temp, ontologies_temp;
+DROP TABLE IF EXISTS functions_temp, protein_2_function_temp, entity_types_temp, taxid_2_protein_temp, go_2_slim_temp, ontologies_temp, function_2_ensp_temp;
+DROP INDEX IF EXISTS protein_2_function_an_etype_idx_temp, function_2_ensp_taxid_idx_temp, function_2_ensp_taxid_etype_idx_temp, taxid_2_protein_taxid_idx_temp;
 
 CREATE TABLE functions_temp (
     etype text,
