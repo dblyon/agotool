@@ -1,0 +1,18 @@
+--CREATE TABLE function_2_ensp_temp (
+--    taxid integer,
+--    etype integer,
+--    association text,
+--    background_count integer,
+--    background_n integer,
+--    an_array text ARRAY);
+
+--\copy function_2_ensp_temp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
+
+--CREATE INDEX function_2_ensp_taxid_idx_temp ON function_2_ensp_temp (taxid);
+--CREATE INDEX function_2_ensp_taxid_etype_idx_temp ON function_2_ensp_temp (taxid, etype);
+--CLUSTER function_2_ensp_temp USING function_2_ensp_taxid_etype_idx_temp;
+
+
+ALTER TABLE function_2_ensp_temp RENAME TO function_2_ensp;
+ALTER INDEX function_2_ensp_taxid_etype_idx_temp RENAME TO function_2_ensp_taxid_etype_idx;
+ALTER INDEX function_2_ensp_taxid_idx_temp RENAME TO function_2_ensp_taxid_idx;
