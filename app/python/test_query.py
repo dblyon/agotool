@@ -1,6 +1,6 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-
+import pytest
 import variables, ratio, query, run
 
 
@@ -50,6 +50,7 @@ def test_association_2_count_dict(pqo_STRING, random_foreground_background):
             assert association in association_2_count_dict_background_v2
             assert association in association_2_ANs_dict_background_v2
 
+@pytest.mark.long_running
 def test_ENSP_consistency_of_DB():
     """
     - ENSPs of taxid_2_protein_table are the superset of ENSPs of protein_2_function_table
@@ -69,6 +70,8 @@ def test_ENSP_consistency_of_DB():
         assert len(ensp_taxid_2_protein.intersection(ensp_protein_2_function)) == len_ensp_protein_2_function
         assert len(ensp_taxid_2_protein.union(ensp_protein_2_function)) == len_ensp_taxid_2_protein
 
+@pytest.mark.todo
+@pytest.mark.long_running
 def test_functional_association_consistency_of_DB(pqo_STRING):
     """
     all functional associations of given taxid and ensp from protein_2_function need be present in function_2_ensp
@@ -80,10 +83,10 @@ def test_functional_association_consistency_of_DB(pqo_STRING):
     for taxid in query.get_taxids():
         # grep ENSPs from protein_2_function table (instead of taxid_2_protein_table) --> use as foreground
         ensp_protein_2_function = {ele[0] for ele in query.get_results_of_statement("SELECT protein_2_function.an FROM protein_2_function WHERE protein_2_function.an ~ '^{}\.'".format(taxid))}
-        etype_2_association_dict = query.get_association_dict_split_by_category(ensp_protein_2_function) # etype_2_association_dict(key=entity_type(String), val=Dict(key=AN(String), val=SetOfFunctions(String)))
-        for etype in etype_2_association_dict.keys():
+        etype_2_association_dict = pqo_STRING.get_association_dict_split_by_category(ensp_protein_2_function) # etype_2_association_dict(key=entity_type(String), val=Dict(key=AN(String), val=SetOfFunctions(String)))
+        # for etype in etype_2_association_dict.keys():
+        for etype in variables.entity_types_with_data_in_functions_table:
             association_2_count_dict_background = taxid_2_etype_2_association_2_count_dict_background[taxid][etype]
-            association_2_count_dict_foreground, association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_v3(an_set_foreground=ensp_protein_2_function, assoc_dict=etype_2_association_dict[etype])
-            assert association_2_ANs_dict_foreground == association_2_count_dict_background
-
-
+            association_2_count_dict_foreground, association_2_ANs_dict_foreground, foreground_n = ratio.count_terms_v3(ans_set=ensp_protein_2_function, assoc_dict=etype_2_association_dict[etype])
+            for goterm, ans_set in association_2_ANs_dict_foreground.items():
+                assert association_2_count_dict_background[goterm] == len(ans_set)

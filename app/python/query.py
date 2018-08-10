@@ -459,7 +459,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         except KeyError:
             return False
 
-    def get_association_dict_split_by_category(self, protein_ans_list):
+    @staticmethod
+    def get_association_dict_split_by_category(protein_ans_list):
         """
         backtracking is always True, since already backtracked functional associations in DB
         :param protein_ans_list: ListOfString
@@ -468,17 +469,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         etype_2_association_dict = {}
         for etype in variables.entity_types:
             etype_2_association_dict[etype] = {}
-        ### key=entity_type(String), val=Dict(key=AN, val=SetOfFunctions)
-#        etype_2_association_dict = {"-21": {}, # | GO:0008150 | -21 | GO biological process |
-#                          "-22": {}, # | GO:0005575 | -22 | GO cellular component |
-#                          "-23": {}, # | GO:0003674 | -23 | GO molecular function |
-#                          "-51": {}, # UniProt keywords
-#                          "-52": {}, # KEGG
-#                          "-53": {}, # SMART
-#                          "-54": {}, # InterPro
-#                          "-55": {}, # PFAM
-#                          "-56": {}  # PMID
-#                          }
         protein_ans_list = str(protein_ans_list)[1:-1]
         result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list))
         for res in result:

@@ -474,3 +474,5 @@ vim /var/www/agotool/app/python/variables.py
 ### scale a service like the flask-app
 docker-compose up -d --scale flaskapp=2
 ##############################################################################
+# http://agotool-api.meringlab.org/ # aquarius
+# http://agotool.meringlab.org/     # atlas

@@ -33,12 +33,15 @@ entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
 # "-55": {},  # PFAM
 # "-56": {}   # PMID
 # entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
-entity_types_with_data_in_functions_table = {-21, -22, -23, -51, -52}
+entity_types_with_data_in_functions_table = {-21, -22, -23, -51, -52, -53, -54, -55}
 functionType_2_entityType_dict = {"BP": -21,
                                   "CP": -22,
                                   "MF": -23,
                                   "UPK": -51,
-                                  "KEGG": -52}
+                                  "KEGG": -52,
+                                  "SMART": -53,
+                                  "INTERPRO": -54,
+                                  "PFAM": -55}
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # e.g. '/opt/services/flaskapp/src/python'

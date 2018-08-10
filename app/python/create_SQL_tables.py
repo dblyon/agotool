@@ -2,6 +2,8 @@ import os, json, sys, re, fnmatch, subprocess, time, datetime #, shlex  #, multi
 import pandas as pd
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+import ast
+
 import tools, obo_parser, variables, query, ratio
 from obo_parser import OBOReader_2_text
 
@@ -150,10 +152,9 @@ def create_tables(verbose=False):
     # static table, edit manually
 
 def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=False, number_of_processes=1):
-     # tables_to_remove_temp = []
-     # if NUMBER_OF_PROCESSES > 8:
-     #     number_of_processes = 8
-     #
+     if NUMBER_OF_PROCESSES > 8:
+         number_of_processes = 8
+
      # log_fn_list = [os.path.join(LOG_DIRECTORY, fn) for fn in os.listdir(LOG_DIRECTORY) if fn.startswith("create_SQL_tables_")]
      # if clear_log_files:
      #     for fn in log_fn_list:
@@ -176,35 +177,49 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #
      # ### - GO_2_Slim_table
      # create_GO_2_Slim_table(fn_out=os.path.join(TABLES_DIR, "GO_2_Slim_table_STRING.txt"))
-     #
+
+     # ### - Functions_table
+     # create_Functions_table_KEGG(fn_in=os.path.join(DOWNLOADS_DIR, "pathway.list"), fn_out=os.path.join(TABLES_DIR, "Functions_table_KEGG.txt"))
+     # create_Functions_table_SMART(fn_in=os.path.join(DOWNLOADS_DIR, "SMART_domain_descriptions.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"))
+     # create_Functions_table_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv"), fn_out=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"))
+     # create_Functions_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "InterPro_name_2_AN.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"))
+     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
+     #                                                    "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
+     #                                                    "Functions_table_PFAM.txt", "Functions_table_InterPro.txt"]]
+     # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+     # print("creating {} by concatenation and sorting".format(fn_out))
+     # concatenate_files(fn_list, fn_out)
+     # sort_file(fn_out, fn_out, columns="1", number_of_processes=number_of_processes)
+
      # ##### - Protein_2_Function_table
-     # ### - Protein_2_Function_table_Interpro
-     # fn_in = os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz")
-     # fn_in_temp = fn_in + "_temp"
-     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
-     # create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
-     # if delete_temp_files:
-     #     tables_to_remove_temp.append(fn_in_temp)
-     #
-     # ### - Protein_2_Function_table_PFAM
-     # ### - Protein_2_Function_table_SMART
-     # fn_in = os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.sql")
-     # fn_in_temp = fn_in + "_temp"
+     # ### - Protein_2_Function_table_Interpro no map_Name_2_AN necessary since AN not names provided, but check that all ANs are also present in Functions_table_InterPro.txt
+     # create_Protein_2_Function_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz"),
+     #     fn_in_temp=os.path.join(DOWNLOADS_DIR, "string2interpro.dat" + "_temp"),
+     #     fn_out=os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt"),
+     #     fn_superset=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"),
+     #     number_of_processes=number_of_processes, verbose=verbose)
+
+     ### - Protein_2_Function_table_PFAM
+     ### - Protein_2_Function_table_SMART
+     # fn_out_SMART_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART_temp.txt")
      # fn_out_SMART = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
+     # fn_out_PFAM_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM_temp.txt")
      # fn_out_PFAM = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM.txt")
-     # create_Protein_2_Function_table_SMART_and_PFAM(fn_in, fn_in_temp, fn_out_SMART, fn_out_PFAM, number_of_processes=number_of_processes, verbose=verbose)
-     # # #!!! ToDo map names to AN --> can do for SMART, but no mapping for PFAM yet
-     # if delete_temp_files:
-     #     tables_to_remove_temp.append(fn_in_temp)
-     #
+     # create_Protein_2_Function_table_SMART_and_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.clean.sql"),
+     #     fn_in_temp=os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.clean.sql" + "_temp"),
+     #     fn_out_SMART_temp=fn_out_SMART_temp, fn_out_PFAM_temp=fn_out_PFAM_temp,
+     #     number_of_processes=number_of_processes, verbose=verbose)
+     # map_Name_2_AN(fn_in=fn_out_SMART_temp, fn_out=fn_out_SMART, fn_dict=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"),
+     #     fn_no_mapping=os.path.join(TABLES_DIR, "Functions_table_SMART_no_mapping.txt"))
+     # map_Name_2_AN(fn_in=fn_out_PFAM_temp, fn_out=fn_out_PFAM, fn_dict=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"),
+     #     fn_no_mapping=os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt"))
+
      # ### - Protein_2_Function_table_GO
      # fn_in = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz"
      # fn_in_temp = fn_in + "_temp"
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
      # create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
-     # if delete_temp_files:
-     #     tables_to_remove_temp.append(fn_in_temp)
-     #
+
      # ### - Protein_2_Function_table_UniProtKeyword
      # fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
      # fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
@@ -219,37 +234,16 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
      # create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
-     # """
-     # # sanity check for number of ENSP to KEGG matches
-     # # sum the counts of ENSPs in the original mapping (ignoring KEGG-functions with "CONN")
-     # # cat kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv | grep -v "CONN" | cut -f 3 | paste -sd+ | bc
-     # # compare to # $ wc -l Protein_2_Function_table_KEGG_temp.txt --> 7614709
-     # # """
      # fn_list = [os.path.join(TABLES_DIR, fn) for fn in
      #            ["Protein_2_Function_table_GO.txt",
-     #             "Protein_2_Function_table_InterPro.txt",
+     #             "Protein_2_Function_table_UniProtKeyword.txt",
      #             "Protein_2_Function_table_KEGG.txt",
-     #             "Protein_2_Function_table_SMART.txt",
-     #             "Protein_2_Function_table_UniProtKeyword.txt"]]
+     #             "Protein_2_Function_table_InterPro.txt",
+     #             "Protein_2_Function_table_PFAM.txt",
+     #             "Protein_2_Function_table_SMART.txt"]]
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
      # concatenate_files(fn_list, fn_out)
      # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
-     #
-     # ### - Functions_table (dependency on "create_Functions_table_KEGG")
-     # ##### - Functions_table_KEGG
-     # fn_in = os.path.join(DOWNLOADS_DIR, "pathway.list")
-     # fn_out = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
-     # create_Functions_table_KEGG(fn_in=fn_in, fn_out=fn_out)
-     # fn_in = os.path.join(DOWNLOADS_DIR, "SMART_domain_descriptions.txt")
-     # fn_out = os.path.join(TABLES_DIR, "Functions_table_SMART.txt")
-     # create_Function_table_SMART(fn_in, fn_out)
-
-     # !!! ToDo Functions_table_PFAM.txt
-     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
-     #                                                    "Functions_table_KEGG.txt", "Functions_table_SMART.txt"]]
-     # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
-     # print("creating {} by concatenation and sorting".format(fn_out))
-     # concatenate_files(fn_list, fn_out)
 
      # ### - TaxID_2_Proteins_table
      # fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
@@ -258,7 +252,7 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
      ### - Functions_2_ENSP_table
-     ##### dependency on creating DB first #!!!
+     #### dependency on creating DB first #!!!
      fn_out = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
      pqo = query.PersistentQueryObject_STRING()
      create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose)
@@ -269,9 +263,6 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #     remove_files(find_tables_to_remove() + tables_to_remove_temp)
      #     print("#" * 80, "removing temp files and temp_tables")
 
-
-
-
 def sort_file(fn_in, fn_out, columns="1", fn_bash_script=None, number_of_processes=1, verbose=True):
     if verbose:
         print("#sorting file\nfn_in:\n{}\nfn_out:\n{}".format(fn_in, fn_out))
@@ -280,9 +271,9 @@ def sort_file(fn_in, fn_out, columns="1", fn_bash_script=None, number_of_process
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
         if PLATFORM == "linux":
-            shellcmd = "sort --parallel {} -k{} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
+            shellcmd = "sort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
         else:
-            shellcmd = "LC_ALL=C gsort --parallel {} -k{} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
+            shellcmd = "LC_ALL=C gsort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
         fh.write(shellcmd)
     if verbose:
         print(shellcmd)
@@ -303,6 +294,8 @@ def gunzip_file(fn_in, fn_out=None):
     os.remove(fn_bash_script)
 
 def create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=1, verbose=True):
+    if verbose:
+        print("creating functions_2_ENSP_table this will take a while")
     taxid_list = query.get_taxids()
     with open(fn_out, "w") as fh_out:
         for taxid in sorted(taxid_list):
@@ -315,8 +308,10 @@ def create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=1, verbose=Tr
                 # association_2_count_dict --> number of associations per given Association” = background_count
                 for association, ans in association_2_ANs_dict.items():
                     assert ans_counter >= association_2_count_dict[association]
-                    fh_out.write(str(taxid) + "\t" + etype + "\t" + association + "\t" + str(association_2_count_dict[association]) + "\t" + str(ans_counter) + "\t" + format_list_of_string_2_postgres_array(ans) + "\n")
+                    fh_out.write(str(taxid) + "\t" + str(etype) + "\t" + association + "\t" + str(association_2_count_dict[association]) + "\t" + str(ans_counter) + "\t" + format_list_of_string_2_postgres_array(ans) + "\n")
     sort_file(fn_out, fn_out, columns="1,2", number_of_processes=number_of_processes, verbose=verbose)
+    if verbose:
+        print("finished creating functions_2_ENSP_table")
 
 def format_list_of_string_2_postgres_array(list_of_string):
     """
@@ -369,11 +364,12 @@ def create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processe
             ENSPs_2_write = sorted(set(ENSP_list))
             fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
-def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
+def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, fn_superset, number_of_processes=1, verbose=True):
     """
     :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz)
     :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz_temp)
     :param fn_out: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_InterPro.txt)
+    :param fn_superset: String (/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_InterPro.txt) with InterPro ANs to verify
     :param number_of_processes: Integer (number of cores, shouldn't be too high since Disks are probably the bottleneck even with SSD, e.g. max 4)
     :param verbose: Bool (flag to print infos)
     :return: None
@@ -407,24 +403,27 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, number_o
     # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
     # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
+    df = pd.read_csv(fn_superset, sep='\t', names=["etype", "name", "AN", "description"])
+    InterPro_AN_superset = set(df["AN"].values.tolist())
     if verbose:
         print("parsing previous result to produce Protein_2_Function_table_InterPro.txt")
     entityType_InterPro = id_2_entityTypeNumber_dict["INTERPRO"]
     with open(fn_out, "w") as fh_out:
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
             # ('1298865.H978DRAFT_0001', ['IPR011990', 'IPR011990', 'IPR011990', 'IPR013026', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734'])
-            InterProID_list = sorted(set(InterProID_list))
+            # InterProID_list = sorted(set(InterProID_list))
+            InterProID_list = sorted({id_ for id_ in InterProID_list if id_ in InterPro_AN_superset})
             if len(InterProID_list) >= 1:
                 fh_out.write(ENSP + "\t" + "{" + str(InterProID_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_InterPro + "\n")
     if verbose:
-        print("done with create_Protein_2_Function_table_InterPro\n")
+        print("done create_Protein_2_Function_table_InterPro\n")
 
-def create_Protein_2_Function_table_SMART_and_PFAM(fn_in, fn_in_temp, fn_out_SMART, fn_out_PFAM, number_of_processes=1, verbose=True):
+def create_Protein_2_Function_table_SMART_and_PFAM(fn_in, fn_in_temp, fn_out_SMART_temp, fn_out_PFAM_temp, number_of_processes=1, verbose=True):
     """
     :param fn_in: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string11_dom_prot_full.sql)
     :param fn_in_temp: String (Temp file to be deleted later e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string11_dom_prot_full.sql_temp)
-    :param fn_out_SMART: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_SMART.txt)
-    :param fn_out_PFAM: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_PFAM.txt)
+    :param fn_out_SMART_temp: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_SMART.txt)
+    :param fn_out_PFAM_temp: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_PFAM.txt)
     :param number_of_processes: Integer (number of cores, shouldn't be too high since Disks are probably the bottleneck even with SSD, e.g. max 8 !?)
     :param verbose: Bool (flag to print infos)
     :return: None
@@ -432,36 +431,70 @@ def create_Protein_2_Function_table_SMART_and_PFAM(fn_in, fn_in_temp, fn_out_SMA
     if verbose:
         print("\ncreate_Protein_2_Functions_table_SMART and PFAM")
 
-    bash_script_temp_fn = "bash_script_sort_SMART.sh"
-    with open(bash_script_temp_fn, "w") as fh:
-        fh.write("#!/usr/bin/env bash\n")
-        if PLATFORM == "linux":
-            shellcmd_2 = "sort --parallel {} -k2 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
-        else:
-            shellcmd_2 = "LC_ALL=C gsort --parallel {} -k2 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
-        fh.write(shellcmd_2)
-    if verbose:
-        print("sorting string11_dom_prot_full.sql")
-    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+    # sort_file(fn_in, fn_in_temp, columns="2,1", number_of_processes=number_of_processes)
+    # bash_script_temp_fn = "bash_script_sort_SMART.sh"
+    # with open(bash_script_temp_fn, "w") as fh:
+    #     fh.write("#!/usr/bin/env bash\n")
+    #     if PLATFORM == "linux":
+    #         shellcmd_2 = "sort --parallel {} -k2,1 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
+    #     else:
+    #         shellcmd_2 = "LC_ALL=C gsort --parallel {} -k2,1 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
+    #     fh.write(shellcmd_2)
+    # if verbose:
+    #     print("sorting {}".format(fn_in))
+    # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
+    # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
     if verbose:
         print("parsing previous result to produce create_Protein_2_Function_table_SMART.txt and Protein_2_Function_table_PFAM.txt")
     entityType_SMART = id_2_entityTypeNumber_dict["SMART"]
     entityType_PFAM = id_2_entityTypeNumber_dict["PFAM"]
-    with open(fn_out_PFAM, "w") as fh_out_PFAM:
-        with open(fn_out_SMART, "w") as fh_out_SMART:
-            for ENSP, domain_list, is_PFAM in parse_string11_dom_prot_full_yield_entry(fn_in_temp):
-                domain_list = sorted(set(domain_list))
-                if len(domain_list) >= 1:
-                    if is_PFAM:
-                        fh_out_PFAM.write(ENSP + "\t" + "{" + str(domain_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_PFAM + "\n")
-                    else:
-                        fh_out_SMART.write(ENSP + "\t" + "{" + str(domain_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_SMART + "\n")
+    with open(fn_out_PFAM_temp, "w") as fh_out_PFAM:
+        with open(fn_out_SMART_temp, "w") as fh_out_SMART:
+            for ENSP, PFAM_list_SMART_list in parse_string11_dom_prot_full_yield_entry(fn_in_temp):
+                PFAM_list, SMART_list = PFAM_list_SMART_list
+                if len(PFAM_list) >= 1:
+                    fh_out_PFAM.write(ENSP + "\t" + "{" + str(PFAM_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_PFAM + "\n")
+                if len(SMART_list) >= 1:
+                    fh_out_SMART.write(ENSP + "\t" + "{" + str(SMART_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_SMART + "\n")
     if verbose:
-        print("done with create_Protein_2_Function_table_SMART\n")
+        print("done create_Protein_2_Function_table_SMART\n")
 
-def create_Function_table_SMART(fn_in, fn_out):
+def map_Name_2_AN(fn_in, fn_out, fn_dict, fn_no_mapping):
+    """
+    SMART and PFAM Protein_2_Function_table(s) contain names from parsing the
+    orig source, convert names to accessions
+    :param fn_in: String (Protein_2_Function_table_temp_SMART.txt)
+    :param fn_out: String (Protein_2_Function_table_SMART.txt)
+    :param fn_dict: String (Functions_table_SMART.txt
+    :param fn_no_mapping: String (missing mapping)
+    :return: NONE
+    """
+    df = pd.read_csv(fn_dict, sep="\t", names=["etype", "name", "an", "definition"])
+    name_2_an_dict = pd.Series(df["an"].values, index=df["name"]).to_dict()
+    df["name_v2"] = df["name"].apply(lambda x: x.replace("-", "_").lower())
+    name_2_an_dict_v2 = pd.Series(df["an"].values, index=df["name_v2"]).to_dict()
+    name_2_an_dict.update(name_2_an_dict_v2)
+    name_no_mapping_list = []
+    with open(fn_in, "r") as fh_in:
+        with open(fn_out, "w") as fh_out:
+            for line in fh_in:
+                ENSP, name_array, etype_newline = line.split("\t")
+                name_set = ast.literal_eval(name_array)
+                an_list = []
+                for name in name_set:
+                    try:
+                        an_list.append(name_2_an_dict[name])
+                    except KeyError:
+                        # not in the lookup, therefore should be skipped since most likely obsolete in current version
+                        name_no_mapping_list.append(name)
+                if an_list: # not empty
+                    fh_out.write(ENSP + "\t{" + str(sorted(an_list))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype_newline)
+    with open(fn_no_mapping, "w") as fh_no_mapping:
+        fh_no_mapping.write("\n".join(sorted(set(name_no_mapping_list))))
+
+def create_Functions_table_SMART(fn_in, fn_out):
+    # http://smart.embl-heidelberg.de/smart/descriptions.pl downloaded 20180808
     columns = ['DOMAIN', 'ACC', 'DEFINITION', 'DESCRIPTION']
     df = pd.read_csv(fn_in, sep="\t", skiprows=2, names=columns)
     # "etype" --> -53
@@ -474,6 +507,23 @@ def create_Function_table_SMART(fn_in, fn_out):
     df["definition"] = df["DEFINITION"].fillna("") + "; " + df["DESCRIPTION"].fillna("")
     df["definition"] = df["definition"].apply(lambda x: x.replace("\n", "").replace("\t", " "))
     df = df[["etype", "DOMAIN", "ACC", "definition"]]
+    df.to_csv(fn_out, sep="\t", header=False, index=False)
+
+def create_Functions_table_PFAM(fn_in, fn_out):
+    # ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz (from 24/02/2017 downloaded 20180808)
+    # fn = r"/home/dblyon/agotool/data/PostgreSQL/downloads/Pfam-A.clans.tsv"
+    columns = ['an', 'clan_an', 'HOMSTRAD', 'name', 'definition']
+    df = pd.read_csv(fn_in, sep="\t", names=columns)
+    df["etype"] = id_2_entityTypeNumber_dict["PFAM"]
+    df = df[["etype", "name", "an", "definition"]]
+    # fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PFAM.txt"
+    df.to_csv(fn_out, sep="\t", header=False, index=False)
+
+def create_Functions_table_InterPro(fn_in, fn_out):
+    df = pd.read_csv(fn_in, sep='\t', names=["an", "name"])
+    df["etype"] = id_2_entityTypeNumber_dict["INTERPRO"]
+    df["definition"] = ""
+    df = df[["etype", "name", "an", "definition"]]
     df.to_csv(fn_out, sep="\t", header=False, index=False)
 
 def create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=1, verbose=True):
@@ -540,7 +590,7 @@ def create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number
         fh_out.write(";".join(GOterms_not_in_obo))
     if verbose:
         print("Number of GO terms not in OBO: ", len(GOterms_not_in_obo))
-        print("done with create_Protein_2_Function_table_GO\n")
+        print("done create_Protein_2_Function_table_GO\n")
 
 def create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out, number_of_processes=1,  verbose=True):
     if verbose:
@@ -604,7 +654,7 @@ def create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, 
 
     if verbose:
         print("Number of UniProt Keywords not in OBO: ", len(UPKs_not_in_obo_list))
-        print("done with create_Protein_2_Function_table_UniProtKeywords\n")
+        print("done create_Protein_2_Function_table_UniProtKeywords\n")
 
 def create_Protein_2_Function_table_KEGG_STRING(fn_in, fn_out_temp, fn_out, number_of_processes=1, verbose=True):
     # create long format of ENSP 2 KEGG table
@@ -873,32 +923,42 @@ def parse_string2interpro_yield_entry(fn_in):
     yield (ENSP_previous, InterProID_list)
 
 def parse_string11_dom_prot_full_yield_entry(fn_in):
-    # "Pfam:Pyr_redox_2        1144343.PMI41_01295     5       165     28.8000000000000007     3.50000000000000024e-08 0       0"
     domain_list = []
     did_first = False
     ENSP_previous = ""
-    for line in yield_line_uncompressed_or_gz_file(fn_in):
-        PFAM_or_SMART, ENSP, *rest = line.split()
-        if PFAM_or_SMART.startswith("Pfam:"):
-            domain = PFAM_or_SMART.replace("Pfam:", "") # e.g. "Pfam:DUF3149", DUF3149
-            is_PFAM = True
-        else:
-            domain = PFAM_or_SMART # e.g."LU"
-            # LU      SM00134 Ly-6 antigen / uPA receptor -like domain        Three-fold repeated domain in urokinase-type plasminogen activator receptor; occurs singly in other GPI-linked cell-surface glycoproteins (Ly-6 family, CD59, thymocyte B cell antigen, Sgp-2). Topology of these domains is similar to that of snake venom neurotoxins.
-            is_PFAM = False
-            if domain in {"TRANS", "COIL", "SIGNAL"}:
+    counter = 0
+    with open(fn_in, "r") as fh_in:
+        for line in fh_in:
+            counter += 1
+            try:
+                domain, ENSP, *rest = line.split()
+            except ValueError:
+                print("-" * 80)
+                print(line)
+                print(counter)
+                print("-" * 80)
                 continue
+            if not did_first:
+                ENSP_previous = ENSP
+                did_first = True
+            if ENSP == ENSP_previous:
+                domain_list.append(domain)
+            else:
+                yield (ENSP_previous, sort_PFAM_and_SMART(domain_list))
+                domain_list = [domain]
+                ENSP_previous = ENSP
+        yield (ENSP_previous, sort_PFAM_and_SMART(domain_list))
 
-        if not did_first:
-            ENSP_previous = ENSP
-            did_first = True
-        if ENSP == ENSP_previous:
-            domain_list.append(domain)
+def sort_PFAM_and_SMART(list_of_domain_names):
+    PFAM_list, SMART_list = [], []
+    for domain in set(list_of_domain_names):
+        if domain.startswith("Pfam:"):
+            PFAM_list.append(domain.replace("Pfam:", ""))
+        elif domain in {"TRANS", "COIL", "SIGNAL"}:
+            continue
         else:
-            yield (ENSP_previous, domain_list, is_PFAM)
-            domain_list = [domain]
-            ENSP_previous = ENSP
-    yield (ENSP_previous, domain_list, is_PFAM)
+            SMART_list.append(domain)
+    return sorted(PFAM_list), sorted(SMART_list)
 
 def parse_string_go_yield_entry(fn_in):
     """
@@ -1516,7 +1576,7 @@ def create_Protein_2_Function_table_wide_format(verbose=False):
     call(shellcmd, shell=True)
     long_2_wide_format(fn_out_temp, fn_out)
     if verbose:
-        print("done with Protein_2_Function_table")
+        print("done Protein_2_Function_table")
 
 def long_2_wide_format(fn_in, fn_out, etype=None):
     function_list = []
@@ -1715,7 +1775,8 @@ def create_Functions_table_KEGG(fn_in=None, fn_out=None, verbose=True):
     # NOT static for STRING
     # static for aGOtool (at least CPR version hosted @ ku.sund.dk)
     # type_ = "KEGG"
-    etype = "-52"
+    # etype = "-52"
+    etype = id_2_entityTypeNumber_dict["KEGG"]
     placeholder_for_definition = ""
     if fn_in is None:
         fn_in = os.path.join(STATIC_DIR, "KEGG_AN_2_Pathway_static.txt")
@@ -1731,6 +1792,7 @@ def create_Functions_table_KEGG(fn_in=None, fn_out=None, verbose=True):
                 an, name = line.strip().split("\t")
                 an = "KEGG:" + an
                 # string_2_write = type_ + "\t" + name + "\t" + an + "\t"+ placeholder_for_definition + "\n"
+                # | etype | name | an | definition |
                 string_2_write = etype + "\t" + name + "\t" + an + "\t"+ placeholder_for_definition + "\n"
                 fh_out.write(string_2_write)
 
