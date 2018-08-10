@@ -322,22 +322,10 @@ def format_list_of_string_2_postgres_array(list_of_string):
     return "{" + str(list_of_string)[1:-1].replace(" ", "").replace("'", '"') + "}"
 
 def create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=1, verbose=True):
-    sort_file(fn_in, fn_out_temp, columns="1", fn_bash_script="bash_script_sort_Proteomes_input_table_temp.sh", number_of_processes=number_of_processes, verbose=verbose)
-    # # sort by first column
-    # bash_script_temp_fn = "bash_script_sort_Proteomes_input_table_temp.sh"
-    # with open(bash_script_temp_fn, "w") as fh:
-    #     fh.write("#!/usr/bin/env bash\n")
-    #     if PLATFORM == "linux":
-    #         shellcmd = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in, fn_out_temp)
-    #     else:
-    #         shellcmd = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in, fn_out_temp)
-    #     fh.write(shellcmd)
-    # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
     if verbose:
         print("Creating TaxID_2_Proteins_table.txt")
         print("Proteomes_input_table_temp.txt needs sorting, doing it now")
-
+    sort_file(fn_in, fn_out_temp, columns="1", fn_bash_script="bash_script_sort_Proteomes_input_table_temp.sh", number_of_processes=number_of_processes, verbose=verbose)
     if verbose:
         print("parsing Proteomes_input_table_temp.txt")
     # now parse and transform into wide format
@@ -410,11 +398,10 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, fn_super
     entityType_InterPro = id_2_entityTypeNumber_dict["INTERPRO"]
     with open(fn_out, "w") as fh_out:
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
-            # ('1298865.H978DRAFT_0001', ['IPR011990', 'IPR011990', 'IPR011990', 'IPR013026', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734', 'IPR019734'])
-            # InterProID_list = sorted(set(InterProID_list))
             InterProID_list = sorted({id_ for id_ in InterProID_list if id_ in InterPro_AN_superset})
             if len(InterProID_list) >= 1:
                 fh_out.write(ENSP + "\t" + "{" + str(InterProID_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_InterPro + "\n")
+
     if verbose:
         print("done create_Protein_2_Function_table_InterPro\n")
 
@@ -431,19 +418,7 @@ def create_Protein_2_Function_table_SMART_and_PFAM(fn_in, fn_in_temp, fn_out_SMA
     if verbose:
         print("\ncreate_Protein_2_Functions_table_SMART and PFAM")
 
-    # sort_file(fn_in, fn_in_temp, columns="2,1", number_of_processes=number_of_processes)
-    # bash_script_temp_fn = "bash_script_sort_SMART.sh"
-    # with open(bash_script_temp_fn, "w") as fh:
-    #     fh.write("#!/usr/bin/env bash\n")
-    #     if PLATFORM == "linux":
-    #         shellcmd_2 = "sort --parallel {} -k2,1 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
-    #     else:
-    #         shellcmd_2 = "LC_ALL=C gsort --parallel {} -k2,1 {} -o {}".format(number_of_processes, fn_in, fn_in_temp)
-    #     fh.write(shellcmd_2)
-    # if verbose:
-    #     print("sorting {}".format(fn_in))
-    # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+    sort_file(fn_in, fn_in_temp, columns="2", number_of_processes=number_of_processes)
 
     if verbose:
         print("parsing previous result to produce create_Protein_2_Function_table_SMART.txt and Protein_2_Function_table_PFAM.txt")
@@ -455,8 +430,21 @@ def create_Protein_2_Function_table_SMART_and_PFAM(fn_in, fn_in_temp, fn_out_SMA
                 PFAM_list, SMART_list = PFAM_list_SMART_list
                 if len(PFAM_list) >= 1:
                     fh_out_PFAM.write(ENSP + "\t" + "{" + str(PFAM_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_PFAM + "\n")
+                # for pfam in PFAM_list:
+                #     fh_out_PFAM.write(ENSP + "\t" + pfam + "\n")
                 if len(SMART_list) >= 1:
                     fh_out_SMART.write(ENSP + "\t" + "{" + str(SMART_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_SMART + "\n")
+                # for smart in SMART_list:
+                #     fh_out_SMART.write(ENSP + "\t" + smart + "\n")
+
+    # sort_file()
+    # entityType_UniProtKeywords = id_2_entityTypeNumber_dict["KEGG"]
+    # long_2_wide_format(fn_out_temp, fn_out, entityType_UniProtKeywords)
+    #
+    # sort_file()
+    # entityType_UniProtKeywords = id_2_entityTypeNumber_dict["KEGG"]
+    # long_2_wide_format(fn_out_temp, fn_out, entityType_UniProtKeywords)
+
     if verbose:
         print("done create_Protein_2_Function_table_SMART\n")
 
@@ -672,18 +660,7 @@ def create_Protein_2_Function_table_KEGG_STRING(fn_in, fn_out_temp, fn_out, numb
                     fh_out.write(ENSP + "\t" + "KEGG:" + KEGG + "\n")
 
     # sort by first column and transform to wide format
-    bash_script_temp_fn = "bash_script_sort_Protein_2_Function_table_KEGG_temp.sh"
-    with open(bash_script_temp_fn, "w") as fh:
-        fh.write("#!/usr/bin/env bash\n")
-        if PLATFORM == "linux":
-            shellcmd = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)
-        else:
-            shellcmd = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_out_temp, fn_out_temp)
-        fh.write(shellcmd)
-    if verbose:
-        print("Protein_2_Function_table_KEGG_temp.txt needs sorting, doing it now")
-    subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
+    sort_file(fn_out_temp, fn_out_temp, columns="1", number_of_processes=number_of_processes)
 
     # convert long to wide format and add entity type
     entityType_UniProtKeywords = id_2_entityTypeNumber_dict["KEGG"]
@@ -930,14 +907,7 @@ def parse_string11_dom_prot_full_yield_entry(fn_in):
     with open(fn_in, "r") as fh_in:
         for line in fh_in:
             counter += 1
-            try:
-                domain, ENSP, *rest = line.split()
-            except ValueError:
-                print("-" * 80)
-                print(line)
-                print(counter)
-                print("-" * 80)
-                continue
+            domain, ENSP, *rest = line.split()
             if not did_first:
                 ENSP_previous = ENSP
                 did_first = True
@@ -1590,18 +1560,18 @@ def long_2_wide_format(fn_in, fn_out, etype=None):
                     function_list.append(function_)
                 else:
                     if etype is None:
-                        fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+                        fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in sorted(set(function_list))) + "}\n")
                     else:
-                        fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\t" + etype + "\n")
+                        fh_out.write(an_last + "\t{" + ','.join('"' + item + '"' for item in sorted(set(function_list))) + "}\t" + etype + "\n")
 
                     function_list = []
                     an_last = an
                     function_list.append(function_)
             # fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
             if etype is None:
-                fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\n")
+                fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in sorted(set(function_list))) + "}\n")
             else:
-                fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in set(function_list)) + "}\t" + etype + "\n")
+                fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in sorted(set(function_list))) + "}\t" + etype + "\n")
 
 def parse_secondary_AccessionNumbers(fn):
     line_generator = yield_line_uncompressed_or_gz_file(fn)

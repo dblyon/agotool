@@ -18,8 +18,8 @@
 | -51 | Abscisic acid biosynthesis | UPK:0937 | "Protein involved in the synthesis of abscisic acid (ABA) (5-(1-hydroxy-2,6,6,trimethyl-4-oxocyclohex-2-en-1-y1)-3-methylpenta-2,4-dienoic acid). ABA is a plant hormone which play a role in many aspects of plant growth, development and cellular signaling (e.g. seed dormancy, seed maturation, vegetative growth and responses to various environmental stimuli such as stomatal closure during drought). This phytohormone can be synthesized from farnesyl diphosphate (direct C15 pathway) or from 9-cis-violaxanthine (indirect C40 pathway)." [] |
 | -52 | Metabolic pathways | KEGG:01100 | |
 | -52 | Biosynthesis of secondary metabolites | KEGG:01110 | |
-| -53 | 14_3_3 | SM00101 | "14-3-3 homologues; 14-3-3 homologues mediates signal transduction..." |
-| -53 | 35EXOc | SM00474 | "3'-5' exonuclease; 3\' -5' exonuclease proofreading domain presen..." |
+| -53 | 14_3_3 | SM00101 | 14-3-3 homologues; 14-3-3 homologues mediates signal transduction... |
+| -53 | 35EXOc | SM00474 | 3'-5' exonuclease; 3\' -5' exonuclease proofreading domain presen... |
 | -54 | Kringle | IPR000001 | |
 | -54 | Retinoid X receptor/HNF4 | IPR000003 | |
 | -55 | 7tm_1 | PF00001 | 7 transmembrane receptor (rhodopsin family) |
@@ -40,7 +40,7 @@
 | 9606.ENSP00000000233 | {"KEGG:04144"} | -52 |
 | 9606.ENSP00000005587 | {"SM00233","SM00326"} | -53 |
 | 9606.ENSP00000000233 | {"IPR005225","IPR006689","IPR024156","IPR027417"} | -54 |
-| 9606.ENSP00000000412 | {"ATG27","Man-6-P_recep"} | -55 |
+| 9606.ENSP00000000412 | {"PF09451","PF02157"}  -55 |
 
 
 ## entity_types [Entity_types_table_STRING.txt]
