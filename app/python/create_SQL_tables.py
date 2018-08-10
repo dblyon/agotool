@@ -369,27 +369,8 @@ def create_Protein_2_Function_table_InterPro(fn_in, fn_in_temp, fn_out, fn_super
     if verbose:
         print("\ncreate_Protein_2_Function_table_InterPro")
 
-    # bash_script_temp_fn = "bash_script_gunzip_sort_InterPro.sh"
     gunzip_file(fn_in, fn_in_temp)
     sort_file(fn_in_temp, fn_in_temp, columns="1", number_of_processes=number_of_processes, verbose=verbose)
-
-    # with open(bash_script_temp_fn, "w") as fh:
-    #     fh.write("#!/usr/bin/env bash\n")
-    #     shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_in_temp)
-    #     fh.write(shellcmd_1 + "\n")
-    #     if PLATFORM == "linux":
-    #         # this should be simpler but it works for and there were issues with the other versions (calling the shellcmds via subprocess.call or subprocess.Popen)
-    #         # no error with first version but empty file produced, probably due to ">" not "-o"
-    #         # shellcmd = "sort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
-    #         shellcmd_2 = "sort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-    #     else:
-    #         # shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 <(gunzip -c {}) > {}".format(number_of_processes, fn_in, fn_in_temp)
-    #         shellcmd_2 = "LC_ALL=C gsort --parallel {} -k1 {} -o {}".format(number_of_processes, fn_in_temp, fn_in_temp)
-    #     fh.write(shellcmd_2)
-    # if verbose:
-    #     print("gunzip and sorting string2interpro.dat.gz")
-    # subprocess.call("chmod 744 ./{}".format(bash_script_temp_fn), shell=True)
-    # subprocess.call("./{}".format(bash_script_temp_fn), shell=True)
 
     df = pd.read_csv(fn_superset, sep='\t', names=["etype", "name", "AN", "description"])
     InterPro_AN_superset = set(df["AN"].values.tolist())
@@ -458,6 +439,7 @@ def map_Name_2_AN(fn_in, fn_out, fn_dict, fn_no_mapping):
     :param fn_no_mapping: String (missing mapping)
     :return: NONE
     """
+    print("map_Name_2_AN for {}".format(fn_in))
     df = pd.read_csv(fn_dict, sep="\t", names=["etype", "name", "an", "definition"])
     name_2_an_dict = pd.Series(df["an"].values, index=df["name"]).to_dict()
     df["name_v2"] = df["name"].apply(lambda x: x.replace("-", "_").lower())
