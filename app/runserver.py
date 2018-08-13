@@ -9,6 +9,9 @@ sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, cluster_filter, obo_parser, variables
 import json
 from lxml import etree
+import markdown
+from flask import Markup
+
 
 ###############################################################################
 variables.makedirs_()
@@ -27,6 +30,7 @@ PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
 MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
+FN_DATABASE_SCHEMA = variables.FN_DATABASE_SCHEMA
 ###############################################################################
 # ToDo 2018
 # - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
@@ -34,24 +38,20 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 # - fix download results button link --> DONE
 # - Consenus functional annotation for protein groups --> DONE
 # - add other types to Ontologies (not only GO, but also UPK) --> DONE
-
 # - All proteins without abundance data were disregarded --> put into extra bin --> DONE?
-
-# - update bootstrap version
-# - update documentation specifically about foreground and background
-
-# - re-write "write_summary2file_web" to take additional argument output_format={tsv, tsv-no-header, json, xml}
-# - implement enrichment method "genome", user supplies NCBI_TaxID, DB table
-# - Profile code --> speed improvements tools.convert_assoc_dict_2_proteinGroupsAssocDict
-# - graphical output of enrichment
+# - re-write "write_summary2file_web" to take additional argument output_format={tsv, tsv-no-header, json, xml} --> done
+# - implement enrichment method "genome", user supplies NCBI_TaxID, DB table --> done
+# - Profile code --> speed improvements tools.convert_assoc_dict_2_proteinGroupsAssocDict --> done
 
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
 # - update "info_check_input.html" with REST API usage infos
-# - write parser for STRING input
+# - write parser for STRING input --> done
 # - offer option to omit testing GO-terms with few associations (e.g. 10)
 # - offer to user Pax-DB background proteomes
 # - offer example to be set automatically
-
+# - graphical output of enrichment
+# - update bootstrap version
+# - update documentation specifically about foreground and background
 
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
 # ? - protein-groups: is there different functional information for isoforms
@@ -136,7 +136,7 @@ parser.add_argument("taxid", type=int,
 
 parser.add_argument("output_format", type=str,
     help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}",
-    default="json")
+    default="tsv")
 
 # STRING method is "enrichment", has nothing to do with aGOtool settings
 # parser.add_argument("method", type=str,
@@ -148,11 +148,11 @@ parser.add_argument("caller_identity", type=str,
     default=None) # ? do I need default value ?
 
 parser.add_argument("FDR_cutoff", type=float,
-    help="False Discovery Rate minimum cutoff e.g. 0.05, default= no cutoff",
+    help="False Discovery Rate cutoff (threshold for multiple testing corrected p-values) e.g. 0.05, default=0 meaning no cutoff.",
     default=None)
 
 parser.add_argument("limit_2_entity_type", type=str,
-    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-51' (for GO molecular function and UniProt Keywords")
+    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords")
 
 ################################################################################
 ### aGOtool arguments/parameters
@@ -174,10 +174,6 @@ parser.add_argument("intensity", type=str,
          "e.g. '12.3%0d3.4' ",
     default=None)
 
-# parser.add_argument("gocat_upk", type=str,
-#     help="One or all three categories of GO terms, UniProt keywords, or KEGG pathways, one of {all_GO, BP, CP, MF, UPK, KEGG}",
-#     default="UPK") # deprecated for REST API, but used in web-form
-
 parser.add_argument("enrichment_method", type=str,
     help="""abundance_correction: Foreground vs Background abundance corrected; genome: provided foreground vs genome; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; characterize_foreground: Foreground only""",
     default="characterize_foreground")
@@ -189,10 +185,6 @@ parser.add_argument("foreground_n", type=int,
 parser.add_argument("background_n", type=int,
     help="Background_n is an integer, defines the number of sample of the background.",
     default=10)
-
-# parser.add_argument("abcorr", type=str,
-#     help="""Apply the abundance correction as described in the publication. A column named "background_int" (background intensity) that corresponds to the column "background_an" (background accession number) needs to be provided, when selecting this option. If "Abundance correction" is deselected "background_int" can be omitted.""",
-#     default="True")
 
 parser.add_argument("go_slim_or_basic", type=str,
     help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
@@ -226,10 +218,6 @@ parser.add_argument("p_value_uncorrected", type=float,
     help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
     default=0)
 
-parser.add_argument("p_value_multipletesting", type=float,
-    help="Apply a filter (value between 0 and 1) for the maximum value for the corrected p-value (FDR-cutoff)",
-    default=0)
-
 
 class API_STRING(Resource):
     """
@@ -255,6 +243,7 @@ class API_STRING(Resource):
         :return:
         """
         args_dict = parser.parse_args()
+        args_dict["limit_2_entity_type"] = {int(ele) for ele in args_dict["limit_2_entity_type"].split(";")}
         args_dict["indent"] = string_2_bool(args_dict["indent"])
         if args_dict.enrichment_method == "genome":
             background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
@@ -287,10 +276,8 @@ class API_STRING(Resource):
                     FDR_cutoff=args_dict["FDR_cutoff"],
                     output_format=args_dict["output_format"])
 
-                # def run_STRING_enrichment(pqo, ui, enrichment_method="compare_samples", limit_2_entity_type=None, go_slim_or_basic="basic", indent=True, multitest_method="Benjamini_Hochberg", alpha=0.05, o_or_u_or_both="both", fold_enrichment_for2background=None, p_value_uncorrected=None, FDR_cutoff=None, output_format="json"):
-
-            return results_all_function_types
-            # return format_multiple_results(args_dict.output_format, results_all_function_types)
+            # return results_all_function_types
+            return format_multiple_results(args_dict.output_format, results_all_function_types)
         else:
             args_dict["WARNING/ERROR"] = "WARNING/ERROR: UserInput check not passed, please check your input and/or compare it to the examples."
             return help_page(args_dict)
@@ -299,41 +286,12 @@ api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>
 
 def string_2_bool(string_):
     string_ = string_.strip().lower()
-    if string_ == "true" or string_ == "1":
+    if string_.lower() == "true" or string_ == "1":
         return True
-    elif string_ == "false" or string_ == "0":
+    elif string_.lower() == "false" or string_ == "0":
         return False
     else:
         raise NotImplementedError
-
-# class API_agotool(Resource):
-#
-#     def get(self):
-#         return self.post()
-#
-#     def post(self):
-#         args_dict = parser.parse_args()
-#
-#         ui = userinput.REST_API_input(pqo,
-#             foreground_string=args_dict["foreground"], background_string=args_dict["background"], background_intensity=args_dict["intensity"],
-#             num_bins=args_dict["num_bins"], enrichment_method=args_dict["enrichment_method"],
-#             foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
-#         if ui.check:
-#             header, results = run.run(pqo, ui,
-#                 args_dict["gocat_upk"],
-#                 args_dict["go_slim_or_basic"],
-#                 args_dict["indent"],
-#                 args_dict["multitest_method"],
-#                 args_dict["alpha"],
-#                 args_dict["o_or_u_or_both"],
-#                 args_dict["fold_enrichment_for2background"],
-#                 args_dict["p_value_uncorrected"],
-#                 args_dict["p_value_multipletesting"])
-#             return format_results(args_dict.output_format, header, results)
-#         else:
-#             return help_page(args_dict)
-#
-# api.add_resource(API_agotool, "/api_agotool", "/api_agotool/")
 
 def help_page(args_dict):
     return jsonify(args_dict)
@@ -358,22 +316,47 @@ def format_results(output_format, header, results):
     else:
         return jsonify({"README": "You've provided '{}' as the output_format, but unfortunately we don't recognize/support this method. Please select one of {json, tsv, tsv-no-header, xml} ".format(output_method)})
 
-def format_multiple_results(output_format, results_all_function_types):
+# def format_multiple_results(output_format, results_all_function_types):
+#     """
+#     :param output_format: String
+#     :param results_all_function_types: Dict (key: entity_type , val: Tuple(header, results))
+#     :return: Json or String
+#     """
+#     if output_format == "json":
+#         dict_2_return = {}
+#         for functype_header_results in results_all_function_types.items():
+#             functype, header_results = functype_header_results
+#             header, results = header_results
+#             header = header.split("\t")
+#             dict_2_return[functype] = [dict(zip(header, row.split("\t"))) for row in results]
+#         return jsonify(dict_2_return)
+#     elif output_format == "tsv":
+#         return results_all_function_types
+#     else:
+#         raise NotImplementedError
+
+def format_multiple_results(output_format, results_all_entity_types):
     """
     :param output_format: String
     :param results_all_function_types: Dict (key: entity_type , val: Tuple(header, results))
     :return: Json or String
     """
+    # if output_format == "json":
+    #     dict_2_return = {}
+    #     for etype, results in results_all_entity_types.items():
+    #         dict_2_return[etype] = jsonify(results)
+    #     return jsonify(dict_2_return)
     if output_format == "json":
-        dict_2_return = {}
-        for functype_header_results in results_all_function_types.items():
-            functype, header_results = functype_header_results
-            header, results = header_results
-            header = header.split("\t")
-            dict_2_return[functype] = [dict(zip(header, row.split("\t"))) for row in results]
-        return jsonify(dict_2_return)
+        return jsonify(results_all_entity_types)
     elif output_format == "tsv":
-        return results_all_function_types
+        return results_all_entity_types
+    elif output_format == "xml":
+        dict_2_return = {}
+        for etype, results in results_all_entity_types.items():
+            header, result = results.split("\n", 1) # is df in tsv format
+            xml_string = create_xml_tree(header, result)
+            dict_2_return[etype] = xml_string
+        return jsonify(dict_2_return)
     else:
         raise NotImplementedError
 
@@ -386,7 +369,6 @@ def create_xml_tree(header, results):
             tag, content = tag_content
             etree.SubElement(child, tag).text = content
     return etree.tostring(xml_tree, pretty_print=True, xml_declaration=True, encoding="utf-8")#.decode("UTF-8")
-
 
 ################################################################################
 # index.html
@@ -441,16 +423,16 @@ def download_results_data(filename):
     return send_from_directory(directory=uploads, filename=filename)
 
 ################################################################################
-# # db_schema.html
-# ################################################################################
-# @app.route("/db_schema")
-# def db_schema():
-#     with open(FN_DATABASE_SCHEMA, "r") as fh:
-#         content = fh.read()
-#     content = Markup(markdown.markdown(content))
-#     return render_template("db_schema.html", **locals())
-#
-# ################################################################################
+# db_schema.html
+################################################################################
+@app.route("/db_schema")
+def db_schema():
+    with open(FN_DATABASE_SCHEMA, "r") as fh:
+        content = fh.read()
+    content = Markup(markdown.markdown(content))
+    return render_template("db_schema.html", **locals())
+
+################################################################################
 # FAQ.html
 ################################################################################
 @app.route('/FAQ')
@@ -480,14 +462,6 @@ def validate_number(form, field):
 def validate_inflation_factor(form, field):
     if not field.data >= 1.0:
         raise wtforms.ValidationError(" number must be larger than 1")
-
-# def validate_inputfile(form, field):
-#     filename = request.files['userinput_file'].filename
-#     for extension in ALLOWED_EXTENSIONS:
-#         if filename.endswith('.' + extension):
-#             return True
-#     raise wtforms.ValidationError(" file must have a '.txt' or '.tsv' extension")
-#####
 
 def generate_session_id():
     pid = str(os.getpid())
@@ -520,29 +494,31 @@ def elipsis(header):
 ################################################################################
 class Enrichment_Form(wtforms.Form):
     userinput_file = fields.FileField("Choose File",
-                                      # [validate_inputfile],
                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
 
-'background': UniProt accession numbers (such as 'P00359') for all proteins
+'background': STRING identifiers (such as '511145.b1260') for all proteins
 
 'intensity': Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)
 
-'foreground': UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment,
-these identifiers should also be present in the 'population_an' as the test group is a subset of the population)
+'foreground': STRING identifiers for all proteins in the test group (the group you want to examine for GO term enrichment,
+these identifiers should also be present in the 'background_an' as the test group is a subset of the background)
 
-If "Abundance correction" is deselected "population_int" can be omitted.""")
+If "Abundance correction" is deselected "background_int" can be omitted.""")
 
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
 
     limit_2_entity_type = fields.SelectField("GO terms, UniProt keywords, or KEGG pathways",
 
-                                   choices = (({-21, -22, -23}, "all GO categories"),
-                                              ({-21}, "GO Biological Process"),
-                                              ({-22}, "GO Celluar Compartment"),
-                                              ({-23}, "GO Molecular Function"),
-                                              ({-51}, "UniProt keywords"),
-                                              ({-52}, "KEGG pathways")),
+                                   choices = (("-51", "UniProt keywords"),
+                                              ("-21,-22,-23", "all GO categories"),
+                                              ("-21", "GO Biological Process"),
+                                              ("-22", "GO Celluar Compartment"),
+                                              ("-23", "GO Molecular Function"),
+                                              ("-52", "KEGG pathways"),
+                                              ("-53", "SMART domains"),
+                                              ("-54", "InterPro domains"),
+                                              ("-55", "PFAM domains")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
 
     enrichment_method = fields.SelectField("Select one of the following methods",
@@ -557,7 +533,6 @@ compare_groups: Foreground(replicates) vs Background(replicates), --> foreground
 characterize_foreground: Foreground only""")
 
     foreground_n = fields.IntegerField("Foreground_n", [validate_integer], default=10, description="""Foreground_n is an integer, defines the number of sample of the foreground.""")
-
     background_n = fields.IntegerField("Background_n", [validate_integer], default=10, description="""Background_n is an integer, defines the number of sample of the background.""")
 
     abcorr = fields.BooleanField("Abundance correction",
@@ -606,11 +581,11 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         default = 0,
         description="""Maximum threshold value of "p_uncorrected".""")
 
-    p_value_multipletesting =  fields.FloatField(
-        "FDR-cutoff / p-value multiple testing",
+    FDR_cutoff =  fields.FloatField(
+        "FDR-cutoff (threshold for multiple testing corrected p-values)",
         [validate_float_between_zero_and_one],
         default = 0,
-        description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value.""")
+        description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value (default=0 meaning no cutoff)""")
 
 @app.route('/')
 def enrichment():
@@ -633,11 +608,16 @@ def results():
     results_filtered = filter(header, results, indent)
     results_filtered: reduced version of results
     """
+    # print("entered results")
     form = Enrichment_Form(request.form)
-    if request.method == 'POST' and form.validate():
+    # print(form)
+    # print(request.method)
+    # print(form.validate())
+    if request.method == 'POST': # ToDo uncomment and debug and form.validate():
+        # print("passed post and validate input tests")
         try:
             input_fs = request.files['userinput_file']
-        except: #!!! check out which exceptions can occur
+        except:
             input_fs = None
 
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data,
@@ -647,17 +627,18 @@ def results():
             foreground_n=form.foreground_n.data, background_n=form.background_n.data)
 
         if ui.check:
+            limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
 o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\n\
-p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data,
+p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
                 form.go_slim_or_basic.data, form.indent.data,
                 form.multitest_method.data, form.alpha.data,
                 form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
                 form.fold_enrichment_for2background.data,
                 form.p_value_uncorrected.data,
-                form.p_value_multipletesting.data,
+                form.FDR_cutoff.data,
                 form.enrichment_method.data,
                 form.foreground_n.data, form.background_n.data)
 
@@ -665,51 +646,59 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_en
                 log_activity(string2log) # remove indentation
 
             if variables.VERSION_ == "STRING":
+                output_format = "tsv"
                 results_all_function_types = run.run_STRING_enrichment(pqo, ui,
                     enrichment_method=form.enrichment_method.data,
-                    limit_2_entity_type=form.limit_2_entity_type.data,
+                    limit_2_entity_type=limit_2_entity_type,
                     go_slim_or_basic=form.go_slim_or_basic.data,
                     indent=form.indent.data,
                     multitest_method=form.multitest_method.data,
                     alpha=form.alpha.data,
-                    o_or_u_or_both=form.o_or_u_or_both.alpha,
+                    o_or_u_or_both=form.o_or_u_or_both.data,
                     fold_enrichment_for2background=form.fold_enrichment_for2background.data,
                     p_value_uncorrected=form.p_value_uncorrected.data,
                     FDR_cutoff=form.FDR_cutoff.data,
-                    output_format=form.output_format.data)
-
+                    output_format=output_format)
             elif variables.VERSION_ == "aGOtool":
-                header, results = run.run(pqo, ui, form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.indent.data,
+                header, results = run.run(pqo, ui, limit_2_entity_type, form.go_slim_or_basic.data, form.indent.data,
                                     form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data,
-                                    form.fold_enrichment_for2background.data, form.p_value_uncorrected.data, form.p_value_multipletesting.data)
+                                    form.fold_enrichment_for2background.data, form.p_value_uncorrected.data, form.FDR_cutoff.data)
             else:
                 raise NotImplementedError
 
         else:
             return render_template('info_check_input.html')
-
+        print("_"*50)
+        print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
+        print("form.limit_2_entity_type.data", type(limit_2_entity_type), limit_2_entity_type)
+        print("_"*50)
         if len(results_all_function_types) == 0:
             return render_template('results_zero.html')
-        elif len(form.limit_2_entity_type.data) == 1:
-            session_id = generate_session_id()
-            return generate_result_page(results_all_function_types[form.limit_2_entity_type.data], form.limit_2_entity_type.data,
-                form.indent.data, session_id, form=Results_Form())
+        elif len(results_all_function_types.keys()) == 1:
+            entity_type = next(iter(limit_2_entity_type)) # single element in set
+            return generate_result_page(results_all_function_types[entity_type], entity_type,
+                form.indent.data, generate_session_id(), form=Results_Form())
+        elif len(results_all_function_types.keys()) > 1:
+            print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
+            print("form.limit_2_entity_type.data", type(form.limit_2_entity_type.data), form.limit_2_entity_type.data)
+            # ToDo create multiple results display method a la clustered results
+            entity_type = int(form.limit_2_entity_type.data.split(";")[0]) # REPLACE WITH PROPER METHOD later, picked first entry as placeholder
+            return generate_result_page(results_all_function_types[entity_type], entity_type,
+                form.indent.data, generate_session_id(), form=Results_Form())
         else:
             raise NotImplementedError
-            # session_id = generate_session_id()
-            # return generate_result_page(results_all_function_types, form.gocat_upk.data,
-            #                             form.indent.data, session_id, form=Results_Form())
-
     return render_template('enrichment.html', form=form)
 
-def generate_result_page(df, limit_2_entity_type, indent, session_id, form, errors=()):
+def generate_result_page(tsv, entity_type, indent, session_id, form, errors=()):
     # header = header.rstrip().split("\t")
-    if len(results_all_function_types) == 1:
-        df = results_all_function_types
-    df = df.applymap(str)
-    header = df.columns.tolist()
-    results = df.values.tolist()
-    results_2_display = ["\t".join(row) for row in results]
+    # if len(results_all_function_types) == 1:
+    #     df = results_all_function_types
+
+    # df = df.applymap(str)
+    # header = df.columns.tolist()
+    # results = df.values.tolist()
+    # results_2_display = ["\t".join(row) for row in results]
+    header, results = tsv.split("\n", 1)
     ellipsis_indices = elipsis(header)
     # results2display = []
     # for res in results:
@@ -718,12 +707,12 @@ def generate_result_page(df, limit_2_entity_type, indent, session_id, form, erro
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     # fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     # tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
-    tsv = df.to_csv(sep="\t", header=True, index=False)
+    # tsv = df.to_csv(sep="\t", header=True, index=False)
     with open(fn_results_orig_absolute, 'w') as fh:
         fh.write(tsv)
     return render_template('results.html', header=header, results=results_2_display, errors=errors,
                            file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
-                           limit_2_entity_type=limit_2_entity_type, indent=indent,
+                           limit_2_entity_type=entity_type, indent=indent,
                            session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
 
 ################################################################################
@@ -738,6 +727,8 @@ def results_back():
     """
     session_id = request.form['session_id']
     limit_2_entity_type = request.form['limit_2_entity_type']
+    limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+
     indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
@@ -750,6 +741,7 @@ def results_back():
 def results_filtered():
     indent = request.form['indent']
     limit_2_entity_type = request.form['limit_2_entity_type']
+    limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
     session_id = request.form['session_id']
 
     # original unfiltered/clustered results
@@ -787,7 +779,8 @@ def results_clustered():
     form = Results_Form(request.form)
     inflation_factor = form.inflation_factor.data
     session_id = request.form['session_id']
-    limit_2_entity_type = request.form['limit_2_entity_type ']
+    limit_2_entity_type = request.form['limit_2_entity_type']
+    limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
     indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)

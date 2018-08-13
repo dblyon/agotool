@@ -2,7 +2,7 @@ import os, multiprocessing
 
 ############################
 ### settings
-PRELOAD = False # pre-load objects DB connection necessary, set to False while testing with pytest
+PRELOAD = True # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
@@ -79,6 +79,7 @@ TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
 STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
+FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema_STRING.md")
 
 DIRECTORIES_LIST = [os.path.join(DATA_DIR, 'PostgreSQL/downloads'),
                     os.path.join(DATA_DIR, 'logs'),

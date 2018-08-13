@@ -1,10 +1,12 @@
 {% extends "layout.html" %}
 
 {% block head %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">
 
 {% endblock head %}
 
 {% block content %}
+    <script src="{{ url_for('static', filename='js/prism.js') }}"></script>
 
 <div class="container-fluid">
     <h3>Example data</h3>
@@ -19,37 +21,74 @@
         <br>The results (using default settings) should look like this:
         <td><a href="{{ url_for('download_example_data', filename='ExampleData_GObasic_results_orig.txt') }}">GO-term (basic) results</a> and</td>
         <td><a href="{{ url_for('download_example_data', filename='ExampleData_UniProtKeywords_results_orig.txt') }}">UniProt-keywords results</a></td>
-</div>
-{# ONLY TEMP DEBUG STUFF BELOW #}
-{#        <div class="row">#}
-{#            <div class="col-md-2">#}
-{#                <br>#}
-{#                <a name="file_path" href="{{ url_for('download_example_data', filename='ExampleData.txt') }}" class="btn btn-primary">Download results</a>#}
-{#            </div>#}
-{#            <div class="col-md-5">#}
-{#                <h4>Download results file</h4>#}
-{#                Lorem ipsum dolor amet fixie subway tile cray literally. Trust fund synth lo-fi yuccie keffiyeh fingerstache kinfolk. Ethical subway tile hot chicken, sriracha humblebrag dreamcatcher forage pok pok literally. Food truck small batch irony, tofu plaid swag celiac 3 wolf moon mixtape four loko coloring book gastropub taiyaki. Four dollar toast snackwave everyday carry, meh hell of disrupt yuccie celiac pour-over. Unicorn 8-bit vice viral portland palo santo YOLO kombucha VHS four dollar toast chia lumbersexual fixie roof party.#}
-{#            </div>#}
-{#        </div>#}
+
+    <h2>REST API</h2>
+    <p>
+        current version of agotool using UniProt Accession Numbers at https://agotool.sund.ku.dk which will migrate to www.agotool.org soon
 
 
-{#            <a name="file_path" href="{{ file_path }}" class="btn btn-primary">Download results</a>#}
-{#            <a name="file_path" href="{{ url_for('download_example_data', filename='ExampleData.txt') }}" class="btn btn-primary">Download results</a>#}
-{#          <a href="{{ url_for('name of python function', filename='fn to serve') }}">some text</a>#}
-{#        </div></div>#}
+    </p>
+    <h3>python3 examples</h3><br>
+        <pre><code class="language-python">
+import requests
+url_ = r"http://agotool.meringlab.org/api" # atlas
+# output_format is one of {"json", "tsv"}
+        </code></pre>
 
-{#    <div class="row" id="copy_paste_field">#}
-{#        <div class="col-md-5">#}
-{#            bubu#}
-{#            {{ form.foreground_textarea.label }}:#}
-{#            {{ form.foreground_textarea(rows="5", class="form-control") }}#}
-{#        </div>#}
-{#        <div class="col-md-5">#}
-{#            gaga#}
-{#            {{ form.background_textarea.label }}:#}
-{#            {{ form.background_textarea(rows="5", class="form-control") }}#}
-{#        </div>#}
-{#    </div>#}
+        <h4>Example #1 from STRING</h4>
+    <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
+            <pre><code class="language-python">
+ENSPs = ['511145.b1260', '511145.b1261', '511145.b1262', '511145.b1263', '511145.b1264', '511145.b1812',
+            '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
+fg = "%0d".join(ENSPs)
+result = requests.post(url_,
+                  params={"output_format": "json",
+                          "foreground": fg,
+                          "enrichment_method": "genome",
+                          "taxid": 511145})
+result_json = result.json()
+print("Enrichment results for the following entity types was calculated: \n", result_json.keys())
+                </code></pre><br>
 
-{#        <br>#}
+        <h4>Example #2 from STRING. Use iPython or Jupyter notebook or Jupyter lab to interactively view results as a pandas data frame</h4>
+            <p><b>Protein name: CDC15; Organism: Saccharomyces cerevisiae</b></p>
+            <pre><code class="language-python">
+import pandas as pd
+from io import StringIO
+
+ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W',
+            '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
+fg = "%0d".join(ENSPs)
+result = requests.post(url_,
+                  params={"output_format": "tsv",
+                          "foreground": fg,
+                          "enrichment_method": "genome",
+                          "taxid": 4932})
+result = result.json()
+print("Select an entity type from the available ones: ", result.keys())
+df = pd.read_csv(StringIO(result["-51"]), sep='\t')
+df.head()
+            </code></pre><br>
+        <h4>Example #3 from STRING</h4>
+    <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
+            <pre><code class="language-python">
+ENSPs = ['10090.ENSMUSP00000001812', '10090.ENSMUSP00000002708', '10090.ENSMUSP00000021921',
+            '10090.ENSMUSP00000025791', '10090.ENSMUSP00000026474', '10090.ENSMUSP00000030443',
+            '10090.ENSMUSP00000054837', '10090.ENSMUSP00000084430', '10090.ENSMUSP00000099623',
+            '10090.ENSMUSP00000106137', '10090.ENSMUSP00000107498']
+fg = "%0d".join(ENSPs)
+result = requests.post(url_,
+                  params={"output_format": "json",
+                          "foreground": fg,
+                          "background": fg,
+                          "enrichment_method": "compare_samples",
+                          ""limit_2_entity_type": "-21;-51;-52", # to get GO biological process; UniProt keyword; SMART
+                          "taxid": 10090})
+# since the foreground equals the background completely no significant enrichment will result from this analysis
+# it is meant to show how to show how to use the method call
+result_json = result.json()
+import ast
+ast.literal_eval(result_json["-51"])
+              </code></pre><br>
+</div><br><br>
 {% endblock content %}

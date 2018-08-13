@@ -35,10 +35,14 @@ def test_association_2_count_dict(pqo_STRING, random_foreground_background):
 
         dag = run.pick_dag_from_entity_type_and_basic_or_slim(etype, "basic", pqo_STRING)
         assoc_dict_foreground = etype_2_association_dict_foreground[etype]
-        association_2_count_dict_foreground_v2, association_2_ANs_dict_foreground_v2, foreground_n_v2 = ratio.count_terms_manager(set(foreground), assoc_dict_foreground, dag, etype)
+        association_2_count_dict_foreground_v2, association_2_ANs_dict_foreground_v2, foreground_n_v2 = ratio.count_terms_v2(
+            set(foreground), assoc_dict_foreground, dag)
+        # count_terms_v3(ans_set, assoc_dict)
+        # count_terms_v2(ans_set, assoc_dict, obo_dag)
 
         assoc_dict_background = etype_2_association_dict_background[etype]
-        association_2_count_dict_background_v2, association_2_ANs_dict_background_v2, background_n_v2 = ratio.count_terms_manager(set(background), assoc_dict_background, dag, etype)
+        association_2_count_dict_background_v2, association_2_ANs_dict_background_v2, background_n_v2 = ratio.count_terms_v2(
+            set(background), assoc_dict_background, dag)
 
         for association, foreground_count in association_2_count_dict_foreground.items():
             assert association in association_2_count_dict_background

@@ -1,7 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 
-# import pytest
+import pytest
 # from collections import defaultdict
 # import requests
 
@@ -73,6 +73,7 @@ def test_EnrichmentStudy_genome(random_foreground_background, pqo_STRING):
             result = enrichment_study.get_result(output_format)
             assert result # not an empty dict
 
+@pytest.mark.STRING_examples
 def test_run_STRING_enrichment(pqo_STRING, STRING_examples):
     """
     checking that
@@ -94,6 +95,7 @@ def test_run_STRING_enrichment(pqo_STRING, STRING_examples):
         # assert result is not empty
         assert result
 
+@pytest.mark.STRING_examples
 def test_run_STRING_enrichment_genome(pqo_STRING, STRING_examples):
     ### STRING example #1
     # foreground = ['511145.b1260', '511145.b1261', '511145.b1262', '511145.b1263', '511145.b1264', '511145.b1812', '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
