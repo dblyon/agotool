@@ -6,7 +6,7 @@ import enrichment, tools, variables
 
 def run_STRING_enrichment(pqo, ui, enrichment_method="compare_samples",
         limit_2_entity_type=None, go_slim_or_basic="basic", indent=True,
-        multitest_method="Benjamini_Hochberg", alpha=0.05, o_or_u_or_both="both",
+        multitest_method="benjamini_hochberg", alpha=0.05, o_or_u_or_both="both",
         fold_enrichment_for2background=None, p_value_uncorrected=None, FDR_cutoff=None, output_format="json"):
     if FDR_cutoff == 0:
         FDR_cutoff = None
@@ -32,7 +32,8 @@ def run_STRING_enrichment(pqo, ui, enrichment_method="compare_samples",
                                                           o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type,
                                                           indent=indent)
             result = enrichment_study.get_result(output_format, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
-            results_all_function_types[entity_type] = result
+            if result: # don't add empty results
+                results_all_function_types[entity_type] = result
     return results_all_function_types
 
 def run_STRING_enrichment_genome(pqo, ui, taxid, background_n=None, output_format="json", FDR_cutoff=None):
@@ -50,11 +51,12 @@ def run_STRING_enrichment_genome(pqo, ui, taxid, background_n=None, output_forma
         assoc_dict = etype_2_association_dict[entity_type]
         if bool(assoc_dict): # not empty dictionary
             enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method,
-                o_or_u_or_both="overrepresented", multitest_method="Benjamini_Hochberg", entity_type=entity_type,
+                o_or_u_or_both="overrepresented", multitest_method="benjamini_hochberg", entity_type=entity_type,
                 association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type],
                 background_n=background_n)
             result = enrichment_study.get_result(output_format, FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
-            results_all_function_types[entity_type] = result
+            if result: # don't add empty results
+                results_all_function_types[entity_type] = result
     return results_all_function_types
 
 def check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):

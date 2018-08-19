@@ -582,7 +582,7 @@ If "Abundance correction" is deselected "population_int" can be omitted.""")
         description="""Maximum threshold value of "p_uncorrected".""")
 
     FDR_cutoff =  fields.FloatField(
-        "FDR-cutoff (threshold for multiple testing corrected p-values)",
+        "FDR-cutoff (multiple testing corrected p-values)",
         [validate_float_between_zero_and_one],
         default = 0,
         description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value (default=0 meaning no cutoff)""")
@@ -699,6 +699,11 @@ def generate_result_page(tsv, entity_type, indent, session_id, form, errors=()):
     # results = df.values.tolist()
     # results_2_display = ["\t".join(row) for row in results]
     header, results = tsv.split("\n", 1)
+
+    # results_2_display = results.split("\n")
+    header = header.split("\t")
+    results_2_display = [res.split("\t") for res in results.split("\n")]
+
     ellipsis_indices = elipsis(header)
     # results2display = []
     # for res in results:

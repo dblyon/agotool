@@ -392,6 +392,7 @@ class EnrichmentStudy(object):
         elif method_name == "holm":
             corrected_pvals = HolmBonferroni(pvals_array, alpha, array=array).corrected_pvals
         else:
+            print("method_name: {}".format(method_name))
             raise NotImplementedError
         return corrected_pvals
     @staticmethod
