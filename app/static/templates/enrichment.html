@@ -65,10 +65,6 @@
             <h3>Keyword association</h3>
             <div class="col-md-10">
                 <span title="{{ form.limit_2_entity_type.description }}"> {{ form.limit_2_entity_type.label }}: {{ form.limit_2_entity_type() }} <br> </span>
-{#                <div class="GO_basic_slim_backtracking">#}
-{#                    <span class="ONTOLOGY" title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}<br></span>#}
-{#                    <span class="ONTOLOGY" title="{{ form.backtracking.description }}"> {{ form.backtracking.label }}: {{ form.backtracking() }} <br> </span>#}
-{#                </div>#}
             </div>
         </div>
 
@@ -98,10 +94,10 @@
                     <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_uncorrected.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
                 </tr>
-                <tr title="{{ form.p_value_multipletesting.description }}"><td class="somename">{{ form.p_value_multipletesting.label }}: </td><td>{{ form.p_value_multipletesting() }}</td>
-                    {% if form.p_value_multipletesting.errors %}
+                <tr title="{{ form.FDR_cutoff.description }}"><td class="somename">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
+                    {% if form.FDR_cutoff.errors %}
                 <tr>
-                    <td colspan="2"><ul class="errors"> {% for error in form.p_value_multipletesting.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                    <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                     {% endif %}
                 </tr>
                 </table>

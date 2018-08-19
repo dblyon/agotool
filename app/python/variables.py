@@ -79,6 +79,7 @@ TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
 STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
+FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema_STRING.md")
 
 DIRECTORIES_LIST = [os.path.join(DATA_DIR, 'PostgreSQL/downloads'),
                     os.path.join(DATA_DIR, 'logs'),

@@ -109,7 +109,7 @@ class EnrichmentStudy(object):
             self.df["p_uncorrected"] = self.df["p_uncorrected"].apply(lambda x: "{:.2E}".format(Decimal(x)))
         if output_format == "json":
             return self.df.to_json(orient='records')
-        elif output_format == "tsv":
+        elif output_format in {"tsv", "xml"}: # xml gets formatted in runserver.py
             return self.df.to_csv(sep="\t", header=True, index=False)
         # elif output_format == "web_table":
             # header: list of string
@@ -392,6 +392,7 @@ class EnrichmentStudy(object):
         elif method_name == "holm":
             corrected_pvals = HolmBonferroni(pvals_array, alpha, array=array).corrected_pvals
         else:
+            print("method_name: {}".format(method_name))
             raise NotImplementedError
         return corrected_pvals
     @staticmethod

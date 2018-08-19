@@ -1,11 +1,13 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 
-# import pytest
+import pytest
 # from collections import defaultdict
 # import requests
+import ast
 
 import variables, ratio, query, userinput, enrichment, run
+
 
 
 def format_for_REST_API(list_of_string):
@@ -73,6 +75,7 @@ def test_EnrichmentStudy_genome(random_foreground_background, pqo_STRING):
             result = enrichment_study.get_result(output_format)
             assert result # not an empty dict
 
+@pytest.mark.STRING_examples
 def test_run_STRING_enrichment(pqo_STRING, STRING_examples):
     """
     checking that
@@ -80,13 +83,14 @@ def test_run_STRING_enrichment(pqo_STRING, STRING_examples):
     :param STRING_examples:
     :return:
     """
-    ### STRING example #1
-    # foreground = ['511145.b1260', '511145.b1261', '511145.b1262', '511145.b1263', '511145.b1264', '511145.b1812', '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
-    # taxid = 511145
+    enrichment_method = "compare_samples"
     foreground, taxid = STRING_examples
-    background_n = pqo_STRING.get_proteome_count_from_taxid(taxid)
-    ui = userinput.REST_API_input(pqo_STRING, foreground_string=format_for_REST_API(foreground),enrichment_method="genome", background_n=background_n)
-    results_all_function_types = run.run_STRING_enrichment(pqo=pqo_STRING, ui=ui, taxid=taxid, background_n=background_n, output_format="json", FDR_cutoff=None)
+    background = query.get_proteins_of_taxid(taxid)
+    # background_n = pqo_STRING.get_proteome_count_from_taxid(taxid)
+    ui = userinput.REST_API_input(pqo_STRING, foreground_string=format_for_REST_API(foreground),
+        background_string=format_for_REST_API(background), background_intensity=None, enrichment_method=enrichment_method)
+    results_all_function_types = run.run_STRING_enrichment(pqo=pqo_STRING, ui=ui, enrichment_method=enrichment_method,
+        limit_2_entity_type=None, output_format="json", FDR_cutoff=None)
     assert results_all_function_types  != {'message': 'Internal Server Error'}
     etypes = variables.entity_types_with_data_in_functions_table
     assert len(set(results_all_function_types.keys()).intersection(etypes)) == len(etypes)
@@ -94,17 +98,23 @@ def test_run_STRING_enrichment(pqo_STRING, STRING_examples):
         # assert result is not empty
         assert result
 
+@pytest.mark.STRING_examples
 def test_run_STRING_enrichment_genome(pqo_STRING, STRING_examples):
-    ### STRING example #1
-    # foreground = ['511145.b1260', '511145.b1261', '511145.b1262', '511145.b1263', '511145.b1264', '511145.b1812', '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
-    # taxid = 511145
     foreground, taxid = STRING_examples
+    etype_2_association_dict = pqo_STRING.get_association_dict_split_by_category(foreground)
     background_n = pqo_STRING.get_proteome_count_from_taxid(taxid)
-    ui = userinput.REST_API_input(pqo_STRING, foreground_string=format_for_REST_API(foreground),enrichment_method="genome", background_n=background_n)
+    ui = userinput.REST_API_input(pqo_STRING, foreground_string=format_for_REST_API(foreground), enrichment_method="genome", background_n=background_n)
     results_all_function_types = run.run_STRING_enrichment_genome(pqo=pqo_STRING, ui=ui, taxid=taxid, background_n=background_n, output_format="json", FDR_cutoff=None)
     assert results_all_function_types  != {'message': 'Internal Server Error'}
-    etypes = variables.entity_types_with_data_in_functions_table
-    assert len(set(results_all_function_types.keys()).intersection(etypes)) == len(etypes)
+    # etypes = variables.entity_types_with_data_in_functions_table
+    # assert len(set(results_all_function_types.keys()).intersection(etypes)) == len(etypes) # incomplete overlap can be due to missing functional annotations for given ENSPs
+    for etype, result in results_all_function_types.items():
+        result = ast.literal_eval(result)
+        number_of_ENSPs_with_association = len(etype_2_association_dict[etype])
+        # number_of_associations = len(set(val for key, val in etype_2_association_dict[etype].items()))
+        number_of_associations = len({item for sublist in etype_2_association_dict[etype].values() for item in sublist})
+        assert len(result) == number_of_associations # number of rows in results --> number of associations
+        assert len(foreground) >= number_of_ENSPs_with_association # not every ENSP has functional associations
 
 def test_EnrichmentStudy_(random_foreground_background, pqo_STRING):
     """
@@ -140,3 +150,6 @@ def test_EnrichmentStudy_(random_foreground_background, pqo_STRING):
                 background_n=background_n)
             result = enrichment_study.get_result(output_format)
             assert result # not an empty dict
+
+def test_example_files():
+    assert 1 == 2
