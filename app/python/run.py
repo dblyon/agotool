@@ -86,8 +86,14 @@ def pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, p
         return pqo.upk_dag
     elif entity_type == -52:
         return pqo.kegg_pseudo_dag
-    elif entity_type in {-53, -54, -55, -56}:
-        return pqo.DOM_pseudo_dag
+    elif entity_type == -53:
+        return pqo.smart_pseudo_dag
+    elif entity_type == -54:
+        return pqo.interpro_pseudo_dag
+    elif entity_type == -55:
+        return pqo.pfam_pseudo_dag
+    # elif entity_type == -56:
+    #     return pqo.DOM_pseudo_dag
     else:
         raise StopIteration
 

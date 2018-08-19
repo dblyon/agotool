@@ -7,7 +7,7 @@ skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to downl
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = False
+DOCKER = True
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 
@@ -47,12 +47,12 @@ PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # e.g. '/opt/services/flaskapp/src/python'
 if DOCKER:
     APP_DIR = "/opt/services/flaskapp/src"
-    # DATA_DIR = "/agotool_data"
+    DATA_DIR = "/agotool_data"
 else: # relative path on host
     APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
-    # DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
+    DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
 
-DATA_DIR = "/agotool_data"
+# DATA_DIR = "/agotool_data"
 
 # WEBSERVER_DATA = DATA_DIR #os.path.join(PROJECT_DIR, 'data')
 EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata") #os.path.join(PROJECT_DIR, 'data/exampledata')

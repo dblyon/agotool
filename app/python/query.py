@@ -423,30 +423,15 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
 
-        # deprecated
-        # self.KEGG_functions_set = self.get_functions_set_from_functions(entity_type="KEGG")
-        # self.DOM_functions_set = self.get_functions_set_from_functions(entity_type="DOM")
-
         ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
         self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
         self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
-
-        # go_dag.update_association() #???
         self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-        # for go_term in go_dag.keys():
-        #     _ = go_dag[go_term].get_all_parents()
-        #     go_dag[go_term].update_association()
-        # self.go_dag = go_dag
-
-        # for backtracking
-        # self.child_2_parent_dict = self.get_child_2_parent_dict()
-
-        # self.KEGG_pseudo_dag = obo_parser.KEGG_pseudo_dag()
         self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
+        self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
+        self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
+        self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
         # todo uncomment when Functions_table contains relevant data
-        # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
-        # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
-        # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
         # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
 
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()

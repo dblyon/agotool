@@ -65,6 +65,9 @@ ids_ = ["Protein name: trpA; Organism: Escherichia coli K12_MG1655", "Protein na
 
 @pytest.fixture(params=[(ENSPs_1, taxid_1), (ENSPs_2, taxid_2), (ENSPs_3, taxid_3)], ids=ids_, scope="session")
 def STRING_examples(request):
+    """
+    :return: Tuple(ENSPs_list, TaxID(str))
+    """
     return request.param
 
 

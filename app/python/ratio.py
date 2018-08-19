@@ -94,12 +94,13 @@ def count_terms_proteinGroup_KEGG(ui, assoc_dict, sample_or_background):
     return GOid2RedundantNumProtGroups_dict, GOid2ANs_dict, GOid2UniqueNumProtGroups_dict
 
 def count_terms_manager(ans_set, assoc_dict, obo_dag=None, entity_type="-51"):
-    if obo_dag is None:
-        return count_terms_v3(ans_set, assoc_dict)
-    if entity_type == "52": #method == "KEGG" (KEGG entity_type: "52")
-        return count_terms_v2_KEGG(ans_set, assoc_dict)
-    else:
-        return count_terms_v2(ans_set, assoc_dict, obo_dag)
+    return count_terms_v3(ans_set, assoc_dict)
+#    if obo_dag is None:
+#        return count_terms_v3(ans_set, assoc_dict)
+#    if entity_type == "52": #method == "KEGG" (KEGG entity_type: "52")
+#        return count_terms_v2_KEGG(ans_set, assoc_dict)
+#    else:
+#        return count_terms_v2(ans_set, assoc_dict, obo_dag)
 
 def count_terms_v2(ans_set, assoc_dict, obo_dag):
     """
