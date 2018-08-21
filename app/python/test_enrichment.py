@@ -114,7 +114,7 @@ def test_run_STRING_enrichment(pqo_STRING, STRING_examples, args_dict):
     etypes = variables.entity_types_with_data_in_functions_table
     assert len(set(results_all_function_types.keys()).intersection(etypes)) == len(etypes)
     for _, result in results_all_function_types.items():
-        ### assert result is not empty
+        # assert result is not empty
         assert result
 
 @pytest.mark.STRING_examples

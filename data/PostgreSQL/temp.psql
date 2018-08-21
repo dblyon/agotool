@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS functions_temp, functions;
+
+CREATE TABLE functions(
+    etype text,
+    name text,
+    an text,
+    definition text);
+
+\copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
+
