@@ -1,11 +1,14 @@
 """Define some fixtures to use in the project."""
-
-import pytest
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import random
+import pandas as pd
+# import numpy as np
 
-import query, userinput
+import pytest
+
+import query, userinput, variables
+
 
 @pytest.fixture(scope='session')
 def pqo():
@@ -70,6 +73,63 @@ def STRING_examples(request):
     """
     return request.param
 
+def from_file_2_df(fn):
+    """
+    :param fn: String
+    :return: Tuple(Series, DataFrame)
+    """
+    df = pd.read_csv(fn, sep='\t')
+    foreground = df["foreground"]
+    if "intensity" in df.columns.tolist():
+        background = df[["background", "intensity"]]
+    else:
+        background = df[["background"]]
+    return foreground, background
 
 
 
+foreground_1, background_1 = from_file_2_df(os.path.join(variables.PYTEST_FN_DIR, "example_1_STRING.txt"))
+foreground_2, background_2 = from_file_2_df(os.path.join(variables.PYTEST_FN_DIR, "example_2_STRING.txt"))
+foreground_11, background_11 = from_file_2_df(os.path.join(variables.PYTEST_FN_DIR, "example_11_STRING.txt"))
+foreground_3, background_3 = from_file_2_df(os.path.join(variables.PYTEST_FN_DIR, "example_3_STRING.txt"))
+fg_bg_meth_expected_cases_DFs = [(foreground_1, background_1, "abundance_correction"),
+                                 (foreground_2, background_2, "abundance_correction"),
+                                 (foreground_11, background_11, "abundance_correction"),
+                                 (foreground_3, background_3, "abundance_correction")]
+fg_bg_meth_expected_cases_ids = ["example_1_STRING.txt: foreground is a proper subset of the background, everything has an abundance value, one row of NaNs",
+                                 'example_2_STRING.txt: same as example_1_STRING.txt with "," instead of "." as decimal delimiter',
+                                 "example_11_STRING.txt: foreground is a proper subset of the background, not everything has an abundance value",
+                                 "example_3_STRING.txt: foreground is not a proper subset of the background, not everything has an abundance value"]
+
+@pytest.fixture(params=fg_bg_meth_expected_cases_DFs, ids=fg_bg_meth_expected_cases_ids)
+def fixture_fg_bg_meth_expected_cases(request):
+    return request.param
+
+@pytest.fixture(scope="session")
+def args_dict():
+    args_dict = {'FDR_cutoff': None,
+                 'alpha': 0.05,
+                 'foreground': None,
+                 # 'foreground_string': None,
+                 'background': None,
+                 # 'background_string': None,
+                 'intensity': None,
+                 # 'background_intensity': None,
+                 'foreground_n': 10,
+                 'background_n': 10,
+                 'caller_identity': None,
+                 'enrichment_method': 'characterize_foreground',
+                 'fold_enrichment_for2background': 0,
+                 'go_slim_or_basic': 'basic',
+                 'identifiers': None,
+                 'indent': 'True',
+                 'limit_2_entity_type': '-21;-22;-23;-51;-52;-53;-54;-55',
+                 'multitest_method': 'benjamini_hochberg',
+                 'num_bins': 100,
+                 'o_or_u_or_both': 'overrepresented',
+                 'organism': None,
+                 'output_format': 'tsv',
+                 'p_value_uncorrected': 0,
+                 'species': None,
+                 'taxid': None}
+    return args_dict

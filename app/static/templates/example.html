@@ -2,12 +2,10 @@
 
 {% block head %}
         <link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">
-
 {% endblock head %}
 
 {% block content %}
     <script src="{{ url_for('static', filename='js/prism.js') }}"></script>
-
 <div class="container-fluid">
     <h3>Example data</h3>
     <br>
@@ -25,14 +23,195 @@
     <h2>REST API</h2>
     <p>
         current version of agotool using UniProt Accession Numbers at https://agotool.sund.ku.dk which will migrate to www.agotool.org soon
-
-
     </p>
-    <h3>python3 examples</h3><br>
+
+<h3>Parameters</h3>
+    <table id="table_id" class="table table-striped hover">
+        <thead><span class="table_header">
+            <tr>
+            <th style="text-align:center;">Name</th>
+            <th style="text-align:center;">DataType</th>
+            <th style="text-align:center;">Required/Optional</th>
+            <th style="text-align:center;">Default</th>
+            <th style="text-align:center;">Description</th>
+            <th style="text-align:center;">Example</th>
+            </tr></span>
+        </thead>
+    <tbody>
+        <tr>
+        <td style="text-align:center;">foreground</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">required</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">STRING identifier(s) for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment)</td>
+        <td style="text-align:center;">"4932.YAR019C%04932.YFR028C"</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">taxid</td>
+        <td style="text-align:center;">integer</td>
+        <td style="text-align:center;">only required if enrichment_method is "genome"</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms)</td>
+        <td style="text-align:center;">9606</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">output_format</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">optional</td>
+        <td style="text-align:center;">json</td>
+        <td style="text-align:center;">The desired format of the output, one of {tsv, tsv-no-header, json, xml}</td>
+        <td style="text-align:center;">tsv</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">limit_2_entity_type</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">optional</td>
+        <td style="text-align:center;">"-21;-22;-23;-51;-52;-53;-54;-55" (all available)</td>
+        <td style="text-align:center;">Limit the enrichment analysis to a specific or multiple entity types</td>
+        <td style="text-align:center;">'-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords"</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">enrichment_method</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">required</td>
+        <td style="text-align:center;">genome</td>
+        <td style="text-align:center;">one of {genome, abundance_correction, compare_samples, compare_groups}. abundance_correction: Foreground vs Background abundance corrected; genome: provided foreground vs genome; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --&gt; foreground_n and background_n need to be set; characterize_foreground: Foreground only</td>
+        <td style="text-align:center;">genome</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">background</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">optional (not required for 'enrichment_method' 'genome')</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">STRING identifier(s) for all proteins in the background (the population, the group you want to compare your foreground to)</td>
+        <td style="text-align:center;">"4932.YAR019C%04932.YFR028C"</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">intensity</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">optional (only required for 'enrichment_method' 'abundance_correction')</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'</td>
+        <td style="text-align:center;">'12.3%0d3.4'</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">FDR_cutoff</td>
+        <td style="text-align:center;">float</td>
+        <td style="text-align:center;">optional</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">False Discovery Rate cutoff (threshold for multiple testing corrected p-values), 0 or not passing the parameter means no cutoff applied.</td>
+        <td style="text-align:center;">0.001</td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">caller_identity</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">optional</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">Your identifier for us</td>
+        <td style="text-align:center;"><a href="http://www.my_awesome_app.com">www.my_awesome_app.com</a></td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">species</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">deprecated</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">deprecated, please use 'taxid' instead</td>
+        <td style="text-align:center;"></td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">organism</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">deprecated</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">deprecated, please use 'taxid' instead</td>
+        <td style="text-align:center;"></td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">method</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">deprecated</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">deprecated</td>
+        <td style="text-align:center;"></td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">enrichment</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">deprecated</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">deprecated</td>
+        <td style="text-align:center;"></td>
+        </tr>
+        <tr>
+        <td style="text-align:center;">identifiers</td>
+        <td style="text-align:center;">string</td>
+        <td style="text-align:center;">deprecated</td>
+        <td style="text-align:center;">None</td>
+        <td style="text-align:center;">Please use 'foreground' instead. Required parameter for multiple items</td>
+        <td style="text-align:center;">"DRD1_HUMAN%0dDRD2_HUMAN"</td>
+        </tr>
+        </tbody>
+    </table>
+
+<h4>Entity types</h4>
+    <table id="table_id" class="table table-striped hover">
+        <thead>
+            <span class="table_header">
+            <tr>
+            <th style="text-align:center;">entity_type</th>
+            <th style="text-align:center;">description</th>
+            </tr>
+            </span>
+        </thead>
+        <tbody>
+            <tr>
+            <td style="text-align:center;">-21</td>
+            <td style="text-align:center;">GO biological process</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-22</td>
+            <td style="text-align:center;">GO cellular component</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-23</td>
+            <td style="text-align:center;">GO molecular function</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-51</td>
+            <td style="text-align:center;">UniProt keyword</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-52</td>
+            <td style="text-align:center;">KEGG</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-53</td>
+            <td style="text-align:center;">SMART</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-54</td>
+            <td style="text-align:center;">Interpro</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-55</td>
+            <td style="text-align:center;">PFAM</td>
+            </tr>
+            <tr>
+            <td style="text-align:center;">-56</td>
+            <td style="text-align:center;">PMID</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <h3>Python3 examples</h3><br>
         <pre><code class="language-python">
 import requests
+# call api_help for help and argument defaults
+response = requests.get(r"http://agotool.meringlab.org/api_help")
+print(response.json())
+
 url_ = r"http://agotool.meringlab.org/api" # atlas
-# output_format is one of {"json", "tsv"}
         </code></pre>
 
         <h4>Example #1 from STRING</h4>
@@ -82,7 +261,7 @@ result = requests.post(url_,
                           "foreground": fg,
                           "background": fg,
                           "enrichment_method": "compare_samples",
-                          ""limit_2_entity_type": "-21;-51;-52", # to get GO biological process; UniProt keyword; SMART
+                          "limit_2_entity_type": "-21;-51;-52", # comma separate desired entity_types (e.g. GO biological process; UniProt keyword; SMART) , default get all available.
                           "taxid": 10090})
 # since the foreground equals the background completely no significant enrichment will result from this analysis
 # it is meant to show how to show how to use the method call

@@ -1,5 +1,4 @@
-## entity_types [Entity_types_table_STRING.txt]
-##### AccessionNumber(Text); EntityType(Integer); Name(Text)
+# entity_types [Entity_types_table_STRING.txt]
 | an | etype | name |
 |:---:|:---:|:---:|
 | GO:0003674 | -23 | GO molecular function |
@@ -34,9 +33,7 @@
 | NBO behaviors | -31 | NBO behaviors |
 | mammalian phenotypes | -36 | mammalian phenotypes |
 
-
 ## functions [Functions_table_STRING.txt]
-#####  etype (Text); name(Text); an(Text); definition(Text)
 | etype | name | an | definition |
 |:---:|:---:|:---:|:---:|
 | -21 | mitochondrion inheritance | GO:0000001 | "The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764] |

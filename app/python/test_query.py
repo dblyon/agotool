@@ -54,6 +54,7 @@ def test_association_2_count_dict(pqo_STRING, random_foreground_background):
             assert association in association_2_count_dict_background_v2
             assert association in association_2_ANs_dict_background_v2
 
+@pytest.mark.skip(reason="test passed previously and takes way too long to execute")
 @pytest.mark.long_running
 def test_ENSP_consistency_of_DB():
     """
@@ -74,7 +75,7 @@ def test_ENSP_consistency_of_DB():
         assert len(ensp_taxid_2_protein.intersection(ensp_protein_2_function)) == len_ensp_protein_2_function
         assert len(ensp_taxid_2_protein.union(ensp_protein_2_function)) == len_ensp_taxid_2_protein
 
-@pytest.mark.todo
+@pytest.mark.skip(reason="test passed previously and takes way too long to execute")
 @pytest.mark.long_running
 def test_functional_association_consistency_of_DB(pqo_STRING):
     """

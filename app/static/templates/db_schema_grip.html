@@ -1,0 +1,597 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<title>Data base schema</title>
+{% endblock head %}
+
+{% block content %}
+    <div class="container-fluid">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DataBase_Schema_STRING.md - Grip</title>
+  <link rel="icon" href="/__/grip/static/favicon.ico" />
+  <link rel="stylesheet" href="/__/grip/asset/frameworks-23c9e7262eee71bc6f67f6950190a162.css" />
+  <link rel="stylesheet" href="/__/grip/asset/site-7472e7b4603d4095447d49d428375ab8.css" />
+  <link rel="stylesheet" href="/__/grip/asset/github-6047ad5937cfc1f68855f708a08de860.css" />
+  <link rel="stylesheet" href="/__/grip/static/octicons/octicons.css" />
+  <style>
+    /* Page tweaks */
+    .preview-page {
+      margin-top: 64px;
+    }
+    /* User-content tweaks */
+    .timeline-comment-wrapper > .timeline-comment:after,
+    .timeline-comment-wrapper > .timeline-comment:before {
+      content: none;
+    }
+    /* User-content overrides */
+    .discussion-timeline.wide {
+      width: 920px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div id="preview-page" class="preview-page" data-autorefresh-url="">
+
+    
+
+      <div role="main" class="main-content">
+        <div class="container new-discussion-timeline experiment-repo-nav">
+          <div class="repository-content">
+            <div id="readme" class="readme boxed-group clearfix announce instapaper_body md">
+              
+                <h3>
+                  <span class="octicon octicon-book"></span>
+                  DataBase_Schema_STRING.md
+                </h3>
+              
+              <article class="markdown-body entry-content" itemprop="text" id="grip-content">
+                <h1>
+<a id="user-content-entity_types-entity_types_table_stringtxt" class="anchor" href="#entity_types-entity_types_table_stringtxt" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>entity_types [Entity_types_table_STRING.txt]</h1>
+<table>
+<thead>
+<tr>
+<th align="center">an</th>
+<th align="center">etype</th>
+<th align="center">name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">GO:0003674</td>
+<td align="center">-23</td>
+<td align="center">GO molecular function</td>
+</tr>
+<tr>
+<td align="center">GO:0005575</td>
+<td align="center">-22</td>
+<td align="center">GO cellular component</td>
+</tr>
+<tr>
+<td align="center">GO:0008150</td>
+<td align="center">-21</td>
+<td align="center">GO biological process</td>
+</tr>
+<tr>
+<td align="center">GO:OBSOLETE</td>
+<td align="center">-24</td>
+<td align="center">GO obsolete</td>
+</tr>
+<tr>
+<td align="center">UPK:9990</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Technical term</td>
+</tr>
+<tr>
+<td align="center">UPK:9991</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword PTM</td>
+</tr>
+<tr>
+<td align="center">UPK:9992</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Molecular function</td>
+</tr>
+<tr>
+<td align="center">UPK:9993</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Ligand</td>
+</tr>
+<tr>
+<td align="center">UPK:9994</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Domain</td>
+</tr>
+<tr>
+<td align="center">UPK:9995</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Disease</td>
+</tr>
+<tr>
+<td align="center">UPK:9996</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Developmental stage</td>
+</tr>
+<tr>
+<td align="center">UPK:9997</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Coding sequence diversity</td>
+</tr>
+<tr>
+<td align="center">UPK:9998</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Cellular component</td>
+</tr>
+<tr>
+<td align="center">UPK:9999</td>
+<td align="center">-51</td>
+<td align="center">UniProt keyword Biological process</td>
+</tr>
+<tr>
+<td align="center">KEGG</td>
+<td align="center">-52</td>
+<td align="center">KEGG</td>
+</tr>
+<tr>
+<td align="center">SMART</td>
+<td align="center">-53</td>
+<td align="center">SMART</td>
+</tr>
+<tr>
+<td align="center">INTERPRO</td>
+<td align="center">-54</td>
+<td align="center">Interpro</td>
+</tr>
+<tr>
+<td align="center">PFAM</td>
+<td align="center">-55</td>
+<td align="center">Pfam</td>
+</tr>
+<tr>
+<td align="center">PMID</td>
+<td align="center">-56</td>
+<td align="center">PMID</td>
+</tr>
+<tr>
+<td align="center">chemicals</td>
+<td align="center">-1</td>
+<td align="center">chemicals</td>
+</tr>
+<tr>
+<td align="center">NCBI species taxonomy id (tagging species)</td>
+<td align="center">-2</td>
+<td align="center">NCBI species taxonomy id (tagging species)</td>
+</tr>
+<tr>
+<td align="center">NCBI species taxonomy id (tagging proteins)</td>
+<td align="center">-3</td>
+<td align="center">NCBI species taxonomy id (tagging proteins)</td>
+</tr>
+<tr>
+<td align="center">Wikipedia</td>
+<td align="center">-11</td>
+<td align="center">Wikipedia</td>
+</tr>
+<tr>
+<td align="center">BTO tissues</td>
+<td align="center">-25</td>
+<td align="center">BTO tissues</td>
+</tr>
+<tr>
+<td align="center">DOID diseases</td>
+<td align="center">-26</td>
+<td align="center">DOID diseases</td>
+</tr>
+<tr>
+<td align="center">ENVO environments</td>
+<td align="center">-27</td>
+<td align="center">ENVO environments</td>
+</tr>
+<tr>
+<td align="center">APO phenotypes</td>
+<td align="center">-28</td>
+<td align="center">APO phenotypes</td>
+</tr>
+<tr>
+<td align="center">FYPO phenotypes</td>
+<td align="center">-29</td>
+<td align="center">FYPO phenotypes</td>
+</tr>
+<tr>
+<td align="center">MPheno phenotypes</td>
+<td align="center">-30</td>
+<td align="center">MPheno phenotypes</td>
+</tr>
+<tr>
+<td align="center">NBO behaviors</td>
+<td align="center">-31</td>
+<td align="center">NBO behaviors</td>
+</tr>
+<tr>
+<td align="center">mammalian phenotypes</td>
+<td align="center">-36</td>
+<td align="center">mammalian phenotypes</td>
+</tr>
+</tbody>
+</table>
+<h2>
+<a id="user-content-functions-functions_table_stringtxt" class="anchor" href="#functions-functions_table_stringtxt" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>functions [Functions_table_STRING.txt]</h2>
+<table>
+<thead>
+<tr>
+<th align="center">etype</th>
+<th align="center">name</th>
+<th align="center">an</th>
+<th align="center">definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">-21</td>
+<td align="center">mitochondrion inheritance</td>
+<td align="center">GO:0000001</td>
+<td align="center">"The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton." [GOC:mcc, PMID:10873824, PMID:11389764]</td>
+</tr>
+<tr>
+<td align="center">-21</td>
+<td align="center">mitochondrial genome maintenance</td>
+<td align="center">GO:0000002</td>
+<td align="center">"The maintenance of the structure and integrity of the mitochondrial genome; includes replication and segregation of the mitochondrial chromosome." [GOC:ai, GOC:vw]</td>
+</tr>
+<tr>
+<td align="center">-52</td>
+<td align="center">Metabolic pathways</td>
+<td align="center">KEGG:01100</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">-52</td>
+<td align="center">Biosynthesis of secondary metabolites</td>
+<td align="center">KEGG:01110</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">-52</td>
+<td align="center">Microbial metabolism in diverse environments</td>
+<td align="center">KEGG:01120</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">-51</td>
+<td align="center">2Fe-2S</td>
+<td align="center">UPK:0001</td>
+<td align="center">"Protein which contains at least one 2Fe-2S iron-sulfur cluster: 2 iron atoms complexed to 2 inorganic sulfides and 4 sulfur atoms of cysteines from the protein." []</td>
+</tr>
+<tr>
+<td align="center">-51</td>
+<td align="center">3D-structure</td>
+<td align="center">UPK:0002</td>
+<td align="center">"Protein, or part of a protein, whose three-dimensional structure has been resolved experimentally (for example by X-ray crystallography or NMR spectroscopy) and whose coordinates are available in the PDB database. Can also be used for theoretical models." []</td>
+</tr>
+<tr>
+<td align="center">-51</td>
+<td align="center">4Fe-4S</td>
+<td align="center">UPK:0004</td>
+<td align="center">"Protein which contains at least one 4Fe-4S iron-sulfur cluster: 4 iron atoms complexed to 4 inorganic sulfides and 4 sulfur atoms of cysteines from the protein. In a number of iron-sulfur proteins, the 4Fe-4S cluster can be reversibly converted by oxidation and loss of one iron ion to a 3Fe-4S cluster." []</td>
+</tr>
+<tr>
+<td align="center">-51</td>
+<td align="center">Abscisic acid biosynthesis</td>
+<td align="center">UPK:0937</td>
+<td align="center">"Protein involved in the synthesis of abscisic acid (ABA) (5-(1-hydroxy-2,6,6,trimethyl-4-oxocyclohex-2-en-1-y1)-3-methylpenta-2,4-dienoic acid). ABA is a plant hormone which play a role in many aspects of plant growth, development and cellular signaling (e.g. seed dormancy, seed maturation, vegetative growth and responses to various environmental stimuli such as stomatal closure during drought). This phytohormone can be synthesized from farnesyl diphosphate (direct C15 pathway) or from 9-cis-violaxanthine (indirect C40 pathway)." []</td>
+</tr>
+<tr>
+<td align="center">-52</td>
+<td align="center">Metabolic pathways</td>
+<td align="center">KEGG:01100</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">-52</td>
+<td align="center">Biosynthesis of secondary metabolites</td>
+<td align="center">KEGG:01110</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">-53</td>
+<td align="center">14_3_3</td>
+<td align="center">SM00101</td>
+<td align="center">14-3-3 homologues; 14-3-3 homologues mediates signal transduction...</td>
+</tr>
+<tr>
+<td align="center">-53</td>
+<td align="center">35EXOc</td>
+<td align="center">SM00474</td>
+<td align="center">3'-5' exonuclease; 3' -5' exonuclease proofreading domain presen...</td>
+</tr>
+<tr>
+<td align="center">-54</td>
+<td align="center">Kringle</td>
+<td align="center">IPR000001</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">-54</td>
+<td align="center">Retinoid X receptor/HNF4</td>
+<td align="center">IPR000003</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">-55</td>
+<td align="center">7tm_1</td>
+<td align="center">PF00001</td>
+<td align="center">7 transmembrane receptor (rhodopsin family)</td>
+</tr>
+<tr>
+<td align="center">-55</td>
+<td align="center">7tm_2</td>
+<td align="center">PF00002</td>
+<td align="center">7 transmembrane receptor (Secretin family)</td>
+</tr>
+</tbody>
+</table>
+<h2>
+<a id="user-content-protein_2_function-protein_2_function_table_stringtxt" class="anchor" href="#protein_2_function-protein_2_function_table_stringtxt" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>protein_2_function [Protein_2_Function_table_STRING.txt]</h2>
+<h5>
+<a id="user-content-todo-pmid-missing" class="anchor" href="#todo-pmid-missing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ToDo PMID missing</h5>
+<h5>
+<a id="user-content-accessionnumbertext-function_arraytext-array-entitytypeinteger" class="anchor" href="#accessionnumbertext-function_arraytext-array-entitytypeinteger" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>AccessionNumber(Text); function_array(Text Array); EntityType(Integer)</h5>
+<table>
+<thead>
+<tr>
+<th align="center">an</th>
+<th align="center">func_array</th>
+<th align="center">etype</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">9606.ENSP00000000233</td>
+<td align="center">{"Arf","Gtr1_RagA","MMR_HSR1","Ras","Roc","SRPRB"}</td>
+<td align="center">-53</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000000233</td>
+<td align="center">{"GO:0000166","GO:0001882","GO:0001883","GO:0003674","GO:0003824","GO:0003924","GO:0005488","GO:0005525","GO:0016462","GO:0016787","GO:0016817","GO:0016818","GO:0017076","GO:0017111","GO:0019001","GO:0032549","GO:0032550","GO:0032553","GO:0032555","GO:0032561","GO:0035639","GO:0036094","GO:0043167","GO:0043168","GO:0097159","GO:0097367","GO:1901265","GO:1901363"}</td>
+<td align="center">-23</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000000233</td>
+<td align="center">{"GO:0005575","GO:0005576","GO:0005622","GO:0005623","GO:0005737","GO:0005794","GO:0005886","GO:0012505","GO:0016020","GO:0031982","GO:0031988","GO:0043226","GO:0043227","GO:0043229","GO:0043230","GO:0043231","GO:0044421","GO:0044424","GO:0044444","GO:0044464","GO:0048471","GO:0065010","GO:0070062","GO:0071944","GO:1903561"}</td>
+<td align="center">-22</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000000233</td>
+<td align="center">{"GO:0006810","GO:0007154","GO:0007165","GO:0007264","GO:0008104","GO:0008150","GO:0008150","GO:0008152","GO:0009987","GO:0015031","GO:0015833","GO:0016192","GO:0023052","GO:0033036","GO:0035556","GO:0042886","GO:0044700","GO:0044763","GO:0045184","GO:0050789","GO:0050794","GO:0050896","GO:0051179","GO:0051234","GO:0051716","GO:0065007","GO:0071702","GO:0071705"}</td>
+<td align="center">-21</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000000233</td>
+<td align="center">{"UPK:0002","UPK:0181","UPK:0333","UPK:0342","UPK:0449","UPK:0472","UPK:0519","UPK:0547","UPK:0653","UPK:0813","UPK:0931","UPK:0963","UPK:1185","UPK:9990","UPK:9991","UPK:9993","UPK:9998","UPK:9999"}</td>
+<td align="center">-51</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000000233</td>
+<td align="center">{"KEGG:04144"}</td>
+<td align="center">-52</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000005587</td>
+<td align="center">{"SM00233","SM00326"}</td>
+<td align="center">-53</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000000233</td>
+<td align="center">{"IPR005225","IPR006689","IPR024156","IPR027417"}</td>
+<td align="center">-54</td>
+</tr>
+<tr>
+<td align="center">9606.ENSP00000000412</td>
+<td align="center">{"PF09451","PF02157"}  -55</td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<h2>
+<a id="user-content-taxid_2_protein-taxid_2_protein_table_stringtxt" class="anchor" href="#taxid_2_protein-taxid_2_protein_table_stringtxt" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>taxid_2_protein [TaxID_2_Protein_table_STRING.txt]</h2>
+<h5>
+<a id="user-content-taxid-integer-accessionnumber_array-text-array-count-integer" class="anchor" href="#taxid-integer-accessionnumber_array-text-array-count-integer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TaxID (Integer); AccessionNumber_Array (Text Array); Count (Integer)</h5>
+<table>
+<thead>
+<tr>
+<th align="center">taxid</th>
+<th align="center">an_array</th>
+<th align="center">count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">9606</td>
+<td align="center">{"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...}</td>
+<td align="center">19566</td>
+</tr>
+<tr>
+<td align="center">1000565</td>
+<td align="center">{"1000565.METUNv1_00006","1000565.METUNv1_00011","1000565.METUNv1_00018","1000565.METUNv1_00019", ...}</td>
+<td align="center">12345</td>
+</tr>
+</tbody>
+</table>
+<h2>
+<a id="user-content-go_2_slim-go_2_slim_table_stringtxt" class="anchor" href="#go_2_slim-go_2_slim_table_stringtxt" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>go_2_slim [GO_2_Slim_table_STRING.txt]</h2>
+<h5>
+<a id="user-content-antext-slimboolean" class="anchor" href="#antext-slimboolean" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>an(Text); slim(Boolean)</h5>
+<table>
+<thead>
+<tr>
+<th align="center">an</th>
+<th align="center">slim</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">GO:0000003</td>
+<td align="center">1</td>
+</tr>
+</tbody>
+</table>
+<h2>
+<a id="user-content-ontologies-ontologies_table_stringtxt" class="anchor" href="#ontologies-ontologies_table_stringtxt" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ontologies [Ontologies_table_STRING.txt]</h2>
+<h5>
+<a id="user-content-childtext-parenttext-directboolean-etypeinteger" class="anchor" href="#childtext-parenttext-directboolean-etypeinteger" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>child(Text); parent(Text); direct(Boolean); etype(Integer)</h5>
+<table>
+<thead>
+<tr>
+<th align="center">child</th>
+<th align="center">parent</th>
+<th align="center">direct</th>
+<th align="center">etype</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">GO:0008152</td>
+<td align="center">GO:0008150</td>
+<td align="center">1</td>
+<td align="center">-21</td>
+</tr>
+<tr>
+<td align="center">GO:0032259</td>
+<td align="center">GO:0008152</td>
+<td align="center">1</td>
+<td align="center">-21</td>
+</tr>
+<tr>
+<td align="center">GO:0032259</td>
+<td align="center">GO:0008150</td>
+<td align="center">0</td>
+<td align="center">-21</td>
+</tr>
+<tr>
+<td align="center">GO:0097042</td>
+<td align="center">GO:0005575</td>
+<td align="center">0</td>
+<td align="center">-22</td>
+</tr>
+<tr>
+<td align="center">GO:0072591</td>
+<td align="center">GO:0003674</td>
+<td align="center">0</td>
+<td align="center">-23</td>
+</tr>
+<tr>
+<td align="center">UPK:0440</td>
+<td align="center">UPK:9993</td>
+<td align="center">0</td>
+<td align="center">-51</td>
+</tr>
+<tr>
+<td align="center">UPK:0440</td>
+<td align="center">UPK:9994</td>
+<td align="center">1</td>
+<td align="center">-51</td>
+</tr>
+</tbody>
+</table>
+<h2>
+<a id="user-content-function_2_ensp-function_2_ensp_table_stringtxt" class="anchor" href="#function_2_ensp-function_2_ensp_table_stringtxt" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>function_2_ENSP [Function_2_ENSP_table_STRING.txt]</h2>
+<h5>
+<a id="user-content-taxidinteger-etypeinteger-associationtext-countinteger-an_arraytext-array" class="anchor" href="#taxidinteger-etypeinteger-associationtext-countinteger-an_arraytext-array" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>taxid(Integer); etype(Integer); association(Text); count(Integer); an_array(Text Array)</h5>
+<h5>
+<a id="user-content-taxid_index-taxid_etype_index-cluster_taxid_etype" class="anchor" href="#taxid_index-taxid_etype_index-cluster_taxid_etype" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>taxid_index, taxid_etype_index, cluster_taxid_etype</h5>
+<h5>
+<a id="user-content-background_count-number-of-ensps-per-given-association" class="anchor" href="#background_count-number-of-ensps-per-given-association" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>background_count: number of ENSPs per given association</h5>
+<h5>
+<a id="user-content-use-taxid_2_protein-for-counts-instead-of-background_n-number-of-ensps-with-any-kind-of-association-should-be-used-since-number-of-ensps-in-proteome-could-be-larger-than-those-that-have-association-info-in-general" class="anchor" href="#use-taxid_2_protein-for-counts-instead-of-background_n-number-of-ensps-with-any-kind-of-association-should-be-used-since-number-of-ensps-in-proteome-could-be-larger-than-those-that-have-association-info-in-general" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>use taxid_2_protein for counts instead of background_n: number of ENSPs with any kind of association, should be used since number of ENSPs in proteome could be larger than those that have association info in general</h5>
+<p>| taxid | etype | association | background_count | background_n | an_array |
+|:---:|:---:|:---:|:---:|:---:|
+| 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } |
+| 9606 | -21 | 'GO:0006897' | 2 | 3919 | {'9606.ENSP00000000412', ...} |
+| 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'9606.ENSP00000000412'} |</p>
+<h1>
+<a id="user-content-todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ToDo</h1>
+<h1>
+<a id="user-content-write-test-check-association_dict-of-random-ensps-is-proper-subset-of-association_dict_proteome" class="anchor" href="#write-test-check-association_dict-of-random-ensps-is-proper-subset-of-association_dict_proteome" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>write test: check association_dict of random ENSPs is proper subset of association_dict_proteome</h1>
+
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    
+
+  </div>
+  <div>&nbsp;</div>
+  </div><script>
+    function showCanonicalImages() {
+      var images = document.getElementsByTagName('img');
+      if (!images) {
+        return;
+      }
+      for (var index = 0; index < images.length; index++) {
+        var image = images[index];
+        if (image.getAttribute('data-canonical-src') && image.src !== image.getAttribute('data-canonical-src')) {
+          image.src = image.getAttribute('data-canonical-src');
+        }
+      }
+    }
+
+    function scrollToHash() {
+      if (location.hash && !document.querySelector(':target')) {
+        var element = document.getElementById('user-content-' + location.hash.slice(1));
+        if (element) {
+           element.scrollIntoView();
+        }
+      }
+    }
+
+    function autorefreshContent(eventSourceUrl) {
+      var initialTitle = document.title;
+      var contentElement = document.getElementById('grip-content');
+      var source = new EventSource(eventSourceUrl);
+      var isRendering = false;
+
+      source.onmessage = function(ev) {
+        var msg = JSON.parse(ev.data);
+        if (msg.updating) {
+          isRendering = true;
+          document.title = '(Rendering) ' + document.title;
+        } else {
+          isRendering = false;
+          document.title = initialTitle;
+          contentElement.innerHTML = msg.content;
+          showCanonicalImages();
+        }
+      }
+
+      source.onerror = function(e) {
+        if (e.readyState === EventSource.CLOSED && isRendering) {
+          isRendering = false;
+          document.title = initialTitle;
+        }
+      }
+    }
+
+    window.onhashchange = function() {
+      scrollToHash();
+    }
+
+    window.onload = function() {
+      scrollToHash();
+    }
+
+    showCanonicalImages();
+
+    var autorefreshUrl = document.getElementById('preview-page').getAttribute('data-autorefresh-url');
+    if (autorefreshUrl) {
+      autorefreshContent(autorefreshUrl);
+    }
+  </script>
+</body>
+</html>
+    </div>
+{% endblock content %}

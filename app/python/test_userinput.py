@@ -76,7 +76,6 @@ fg_bg_meth_all = [pytest.mark.xfail((foreground_empty, background_empty, "abunda
                   (foreground_1, background_1, "abundance_correction"),
                   (foreground_2, background_2, "abundance_correction"),
                   (foreground_3, background_3, "abundance_correction")]
-#                   (foreground_4, background_4, "abundance_correction")
 
 fg_bg_meth_all_ids = ["edge case, empty DFs with NaNs",
                     "edge case: nested empty list",
@@ -87,7 +86,6 @@ fg_bg_meth_all_ids = ["edge case, empty DFs with NaNs",
                     "example1: foreground is proper subset of background, everything has an abundance value",
                     "example2: foreground is proper subset of background, not everything has an abundance value",
                     "example3: foreground is not a proper subset of background, not everything has an abundance value"]
-#                     "example4: foreground and background don't intersect at all"]
 
 @pytest.fixture(params=fg_bg_meth_all, ids=fg_bg_meth_all_ids)
 def fixture_fg_bg_meth_all(request):
@@ -149,8 +147,8 @@ def fixture_fg_bg_iter_bins(request):
     return request.param
 
 # ToDo #!!!
-def test_compare_file_2_copypaste_2_RestAPI():
-    assert 1 == 2
+# def test_compare_file_2_copypaste_2_RestAPI():
+#     assert 1 == 2
 
 def test_ui_API_check(pqo, fixture_fg_bg_meth_all):
     foreground, background, enrichment_method = fixture_fg_bg_meth_all
@@ -229,7 +227,7 @@ fg_bg_0 = [(foreground_1, background_1, "compare_samples"),
 
 # example_1: foreground is a proper subset of the background, everything has an abundance value, one row of NaNs
 # example_2: same as example_1 with "," instead of "." as decimal delimiter
-
+### FileName_EnrichmentMethod
 fn_em_0 = [(os.path.join(TEST_FN_DIR, "example_1.txt"), "compare_samples"),
            (os.path.join(TEST_FN_DIR, "example_1.txt"), "compare_groups"),
            (os.path.join(TEST_FN_DIR, "example_1.txt"), "characterize_foreground"),
@@ -312,8 +310,6 @@ def test_factory_abundance(fn, enrichment_method, pqo):
 def test_protein_groups(fn, enrichment_method, pqo):
     pass
 
-
-
 @pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_0)
 def test_check_parse_with_copy_and_paste_0(foreground, background, enrichment_method, pqo):
     fg = "\n".join(foreground[foreground.notnull()].tolist())
@@ -360,7 +356,7 @@ def test_check_parse_and_cleanup_copy_and_paste_0(foreground, background, enrich
     assert ui.check_cleanup == False
     assert ui.check == False
 
-bubu_1 = [pytest.mark.xfail((foreground_empty, background_empty, "abundance_correction"), strict=True),
+fg_bg_meth_cp_abu = [pytest.mark.xfail((foreground_empty, background_empty, "abundance_correction"), strict=True),
       pytest.mark.xfail((foreground_empty_2, background_empty_2, "abundance_correction")),
       pytest.mark.xfail((foreground_empty_3, background_empty_3, "abundance_correction")),
       pytest.mark.xfail((foreground_empty_4, background_empty_4, "abundance_correction")),
@@ -369,7 +365,7 @@ bubu_1 = [pytest.mark.xfail((foreground_empty, background_empty, "abundance_corr
       (foreground_2, background_2, "abundance_correction"),
       (foreground_3, background_3, "abundance_correction")]
 
-@pytest.mark.parametrize("foreground, background, enrichment_method", bubu_1)
+@pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_meth_cp_abu)
 def test_check_parse_and_cleanup_copy_and_paste_1(foreground, background, enrichment_method, pqo):
     fg = "\n".join(foreground[foreground.notnull()].tolist())
     bg = background.loc[background.background.notnull(), "background"].tolist()

@@ -386,21 +386,21 @@ class Userinput:
 
 class REST_API_input(Userinput):
 
-    def __init__(self, pqo,
-            foreground_string=None, background_string=None, background_intensity=None,
-            num_bins=NUM_BINS, enrichment_method="abundance_correction", foreground_n=None, background_n=None):
+    def __init__(self, pqo, args_dict):
+            # foreground_string=None, background_string=None, background_intensity=None,
+            # num_bins=NUM_BINS, enrichment_method="abundance_correction", foreground_n=None, background_n=None):
         self.pqo = pqo
         self.df_orig = pd.DataFrame()
-        self.foreground_string = foreground_string
-        self.background_string = background_string
-        self.background_intensity = background_intensity
-        self.num_bins = num_bins
+        self.foreground_string = args_dict["foreground"]
+        self.background_string = args_dict["background"]
+        self.background_intensity = args_dict["intensity"]
+        self.num_bins = args_dict["num_bins"]
         self.col_foreground = "foreground"
         self.col_background = "background"
         self.col_intensity = "intensity"
-        self.enrichment_method = enrichment_method
-        self.foreground_n = foreground_n
-        self.background_n = background_n
+        self.enrichment_method = args_dict["enrichment_method"]
+        self.foreground_n = args_dict["foreground_n"]
+        self.background_n = args_dict["background_n"]
         self.check = False
         # self.decimal = "."
         # self.df_orig = self.parse_input()

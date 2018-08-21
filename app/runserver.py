@@ -11,7 +11,7 @@ import json
 from lxml import etree
 import markdown
 from flask import Markup
-
+from collections import defaultdict
 
 ###############################################################################
 variables.makedirs_()
@@ -33,26 +33,14 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 FN_DATABASE_SCHEMA = variables.FN_DATABASE_SCHEMA
 ###############################################################################
 # ToDo 2018
-# - remove empty sets (key=AN, val=set()) from assoc_dict  --> DONE
-# - install MCL clustering on flask container --> DONE
-# - fix download results button link --> DONE
-# - Consenus functional annotation for protein groups --> DONE
-# - add other types to Ontologies (not only GO, but also UPK) --> DONE
-# - All proteins without abundance data were disregarded --> put into extra bin --> DONE?
-# - re-write "write_summary2file_web" to take additional argument output_format={tsv, tsv-no-header, json, xml} --> done
-# - implement enrichment method "genome", user supplies NCBI_TaxID, DB table --> done
-# - Profile code --> speed improvements tools.convert_assoc_dict_2_proteinGroupsAssocDict --> done
-
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
 # - update "info_check_input.html" with REST API usage infos
-# - write parser for STRING input --> done
 # - offer option to omit testing GO-terms with few associations (e.g. 10)
 # - offer to user Pax-DB background proteomes
 # - offer example to be set automatically
 # - graphical output of enrichment
 # - update bootstrap version
 # - update documentation specifically about foreground and background
-
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
 # ? - protein-groups: is there different functional information for isoforms
 ###############################################################################
@@ -132,7 +120,15 @@ parser.add_argument("identifiers", type=str,
 
 parser.add_argument("taxid", type=int,
     help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
-    default=9606)
+    default=None)
+
+parser.add_argument("species", type=int,
+    help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
+    default=None)
+
+parser.add_argument("organism", type=int,
+    help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
+    default=None)
 
 parser.add_argument("output_format", type=str,
     help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}",
@@ -152,7 +148,8 @@ parser.add_argument("FDR_cutoff", type=float,
     default=None)
 
 parser.add_argument("limit_2_entity_type", type=str,
-    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords")
+    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
+    default="-21;-22;-23;-51;-52;-53;-54;-55")
 
 ################################################################################
 ### aGOtool arguments/parameters
@@ -242,47 +239,53 @@ class API_STRING(Resource):
         :param output_format:
         :return:
         """
-        args_dict = parser.parse_args()
-        args_dict["limit_2_entity_type"] = {int(ele) for ele in args_dict["limit_2_entity_type"].split(";")}
+        args_dict = defaultdict(lambda: None)
+        args_dict.update(parser.parse_args())
         args_dict["indent"] = string_2_bool(args_dict["indent"])
-        if args_dict.enrichment_method == "genome":
+        if args_dict["enrichment_method"] == "genome":
             background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
             if not background_n:
-                args_dict["WARNING/ERROR"] = "WARNING/ERROR: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
+                args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
         else:
             background_n = None
 
-        ui = userinput.REST_API_input(pqo,
-            foreground_string=args_dict["foreground"], background_string=args_dict["background"],
-            background_intensity=args_dict["intensity"], num_bins=args_dict["num_bins"],
-            enrichment_method=args_dict["enrichment_method"],
-            foreground_n=args_dict["foreground_n"], background_n=args_dict["background_n"])
-        if ui.check:
-            if args_dict["enrichment_method"] == "genome":
-                results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, taxid=args_dict["taxid"],
-                    background_n=background_n, output_format=args_dict["output_format"], FDR_cutoff=args_dict["FDR_cutoff"])
-            else:
-                results_all_function_types = run.run_STRING_enrichment(pqo, ui,
-                    enrichment_method=args_dict["enrichment_method"],
-                    limit_2_entity_type=args_dict["limit_2_entity_type"],
-                    go_slim_or_basic=args_dict["go_slim_or_basic"],
-                    indent=args_dict["indent"],
-                    multitest_method=args_dict["multitest_method"],
-                    alpha=args_dict["alpha"],
-                    o_or_u_or_both=args_dict["o_or_u_or_both"],
-                    fold_enrichment_for2background=args_dict["fold_enrichment_for2background"],
-                    p_value_uncorrected=args_dict["p_value_uncorrected"],
-                    FDR_cutoff=args_dict["FDR_cutoff"],
-                    output_format=args_dict["output_format"])
-
-            # return results_all_function_types
-            return format_multiple_results(args_dict.output_format, results_all_function_types)
-        else:
-            args_dict["WARNING/ERROR"] = "WARNING/ERROR: UserInput check not passed, please check your input and/or compare it to the examples."
+        ui = userinput.REST_API_input(pqo, args_dict)
+        if not ui.check:
+            args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
             return help_page(args_dict)
 
+        if args_dict["enrichment_method"] == "genome":
+            results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+        else:
+            results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
+
+        if results_all_function_types is False:
+            return help_page(args_dict)
+        else:
+            return format_multiple_results(args_dict["output_format"], results_all_function_types)
 api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
+
+
+class API_STRING_HELP(Resource):
+    """
+    get enrichment for all available functional associations not 'just' one category
+    """
+
+    def get(self, output_format="json"):
+        args_dict = defaultdict(lambda: None)
+        args_dict.update(parser.parse_args())
+        args_dict = parser.parse_args()
+        args_dict["1_INFO"] = "INFO: default values are are shown unless you've provided arguments"
+        args_dict["2_INFO_Name_2_EntityType"] = variables.functionType_2_entityType_dict
+        args_dict["3_INFO_limit_2_entity_type"] = "comma separate desired entity_types e.g. '-21;-51;-52' (for GO biological process; UniProt keyword; SMART), default get all available."
+        return help_page(args_dict)
+
+    def post(self, output_format="json"):
+        return self.get(output_format)
+
+api.add_resource(API_STRING_HELP, "/api_help", "/api_string_help")
+
 
 def string_2_bool(string_):
     string_ = string_.strip().lower()
@@ -507,20 +510,18 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
 
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
-
     limit_2_entity_type = fields.SelectField("GO terms, UniProt keywords, or KEGG pathways",
-
                                    choices = (("-51", "UniProt keywords"),
-                                              ("-21,-22,-23", "all GO categories"),
+                                              ("-21;-22;-23", "all GO categories"),
                                               ("-21", "GO Biological Process"),
                                               ("-22", "GO Celluar Compartment"),
                                               ("-23", "GO Molecular Function"),
                                               ("-52", "KEGG pathways"),
                                               ("-53", "SMART domains"),
                                               ("-54", "InterPro domains"),
-                                              ("-55", "PFAM domains")),
+                                              ("-55", "PFAM domains"),
+                                              ("-21;-22;-23;-51;-52;-53;-54;-55", "All available")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
-
     enrichment_method = fields.SelectField("Select one of the following methods",
                                    choices = (("genome", "genome"),
                                               ("abundance_correction", "abundance_correction"),
@@ -531,56 +532,45 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
 compare_samples: Foreground vs Background (no abundance correction)
 compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
 characterize_foreground: Foreground only""")
-
     foreground_n = fields.IntegerField("Foreground_n", [validate_integer], default=10, description="""Foreground_n is an integer, defines the number of sample of the foreground.""")
     background_n = fields.IntegerField("Background_n", [validate_integer], default=10, description="""Background_n is an integer, defines the number of sample of the background.""")
-
     abcorr = fields.BooleanField("Abundance correction",
                                  default = "checked",
                                  description="""Apply the abundance correction as described in the publication. A column named "population_int" (population intensity)
 that corresponds to the column "population_an" (population accession number) needs to be provided, when selecting this option.
 If "Abundance correction" is deselected "population_int" can be omitted.""")
-
     go_slim_or_basic = fields.SelectField("GO basic or slim",
                                           choices = (("basic", "basic"), ("slim", "slim")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
-
     indent = fields.BooleanField("prepend level of hierarchy by dots",
                                  default="checked",
                                  description="Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204'")
-
     multitest_method = fields.SelectField(
         "Method for correction of multiple testing",
         choices = (("benjamini_hochberg", "Benjamini Hochberg"),
                    ("sidak", "Sidak"), ("holm", "Holm"),
                    ("bonferroni", "Bonferroni")),
         description="""Select a method for multiple testing correction.""")
-
     alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
                               default = 0.05, description="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""")
-
     o_or_u_or_both = fields.SelectField("over- or under-represented or both",
                                         choices = (("overrepresented", "overrepresented"),
                                                    ("underrepresented", "underrepresented"),
                                                    ("both", "both")),
                                         description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
-
     num_bins = fields.IntegerField("Number of bins",
                                    [validate_integer],
                                    default = 100,
                                    description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
-
     fold_enrichment_for2background = fields.FloatField(
         "fold enrichment foreground/background",
         [validate_number], default = 0,
         description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
-
     p_value_uncorrected =  fields.FloatField(
         "p-value uncorrected",
         [validate_float_between_zero_and_one],
         default = 0,
         description="""Maximum threshold value of "p_uncorrected".""")
-
     FDR_cutoff =  fields.FloatField(
         "FDR-cutoff (multiple testing corrected p-values)",
         [validate_float_between_zero_and_one],
@@ -613,7 +603,7 @@ def results():
     # print(form)
     # print(request.method)
     # print(form.validate())
-    if request.method == 'POST': # ToDo uncomment and debug and form.validate():
+    if request.method == 'POST': # ToDo uncomment and debug  # and form.validate():
         # print("passed post and validate input tests")
         try:
             input_fs = request.files['userinput_file']
@@ -627,7 +617,8 @@ def results():
             foreground_n=form.foreground_n.data, background_n=form.background_n.data)
 
         if ui.check:
-            limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+            # if limit_2_entity_type is not None:
+            # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
@@ -649,7 +640,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
                 output_format = "tsv"
                 results_all_function_types = run.run_STRING_enrichment(pqo, ui,
                     enrichment_method=form.enrichment_method.data,
-                    limit_2_entity_type=limit_2_entity_type,
+                    limit_2_entity_type=form.limit_2_entity_type.data,
                     go_slim_or_basic=form.go_slim_or_basic.data,
                     indent=form.indent.data,
                     multitest_method=form.multitest_method.data,
@@ -660,7 +651,7 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
                     FDR_cutoff=form.FDR_cutoff.data,
                     output_format=output_format)
             elif variables.VERSION_ == "aGOtool":
-                header, results = run.run(pqo, ui, limit_2_entity_type, form.go_slim_or_basic.data, form.indent.data,
+                header, results = run.run(pqo, ui, form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.indent.data,
                                     form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data,
                                     form.fold_enrichment_for2background.data, form.p_value_uncorrected.data, form.FDR_cutoff.data)
             else:
@@ -675,8 +666,8 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
         if len(results_all_function_types) == 0:
             return render_template('results_zero.html')
         elif len(results_all_function_types.keys()) == 1:
-            entity_type = next(iter(limit_2_entity_type)) # single element in set
-            return generate_result_page(results_all_function_types[entity_type], entity_type,
+            # entity_type = next(iter(limit_2_entity_type)) # single element in set
+            return generate_result_page(results_all_function_types[entity_type], limit_2_entity_type,
                 form.indent.data, generate_session_id(), form=Results_Form())
         elif len(results_all_function_types.keys()) > 1:
             print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
@@ -717,7 +708,7 @@ def generate_result_page(tsv, entity_type, indent, session_id, form, errors=()):
         fh.write(tsv)
     return render_template('results.html', header=header, results=results_2_display, errors=errors,
                            file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
-                           limit_2_entity_type=entity_type, indent=indent,
+                           limit_2_entity_type=str(entity_type), indent=indent,
                            session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
 
 ################################################################################
@@ -732,7 +723,7 @@ def results_back():
     """
     session_id = request.form['session_id']
     limit_2_entity_type = request.form['limit_2_entity_type']
-    limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+    # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
 
     indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
@@ -746,14 +737,14 @@ def results_back():
 def results_filtered():
     indent = request.form['indent']
     limit_2_entity_type = request.form['limit_2_entity_type']
-    limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+    # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
     session_id = request.form['session_id']
 
     # original unfiltered/clustered results
     file_name_orig, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
 
-    if limit_2_entity_type in {-21, -22, -23}:
+    if limit_2_entity_type: # in {-21, -22, -23}: # ToDo replace with proper check
         results_filtered = filter_.filter_term_lineage(header, results, indent)
 
         # filtered results
@@ -785,7 +776,7 @@ def results_clustered():
     inflation_factor = form.inflation_factor.data
     session_id = request.form['session_id']
     limit_2_entity_type = request.form['limit_2_entity_type']
-    limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+    # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
     indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)

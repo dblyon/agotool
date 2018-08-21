@@ -2,7 +2,8 @@ import os, multiprocessing
 
 ############################
 ### settings
-PRELOAD = False # pre-load objects DB connection necessary, set to False while testing with pytest
+PRELOAD = False
+# pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
@@ -34,14 +35,21 @@ entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
 # "-56": {}   # PMID
 # entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
 entity_types_with_data_in_functions_table = {-21, -22, -23, -51, -52, -53, -54, -55}
-functionType_2_entityType_dict = {"BP": -21,
-                                  "CP": -22,
-                                  "MF": -23,
-                                  "UPK": -51,
-                                  "KEGG": -52,
-                                  "SMART": -53,
+functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
+                                  "Gene Ontology cellular component": -22,
+                                  "Gene Ontology molecular function": -23,
+                                  "UniProt keywords": -51,
+                                  "KEGG (Kyoto Encyclopedia of Genes and Genomes)": -52,
+                                  "SMART (Simple Modular Architecture Research Tool)": -53,
                                   "INTERPRO": -54,
-                                  "PFAM": -55}
+                                  "PFAM (Protein FAMilies)": -55}
+limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
+
+
+# api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
+# api_url = r"http://agotool.meringlab.org/api"  # atlas
+# api_url = "http://localhost:5911/api" # local
+api_url = "http://0.0.0.0:5911/api" # local
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 # e.g. '/opt/services/flaskapp/src/python'
@@ -78,6 +86,7 @@ POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
 TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
 STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
+PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "test")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
 FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema_STRING.md")
 
