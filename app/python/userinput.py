@@ -11,7 +11,6 @@ import tools, variables #, query
 if variables.PD_WARNING_OFF:
     pd.options.mode.chained_assignment = None
 
-# ToDo check if values need to be sorted for both input types (classes)
 
 
 DEFAULT_MISSING_BIN = -1
@@ -30,7 +29,7 @@ class Userinput:
      - characterize_foreground: Foreground only
     """
     def __init__(self, pqo, fn=None, foreground_string=None, background_string=None,
-            col_foreground='foreground', col_background='background', col_intensity='intensity',
+            # col_foreground='foreground', col_background='background', col_intensity='background_intensity',
             num_bins=NUM_BINS, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None):
         self.pqo = pqo
         self.fn = fn
@@ -38,9 +37,11 @@ class Userinput:
         self.background_string = background_string
         self.decimal = decimal
         self.num_bins = num_bins
-        self.col_foreground = col_foreground
-        self.col_background = col_background
-        self.col_intensity = col_intensity
+        self.col_foreground = "foreground"
+        # self.col_foreground_intensity = "foreground_intensity"
+        self.col_background = "background"
+        # self.col_background_intensity: = "background_intensity"
+        self.col_intensity = "intensity"
         self.enrichment_method = enrichment_method
         self.foreground_n = foreground_n
         self.background_n = background_n
@@ -56,19 +57,19 @@ class Userinput:
     def parse_input(self):
         if self.fn is None: # use copy & paste field
             self.fn = StringIO()
-            self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), "foreground")
+            self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), self.col_foreground)
             if self.enrichment_method != "characterize_foreground":
-                self.background_string = self.remove_header_if_present(self.background_string.replace("\r\n", "\n"), "background")
+                self.background_string = self.remove_header_if_present(self.background_string.replace("\r\n", "\n"), self.col_background)
             if self.enrichment_method == "abundance_correction":
                 is_abundance_correction = self.fast_check_is_abundance_correction(self.background_string)
                 if is_abundance_correction:
-                    header = 'foreground\tbackground\tintensity\n'
+                    header = '{}\t{}\t{}\n'.format(self.col_foreground, self.col_background, self.col_intensity)
                 else:
                     return False, False, False
             elif self.enrichment_method in {"compare_samples", "compare_groups"}:
-                header = 'foreground\tbackground\n'
+                header = '{}\t{}\n'.format(self.col_foreground, self.col_background)
             elif self.enrichment_method == "characterize_foreground":
-                header = 'foreground\n'
+                header = '{}\n'.format(self.col_foreground)
             else:
                 return False, False, False
             self.fn.write(header)
@@ -134,7 +135,7 @@ class Userinput:
             cond = pd.isnull(self.background[col_intensity])
             self.background.loc[cond, col_intensity] = DEFAULT_MISSING_BIN
             an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]))
-            self.foreground["intensity"] = self.map_intensities_2_foreground(self.foreground[col_foreground], an_2_intensity_dict )
+            self.foreground["intensity"] = self.map_intensities_2_foreground(self.foreground[col_foreground], an_2_intensity_dict)
 
         ### map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
         if variables.VERSION_ == "aGOtool":
@@ -168,8 +169,6 @@ class Userinput:
             df_orig = pd.read_csv(fn, sep='\t', decimal=decimal)
             check_parse = True
         except pd.errors.ParserError:
-            # import pdb
-            # pdb.set_trace()
             return df_orig, decimal, check_parse
 
         if self.enrichment_method == "abundance_correction":
@@ -191,8 +190,6 @@ class Userinput:
                     return df_orig, decimal, check_parse
                 except TypeError:
                     check_parse = False
-        # import pdb
-        # pdb.set_trace()
         return df_orig, decimal, check_parse
 
     @staticmethod
@@ -223,18 +220,29 @@ class Userinput:
         :param df: Pandas DataFrame
         :return: Pandas DataFrame
         """
-        cols = sorted(df.columns.tolist())
-        cols = [colname.lower() for colname in cols]
-        if "population" in cols:
-            df = df.rename(columns={"population": "background"})
-        if "population_an" in cols:
-            df = df.rename(columns={"population_an": "background"})
-        if "population_int" in cols:
-            df = df.rename(columns={"population_int": "intensity"})
-        if "sample" in cols:
-            df = df.rename(columns={"sample": "foreground"})
-        if "sample_an" in cols:
-            df = df.rename(columns={"sample_an": "foreground"})
+        # cols = sorted(df.columns.tolist())
+        # cols = [colname.lower() for colname in cols]
+        # colnames_2_lower_colnames = {colname: colname.lower() for colname in df.columns.tolist()}
+        df = df.rename(columns={colname: colname.lower() for colname in df.columns.tolist()})
+        potential_colnames_2_rename = {"population": "background",
+                                       "population_an": "background",
+                                       "population_int": "background_intensity",
+                                       "population_intensity": "background_intensity",
+                                       "sample": "foreground",
+                                       "sample_an": "foreground"}
+        df = df.rename(columns=potential_colnames_2_rename)
+        # if "population" in cols:
+        #     df = df.rename(columns={"population": "background"})
+        # if "population_an" in cols:
+        #     df = df.rename(columns={"population_an": "background"})
+        # if "population_int" in cols:
+        #     df = df.rename(columns={"population_int": "background_intensity"})
+        # if "population_intensity" in cols:
+        #     df = df.rename(columns={"population_intensity": "background_intensity"})
+        # if "sample" in cols:
+        #     df = df.rename(columns={"sample": "foreground"})
+        # if "sample_an" in cols:
+        #     df = df.rename(columns={"sample_an": "foreground"})
         return df
 
     @staticmethod
@@ -393,18 +401,18 @@ class REST_API_input(Userinput):
         self.df_orig = pd.DataFrame()
         self.foreground_string = args_dict["foreground"]
         self.background_string = args_dict["background"]
-        self.background_intensity = args_dict["intensity"]
+        self.background_intensity = args_dict["background_intensity"]
         self.num_bins = args_dict["num_bins"]
-        self.col_foreground = "foreground"
-        self.col_background = "background"
-        self.col_intensity = "intensity"
         self.enrichment_method = args_dict["enrichment_method"]
         self.foreground_n = args_dict["foreground_n"]
         self.background_n = args_dict["background_n"]
+        self.args_dict = args_dict
+        self.col_foreground = "foreground"
+        # self.col_foreground_intensity = "foreground_intensity"
+        self.col_background = "background"
+        # self.col_background_intensity = "background_intensity"
+        self.col_intensity = "intensity"
         self.check = False
-        # self.decimal = "."
-        # self.df_orig = self.parse_input()
-        # self.foreground, self.background, self.check = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
             self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
@@ -418,25 +426,28 @@ class REST_API_input(Userinput):
         decimal = "."
         df_orig = pd.DataFrame()
         if self.background_string is not None:
-            df_orig["background"] = pd.Series(self._replace_and_split(self.background_string))
-        # if self.background_intensity is not None:
+            df_orig[self.col_background] = pd.Series(self._replace_and_split(self.background_string))
         if self.enrichment_method == "abundance_correction":
-            if "." in self.background_intensity:
-                pass
-            elif "," in self.background_intensity:
-                decimal = ","
-                # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
-                self.background_intensity = self.background_intensity.replace(",", ".")
+            try:
+                if "." in self.background_intensity:
+                    pass
+                elif "," in self.background_intensity:
+                    decimal = ","
+                    # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
+                    self.background_intensity = self.background_intensity.replace(",", ".")
+            except TypeError: # self.background_intensity is None
+                self.args_dict["ERROR_abundance_correction"] = "ERROR: enrichment_method 'abundance_correction' selected but no 'background_intensity' provided"
+                return df_orig, decimal, check_parse
             else: # other checks could be done, but is this really necessary?
                 pass
             try:
-                df_orig["intensity"] = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+                df_orig[self.col_intensity] = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
             except ValueError:
                 return df_orig, decimal, check_parse
         else:
-            df_orig["intensity"] = DEFAULT_MISSING_BIN
+            df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
         # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
-        df_orig["foreground"] = pd.Series(self._replace_and_split(self.foreground_string))
+        df_orig[self.col_foreground] = pd.Series(self._replace_and_split(self.foreground_string))
         check_parse = True
         return df_orig, decimal, check_parse
 
@@ -481,7 +492,7 @@ if __name__ == "__main__":
     # example1: foreground is proper subset of background, everything has an abundance value
     df_test = pd.DataFrame()
     df_test["background"] = pd.Series(['Q9UHI6', 'Q13075', 'A6NDB9', 'A6NFR9', 'O95359', 'D6RGG6', 'Q9BRQ0', 'P09629', 'Q9Y6G5', 'Q96KG9', 'Q8WXE0', 'Q6VB85', 'P13747', 'Q9UQ03', 'Q8N8S7'])
-    df_test["intensity"] = pd.Series([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] + [1] * 5, dtype=float)
+    df_test["background_intensity"] = pd.Series([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] + [1] * 5, dtype=float)
     df_test["foreground"] = pd.Series(['Q9UHI6', 'Q13075', 'A6NDB9', 'A6NFR9', 'O95359', 'D6RGG6', 'Q9BRQ0', 'P09629', 'Q9Y6G5', 'Q96KG9'])
     df_test = df_test.sort_values(["intensity", "background"])
 

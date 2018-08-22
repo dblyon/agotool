@@ -12,7 +12,6 @@ from lxml import etree
 import markdown
 from flask import Markup
 from collections import defaultdict
-
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -33,6 +32,11 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 FN_DATABASE_SCHEMA = variables.FN_DATABASE_SCHEMA
 ###############################################################################
 # ToDo 2018
+# - multiple entity type results to be displayed
+# - debug copy&paste fields
+# - debug file upload field
+# - replace example file
+# - make KEGG private
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
 # - update "info_check_input.html" with REST API usage infos
 # - offer option to omit testing GO-terms with few associations (e.g. 10)
@@ -44,7 +48,6 @@ FN_DATABASE_SCHEMA = variables.FN_DATABASE_SCHEMA
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
 # ? - protein-groups: is there different functional information for isoforms
 ###############################################################################
-
 ###############################################################################
 def getitem(obj, item, default):
     if item not in obj:
@@ -54,7 +57,6 @@ def getitem(obj, item, default):
 ###############################################################################
 ### Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
-
 if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
@@ -151,6 +153,9 @@ parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
     default="-21;-22;-23;-51;-52;-53;-54;-55")
 
+parser.add_argument("priviledged", type=str,
+    default="False")
+
 ################################################################################
 ### aGOtool arguments/parameters
 parser.add_argument("foreground", type=str,
@@ -165,7 +170,7 @@ parser.add_argument("background", type=str,
          "delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
     default=None)
 
-parser.add_argument("intensity", type=str,
+parser.add_argument("background_intensity", type=str,
     help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "
          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
          "e.g. '12.3%0d3.4' ",
@@ -242,13 +247,7 @@ class API_STRING(Resource):
         args_dict = defaultdict(lambda: None)
         args_dict.update(parser.parse_args())
         args_dict["indent"] = string_2_bool(args_dict["indent"])
-        if args_dict["enrichment_method"] == "genome":
-            background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
-            if not background_n:
-                args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
-                return help_page(args_dict)
-        else:
-            background_n = None
+        args_dict["priviledged"] = string_2_bool(args_dict["priviledged"])
 
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
@@ -256,9 +255,23 @@ class API_STRING(Resource):
             return help_page(args_dict)
 
         if args_dict["enrichment_method"] == "genome":
+            background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
+            if not background_n:
+                args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
+                return help_page(args_dict)
             results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
+
+                # ui = userinput.REST_API_input(pqo, args_dict)
+        # if not ui.check:
+        #     args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
+        #     return help_page(args_dict)
+
+        # if args_dict["enrichment_method"] == "genome":
+        #     results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+        # else:
+        #     results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
 
         if results_all_function_types is False:
             return help_page(args_dict)
@@ -297,6 +310,10 @@ def string_2_bool(string_):
         raise NotImplementedError
 
 def help_page(args_dict):
+    try:
+        del args_dict["priviledged"]
+    except KeyError:
+        pass
     return jsonify(args_dict)
 
 def format_results(output_format, header, results):
@@ -356,17 +373,17 @@ def format_multiple_results(output_format, results_all_entity_types):
     elif output_format == "xml":
         dict_2_return = {}
         for etype, results in results_all_entity_types.items():
-            header, result = results.split("\n", 1) # is df in tsv format
-            xml_string = create_xml_tree(header, result)
-            dict_2_return[etype] = xml_string
+            header, rows = results.split("\n", 1) # is df in tsv format
+            xml_string = create_xml_tree(header, rows.split("\n"))
+            dict_2_return[etype] = xml_string.decode()
         return jsonify(dict_2_return)
     else:
         raise NotImplementedError
 
-def create_xml_tree(header, results):
+def create_xml_tree(header, rows):
     xml_tree = etree.Element("EnrichmentResult")
     header = header.split("\t")
-    for row in results:
+    for row in rows:
         child = etree.SubElement(xml_tree, "record")
         for tag_content in zip(header, row.split("\t")):
             tag, content = tag_content
@@ -501,7 +518,7 @@ class Enrichment_Form(wtforms.Form):
 
 'background': STRING identifiers (such as '511145.b1260') for all proteins
 
-'intensity': Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)
+'background_intensity': Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)
 
 'foreground': STRING identifiers for all proteins in the test group (the group you want to examine for GO term enrichment,
 these identifiers should also be present in the 'background_an' as the test group is a subset of the background)
@@ -536,9 +553,9 @@ characterize_foreground: Foreground only""")
     background_n = fields.IntegerField("Background_n", [validate_integer], default=10, description="""Background_n is an integer, defines the number of sample of the background.""")
     abcorr = fields.BooleanField("Abundance correction",
                                  default = "checked",
-                                 description="""Apply the abundance correction as described in the publication. A column named "population_int" (population intensity)
-that corresponds to the column "population_an" (population accession number) needs to be provided, when selecting this option.
-If "Abundance correction" is deselected "population_int" can be omitted.""")
+                                 description="""Apply the abundance correction as described in the background. A column named "background_intensity" (background intensity)
+that corresponds to the column "population_an" (background accession number) needs to be provided, when selecting this option.
+If "Abundance correction" is deselected "background_intensity" can be omitted.""")
     go_slim_or_basic = fields.SelectField("GO basic or slim",
                                           choices = (("basic", "basic"), ("slim", "slim")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
@@ -612,7 +629,7 @@ def results():
 
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data,
             background_string=form.background_textarea.data,
-            col_foreground='foreground', col_background='background', col_intensity='intensity',
+            col_foreground='foreground', col_background='background', col_intensity='background_intensity',
             num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data,
             foreground_n=form.foreground_n.data, background_n=form.background_n.data)
 

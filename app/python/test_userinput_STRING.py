@@ -18,6 +18,7 @@ DEFAULT_MISSING_BIN = -1
 # def test_compare_file_2_copypaste_2_RestAPI():
 #     assert 1 == 2
 
+# ToDo check if values need to be sorted for both input types (classes)
 
 def from_file_2_df(fn):
     """

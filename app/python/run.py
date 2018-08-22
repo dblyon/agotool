@@ -31,6 +31,12 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
     results_all_function_types = {}
     entity_types_2_use = {int(ele) for ele in limit_2_entity_type.split(";")}
+    # remove KEGG infos, in order not to disseminate them without permission
+    if args_dict["enrichment_method"] == "characterize_foreground" and args_dict["priviledged"] == False:
+        try:
+            entity_types_2_use.remove(-51)
+        except KeyError:
+            pass
     for entity_type in entity_types_2_use:
         dag = pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, pqo)
         if not dag:

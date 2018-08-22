@@ -25,6 +25,7 @@ services:
       - db_nw
 
   flaskapp:
+    restart: on-failure
     build: . # uncomment to build from Dockerfile, else pull from dockerhub
     # image: dblyon/python_agotool:latest
     volumes:

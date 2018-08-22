@@ -27,6 +27,3 @@
 | -54 | Interpro |
 | -55 | PFAM |
 | -56 | PMID |
-
-https://openedx.uzh.ch # general uni, login here (can't access the course, but can use https://mnf.openedx.uzh.ch)
-https://openedx.mnf.uzh.ch # old one
