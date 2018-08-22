@@ -32,7 +32,7 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     results_all_function_types = {}
     entity_types_2_use = {int(ele) for ele in limit_2_entity_type.split(";")}
     # remove KEGG infos, in order not to disseminate them without permission
-    if args_dict["enrichment_method"] == "characterize_foreground" and args_dict["priviledged"] == False:
+    if args_dict["enrichment_method"] == "characterize_foreground" and args_dict["privileged"] == False:
         try:
             entity_types_2_use.remove(-51)
         except KeyError:

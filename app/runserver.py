@@ -153,7 +153,7 @@ parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
     default="-21;-22;-23;-51;-52;-53;-54;-55")
 
-parser.add_argument("priviledged", type=str,
+parser.add_argument("privileged", type=str,
     default="False")
 
 ################################################################################
@@ -247,7 +247,7 @@ class API_STRING(Resource):
         args_dict = defaultdict(lambda: None)
         args_dict.update(parser.parse_args())
         args_dict["indent"] = string_2_bool(args_dict["indent"])
-        args_dict["priviledged"] = string_2_bool(args_dict["priviledged"])
+        args_dict["privileged"] = string_2_bool(args_dict["privileged"])
 
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
@@ -311,7 +311,7 @@ def string_2_bool(string_):
 
 def help_page(args_dict):
     try:
-        del args_dict["priviledged"]
+        del args_dict["privileged"]
     except KeyError:
         pass
     return jsonify(args_dict)
