@@ -426,7 +426,11 @@ class REST_API_input(Userinput):
         decimal = "."
         df_orig = pd.DataFrame()
         if self.background_string is not None:
-            df_orig[self.col_background] = pd.Series(self._replace_and_split(self.background_string))
+            replaced = pd.Series(self._replace_and_split(self.background_string))
+            if replaced is not None:
+                df_orig[self.col_background] = replaced
+            else:
+                return df_orig, decimal, check_parse
         if self.enrichment_method == "abundance_correction":
             try:
                 if "." in self.background_intensity:
@@ -441,19 +445,30 @@ class REST_API_input(Userinput):
             else: # other checks could be done, but is this really necessary?
                 pass
             try:
-                df_orig[self.col_intensity] = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+                replaced = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+                if replaced is not None:
+                    df_orig[self.col_intensity] = replaced
+                else:
+                    return df_orig, decimal, check_parse
             except ValueError:
                 return df_orig, decimal, check_parse
         else:
             df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
         # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
-        df_orig[self.col_foreground] = pd.Series(self._replace_and_split(self.foreground_string))
+        replaced = pd.Series(self._replace_and_split(self.foreground_string))
+        if replaced is not None:
+            df_orig[self.col_foreground] = replaced
+        else:
+            return df_orig, decimal, check_parse
         check_parse = True
         return df_orig, decimal, check_parse
 
     @staticmethod
     def _replace_and_split(string_):
-        return string_.replace("\r", "%0d").split("%0d")
+        try:
+            return string_.replace("\r", "%0d").split("%0d")
+        except AttributeError: # None
+            return None
 
 
 if __name__ == "__main__":

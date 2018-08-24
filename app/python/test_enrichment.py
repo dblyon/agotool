@@ -189,17 +189,17 @@ def test_EnrichmentStudy_(random_foreground_background, pqo_STRING, args_dict):
 #     # assert 1 == 2
 #     pass
 #
-# @pytest.mark.STRING_examples
-# def test_REST_API_genome(STRING_examples):
-#     foreground, taxid = STRING_examples
-#     fg = "%0d".join(foreground)
-#     response = requests.post(variables.api_url, params={"output_format": "json",
-#                                                         "foreground": fg,
-#                                                         "enrichment_method": "genome",
-#                                                         "species": taxid})
-#     assert type(response.json()) == dict
-#
-#
+@pytest.mark.STRING_examples
+def test_REST_API_genome(STRING_examples):
+    foreground, taxid = STRING_examples
+    fg = "%0d".join(foreground)
+    response = requests.post(variables.api_url, params={"output_format": "json",
+                                                        "foreground": fg,
+                                                        "enrichment_method": "genome",
+                                                        "species": taxid})
+    assert type(response.json()) == dict
+
+
 # @pytest.mark.STRING_examples
 # def test_REST_API_characterize_foreground(STRING_examples):
 #     foreground, taxid = STRING_examples

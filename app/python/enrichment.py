@@ -85,7 +85,8 @@ class EnrichmentStudy(object):
         if output_format == "json":
             return self.df.to_json(orient='records')
         elif output_format in {"tsv", "xml"}: # xml gets formatted in runserver.py
-            return self.df.to_csv(sep="\t", header=True, index=False)
+            # return self.df.to_csv(sep="\t", header=True, index=False)
+            return self.df
         else:
             raise NotImplementedError
 

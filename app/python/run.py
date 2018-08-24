@@ -47,8 +47,12 @@ def run_STRING_enrichment(pqo, ui, args_dict):
             enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method, alpha=alpha,
                                                           o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type, indent=indent)
             result = enrichment_study.get_result(output_format, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
-            if result: # don't add empty results
+            if output_format in {"tsv", "xml"} and not result.empty: # check for empty DF
                 results_all_function_types[entity_type] = result
+            elif result: # don't add empty results
+                results_all_function_types[entity_type] = result
+            else:
+                pass
     return results_all_function_types
 
 # def run_STRING_enrichment_genome(pqo, ui, taxid, background_n=None, output_format="json", FDR_cutoff=None):
@@ -81,8 +85,12 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
                 o_or_u_or_both="overrepresented", multitest_method="benjamini_hochberg", entity_type=entity_type,
                 association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type], background_n=background_n)
             result = enrichment_study.get_result(output_format, FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
-            if result: # don't add empty results
+            if output_format in {"tsv", "xml"} and not result.empty: # check for empty DF
                 results_all_function_types[entity_type] = result
+            elif result: # don't add empty results
+                results_all_function_types[entity_type] = result
+            else:
+                pass
     return results_all_function_types
 
 def check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):

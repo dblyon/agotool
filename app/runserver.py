@@ -12,6 +12,7 @@ from lxml import etree
 import markdown
 from flask import Markup
 from collections import defaultdict
+import pandas as pd
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -32,11 +33,13 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 FN_DATABASE_SCHEMA = variables.FN_DATABASE_SCHEMA
 ###############################################################################
 # ToDo 2018
+# consistent with single and double quotes
+#return unused identifiers
 # - multiple entity type results to be displayed
 # - debug copy&paste fields
 # - debug file upload field
 # - replace example file
-# - make KEGG private
+# - make KEGG private --> done
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
 # - update "info_check_input.html" with REST API usage infos
 # - offer option to omit testing GO-terms with few associations (e.g. 10)
@@ -248,7 +251,6 @@ class API_STRING(Resource):
         args_dict.update(parser.parse_args())
         args_dict["indent"] = string_2_bool(args_dict["indent"])
         args_dict["privileged"] = string_2_bool(args_dict["privileged"])
-
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -355,6 +357,9 @@ def format_results(output_format, header, results):
 #     else:
 #         raise NotImplementedError
 
+
+from werkzeug.wrappers import Response
+
 def format_multiple_results(output_format, results_all_entity_types):
     """
     :param output_format: String
@@ -369,10 +374,16 @@ def format_multiple_results(output_format, results_all_entity_types):
     if output_format == "json":
         return jsonify(results_all_entity_types)
     elif output_format == "tsv":
-        return results_all_entity_types
+        # return results_all_entity_types
+        df_list = []
+        for etype, df in results_all_entity_types.items():
+            df["etype"] = etype
+            df_list.append(df)
+        return Response(pd.concat(df_list).to_csv(sep="\t", header=True, index=False), mimetype='text') # text/csv --> try
     elif output_format == "xml":
         dict_2_return = {}
         for etype, results in results_all_entity_types.items():
+            results = results.to_csv(sep="\t", header=True, index=False) # convert DatFrame to string
             header, rows = results.split("\n", 1) # is df in tsv format
             xml_string = create_xml_tree(header, rows.split("\n"))
             dict_2_return[etype] = xml_string.decode()
@@ -615,13 +626,8 @@ def results():
     results_filtered = filter(header, results, indent)
     results_filtered: reduced version of results
     """
-    # print("entered results")
     form = Enrichment_Form(request.form)
-    # print(form)
-    # print(request.method)
-    # print(form.validate())
     if request.method == 'POST': # ToDo uncomment and debug  # and form.validate():
-        # print("passed post and validate input tests")
         try:
             input_fs = request.files['userinput_file']
         except:
