@@ -130,3 +130,8 @@ def args_dict():
                  'species': None,
                  'taxid': None}
     return args_dict
+
+@pytest.fixture(scope="session")
+def example_output_genome():
+    fn = os.path.join(variables.PYTEST_FN_DIR, "example_output_genome_STRING.txt")
+    return pd.read_csv(fn, sep='\t')

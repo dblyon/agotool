@@ -224,7 +224,7 @@ def filter_parents_if_same_foreground(df_orig, functerm_2_level_dict):
     indices_2_keep = df[(df["level"].isnull() | idx)].index.values
     # add df_orig part that can't be filtered due to missing ontology
     indices_2_keep = np.append(df_orig[~cond_df_2_filter].index.values, indices_2_keep)
-    return df_orig.loc[indices_2_keep].sort_values(["etype", "p_uncorrected"], ascending=[True, True])
+    return df_orig.loc[indices_2_keep]
 
 def get_header_results(fn):
         results = []

@@ -341,9 +341,7 @@ def format_multiple_results(args_dict, results_all_entity_types):
     :return: Json or String
     """
     output_format = args_dict["output_format"]
-    if output_format == "json":
-        return jsonify(results_all_entity_types)
-    elif output_format == "tsv":
+    if output_format == "tsv":
         # return results_all_entity_types
         # df_list = []
         # for etype, df in results_all_entity_types.items():
@@ -355,6 +353,8 @@ def format_multiple_results(args_dict, results_all_entity_types):
         # except ValueError: # empty list
         #     args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
         #     return help_page(args_dict)
+    elif output_format == "json":
+        return jsonify(results_all_entity_types)
     elif output_format == "xml":
         dict_2_return = {}
         for etype, results in results_all_entity_types.items():

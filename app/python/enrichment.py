@@ -118,7 +118,7 @@ class EnrichmentStudy(object):
             ratio_in_foreground_list.append(self.calc_ratio(foreground_count, foreground_n))
             ANs_foreground_list.append(';'.join(self.association_2_ANs_dict_foreground[association]))
             foreground_count_list.append(foreground_count)
-        df = pd.DataFrame({"id_": id_list, "description": description_list, "ratio_in_foreground": ratio_in_foreground_list, "ANs_foreground": ANs_foreground_list, "foreground_count": foreground_count_list})
+        df = pd.DataFrame({"id": id_list, "description": description_list, "ratio_in_foreground": ratio_in_foreground_list, "ANs_foreground": ANs_foreground_list, "foreground_count": foreground_count_list})
         return df
 
     def run_study(self, association_2_count_dict_foreground, association_2_count_dict_background, foreground_n, background_n):

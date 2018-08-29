@@ -46,16 +46,7 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         if bool(assoc_dict):
             enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method, alpha=alpha,
                                                           o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type, indent=indent)
-            if filter_parents:
-                enrichment_study.df = cluster_filter.filter_parents_if_same_foreground(enrichment_study.df, pqo.functerm_2_level_dict)
-            result_df = enrichment_study.get_result(output_format, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
-            # if output_format in {"tsv", "xml"} and not result.empty: # check for empty DF
-            #     results_all_function_types[entity_type] = result
-            # elif result: # don't add empty results
-            #     results_all_function_types[entity_type] = result
-            # else:
-            #     pass
-    # return results_all_function_types
+            result_df = enrichment_study.get_result(FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
             if not result_df.empty:
                 result_df["etype"] = entity_type
                 df_list.append(result_df)
@@ -66,8 +57,10 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         return False
     if filter_parents:
         df = cluster_filter.filter_parents_if_same_foreground(df, pqo.functerm_2_level_dict)
-    return format_results(df, output_format, args_dict)
-
+    if enrichment_method == "characterize_foreground":
+        return format_results(df.sort_values(["etype"], ascending=[False]), output_format, args_dict)
+    else:
+        return format_results(df.sort_values(["etype", "p_uncorrected"], ascending=[False, True]), output_format, args_dict)
 
 def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     taxid = check_taxids(args_dict)
@@ -96,19 +89,23 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
                 o_or_u_or_both="overrepresented", multitest_method="benjamini_hochberg", entity_type=entity_type,
                 association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type], background_n=background_n)
             result_df = enrichment_study.get_result(FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
+            print(entity_type, result_df.shape, sum(result_df.duplicated()))
             if not result_df.empty:
                 result_df["etype"] = entity_type
                 df_list.append(result_df)
     try:
         df = pd.concat(df_list)
+        print(df.shape, sum(df.duplicated()))
     except ValueError: # empty list
         args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
         return False
 
     if filter_parents:
+        print("doing FILTER_PARENTS")
+        print(df.shape, sum(df.duplicated()))
         df = cluster_filter.filter_parents_if_same_foreground(df, pqo.functerm_2_level_dict)
-
-    return format_results(df, output_format, args_dict)
+        print(df.shape, sum(df.duplicated()))
+    return format_results(df.sort_values(["etype", "p_uncorrected"], ascending=[False, True]), output_format, args_dict)
 
 def format_results(df, output_format, args_dict):
     if output_format == "tsv":
