@@ -1,13 +1,11 @@
 from __future__ import print_function
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
-import enrichment, tools, variables
+import enrichment, tools, variables, cluster_filter
+import pandas as pd
+from lxml import etree
 
 
-# def run_STRING_enrichment(pqo, ui, enrichment_method="compare_samples",
-#         limit_2_entity_type="-51", go_slim_or_basic="basic", indent=True,
-#         multitest_method="benjamini_hochberg", alpha=0.05, o_or_u_or_both="both",
-#         fold_enrichment_for2background=None, p_value_uncorrected=None, FDR_cutoff=None, output_format="json"):
 def run_STRING_enrichment(pqo, ui, args_dict):
     enrichment_method = args_dict["enrichment_method"]
     limit_2_entity_type = args_dict["limit_2_entity_type"]
@@ -20,16 +18,18 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     p_value_uncorrected = args_dict["p_value_uncorrected"]
     FDR_cutoff = args_dict["FDR_cutoff"]
     output_format = args_dict["output_format"]
+
     if FDR_cutoff == 0:
         FDR_cutoff = None
     if fold_enrichment_for2background == 0:
         fold_enrichment_for2background = None
     if p_value_uncorrected == 0:
         p_value_uncorrected = None
-
+    filter_parents = args_dict["filter_parents"]
     protein_ans_list = ui.get_all_unique_ANs()
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
-    results_all_function_types = {}
+    # results_all_function_types = {}
+    df_list = []
     entity_types_2_use = {int(ele) for ele in limit_2_entity_type.split(";")}
     # remove KEGG infos, in order not to disseminate them without permission
     if args_dict["enrichment_method"] == "characterize_foreground" and args_dict["privileged"] == False:
@@ -46,23 +46,36 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         if bool(assoc_dict):
             enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method, alpha=alpha,
                                                           o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type, indent=indent)
-            result = enrichment_study.get_result(output_format, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
-            if output_format in {"tsv", "xml"} and not result.empty: # check for empty DF
-                results_all_function_types[entity_type] = result
-            elif result: # don't add empty results
-                results_all_function_types[entity_type] = result
-            else:
-                pass
-    return results_all_function_types
+            if filter_parents:
+                enrichment_study.df = cluster_filter.filter_parents_if_same_foreground(enrichment_study.df, pqo.functerm_2_level_dict)
+            result_df = enrichment_study.get_result(output_format, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
+            # if output_format in {"tsv", "xml"} and not result.empty: # check for empty DF
+            #     results_all_function_types[entity_type] = result
+            # elif result: # don't add empty results
+            #     results_all_function_types[entity_type] = result
+            # else:
+            #     pass
+    # return results_all_function_types
+            if not result_df.empty:
+                result_df["etype"] = entity_type
+                df_list.append(result_df)
+    try:
+        df = pd.concat(df_list)
+    except ValueError: # empty list
+        args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+        return False
+    if filter_parents:
+        df = cluster_filter.filter_parents_if_same_foreground(df, pqo.functerm_2_level_dict)
+    return format_results(df, output_format, args_dict)
 
-# def run_STRING_enrichment_genome(pqo, ui, taxid, background_n=None, output_format="json", FDR_cutoff=None):
+
 def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
-    # taxid=args_dict["taxid"]
-    output_format=args_dict["output_format"]
-    FDR_cutoff=args_dict["FDR_cutoff"]
     taxid = check_taxids(args_dict)
     if not taxid:
         return False
+    output_format=args_dict["output_format"]
+    FDR_cutoff=args_dict["FDR_cutoff"]
+    filter_parents = args_dict["filter_parents"]
 
     enrichment_method = ui.enrichment_method
     protein_ans_list = ui.get_all_unique_ANs()
@@ -71,11 +84,9 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         taxid_string = str(taxid)
         ans_not_concur = [an for an in protein_ans_list if not an.startswith(taxid_string)]
         args_dict["ERROR_taxid_proteinAN"] = "ERROR_taxid_proteinAN: The TaxID '{}' provided and the taxid of the proteins provided (e.g. '{}') to not concur.".format(taxid, ans_not_concur[:3])
-        # args_dict["1A WARNING/ERROR"] = "1A WARNING/ERROR: argument 'taxid' provided is '{}', it does not conform with the provided protein identifiers.".format(args_dict["taxid"])
         return False
-
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
-    results_all_function_types = {}
+    df_list = []
     etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]
     for entity_type in variables.entity_types_with_data_in_functions_table:
         dag = pick_dag_from_entity_type_and_basic_or_slim(entity_type, "basic", pqo)
@@ -84,14 +95,50 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
             enrichment_study = enrichment.EnrichmentStudy(ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method,
                 o_or_u_or_both="overrepresented", multitest_method="benjamini_hochberg", entity_type=entity_type,
                 association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type], background_n=background_n)
-            result = enrichment_study.get_result(output_format, FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
-            if output_format in {"tsv", "xml"} and not result.empty: # check for empty DF
-                results_all_function_types[entity_type] = result
-            elif result: # don't add empty results
-                results_all_function_types[entity_type] = result
-            else:
-                pass
-    return results_all_function_types
+            result_df = enrichment_study.get_result(FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
+            if not result_df.empty:
+                result_df["etype"] = entity_type
+                df_list.append(result_df)
+    try:
+        df = pd.concat(df_list)
+    except ValueError: # empty list
+        args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+        return False
+
+    if filter_parents:
+        df = cluster_filter.filter_parents_if_same_foreground(df, pqo.functerm_2_level_dict)
+
+    return format_results(df, output_format, args_dict)
+
+def format_results(df, output_format, args_dict):
+    if output_format == "tsv":
+        return df.to_csv(sep="\t", header=True, index=False)
+    elif output_format == "json":
+        etype_2_resultsjson_dict = {}
+        for etype, group in df.groupby("etype"):
+            etype_2_resultsjson_dict[etype] = group.to_json(orient='records')
+        return etype_2_resultsjson_dict
+    elif output_format == "xml": # xml gets formatted in runserver.py
+        dict_2_return = {}
+        for etype, df_group in df.groupby("etype"):
+            results = df_group.to_csv(sep="\t", header=True, index=False)  # convert DatFrame to string
+            header, rows = results.split("\n", 1)  # is df in tsv format
+            xml_string = create_xml_tree(header, rows.split("\n"))
+            dict_2_return[etype] = xml_string.decode()
+        return dict_2_return
+    else:
+        args_dict["ERROR_output_format"] = "output_format {} is unknown, please check your parameters".format(output_format)
+        return False
+
+def create_xml_tree(header, rows):
+    xml_tree = etree.Element("EnrichmentResult")
+    header = header.split("\t")
+    for row in rows:
+        child = etree.SubElement(xml_tree, "record")
+        for tag_content in zip(header, row.split("\t")):
+            tag, content = tag_content
+            etree.SubElement(child, tag).text = content
+    return etree.tostring(xml_tree, pretty_print=True, xml_declaration=True, encoding="utf-8")#.decode("UTF-8")
 
 def check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):
     taxid_string = str(taxid)

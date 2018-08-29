@@ -17,8 +17,8 @@ services:
      ### Atlas
       # - /mnt/mnemo5/dblyon/agotool/data/:/agotool_data # change from mnemo5 to local HDD
       # - /home/dblyon/agotool/data/:/agotool_data
-     # ports: # expose port in order to connect to PostgreSQL
-      # - "5432:5432"
+    ports: # expose port in order to connect to PostgreSQL
+      - "5432:5432"
     env_file:
       - ./app/env_file
     networks:

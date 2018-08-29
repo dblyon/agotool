@@ -78,17 +78,18 @@ class EnrichmentStudy(object):
         self.association_2_count_dict_background, self.background_n = association_2_count_dict_background, background_n
         self.df = self.run_study_genome(self.association_2_count_dict_foreground, self.association_2_count_dict_background, self.foreground_n, self.background_n)
 
-    def get_result(self, output_format="json", FDR_cutoff=None, fold_enrichment_for2background=None, p_value_uncorrected=None):
+    def get_result(self, FDR_cutoff=None, fold_enrichment_for2background=None, p_value_uncorrected=None):
         self.df = self.filter_results(self.df, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
         if self.method != "characterize_foreground": # since no p-values available
             self.df["p_uncorrected"] = self.df["p_uncorrected"].apply(lambda x: "{:.2E}".format(Decimal(x)))
-        if output_format == "json":
-            return self.df.to_json(orient='records')
-        elif output_format in {"tsv", "xml"}: # xml gets formatted in runserver.py
-            # return self.df.to_csv(sep="\t", header=True, index=False)
-            return self.df
-        else:
-            raise NotImplementedError
+        return self.df
+        # if output_format == "json":
+        #     return self.df.to_json(orient='records')
+        # elif output_format in {"tsv", "xml"}: # xml gets formatted in runserver.py
+        #     return self.df.to_csv(sep="\t", header=True, index=False)
+            # return self.df
+        # else:
+        #     raise NotImplementedError
 
     def run_compare_samples(self):
         self.an_set_background = self.ui.get_background_an_set()

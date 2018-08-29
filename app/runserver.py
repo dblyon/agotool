@@ -8,11 +8,11 @@ from wtforms import fields
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, cluster_filter, obo_parser, variables
 import json
-from lxml import etree
 import markdown
 from flask import Markup
 from collections import defaultdict
 import pandas as pd
+from werkzeug.wrappers import Response
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -139,6 +139,10 @@ parser.add_argument("output_format", type=str,
     help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}",
     default="tsv")
 
+parser.add_argument("filter_parents", type=str,
+    help="Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground.",
+    default="True")
+
 # STRING method is "enrichment", has nothing to do with aGOtool settings
 # parser.add_argument("method", type=str,
 #     help="Getting functional enrichment",
@@ -251,6 +255,7 @@ class API_STRING(Resource):
         args_dict.update(parser.parse_args())
         args_dict["indent"] = string_2_bool(args_dict["indent"])
         args_dict["privileged"] = string_2_bool(args_dict["privileged"])
+        args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -261,24 +266,15 @@ class API_STRING(Resource):
             if not background_n:
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
+            # results are tsv or json
             results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
 
-                # ui = userinput.REST_API_input(pqo, args_dict)
-        # if not ui.check:
-        #     args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
-        #     return help_page(args_dict)
-
-        # if args_dict["enrichment_method"] == "genome":
-        #     results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
-        # else:
-        #     results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
-
         if results_all_function_types is False:
             return help_page(args_dict)
         else:
-            return format_multiple_results(args_dict["output_format"], results_all_function_types)
+            return format_multiple_results(args_dict, results_all_function_types)
 api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
 
@@ -338,48 +334,27 @@ def format_results(output_format, header, results):
     else:
         return jsonify({"README": "You've provided '{}' as the output_format, but unfortunately we don't recognize/support this method. Please select one of {json, tsv, tsv-no-header, xml} ".format(output_method)})
 
-# def format_multiple_results(output_format, results_all_function_types):
-#     """
-#     :param output_format: String
-#     :param results_all_function_types: Dict (key: entity_type , val: Tuple(header, results))
-#     :return: Json or String
-#     """
-#     if output_format == "json":
-#         dict_2_return = {}
-#         for functype_header_results in results_all_function_types.items():
-#             functype, header_results = functype_header_results
-#             header, results = header_results
-#             header = header.split("\t")
-#             dict_2_return[functype] = [dict(zip(header, row.split("\t"))) for row in results]
-#         return jsonify(dict_2_return)
-#     elif output_format == "tsv":
-#         return results_all_function_types
-#     else:
-#         raise NotImplementedError
-
-
-from werkzeug.wrappers import Response
-
-def format_multiple_results(output_format, results_all_entity_types):
+def format_multiple_results(args_dict, results_all_entity_types):
     """
     :param output_format: String
     :param results_all_function_types: Dict (key: entity_type , val: Tuple(header, results))
     :return: Json or String
     """
-    # if output_format == "json":
-    #     dict_2_return = {}
-    #     for etype, results in results_all_entity_types.items():
-    #         dict_2_return[etype] = jsonify(results)
-    #     return jsonify(dict_2_return)
+    output_format = args_dict["output_format"]
     if output_format == "json":
         return jsonify(results_all_entity_types)
     elif output_format == "tsv":
         # return results_all_entity_types
-        df_list = []
-        for etype, df in results_all_entity_types.items():
-            df["etype"] = etype
-            df_list.append(df)
-        return Response(pd.concat(df_list).to_csv(sep="\t", header=True, index=False), mimetype='text') # text/csv --> try
+        # df_list = []
+        # for etype, df in results_all_entity_types.items():
+        #     df["etype"] = etype
+        #     df_list.append(df)
+        # try:
+            # return Response(pd.concat(df_list).to_csv(sep="\t", header=True, index=False), mimetype='text')
+        return Response(results_all_entity_types, mimetype='text')
+        # except ValueError: # empty list
+        #     args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+        #     return help_page(args_dict)
     elif output_format == "xml":
         dict_2_return = {}
         for etype, results in results_all_entity_types.items():
@@ -391,15 +366,15 @@ def format_multiple_results(output_format, results_all_entity_types):
     else:
         raise NotImplementedError
 
-def create_xml_tree(header, rows):
-    xml_tree = etree.Element("EnrichmentResult")
-    header = header.split("\t")
-    for row in rows:
-        child = etree.SubElement(xml_tree, "record")
-        for tag_content in zip(header, row.split("\t")):
-            tag, content = tag_content
-            etree.SubElement(child, tag).text = content
-    return etree.tostring(xml_tree, pretty_print=True, xml_declaration=True, encoding="utf-8")#.decode("UTF-8")
+# def create_xml_tree(header, rows):
+#     xml_tree = etree.Element("EnrichmentResult")
+#     header = header.split("\t")
+#     for row in rows:
+#         child = etree.SubElement(xml_tree, "record")
+#         for tag_content in zip(header, row.split("\t")):
+#             tag, content = tag_content
+#             etree.SubElement(child, tag).text = content
+#     return etree.tostring(xml_tree, pretty_print=True, xml_declaration=True, encoding="utf-8")#.decode("UTF-8")
 
 ################################################################################
 # index.html
@@ -633,9 +608,7 @@ def results():
         except:
             input_fs = None
 
-        ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data,
-            background_string=form.background_textarea.data,
-            col_foreground='foreground', col_background='background', col_intensity='background_intensity',
+        ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data,
             foreground_n=form.foreground_n.data, background_n=form.background_n.data)
 

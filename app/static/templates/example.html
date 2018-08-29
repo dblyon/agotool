@@ -243,9 +243,8 @@ result = requests.post(url_,
                           "foreground": fg,
                           "enrichment_method": "genome",
                           "taxid": 4932})
-result = result.json()
-print("Select an entity type from the available ones: ", result.keys())
-df = pd.read_csv(StringIO(result["-51"]), sep='\t')
+result = result.text
+df = pd.read_csv(StringIO(result), sep='\t')
 df.head()
             </code></pre><br>
         <h4>Example #3 from STRING</h4>
@@ -269,5 +268,19 @@ result_json = result.json()
 import ast
 ast.literal_eval(result_json["-51"])
               </code></pre><br>
+
+        <h4>Example #4</h4>
+    <p><b>Characterize foreground, get functional information </b></p>
+            <pre><code class="language-python">
+ENSPs = ["9606.ENSP00000266970", "9606.ENSP00000278616"]
+fg = "%0d".join(ENSPs)
+result = requests.post(url_,
+                  params={"output_format": "tsv",
+                          "foreground": fg,
+                          "enrichment_method": "characterize_foreground"})
+df = pd.read_csv(StringIO(result.text), sep='\t')
+df.head()
+              </code></pre><br>
+
 </div><br><br>
 {% endblock content %}

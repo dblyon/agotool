@@ -1,3 +1,4 @@
+import numpy as np
 import os, sys
 from collections import defaultdict
 import psycopg2, math
@@ -52,8 +53,17 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'KEGG': "-52"}
 
 
-def get_cursor():
+def get_cursor(env_dict=None):
     platform_ = sys.platform
+    if env_dict is not None:
+        USER = env_dict['POSTGRES_USER']
+        PWD = env_dict['POSTGRES_PASSWORD']
+        DBNAME = env_dict['POSTGRES_DB']
+        # HOST = env_dict['HOST']
+        # PORT = env_dict['PORT']
+        HOST = 'db'
+        PORT = '5432'
+        return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
     if platform_ == "linux":
         try:
             USER = os.environ['POSTGRES_USER']
@@ -435,8 +445,32 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
 
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
-        # taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
+        ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
         self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity()
+
+        ### lineage_dict: key: functional_association_term_name val: set of parent terms
+        # self.lineage_dict = self.get_GO_lineage_dict(self.go_dag)
+        # self.lineage_dict.update(self.get_GO_lineage_dict(self.upk_dag))
+        ### functional term 2 hierarchical level dict
+        self.functerm_2_level_dict = defaultdict(lambda: np.nan)
+        self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict(self.go_dag))
+        self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict(self.upk_dag))
+
+    @staticmethod
+    def get_functional_term_2_level_dict(dag):
+        functerm_2_level_dict = {}
+        for name, term_object in dag.items():
+            functerm_2_level_dict[name] = term_object.level
+        return functerm_2_level_dict
+
+    @staticmethod
+    def get_GO_lineage_dict(go_dag):
+        go_lineage_dict = {}
+        # key=GO-term, val=set of GO-terms
+        for go_term_name in go_dag:
+            GOTerm_instance = go_dag[go_term_name]
+            go_lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
+        return go_lineage_dict
 
     def get_proteome_count_from_taxid(self, taxid):
         try:

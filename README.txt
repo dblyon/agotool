@@ -451,7 +451,10 @@ docker exec -it agotool_flaskapp_1 pytest --cov
 # failed tests run first
 docker exec -it agotool_flaskapp_1 pytest -vxff ./python/test_userinput.py
 ### run pytest with separate container, not needing to turn off 'preload'
-docker run -it --link agotool_db_1 --net agotool_db_nw --env-file /home/dblyon/agotool/app/env_file -v "/home/dblyon/agotool/data/:/agotool_data" -v "/home/dblyon/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest pytest -vx ./python/test_query.py --pdb
+# atlas
+docker run -it --net agotool_db_nw --env-file /home/dblyon/agotool/app/env_file -v "/home/dblyon/agotool/data/:/agotool_data" -v "/home/dblyon/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest pytest -vx ./python/test_query.py --pdb
+# ody
+docker run -it --net agotool_db_nw --env-file /Users/dblyon/modules/cpr/agotool/app/env_file -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest pytest -vx ./python/test_query.py --pdb
 
 
 

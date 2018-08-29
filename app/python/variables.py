@@ -35,6 +35,8 @@ entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
 # "-56": {}   # PMID
 # entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
 entity_types_with_data_in_functions_table = {-21, -22, -23, -51, -52, -53, -54, -55}
+entity_types_with_ontology = {-21, -22, -23, -51}
+
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,
                                   "Gene Ontology molecular function": -23,

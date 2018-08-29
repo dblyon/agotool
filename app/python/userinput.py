@@ -29,7 +29,6 @@ class Userinput:
      - characterize_foreground: Foreground only
     """
     def __init__(self, pqo, fn=None, foreground_string=None, background_string=None,
-            # col_foreground='foreground', col_background='background', col_intensity='background_intensity',
             num_bins=NUM_BINS, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None):
         self.pqo = pqo
         self.fn = fn

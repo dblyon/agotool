@@ -1,11 +1,15 @@
 import pandas as pd
+import numpy as np
 import itertools
 import shlex
 import subprocess
-import os
+import os, sys
 import threading
 import signal
 import time
+sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+import variables
+
 
 class TimeOutException(BaseException):
     pass
@@ -187,6 +191,7 @@ class Filter(object):
         index_p = header_list.index(sort_on)
         index_go = header_list.index('id_')
         results = [res.split('\t') for res in results]
+        # results sorted on p_value
         results.sort(key=lambda x: float(x[index_p]))
         if sort_on == "fold_enrichment_foreground_2_background":
             results = results[::-1]
@@ -203,6 +208,23 @@ class Filter(object):
                     blacklist = blacklist.union(self.go_lineage_dict[res[index_go]])
         return ["\t".join(res) for res in results_filtered]
 
+def filter_parents_if_same_foreground(df_orig, functerm_2_level_dict):
+    """
+    keep terms of lowest leaf, remove parent terms if they are associated with exactly the same foreground
+    :param df_orig: DataFrame
+    :param functerm_2_level_dict: Dict(key: String(functional term), val: Integer(Level of hierarchy))
+    :return: DataFrame
+    """
+    cond_df_2_filter = df_orig["etype"].isin(variables.entity_types_with_ontology)
+    df = df_orig[cond_df_2_filter]
+    df["level"] = df["id"].apply(lambda term: functerm_2_level_dict[term])
+    # get maximum within group, all rows included if ties exist, NaNs are False in idx
+    idx = df.groupby(["etype", "ANs_foreground"])["level"].transform(max) == df["level"]
+    # retain rows where level is NaN
+    indices_2_keep = df[(df["level"].isnull() | idx)].index.values
+    # add df_orig part that can't be filtered due to missing ontology
+    indices_2_keep = np.append(df_orig[~cond_df_2_filter].index.values, indices_2_keep)
+    return df_orig.loc[indices_2_keep].sort_values(["etype", "p_uncorrected"], ascending=[True, True])
 
 def get_header_results(fn):
         results = []
