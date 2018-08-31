@@ -263,6 +263,9 @@ class API_STRING(Resource):
 
         if args_dict["enrichment_method"] == "genome":
             background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
+            #print("-"*80)
+            #print(args_dict)
+            #print("-"*80)
             if not background_n:
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
@@ -342,17 +345,7 @@ def format_multiple_results(args_dict, results_all_entity_types):
     """
     output_format = args_dict["output_format"]
     if output_format == "tsv":
-        # return results_all_entity_types
-        # df_list = []
-        # for etype, df in results_all_entity_types.items():
-        #     df["etype"] = etype
-        #     df_list.append(df)
-        # try:
-            # return Response(pd.concat(df_list).to_csv(sep="\t", header=True, index=False), mimetype='text')
         return Response(results_all_entity_types, mimetype='text')
-        # except ValueError: # empty list
-        #     args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
-        #     return help_page(args_dict)
     elif output_format == "json":
         return jsonify(results_all_entity_types)
     elif output_format == "xml":
@@ -365,16 +358,6 @@ def format_multiple_results(args_dict, results_all_entity_types):
         return jsonify(dict_2_return)
     else:
         raise NotImplementedError
-
-# def create_xml_tree(header, rows):
-#     xml_tree = etree.Element("EnrichmentResult")
-#     header = header.split("\t")
-#     for row in rows:
-#         child = etree.SubElement(xml_tree, "record")
-#         for tag_content in zip(header, row.split("\t")):
-#             tag, content = tag_content
-#             etree.SubElement(child, tag).text = content
-#     return etree.tostring(xml_tree, pretty_print=True, xml_declaration=True, encoding="utf-8")#.decode("UTF-8")
 
 ################################################################################
 # index.html

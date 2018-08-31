@@ -76,3 +76,4 @@ data/PostgreSQL/downloads/*
 POST*
 *.pem
 *.key
+data/PostgreSQL/tables

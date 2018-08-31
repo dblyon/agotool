@@ -8,9 +8,9 @@ services:
       # - "agotool_data:/agotool_data" # version 1, named-volume
       # - .:/agotool_data # version 2, bind mount, to mount files from the host to the container
      ### Ody
-      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
+      #- /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
      ### Atlas
-      # - /home/dblyon/agotool/data/:/agotool_data
+      - /home/dblyon/agotool/data/:/agotool_data
     #ports: # expose port in order to connect to PostgreSQL from outside docker
     #  - "5432:5432"
     env_file:
@@ -23,13 +23,12 @@ services:
     build: . # uncomment to build from Dockerfile, else pull from dockerhub
     # image: dblyon/python_agotool:latest
     volumes:
-      ### Ody
       - ./app/:/opt/services/flaskapp/src
       # - "agotool_data:/agotool_data" # version 1, named-volume (works for Atlas to run the container but no obo files found, but only in this mode does the flaskapp have write access)
       ### Ody
-      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
+      #- /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
-      # - /home/dblyon/agotool/data/:/agotool_data
+      - /home/dblyon/agotool/data/:/agotool_data
     env_file:
       - ./app/env_file
     networks:

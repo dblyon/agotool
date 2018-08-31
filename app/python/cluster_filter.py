@@ -225,6 +225,18 @@ def filter_parents_if_same_foreground(df_orig, functerm_2_level_dict):
     # add df_orig part that can't be filtered due to missing ontology
     indices_2_keep = np.append(df_orig[~cond_df_2_filter].index.values, indices_2_keep)
     return df_orig.loc[indices_2_keep]
+    #return df_orig.loc[set(indices_2_keep)]
+
+def filter_parents_if_same_foreground_v2(df_orig):
+    cond_df_2_filter = df_orig["etype"].isin(variables.entity_types_with_ontology)
+    df = df_orig[cond_df_2_filter]
+    df_no_filter = df_orig[~cond_df_2_filter]
+    # get maximum within group, all rows included if ties exist, NaNs are False in idx
+    idx = df.groupby(["etype", "foreground_ids"])["hierarchical_level"].transform(max) == df["hierarchical_level"]
+    # retain rows where level is NaN
+    df = df[(df["hierarchical_level"].isnull() | idx)]
+    # add df_orig part that can't be filtered due to missing ontology
+    return pd.concat([df, df_no_filter], sort=False)
 
 def get_header_results(fn):
         results = []

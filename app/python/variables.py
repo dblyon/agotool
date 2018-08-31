@@ -45,6 +45,14 @@ functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "SMART (Simple Modular Architecture Research Tool)": -53,
                                   "INTERPRO": -54,
                                   "PFAM (Protein FAMilies)": -55}
+entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
+                                  -22: "Gene Ontology cellular component",
+                                  -23: "Gene Ontology molecular function",
+                                  -51: "UniProt keywords",
+                                  -52: "KEGG (Kyoto Encyclopedia of Genes and Genomes)",
+                                  -53: "SMART (Simple Modular Architecture Research Tool)",
+                                  -54: "INTERPRO",
+                                  -55: "PFAM (Protein FAMilies)"}
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 
 

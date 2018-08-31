@@ -201,18 +201,18 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
 
      ### - Protein_2_Function_table_PFAM
      ### - Protein_2_Function_table_SMART
-     # fn_out_SMART_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART_temp.txt")
-     # fn_out_SMART = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
-     # fn_out_PFAM_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM_temp.txt")
-     # fn_out_PFAM = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM.txt")
-     # create_Protein_2_Function_table_SMART_and_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.clean.sql"),
-     #     fn_in_temp=os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.clean.sql" + "_temp"),
-     #     fn_out_SMART_temp=fn_out_SMART_temp, fn_out_PFAM_temp=fn_out_PFAM_temp,
-     #     number_of_processes=number_of_processes, verbose=verbose)
-     # map_Name_2_AN(fn_in=fn_out_SMART_temp, fn_out=fn_out_SMART, fn_dict=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"),
-     #     fn_no_mapping=os.path.join(TABLES_DIR, "Functions_table_SMART_no_mapping.txt"))
-     # map_Name_2_AN(fn_in=fn_out_PFAM_temp, fn_out=fn_out_PFAM, fn_dict=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"),
-     #     fn_no_mapping=os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt"))
+     #fn_out_SMART_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART_temp.txt")
+     #fn_out_SMART = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
+     #fn_out_PFAM_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM_temp.txt")
+     #fn_out_PFAM = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM.txt")
+     #create_Protein_2_Function_table_SMART_and_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full_v3.sql"),
+     #    fn_in_temp=os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full.clean.sql" + "_temp"),
+     #    fn_out_SMART_temp=fn_out_SMART_temp, fn_out_PFAM_temp=fn_out_PFAM_temp,
+     #    number_of_processes=number_of_processes, verbose=verbose)
+     #map_Name_2_AN(fn_in=fn_out_SMART_temp, fn_out=fn_out_SMART, fn_dict=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"),
+     #    fn_no_mapping=os.path.join(TABLES_DIR, "Functions_table_SMART_no_mapping.txt"))
+     #map_Name_2_AN(fn_in=fn_out_PFAM_temp, fn_out=fn_out_PFAM, fn_dict=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"),
+     #    fn_no_mapping=os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt"))
 
      # ### - Protein_2_Function_table_GO
      # fn_in = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz"
@@ -234,16 +234,16 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
      # create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
-     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in
-     #            ["Protein_2_Function_table_GO.txt",
-     #             "Protein_2_Function_table_UniProtKeyword.txt",
-     #             "Protein_2_Function_table_KEGG.txt",
-     #             "Protein_2_Function_table_InterPro.txt",
-     #             "Protein_2_Function_table_PFAM.txt",
-     #             "Protein_2_Function_table_SMART.txt"]]
-     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-     # concatenate_files(fn_list, fn_out)
-     # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+#     fn_list = [os.path.join(TABLES_DIR, fn) for fn in
+#                ["Protein_2_Function_table_GO.txt",
+#                 "Protein_2_Function_table_UniProtKeyword.txt",
+#                 "Protein_2_Function_table_KEGG.txt",
+#                 "Protein_2_Function_table_InterPro.txt",
+#                 "Protein_2_Function_table_PFAM.txt",
+#                 "Protein_2_Function_table_SMART.txt"]]
+#     fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+#     concatenate_files(fn_list, fn_out)
+#     sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
 
      # ### - TaxID_2_Proteins_table
      # fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")

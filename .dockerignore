@@ -4,4 +4,17 @@
 __pycache__
 ./app/__pycache__
 .pytest_cache
+./python/__pycache__
 ./app/.pytest_cache
+
+.git/
+
+build
+dist
+*.egg-info
+*.egg/
+*.pyc
+*.swp
+
+.coverage
+html/*

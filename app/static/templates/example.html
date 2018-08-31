@@ -218,13 +218,13 @@ url_ = r"http://agotool.meringlab.org/api" # atlas
     <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
             <pre><code class="language-python">
 ENSPs = ['511145.b1260', '511145.b1261', '511145.b1262', '511145.b1263', '511145.b1264', '511145.b1812',
-            '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
+         '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
 fg = "%0d".join(ENSPs)
 result = requests.post(url_,
-                  params={"output_format": "json",
-                          "foreground": fg,
-                          "enrichment_method": "genome",
-                          "taxid": 511145})
+                       params={"output_format": "json",
+                               "enrichment_method": "genome",
+                               "taxid": 511145},
+                       data={"foreground": fg})
 result_json = result.json()
 print("Enrichment results for the following entity types was calculated: \n", result_json.keys())
                 </code></pre><br>
@@ -236,13 +236,13 @@ import pandas as pd
 from io import StringIO
 
 ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W',
-            '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
+         '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
 fg = "%0d".join(ENSPs)
 result = requests.post(url_,
-                  params={"output_format": "tsv",
-                          "foreground": fg,
-                          "enrichment_method": "genome",
-                          "taxid": 4932})
+                       params={"output_format": "tsv",
+                               "enrichment_method": "genome",
+                               "taxid": 4932}),
+                       data={"foreground": fg})
 result = result.text
 df = pd.read_csv(StringIO(result), sep='\t')
 df.head()
@@ -251,17 +251,17 @@ df.head()
     <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
             <pre><code class="language-python">
 ENSPs = ['10090.ENSMUSP00000001812', '10090.ENSMUSP00000002708', '10090.ENSMUSP00000021921',
-            '10090.ENSMUSP00000025791', '10090.ENSMUSP00000026474', '10090.ENSMUSP00000030443',
-            '10090.ENSMUSP00000054837', '10090.ENSMUSP00000084430', '10090.ENSMUSP00000099623',
-            '10090.ENSMUSP00000106137', '10090.ENSMUSP00000107498']
+         '10090.ENSMUSP00000025791', '10090.ENSMUSP00000026474', '10090.ENSMUSP00000030443',
+         '10090.ENSMUSP00000054837', '10090.ENSMUSP00000084430', '10090.ENSMUSP00000099623',
+         '10090.ENSMUSP00000106137', '10090.ENSMUSP00000107498']
 fg = "%0d".join(ENSPs)
 result = requests.post(url_,
-                  params={"output_format": "json",
-                          "foreground": fg,
-                          "background": fg,
-                          "enrichment_method": "compare_samples",
-                          "limit_2_entity_type": "-21;-51;-52", # comma separate desired entity_types (e.g. GO biological process; UniProt keyword; SMART) , default get all available.
-                          "taxid": 10090})
+                       params={"output_format": "json",
+                               "enrichment_method": "compare_samples",
+                               "limit_2_entity_type": "-21;-51;-52", # comma separate desired entity_types (e.g. GO biological process; UniProt keyword; SMART) , default get all available.
+                               "taxid": 10090},
+                       data={"foreground": fg,
+                             "background": fg})
 # since the foreground equals the background completely no significant enrichment will result from this analysis
 # it is meant to show how to show how to use the method call
 result_json = result.json()
@@ -275,9 +275,10 @@ ast.literal_eval(result_json["-51"])
 ENSPs = ["9606.ENSP00000266970", "9606.ENSP00000278616"]
 fg = "%0d".join(ENSPs)
 result = requests.post(url_,
-                  params={"output_format": "tsv",
-                          "foreground": fg,
-                          "enrichment_method": "characterize_foreground"})
+                       params={"output_format": "tsv",
+                               "filter_parents": False,
+                               "enrichment_method": "characterize_foreground"},
+                       data={"foreground": fg})
 df = pd.read_csv(StringIO(result.text), sep='\t')
 df.head()
               </code></pre><br>
