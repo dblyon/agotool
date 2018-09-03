@@ -33,8 +33,10 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 FN_DATABASE_SCHEMA = variables.FN_DATABASE_SCHEMA
 ###############################################################################
 # ToDo 2018
-# consistent with single and double quotes
-#return unused identifiers
+# - consistency with single and double quotes
+# - return unused identifiers
+# - adapt functions_table_STRING.txt:
+#      GO name from OBO as definition
 # - multiple entity type results to be displayed
 # - debug copy&paste fields
 # - debug file upload field
@@ -233,39 +235,51 @@ class API_STRING(Resource):
     get enrichment for all available functional associations not 'just' one category
     """
 
-    def get(self, output_format="json"):
-        return self.post(output_format)
+    def get(self): #, output_format="json"):
+        return self.post() #output_format)
 
-    def post(self, output_format="json"):
+    def post(self):
+        #args_dict = defaultdict(lambda: None)
+        #args_dict.update(request.values.items())
+        #args_dict.update(parser.parse_args())
+        #args_dict[
+        #return help_page(args_dict)
+        return self.post()
+
+
+    def post(self): #, output_format="json"):
         """
         watch out for difference between passing parameter through
         - part of the path (url) is variable in resource
         - or parameters of form
-
-        e.g.
-        r = requests.post('http://localhost:8080/api_string/tsv/enrichment', params={"output_format": "xkcd"})
-        print(r.json())
-        print(r.url)
-        --> {'output_format from params/data': 'xkcd', 'output_format from url': 'tsv'}
-        --> http://localhost:8080/api_string/tsv/enrichment?output_format=xkcd
-        :param output_format:
-        :return:
         """
         args_dict = defaultdict(lambda: None)
+        #args_dict.update(request.values.items())
+        args_dict["foreground"] = request.form.get("foreground")
+        args_dict["output_format"] = request.form.get("output_format")
+        args_dict["enrichment_method"] = request.form.get("enrichment_method")
+        args_dict["taxid"] = request.form.get("taxid")
         args_dict.update(parser.parse_args())
         args_dict["indent"] = string_2_bool(args_dict["indent"])
         args_dict["privileged"] = string_2_bool(args_dict["privileged"])
         args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
+        print(request.values)
+        for key, val in request.values.items():
+            print(key)
+            print(val)
+            print("**")
+        print("-"*80)
+        print(args_dict)
+        print("-"*80)
         ui = userinput.REST_API_input(pqo, args_dict)
+        print(ui.get_foreground_an_set())
+        print(args_dict["foreground"])
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
             return help_page(args_dict)
 
         if args_dict["enrichment_method"] == "genome":
             background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
-            #print("-"*80)
-            #print(args_dict)
-            #print("-"*80)
             if not background_n:
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
@@ -277,6 +291,7 @@ class API_STRING(Resource):
         if results_all_function_types is False:
             return help_page(args_dict)
         else:
+            print(results_all_function_types)
             return format_multiple_results(args_dict, results_all_function_types)
 api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
@@ -641,6 +656,8 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
         print("_"*50)
         print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
         print("form.limit_2_entity_type.data", type(limit_2_entity_type), limit_2_entity_type)
+        print("#%$^")
+        print(form.values)
         print("_"*50)
         if len(results_all_function_types) == 0:
             return render_template('results_zero.html')

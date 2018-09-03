@@ -407,9 +407,7 @@ class REST_API_input(Userinput):
         self.background_n = args_dict["background_n"]
         self.args_dict = args_dict
         self.col_foreground = "foreground"
-        # self.col_foreground_intensity = "foreground_intensity"
         self.col_background = "background"
-        # self.col_background_intensity = "background_intensity"
         self.col_intensity = "intensity"
         self.check = False
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
@@ -424,12 +422,15 @@ class REST_API_input(Userinput):
         check_parse = False
         decimal = "."
         df_orig = pd.DataFrame()
-        if self.background_string is not None:
-            replaced = pd.Series(self._replace_and_split(self.background_string))
-            if replaced is not None:
-                df_orig[self.col_background] = replaced
-            else:
-                return df_orig, decimal, check_parse
+        #if self.background_string is not None:
+        
+        if self.enrichment_method != "genome": # ignore background if "genome"
+            if self.background_string is not None:
+                replaced = pd.Series(self._replace_and_split(self.background_string))
+                if replaced is not None:
+                    df_orig[self.col_background] = replaced
+                else:
+                    return df_orig, decimal, check_parse
         if self.enrichment_method == "abundance_correction":
             try:
                 if "." in self.background_intensity:

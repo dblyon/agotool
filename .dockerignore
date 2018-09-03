@@ -2,6 +2,7 @@
 ./data/PostgreSQL
 ./data/session
 __pycache__
+python/__pycache__/
 ./app/__pycache__
 .pytest_cache
 ./python/__pycache__

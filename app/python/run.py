@@ -44,7 +44,7 @@ def run_STRING_enrichment(pqo, ui, args_dict):
             return False
         assoc_dict = etype_2_association_dict[entity_type]
         if bool(assoc_dict):
-            enrichment_study = enrichment.EnrichmentStudy(args_dict, ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method, alpha=alpha,
+            enrichment_study = enrichment.EnrichmentStudy(pqo, args_dict, ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method, alpha=alpha,
                                                           o_or_u_or_both=o_or_u_or_both, multitest_method=multitest_method, entity_type=entity_type, indent=indent)
             result_df = enrichment_study.get_result(FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
             if not result_df.empty:
@@ -88,7 +88,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         dag = pick_dag_from_entity_type_and_basic_or_slim(entity_type, "basic", pqo)
         assoc_dict = etype_2_association_dict[entity_type]
         if bool(assoc_dict): # not empty dictionary
-            enrichment_study = enrichment.EnrichmentStudy(args_dict, ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method,
+            enrichment_study = enrichment.EnrichmentStudy(pqo, args_dict, ui=ui, assoc_dict=assoc_dict, obo_dag=dag, enrichment_method=enrichment_method,
                 o_or_u_or_both="overrepresented", multitest_method="benjamini_hochberg", entity_type=entity_type,
                 association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type], background_n=background_n)
             result_df = enrichment_study.get_result(FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
@@ -106,7 +106,8 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
     if filter_parents:
         df = cluster_filter.filter_parents_if_same_foreground_v2(df)
-    return format_results(df.sort_values(["etype", "p_value"], ascending=[False, True]), output_format, args_dict)
+    cols_sort_order = ['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', "name", 'definition', 'foreground_count', 'foreground_ids']
+    return format_results(df[cols_sort_order].sort_values(["etype", "p_value"], ascending=[False, True]), output_format, args_dict)
 
 def format_results(df, output_format, args_dict):
     if output_format == "tsv":

@@ -15,8 +15,6 @@ class EnrichmentStudy(object):
     ToDo: change examples on website
     add REST API examples
     unify output of genome method vs compare samples
-
-
     Runs Fisher's exact test, as well as multiple corrections
     abundance_correction: Foreground vs Background abundance corrected
     genome: Foreground vs Proteome (no abundance correction)
@@ -24,11 +22,12 @@ class EnrichmentStudy(object):
     compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
     characterize_foreground: Foreground only
     """
-    def __init__(self, args_dict, ui, assoc_dict, obo_dag, enrichment_method="genome", entity_type="-51",
+    def __init__(self, pqo, args_dict, ui, assoc_dict, obo_dag, enrichment_method="genome", entity_type="-51",
             o_or_u_or_both="overrepresented",
             multitest_method="benjamini_hochberg", alpha=0.05,
             association_2_count_dict_background=None, background_n=None,
             indent=False):
+        self.pqo = pqo
         self.args_dict = args_dict
         self.ui = ui
         self.method = enrichment_method
@@ -244,7 +243,7 @@ class EnrichmentStudy(object):
         #     foregr_n         |     backgr_n       |    n
         """
         fisher_dict = {}
-        term_list, description_list, p_value_list, foreground_ids_list, foreground_count_list = [], [], [], [], []
+        term_list, name_list, definition_list, p_value_list, foreground_ids_list, foreground_count_list = [], [], [], [], [], []
         for association, foreground_count in association_2_count_dict_foreground.items():
             try:
                 background_count = association_2_count_dict_background[association]
@@ -265,12 +264,16 @@ class EnrichmentStudy(object):
                 p_val_uncorrected = pvalue(a, b, c, d).right_tail
                 fisher_dict[(a, b, c, d)] = p_val_uncorrected
             term_list.append(association)
-            description_list.append(self.obo_dag[association].name)
+            #description_list.append(self.obo_dag[association].name)
+            name_list.append(self.pqo.function_an_2_name_dict[association])
+            definition_list.append(self.pqo.function_an_2_definition_dict[association])
             p_value_list.append(p_val_uncorrected)
             foreground_ids_list.append(';'.join(self.association_2_ANs_dict_foreground[association]))
             foreground_count_list.append(foreground_count)
         df = pd.DataFrame({"term": term_list,
-                          "description": description_list,
+                          #"description": description_list,
+                          "name": name_list,
+                          "definition": definition_list,
                           "p_value": p_value_list,
                           "foreground_ids": foreground_ids_list,
                           "foreground_count": foreground_count_list})

@@ -241,7 +241,7 @@ fg = "%0d".join(ENSPs)
 result = requests.post(url_,
                        params={"output_format": "tsv",
                                "enrichment_method": "genome",
-                               "taxid": 4932}),
+                               "taxid": 4932},
                        data={"foreground": fg})
 result = result.text
 df = pd.read_csv(StringIO(result), sep='\t')
