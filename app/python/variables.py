@@ -2,13 +2,13 @@ import os, multiprocessing
 
 ############################
 ### settings
-PRELOAD = True 
+PRELOAD = False
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = True
+DOCKER = False
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 
@@ -99,6 +99,8 @@ TEST_DIR = os.path.join(TABLES_DIR, "test")
 PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "test")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
 FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema_STRING.md")
+FN_HELP_ENTITY_TYPES = os.path.join(POSTGRESQL_DIR, "example_help_entity_types.md")
+FN_HELP_PARAMETERS = os.path.join(POSTGRESQL_DIR, "example_help_parameters.md")
 
 DIRECTORIES_LIST = [os.path.join(DATA_DIR, 'PostgreSQL/downloads'),
                     os.path.join(DATA_DIR, 'logs'),

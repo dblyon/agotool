@@ -1,18 +1,21 @@
 import os, sys, logging, time
+from collections import defaultdict
+import json
+import pandas as pd
 import flask
 from flask import render_template, request, send_from_directory, jsonify
 from flask.views import MethodView
 from flask_restful import reqparse, abort, Api, Resource
+from werkzeug.wrappers import Response
 import wtforms
 from wtforms import fields
+
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, cluster_filter, obo_parser, variables
-import json
+
 import markdown
 from flask import Markup
-from collections import defaultdict
-import pandas as pd
-from werkzeug.wrappers import Response
+from flaskext.markdown import Markdown
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -30,7 +33,7 @@ PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
 MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
-FN_DATABASE_SCHEMA = variables.FN_DATABASE_SCHEMA
+
 ###############################################################################
 # ToDo 2018
 # - consistency with single and double quotes
@@ -60,8 +63,10 @@ def getitem(obj, item, default):
     else:
         return obj[item]
 ###############################################################################
-### Create the Flask application and the Flask-SQLAlchemy object.
+### Create the Flask application
 app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
+Markdown(app)
+
 if PROFILING:
     from werkzeug.contrib.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
@@ -414,7 +419,19 @@ def page_not_found(e):
 ################################################################################
 @app.route('/example')
 def example():
-    return render_template('example.html')
+    with open(variables.FN_HELP_ENTITY_TYPES, "r") as fh:
+        content = fh.read()
+        # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
+        # content_entity_types = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
+        content_entity_types = format_markdown(content)
+        print(content_entity_types)
+    with open(variables.FN_HELP_PARAMETERS, "r") as fh:
+        content = fh.read()
+        # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
+        # content_parameters = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
+        content_parameters = format_markdown(content)
+        print(content_parameters)
+    return render_template('example.html', **locals())
 
 @app.route('/example/<path:filename>', methods=['GET', 'POST'])
 def download_example_data(filename):
@@ -431,9 +448,12 @@ def download_results_data(filename):
 ################################################################################
 @app.route("/db_schema")
 def db_schema():
-    with open(FN_DATABASE_SCHEMA, "r") as fh:
+    with open(variables.FN_DATABASE_SCHEMA, "r") as fh:
         content = fh.read()
-    content = Markup(markdown.markdown(content))
+    # content = content.replace("{", "\{").replace("}", "\}")
+    # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
+    # content = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
+    content = format_markdown(content)
     return render_template("db_schema.html", **locals())
 
 ################################################################################
@@ -446,6 +466,11 @@ def FAQ():
 ################################################################################
 # helper functions
 ################################################################################
+def format_markdown(content):
+    content = content.replace("{", "\{").replace("}", "\}")
+    content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
+    return content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">')
+
 ##### validation of user inputs
 def validate_float_larger_zero_smaller_one(form, field):
     if not 0 < field.data < 1:

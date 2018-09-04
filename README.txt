@@ -457,6 +457,9 @@ docker run -it --net agotool_db_nw --env-file /home/dblyon/agotool/app/env_file 
 docker run -it --net agotool_db_nw --env-file /Users/dblyon/modules/cpr/agotool/app/env_file -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest pytest -vx ./python/test_query.py --pdb
 
 
+docker run -it -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest ./python/create_SQL_tables.py
+
+
 
 # copy example data
 # You can think of a trailing / on a source as meaning "copy the contents of this directory" as opposed to "copy the directory by name"
@@ -482,3 +485,12 @@ docker-compose up -d --scale flaskapp=2
 ##############################################################################
 # http://agotool-api.meringlab.org/ # aquarius
 # http://agotool.meringlab.org/     # atlas
+
+
+ToDo:
+change DB identifiers
+UPK:9990 --> KW-9990
+KEGG:01100 --> map01100
+
+change descriptions for functional associations
+--> checkout email from PFAM/SMART...

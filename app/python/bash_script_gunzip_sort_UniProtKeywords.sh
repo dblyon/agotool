@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-sort --parallel 8 -k1 /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_UniProtKeyword.txt -o /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_UniProtKeyword.txt

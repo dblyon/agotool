@@ -28,16 +28,26 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'GO:0005575': "-22",  # 'Cellular Component',
                               'GO:0008150': "-21",  # 'Biological Process',
                               "GO:OBSOLETE": "-24", # "GO obsolete
-                              'UPK:9990': "-51",  # 'Technical term',
-                              'UPK:9991': "-51",  # 'PTM',
-                              'UPK:9992': "-51",  # 'Molecular function',
-                              'UPK:9993': "-51",  # 'Ligand',
-                              'UPK:9994': "-51",  # 'Domain',
-                              'UPK:9995': "-51",  # 'Disease',
-                              'UPK:9996': "-51",  # 'Developmental stage',
-                              'UPK:9997': "-51",  # 'Coding sequence diversity',
-                              'UPK:9998': "-51",  # 'Cellular component',
-                              'UPK:9999': "-51",  # 'Biological process'
+                              # 'UPK:9990': "-51",  # 'Technical term',
+                              # 'UPK:9991': "-51",  # 'PTM',
+                              # 'UPK:9992': "-51",  # 'Molecular function',
+                              # 'UPK:9993': "-51",  # 'Ligand',
+                              # 'UPK:9994': "-51",  # 'Domain',
+                              # 'UPK:9995': "-51",  # 'Disease',
+                              # 'UPK:9996': "-51",  # 'Developmental stage',
+                              # 'UPK:9997': "-51",  # 'Coding sequence diversity',
+                              # 'UPK:9998': "-51",  # 'Cellular component',
+                              # 'UPK:9999': "-51",  # 'Biological process'
+                              'KW-9990': "-51",  # 'Technical term',
+                              'KW-9991': "-51",  # 'PTM',
+                              'KW-9992': "-51",  # 'Molecular function',
+                              'KW-9993': "-51",  # 'Ligand',
+                              'KW-9994': "-51",  # 'Domain',
+                              'KW-9995': "-51",  # 'Disease',
+                              'KW-9996': "-51",  # 'Developmental stage',
+                              'KW-9997': "-51",  # 'Coding sequence diversity',
+                              'KW-9998': "-51",  # 'Cellular component',
+                              'KW-9999': "-51",  # 'Biological process'
                               "UniProtKeywords": "-51",
                               'KEGG': "-52", # KEGG
                               "SMART": "-53", # SMART domains
@@ -262,6 +272,16 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # if delete_temp_files:
      #     remove_files(find_tables_to_remove() + tables_to_remove_temp)
      #     print("#" * 80, "removing temp files and temp_tables")
+
+def change_UPK_2_KW(fn_in):
+    fn_temp = fn_in + "_temp"
+    with open(fn_in, "r") as fh_in:
+        with open(fn_temp, "w") as fh_out:
+            for line in fh_in:
+                line = line.replace("UPK:", "KW-")
+                fh_out.write(line)
+    os.remove(fn_in)
+    os.rename(fn_temp, fn_in)
 
 def sort_file(fn_in, fn_out, columns="1", fn_bash_script=None, number_of_processes=1, verbose=True):
     if verbose:
@@ -1239,13 +1259,13 @@ def create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_d
             # with open(fn_descr, "w") as fh_descr:
             for entry in obo:
                 id_, name, is_a_list, definition = entry
-                id_ = id_.replace("KW-", "UPK:")
+                # id_ = id_.replace("KW-", "UPK:")
                 # line2write_func = type_ + "\t" + name + "\t" + id_ + "\n"
                 # line2write_func = type_ + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
                 line2write_func = etype + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
                 fh_funcs.write(line2write_func)
                 for parent in is_a_list:
-                    parent = parent.replace("KW-", "UPK:")
+                    # parent = parent.replace("KW-", "UPK:")
                     line2write_cp = id_ + "\t" + parent + "\n"
                     fh_child2parent.write(line2write_cp)
                 # line2write_descr = id_ + "\t" + definition + "\n"
@@ -1276,7 +1296,7 @@ def create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_def
                 line2write_func = etype + "\t" + name + "\t" + id_ + "\t" + definition + "\n"
                 fh_funcs.write(line2write_func)
                 for parent in is_a_list:
-                    parent = parent.replace("KW-", "UPK:")
+                    # parent = parent.replace("KW-", "UPK:")
                     line2write_cp = id_ + "\t" + parent + "\n"
                     fh_child2parent.write(line2write_cp)
                 # line2write_descr = id_ + "\t" + definition + "\n"
@@ -2107,10 +2127,17 @@ if __name__ == "__main__":
     # sanity_check_table_dimensions(testing=True)
 
     ### STRING
-    create_tables_STRING(verbose=True, delete_temp_files=False)
+    # create_tables_STRING(verbose=True, delete_temp_files=False)
     # fn_in = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/temp.txt"
     # parse_uniprot_dat_dump_yield_entry(fn_in)
-    create_test_tables(50000, TABLES_DIR, version_="STRING")
+    # create_test_tables(50000, TABLES_DIR, version_="STRING")
+    # Entity_types_table_STRING.txt
 
-    # ToDo call "sort" python function instead of repeated code, cleanup
+    fn_list = ['Entity_types_table_STRING.txt', 'Function_2_ENSP_table_STRING.txt', 'Functions_table_STRING.txt',
+     'GO_2_Slim_table_STRING.txt', 'Ontologies_table_STRING.txt', 'Protein_2_Function_table_STRING.txt',
+     'TaxID_2_Proteins_table_STRING.txt']
+    fn_list = [os.path.join(TABLES_DIR, fn) for fn in fn_list]
+    for fn in fn_list:
+        change_UPK_2_KW(fn)
+
     # ToDo stuff stuff into another Snakemake file
