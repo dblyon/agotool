@@ -474,6 +474,9 @@ docker exec -it agotool_flaskapp_1 python ./python/create_SQL_tables.py
 docker run -it --net agotool_db_nw --env-file /Users/dblyon/modules/cpr/agotool/app/env_file -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest python ./python/create_SQL_tables.py
 # populate DB for real
 docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/copy_from_file_and_index_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql
+docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/temp.psql
+
 docker run -it --net agotool_db_nw --env-file /Users/dblyon/modules/cpr/agotool/app/env_file -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest pytest -vx ./python/test_query.py --pdb
 # change "preload" to True, change "skip_slow_downloads" to False, change "debug" to False
 vim /var/www/agotool/app/python/variables.py
