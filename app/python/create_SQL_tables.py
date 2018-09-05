@@ -174,11 +174,11 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #     for fn in log_fn_list:
      #         with open(fn, "a+") as fh:
      #             fh.write("\n{}\n{}\n".format("######\n# Current Date and Time", datetime.datetime.now().isoformat()))
-     #
+
      # GO_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "go-basic.obo"), upk=False)
      # UPK_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "keywords-all.obo"), upk=True)
-     #
-     # ### - Ontologies (Child_2_Parent)
+
+     ### - Ontologies (Child_2_Parent)
      # create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
      # create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
      # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
@@ -193,13 +193,14 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # create_Functions_table_SMART(fn_in=os.path.join(DOWNLOADS_DIR, "SMART_domain_descriptions.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"))
      # create_Functions_table_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv"), fn_out=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"))
      # create_Functions_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "InterPro_name_2_AN.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"))
-     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
-     #                                                    "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
-     #                                                    "Functions_table_PFAM.txt", "Functions_table_InterPro.txt"]]
-     # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
-     # print("creating {} by concatenation and sorting".format(fn_out))
-     # concatenate_files(fn_list, fn_out)
-     # sort_file(fn_out, fn_out, columns="1", number_of_processes=number_of_processes)
+     #fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
+     #                                                   "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
+     #                                                   "Functions_table_PFAM.txt", "Functions_table_InterPro.txt"]]
+     #fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+     #print("creating {} by concatenation and sorting".format(fn_out))
+     #concatenate_files(fn_list, fn_out)
+     #sort_file(fn_out, fn_out, columns="1", number_of_processes=number_of_processes)
+     #functions_table_STRING_create_descriptions(fn_out)
 
      # ##### - Protein_2_Function_table
      # ### - Protein_2_Function_table_Interpro no map_Name_2_AN necessary since AN not names provided, but check that all ANs are also present in Functions_table_InterPro.txt
@@ -244,16 +245,16 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
      # create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
-#     fn_list = [os.path.join(TABLES_DIR, fn) for fn in
-#                ["Protein_2_Function_table_GO.txt",
-#                 "Protein_2_Function_table_UniProtKeyword.txt",
-#                 "Protein_2_Function_table_KEGG.txt",
-#                 "Protein_2_Function_table_InterPro.txt",
-#                 "Protein_2_Function_table_PFAM.txt",
-#                 "Protein_2_Function_table_SMART.txt"]]
-#     fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-#     concatenate_files(fn_list, fn_out)
-#     sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in
+     #            ["Protein_2_Function_table_GO.txt",
+     #             "Protein_2_Function_table_UniProtKeyword.txt",
+     #             "Protein_2_Function_table_KEGG.txt",
+     #             "Protein_2_Function_table_InterPro.txt",
+     #             "Protein_2_Function_table_PFAM.txt",
+     #             "Protein_2_Function_table_SMART.txt"]]
+     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     # concatenate_files(fn_list, fn_out)
+     # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
 
      # ### - TaxID_2_Proteins_table
      # fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
@@ -273,15 +274,65 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #     remove_files(find_tables_to_remove() + tables_to_remove_temp)
      #     print("#" * 80, "removing temp files and temp_tables")
 
-def change_UPK_2_KW(fn_in):
+def change_UPK_2_KW(fn_in, from_="UPK:", to_="KW-"):
     fn_temp = fn_in + "_temp"
     with open(fn_in, "r") as fh_in:
         with open(fn_temp, "w") as fh_out:
             for line in fh_in:
-                line = line.replace("UPK:", "KW-")
+                line = line.replace(from_, to_)
                 fh_out.write(line)
     os.remove(fn_in)
     os.rename(fn_temp, fn_in)
+
+def functions_table_STRING_create_descriptions(fn_in):
+    # fn = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table_STRING.txt.bak"
+    df = pd.read_csv(fn_in, sep='\t', names=["etype", "name", "an", "definition"])
+    df["description"] = ""
+
+    cond_GO_UPK_KEGG = df["etype"].isin([-21, -22, -23, -24, -51, -52, -54])
+    df.loc[cond_GO_UPK_KEGG, "description"] = df.loc[cond_GO_UPK_KEGG, "name"]
+
+    cond_PFAM_InterPro = df["etype"].isin([-55])
+    df.loc[cond_PFAM_InterPro, "description"] = df.loc[cond_PFAM_InterPro, "definition"]
+
+    def parse_SMART(s):
+        name = s["name"].strip()
+        definition = s["definition"].strip().split(";")
+        if definition[0].strip():  # not empty string
+            string_ = definition[0].strip()
+        elif definition[1].strip():  # not empty string
+            string_ = definition[1].strip()
+        else:
+            string_ = name
+        if len(string_) > 100:
+            return string_[:100] + "..."
+        else:
+            return string_
+
+    def cut_long_string(string_):
+        if len(string_) > 100:
+            return string_[:100] + "..."
+        else:
+            return string_
+
+    import re
+    def clean_messy_string(string_):
+        try:
+            return re.sub('[^A-Za-z0-9\s]+', '', string_).replace("\n", " ").replace("\t", " ")
+        except TypeError:
+            return string_
+
+    cond_SMART = df["etype"].isin([-53])
+    df.loc[cond_SMART, "description"] = df.loc[cond_SMART, ["name", "definition"]].apply(parse_SMART, axis=1)
+    df["description"] = df["description"].apply(cut_long_string)
+    # df["description_len"] = df["description"].apply(lambda x: len(x))
+    df = df[["etype", "an", "name", "definition", "description"]]
+    df["name"] = df["name"].apply(clean_messy_string)
+    df["definition"] = df["definition"].apply(clean_messy_string)
+    # fn_out = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table_STRING.txt"
+    df = df.sort_values(["etype", "an"], ascending=[False, True]).reset_index(drop=True)
+    os.rename(fn_in, fn_in + ".bak")
+    df.to_csv(fn_in, sep="\t", header=False, index=False)
 
 def sort_file(fn_in, fn_out, columns="1", fn_bash_script=None, number_of_processes=1, verbose=True):
     if verbose:
@@ -1379,8 +1430,10 @@ def get_entity_type_number_from_parents_set(parents_set):
     return "-99"
 
 def concatenate_files(fn_list, fn_out):
+    print("concatenating files to {}".format(fn_out))
     with open(fn_out, "w") as fh_out:
         for fn in fn_list:
+            print(fn)
             with open(fn, "r") as fh_in:
                 for line in fh_in:
                     fh_out.write(line)
@@ -2127,17 +2180,15 @@ if __name__ == "__main__":
     # sanity_check_table_dimensions(testing=True)
 
     ### STRING
-    # create_tables_STRING(verbose=True, delete_temp_files=False)
-    # fn_in = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/temp.txt"
-    # parse_uniprot_dat_dump_yield_entry(fn_in)
-    # create_test_tables(50000, TABLES_DIR, version_="STRING")
-    # Entity_types_table_STRING.txt
+    create_tables_STRING(verbose=True, delete_temp_files=False)
 
     fn_list = ['Entity_types_table_STRING.txt', 'Function_2_ENSP_table_STRING.txt', 'Functions_table_STRING.txt',
      'GO_2_Slim_table_STRING.txt', 'Ontologies_table_STRING.txt', 'Protein_2_Function_table_STRING.txt',
      'TaxID_2_Proteins_table_STRING.txt']
     fn_list = [os.path.join(TABLES_DIR, fn) for fn in fn_list]
     for fn in fn_list:
-        change_UPK_2_KW(fn)
+        change_UPK_2_KW(fn, from_="UPK:", to_="KW-")
+    for fn in fn_list:
+        change_UPK_2_KW(fn, from_="KEGG:", to_="map")
 
-    # ToDo stuff stuff into another Snakemake file
+    create_test_tables(50000, TABLES_DIR, version_="STRING")

@@ -445,12 +445,12 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
         
         ## functions [Functions_table_STRING.txt]
-        # | etype | name | an | definition |
-        self.function_an_2_name_dict = defaultdict(lambda: np.nan)
-        self.function_an_2_definition_dict = defaultdict(lambda: np.nan)
-        an_2_name_dict, an_2_definition_dict = get_function_an_2_name__an_2_definition_dict()
-        self.function_an_2_name_dict.update(an_2_name_dict)
-        self.function_an_2_definition_dict.update(an_2_definition_dict)
+        # | etype | an | name | definition | description |
+        # self.function_an_2_name_dict = defaultdict(lambda: np.nan)
+        self.function_an_2_description_dict = defaultdict(lambda: np.nan)
+        an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
+        # self.function_an_2_name_dict.update(an_2_name_dict)
+        self.function_an_2_description_dict.update(an_2_description_dict)
 
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
         ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
@@ -504,14 +504,14 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         return etype_2_association_dict
 
 
-def get_function_an_2_name__an_2_definition_dict():
-    result = get_results_of_statement("SELECT functions.an, functions.name, functions.definition FROM functions; ")
-    an_2_name_dict, an_2_definition_dict = {}, {}
+def get_function_an_2_name__an_2_description_dict():
+    result = get_results_of_statement("SELECT functions.an, functions.name, functions.description FROM functions; ")
+    an_2_name_dict, an_2_description_dict = {}, {}
     for res in result:
-        an, name, definition = res
+        an, name, description = res
         an_2_name_dict[an] = name
-        an_2_definition_dict[an] = definition
-    return an_2_name_dict, an_2_definition_dict
+        an_2_description_dict[an] = description
+    return an_2_name_dict, an_2_description_dict
 
 def get_termAN_from_humanName_functionType(functionType, humanName):
     if humanName is None:

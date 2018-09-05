@@ -3,9 +3,10 @@ DROP INDEX IF EXISTS protein_2_function_an_etype_idx_temp, function_2_ensp_taxid
 
 CREATE TABLE functions_temp (
     etype text,
-    name text,
     an text,
-    definition text);
+    name text,
+    definition text,
+    description text);
 CREATE TABLE protein_2_function_temp (
     an text,
     function text ARRAY,

@@ -2,13 +2,13 @@ import os, multiprocessing
 
 ############################
 ### settings
-PRELOAD = False
+PRELOAD = True
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = False
+DOCKER = True
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 

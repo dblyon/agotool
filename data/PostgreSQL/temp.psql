@@ -14,6 +14,7 @@
 
 DROP TABLE IF EXISTS function_2_ensp_temp, function_2_ensp;
 DROP INDEX IF EXISTS function_2_ensp_taxid_idx, function_2_ensp_taxid_etype_idx;
+DROP TABLE IF EXISTS functions;
 
 CREATE TABLE function_2_ensp (
     taxid integer,
@@ -23,9 +24,15 @@ CREATE TABLE function_2_ensp (
     background_n integer,
     an_array text ARRAY);
 
-
+CREATE TABLE functions(
+    etype text,
+    an text,
+    name text,
+    definition text,
+    description text);
 
 \copy function_2_ensp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
+\copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
 
 CREATE INDEX function_2_ensp_taxid_idx ON function_2_ensp (taxid);
 CREATE INDEX function_2_ensp_taxid_etype_idx ON function_2_ensp (taxid, etype);

@@ -106,7 +106,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
     if filter_parents:
         df = cluster_filter.filter_parents_if_same_foreground_v2(df)
-    cols_sort_order = ['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', "name", 'definition', 'foreground_count', 'foreground_ids']
+    cols_sort_order = ['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', 'description', 'foreground_count', 'foreground_ids']
     return format_results(df[cols_sort_order].sort_values(["etype", "p_value"], ascending=[False, True]), output_format, args_dict)
 
 def format_results(df, output_format, args_dict):

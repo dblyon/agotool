@@ -182,8 +182,10 @@ class EnrichmentStudy(object):
                     fisher_dict[(a, b, c, d)] = p_val_uncorrected
             else:
                 raise StopIteration
-            id_list.append(association)
-            description_list.append(self.obo_dag[association].name)
+            term_list.append(association)
+            # name_list.append(self.pqo.function_an_2_name_dict[association])
+            # description_list.append(self.obo_dag[association].name)
+            description_list.append(self.pqo.function_an_2_description_dict[association])
             level_list.append(self.obo_dag[association].level)
             p_value_list.append(p_val_uncorrected)
             percent_associated_foreground.append("{0:.2f}".format(round(self.calc_ratio(foreground_count, foreground_n), 2)))
@@ -202,6 +204,7 @@ class EnrichmentStudy(object):
             background_n_list.append(background_n)
 
         df = pd.DataFrame({"term": term_list,
+                           # "name": name_list,
                            "description": description_list,
                            "level": level_list,
                            "p_value": p_value_list,
@@ -243,7 +246,7 @@ class EnrichmentStudy(object):
         #     foregr_n         |     backgr_n       |    n
         """
         fisher_dict = {}
-        term_list, name_list, definition_list, p_value_list, foreground_ids_list, foreground_count_list = [], [], [], [], [], []
+        term_list, description_list, p_value_list, foreground_ids_list, foreground_count_list = [], [], [], [], []
         for association, foreground_count in association_2_count_dict_foreground.items():
             try:
                 background_count = association_2_count_dict_background[association]
@@ -264,16 +267,16 @@ class EnrichmentStudy(object):
                 p_val_uncorrected = pvalue(a, b, c, d).right_tail
                 fisher_dict[(a, b, c, d)] = p_val_uncorrected
             term_list.append(association)
+            # name_list.append(self.pqo.function_an_2_name_dict[association])
             #description_list.append(self.obo_dag[association].name)
-            name_list.append(self.pqo.function_an_2_name_dict[association])
-            definition_list.append(self.pqo.function_an_2_definition_dict[association])
+            description_list.append(self.pqo.function_an_2_description_dict[association])
             p_value_list.append(p_val_uncorrected)
             foreground_ids_list.append(';'.join(self.association_2_ANs_dict_foreground[association]))
             foreground_count_list.append(foreground_count)
         df = pd.DataFrame({"term": term_list,
-                          #"description": description_list,
-                          "name": name_list,
-                          "definition": definition_list,
+                          # "name": name_list,
+                          "description": description_list,
+                          # "definition": description_list,
                           "p_value": p_value_list,
                           "foreground_ids": foreground_ids_list,
                           "foreground_count": foreground_count_list})
