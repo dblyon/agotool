@@ -70,6 +70,7 @@ class EnrichmentStudy(object):
         self.df = self.filter_results(self.df, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
         if self.method != "characterize_foreground": # since no p-values available
             self.df["p_value"] = self.df["p_value"].apply(lambda x: "{:.2E}".format(Decimal(x)))
+            self.df["FDR"] = self.df["FDR"].apply(lambda x: "{:.2E}".format(Decimal(x)))
         return self.df
 
     def run_compare_samples(self):
