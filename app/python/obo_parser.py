@@ -100,7 +100,8 @@ class OBOReader:
         return rec
 
     def replace_KW_with_UPK(self, id_):
-        return id_.replace("KW-", "UPK:")
+        # return id_.replace("KW-", "UPK:")
+        return id_
 
 
 class OBOReader_2_text(OBOReader):

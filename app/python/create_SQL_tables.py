@@ -161,38 +161,38 @@ def create_tables(verbose=False):
     ### - Entity_types_table.txt
     # static table, edit manually
 
-def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=False, number_of_processes=1):
+def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=True, number_of_processes=1):
      if NUMBER_OF_PROCESSES > 8:
          number_of_processes = 8
 
-     # log_fn_list = [os.path.join(LOG_DIRECTORY, fn) for fn in os.listdir(LOG_DIRECTORY) if fn.startswith("create_SQL_tables_")]
-     # if clear_log_files:
-     #     for fn in log_fn_list:
-     #         print("removing/clearing for new input {}".format(fn))
-     #         os.remove(fn)
-     # else:
-     #     for fn in log_fn_list:
-     #         with open(fn, "a+") as fh:
-     #             fh.write("\n{}\n{}\n".format("######\n# Current Date and Time", datetime.datetime.now().isoformat()))
+     #log_fn_list = [os.path.join(LOG_DIRECTORY, fn) for fn in os.listdir(LOG_DIRECTORY) if fn.startswith("create_SQL_tables_")]
+     #if clear_log_files:
+     #    for fn in log_fn_list:
+     #        print("removing/clearing for new input {}".format(fn))
+     #        os.remove(fn)
+     #else:
+     #    for fn in log_fn_list:
+     #        with open(fn, "a+") as fh:
+     #            fh.write("\n{}\n{}\n".format("######\n# Current Date and Time", datetime.datetime.now().isoformat()))
 
-     # GO_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "go-basic.obo"), upk=False)
-     # UPK_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "keywords-all.obo"), upk=True)
+     #GO_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "go-basic.obo"), upk=False)
+     #UPK_dag = obo_parser.GODag(obo_file=os.path.join(DOWNLOADS_DIR, "keywords-all.obo"), upk=True)
 
-     ### - Ontologies (Child_2_Parent)
-     # create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
-     # create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
-     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
-     # fn_out = os.path.join(TABLES_DIR, "Ontologies_table_STRING.txt")
-     # create_Ontologies_table(fn_list, fn_out)
-     #
-     # ### - GO_2_Slim_table
-     # create_GO_2_Slim_table(fn_out=os.path.join(TABLES_DIR, "GO_2_Slim_table_STRING.txt"))
+     #### - Ontologies (Child_2_Parent)
+     #create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK()
+     #create_Child_2_Parent_table_GO__and__Functions_table_GO__and__Function_2_definition_GO()
+     #fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Child_2_Parent_table_GO.txt", "Child_2_Parent_table_UPK.txt"]]
+     #fn_out = os.path.join(TABLES_DIR, "Ontologies_table_STRING.txt")
+     #create_Ontologies_table(fn_list, fn_out)
 
-     # ### - Functions_table
-     # create_Functions_table_KEGG(fn_in=os.path.join(DOWNLOADS_DIR, "pathway.list"), fn_out=os.path.join(TABLES_DIR, "Functions_table_KEGG.txt"))
-     # create_Functions_table_SMART(fn_in=os.path.join(DOWNLOADS_DIR, "SMART_domain_descriptions.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"))
-     # create_Functions_table_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv"), fn_out=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"))
-     # create_Functions_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "InterPro_name_2_AN.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"))
+     #### - GO_2_Slim_table
+     #create_GO_2_Slim_table(fn_out=os.path.join(TABLES_DIR, "GO_2_Slim_table_STRING.txt"))
+
+     #### - Functions_table
+     #create_Functions_table_KEGG(fn_in=os.path.join(DOWNLOADS_DIR, "pathway.list"), fn_out=os.path.join(TABLES_DIR, "Functions_table_KEGG.txt"))
+     #create_Functions_table_SMART(fn_in=os.path.join(DOWNLOADS_DIR, "SMART_domain_descriptions.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"))
+     #create_Functions_table_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv"), fn_out=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"))
+     #create_Functions_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "InterPro_name_2_AN.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"))
      #fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
      #                                                   "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
      #                                                   "Functions_table_PFAM.txt", "Functions_table_InterPro.txt"]]
@@ -200,18 +200,18 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #print("creating {} by concatenation and sorting".format(fn_out))
      #concatenate_files(fn_list, fn_out)
      #sort_file(fn_out, fn_out, columns="1", number_of_processes=number_of_processes)
-     #functions_table_STRING_create_descriptions(fn_out)
+     functions_table_STRING_create_descriptions(fn_out)
 
-     # ##### - Protein_2_Function_table
-     # ### - Protein_2_Function_table_Interpro no map_Name_2_AN necessary since AN not names provided, but check that all ANs are also present in Functions_table_InterPro.txt
-     # create_Protein_2_Function_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz"),
-     #     fn_in_temp=os.path.join(DOWNLOADS_DIR, "string2interpro.dat" + "_temp"),
-     #     fn_out=os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt"),
-     #     fn_superset=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"),
-     #     number_of_processes=number_of_processes, verbose=verbose)
+     ###### - Protein_2_Function_table
+     #### - Protein_2_Function_table_Interpro no map_Name_2_AN necessary since AN not names provided, but check that all ANs are also present in Functions_table_InterPro.txt
+     #create_Protein_2_Function_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz"),
+     #    fn_in_temp=os.path.join(DOWNLOADS_DIR, "string2interpro.dat" + "_temp"),
+     #    fn_out=os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt"),
+     #    fn_superset=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"),
+     #    number_of_processes=number_of_processes, verbose=verbose)
 
-     ### - Protein_2_Function_table_PFAM
-     ### - Protein_2_Function_table_SMART
+     #### - Protein_2_Function_table_PFAM
+     #### - Protein_2_Function_table_SMART
      #fn_out_SMART_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART_temp.txt")
      #fn_out_SMART = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
      #fn_out_PFAM_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM_temp.txt")
@@ -225,48 +225,48 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #map_Name_2_AN(fn_in=fn_out_PFAM_temp, fn_out=fn_out_PFAM, fn_dict=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"),
      #    fn_no_mapping=os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt"))
 
-     # ### - Protein_2_Function_table_GO
-     # fn_in = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz"
-     # fn_in_temp = fn_in + "_temp"
-     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
-     # create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+     #### - Protein_2_Function_table_GO
+     #fn_in = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz"
+     #fn_in_temp = fn_in + "_temp"
+     #fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
+     #create_Protein_2_Function_table_GO(GO_dag, fn_in, fn_in_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
-     # ### - Protein_2_Function_table_UniProtKeyword
-     # fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
-     # fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
-     # fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
-     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtKeyword.txt")
-     # UPK_Name_2_AN_dict = get_keyword_2_upkan_dict() # depends on create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK
-     # create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat,
-     #        fn_in_uniprot_2_string, fn_out, number_of_processes=number_of_processes, verbose=verbose)
-     #
-     # ### - Protein_2_Function_table_KEGG
-     # fn_in = os.path.join(DOWNLOADS_DIR, "kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv")
-     # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
-     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
-     # create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
-     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in
-     #            ["Protein_2_Function_table_GO.txt",
-     #             "Protein_2_Function_table_UniProtKeyword.txt",
-     #             "Protein_2_Function_table_KEGG.txt",
-     #             "Protein_2_Function_table_InterPro.txt",
-     #             "Protein_2_Function_table_PFAM.txt",
-     #             "Protein_2_Function_table_SMART.txt"]]
-     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-     # concatenate_files(fn_list, fn_out)
-     # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+     ## ### - Protein_2_Function_table_UniProtKeyword
+     #fn_in_uniprot_SwissProt_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
+     #fn_in_uniprot_TrEMBL_dat = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
+     #fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
+     #fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtKeyword.txt")
+     #UPK_Name_2_AN_dict = get_keyword_2_upkan_dict() # depends on create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK
+     #create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat,
+     #       fn_in_uniprot_2_string, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
-     # ### - TaxID_2_Proteins_table
-     # fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
-     # fn_out_temp = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt_sorted_temp.txt")
-     # fn_out = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
-     # create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+     #### - Protein_2_Function_table_KEGG
+     #fn_in = os.path.join(DOWNLOADS_DIR, "kegg_benchmarking.CONN_maps_in.v11.nothing_blacklisted.tsv")
+     #fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
+     #fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
+     #create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
+     #fn_list = [os.path.join(TABLES_DIR, fn) for fn in
+     #           ["Protein_2_Function_table_GO.txt",
+     #            "Protein_2_Function_table_UniProtKeyword.txt",
+     #            "Protein_2_Function_table_KEGG.txt",
+     #            "Protein_2_Function_table_InterPro.txt",
+     #            "Protein_2_Function_table_PFAM.txt",
+     #            "Protein_2_Function_table_SMART.txt"]]
+     #fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     #concatenate_files(fn_list, fn_out)
+     #sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+
+     #### - TaxID_2_Proteins_table
+     #fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
+     #fn_out_temp = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt_sorted_temp.txt")
+     #fn_out = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+     #create_TaxID_2_Proteins_table(fn_in, fn_out_temp, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
      ### - Functions_2_ENSP_table
      #### dependency on creating DB first #!!!
-     fn_out = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
-     pqo = query.PersistentQueryObject_STRING()
-     create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose)
+     #fn_out = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
+     #pqo = query.PersistentQueryObject_STRING()
+     #create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
      # if verbose:
      #     print("#"*80 + "\n##### " + "finished creating all tables")
@@ -375,7 +375,7 @@ def create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=1, verbose=Tr
             for etype in sorted(variables.entity_types_with_data_in_functions_table):
                 assoc_dict = etype_2_association_dict[etype]
                 association_2_count_dict, association_2_ANs_dict, ans_counter = ratio.count_terms_manager(set(ans_list), assoc_dict)
-                # ans_counter --> number of AccessionNumbers with any association = background_n
+                # bubu# ans_counter --> number of AccessionNumbers with any association = background_n
                 # association_2_count_dict --> number of associations per given Association” = background_count
                 for association, ans in association_2_ANs_dict.items():
                     assert ans_counter >= association_2_count_dict[association]
@@ -655,9 +655,11 @@ def create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, 
                     if len(KeyWords_list) >= 1:
                         UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, KeyWords_list)
                         UPKs_not_in_obo_list += UPKs_not_in_obo_temp
-                        KeyWords_list, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, UPK_dag)
+                        UPK_ANs, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, UPK_dag)
                         UPKs_not_in_obo_list += UPKs_not_in_obo_temp
-                        fh_out.write(ENSP + "\t" + "{" + str(KeyWords_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
+                    else:
+                        continue
+                    fh_out.write(ENSP + "\t" + "{" + str(UPK_ANs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
 
         if verbose:
             print("parsing {}".format(fn_in_uniprot_TrEMBL_dat))
@@ -672,9 +674,11 @@ def create_Protein_2_Function_table_UniProtKeyword(UPK_Name_2_AN_dict, UPK_dag, 
                     if len(KeyWords_list) >= 1:
                         UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, KeyWords_list)
                         UPKs_not_in_obo_list += UPKs_not_in_obo_temp
-                        KeyWords_list, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, UPK_dag)
+                        UPK_ANs, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, UPK_dag)
                         UPKs_not_in_obo_list += UPKs_not_in_obo_temp
-                        fh_out.write(ENSP + "\t" + "{" + str(KeyWords_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
+                    else:
+                        continue
+                    fh_out.write(ENSP + "\t" + "{" + str(UPK_ANs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
 
     ### table Protein_2_Function_table_UniProtKeywords.txt needs sorting
     sort_file(fn_out, fn_out, columns="1", number_of_processes=number_of_processes, verbose=verbose)
@@ -710,7 +714,8 @@ def create_Protein_2_Function_table_KEGG_STRING(fn_in, fn_out_temp, fn_out, numb
                 # add TaxID to complete the ENSP
                 ENSPs = [TaxID + "." + ENSP for ENSP in ENSPs]
                 for ENSP in ENSPs:
-                    fh_out.write(ENSP + "\t" + "KEGG:" + KEGG + "\n")
+                    # fh_out.write(ENSP + "\t" + "KEGG:" + KEGG + "\n")
+                    fh_out.write(ENSP + "\t" + "map" + KEGG + "\n")
 
     # sort by first column and transform to wide format
     sort_file(fn_out_temp, fn_out_temp, columns="1", number_of_processes=number_of_processes)
@@ -1202,7 +1207,8 @@ def parse_functions(go, KEGG, domains):
     functions += ["DOM:" + ele for ele in domains_list]
 
     pw_name_list, pw_num_list = parse_KEGG_all_annotaions(KEGG)
-    pw_num_list = ["KEGG:" + ele for ele in pw_num_list]
+    # pw_num_list = ["KEGG:" + ele for ele in pw_num_list]
+    pw_num_list = ["map"+ ele for ele in pw_num_list]
     functions += pw_num_list
 
     return functions, zip(pw_name_list, pw_num_list)
@@ -1793,7 +1799,8 @@ def create_Protein_2_Function_table_KEGG(fn_in=None, COLUMN_CROSSREF="Cross-refe
                 except KeyError:
                     continue
                 for kegg_path in kegg_path_an_list:
-                    string_2_write = up_an + "\t" + "KEGG:{}".format(kegg_path[3:]) + "\n"
+                    # string_2_write = up_an + "\t" + "KEGG:{}".format(kegg_path[3:]) + "\n"
+                    string_2_write = up_an + "\t" + "map{}".format(kegg_path[3:]) + "\n"
                     fh.write(string_2_write)
 
 def create_Functions_table_KEGG(fn_in=None, fn_out=None, verbose=True):
@@ -1815,7 +1822,8 @@ def create_Functions_table_KEGG(fn_in=None, fn_out=None, verbose=True):
                 if line.startswith("#"):
                     continue
                 an, name = line.strip().split("\t")
-                an = "KEGG:" + an
+                # an = "KEGG:" + an
+                an = "map" + an
                 # string_2_write = type_ + "\t" + name + "\t" + an + "\t"+ placeholder_for_definition + "\n"
                 # | etype | name | an | definition |
                 string_2_write = etype + "\t" + name + "\t" + an + "\t"+ placeholder_for_definition + "\n"
@@ -2184,7 +2192,9 @@ if __name__ == "__main__":
 
     fn_list = ['Entity_types_table_STRING.txt', 'Function_2_ENSP_table_STRING.txt', 'Functions_table_STRING.txt',
      'GO_2_Slim_table_STRING.txt', 'Ontologies_table_STRING.txt', 'Protein_2_Function_table_STRING.txt',
-     'TaxID_2_Proteins_table_STRING.txt']
+     'TaxID_2_Proteins_table_STRING.txt',
+     "Functions_table_UPK.txt", "Protein_2_Function_table_KEGG.txt", "Functions_table_KEGG.txt", "Child_2_Parent_table_UPK.txt"]
+
     fn_list = [os.path.join(TABLES_DIR, fn) for fn in fn_list]
     for fn in fn_list:
         change_UPK_2_KW(fn, from_="UPK:", to_="KW-")
