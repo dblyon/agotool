@@ -150,6 +150,10 @@ parser.add_argument("filter_parents", type=str,
     help="Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground.",
     default="True")
 
+parser.add_argument("filter_forground_count_one", type=str,
+    help="Keep only those terms with foreground_count > 1",
+    default="True")
+
 # STRING method is "enrichment", has nothing to do with aGOtool settings
 # parser.add_argument("method", type=str,
 #     help="Getting functional enrichment",
@@ -268,6 +272,7 @@ class API_STRING(Resource):
         args_dict["indent"] = string_2_bool(args_dict["indent"])
         args_dict["privileged"] = string_2_bool(args_dict["privileged"])
         args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
+        args_dict["filter_forground_count_one"] = string_2_bool(args_dict["filter_forground_count_one"])
         print(request.values)
         for key, val in request.values.items():
             print(key)

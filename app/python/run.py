@@ -18,6 +18,8 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     p_value_uncorrected = args_dict["p_value_uncorrected"]
     FDR_cutoff = args_dict["FDR_cutoff"]
     output_format = args_dict["output_format"]
+    filter_parents = args_dict["filter_parents"]
+    filter_forground_count_one = args_dict["filter_forground_count_one"]
 
     if FDR_cutoff == 0:
         FDR_cutoff = None
@@ -25,7 +27,6 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         fold_enrichment_for2background = None
     if p_value_uncorrected == 0:
         p_value_uncorrected = None
-    filter_parents = args_dict["filter_parents"]
     protein_ans_list = ui.get_all_unique_ANs()
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
     # results_all_function_types = {}
@@ -60,6 +61,8 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
     if filter_parents:
         df = cluster_filter.filter_parents_if_same_foreground_v2(df)
+    if filter_forground_count_one:
+        df = df[df["foreground_count"] > 1]
     if enrichment_method == "characterize_foreground":
         return format_results(df.sort_values(["etype"], ascending=[False]), output_format, args_dict)
     else:
@@ -72,6 +75,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     output_format=args_dict["output_format"]
     FDR_cutoff=args_dict["FDR_cutoff"]
     filter_parents = args_dict["filter_parents"]
+    filter_forground_count_one = args_dict["filter_forground_count_one"]
 
     enrichment_method = ui.enrichment_method
     protein_ans_list = ui.get_all_unique_ANs()
@@ -106,6 +110,8 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
     if filter_parents:
         df = cluster_filter.filter_parents_if_same_foreground_v2(df)
+    if filter_forground_count_one:
+        df = df[df["foreground_count"] > 1]
     cols_sort_order = ['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', 'description', 'foreground_count', 'foreground_ids']
     return format_results(df[cols_sort_order].sort_values(["etype", "p_value"], ascending=[False, True]), output_format, args_dict)
 
