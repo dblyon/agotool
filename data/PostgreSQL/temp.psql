@@ -12,17 +12,17 @@
 --CLUSTER protein_2_function USING protein_2_function_an_etype_idx;
 
 
-DROP TABLE IF EXISTS function_2_ensp_temp, function_2_ensp;
-DROP INDEX IF EXISTS function_2_ensp_taxid_idx, function_2_ensp_taxid_etype_idx;
+--DROP TABLE IF EXISTS function_2_ensp_temp, function_2_ensp;
+--DROP INDEX IF EXISTS function_2_ensp_taxid_idx, function_2_ensp_taxid_etype_idx;
 DROP TABLE IF EXISTS functions;
 
-CREATE TABLE function_2_ensp (
-    taxid integer,
-    etype integer,
-    association text,
-    background_count integer,
-    background_n integer,
-    an_array text ARRAY);
+--CREATE TABLE function_2_ensp (
+--    taxid integer,
+--    etype integer,
+--    association text,
+--    background_count integer,
+--    background_n integer,
+--    an_array text ARRAY);
 
 CREATE TABLE functions(
     etype text,
@@ -31,10 +31,11 @@ CREATE TABLE functions(
     definition text,
     description text);
 
-\copy function_2_ensp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
+--\copy function_2_ensp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
 \copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
 
-CREATE INDEX function_2_ensp_taxid_idx ON function_2_ensp (taxid);
-CREATE INDEX function_2_ensp_taxid_etype_idx ON function_2_ensp (taxid, etype);
-CLUSTER function_2_ensp USING function_2_ensp_taxid_etype_idx;
+--CREATE INDEX function_2_ensp_taxid_idx ON function_2_ensp (taxid);
+--CREATE INDEX function_2_ensp_taxid_etype_idx ON function_2_ensp (taxid, etype);
+--CLUSTER function_2_ensp USING function_2_ensp_taxid_etype_idx;
+
 

@@ -20,6 +20,14 @@ VERBOSE = True #False # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 ############################
+#blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9995', 'KW-9996', 'KW-9997', 'KW-9998', 'KW-9999']
+blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 
+                     'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999',
+                     # top level KW except “Disease” and “Developmental stage”
+                     # 'KW-9995' 'Disease',
+                     # 'KW-9996' 'Developmental stage'                     
+                     'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614', 'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267']
+                     # 'KW-9990' 'Technical term' and all its children
 
 function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
 # entity_types = {'-21', '-22', '-23', '-51', '-52', '-53', '-54', '-55', '-56'}

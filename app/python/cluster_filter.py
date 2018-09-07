@@ -228,6 +228,9 @@ def filter_parents_if_same_foreground(df_orig, functerm_2_level_dict):
     #return df_orig.loc[set(indices_2_keep)]
 
 def filter_parents_if_same_foreground_v2(df_orig):
+    ### filter blacklisted GO and KW terms
+    df_orig = df_orig[~df_orig["term"].isin(variables.blacklisted_terms)]
+
     cond_df_2_filter = df_orig["etype"].isin(variables.entity_types_with_ontology)
     df = df_orig[cond_df_2_filter]
     df_no_filter = df_orig[~cond_df_2_filter]

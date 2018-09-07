@@ -325,6 +325,7 @@ def functions_table_STRING_create_descriptions(fn_in):
     cond_SMART = df["etype"].isin([-53])
     df.loc[cond_SMART, "description"] = df.loc[cond_SMART, ["name", "definition"]].apply(parse_SMART, axis=1)
     df["description"] = df["description"].apply(cut_long_string)
+    df["description"] = df["description"].apply(lambda s: s.replace("_", " "))
     # df["description_len"] = df["description"].apply(lambda x: len(x))
     df = df[["etype", "an", "name", "definition", "description"]]
     df["name"] = df["name"].apply(clean_messy_string)

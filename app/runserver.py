@@ -212,7 +212,7 @@ parser.add_argument("go_slim_or_basic", type=str,
 
 parser.add_argument("indent", type=str,
     help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
-    default="True") # should be boolean, but this works better
+    default="False") # should be boolean, but this works better
 
 parser.add_argument("multitest_method", type=str,
     help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
@@ -369,7 +369,7 @@ def format_multiple_results(args_dict, results_all_entity_types):
     :return: Json or String
     """
     output_format = args_dict["output_format"]
-    if output_format == "tsv":
+    if output_format in {"tsv", "tsv_no_header", "tsv-no-header"}:
         return Response(results_all_entity_types, mimetype='text')
     elif output_format == "json":
         return jsonify(results_all_entity_types)

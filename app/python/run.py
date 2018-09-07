@@ -58,15 +58,17 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again. Alternatively you could try to use 'enrichment_method': 'characterize_foreground' in order to see all the functional annotations available in the DB (except KEGG)."
         return False
 
-    df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
+    df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term.replace(".", "")]) # since "indent" can prepend dots
     if filter_parents:
         df = cluster_filter.filter_parents_if_same_foreground_v2(df)
-    #if filter_foreground_count_one:
-    #    df = df[df["foreground_count"] > 1]
     if enrichment_method == "characterize_foreground":
         return format_results(df.sort_values(["etype"], ascending=[False]), output_format, args_dict)
     else:
-        return format_results(df.sort_values(["etype", "p_value"], ascending=[False, True]), output_format, args_dict)
+        if filter_foreground_count_one:
+            df = df[df["foreground_count"] > 1]
+        cols_sort_order = ['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', 'description', 'foreground_count', 'foreground_ids']
+        cols_sort_order += sorted(set(df.columns.tolist()) - set(cols_sort_order))
+        return format_results(df[cols_sort_order].sort_values(["etype", "p_value"], ascending=[False, True]), output_format, args_dict)
 
 def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     taxid = check_taxids(args_dict)
@@ -118,6 +120,8 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
 def format_results(df, output_format, args_dict):
     if output_format == "tsv":
         return df.to_csv(sep="\t", header=True, index=False)
+    if output_format == "tsv-no-header" or output_format == "tsv_no_header":
+        return df.to_csv(sep="\t", header=False, index=False)
     elif output_format == "json":
         etype_2_resultsjson_dict = {}
         for etype, group in df.groupby("etype"):

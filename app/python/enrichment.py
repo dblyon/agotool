@@ -220,7 +220,7 @@ class EnrichmentStudy(object):
         if self.method in {"abundance_correction", "genome"}:
             df = df.drop("foreground_ids", axis=1)
         if self.indent:
-           df["term"] = df["background_count"].apply(lambda x: int(x) * ".") + df["id"]
+           df["term"] = df["level"].apply(lambda x: int(x) * ".") + df["term"]
         df = df.sort_values("p_value", ascending=True)
         corrected_pvals = self.calc_multiple_corrections_v2(df["p_value"].values, method_name=self.multitest_method, alpha=self.alpha, array=True)
         df["FDR"] = corrected_pvals
