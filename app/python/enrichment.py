@@ -266,6 +266,7 @@ class EnrichmentStudy(object):
                 p_val_uncorrected = fisher_dict[(a, b, c, d)]
             except KeyError:
                 p_val_uncorrected = pvalue(a, b, c, d).right_tail
+                #p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
                 fisher_dict[(a, b, c, d)] = p_val_uncorrected
             term_list.append(association)
             # name_list.append(self.pqo.function_an_2_name_dict[association])
