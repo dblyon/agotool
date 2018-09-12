@@ -445,7 +445,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
         self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
         # todo uncomment when Functions_table contains relevant data
-        # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
+        self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
         
         ## functions [Functions_table_STRING.txt]
         # | etype | an | name | definition | description |

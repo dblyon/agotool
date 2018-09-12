@@ -169,7 +169,7 @@ parser.add_argument("FDR_cutoff", type=float,
 
 parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
-    default="-21;-22;-23;-51;-52;-53;-54;-55")
+    default="-21;-22;-23;-51;-52;-53;-54;-55;-56")
 
 parser.add_argument("privileged", type=str,
     default="False")

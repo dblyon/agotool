@@ -1,6 +1,6 @@
 import os, subprocess, sys, shutil
 PLATFORM = sys.platform
-NUMBER_OF_PROCESSES = 24
+NUMBER_OF_PROCESSES = 36 
 
 
 def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, recstart=None, KB_MB_GB="M", split_size=1000):
@@ -50,8 +50,8 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     print("sorting concatenated file {}".format(fn_out))
     sort_file(fn_out, fn_out, number_of_processes=NUMBER_OF_PROCESSES)
     # remove temp files
-    # print("removing temp files")
-    # # shutil.rmtree(temp_dir)
+    print("removing temp files")
+    shutil.rmtree(temp_dir)
 
     # remove unzipped file
 
@@ -126,8 +126,12 @@ if __name__ == "__main__":
     # parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir)
 
     ###
-    fn_2_split = r"/Users/dblyon/modules/cpr/agotool/app/python/taxids.txt"
-    python_script = r"/Users/dblyon/modules/cpr/agotool/app/python/create_functions_2_ENSP_table_parallel.py"
-    fn_out = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_2_ENSP_table_test.txt"
-    temp_dir = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/temp"
+    #fn_2_split = r"/Users/dblyon/modules/cpr/agotool/app/python/taxids.txt"
+    #python_script = r"/Users/dblyon/modules/cpr/agotool/app/python/create_functions_2_ENSP_table_parallel.py"
+    #fn_out = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_2_ENSP_table_test.txt"
+    #temp_dir = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/temp"
+    fn_2_split = r"/home/dblyon/agotool/app/python/taxids.txt"
+    python_script = r"/home/dblyon/agotool/app/python/create_functions_2_ENSP_table_parallel.py"
+    fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt"
+    temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
     parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir, KB_MB_GB="K", split_size=1)

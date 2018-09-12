@@ -37,6 +37,7 @@ def count_terms_v3(ans_set, assoc_dict):
 def create_functions_2_ENSP_table():
     for taxid in fileinput.input():
     # for taxid in sorted(taxid_list):
+        taxid = taxid.strip()
         ans_list = sorted(query.get_proteins_of_taxid(taxid))
         # etype_2_association_dict = pqo.get_association_dict_split_by_category(ans_list)
         etype_2_association_dict = query.PersistentQueryObject_STRING.get_association_dict_split_by_category(ans_list)

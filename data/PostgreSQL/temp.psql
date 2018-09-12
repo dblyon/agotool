@@ -1,24 +1,24 @@
-DROP TABLE IF EXISTS functions, protein_2_function;
-
-CREATE TABLE functions(
-    etype text,
-    an text,
-    name text,
-    definition text,
-    description text);
-
+--DROP TABLE IF EXISTS functions, protein_2_function;
+--
+--CREATE TABLE functions(
+--    etype text,
+--    an text,
+--    name text,
+--    definition text,
+--    description text);
+--
 --CREATE TABLE protein_2_function(
 --    an text,
 --    function text ARRAY,
 --    etype integer);
-
-\copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
+--
+--\copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
 --\copy protein_2_function FROM '/agotool_data/PostgreSQL/tables/Protein_2_Function_table_STRING.txt';
 --
 --CREATE INDEX protein_2_function_an_etype_idx ON protein_2_function (an, etype);
 --CLUSTER protein_2_function USING protein_2_function_an_etype_idx;
 
-
+DROP TABLE IF EXISTS function_2_ensp;
 CREATE TABLE function_2_ensp (
     taxid integer,
     etype integer,
@@ -32,3 +32,4 @@ CREATE TABLE function_2_ensp (
 CREATE INDEX function_2_ensp_taxid_idx ON function_2_ensp (taxid);
 CREATE INDEX function_2_ensp_taxid_etype_idx ON function_2_ensp (taxid, etype);
 CLUSTER function_2_ensp USING function_2_ensp_taxid_etype_idx;
+

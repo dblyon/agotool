@@ -8,6 +8,9 @@ from lxml import etree
 
 def run_STRING_enrichment(pqo, ui, args_dict):
     enrichment_method = args_dict["enrichment_method"]
+    if enrichment_method not in {"characterize_foreground", "compare_samples", "compare_groups"}:
+        args_dict["ERROR_enrichment_method"] = "ERROR: enrichment_method {} is not implemented. Please check the input parameters and examples.".format(enrichment_method)
+        return False
     limit_2_entity_type = args_dict["limit_2_entity_type"]
     go_slim_or_basic = args_dict["go_slim_or_basic"]
     indent = args_dict["indent"]
@@ -185,6 +188,8 @@ def pick_dag_from_entity_type_and_basic_or_slim(entity_type, go_slim_or_basic, p
         return pqo.interpro_pseudo_dag
     elif entity_type == -55:
         return pqo.pfam_pseudo_dag
+    elif entity_type == -56:
+        return pqo.pmid_pseudo_dag
     else:
         print("entity_type: {} {} unknown".format(entity_type, type(entity_type)))
         # raise StopIteration
