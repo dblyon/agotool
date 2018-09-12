@@ -44,7 +44,7 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     fn_list = [os.path.join(temp_dir, fn) for fn in os.listdir(temp_dir)]
     concatenate_files(fn_list, fn_out)
     # sort in place
-    print("sorting concatenated file")
+    print("sorting concatenated file {}".format(fn_out))
     sort_file(fn_out, fn_out, number_of_processes=NUMBER_OF_PROCESSES)
     # remove temp files
     print("removing temp files")
@@ -117,7 +117,8 @@ def query_yes_no(question, default="yes"):
 if __name__ == "__main__":
     fn_2_split = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv"
     python_script = r"/home/dblyon/agotool/app/python/parse_textmining_pmc_medline_parallel.py"
-    fn_out = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID_test.txt"
+    # fn_out = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID_test.txt"
+    fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID.txt"
     temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
     parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir)
 

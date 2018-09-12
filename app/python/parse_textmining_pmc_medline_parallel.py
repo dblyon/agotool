@@ -3,7 +3,9 @@ import re, fileinput
 def parse_textmining_pmc_medline():
     # names = ['PMID_and_crap', 'authors', 'name_and_issue', 'year', 'title', 'text']
     etype = "-56"
-    max_len_description = 80
+    name = ""
+    definition = ""
+    max_len_description = 100
     # xml tags e.g. "<i>Salmonella</i>" and others
     tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]"]))
     for line in fileinput.input():
@@ -21,6 +23,11 @@ def parse_textmining_pmc_medline():
         if not title:
             title = " ".join(line_split[4:]).strip()
         title = tags_2_remove.sub('', title)
+        if title.startswith("["):
+            if title.endswith("]"):
+                title = title[1:-1]
+            elif title.endswith("]."):
+                title = title[1:-2]
 
         if len(title) > max_len_description:
             title_2_use = ""
@@ -36,10 +43,12 @@ def parse_textmining_pmc_medline():
             volume = journal_vol[match.start():].strip()
         else:
             journal = journal_vol
-            volume = ""  # | etype | an=PMID | name=author list | definition=year | description=title |
+            volume = ""
+        # | etype | an=PMID | name="" | definition="" | description=year: title |
         # fh_out.write(etype + "\t" + PMID + "\t" + authors + "\t" + year + "\t" + title + "\n")
-        print(etype + "\t" + PMID + "\t" + authors + "\t" + year + "\t" + title)
+        description = str(year) + ": " + title
+        print(etype + "\t" + PMID + "\t" + name + "\t" + definition + "\t" + description)
 
 if __name__ == "__main__":
-    parse_textmining_pmc_medline() #, args.fn_out)
+    parse_textmining_pmc_medline()
 
