@@ -61,35 +61,38 @@ def get_cursor(env_dict=None):
         DBNAME = env_dict['POSTGRES_DB']
         # HOST = env_dict['HOST']
         # PORT = env_dict['PORT']
-        HOST = 'db'
         PORT = '5432'
+        HOST = 'db'
         return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+
+    if not variables.DB_DOCKER:
+        ### use dockerized Postgres directly from native OS
+        PORT = '5913'
+        HOST = 'localhost'
+        param_2_val_dict = variables.param_2_val_dict
+        return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
+
     if platform_ == "linux":
         try:
             USER = os.environ['POSTGRES_USER']
             PWD = os.environ['POSTGRES_PASSWORD']
             DBNAME = os.environ['POSTGRES_DB']
-            HOST = 'db'
             PORT = '5432'
+            HOST = 'db'
         except KeyError:
             print("query.py sais there is something wrong with the Postgres config")
             raise StopIteration
         return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+
     elif platform_ == "darwin":
-        if not variables.DB_DOCKER: # use local Postgres
+        if not variables.DB_DOCKER:
+            ### use local Postgres
             return get_cursor_ody()
         else: # connect to docker Postgres container
-            # USER = "postgres"
-            # PWD = "USE_YOUR_PASSWORD"
-            # DBNAME = "agotool"
-            HOST = 'localhost'
             PORT = '5432'
-            # fn = os.path.join(os.path.dirname(os.path.abspath(os.path.realpath(__file__))), "env_file")
-            # print(fn)
-            # param_2_val_dict = parse_env_file(fn)
+            HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
-            # return get_cursor_ody_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
-            return get_cursor_ody_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
+            return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
     else:
         print("query.get_cursor() doesn't know how to connect to Postgres")
         raise StopIteration
@@ -133,7 +136,7 @@ def get_cursor_ody(dbname='agotool'):
     cursor = conn.cursor()
     return cursor
 
-def get_cursor_ody_connect_2_docker(host, dbname, user, password, port):
+def get_cursor_connect_2_docker(host, dbname, user, password, port):
     conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
     # get a connection, if a connect cannot be made an exception will be raised here
     conn = psycopg2.connect(conn_string)

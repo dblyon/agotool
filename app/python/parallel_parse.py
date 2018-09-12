@@ -3,15 +3,18 @@ PLATFORM = sys.platform
 NUMBER_OF_PROCESSES = 24
 
 
-def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, MB_size=None, recstart=None):
+def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, recstart=None, KB_MB_GB="M", split_size=1000):
     # unzip with pigz
     # todo
+
+    # also try pigz for multithreaded compression/decompression
+    # time pigz -c -d -p 10 /home/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv.gz > /dev/null
 
 
     if cpu_number is None:
         cpu_number = NUMBER_OF_PROCESSES
-    if MB_size is None:
-        MB_size = 1000
+    if split_size is None:
+        split_size = 1000
     if recstart is None:
         recstart = "\n"
 
@@ -29,7 +32,7 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
             for fn in [os.path.join(temp_dir, fn) for fn in os.listdir(temp_dir)]:
                 os.unlink(fn)
     # run the python script in parallel
-    shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}M --recstart "{3}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, MB_size, recstart, python_script, temp_dir, "{#}")
+    shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, split_size, recstart, python_script, temp_dir, "{#}", KB_MB_GB)
     fn_bash_script = "bash_script_parallel_{}.sh".format(os.path.basename(fn_2_split))
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
@@ -47,8 +50,8 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     print("sorting concatenated file {}".format(fn_out))
     sort_file(fn_out, fn_out, number_of_processes=NUMBER_OF_PROCESSES)
     # remove temp files
-    print("removing temp files")
-    shutil.rmtree(temp_dir)
+    # print("removing temp files")
+    # # shutil.rmtree(temp_dir)
 
     # remove unzipped file
 
@@ -115,12 +118,16 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 if __name__ == "__main__":
-    fn_2_split = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv"
-    python_script = r"/home/dblyon/agotool/app/python/parse_textmining_pmc_medline_parallel.py"
-    # fn_out = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID_test.txt"
-    fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID.txt"
-    temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
-    parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir)
+    ### textmining pmc medline
+    # fn_2_split = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv"
+    # python_script = r"/home/dblyon/agotool/app/python/parse_textmining_pmc_medline_parallel.py"
+    # fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID.txt"
+    # temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
+    # parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir)
 
-    # also try pigz for multithreaded compression/decompression
-    # time pigz -c -d -p 10 /home/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv.gz > /dev/null
+    ###
+    fn_2_split = r"/Users/dblyon/modules/cpr/agotool/app/python/taxids.txt"
+    python_script = r"/Users/dblyon/modules/cpr/agotool/app/python/create_functions_2_ENSP_table_parallel.py"
+    fn_out = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_2_ENSP_table_test.txt"
+    temp_dir = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/temp"
+    parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir, KB_MB_GB="K", split_size=1)
