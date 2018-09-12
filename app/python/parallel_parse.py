@@ -1,6 +1,6 @@
 import os, subprocess, sys, shutil
 PLATFORM = sys.platform
-NUMBER_OF_PROCESSES = 36
+NUMBER_OF_PROCESSES = 24
 
 
 def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, MB_size=None, recstart=None):

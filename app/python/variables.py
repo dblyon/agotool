@@ -8,7 +8,7 @@ skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to downl
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = True
+DOCKER = False
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 
@@ -42,7 +42,7 @@ entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
 # "-55": {},  # PFAM
 # "-56": {}   # PMID
 # entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
-entity_types_with_data_in_functions_table = {-21, -22, -23, -51, -52, -53, -54, -55}
+entity_types_with_data_in_functions_table = entity_types  # {-21, -22, -23, -51, -52, -53, -54, -55}
 entity_types_with_ontology = {-21, -22, -23, -51}
 
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,

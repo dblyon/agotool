@@ -23,11 +23,6 @@ def parse_textmining_pmc_medline():
         if not title:
             title = " ".join(line_split[4:]).strip()
         title = tags_2_remove.sub('', title)
-        if title.startswith("["):
-            if title.endswith("]"):
-                title = title[1:-1]
-            elif title.endswith("]."):
-                title = title[1:-2]
 
         if len(title) > max_len_description:
             title_2_use = ""
@@ -46,8 +41,15 @@ def parse_textmining_pmc_medline():
             volume = ""
         # | etype | an=PMID | name="" | definition="" | description=year: title |
         # fh_out.write(etype + "\t" + PMID + "\t" + authors + "\t" + year + "\t" + title + "\n")
+        title = clean_messy_string(title)
         description = str(year) + ": " + title
         print(etype + "\t" + PMID + "\t" + name + "\t" + definition + "\t" + description)
+
+def clean_messy_string(string_):
+    try:
+        return re.sub('[^A-Za-z0-9\s]+', '', string_).replace("\n", " ").replace("\t", " ")
+    except TypeError:
+        return string_
 
 if __name__ == "__main__":
     parse_textmining_pmc_medline()
