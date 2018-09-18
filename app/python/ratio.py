@@ -1,4 +1,5 @@
 from collections import defaultdict
+import pandas as pd
 
 
 def get_goids_from_proteinGroup(proteinGroup, assoc_dict):
@@ -146,6 +147,31 @@ def count_terms_v3(ans_set, assoc_dict):
             else:
                 association_2_ANs_dict[association] |= {an} # update dict
     return association_2_count_dict, association_2_ANs_dict, len(ans_set) #ans_counter
+# todo remove 3rd return value "len(ans_set)", also from caller of function
+# check similarity to count_terms_abundance_corrected
+# unify method
+# remve pqo.obo_dag from enrichment.py
+# remove obos from query.pqo
+# remove obo from run.py
+
+def count_terms_fold_change_v4(df, assoc_dict):
+    """
+    for every ENSP square the integeger counts from association_dict with fold-change values
+    --> rank them
+    --> Wilcoxon test for each one, FDR
+    --> same pathway group together?
+    """
+    ENSP_2_foldchange_dict = pd.Series(df["abundance_ratio"].values, index=df["population"]).to_dict()
+    association_2_list_of_ratios_dict = defaultdict(lambda: [])
+    association_2_ANs_dict = defaultdict(lambda: set())
+    foldchanges_population = []
+    for ENSP, association_set in assoc_dict.items():
+        for association in association_set:
+            fold_change = ENSP_2_foldchange_dict[ENSP]
+            association_2_list_of_ratios_dict[association].append(fold_change)
+            association_2_ANs_dict[association] |= {ENSP}
+            foldchanges_population.append(fold_change)
+    return association_2_list_of_ratios_dict, association_2_ANs_dict, foldchanges_population
 
 def count_terms_v2_KEGG(ans_set, assoc_dict):
     """
@@ -210,7 +236,45 @@ def count_terms_abundance_corrected_manager(ui, assoc_dict, obo_dag, method):
     else:
         return count_terms_abundance_corrected(ui, assoc_dict, obo_dag)
 
-def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
+def count_terms_abundance_corrected(ui, assoc_dict):
+    """
+    produce abundance corrected counts of GO-terms of background frequency
+    round floats to nearest integer
+    Userinput-object includes ANs of sample, and background as well as abundance data
+    produces:
+        term_cnt: key=GOid, val=Num of occurrences
+        go2ans_dict: key=GOid, val=ListOfANs
+    :param ui: Userinput-object
+    :param assoc_dict:  Dict with key=AN, val=set of GO-terms
+    :return: DefaultDict(Float)
+    """
+    go2ans_dict = {}
+    term_cnt = defaultdict(float)
+    for ans, weight_fac in ui.iter_bins(): # for every bin, produce ans-background and weighting-factor
+        for an in ans:
+            if an in assoc_dict:
+                goterms = assoc_dict[an]
+                for goterm in goterms:
+                    term_cnt[goterm] += weight_fac
+                    if goterm not in go2ans_dict:
+                        # go2ans_dict[goterm_name] = set([an])
+                        go2ans_dict[goterm] = {an}
+                    else:
+                        # go2ans_dict[goterm_name].update([an])
+                        go2ans_dict[goterm] |= {an}
+                else:
+                    pass
+    for goterm in term_cnt:
+        term_cnt[goterm] = int(round(term_cnt[goterm]))
+    go2ans2return = {}
+    for goterm in term_cnt:
+        count = term_cnt[goterm]
+        if count >=1:
+            go2ans2return[goterm] = go2ans_dict[goterm]
+    return term_cnt, go2ans2return
+
+
+def count_terms_abundance_corrected_old(ui, assoc_dict, obo_dag):
     """
     modify to use protein groups --> handled in Userinput.py
     produce abundance corrected counts of GO-terms of background frequency
@@ -242,11 +306,9 @@ def count_terms_abundance_corrected(ui, assoc_dict, obo_dag):
                     term_cnt[goterm_name] += weight_fac
                     # if not go2ans_dict.has_key(goterm):
                     if goterm not in go2ans_dict:
-                        # go2ans_dict[goterm_name] = set([an])
-                        go2ans_dict[goterm_name] = {an}
+                        go2ans_dict[goterm_name] = {an} # go2ans_dict[goterm_name] = set([an])
                     else:
-                        # go2ans_dict[goterm_name].update([an])
-                        go2ans_dict[goterm_name] |= {an}
+                        go2ans_dict[goterm_name] |= {an} # go2ans_dict[goterm_name].update([an])
     for goterm in term_cnt:
         term_cnt[goterm] = int(round(term_cnt[goterm]))
     go2ans2return = {}

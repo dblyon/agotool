@@ -152,6 +152,31 @@ class Userinput:
             self.background = self.background.sort_values(["intensity", "background"])
         return self.foreground, self.background, check_cleanup
 
+    def cleanupforanalysis_rank_enrichment(self, df, col_population, col_abundance_ratio):
+        ### remove rows consisting of only NaNs
+        df = df[-df.isnull().all(axis=1)]
+
+        ### remove NaNs from foreground-ANs and abundance_ratios
+        ### population is a DF with "foreground" and "abundance_ratio" as columns
+        population = df.loc[ : , [col_population, col_abundance_ratio]]
+        ### remove rows consisting of only NaNs
+        population = population[-population.isnull().all(axis=1)]
+        ### check if foreground empty or abundance_ratio empty
+        if population.shape[0] == 0:
+            self.args_dict["ERROR_foreground"] = "ERROR: 'foreground' is empty. Please check your input"
+            return population[col_population], population[col_abundance_ratio], False
+        if population.shape[1] == 0:
+            self.args_dict["ERROR_abundance_ratio"] = "ERROR: 'abundance_ratio' is empty. Please check your input"
+            return population, False
+        ### check if missing values in either column
+        cond = population.isnull().any(axis=1)
+        if sum(cond) > 0:
+            return population, False
+
+        population["rank"] = population[col_abundance_ratio].rank(method="first", ascending=False).astype(int)
+        population = population.sort_values("rank").reset_index(drop=True)
+        return population, True
+
     def check_decimal(self, fn):
         """
         test if userinput uses ',' or '.' as a decimal separator
@@ -378,8 +403,11 @@ class Userinput:
         return all unique AccessionNumber provided by the user
         :return: ListOfString
         """
-        ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
-        if self.enrichment_method not in {"characterize_foreground", "genome"}:
+        if self.enrichment_method == "rank_enrichment":
+            ans = tools.commaSepCol2uniqueFlatList(self.population_df, self.col_population, sep=";", unique=True)
+        else:
+            ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
+        if self.enrichment_method not in {"characterize_foreground", "genome", "rank_enrichment"}:
             ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
         return list(set(ans))
 
@@ -398,32 +426,38 @@ class REST_API_input(Userinput):
             # num_bins=NUM_BINS, enrichment_method="abundance_correction", foreground_n=None, background_n=None):
         self.pqo = pqo
         self.df_orig = pd.DataFrame()
+        self.args_dict = args_dict
         self.foreground_string = args_dict["foreground"]
         self.background_string = args_dict["background"]
         self.background_intensity = args_dict["background_intensity"]
+        self.population_string = args_dict["population"]
+        self.abundance_ratio = args_dict["abundance_ratio"]
         self.num_bins = args_dict["num_bins"]
         self.enrichment_method = args_dict["enrichment_method"]
         self.foreground_n = args_dict["foreground_n"]
         self.background_n = args_dict["background_n"]
-        self.args_dict = args_dict
         self.col_foreground = "foreground"
         self.col_background = "background"
         self.col_intensity = "intensity"
+        self.col_population = "population"
+        self.col_abundance_ratio = "abundance_ratio"
         self.check = False
+        self.check_cleanup = False
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
-            self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
-        else:
-            self.check_cleanup = False
+            if self.enrichment_method == "rank_enrichment":
+                # abundance_ratio goes in, rank comes out
+                self.population_df, self.check_cleanup = self.cleanupforanalysis_rank_enrichment(self.df_orig, self.col_population, self.col_abundance_ratio)
+            else:
+                self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
         if self.check_parse and self.check_cleanup:
             self.check = True
 
-    def parse_input(self):
+    def parse_input_old(self):
         check_parse = False
         decimal = "."
         df_orig = pd.DataFrame()
-        #if self.background_string is not None:
-        
+
         if self.enrichment_method != "genome": # ignore background if "genome"
             if self.background_string is not None:
                 replaced = pd.Series(self._replace_and_split(self.background_string))
@@ -431,6 +465,7 @@ class REST_API_input(Userinput):
                     df_orig[self.col_background] = replaced
                 else:
                     return df_orig, decimal, check_parse
+
         if self.enrichment_method == "abundance_correction":
             try:
                 if "." in self.background_intensity:
@@ -454,6 +489,81 @@ class REST_API_input(Userinput):
                 return df_orig, decimal, check_parse
         else:
             df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
+        # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
+        replaced = pd.Series(self._replace_and_split(self.foreground_string))
+        if replaced is not None:
+            df_orig[self.col_foreground] = replaced
+        else:
+            return df_orig, decimal, check_parse
+        check_parse = True
+        return df_orig, decimal, check_parse
+
+    def parse_input(self):
+        check_parse = False
+        decimal = "."
+        df_orig = pd.DataFrame()
+
+        if self.enrichment_method != "genome": # ignore background if "genome"
+            if self.background_string is not None:
+                replaced = pd.Series(self._replace_and_split(self.background_string))
+                if replaced is not None:
+                    df_orig[self.col_background] = replaced
+                else:
+                    return df_orig, decimal, check_parse
+
+        if self.enrichment_method == "abundance_correction":
+            try:
+                if "." in self.background_intensity:
+                    pass
+                elif "," in self.background_intensity:
+                    decimal = ","
+                    # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
+                    self.background_intensity = self.background_intensity.replace(",", ".")
+            except TypeError: # self.background_intensity is None
+                self.args_dict["ERROR_abundance_correction"] = "ERROR: enrichment_method 'abundance_correction' selected but no 'background_intensity' provided"
+                return df_orig, decimal, check_parse
+            else: # other checks could be done, but is this really necessary?
+                pass
+            try:
+                replaced = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+                if replaced is not None:
+                    df_orig[self.col_intensity] = replaced
+                else:
+                    return df_orig, decimal, check_parse
+            except ValueError:
+                return df_orig, decimal, check_parse
+        elif self.enrichment_method == "rank_enrichment":
+            try:
+                if "." in self.abundance_ratio:
+                    pass
+                elif "," in self.abundance_ratio:
+                    decimal = ","
+                    # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
+                    self.abundance_ratio = self.abundance_ratio.replace(",", ".")
+            except TypeError: # self.background_intensity is None
+                self.args_dict["ERROR_rank_enrichment"] = "ERROR: 'rank_enrichment' selected but no 'abundance_ratio' provided"
+                return df_orig, decimal, check_parse
+            try:
+                replaced = pd.Series(self._replace_and_split(self.abundance_ratio), dtype=float)
+                if replaced is not None:
+                    df_orig[self.col_abundance_ratio] = replaced
+                else:
+                    return df_orig, decimal, check_parse
+            except ValueError:
+                return df_orig, decimal, check_parse
+
+            # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
+            replaced = pd.Series(self._replace_and_split(self.population_string))
+            if replaced is not None:
+                df_orig[self.col_population] = replaced
+            else:
+                return df_orig, decimal, check_parse
+            check_parse = True
+            return df_orig, decimal, check_parse
+
+        else:
+            df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
+
         # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
         replaced = pd.Series(self._replace_and_split(self.foreground_string))
         if replaced is not None:

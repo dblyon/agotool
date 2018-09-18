@@ -2,7 +2,7 @@ import os, multiprocessing
 
 ############################
 ### settings
-PRELOAD = True 
+PRELOAD = True
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
@@ -11,12 +11,12 @@ skip_downloads_completely = True # don't download anything
 DOCKER = True
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
-
-DB_DOCKER = True# use local vs dockerized Postgres, in query.py
+LOW_MEMORY = True # load function_an_2_description_dict or query DB
+DB_DOCKER = True # use local vs dockerized Postgres, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING = False #True # profiling flaskapp --> check stdout, set to False in production
+PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = True #False # print stuff to stdout
+VERBOSE = False #False # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 ############################

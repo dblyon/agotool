@@ -36,6 +36,8 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 
 ###############################################################################
 # ToDo 2018
+# go_slim_or_basic --> filter for slim terms
+# check out DF sorting before returning results, year and FDR not sorted correctly
 # - consistency with single and double quotes
 # - return unused identifiers
 # - adapt functions_table_STRING.txt:
@@ -117,7 +119,7 @@ if PRELOAD:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
 
-    filter_ = cluster_filter.Filter(pqo.go_dag)
+    # filter_ = cluster_filter.Filter(pqo.go_dag)
 
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API
@@ -126,9 +128,9 @@ parser = reqparse.RequestParser()
 
 ################################################################################
 ### STRING arguments/parameters
-parser.add_argument("identifiers", type=str,
-    #!!! create better help text
-    help="Required parameter for multiple items, e.g. DRD1_HUMAN%0dDRD2_HUMAN")
+# parser.add_argument("identifiers", type=str,
+#     #!!! create better help text
+#     help="Required parameter for multiple items, e.g. DRD1_HUMAN%0dDRD2_HUMAN")
 
 parser.add_argument("taxid", type=int,
     help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
@@ -154,11 +156,6 @@ parser.add_argument("filter_foreground_count_one", type=str,
     help="Keep only those terms with foreground_count > 1",
     default="True")
 
-# STRING method is "enrichment", has nothing to do with aGOtool settings
-# parser.add_argument("method", type=str,
-#     help="Getting functional enrichment",
-#     default="enrichment")
-
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
@@ -177,15 +174,13 @@ parser.add_argument("privileged", type=str,
 ################################################################################
 ### aGOtool arguments/parameters
 parser.add_argument("foreground", type=str,
-    help="UniProt Accession Numbers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
-         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
-         "Isoforms are accepted. Delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
+    help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
+         "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
 
 parser.add_argument("background", type=str,
-    help="UniProt Accession Numbers for all proteins in the background (the population, the group you want to compare your foreground to) "
-         "separate the list of Accession Number using '%0d' e.g. 'Q9UHI6%0dA6NDB9' "
-         "delineate protein groups using semi-colons e.g. 'P0C0S8;P20671;Q9BTM1-2%0dQ71DI3'",
+    help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "
+         "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
 
 parser.add_argument("background_intensity", type=str,
@@ -194,8 +189,28 @@ parser.add_argument("background_intensity", type=str,
          "e.g. '12.3%0d3.4' ",
     default=None)
 
+parser.add_argument("population", type=str,
+    help="ENSP identifiers for all proteins detected in both conditions."
+         "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
+    default=None)
+
+parser.add_argument("abundance_ratio", type=str,
+    help="Fold change, log fold change, ratio, or something similar reflecting abundance or intensity changes between 2 conditions. Values for all proteins identifiers"
+         "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'foreground'"
+         "e.g. '-1.2%0d4.3%0d1.2' ",
+    default=None)
+
+parser.add_argument("compare_2_ratios_only", type=str,
+    help="If true: compare to the user provided abundance ratios only. Else: compare to all functional associations.",
+    default="False")
+
 parser.add_argument("enrichment_method", type=str,
-    help="""abundance_correction: Foreground vs Background abundance corrected; genome: provided foreground vs genome; compare_samples: Foreground vs Background (no abundance correction); compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; characterize_foreground: Foreground only""",
+    help="""'genome': provided foreground vs genome;
+    'compare_samples': Foreground vs Background (no abundance correction); 
+    'characterize_foreground': list all functional annotations for provided foreground;
+    'abundance_correction': Foreground vs Background abundance corrected;
+    'compare_groups': Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; 
+    'rank_enrichment': Fold change, log fold change, ratio, or something similar reflecting abundance or intensity changes between 2 conditions. Values for all proteins identifiers.""",
     default="characterize_foreground")
 
 parser.add_argument("foreground_n", type=int,
@@ -255,7 +270,6 @@ class API_STRING(Resource):
         #return help_page(args_dict)
         return self.post()
 
-
     def post(self): #, output_format="json"):
         """
         watch out for difference between passing parameter through
@@ -273,17 +287,14 @@ class API_STRING(Resource):
         args_dict["privileged"] = string_2_bool(args_dict["privileged"])
         args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
         args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
-        #print(request.values)
-        #for key, val in request.values.items():
-        #    print(key)
-        #    print(val)
-        #    print("**")
+        FDR_cutoff = args_dict["FDR_cutoff"]
+        args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
+        if FDR_cutoff == 0:
+            args_dict["FDR_cutoff"] = None
         print("-"*80)
         print(args_dict)
         print("-"*80)
         ui = userinput.REST_API_input(pqo, args_dict)
-        #print(ui.get_foreground_an_set())
-        #print(args_dict["foreground"])
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
             return help_page(args_dict)
@@ -293,12 +304,16 @@ class API_STRING(Resource):
             if not background_n:
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
-            # results are tsv or json
+            ### results are tsv or json
             results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+        elif args_dict["enrichment_method"] == "rank_enrichment":
+            results_all_function_types = run.run_rank_enrichment(pqo, ui, args_dict)
+            print(results_all_function_types, type(results_all_function_types))
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
 
         if results_all_function_types is False:
+            print("returning help page")
             return help_page(args_dict)
         else:
             print(results_all_function_types)
@@ -429,13 +444,13 @@ def example():
         # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
         # content_entity_types = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
         content_entity_types = format_markdown(content)
-        print(content_entity_types)
+        # print(content_entity_types)
     with open(variables.FN_HELP_PARAMETERS, "r") as fh:
         content = fh.read()
         # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
         # content_parameters = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
         content_parameters = format_markdown(content)
-        print(content_parameters)
+        # print(content_parameters)
     return render_template('example.html', **locals())
 
 @app.route('/example/<path:filename>', methods=['GET', 'POST'])
@@ -683,12 +698,12 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
 
         else:
             return render_template('info_check_input.html')
-        print("_"*50)
-        print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
-        print("form.limit_2_entity_type.data", type(limit_2_entity_type), limit_2_entity_type)
-        print("#%$^")
-        print(form.values)
-        print("_"*50)
+        # print("_"*50)
+        # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
+        # print("form.limit_2_entity_type.data", type(limit_2_entity_type), limit_2_entity_type)
+        # print("#%$^")
+        # print(form.values)
+        # print("_"*50)
         if len(results_all_function_types) == 0:
             return render_template('results_zero.html')
         elif len(results_all_function_types.keys()) == 1:
@@ -696,8 +711,8 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
             return generate_result_page(results_all_function_types[entity_type], limit_2_entity_type,
                 form.indent.data, generate_session_id(), form=Results_Form())
         elif len(results_all_function_types.keys()) > 1:
-            print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
-            print("form.limit_2_entity_type.data", type(form.limit_2_entity_type.data), form.limit_2_entity_type.data)
+            # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
+            # print("form.limit_2_entity_type.data", type(form.limit_2_entity_type.data), form.limit_2_entity_type.data)
             # ToDo create multiple results display method a la clustered results
             entity_type = int(form.limit_2_entity_type.data.split(";")[0]) # REPLACE WITH PROPER METHOD later, picked first entry as placeholder
             return generate_result_page(results_all_function_types[entity_type], entity_type,

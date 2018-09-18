@@ -432,40 +432,37 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     def __init__(self):
         # super(PersistentQueryObject, self).__init__() # py2 and py3
         # super().__init__() # py3
-
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
-
         ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-        self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
-        self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
+        ### --> obsolete since using functerm_2_level_dict
         self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-        self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
-        self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
-        self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
-        self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
-        # todo uncomment when Functions_table contains relevant data
-        self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
+        self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+        # self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
+        # self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
+        # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
+        # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
+        # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
+        # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
         
-        ## functions [Functions_table_STRING.txt]
-        # | etype | an | name | definition | description |
-        # self.function_an_2_name_dict = defaultdict(lambda: np.nan)
-        self.function_an_2_description_dict = defaultdict(lambda: np.nan)
-        an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
-        # self.function_an_2_name_dict.update(an_2_name_dict)
-        self.function_an_2_description_dict.update(an_2_description_dict)
-
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
-        ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
-        self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity()
 
         ### lineage_dict: key: functional_association_term_name val: set of parent terms
-        # self.lineage_dict = self.get_GO_lineage_dict(self.go_dag)
-        # self.lineage_dict.update(self.get_GO_lineage_dict(self.upk_dag))
         ### functional term 2 hierarchical level dict
         self.functerm_2_level_dict = defaultdict(lambda: np.nan)
         self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict(self.go_dag))
         self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict(self.upk_dag))
+        del self.go_dag # needed for cluster_filter
+        del self.upk_dag
+
+        ## functions [Functions_table_STRING.txt]
+        if not variables.LOW_MEMORY:
+            ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
+            self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity()
+            self.function_an_2_description_dict = defaultdict(lambda: np.nan)
+            # an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
+            an_2_description_dict = get_function_an_2_description_dict()
+            self.function_an_2_description_dict.update(an_2_description_dict)
 
     @staticmethod
     def get_functional_term_2_level_dict(dag):
@@ -516,6 +513,22 @@ def get_function_an_2_name__an_2_description_dict():
         an_2_description_dict[an] = description
     return an_2_name_dict, an_2_description_dict
 
+def get_function_an_2_description_dict():
+    result = get_results_of_statement("SELECT functions.an, functions.description FROM functions; ")
+    an_2_description_dict = {}
+    for res in result:
+        an, description = res
+        an_2_description_dict[an] = description
+    return an_2_description_dict
+
+def get_description_from_an(term_list):
+    result = get_results_of_statement("SELECT functions.an, functions.description FROM functions WHERE functions.an IN({});".format(str(term_list)[1:-1]))
+    an_2_description_dict = defaultdict(lambda: np.nan)
+    for res in result:
+        an, description = res
+        an_2_description_dict[an] = description
+    return an_2_description_dict
+
 def get_termAN_from_humanName_functionType(functionType, humanName):
     if humanName is None:
         return ""
@@ -561,6 +574,19 @@ def get_association_2_count_ANs_background_split_by_entity(taxid):
         etype_2_association_2_ANs_dict_background[etype][association] = set(an_array)
         etype_2_background_n[etype] = background_n
     return etype_2_association_2_count_dict_background, etype_2_association_2_ANs_dict_background, etype_2_background_n
+
+def from_taxid_get_association_2_count_split_by_entity(taxid):
+    result = get_results_of_statement("SELECT * FROM function_2_ensp WHERE function_2_ensp.taxid={}".format(taxid))
+
+    etype_2_association_2_count_dict = {}
+    for etype in variables.entity_types_with_data_in_functions_table:
+        etype_2_association_2_count_dict[etype] = {}
+
+    for rec in result:
+        _, etype, association, background_count, background_n, an_array = rec
+        # etype = str(etype)
+        etype_2_association_2_count_dict[etype][association] = background_count
+    return etype_2_association_2_count_dict
 
 def get_association_2_counts_split_by_entity():
     # get all taxids to create a taxid to entity type and associations lookup

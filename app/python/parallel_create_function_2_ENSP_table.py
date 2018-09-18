@@ -21,11 +21,9 @@ def count_terms_v3(ans_set, assoc_dict):
     count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag)
     :return: Tuple(dict, dict, int)
     """
-    # ans_counter = 0
     association_2_ANs_dict = {}
     association_2_count_dict = defaultdict(int)
     for an in (AN for AN in ans_set if AN in assoc_dict):
-        # ans_counter += 1
         for association in assoc_dict[an]:
             association_2_count_dict[association] += 1
             if not association in association_2_ANs_dict:
@@ -36,10 +34,8 @@ def count_terms_v3(ans_set, assoc_dict):
 
 def create_functions_2_ENSP_table():
     for taxid in fileinput.input():
-    # for taxid in sorted(taxid_list):
         taxid = taxid.strip()
         ans_list = sorted(query.get_proteins_of_taxid(taxid))
-        # etype_2_association_dict = pqo.get_association_dict_split_by_category(ans_list)
         etype_2_association_dict = query.PersistentQueryObject_STRING.get_association_dict_split_by_category(ans_list)
         for etype in sorted(variables.entity_types_with_data_in_functions_table):
             assoc_dict = etype_2_association_dict[etype]
@@ -50,6 +46,7 @@ def create_functions_2_ENSP_table():
 
 
 if __name__ == "__main__":
+    #### set "DB_DOCKER" to False and "DOCKER" to True in variables.py to make this work
     # pqo = query.PersistentQueryObject_STRING()
     # taxid_list = query.get_taxids()
     create_functions_2_ENSP_table()

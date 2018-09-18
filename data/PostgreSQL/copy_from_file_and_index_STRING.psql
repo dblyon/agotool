@@ -43,6 +43,11 @@ CREATE TABLE function_2_ensp_temp (
 \copy ontologies_temp FROM '/agotool_data/PostgreSQL/tables/Ontologies_table_STRING.txt';
 \copy function_2_ensp_temp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
 
+CREATE INDEX functions_an_idx_temp ON functions_temp (an);
+CREATE INDEX functions_etype_an_idx_temp ON functions_temp (etype, an);
+CLUSTER functions_temp USING functions_etype_an_idx_temp;
+
+CREATE INDEX protein_2_function_an_idx_temp ON protein_2_function_temp (an);
 CREATE INDEX protein_2_function_an_etype_idx_temp ON protein_2_function_temp (an, etype);
 CLUSTER protein_2_function_temp USING protein_2_function_an_etype_idx_temp;
 

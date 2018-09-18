@@ -2,7 +2,7 @@ import os, json, sys, re, fnmatch, subprocess, time, datetime #, shlex  #, multi
 import pandas as pd
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import ast
+import ast, re
 
 import tools, obo_parser, variables, query, ratio
 from obo_parser import OBOReader_2_text
@@ -193,19 +193,19 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # create_Functions_table_SMART(fn_in=os.path.join(DOWNLOADS_DIR, "SMART_domain_descriptions.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_SMART.txt"))
      # create_Functions_table_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv"), fn_out=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"))
      # create_Functions_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "InterPro_name_2_AN.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"))
-     fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
-                                                       "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
-                                                       "Functions_table_PFAM.txt", "Functions_table_InterPro.txt"]]
-     # Functions_table_STRING_temp_1.txt --> concatenated files
-     fn_out_temp_1 = os.path.join(TABLES_DIR, "Functions_table_STRING_temp_1.txt")
-     print("creating {} by concatenation and sorting".format(fn_out_temp_1))
-     concatenate_files(fn_list, fn_out_temp_1)
-     # Functions_table_STRING_temp_1.txt concatenated and sorted
+     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
+     #                                                   "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
+     #                                                   "Functions_table_PFAM.txt", "Functions_table_InterPro.txt"]]
+     ### Functions_table_STRING_temp_1.txt --> concatenated files
+     # fn_out_temp_1 = os.path.join(TABLES_DIR, "Functions_table_STRING_temp_1.txt")
+     # print("creating {} by concatenation and sorting".format(fn_out_temp_1))
+     # concatenate_files(fn_list, fn_out_temp_1)
+     ### Functions_table_STRING_temp_1.txt concatenated and sorted
      fn_out_temp_2 = os.path.join(TABLES_DIR, "Functions_table_STRING_temp_2.txt")
-     sort_file(fn_out_temp_1, fn_out_temp_1, columns="1", number_of_processes=number_of_processes)
-     # Functions_table_STRING_temp_2.txt --> added definition and resorted columns
-     functions_table_STRING_create_descriptions(fn_out_temp_1, fn_out_temp_2)
-     # create Functions_table_PMID.txt via parse_textmining_pmc_medline_parallel.py and parallel_parse.py
+     # sort_file(fn_out_temp_1, fn_out_temp_1, columns="1", number_of_processes=number_of_processes)
+     ### Functions_table_STRING_temp_2.txt --> added definition and resorted columns
+     # functions_table_STRING_create_descriptions(fn_out_temp_1, fn_out_temp_2)
+     ### create Functions_table_PMID.txt via parallel_parse_textmining_pmc_medline.py and parallel_parse.py
      fn_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
      fn_out_final = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
      concatenate_files([fn_out_temp_2, fn_PMID], fn_out_final)
@@ -254,17 +254,17 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # fn_out_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_temp.txt")
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
      # create_Protein_2_Function_table_KEGG_STRING(fn_in=fn_in, fn_out_temp=fn_out_temp, fn_out=fn_out, number_of_processes=number_of_processes, verbose=verbose)
-     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in
-     #           ["Protein_2_Function_table_GO.txt",
-     #            "Protein_2_Function_table_UniProtKeyword.txt",
-     #            "Protein_2_Function_table_KEGG.txt",
-     #            "Protein_2_Function_table_InterPro.txt",
-     #            "Protein_2_Function_table_PFAM.txt",
-     #            "Protein_2_Function_table_SMART.txt",
-     #            "Protein_2_Function_table_PMID.txt"]]
-     # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-     # concatenate_files(fn_list, fn_out)
-     # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+     fn_list = [os.path.join(TABLES_DIR, fn) for fn in
+               ["Protein_2_Function_table_GO.txt",
+                "Protein_2_Function_table_UniProtKeyword.txt",
+                "Protein_2_Function_table_KEGG.txt",
+                "Protein_2_Function_table_InterPro.txt",
+                "Protein_2_Function_table_PFAM.txt",
+                "Protein_2_Function_table_SMART.txt",
+                "Protein_2_Function_table_PMID.txt"]] # from create_protein_2_function_table.py
+     fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     concatenate_files(fn_list, fn_out)
+     sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
 
      ### - TaxID_2_Proteins_table
      # fn_in = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
@@ -294,9 +294,8 @@ def change_UPK_2_KW(fn_in, from_="UPK:", to_="KW-"):
     os.remove(fn_in)
     os.rename(fn_temp, fn_in)
 
-def functions_table_STRING_create_descriptions(fn_in, fn_out, max_len_description=100):
+def functions_table_STRING_create_descriptions(fn_in, fn_out, max_len_description=80):
     print("functions_table_STRING_create_descriptions")
-    # fn = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table_STRING.txt.bak"
     df = pd.read_csv(fn_in, sep='\t', names=["etype", "name", "an", "definition"])
     df["description"] = ""
 
@@ -315,43 +314,56 @@ def functions_table_STRING_create_descriptions(fn_in, fn_out, max_len_descriptio
             string_ = definition[1].strip()
         else:
             string_ = name
-        if len(string_) > max_len_description:
-            return string_[:max_len_description] + "..."
-        else:
-            return string_
-
-    def cut_long_string(string_, max_len_description):
-#         if len(string_) > max_len_description:
-#             return string_[:max_len_description] + "..."
-#         else:
-#             return string_
-        if len(string_) > max_len_description:
-            string_2_use = ""
-            for word in string_.split(" "):
-                if len(string_2_use) < max_len_description:
-                    string_2_use += word + " "
-            return string_2_use.strip() + "..."
-        else:
-            return string_
-
-    import re
-    def clean_messy_string(string_):
-        try:
-            return re.sub('[^A-Za-z0-9\s]+', '', string_).replace("\n", " ").replace("\t", " ")
-        except TypeError:
-            return string_
+        string_ = cut_long_string_at_word(string_, max_len_description=max_len_description)
+        return string_
 
     cond_SMART = df["etype"].isin([-53])
     df.loc[cond_SMART, "description"] = df.loc[cond_SMART, ["name", "definition"]].apply(parse_SMART, axis=1)
-    df["description"] = df["description"].apply(cut_long_string, args=(max_len_description, ))
-    # df["description_len"] = df["description"].apply(lambda x: len(x))
+    df["description"] = df["description"].apply(cut_long_string_at_word, args=(max_len_description, ))
     df = df[["etype", "an", "name", "definition", "description"]]
     df["name"] = df["name"].apply(clean_messy_string)
     df["definition"] = df["definition"].apply(clean_messy_string)
-    # fn_out = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table_STRING.txt"
     df = df.sort_values(["etype", "an"], ascending=[False, True]).reset_index(drop=True)
     df.to_csv(fn_out, sep="\t", header=False, index=False)
 
+def cut_long_string_at_word(string_, max_len_description=80):
+    try:
+        len_string = len(string_)
+    except TypeError:
+        return ""
+    if len_string > max_len_description:
+        string_2_use = ""
+        for word in string_.split(" "):
+            if len(string_2_use + word) > max_len_description:
+                string_2_return = string_2_use.strip() + " ..."
+                assert len(string_2_return) <= (max_len_description + 4)
+                return string_2_return
+            else:
+                string_2_use += word + " "
+    else:
+        return string_.strip()
+
+def clean_messy_string(string_):
+    try:
+        return re.sub('[^A-Za-z0-9\s]+', '', string_).replace("\n", " ").replace("\t", " ")
+    except TypeError:
+        return string_
+
+def clean_messy_string_v2(string_):
+    try:
+        string_ = string_.strip()
+    except AttributeError:
+        return ""
+    tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
+    string_ = tags_2_remove.sub('', string_)
+    if string_.startswith("[") and string_.endswith("]"):
+        return clean_messy_string_v2(string_[1:-1])
+    elif string_.startswith("[") and string_.endswith("]."):
+        return clean_messy_string_v2(string_[1:-2])
+    elif string_.isupper():
+        return string_[0] + string_[1:].lower()
+    else:
+        return string_
 
 def sort_file(fn_in, fn_out, columns="1", fn_bash_script=None, number_of_processes=1, verbose=True):
     if verbose:
