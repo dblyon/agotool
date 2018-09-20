@@ -202,7 +202,7 @@ parser.add_argument("abundance_ratio", type=str,
 
 parser.add_argument("compare_2_ratios_only", type=str,
     help="If true: compare to the user provided abundance ratios only. Else: compare to all functional associations.",
-    default="False")
+    default="True")
 
 parser.add_argument("enrichment_method", type=str,
     help="""'genome': provided foreground vs genome;

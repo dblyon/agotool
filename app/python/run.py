@@ -99,7 +99,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     df_list = []
     etype_2_association_dict = pqo.get_association_dict_split_by_category(protein_ans_list)
     if variables.LOW_MEMORY:
-        etype_2_association_2_count_dict_background = pqo.from_taxid_get_association_2_count_split_by_entity(taxid)
+        etype_2_association_2_count_dict_background = query.from_taxid_get_association_2_count_split_by_entity(taxid)
     else:
         etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]
     for entity_type in variables.entity_types_with_data_in_functions_table:

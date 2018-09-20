@@ -429,15 +429,15 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     only protein_2_function is queried in Postgres,
     everything else is in memory but still deposited in the DB any way
     """
-    def __init__(self):
+    def __init__(self, low_memory=None):
         # super(PersistentQueryObject, self).__init__() # py2 and py3
         # super().__init__() # py3
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
         ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
         ### --> obsolete since using functerm_2_level_dict
-        self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-        self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+        # self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+        # self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
         # self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
         # self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
         # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
@@ -449,14 +449,16 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         ### lineage_dict: key: functional_association_term_name val: set of parent terms
         ### functional term 2 hierarchical level dict
-        self.functerm_2_level_dict = defaultdict(lambda: np.nan)
-        self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict(self.go_dag))
-        self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict(self.upk_dag))
-        del self.go_dag # needed for cluster_filter
-        del self.upk_dag
+        # self.functerm_2_level_dict = defaultdict(lambda: np.nan)
+        # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.go_dag))
+        # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.upk_dag))
+        # del self.go_dag # needed for cluster_filter
+        # del self.upk_dag
+        self.functerm_2_level_dict = self.get_functional_term_2_level_dict()
 
-        ## functions [Functions_table_STRING.txt]
-        if not variables.LOW_MEMORY:
+        if low_memory is None: # override variables if "low_memory" passed to query initialization
+            low_memory = variables.LOW_MEMORY
+        if not low_memory:
             ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
             self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity()
             self.function_an_2_description_dict = defaultdict(lambda: np.nan)
@@ -464,8 +466,16 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             an_2_description_dict = get_function_an_2_description_dict()
             self.function_an_2_description_dict.update(an_2_description_dict)
 
+    def get_functional_term_2_level_dict(self):
+        go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+        upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+        functerm_2_level_dict = defaultdict(lambda: np.nan)
+        functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(go_dag))
+        functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(upk_dag))
+        return functerm_2_level_dict
+
     @staticmethod
-    def get_functional_term_2_level_dict(dag):
+    def get_functional_term_2_level_dict_from_dag(dag):
         functerm_2_level_dict = {}
         for name, term_object in dag.items():
             functerm_2_level_dict[name] = term_object.level
@@ -503,7 +513,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
-
 def get_function_an_2_name__an_2_description_dict():
     result = get_results_of_statement("SELECT functions.an, functions.name, functions.description FROM functions; ")
     an_2_name_dict, an_2_description_dict = {}, {}
@@ -528,6 +537,14 @@ def get_description_from_an(term_list):
         an, description = res
         an_2_description_dict[an] = description
     return an_2_description_dict
+
+# def get_function_description_from_an(an_list):
+#     result = get_results_of_statement("SELECT functions.an, functions.description FROM functions WHERE functions.an IN({});".format(str(an_list)[1:-1]))
+#     an_2_description_dict = {}
+#     for res in result:
+#         an, description = res
+#         an_2_description_dict[an] = description
+#     return an_2_description_dict
 
 def get_termAN_from_humanName_functionType(functionType, humanName):
     if humanName is None:
@@ -588,6 +605,22 @@ def from_taxid_get_association_2_count_split_by_entity(taxid):
         etype_2_association_2_count_dict[etype][association] = background_count
     return etype_2_association_2_count_dict
 
+def from_taxid_and_association_get_association_2_count_dict(taxid, association_list):
+    result = get_results_of_statement("SELECT function_2_ensp.association, function_2_ensp.background_count FROM function_2_ensp WHERE (function_2_ensp.taxid={} AND function_2_ensp.association IN({}));".format(taxid, str(association_list)[1:-1]))
+    association_2_count_dict = {}
+    for rec in result:
+        association, background_count = rec
+        association_2_count_dict[association] = background_count
+    return association_2_count_dict
+
+def from_taxid_and_association_get_association_2_ENSP(taxid, association_list):
+    result = get_results_of_statement("SELECT function_2_ensp.association, function_2_ensp.an_array FROM function_2_ensp WHERE (function_2_ensp.taxid={} AND function_2_ensp.association IN({}));".format(taxid, str(association_list)[1:-1]))
+    association_2_ENSPset_dict = {}
+    for rec in result:
+        association, an_array = rec
+        association_2_ENSPset_dict[association] = set(an_array)
+    return association_2_ENSPset_dict
+
 def get_association_2_counts_split_by_entity():
     # get all taxids to create a taxid to entity type and associations lookup
     taxids = [taxid for taxid in get_taxids()]
@@ -606,6 +639,13 @@ def get_association_2_counts_split_by_entity():
         taxid_2_etype_2_association_2_count_dict[taxid][etype][association] = background_count
     return taxid_2_etype_2_association_2_count_dict
 
+def get_functionAN_2_etype_dict():
+    result = get_results_of_statement("SELECT functions.an, functions.etype FROM functions; ")
+    an_2_etype_dict = {}
+    for res in result:
+        an, etype = res
+        an_2_etype_dict[an] = etype
+    return an_2_etype_dict
 
 if __name__ == "__main__":
     # import os

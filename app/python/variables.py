@@ -14,7 +14,7 @@ DOCKER = True
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
 DB_DOCKER = True # use local vs dockerized Postgres, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING = False # profiling flaskapp --> check stdout, set to False in production
+PROFILING = True # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = False #False # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)

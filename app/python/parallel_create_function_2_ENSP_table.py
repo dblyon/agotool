@@ -42,7 +42,7 @@ def create_functions_2_ENSP_table():
             association_2_count_dict, association_2_ANs_dict, ans_counter = count_terms_v3(set(ans_list), assoc_dict)
             for association, ans in association_2_ANs_dict.items():
                 assert ans_counter >= association_2_count_dict[association]
-                print(str(taxid) + "\t" + str(etype) + "\t" + association + "\t" + str(association_2_count_dict[association]) + "\t" + str(ans_counter) + "\t" + "{" + str(ans)[1:-1].replace(" ", "").replace("'", '"') + "}")
+                print(str(taxid) + "\t" + str(etype) + "\t" + association + "\t" + str(association_2_count_dict[association]) + "\t" + str(ans_counter) + "\t" + "{" + str(sorted(ans))[1:-1].replace(" ", "").replace("'", '"') + "}")
 
 
 if __name__ == "__main__":
