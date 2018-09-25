@@ -2,20 +2,37 @@ import os, sys, logging, time
 from collections import defaultdict
 import json
 import pandas as pd
+import numpy as np
+from lxml import etree
 import flask
 from flask import render_template, request, send_from_directory, jsonify
 from flask.views import MethodView
 from flask_restful import reqparse, abort, Api, Resource
+from flask import Flask
+from io import StringIO
 from werkzeug.wrappers import Response
 import wtforms
 from wtforms import fields
-
+# from fisher import pvalue
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-import query, userinput, run, cluster_filter, obo_parser, variables
-
+# from celery import Celery
+# from celery import group
+# import tasks
+import query, userinput, run, cluster_filter, variables
 import markdown
 from flask import Markup
 from flaskext.markdown import Markdown
+# import pickle
+# from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, wait, as_completed
+# import concurrent.futures
+# process_pool = ProcessPoolExecutor(4)
+# thread_pool = ThreadPoolExecutor(4)
+# from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
+# future = process_pool.submit(return_after_5_secs, ("hello"))
+# with concurrent.futures.ProcessPoolExecutor() as executor:
+#     for number, prime in zip(PRIMES, executor.map(is_prime, PRIMES)):
+#         print('%d is prime: %s' % (number, prime))
+
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -107,6 +124,7 @@ def log_activity(string2log):
     log_activity_fh.write(string2log)
     log_activity_fh.flush()
 
+
 ################################################################################
 # pre-load objects
 ################################################################################
@@ -127,11 +145,15 @@ api = Api(app)
 parser = reqparse.RequestParser()
 
 ################################################################################
-### STRING arguments/parameters
-# parser.add_argument("identifiers", type=str,
-#     #!!! create better help text
-#     help="Required parameter for multiple items, e.g. DRD1_HUMAN%0dDRD2_HUMAN")
+# celery = tasks.celery
+# print("no async", tasks.add_together(1111, 8))
+# res = tasks.add_together.delay(2222, 8)
+# print("async", res.get())
 
+################################################################################
+
+################################################################################
+### STRING arguments/parameters
 parser.add_argument("taxid", type=int,
     help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
     default=None)
@@ -156,6 +178,9 @@ parser.add_argument("filter_foreground_count_one", type=str,
     help="Keep only those terms with foreground_count > 1",
     default="True")
 
+parser.add_argument("LOW_MEMORY", type=str, default="True")
+parser.add_argument("FUTURES", type=str, default="False")
+parser.add_argument("PMID_top_100", type=str, default="True")
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
@@ -263,11 +288,6 @@ class API_STRING(Resource):
         return self.post() #output_format)
 
     def post(self):
-        #args_dict = defaultdict(lambda: None)
-        #args_dict.update(request.values.items())
-        #args_dict.update(parser.parse_args())
-        #args_dict[
-        #return help_page(args_dict)
         return self.post()
 
     def post(self): #, output_format="json"):
@@ -277,7 +297,6 @@ class API_STRING(Resource):
         - or parameters of form
         """
         args_dict = defaultdict(lambda: None)
-        #args_dict.update(request.values.items())
         args_dict["foreground"] = request.form.get("foreground")
         args_dict["output_format"] = request.form.get("output_format")
         args_dict["enrichment_method"] = request.form.get("enrichment_method")
@@ -287,13 +306,17 @@ class API_STRING(Resource):
         args_dict["privileged"] = string_2_bool(args_dict["privileged"])
         args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
         args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
+        args_dict["LOW_MEMORY"] = string_2_bool(args_dict["LOW_MEMORY"])
+        args_dict["FUTURES"] = string_2_bool(args_dict["FUTURES"])
+        args_dict["PMID_top_100"] = string_2_bool(args_dict["PMID_top_100"])
         FDR_cutoff = args_dict["FDR_cutoff"]
         args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
         if FDR_cutoff == 0:
             args_dict["FDR_cutoff"] = None
-        print("-"*80)
-        print(args_dict)
-        print("-"*80)
+        # print("-"*80)
+        # for key, val in args_dict.items():
+        #     print(key, val)
+        # print("-"*80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -305,10 +328,17 @@ class API_STRING(Resource):
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
             ### results are tsv or json
-            results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+            if not args_dict["FUTURES"]: #variables.FUTURES:
+                print("run.run_STRING_enrichment_genome(")
+                results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+            else:
+                print("run.run_STRING_enrichment_genome_futures")
+            # results_all_function_types = run_STRING_enrichment_genome_tasks(pqo, ui, background_n, args_dict)
+                results_all_function_types = run.run_STRING_enrichment_genome_futures(pqo, ui, background_n, args_dict)
+            # print("after", type(results_all_function_types))
         elif args_dict["enrichment_method"] == "rank_enrichment":
             results_all_function_types = run.run_rank_enrichment(pqo, ui, args_dict)
-            print(results_all_function_types, type(results_all_function_types))
+            # print(results_all_function_types.shape, type(results_all_function_types))
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
 
@@ -316,9 +346,144 @@ class API_STRING(Resource):
             print("returning help page")
             return help_page(args_dict)
         else:
-            print(results_all_function_types)
             return format_multiple_results(args_dict, results_all_function_types)
+
 api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
+
+# def run_STRING_enrichment_genome_tasks(pqo, ui, background_n, args_dict):
+#     taxid = check_taxids(args_dict)
+#     if not taxid:
+#         return False
+#     output_format=args_dict["output_format"]
+#     FDR_cutoff=args_dict["FDR_cutoff"]
+#     filter_parents = args_dict["filter_parents"]
+#     filter_foreground_count_one = args_dict["filter_foreground_count_one"]
+#     protein_ans_list = ui.get_all_unique_ANs()
+#
+#     if not check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):
+#         taxid_string = str(taxid)
+#         ans_not_concur = [an for an in protein_ans_list if not an.startswith(taxid_string)]
+#         args_dict["ERROR_taxid_proteinAN"] = "ERROR_taxid_proteinAN: The TaxID '{}' provided and the taxid of the proteins provided (e.g. '{}') do not concur.".format(taxid, ans_not_concur[:3])
+#         return False
+#     df, args_dict_temp = run_enrichment_genome(protein_ans_list, taxid, background_n, FDR_cutoff)
+#     args_dict.update(args_dict_temp)
+#     if df is None:
+#         return False
+#     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
+#     if filter_parents:
+#         # df = cluster_filter.filter_parents_if_same_foreground_v2(df)
+#         df_orig = df.copy()
+#         ### filter blacklisted GO and KW terms
+#         df_orig = df_orig[~df_orig["term"].isin(variables.blacklisted_terms)]
+#
+#         cond_df_2_filter = df_orig["etype"].isin(variables.entity_types_with_ontology)
+#         df = df_orig[cond_df_2_filter]
+#         df_no_filter = df_orig[~cond_df_2_filter]
+#         # get maximum within group, all rows included if ties exist, NaNs are False in idx
+#         idx = df.groupby(["etype", "foreground_ids"])["hierarchical_level"].transform(max) == df["hierarchical_level"]
+#         # retain rows where level is NaN
+#         df = df[(df["hierarchical_level"].isnull() | idx)]
+#         # add df_orig part that can't be filtered due to missing ontology
+#         return pd.concat([df, df_no_filter], sort=False)
+#     if filter_foreground_count_one:
+#         df = df[df["foreground_count"] > 1]
+#     # could be done async while p-values are being calculated
+#     if variables.LOW_MEMORY:
+#         an_2_description_dict = query.get_description_from_an(df["term"].tolist())
+#         df["description"] = df["term"].apply(lambda an: an_2_description_dict[an])
+#     else:
+#         df["description"] = df["term"].apply(lambda an: pqo.function_an_2_description_dict[an])
+#
+#     df = filter_and_sort_PMID(df)
+#     return format_results(df, output_format, args_dict)
+
+# def run_enrichment_genome(protein_ans_list, taxid, background_n, FDR_cutoff):
+#     df_list = []
+#     args_dict = {}
+#     if variables.LOW_MEMORY:
+#         etype_2_association_2_count_dict_background = query.from_taxid_get_association_2_count_split_by_entity(taxid)
+#     else:
+#         etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]
+#     # for entity_type in variables.entity_types_with_data_in_functions_table:
+#     #     association_2_count_dict_background = etype_2_association_2_count_dict_background[entity_type]
+#     #     result_df, args_dict_temp = enrichmentstudy_genome.delay(protein_ans_list, entity_type, association_2_count_dict_background, background_n, FDR_cutoff).get()
+#
+#     jobs = group(tasks.enrichmentstudy_genome.s(protein_ans_list, entity_type, etype_2_association_2_count_dict_background[entity_type], background_n, FDR_cutoff) for entity_type in variables.entity_types_with_data_in_functions_table)
+#     result = jobs.apply_async(queue='transient')
+#     for result_df_args_dict in result.join():
+#         result_df, args_dict_temp = result_df_args_dict
+#         args_dict.update(args_dict_temp)
+#         result_df = pd.read_csv(StringIO(result_df), sep='\t')
+#         if result_df is None:
+#             return None, args_dict
+#         if not result_df.empty:
+#             # result_df["etype"] = entity_type
+#             result_df["category"] = variables.entityType_2_functionType_dict[entity_type]
+#             df_list.append(result_df)
+#     try:
+#         df = pd.concat(df_list)
+#     except ValueError:  # empty list
+#         args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+#         return None, args_dict
+#     # return df.to_csv(header=True, index=False, sep="\t"), args_dict
+#     return df, args_dict
+
+
+def PMID_description_to_year(string_):
+    try:
+        return int(string_[1:5])
+    except ValueError or IndexError:
+        return np.nan
+
+def create_xml_tree(header, rows):
+    xml_tree = etree.Element("EnrichmentResult")
+    header = header.split("\t")
+    for row in rows:
+        child = etree.SubElement(xml_tree, "record")
+        for tag_content in zip(header, row.split("\t")):
+            tag, content = tag_content
+            etree.SubElement(child, tag).text = content
+    return etree.tostring(xml_tree, pretty_print=True, xml_declaration=True, encoding="utf-8")#.decode("UTF-8")
+
+def check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):
+    taxid_string = str(taxid)
+    for an in protein_ans_list:
+        if not an.startswith(taxid_string):
+            return False
+    return True
+
+def check_taxids(args_dict):
+    taxid = args_dict["taxid"]
+    if taxid is not None:
+        return taxid
+    taxid = args_dict["species"]
+    if taxid is not None:
+        args_dict["ERROR_species"] = "ERROR_species: argument 'species' is deprecated, please use 'taxid' instead. You've provided is '{}'.".format(args_dict["species"])
+        return False
+    taxid = args_dict["organism"]
+    if taxid is not None:
+        args_dict["ERROR_organism"] = "ERROR_organism: argument 'organism' is deprecated, please use 'taxid' instead. You've provided is '{}'.".format(args_dict["organism"])
+        return False
+
+def get_function_type__and__limit_2_parent(gocat_upk):
+    """
+    # choices = (("all_GO", "all GO categories"),
+    #            ("BP", "GO Biological Process"),
+    #            ("CP", "GO Celluar Compartment"),
+    #            ("MF", "GO Molecular Function"),
+    #            ("UPK", "UniProt keywords"),
+    #            ("KEGG", "KEGG pathways")),
+    :param gocat_upk: String
+    :return: Tuple(String, Bool)
+    """
+    if gocat_upk in {"BP", "CP", "MF", "all_GO"}:
+        return "GO" #, gocat_upk
+    else:
+        return gocat_upk #, None
+
+def write2file(fn, tsv):
+    with open(fn, 'w') as f:
+        f.write(tsv)
 
 
 class API_STRING_HELP(Resource):
@@ -357,34 +522,10 @@ def help_page(args_dict):
         pass
     return jsonify(args_dict)
 
-def format_results(output_format, header, results):
-    """
-    :param output_format: String (one of {json, tsv, tsv-no-header, xml}
-    :param header: String
-    :param results: List of String
-    :return: Json or String
-    """
-    if output_format == "json":
-        header = header.split("\t")
-        return jsonify([dict(zip(header, row.split("\t"))) for row in results])
-    elif output_format == "tsv":
-        stuff_2_return = header + "\n" + "\n".join(results)
-        return stuff_2_return
-    elif output_format == "tsv-no-header":
-        return "\n".join(results)
-    elif output_format == "xml":
-        return create_xml_tree(header, results)
-    else:
-        return jsonify({"README": "You've provided '{}' as the output_format, but unfortunately we don't recognize/support this method. Please select one of {json, tsv, tsv-no-header, xml} ".format(output_method)})
-
 def format_multiple_results(args_dict, results_all_entity_types):
-    """
-    :param output_format: String
-    :param results_all_function_types: Dict (key: entity_type , val: Tuple(header, results))
-    :return: Json or String
-    """
     output_format = args_dict["output_format"]
     if output_format in {"tsv", "tsv_no_header", "tsv-no-header"}:
+        print("format_multiple_results", type(results_all_entity_types))
         return Response(results_all_entity_types, mimetype='text')
     elif output_format == "json":
         return jsonify(results_all_entity_types)
@@ -774,39 +915,39 @@ def results_back():
 ################################################################################
 # results_filtered.html
 ################################################################################
-@app.route('/results_filtered', methods=["GET", "POST"])
-def results_filtered():
-    indent = request.form['indent']
-    limit_2_entity_type = request.form['limit_2_entity_type']
-    # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
-    session_id = request.form['session_id']
-
-    # original unfiltered/clustered results
-    file_name_orig, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
-    header, results = read_results_file(fn_results_orig_absolute)
-
-    if limit_2_entity_type: # in {-21, -22, -23}: # ToDo replace with proper check
-        results_filtered = filter_.filter_term_lineage(header, results, indent)
-
-        # filtered results
-        file_name_filtered, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
-        tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
-        with open(fn_results_filtered_absolute, 'w') as fh:
-            fh.write(tsv)
-        header = header.split("\t")
-        ellipsis_indices = elipsis(header)
-        results2display = []
-        for res in results_filtered:
-            results2display.append(res.split('\t'))
-        ip = request.environ['REMOTE_ADDR']
-        string2log = "ip: " + ip + "\n" + "Request: results_filtered" + "\n"
-        string2log += """limit_2_entity_type: {}\nindent: {}\n""".format(limit_2_entity_type, indent)
-        log_activity(string2log)
-        return render_template('results_filtered.html', header=header, results=results2display, errors=[],
-                               file_path_orig=file_name_orig, file_path_filtered=file_name_filtered,
-                               ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id)
-    else:
-        return render_template('index.html')
+# @app.route('/results_filtered', methods=["GET", "POST"])
+# def results_filtered():
+#     indent = request.form['indent']
+#     limit_2_entity_type = request.form['limit_2_entity_type']
+#     # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+#     session_id = request.form['session_id']
+#
+#     # original unfiltered/clustered results
+#     file_name_orig, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+#     header, results = read_results_file(fn_results_orig_absolute)
+#
+#     if limit_2_entity_type: # in {-21, -22, -23}: # ToDo replace with proper check
+#         results_filtered = filter_.filter_term_lineage(header, results, indent)
+#
+#         # filtered results
+#         file_name_filtered, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
+#         tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
+#         with open(fn_results_filtered_absolute, 'w') as fh:
+#             fh.write(tsv)
+#         header = header.split("\t")
+#         ellipsis_indices = elipsis(header)
+#         results2display = []
+#         for res in results_filtered:
+#             results2display.append(res.split('\t'))
+#         ip = request.environ['REMOTE_ADDR']
+#         string2log = "ip: " + ip + "\n" + "Request: results_filtered" + "\n"
+#         string2log += """limit_2_entity_type: {}\nindent: {}\n""".format(limit_2_entity_type, indent)
+#         log_activity(string2log)
+#         return render_template('results_filtered.html', header=header, results=results2display, errors=[],
+#                                file_path_orig=file_name_orig, file_path_filtered=file_name_filtered,
+#                                ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id)
+#     else:
+#         return render_template('index.html')
 
 ################################################################################
 # results_clustered.html

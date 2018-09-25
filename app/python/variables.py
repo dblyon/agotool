@@ -8,11 +8,12 @@ skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to downl
 skip_downloads_completely = True # don't download anything
 
 ### adapt volumes accordingly in docker-compose.yml
-DOCKER = True
+DOCKER = False
+FUTURES = True
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
-LOW_MEMORY = True # load function_an_2_description_dict or query DB
-DB_DOCKER = True # use local vs dockerized Postgres, in query.py
+LOW_MEMORY = False # load function_an_2_description_dict or query DB
+DB_DOCKER = False # use local vs dockerized Postgres, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
 PROFILING = True # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time

@@ -53,7 +53,7 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'KEGG': "-52"}
 
 
-def get_cursor(env_dict=None):
+def get_cursor(env_dict=None, DB_DOCKER=None):
     platform_ = sys.platform
     if env_dict is not None:
         USER = env_dict['POSTGRES_USER']
@@ -64,8 +64,7 @@ def get_cursor(env_dict=None):
         PORT = '5432'
         HOST = 'db'
         return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
-
-    if not variables.DB_DOCKER:
+    if not variables.DB_DOCKER: # or not DB_DOCKER:
         ### use dockerized Postgres directly from native OS
         PORT = '5913'
         HOST = 'localhost'
@@ -512,6 +511,15 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             an, associations_list, etype = res
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
+
+def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
+    association_dict = {}
+    protein_ans_list = str(protein_ans_list)[1:-1]
+    result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE (protein_2_function.an IN({}) AND protein_2_function.etype ={});".format(protein_ans_list, etype))
+    for res in result:
+        an, associations_list = res
+        association_dict[an] = set(associations_list)
+    return association_dict
 
 def get_function_an_2_name__an_2_description_dict():
     result = get_results_of_statement("SELECT functions.an, functions.name, functions.description FROM functions; ")

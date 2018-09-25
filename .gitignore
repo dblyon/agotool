@@ -77,3 +77,8 @@ POST*
 *.pem
 *.key
 data/PostgreSQL/tables
+# profiling #
+####################
+*.out
+*.prof
+
