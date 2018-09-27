@@ -1,0 +1,33 @@
+name: agotool2
+channels:
+  - anaconda
+  - bioconda
+  - nodefaults
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.5
+  - pypy3.5
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - retrying
+  - psycopg2
+  - scipy
+  - numpy
+  - pandas
+  - Werkzeug
+  - WTForms
+  - Flask
+  - Flask-WTF
+  - flask-restful
+  - requests
+  - networkx
+  - lxml
+  - pytest
+  - pytest-cov
+  - ipython
+  - markdown
+  - flask-markdown
+

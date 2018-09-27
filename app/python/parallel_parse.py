@@ -125,9 +125,16 @@ if __name__ == "__main__":
 
     #### add new files to DB and then comment top and uncomment bottom and run, then add new files to DB
     ###
-    fn_2_split = r"/home/dblyon/agotool/app/python/taxids.txt"
-    python_script = r"/home/dblyon/agotool/app/python/parallel_create_function_2_ENSP_table.py"
-    fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt"
+    # fn_2_split = r"/home/dblyon/agotool/app/python/taxids.txt"
+    # python_script = r"/home/dblyon/agotool/app/python/parallel_create_function_2_ENSP_table.py"
+    # fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt"
+    # temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
+    # parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir, KB_MB_GB="K", split_size=1)
+
+    ##### add information to christian's KS and AFC test
+    fn_2_split = r"/home/dblyon/agotool/app/python/pvalues.all_pmids.tsv"
+    python_script = r"/home/dblyon/agotool/app/python/add_infos_afc.py"
+    fn_out = r"/mnt/mnemo5/dblyon/pvalues.all_pmids.info.tsv"
     temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
-    parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir, KB_MB_GB="K", split_size=1)
+    parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir, KB_MB_GB="M", split_size=1)
 

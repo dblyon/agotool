@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from lxml import etree
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, wait, as_completed
-import concurrent.futures
+# import concurrent.futures
 process_pool = ProcessPoolExecutor(2)
 # thread_pool = ThreadPoolExecutor(4)
 from fisher import pvalue
@@ -140,7 +140,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         df["description"] = df["term"].apply(lambda an: an_2_description_dict[an])
     else:
         df["description"] = df["term"].apply(lambda an: pqo.function_an_2_description_dict[an])
-    print("run_STRING_enrichment_genome", type(df), df.shape)
+    #print("run_STRING_enrichment_genome", type(df), df.shape)
     df = filter_and_sort_PMID(df)
     return format_results(df, output_format, args_dict)
 
@@ -304,10 +304,10 @@ def run_rank_enrichment(pqo, ui, args_dict):
     else:
         df["description"] = df["term"].apply(lambda an: pqo.function_an_2_description_dict[an])
 
-    df = filter_and_sort_PMID(df, args_dict)
+    df = filter_and_sort_PMID(df)
     return format_results(df, output_format, args_dict)
 
-def filter_and_sort_PMID(df, args_dict):
+def filter_and_sort_PMID(df, PMID_top_100=True):
     ### remove blacklisted terms --> duplicate to cluster_filter.filter_parents_if_same_foreground_v2
     # df = df[~df["term"].isin(variables.blacklisted_terms)]
     cond_PMID = df["etype"] == -56
@@ -316,7 +316,7 @@ def filter_and_sort_PMID(df, args_dict):
         df_rest = df[~cond_PMID]
         df_PMID["year"] = df_PMID["description"].apply(PMID_description_to_year)
         df_PMID = df_PMID.sort_values(["FDR", "p_value", "year", "foreground_count"], ascending=[True, True, False, False])
-        if args_dict["PMID_top_100"]:
+        if PMID_top_100:
             df_PMID = df_PMID.head(100)
         df_rest = df_rest.sort_values(["etype", "FDR", "p_value", "foreground_count"], ascending=[False, True, True, False])
         df = pd.concat([df_rest, df_PMID], sort=False)
@@ -443,3 +443,4 @@ def write2file(fn, tsv):
 #         return pqo.DOM_pseudo_dag
 #     else:
 #         raise StopIteration
+

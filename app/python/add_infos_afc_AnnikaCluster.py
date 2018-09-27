@@ -39,9 +39,7 @@ def BenjaminiHochberg(pvals, num_total_tests, array=False):
 def add_infos_2_afc():
     entityType_2_functionType_dict = variables.entityType_2_functionType_dict
     taxid = 9606
-    pqo = query.PersistentQueryObject_STRING(low_memory=False)
-    function_an_2_description_dict = pqo.function_an_2_description_dict
-    association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid][-56]
+    pqo = query.PersistentQueryObject_STRING(low_memory=True)
 
     assoc_list, pval_list, count_in_population_list, average_abundance_ratio_list = [], [], [], []
     for line in fileinput.input():
@@ -67,36 +65,37 @@ def add_infos_2_afc():
     df["p_value"] = pval_list
     df["p_value"] = df["p_value"].astype(float)
     df["FDR"] = ""
+
+    #term_2_description_dict = defaultdict(lambda: str)
+    #term_2_description_dict.update(query.get_description_from_an(assoc_list))
+    #df["description"] = df["term"].apply(lambda p: term_2_description_dict[p])
+    df["description"] = ""
+
+    association_2_count_dict = defaultdict(lambda: int)
     df["foreground_count"] = count_in_population_list
-    
-    df["description"] = df["term"].apply(lambda p: function_an_2_description_dict[p])
-    df = df.sort_values("p_value", ascending=True)
-    df["FDR"] = BenjaminiHochberg(df["p_value"].values, df.shape[0], array=True)
-    df = df.sort_values(["FDR", "p_value", "description"]).head(100)
 
-    # term_2_description_dict = defaultdict(lambda: str)
-    # term_2_description_dict.update(query.get_description_from_an(assoc_list))
-    # df["description"] = df["term"].apply(lambda p: term_2_description_dict[p])
+    #association_2_count_dict.update(query.from_taxid_and_association_get_association_2_count_dict(taxid, assoc_list))
+    #df["count_in_genome"] = df["term"].apply(lambda p: association_2_count_dict[p])
+    df["count_in_genome"] = ""
 
+    #df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
+    df["hierarchical_level"] = ""
 
+    #an_2_etype_dict = defaultdict(lambda: -123)
+    #an_2_etype_dict.update(query.get_functionAN_2_etype_dict())
+    #df["etype"] = df["term"].apply(lambda term: an_2_etype_dict[term])
+    #df["category"] = df["etype"].apply(lambda etype: entityType_2_functionType_dict[int(etype)])
+    df["category"] = "STRING network neighborhood of xy proteins" 
+    df["etype"] = -123
 
-    # association_2_count_dict = defaultdict(lambda: int)
-    # association_2_count_dict.update(query.from_taxid_and_association_get_association_2_count_dict(taxid, assoc_list))
-    # df["count_in_genome"] = df["term"].apply(lambda p: association_2_count_dict[p])
-    df["count_in_genome"] = df["term"].apply(lambda p: association_2_count_dict_background[p])
-
-    df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
-
-    an_2_etype_dict = defaultdict(lambda: -123)
-    an_2_etype_dict.update(query.get_functionAN_2_etype_dict())
-    df["etype"] = df["term"].apply(lambda term: an_2_etype_dict[term])
-    df["category"] = df["etype"].apply(lambda etype: entityType_2_functionType_dict[int(etype)])
-
-    association_2_ENSPset_dict = defaultdict(lambda: set())
-    association_2_ENSPset_dict.update(query.from_taxid_and_association_get_association_2_ENSP(taxid, assoc_list))
-    df["foreground_ids"] = df["term"].apply(lambda term: ";".join(association_2_ENSPset_dict[term]))
+    #association_2_ENSPset_dict = defaultdict(lambda: set())
+    #association_2_ENSPset_dict.update(query.from_taxid_and_association_get_association_2_ENSP(taxid, assoc_list))
+    #df["foreground_ids"] = df["term"].apply(lambda term: ";".join(association_2_ENSPset_dict[term]))
+    df["foreground_ids"] = ""
     cols_sort_order = ['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', 'description', 'foreground_count', 'foreground_ids']
 
+    df = df.sort_values("p_value", ascending=True)
+    df["FDR"] = BenjaminiHochberg(df["p_value"].values, df.shape[0], array=True)
 
     cols_sort_order += sorted(set(df.columns.tolist()) - set(cols_sort_order))
     print(df[cols_sort_order].to_csv(sep='\t', header=True, index=False))

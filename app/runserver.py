@@ -178,7 +178,7 @@ parser.add_argument("filter_foreground_count_one", type=str,
     help="Keep only those terms with foreground_count > 1",
     default="True")
 
-parser.add_argument("LOW_MEMORY", type=str, default="True")
+parser.add_argument("LOW_MEMORY", type=str, default="False")
 parser.add_argument("FUTURES", type=str, default="False")
 parser.add_argument("PMID_top_100", type=str, default="True")
 parser.add_argument("caller_identity", type=str,
@@ -313,10 +313,10 @@ class API_STRING(Resource):
         args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
         if FDR_cutoff == 0:
             args_dict["FDR_cutoff"] = None
-        # print("-"*80)
-        # for key, val in args_dict.items():
-        #     print(key, val)
-        # print("-"*80)
+        print("-"*80)
+        for key, val in args_dict.items():
+            print(key, val)
+        print("-"*80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -328,13 +328,13 @@ class API_STRING(Resource):
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
             ### results are tsv or json
-            if not args_dict["FUTURES"]: #variables.FUTURES:
-                print("run.run_STRING_enrichment_genome(")
-                results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
-            else:
-                print("run.run_STRING_enrichment_genome_futures")
+            #if not args_dict["FUTURES"]: #variables.FUTURES:
+                #print("run.run_STRING_enrichment_genome(")
+            results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+            #else:
+                #print("run.run_STRING_enrichment_genome_futures")
             # results_all_function_types = run_STRING_enrichment_genome_tasks(pqo, ui, background_n, args_dict)
-                results_all_function_types = run.run_STRING_enrichment_genome_futures(pqo, ui, background_n, args_dict)
+                #results_all_function_types = run.run_STRING_enrichment_genome_futures(pqo, ui, background_n, args_dict)
             # print("after", type(results_all_function_types))
         elif args_dict["enrichment_method"] == "rank_enrichment":
             results_all_function_types = run.run_rank_enrichment(pqo, ui, args_dict)
@@ -525,7 +525,7 @@ def help_page(args_dict):
 def format_multiple_results(args_dict, results_all_entity_types):
     output_format = args_dict["output_format"]
     if output_format in {"tsv", "tsv_no_header", "tsv-no-header"}:
-        print("format_multiple_results", type(results_all_entity_types))
+        #print("format_multiple_results", type(results_all_entity_types))
         return Response(results_all_entity_types, mimetype='text')
     elif output_format == "json":
         return jsonify(results_all_entity_types)
