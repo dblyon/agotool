@@ -435,15 +435,24 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.go_slim_set = self.get_go_slim_terms()
         ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
         ### --> obsolete since using functerm_2_level_dict
-        # self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-        # self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+        self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+        self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
         # self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
         # self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
         # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
         # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
         # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
         # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
-        
+       
+        self.lineage_dict = {}
+        # key=GO-term, val=set of GO-terms (parents)
+        for go_term_name in self.go_dag:
+            GOTerm_instance = self.go_dag[go_term_name]
+            self.lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
+        for term_name in self.upk_dag:
+            Term_instance = self.upk_dag[term_name]
+            self.lineage_dict[term_name] = Term_instance.get_all_parents().union(Term_instance.get_all_children())
+
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
 
         ### lineage_dict: key: functional_association_term_name val: set of parent terms

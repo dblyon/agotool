@@ -137,7 +137,7 @@ if PRELOAD:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
 
-    # filter_ = cluster_filter.Filter(pqo.go_dag)
+    # filter_ = cluster_filter.Filter(pqo.go_dag, pqo.upk_dag)
 
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API

@@ -2,7 +2,7 @@ import os, multiprocessing
 
 ############################
 ### settings
-PRELOAD = True
+PRELOAD = True 
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything

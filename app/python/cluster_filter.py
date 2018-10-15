@@ -164,80 +164,18 @@ class MCL(object):
         self.close_log()
         return self.get_clusters(mcl_out)
 
-class Filter(object):
-
-    def __init__(self, go_dag):
-        self.go_lineage_dict = {}
-        # key=GO-term, val=set of GO-terms
-        for go_term_name in go_dag:
-            GOTerm_instance = go_dag[go_term_name]
-            self.go_lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
-
-    def filter_term_lineage(self, header, results, indent, sort_on='p_uncorrected'): #'fold_enrichment_foreground_2_background'
-        """
-        produce reduced list of results
-        from each GO-term lineage (all descendants (children) and ancestors
-        (parents), but not 'siblings') pick the term with the lowest p-value.
-        :param header: String
-        :param results: ListOfString
-        :param indent: Bool
-        :param sort_on: String(one of 'p_uncorrected' or 'fold_enrichment_foreground_2_background')
-        :return: ListOfString
-        """
-        results_filtered = []
-        blacklist = set(["GO:0008150", "GO:0005575", "GO:0003674"])
-        # {"BP": "GO:0008150", "CP": "GO:0005575", "MF": "GO:0003674"}
-        header_list = header.split('\t') #!!!
-        index_p = header_list.index(sort_on)
-        index_go = header_list.index('id_')
-        results = [res.split('\t') for res in results]
-        # results sorted on p_value
-        results.sort(key=lambda x: float(x[index_p]))
-        if sort_on == "fold_enrichment_foreground_2_background":
-            results = results[::-1]
-        for res in results:
-            if indent:
-                dot_goterm = res[index_go]
-                goterm = dot_goterm[dot_goterm.find("GO:"):]
-                if not goterm in blacklist:
-                    results_filtered.append(res)
-                    blacklist = blacklist.union(self.go_lineage_dict[goterm])
-            else:
-                if not res[index_go] in blacklist:
-                    results_filtered.append(res)
-                    blacklist = blacklist.union(self.go_lineage_dict[res[index_go]])
-        return ["\t".join(res) for res in results_filtered]
-
-def filter_parents_if_same_foreground(df_orig, functerm_2_level_dict):
-    """
-    keep terms of lowest leaf, remove parent terms if they are associated with exactly the same foreground
-    :param df_orig: DataFrame
-    :param functerm_2_level_dict: Dict(key: String(functional term), val: Integer(Level of hierarchy))
-    :return: DataFrame
-    """
-    cond_df_2_filter = df_orig["etype"].isin(variables.entity_types_with_ontology)
-    df = df_orig[cond_df_2_filter]
-    df["level"] = df["id"].apply(lambda term: functerm_2_level_dict[term])
-    # get maximum within group, all rows included if ties exist, NaNs are False in idx
-    idx = df.groupby(["etype", "ANs_foreground"])["level"].transform(max) == df["level"]
-    # retain rows where level is NaN
-    indices_2_keep = df[(df["level"].isnull() | idx)].index.values
-    # add df_orig part that can't be filtered due to missing ontology
-    indices_2_keep = np.append(df_orig[~cond_df_2_filter].index.values, indices_2_keep)
-    return df_orig.loc[indices_2_keep]
-    #return df_orig.loc[set(indices_2_keep)]
-
-def filter_parents_if_same_foreground_v2(df_orig):
-    ### filter blacklisted GO and KW terms
-    df_orig = df_orig[~df_orig["term"].isin(variables.blacklisted_terms)]
-
-    cond_df_2_filter = df_orig["etype"].isin(variables.entity_types_with_ontology)
+def filter_parents_if_same_foreground_v4(df_orig, lineage_dict, blacklisted_terms, entity_types_with_ontology):
+    blacklisted_terms = set(blacklisted_terms).copy()
+    cond_df_2_filter = df_orig["etype"].isin(entity_types_with_ontology)
     df = df_orig[cond_df_2_filter]
     df_no_filter = df_orig[~cond_df_2_filter]
-    # get maximum within group, all rows included if ties exist, NaNs are False in idx
-    idx = df.groupby(["etype", "foreground_ids"])["hierarchical_level"].transform(max) == df["hierarchical_level"]
-    # retain rows where level is NaN
-    df = df[(df["hierarchical_level"].isnull() | idx)]
+    terms_reduced = []
+    for name, group in df.groupby("foreground_ids"):
+        for term in group.sort_values(["hierarchical_level", "p_value", "foreground_count"], ascending=[False, True, False])["term"].values:
+            if not term in blacklisted_terms:
+                terms_reduced.append(term)
+                blacklisted_terms = blacklisted_terms.union(lineage_dict[term])
+    df = df[df["term"].isin(terms_reduced)]
     # add df_orig part that can't be filtered due to missing ontology
     return pd.concat([df, df_no_filter], sort=False)
 

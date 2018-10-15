@@ -70,8 +70,8 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         return False
 
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term.replace(".", "")]) # since "indent" can prepend dots
-    if filter_parents:
-        df = cluster_filter.filter_parents_if_same_foreground_v2(df)
+    if filter_parents and (args_dict["enrichment_method"] != "characterize_foreground"):
+        df = cluster_filter.filter_parents_if_same_foreground_v4(df, pqo.lineage_dict, variables.blacklisted_terms)
     if enrichment_method == "characterize_foreground":
         return format_results(df.sort_values(["etype"], ascending=[False]), output_format, args_dict)
     else:
@@ -130,8 +130,9 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         return False
 
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
-    if filter_parents:
-        df = cluster_filter.filter_parents_if_same_foreground_v2(df)
+    df.to_csv("temp_df_filter_parents.txt", sep="\t", header=True, index=False)
+    if filter_parents: 
+        df = cluster_filter.filter_parents_if_same_foreground_v4(df, pqo.lineage_dict, variables.blacklisted_terms, variables.entity_types_with_ontology)
     if filter_foreground_count_one:
         df = df[df["foreground_count"] > 1]
     # could be done async while p-values are being calculated
@@ -140,111 +141,8 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         df["description"] = df["term"].apply(lambda an: an_2_description_dict[an])
     else:
         df["description"] = df["term"].apply(lambda an: pqo.function_an_2_description_dict[an])
-    #print("run_STRING_enrichment_genome", type(df), df.shape)
     df = filter_and_sort_PMID(df)
     return format_results(df, output_format, args_dict)
-
-def run_STRING_enrichment_genome_futures(pqo, ui, background_n, args_dict):
-    taxid = check_taxids(args_dict)
-    if not taxid:
-        return False
-    output_format=args_dict["output_format"]
-    FDR_cutoff=args_dict["FDR_cutoff"]
-    filter_parents = args_dict["filter_parents"]
-    filter_foreground_count_one = args_dict["filter_foreground_count_one"]
-    protein_ans_list = ui.get_all_unique_ANs()
-
-    if not check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):
-        taxid_string = str(taxid)
-        ans_not_concur = [an for an in protein_ans_list if not an.startswith(taxid_string)]
-        args_dict["ERROR_taxid_proteinAN"] = "ERROR_taxid_proteinAN: The TaxID '{}' provided and the taxid of the proteins provided (e.g. '{}') do not concur.".format(taxid, ans_not_concur[:3])
-        return False
-    df, args_dict_temp = calc_enrichment_genome_futures(protein_ans_list, taxid, background_n, FDR_cutoff, pqo, args_dict)
-    args_dict.update(args_dict_temp)
-    if df is None:
-        return False
-
-    df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
-    if filter_parents:
-        df = cluster_filter.filter_parents_if_same_foreground_v2(df)
-    if filter_foreground_count_one:
-        df = df[df["foreground_count"] > 1]
-    # could be done async while p-values are being calculated
-    if args_dict["LOW_MEMORY"]: #variables.LOW_MEMORY:
-        an_2_description_dict = query.get_description_from_an(df["term"].tolist())
-        df["description"] = df["term"].apply(lambda an: an_2_description_dict[an])
-    else:
-        df["description"] = df["term"].apply(lambda an: pqo.function_an_2_description_dict[an])
-    print("run_STRING_enrichment_genome_futures", type(df), df.shape)
-    df = filter_and_sort_PMID(df)
-    return format_results(df, output_format, args_dict)
-
-def calc_enrichment_genome_futures(protein_ans_list, taxid, background_n, FDR_cutoff, pqo, args_dict):
-    df_list = []
-    if args_dict["LOW_MEMORY"] :# variables.LOW_MEMORY:
-        etype_2_association_2_count_dict_background = query.from_taxid_get_association_2_count_split_by_entity(taxid)
-    else:
-        etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]
-    futures = []
-    for entity_type in variables.entity_types_with_data_in_functions_table:
-        futures.append(process_pool.submit(enrichmentstudy_genome, (protein_ans_list, entity_type, etype_2_association_2_count_dict_background[entity_type], background_n, FDR_cutoff)))
-
-    for future in as_completed(futures):
-        result_df, args_dict_temp = future.result() #df_result_args_dict_temp
-        args_dict.update(args_dict_temp)
-        result_df = pd.read_csv(StringIO(result_df), sep='\t')
-        if result_df is None:
-            return None, args_dict
-        if not result_df.empty:
-            # result_df["etype"] = entity_type
-            result_df["category"] = variables.entityType_2_functionType_dict[entity_type]
-            df_list.append(result_df)
-    try:
-        df = pd.concat(df_list)
-    except ValueError:  # empty list
-        args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
-        return None, args_dict
-    # return df.to_csv(header=True, index=False, sep="\t"), args_dict
-    return df, args_dict
-
-def enrichmentstudy_genome(args):
-    protein_ans_list, entity_type, association_2_count_dict_background, background_n, FDR_cutoff = args
-    assoc_dict = query.get_association_dict_from_etype_and_proteins_list(protein_ans_list, entity_type)
-    association_2_count_dict_foreground, association_2_ANs_dict_foreground, foreground_n = count_terms_v3(protein_ans_list, assoc_dict)
-    fisher_dict, args_dict = {}, {}
-    term_list, description_list, p_value_list, foreground_ids_list, foreground_count_list = [], [], [], [], []
-    for association, foreground_count in association_2_count_dict_foreground.items():
-        try:
-            background_count = association_2_count_dict_background[association]
-        except KeyError:
-            args_dict["ERROR_association_2_count"] = "ERROR retrieving counts for association {} please contact david.lyon@uzh.ch with this error message".format(association)
-            return None, args_dict
-        a = foreground_count # number of proteins associated with given GO-term
-        b = foreground_n - foreground_count # number of proteins not associated with GO-term
-        c = background_count
-        d = background_n - background_count
-        if d < 0:
-            d = 0
-        try:
-            p_val_uncorrected = fisher_dict[(a, b, c, d)]
-        except KeyError:
-            p_val_uncorrected = pvalue(a, b, c, d).right_tail
-            fisher_dict[(a, b, c, d)] = p_val_uncorrected
-        term_list.append(association)
-        p_value_list.append(p_val_uncorrected)
-        foreground_ids_list.append(';'.join(association_2_ANs_dict_foreground[association]))
-        foreground_count_list.append(foreground_count)
-    df = pd.DataFrame({"term": term_list,
-                       "p_value": p_value_list,
-                       "foreground_ids": foreground_ids_list,
-                       "foreground_count": foreground_count_list})
-    df = df.sort_values("p_value")
-    df["FDR"] = BenjaminiHochberg(df["p_value"].values, df.shape[0], array=True)
-    df["etype"] = entity_type
-    # df["category"] = variables.entityType_2_functionType_dict[entity_type]
-    if FDR_cutoff is not None:
-        df = df[df["FDR"] <= FDR_cutoff]
-    return df.to_csv(header=True, index=False, sep="\t"), args_dict
 
 def count_terms_v3(ans_set, assoc_dict):
     association_2_ANs_dict = {}
@@ -295,7 +193,7 @@ def run_rank_enrichment(pqo, ui, args_dict):
         return False
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
     if filter_parents:
-        df = cluster_filter.filter_parents_if_same_foreground_v2(df)
+        df = cluster_filter.filter_parents_if_same_foreground_v4(df, pqo.lineage_dict, variables.blacklisted_terms, variables.entity_types_with_ontology)
     if filter_foreground_count_one:
         df = df[df["foreground_count"] > 1]
     if args_dict["LOW_MEMORY"]: #variables.LOW_MEMORY:
