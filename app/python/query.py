@@ -14,7 +14,8 @@ FN_KEYWORDS = variables.FN_KEYWORDS
 FN_GO_SLIM = variables.FN_GO_SLIM
 FN_GO_BASIC = variables.FN_GO_BASIC
 VERSION_ = variables.VERSION_
-
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR
+TABLES_DIR = variables.TABLES_DIR
 upkTerm_2_functionAN_dict = {u'Biological process': u'UPK:9999',
                              u'Cellular component': u'UPK:9998',
                              u'Coding sequence diversity': u'UPK:9997',
@@ -51,9 +52,50 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9998': "-51",  # 'Cellular component',
                               'UPK:9999': "-51",  # 'Biological process'
                               'KEGG': "-52"}
-
-
 def get_cursor(env_dict=None, DB_DOCKER=None):
+    platform_ = sys.platform
+    if env_dict is not None:
+        USER = env_dict['POSTGRES_USER']
+        PWD = env_dict['POSTGRES_PASSWORD']
+        DBNAME = env_dict['POSTGRES_DB']
+        # HOST = env_dict['HOST']
+        # PORT = env_dict['PORT']
+        PORT = '5432'
+        HOST = 'db'
+        return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+    if not variables.DB_DOCKER: # or not DB_DOCKER:
+        ### use dockerized Postgres directly from native OS
+        PORT = '5913'
+        HOST = 'localhost'
+        param_2_val_dict = variables.param_2_val_dict
+        return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
+
+    if platform_ == "linux":
+        try:
+            USER = os.environ['POSTGRES_USER']
+            PWD = os.environ['POSTGRES_PASSWORD']
+            DBNAME = os.environ['POSTGRES_DB']
+            PORT = '5432'
+            HOST = 'db'
+        except KeyError:
+            print("query.py sais there is something wrong with the Postgres config")
+            raise StopIteration
+        return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+
+    elif platform_ == "darwin":
+        if not variables.DB_DOCKER:
+            ### use local Postgres
+            return get_cursor_ody()
+        else: # connect to docker Postgres container
+            PORT = '5432'
+            HOST = 'localhost'
+            param_2_val_dict = variables.param_2_val_dict
+            return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
+    else:
+        print("query.get_cursor() doesn't know how to connect to Postgres")
+        raise StopIteration
+
+def get_cursor_old(env_dict=None, DB_DOCKER=None):
     platform_ = sys.platform
     if env_dict is not None:
         USER = env_dict['POSTGRES_USER']
@@ -452,6 +494,13 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         for term_name in self.upk_dag:
             Term_instance = self.upk_dag[term_name]
             self.lineage_dict[term_name] = Term_instance.get_all_parents().union(Term_instance.get_all_children())
+        fn_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+        #child_2_parent_dict = get_child_2_parent_dict_RCTM_hierarchy(fn_hierarchy)
+        #lineage_dict = {}
+        #for child in child_2_parent_dict:
+        #    lineage_dict[child] = get_parents_iterative(child, child_2_parent_dict)
+        lineage_dict = get_lineage_Reactome(fn_hierarchy)
+        self.lineage_dict.update(lineage_dict)
 
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
 
@@ -473,6 +522,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             # an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
             an_2_description_dict = get_function_an_2_description_dict()
             self.function_an_2_description_dict.update(an_2_description_dict)
+        #an = "HSA-3700989"
+        #print(an, self.function_an_2_description_dict[an])
+        #print(an, self.functerm_2_level_dict[an])
 
     def get_functional_term_2_level_dict(self):
         go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
@@ -480,6 +532,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         functerm_2_level_dict = defaultdict(lambda: np.nan)
         functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(go_dag))
         functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(upk_dag))
+        fn_RCTM_term_2_level = os.path.join(TABLES_DIR, "RCTM_term_2_level.txt")
+        functerm_2_level_dict.update(get_term_2_hierarchical_level_Reactome(fn_RCTM_term_2_level))
         return functerm_2_level_dict
 
     @staticmethod
@@ -518,8 +572,78 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list))
         for res in result:
             an, associations_list, etype = res
+            if int(etype) == -57:
+                continue
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
+
+def get_term_2_hierarchical_level_Reactome(fn_RCTM_term_2_level):
+    term_2_level_dict = {}
+    with open(fn_RCTM_term_2_level, "r") as fh_in:
+        for line in fh_in:
+            term, level = line.split("\t")
+            level = level.strip() # cast to int ?
+            term_2_level_dict[term] = level
+    return term_2_level_dict
+
+def get_child_2_parent_dict_RCTM_hierarchy(fn_in):
+    child_2_parent_dict = {}
+    with open(fn_in, "r") as fh_in:
+        for line in fh_in:
+            parent, child = line.split("\t")
+            child = child.strip()
+            if child not in child_2_parent_dict:
+                child_2_parent_dict[child] = {parent}
+            else:
+                child_2_parent_dict[child] |= {parent}
+    return child_2_parent_dict
+
+def get_parent_2_children_dict(fn_hierarchy):
+    parent_2_children_dict = {}
+    with open(fn_hierarchy, "r") as fh_in:
+        for line in fh_in:
+            parent, child = line.split("\t")
+            child = child.strip()
+            if parent not in parent_2_children_dict:
+                parent_2_children_dict[parent] = {child}
+            else:
+                parent_2_children_dict[parent] |= {child}
+    return parent_2_children_dict
+
+def get_lineage_Reactome(fn_hierarchy):
+    child_2_parent_dict = get_child_2_parent_dict_RCTM_hierarchy(fn_hierarchy)
+    parent_2_children_dict = get_parent_2_children_dict(fn_hierarchy)
+    lineage_dict = {}
+    for parent, children in parent_2_children_dict.items():
+        lineage_dict[parent] = children
+    for child in child_2_parent_dict:
+        parents = get_parents_iterative(child, child_2_parent_dict)
+        if child in lineage_dict:
+            lineage_dict[child].union(parents)
+        else:
+            lineage_dict[child] = parents
+    return lineage_dict
+
+def get_parents_iterative(child, child_2_parent_dict):
+    """
+    par = {"C22":{"C1"}, "C21":{"C1"}, "C1":{"P1"}}
+    get_parents_iterative("C22", par)
+    """
+    if child not in child_2_parent_dict:
+        return []
+    # important to set() otherwise parent is updated in orig object
+    all_parents = set(child_2_parent_dict[child])
+    current_parents = set(all_parents)
+    while len(current_parents) > 0:
+        new_parents = set()
+        for parent in current_parents:
+            if parent in child_2_parent_dict:
+                temp_parents = child_2_parent_dict[parent].difference(all_parents)
+                all_parents.update(temp_parents)
+                new_parents.update(temp_parents)
+        current_parents = new_parents
+    return all_parents
+
 
 def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
     association_dict = {}
@@ -653,6 +777,8 @@ def get_association_2_counts_split_by_entity():
         taxid, etype, association, background_count= rec
         # etype = str(etype)
         taxid = taxid
+        if int(etype) == -57:
+            continue
         taxid_2_etype_2_association_2_count_dict[taxid][etype][association] = background_count
     return taxid_2_etype_2_association_2_count_dict
 

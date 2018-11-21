@@ -32,7 +32,7 @@ blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150',
 
 function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
 # entity_types = {'-21', '-22', '-23', '-51', '-52', '-53', '-54', '-55', '-56'}
-entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
+entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56} # , -57}
 # "-21": {},  # | GO:0008150 | -21 | GO biological process |
 # "-22": {},  # | GO:0005575 | -22 | GO cellular component |
 # "-23": {},  # | GO:0003674 | -23 | GO molecular function |
@@ -44,7 +44,7 @@ entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
 # "-56": {}   # PMID
 # entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
 entity_types_with_data_in_functions_table = entity_types  # {-21, -22, -23, -51, -52, -53, -54, -55}
-entity_types_with_ontology = {-21, -22, -23, -51}
+entity_types_with_ontology = {-21, -22, -23, -51}#, -57}
 
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,
@@ -54,7 +54,8 @@ functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "SMART (Simple Modular Architecture Research Tool)": -53,
                                   "INTERPRO": -54,
                                   "PFAM (Protein FAMilies)": -55,
-                                  "PMID": -56}
+                                  "PMID": -56}#,
+                                  #"Reactome": -57}
 entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
                                   -23: "Gene Ontology molecular function",
@@ -63,7 +64,8 @@ entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -53: "SMART (Simple Modular Architecture Research Tool)",
                                   -54: "INTERPRO",
                                   -55: "PFAM (Protein FAMilies)",
-                                  -56: "PMID (PubMed IDentifier"}
+                                  -56: "PMID (PubMed IDentifier)"}#,
+                                  #-57: "Reactome"}
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 
 

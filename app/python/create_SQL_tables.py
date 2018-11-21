@@ -210,6 +210,14 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # fn_out_final = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
      # concatenate_files([fn_out_temp_2, fn_PMID], fn_out_final)
      # sort_file(fn_out_final, fn_out_final, columns="1", number_of_processes=number_of_processes)
+     ### adding Reactome RCTM data
+    # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+    # concatenate_files([os.path.join(TABLES_DIR, "Functions_table_STRING_bak.txt"), # bak since already working
+    #                    # with Function Enumeration data
+    #                    os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")], fn_out)
+    # sort_file(fn_out, fn_out, columns="1", number_of_processes=number_of_processes)
+
+
 
      ###### - Protein_2_Function_table
      #### - Protein_2_Function_table_Interpro no map_Name_2_AN necessary since AN not names provided, but check that all ANs are also present in Functions_table_InterPro.txt
@@ -271,6 +279,15 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
      # concatenate_files(fn_list, fn_out)
      # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+     ### add reactome, done on Ody todo Atlas
+     #fn_list = [os.path.join(TABLES_DIR, fn) for fn in
+     #           ["Protein_2_Function_table_RCTM.txt",
+     #            "Protein_2_Function_table_STRING_reduced.txt"]]
+     #fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     #concatenate_files(fn_list, fn_out)
+     #sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+
+
 
      ### - Functions_2_ENSP_table
      ### #!!! dependency on creating DB first #!!!
@@ -279,26 +296,26 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=number_of_processes, verbose=verbose)
 
      ### sanity check on Protein_2_Function_table
-     # fn_protein_2_function = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-     # fn_TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
-     # fn_protein_2_function_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
-     # fn_protein_2_function_rest = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_rest.txt")
-     # reduce_Protein_2_Function_table_2_STRING_proteins(fn_protein_2_function, fn_TaxID_2_Proteins_table_STRING, fn_protein_2_function_reduced, fn_protein_2_function_rest)
-     # os.rename(fn_protein_2_function, "Protein_2_Function_table_STRING_orig.txt")
-     # os.rename(fn_protein_2_function_reduced, fn_protein_2_function)
+     fn_protein_2_function = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     fn_TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+     fn_protein_2_function_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
+     fn_protein_2_function_rest = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_rest.txt")
+     reduce_Protein_2_Function_table_2_STRING_proteins(fn_protein_2_function, fn_TaxID_2_Proteins_table_STRING, fn_protein_2_function_reduced, fn_protein_2_function_rest)
+     os.rename(fn_protein_2_function, "Protein_2_Function_table_STRING_orig.txt")
+     os.rename(fn_protein_2_function_reduced, fn_protein_2_function)
 
-     # fn_func_2_ensp = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
-     # fn_func_2_ensp_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_reduced.txt")
-     # fn_func_2_ensp_rest = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_rest.txt")
-     # reduce_Function_2_ENSP_table_by_min_ENSP_per_function(fn_func_2_ensp, fn_func_2_ensp_reduced, fn_func_2_ensp_rest)
-     # os.rename(fn_func_2_ensp, os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_orig.txt"))
-     # os.rename(fn_func_2_ensp_reduced, fn_func_2_ensp)
+     fn_func_2_ensp = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
+     fn_func_2_ensp_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_reduced.txt")
+     fn_func_2_ensp_rest = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_rest.txt")
+     reduce_Function_2_ENSP_table_by_min_ENSP_per_function(fn_func_2_ensp, fn_func_2_ensp_reduced, fn_func_2_ensp_rest)
+     os.rename(fn_func_2_ensp, os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_orig.txt"))
+     os.rename(fn_func_2_ensp_reduced, fn_func_2_ensp)
 
-     # fn_protein_2_function = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-     # fn_function_2_ensp_rest = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_rest.txt")
-     # fn_protein_2_function_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
-     # fn_protein_2_function_rest = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_rest.txt")
-     # reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest(fn_protein_2_function, fn_function_2_ensp_rest, fn_protein_2_function_reduced, fn_protein_2_function_rest)
+     fn_protein_2_function = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     fn_function_2_ensp_rest = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_rest.txt")
+     fn_protein_2_function_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
+     fn_protein_2_function_rest = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_rest.txt")
+     reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest(fn_protein_2_function, fn_function_2_ensp_rest, fn_protein_2_function_reduced, fn_protein_2_function_rest)
 
      # if verbose:
      #     print("#"*80 + "\n##### " + "finished creating all tables")
@@ -306,9 +323,9 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #     remove_files(find_tables_to_remove() + tables_to_remove_temp)
      #     print("#" * 80, "removing temp files and temp_tables")
 
-     fn_function_2_ensp = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
-     fn_function_2_ensp_sorted = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_sorted.txt")
-     sort_function_2_ensp(fn_function_2_ensp, fn_function_2_ensp_sorted)
+   #  fn_function_2_ensp = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
+   #  fn_function_2_ensp_sorted = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_sorted.txt")
+   #  sort_function_2_ensp(fn_function_2_ensp, fn_function_2_ensp_sorted)
      # sanity check: compare Function_2_ENSP_table_STRING_reduced.txt vs Function_2_ENSP_table_STRING.txt (created via DB after reducing Function_2_ENSP_table_STRING.txt)
      # diff Function_2_ENSP_table_STRING_reduced.txt Function_2_ENSP_table_STRING.txt > temp.txt
      # sort --parallel 10 -k 1 /home/dblyon/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING_sorted.txt -o /home/dblyon/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING_sorted.txt

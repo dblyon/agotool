@@ -72,9 +72,9 @@ class EnrichmentStudy(object):
 
     def get_result(self, FDR_cutoff=None, fold_enrichment_for2background=None, p_value_uncorrected=None):
         self.df = self.filter_results(self.df, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
-        if self.method != "characterize_foreground": # since no p-values available
-            self.df["p_value"] = self.df["p_value"].apply(lambda x: "{:.2E}".format(Decimal(x)))
-            self.df["FDR"] = self.df["FDR"].apply(lambda x: "{:.2E}".format(Decimal(x)))
+        #if self.method != "characterize_foreground": # since no p-values available
+        #    self.df["p_value"] = self.df["p_value"].apply(lambda x: "{:.2E}".format(Decimal(x)))
+        #    self.df["FDR"] = self.df["FDR"].apply(lambda x: "{:.2E}".format(Decimal(x)))
         return self.df
 
     def run_compare_samples(self):
@@ -256,6 +256,7 @@ class EnrichmentStudy(object):
                 background_count = association_2_count_dict_background[association]
             except KeyError:
                 self.args_dict["ERROR_association_2_count"] = "ERROR retrieving counts for association {} please contact david.lyon@uzh.ch with this error message".format(association)
+                print("ERROR !!!! association_2_count_dict_background", association, "NOT FOUND")
                 return None
                 # background_count = np.nan
             a = foreground_count # number of proteins associated with given GO-term

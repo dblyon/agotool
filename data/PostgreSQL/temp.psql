@@ -1,15 +1,17 @@
 --DROP TABLE IF EXISTS functions;
---CREATE TABLE functions(
---    etype text,
+--CREATE TABLE functions (
+--    enum integer,
+--    etype integer,
 --    an text,
---    name text,
---    definition text,
---    description text);
+--    description text,
+--    year text,
+--    level integer);
 --\copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
 --CREATE INDEX functions_an_idx ON functions (an);
 --CREATE INDEX functions_etype_an_idx ON functions (etype, an);
 --CLUSTER functions USING functions_etype_an_idx;
 
+--DROP TABLE IF EXISTS protein_2_function, protein_2_functionenum;
 DROP TABLE IF EXISTS protein_2_function;
 CREATE TABLE protein_2_function(
     an text,
@@ -19,6 +21,28 @@ CREATE TABLE protein_2_function(
 CREATE INDEX protein_2_function_an_idx ON protein_2_function (an);
 CREATE INDEX protein_2_function_an_etype_idx ON protein_2_function (an, etype);
 CLUSTER protein_2_function USING protein_2_function_an_etype_idx;
+
+
+--DROP TABLE IF EXISTS functions;
+--CREATE TABLE functions (
+--    etype integer,
+--    an text,
+--    name text,
+--    definition text,
+--    description text);
+--\copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING_v2.txt';
+--CREATE INDEX functions_an_idx ON functions (an);
+--CREATE INDEX functions_etype_an_idx ON functions (etype, an);
+--CLUSTER functions USING functions_etype_an_idx;
+
+
+
+--CREATE TABLE protein_2_functionenum (
+--    an text,
+--    functionenum integer ARRAY);
+--\copy protein_2_functionenum FROM '/agotool_data/PostgreSQL/tables/Protein_2_FunctionEnum_table_STRING.txt';
+--CREATE INDEX protein_2_functionenum_an_idx ON protein_2_functionenum (an);
+
 
 DROP TABLE IF EXISTS function_2_ensp;
 CREATE TABLE function_2_ensp (
@@ -32,3 +56,30 @@ CREATE TABLE function_2_ensp (
 CREATE INDEX function_2_ensp_taxid_idx ON function_2_ensp (taxid);
 CREATE INDEX function_2_ensp_taxid_etype_idx ON function_2_ensp (taxid, etype);
 CLUSTER function_2_ensp USING function_2_ensp_taxid_etype_idx;
+
+--DROP TABLE IF EXISTS taxid_2_functioncountarray;
+--CREATE TABLE taxid_2_functioncountarray (
+--    taxid integer,
+--    background_n integer,
+--    background_count_array integer ARRAY);
+--
+--\copy taxid_2_functioncountarray FROM '/agotool_data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_STRING.txt';
+--CREATE INDEX taxid_2_functioncountarray_taxid_idx ON taxid_2_functioncountarray (taxid);
+
+
+--DROP TABLE IF EXISTS function_2_ensp;
+--
+--CREATE TABLE function_2_ensp (
+--    taxid integer,
+--    etype integer,
+--    association text,
+--    enum integer,
+--    background_count integer,
+--    background_n integer,
+--    an_array text ARRAY);
+--\copy function_2_ensp FROM '/agotool_data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt';
+--CREATE INDEX function_2_ensp_taxid_idx ON function_2_ensp (taxid);
+--CREATE INDEX function_2_ensp_taxid_etype_idx ON function_2_ensp (taxid, etype);
+--CLUSTER function_2_ensp USING function_2_ensp_taxid_etype_idx;
+
+

@@ -111,12 +111,20 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     else:
         etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]
     for entity_type in variables.entity_types_with_data_in_functions_table:
+        #print(entity_type)
         assoc_dict = etype_2_association_dict[entity_type]
         if bool(assoc_dict): # not empty dictionary
+            #print(assoc_dict["9606.ENSP00000266970"])
+           # print(assoc_dict["9606.ENSP00000361021"])
             enrichment_study = enrichment.EnrichmentStudy(pqo, args_dict, ui=ui, assoc_dict=assoc_dict, enrichment_method=enrichment_method,
                 o_or_u_or_both="overrepresented", multitest_method="benjamini_hochberg", entity_type=entity_type,
                 association_2_count_dict_background=etype_2_association_2_count_dict_background[entity_type], background_n=background_n)
+            #try:
+            #    print(enrichment_study.df.shape)
+            #except:
+            #    print(type(enrichment_study.df))
             result_df = enrichment_study.get_result(FDR_cutoff=FDR_cutoff, fold_enrichment_for2background=None, p_value_uncorrected=None)
+            #print(result_df.shape)
             if result_df is None:
                 return False
             if not result_df.empty:
@@ -130,7 +138,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         return False
 
     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
-    df.to_csv("temp_df_filter_parents.txt", sep="\t", header=True, index=False)
+    #df.to_csv("temp_df_filter_parents.txt", sep="\t", header=True, index=False)
     if filter_parents: 
         df = cluster_filter.filter_parents_if_same_foreground_v4(df, pqo.lineage_dict, variables.blacklisted_terms, variables.entity_types_with_ontology)
     if filter_foreground_count_one:
@@ -142,6 +150,9 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     else:
         df["description"] = df["term"].apply(lambda an: pqo.function_an_2_description_dict[an])
     df = filter_and_sort_PMID(df)
+    #an = "HSA-3700989"
+    #print("pqo", an, pqo.functerm_2_level_dict[an])
+    #print("pqo", an, pqo.function_an_2_description_dict[an])
     return format_results(df, output_format, args_dict)
 
 def count_terms_v3(ans_set, assoc_dict):
