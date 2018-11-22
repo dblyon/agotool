@@ -1,38 +1,17 @@
 import os, sys, logging, time
 from collections import defaultdict
-import json
-import pandas as pd
 import numpy as np
 from lxml import etree
 import flask
 from flask import render_template, request, send_from_directory, jsonify
-from flask.views import MethodView
-from flask_restful import reqparse, abort, Api, Resource
-from flask import Flask
-from io import StringIO
+from flask_restful import reqparse, Api, Resource
 from werkzeug.wrappers import Response
 import wtforms
 from wtforms import fields
-# from fisher import pvalue
-sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-# from celery import Celery
-# from celery import group
-# import tasks
-import query, userinput, run, cluster_filter, variables
 import markdown
-from flask import Markup
 from flaskext.markdown import Markdown
-# import pickle
-# from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, wait, as_completed
-# import concurrent.futures
-# process_pool = ProcessPoolExecutor(4)
-# thread_pool = ThreadPoolExecutor(4)
-# from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
-# future = process_pool.submit(return_after_5_secs, ("hello"))
-# with concurrent.futures.ProcessPoolExecutor() as executor:
-#     for number, prime in zip(PRIMES, executor.map(is_prime, PRIMES)):
-#         print('%d is prime: %s' % (number, prime))
-
+sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
+import query, userinput, run, cluster_filter, variables
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -50,9 +29,14 @@ PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
 MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
-
 ###############################################################################
 # ToDo 2018
+# - debug cython filter_parents (cf. old to new version without filter_parents) --> done
+# - buy goliath domain?
+# - use cProfile on compiled cython --> done but not that great to inspect
+# - replace bool array with uint8 array and casting to bool & using prange with nogil
+# - reimplement "limit_2_entity_type"
+
 # go_slim_or_basic --> filter for slim terms
 # check out DF sorting before returning results, year and FDR not sorted correctly
 # - consistency with single and double quotes
@@ -137,7 +121,7 @@ if PRELOAD:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
 
-    # filter_ = cluster_filter.Filter(pqo.go_dag)
+    #filter_ = cluster_filter.Filter(pqo.go_dag, pqo.upk_dag)
 
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API
@@ -179,19 +163,22 @@ parser.add_argument("filter_foreground_count_one", type=str,
     default="True")
 
 parser.add_argument("LOW_MEMORY", type=str, default="True")
-parser.add_argument("FUTURES", type=str, default="False")
-parser.add_argument("PMID_top_100", type=str, default="True")
+parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p-value and recent publication date.")
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
 
 parser.add_argument("FDR_cutoff", type=float,
-    help="False Discovery Rate cutoff (threshold for multiple testing corrected p-values) e.g. 0.05, default=0 meaning no cutoff.",
-    default=None)
+    help="False Discovery Rate cutoff (threshold for multiple testing corrected p-values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.",
+    default=0.05)
+
+# parser.add_argument("filter_PMID", type=float,
+#     help="Filter the top n PMID (PubMed IDs) sorted by lowest FDR and newest publication date; e.g. 100, default=100.",
+#     default=100)
 
 parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
-    default="-21;-22;-23;-51;-52;-53;-54;-55;-56")
+    default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57")
 
 parser.add_argument("privileged", type=str,
     default="False")
@@ -307,16 +294,18 @@ class API_STRING(Resource):
         args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
         args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
         args_dict["LOW_MEMORY"] = string_2_bool(args_dict["LOW_MEMORY"])
-        args_dict["FUTURES"] = string_2_bool(args_dict["FUTURES"])
-        args_dict["PMID_top_100"] = string_2_bool(args_dict["PMID_top_100"])
         FDR_cutoff = args_dict["FDR_cutoff"]
         args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
-        if FDR_cutoff == 0:
+        filter_PMID_top_n = args_dict["filter_PMID_top_n"]
+        # args_dict["PMID_top_100"] = string_2_bool(args_dict["PMID_top_100"])
+        if FDR_cutoff == 0 or FDR_cutoff >= 1:
             args_dict["FDR_cutoff"] = None
-        # print("-"*80)
-        # for key, val in args_dict.items():
-        #     print(key, val)
-        # print("-"*80)
+        if filter_PMID_top_n == 0:
+            args_dict["filter_PMID_top_n"] = None
+        print("-"*80)
+        for key, val in sorted(args_dict.items()):
+            print(key, val)
+        print("-"*80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -328,17 +317,13 @@ class API_STRING(Resource):
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
             ### results are tsv or json
-            if not args_dict["FUTURES"]: #variables.FUTURES:
-                print("run.run_STRING_enrichment_genome(")
-                results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
-            else:
-                print("run.run_STRING_enrichment_genome_futures")
-            # results_all_function_types = run_STRING_enrichment_genome_tasks(pqo, ui, background_n, args_dict)
-                results_all_function_types = run.run_STRING_enrichment_genome_futures(pqo, ui, background_n, args_dict)
-            # print("after", type(results_all_function_types))
+            results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+
         elif args_dict["enrichment_method"] == "rank_enrichment":
-            results_all_function_types = run.run_rank_enrichment(pqo, ui, args_dict)
-            # print(results_all_function_types.shape, type(results_all_function_types))
+            print("returning help page")
+            # results_all_function_types = run.run_rank_enrichment(pqo, ui, args_dict)
+            args_dict["ERROR_NotImplementedError"] = "This method is not yet implented (again)"
+            return help_page(args_dict)
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
 
@@ -346,87 +331,10 @@ class API_STRING(Resource):
             print("returning help page")
             return help_page(args_dict)
         else:
-            return format_multiple_results(args_dict, results_all_function_types)
+            return format_multiple_results(args_dict, results_all_function_types, pqo)
+
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
-
-# def run_STRING_enrichment_genome_tasks(pqo, ui, background_n, args_dict):
-#     taxid = check_taxids(args_dict)
-#     if not taxid:
-#         return False
-#     output_format=args_dict["output_format"]
-#     FDR_cutoff=args_dict["FDR_cutoff"]
-#     filter_parents = args_dict["filter_parents"]
-#     filter_foreground_count_one = args_dict["filter_foreground_count_one"]
-#     protein_ans_list = ui.get_all_unique_ANs()
-#
-#     if not check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):
-#         taxid_string = str(taxid)
-#         ans_not_concur = [an for an in protein_ans_list if not an.startswith(taxid_string)]
-#         args_dict["ERROR_taxid_proteinAN"] = "ERROR_taxid_proteinAN: The TaxID '{}' provided and the taxid of the proteins provided (e.g. '{}') do not concur.".format(taxid, ans_not_concur[:3])
-#         return False
-#     df, args_dict_temp = run_enrichment_genome(protein_ans_list, taxid, background_n, FDR_cutoff)
-#     args_dict.update(args_dict_temp)
-#     if df is None:
-#         return False
-#     df["hierarchical_level"] = df["term"].apply(lambda term: pqo.functerm_2_level_dict[term])
-#     if filter_parents:
-#         # df = cluster_filter.filter_parents_if_same_foreground_v2(df)
-#         df_orig = df.copy()
-#         ### filter blacklisted GO and KW terms
-#         df_orig = df_orig[~df_orig["term"].isin(variables.blacklisted_terms)]
-#
-#         cond_df_2_filter = df_orig["etype"].isin(variables.entity_types_with_ontology)
-#         df = df_orig[cond_df_2_filter]
-#         df_no_filter = df_orig[~cond_df_2_filter]
-#         # get maximum within group, all rows included if ties exist, NaNs are False in idx
-#         idx = df.groupby(["etype", "foreground_ids"])["hierarchical_level"].transform(max) == df["hierarchical_level"]
-#         # retain rows where level is NaN
-#         df = df[(df["hierarchical_level"].isnull() | idx)]
-#         # add df_orig part that can't be filtered due to missing ontology
-#         return pd.concat([df, df_no_filter], sort=False)
-#     if filter_foreground_count_one:
-#         df = df[df["foreground_count"] > 1]
-#     # could be done async while p-values are being calculated
-#     if variables.LOW_MEMORY:
-#         an_2_description_dict = query.get_description_from_an(df["term"].tolist())
-#         df["description"] = df["term"].apply(lambda an: an_2_description_dict[an])
-#     else:
-#         df["description"] = df["term"].apply(lambda an: pqo.function_an_2_description_dict[an])
-#
-#     df = filter_and_sort_PMID(df)
-#     return format_results(df, output_format, args_dict)
-
-# def run_enrichment_genome(protein_ans_list, taxid, background_n, FDR_cutoff):
-#     df_list = []
-#     args_dict = {}
-#     if variables.LOW_MEMORY:
-#         etype_2_association_2_count_dict_background = query.from_taxid_get_association_2_count_split_by_entity(taxid)
-#     else:
-#         etype_2_association_2_count_dict_background = pqo.taxid_2_etype_2_association_2_count_dict_background[taxid]
-#     # for entity_type in variables.entity_types_with_data_in_functions_table:
-#     #     association_2_count_dict_background = etype_2_association_2_count_dict_background[entity_type]
-#     #     result_df, args_dict_temp = enrichmentstudy_genome.delay(protein_ans_list, entity_type, association_2_count_dict_background, background_n, FDR_cutoff).get()
-#
-#     jobs = group(tasks.enrichmentstudy_genome.s(protein_ans_list, entity_type, etype_2_association_2_count_dict_background[entity_type], background_n, FDR_cutoff) for entity_type in variables.entity_types_with_data_in_functions_table)
-#     result = jobs.apply_async(queue='transient')
-#     for result_df_args_dict in result.join():
-#         result_df, args_dict_temp = result_df_args_dict
-#         args_dict.update(args_dict_temp)
-#         result_df = pd.read_csv(StringIO(result_df), sep='\t')
-#         if result_df is None:
-#             return None, args_dict
-#         if not result_df.empty:
-#             # result_df["etype"] = entity_type
-#             result_df["category"] = variables.entityType_2_functionType_dict[entity_type]
-#             df_list.append(result_df)
-#     try:
-#         df = pd.concat(df_list)
-#     except ValueError:  # empty list
-#         args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
-#         return None, args_dict
-#     # return df.to_csv(header=True, index=False, sep="\t"), args_dict
-#     return df, args_dict
 
 
 def PMID_description_to_year(string_):
@@ -522,10 +430,10 @@ def help_page(args_dict):
         pass
     return jsonify(args_dict)
 
-def format_multiple_results(args_dict, results_all_entity_types):
+def format_multiple_results(args_dict, results_all_entity_types, pqo):
     output_format = args_dict["output_format"]
     if output_format in {"tsv", "tsv_no_header", "tsv-no-header"}:
-        print("format_multiple_results", type(results_all_entity_types))
+        # print("format_multiple_results", type(results_all_entity_types))
         return Response(results_all_entity_types, mimetype='text')
     elif output_format == "json":
         return jsonify(results_all_entity_types)
@@ -539,6 +447,7 @@ def format_multiple_results(args_dict, results_all_entity_types):
         return jsonify(dict_2_return)
     else:
         raise NotImplementedError
+
 
 ################################################################################
 # index.html
@@ -707,7 +616,9 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
                                               ("-53", "SMART domains"),
                                               ("-54", "InterPro domains"),
                                               ("-55", "PFAM domains"),
-                                              ("-21;-22;-23;-51;-52;-53;-54;-55", "All available")),
+                                              ("-56", "PMID (PubMed IDs"),
+                                              ("-57", "Reactome"),
+                                              ("-21;-22;-23;-51;-52;-53;-54;-55;-56;-57", "All available")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
     enrichment_method = fields.SelectField("Select one of the following methods",
                                    choices = (("genome", "genome"),
@@ -1005,9 +916,7 @@ if __name__ == "__main__":
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
     # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
     # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
-    # ToDo: All proteins without abundance data are disregarded (will be placed in a separate bin in next update)
     ################################################################################
-
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
     app.run(host='0.0.0.0', port=5912, processes=1, debug=variables.DEBUG)

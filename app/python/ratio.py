@@ -135,11 +135,9 @@ def count_terms_v3(ans_set, assoc_dict):
     count_n: Integer(Number of ANs with a GO-term in assoc_dict and obo_dag)
     :return: Tuple(dict, dict, int)
     """
-    # ans_counter = 0
     association_2_ANs_dict = {}
     association_2_count_dict = defaultdict(int)
     for an in (AN for AN in ans_set if AN in assoc_dict):
-        # ans_counter += 1
         for association in assoc_dict[an]:
             association_2_count_dict[association] += 1
             if not association in association_2_ANs_dict:
@@ -147,6 +145,7 @@ def count_terms_v3(ans_set, assoc_dict):
             else:
                 association_2_ANs_dict[association] |= {an} # update dict
     return association_2_count_dict, association_2_ANs_dict, len(ans_set) #ans_counter
+
 # todo remove 3rd return value "len(ans_set)", also from caller of function
 # check similarity to count_terms_abundance_corrected
 # unify method

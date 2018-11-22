@@ -16,6 +16,8 @@ dist
 *.egg/
 *.pyc
 *.swp
+*.c
+*.so
 
 .coverage
 html/*

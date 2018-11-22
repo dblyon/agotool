@@ -20,6 +20,7 @@
 | INTERPRO | -54 | Interpro |
 | PFAM | -55 | Pfam |
 | PMID | -56 | PMID |
+| RCTM | -57 | REACTOME |
 | chemicals | -1 | chemicals |
 | NCBI species taxonomy id (tagging species) | -2 | NCBI species taxonomy id (tagging species) |
 | NCBI species taxonomy id (tagging proteins) | -3 | NCBI species taxonomy id (tagging proteins) |
@@ -32,29 +33,23 @@
 | MPheno phenotypes| -30 | MPheno phenotypes |
 | NBO behaviors | -31 | NBO behaviors |
 | mammalian phenotypes | -36 | mammalian phenotypes |
+| DSD clusters | -77 | DSD based STRING clusters |
+| clusters | -78 | STRING clusters |
+
 
 ### functions [Functions_table_STRING.txt]
-| etype | an | name | definition | description |
-|:---:|:---:|:---:|:---:|:---:|
-| -21 | GO:0000001 | mitochondrion inheritance | The distribution of mitochondria including the mitochondrial genome into daughter cells after mitosis or meiosis mediated by interactions between mitochondria and the cytoskeleton GOCmcc PMID10873824 PMID11389764 | mitochondrion inheritance |
-| -21 | GO:0000002 | mitochondrial genome maintenance | The maintenance of the structure and integrity of the mitochondrial genome includes replication and segregation of the mitochondrial chromosome GOCai GOCvw | mitochondrial genome maintenance |
-| -22 | GO:0000015 | phosphopyruvate hydratase complex | A multimeric enzyme complex usually a dimer or an octamer that catalyzes the conversion of 2phosphoDglycerate to phosphoenolpyruvate and water GOCjl ISBN0198506732 | phosphopyruvate hydratase complex |
-| -22 | GO:0000109 | nucleotideexcision repair complex | Any complex formed of proteins that act in nucleotideexcision repair PMID10915862 | nucleotide-excision repair complex |
-| -23 | GO:0000006 | highaffinity zinc transmembrane transporter activity | Enables the transfer of zinc ions Zn2 from one side of a membrane to the other probably powered by proton motive force In highaffinity transport the transporter is able to bind the solute even if it is only present at very low concentrations TC2A511 | high-affinity zinc transmembrane transporter activity |
-| -23 | GO:0000007 | lowaffinity zinc ion transmembrane transporter activity | Enables the transfer of a solute or solutes from one side of a membrane to the other according to the reaction Zn2  Zn2 probably powered by proton motive force In lowaffinity transport the transporter is able to bind the solute only if it is present at very high concentrations GOCmtgtransport ISBN0815340729 | low-affinity zinc ion transmembrane transporter activity |
-| -24 | GO:0000005 | obsolete ribosomal chaperone activity | OBSOLETE Assists in the correct assembly of ribosomes or ribosomal subunits in vivo but is not a component of the assembled ribosome when performing its normal biological function GOCjl PMID12150913 | obsolete ribosomal chaperone activity |
-| -24 | GO:0000008 | obsolete thioredoxin | OBSOLETE A small disulfidecontaining redox protein that serves as a general protein disulfide oxidoreductase Interacts with a broad range of proteins by a redox mechanism based on the reversible oxidation of 2 cysteine thiol groups to a disulfide accompanied by the transfer of 2 electrons and 2 protons The net result is the covalent interconversion of a disulfide and a dithiol GOCkd | obsolete thioredoxin |
-| -51 | KW-0001 | 2Fe2S | Protein which contains at least one 2Fe2S ironsulfur cluster 2 iron atoms complexed to 2 inorganic sulfides and 4 sulfur atoms of cysteines from the protein  | 2Fe-2S |
-| -51 | KW-0002 | 3Dstructure | Protein or part of a protein whose threedimensional structure has been resolved experimentally for example by Xray crystallography or NMR spectroscopy and whose coordinates are available in the PDB database Can also be used for theoretical models  | 3D-structure |
-| -52 | map00010 | Glycolysis  Gluconeogenesis |  | Glycolysis / Gluconeogenesis |
-| -52 | map00020 | Citrate cycle TCA cycle |  | Citrate cycle (TCA cycle) |
-| -53 | SM00001 | EGFlike | EGF domain unclasssified subfamily  | EGF domain, unclasssified subfamily |
-| -53 | SM00002 | PLP | Myelin proteolipid protein PLP or lipophilin  | Myelin proteolipid protein (PLP or lipophilin) |
-| -54 | IPR000001 | Kringle |  | Kringle |
-| -54 | IPR000003 | Retinoid X receptorHNF4 |  | Retinoid X receptor/HNF4 |
-| -55 | PF00001 | 7tm1 | 7 transmembrane receptor rhodopsin family | 7 transmembrane receptor (rhodopsin family) |
-| -55 | PF00002 | 7tm2 | 7 transmembrane receptor Secretin family | 7 transmembrane receptor (Secretin family) |
-
+| enum | etype | an | description | year | level |
+|:---:|:---:|:---:|:---:|:---:|:--:|
+| 0 | -21 | GO:0000001 | mitochondrion inheritance | -1 | 5 |
+| 1 | -21 | GO:0000002 | mitochondrial genome maintenance | -1 | 5 |
+| 2 | -21 | GO:0000003 | reproduction | -1 | 1 |
+| 47234 | -51 | KW-0001 | 2Fe-2S | -1 | 2 |
+| 47235 | -51 | KW-0002 | 3D-structure | -1 | 1 |
+| 48432 | -52 | map00010 | Glycolysis Gluconeogenesis | -1 | -1 |
+| 48433 | -52 | map00020 | Citrate cycle (TCA cycle) | -1 | -1 |
+| 48961 | -53 | SM00006 | amyloid A4 | -1 | -1 |
+| 791705 | -56 | PMID:12926249 | (2003) | QMMM calculations of kinetic isotope effects in the chorismate mutase active site. | 2003 | -1 |
+| | -57 |
 
 
 ### function_2_ENSP [Function_2_ENSP_table_STRING.txt]
@@ -63,6 +58,13 @@
 | 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } |
 | 9606 | -21 | 'GO:0006897' | 2 | 3919 | {'9606.ENSP00000000412', ...} |
 | 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'9606.ENSP00000000412'} |
+
+### function_2_ENSP [Function_2_ENSP_table_STRING_enum.txt]
+| taxid | etype | association | enum | background_count | background_n | an_array |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 9606 | -21 | 'GO:0006810' | 2673 | 3 | 3919 | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } |
+| 9606 | -21 | 'GO:0006897' | 2737 | 2 | 3919 | {'9606.ENSP00000000412', ...} |
+| 9606 | -21 | 'GO:0006898' | 2738 | 1 | 3919 | {'9606.ENSP00000000412'} |
 
 ### go_2_slim [GO_2_Slim_table_STRING.txt]
 | an | slim |
@@ -96,8 +98,38 @@
 | -55 | 9606.ENSP00000000412 | {"PF09451","PF02157"} |
 
 
+### protein_2_functionEnum [Protein_2_FunctionEnum_table_STRING.txt]
+| an | func_enum_array |
+|:---:|:---:|
+| 1000565.METUNv1_00006 | {47403, 48329, 48422, 52375, 86134, 97354, 97505} |
+| 1193181.BN10_100007 | {47403, 47665, 47963, 48277, 48329, 48422, 48426, 48430, 52979, 61216, 86802} |
+| 1230343.CANP01000023_gene1527 | {47403, 47665, 47963, 48277, 48422, 48426, 48430} |
+| 1286170.RORB6_22675 | {47403, 47440, 47743, 48422, 48424, 53868, 75137, 82814, 85480} |
+| 1537715.JQFJ01000002_gene718 | {49160} |
+| 211165.AJLN01000153_gene695 | {100879} |
+| 246196.MSMEI_2975 | {47397, 47403, 48329, 48422, 48426, 51824, 59740, 1812416, 1914629, 2064397, 2516845, 2542738, 2579066, 2787936, 3317676, 3378861, 3552644, 4064473, 4205464, 4398263, 5424544, 5522838} |
+| 38833.XP_003059384.1 | {47403, 48329, 48422, 49005, 51951, 60573, 96979, 97269, 97582} |
+| 794846.AJQU01000003_gene1109 | {47403, 48422, 53420, 69968, 87113} |
+| 9606.ENSP00000298492 | {78, 93, 95, 1557, 2377, 2408, 2670, 2771, 2803, 2814, 2818, 2843, 2845, 2846, 2853, 3348, 3349, 3432, 4057, 5420, 5615, 6509, 7297, 7319, 10550, 11801, 11918, 12247, 12316, 12317, 12329, 12333, 14335, 15112, 15390, 15448, 18561, 18628, 18629, 18794, 19344, ... |
+| 9986.ENSOCUP00000018664 | {47403, 48329, 48422} |
+
+### lineage [Lineage_table_STRING.txt]
+| func_enum | func_enum_array |
+| 0 | {2803, 2809, 3348, 4057, 5420, 14355, 14358, 15352, 15697, 15698, 15703, 19423} |
+| 1 | {2803, 2809, 3348, 4057, 5420, 9249, 19423} |
+| 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
+
+
 ### taxid_2_protein [TaxID_2_Protein_table_STRING.txt]
 | taxid | count | an_array |
 |:---:|:---:|:---:|
 | 9606 | 19566 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} |
 | 1000565 | 12345 | {"1000565.METUNv1_00006","1000565.METUNv1_00011","1000565.METUNv1_00018","1000565.METUNv1_00019", ...} |
+
+
+### Taxid_2_FunctionCountArray [Taxid_2_FunctionCountArray_table_STRING.txt]
+| taxid | background_n | background_count_array |
+|:---:|:---:|:---:|
+| 9606 | 19566 | {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ... |
+| 100901 | 647 | {{3328085,2},{3635192,6},{4454829,2},{47234,4}, ... |
+| 7230 | 14594 | {{100001,2},{1000164,6},{100046,2},{100058,9}, ... |

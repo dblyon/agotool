@@ -40,9 +40,9 @@ RUN cd /software \
     && cd /software \
     && rm -rf /software/mcl-14-137
 
+RUN pip install --upgrade pip
 # Install Python packages
-RUN pip install --upgrade pip \
-    && pip install \
+RUN pip install \
         numpy \
         scipy \
         cython \
@@ -51,16 +51,21 @@ RUN pip install --upgrade pip \
 
 RUN mkdir -p /opt/services/flaskapp/src
 #VOLUME ["/opt/services/flaskapp/src"]
+#RUN echo $PYTHONPATH
+
 # We copy the requirements.txt file first to avoid cache invalidations
-RUN echo $PYTHONPATH
 COPY ./app/requirements.txt /opt/services/flaskapp/src/
 WORKDIR /opt/services/flaskapp/src
 RUN pip install -r requirements.txt
-COPY . /opt/services/flaskapp/src
-# just to add some simple alias(es)
-COPY ./app/.bashrc /root/.bashrc
-#COPY ./data/PostgreSQL/downloads/*.obo /agotool_data/PostgreSQL/downloads/
 
+COPY ./app /opt/services/flaskapp/src
+
+# why is this change not reflected on Ody? or even in the docker container?
+RUN cd python && python setup.py build_ext --inplace
+
+COPY ./app/.bashrc /root/.bashrc
+#COPY . /opt/services/flaskapp/src
+#COPY ./data/PostgreSQL/downloads/*.obo /agotool_data/PostgreSQL/downloads/
 WORKDIR /opt/services/flaskapp/src
 EXPOSE 5912
 CMD ["python", "runserver.py"]

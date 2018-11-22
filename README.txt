@@ -465,9 +465,11 @@ docker run --rm -it --volume /Users/dblyon/modules/cpr/agotool:/mounted_data --v
 #### building working DB for STRING version_
 # create DBs
 docker exec -it agotool_db_1 psql -U postgres -d postgres -f /agotool_data/PostgreSQL/create_DBs.psql
+docker exec -it postgres psql -U postgres -d postgres -f /agotool_data/PostgreSQL/create_DBs.psql
 docker run -it --net agotool_db_nw --env-file /Users/dblyon/modules/cpr/agotool/app/env_file -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest python ./python/create_SQL_tables.py
 # populate DB for real
 docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/copy_from_file_and_index_STRING.psql
+docker exec -it postgres psql -U postgres -d gostring -f /agotool_data/PostgreSQL/copy_from_file_and_index_STRING.psql
 docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql
 docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/temp.psql
 

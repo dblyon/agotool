@@ -1,38 +1,40 @@
 import os, multiprocessing
-
+import numpy as np
 ############################
 ### settings
-PRELOAD = True
+PRELOAD = True # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-### adapt volumes accordingly in docker-compose.yml
-DOCKER = False
-FUTURES = True
+DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+# FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 LOW_MEMORY = False # load function_an_2_description_dict or query DB
-DB_DOCKER = False # use local vs dockerized Postgres, in query.py
+DB_DOCKER = True # connect via local port vs via docker, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING = True # profiling flaskapp --> check stdout, set to False in production
-TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = False #False # print stuff to stdout
+PROFILING = False # profiling flaskapp --> check stdout, set to False in production
+TESTING = False
+# use small testing subset of files for DB import, checking settings when intilizing everything for the first time
+VERBOSE = True #False # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 ############################
+# function_enumeration_len = 6815598 # ?deprecated?
 #blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9995', 'KW-9996', 'KW-9997', 'KW-9998', 'KW-9999']
-blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 
+blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999',
                      # top level KW except “Disease” and “Developmental stage”
                      # 'KW-9995' 'Disease',
                      # 'KW-9996' 'Developmental stage'                     
-                     'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614', 'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267']
+                     'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614', 'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267'}
                      # 'KW-9990' 'Technical term' and all its children
+blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
 
 function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
-# entity_types = {'-21', '-22', '-23', '-51', '-52', '-53', '-54', '-55', '-56'}
-entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
+entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57}
+alpha = 0.05
 # "-21": {},  # | GO:0008150 | -21 | GO biological process |
 # "-22": {},  # | GO:0005575 | -22 | GO cellular component |
 # "-23": {},  # | GO:0003674 | -23 | GO molecular function |
@@ -44,7 +46,8 @@ entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56}
 # "-56": {}   # PMID
 # entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
 entity_types_with_data_in_functions_table = entity_types  # {-21, -22, -23, -51, -52, -53, -54, -55}
-entity_types_with_ontology = {-21, -22, -23, -51}
+entity_types_with_ontology = {-21, -22, -23, -51, -57}
+entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
 
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,
@@ -54,7 +57,9 @@ functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "SMART (Simple Modular Architecture Research Tool)": -53,
                                   "INTERPRO": -54,
                                   "PFAM (Protein FAMilies)": -55,
-                                  "PMID": -56}
+                                  "PMID": -56,
+                                  "Reactome": -57}
+
 entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
                                   -23: "Gene Ontology molecular function",
@@ -63,9 +68,13 @@ entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -53: "SMART (Simple Modular Architecture Research Tool)",
                                   -54: "INTERPRO",
                                   -55: "PFAM (Protein FAMilies)",
-                                  -56: "PMID (PubMed IDentifier"}
-limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
+                                  -56: "PMID (PubMed IDentifier)",
+                                  -57: "Reactome"}
 
+limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
+cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "foreground_ids", "year"]
+cols_sort_order_charcterize = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
+cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "foreground_ids", "year", "ratio_in_foreground", "ratio_in_background", "foreground_ids", "background_ids", "foreground_count", "background_count", "foreground_n", "background_n"]
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas

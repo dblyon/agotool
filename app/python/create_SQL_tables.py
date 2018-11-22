@@ -1,5 +1,6 @@
 import os, json, sys, re, fnmatch, subprocess, time, datetime #, shlex  #, multiprocessing
 import pandas as pd
+import numpy as np
 from subprocess import call
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import ast, re
@@ -194,22 +195,29 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # create_Functions_table_PFAM(fn_in=os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv"), fn_out=os.path.join(TABLES_DIR, "Functions_table_PFAM.txt"))
      # create_Functions_table_InterPro(fn_in=os.path.join(DOWNLOADS_DIR, "InterPro_name_2_AN.txt"), fn_out=os.path.join(TABLES_DIR, "Functions_table_InterPro.txt"))
      # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt",
-     #                                                   "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
-     #                                                   "Functions_table_PFAM.txt", "Functions_table_InterPro.txt"]]
-     ### Functions_table_STRING_temp_1.txt --> concatenated files
+     #                                                    "Functions_table_KEGG.txt", "Functions_table_SMART.txt",
+     #                                                    "Functions_table_PFAM.txt", "Functions_table_InterPro.txt",
+     #                                                    "Functions_table_RCTM.txt"]]
+     # ### Functions_table_STRING_temp_1.txt --> concatenated files
      # fn_out_temp_1 = os.path.join(TABLES_DIR, "Functions_table_STRING_temp_1.txt")
      # print("creating {} by concatenation and sorting".format(fn_out_temp_1))
      # concatenate_files(fn_list, fn_out_temp_1)
-     ## Functions_table_STRING_temp_1.txt concatenated and sorted
+     # # Functions_table_STRING_temp_1.txt concatenated and sorted
      # fn_out_temp_2 = os.path.join(TABLES_DIR, "Functions_table_STRING_temp_2.txt")
      # sort_file(fn_out_temp_1, fn_out_temp_1, columns="1", number_of_processes=number_of_processes)
-     ## Functions_table_STRING_temp_2.txt --> added definition and resorted columns
+     # # Functions_table_STRING_temp_2.txt --> added definition and resorted columns
      # functions_table_STRING_create_descriptions(fn_out_temp_1, fn_out_temp_2)
-     ## create Functions_table_PMID.txt via parallel_parse_textmining_pmc_medline.py and parallel_parse.py
+     # # create Functions_table_PMID.txt via parallel_parse_textmining_pmc_medline.py and parallel_parse.py
      # fn_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
      # fn_out_final = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
      # concatenate_files([fn_out_temp_2, fn_PMID], fn_out_final)
      # sort_file(fn_out_final, fn_out_final, columns="1", number_of_processes=number_of_processes)
+     ### adding Reactome RCTM data # done on Ody, doing on Atlas
+     # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+     # concatenate_files([os.path.join(TABLES_DIR, "Functions_table_STRING_bak.txt"), # bak since already working
+     #                    # with Function Enumeration data
+     #                    os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")], fn_out)
+     # sort_file(fn_out, fn_out, columns="1", number_of_processes=number_of_processes)
 
      ###### - Protein_2_Function_table
      #### - Protein_2_Function_table_Interpro no map_Name_2_AN necessary since AN not names provided, but check that all ANs are also present in Functions_table_InterPro.txt
@@ -267,10 +275,20 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #            "Protein_2_Function_table_InterPro.txt",
      #            "Protein_2_Function_table_PFAM.txt",
      #            "Protein_2_Function_table_SMART.txt",
-     #            "Protein_2_Function_table_PMID.txt"]] # from create_protein_2_function_table.py
+     #            "Protein_2_Function_table_PMID.txt",
+     #            "Protein_2_Function_table_RCTM.txt"]] # from create_protein_2_function_table.py
      # fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
      # concatenate_files(fn_list, fn_out)
      # sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+     ### deprecated start
+     ## add reactome, done on Ody todo Atlas --> add above
+     ## fn_list = [os.path.join(TABLES_DIR, fn) for fn in
+     ##            ["Protein_2_Function_table_RCTM.txt",
+     ##             "Protein_2_Function_table_STRING_reduced.txt"]]
+     ##fn_out = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     ##concatenate_files(fn_list, fn_out)
+     ##sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
+     ### deprecated stop
 
      ### - Functions_2_ENSP_table
      ### #!!! dependency on creating DB first #!!!
@@ -286,19 +304,21 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      # reduce_Protein_2_Function_table_2_STRING_proteins(fn_protein_2_function, fn_TaxID_2_Proteins_table_STRING, fn_protein_2_function_reduced, fn_protein_2_function_rest)
      # os.rename(fn_protein_2_function, "Protein_2_Function_table_STRING_orig.txt")
      # os.rename(fn_protein_2_function_reduced, fn_protein_2_function)
-
+     #
      # fn_func_2_ensp = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
      # fn_func_2_ensp_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_reduced.txt")
      # fn_func_2_ensp_rest = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_rest.txt")
      # reduce_Function_2_ENSP_table_by_min_ENSP_per_function(fn_func_2_ensp, fn_func_2_ensp_reduced, fn_func_2_ensp_rest)
      # os.rename(fn_func_2_ensp, os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_orig.txt"))
      # os.rename(fn_func_2_ensp_reduced, fn_func_2_ensp)
-
+     #
      # fn_protein_2_function = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
      # fn_function_2_ensp_rest = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_rest.txt")
      # fn_protein_2_function_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
      # fn_protein_2_function_rest = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_rest.txt")
      # reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest(fn_protein_2_function, fn_function_2_ensp_rest, fn_protein_2_function_reduced, fn_protein_2_function_rest)
+     # os.rename(fn_protein_2_function, os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_orig.txt"))
+     # os.rename(fn_protein_2_function_reduced, fn_protein_2_function)
 
      # if verbose:
      #     print("#"*80 + "\n##### " + "finished creating all tables")
@@ -306,12 +326,282 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      #     remove_files(find_tables_to_remove() + tables_to_remove_temp)
      #     print("#" * 80, "removing temp files and temp_tables")
 
-     fn_function_2_ensp = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
-     fn_function_2_ensp_sorted = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_sorted.txt")
-     sort_function_2_ensp(fn_function_2_ensp, fn_function_2_ensp_sorted)
+     # fn_function_2_ensp = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
+     # fn_function_2_ensp_sorted = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_sorted.txt")
+     # sort_function_2_ensp(fn_function_2_ensp, fn_function_2_ensp_sorted)
      # sanity check: compare Function_2_ENSP_table_STRING_reduced.txt vs Function_2_ENSP_table_STRING.txt (created via DB after reducing Function_2_ENSP_table_STRING.txt)
      # diff Function_2_ENSP_table_STRING_reduced.txt Function_2_ENSP_table_STRING.txt > temp.txt
      # sort --parallel 10 -k 1 /home/dblyon/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING_sorted.txt -o /home/dblyon/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING_sorted.txt
+
+     # fn_in = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+     # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING_enum.txt")
+     # create_FunctionEnum_2_year_arr(fn_in, fn_out, pqo, number_of_processes)
+     # os.rename(os.path.join(TABLES_DIR, "Functions_table_STRING.txt"), os.path.join(TABLES_DIR, "Functions_table_STRING_bak_noEnum.txt"))
+     # os.rename(os.path.join(TABLES_DIR, "Functions_table_STRING_enum.txt"), os.path.join(TABLES_DIR, "Functions_table_STRING.txt"))
+     ### temp to remove -24
+     # fn_in = os.path.join(TABLES_DIR, "Functions_table_STRING_bak_noEnum.txt")
+     # fn_out = os.path.join(TABLES_DIR, "Functions_table_STRING_enum.txt")
+     # create_FunctionEnum_2_year_arr(fn_in, fn_out, pqo, number_of_processes)
+     # os.rename(os.path.join(TABLES_DIR, "Functions_table_STRING_enum.txt"), os.path.join(TABLES_DIR, "Functions_table_STRING.txt"))
+
+
+     ### dependency on adding Functions_table_STRING.txt to DB
+     # function_2_enum_dict, enum_2_function_dict = query.get_function_an_2_enum__and__enum_2_function_an_dict()
+     # fn_protein_2_function = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+     # fn_protein_2_functionEnum = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt")
+     # Protein_2_Function_table_map_function_2_function_enumeration(fn_protein_2_function, fn_protein_2_functionEnum, function_2_enum_dict)
+
+     ### create 2 new tables with enumerations one for association counts, add function-enumeration to Function_2_ENSP_table_STRING for clarity # max_background_count: 58324
+     # function_2_enum_dict, enum_2_function_dict = query.get_function_an_2_enum__and__enum_2_function_an_dict()
+     # fn_in = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
+     # fn_out = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_enum.txt")
+     # fn_out_funcount = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
+     # add_enumerations_2_Function_2_ENSP_table(fn_in, fn_out, function_2_enum_dict, number_of_processes)
+     # create_Taxid_2_FunctionCountArray_table_STRING(fn_out, fn_out_funcount)
+
+     # create_funcenum_2_lineage_table()
+
+
+### create table lineage
+
+def get_lineage_dict_for_all_entity_types_with_ontologies():
+    lineage_dict = {}
+    go_dag = obo_parser.GODag(obo_file=variables.FN_GO_BASIC)
+    upk_dag = obo_parser.GODag(obo_file=variables.FN_KEYWORDS, upk=True)
+    # key=GO-term, val=set of GO-terms (parents)
+    for go_term_name in go_dag:
+        GOTerm_instance = go_dag[go_term_name]
+        lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
+    for term_name in upk_dag:
+        Term_instance = upk_dag[term_name]
+        lineage_dict[term_name] = Term_instance.get_all_parents().union(Term_instance.get_all_children())
+
+    fn_hierarchy = os.path.join(variables.DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+    lineage_dict.update(get_lineage_Reactome(fn_hierarchy))
+    return lineage_dict
+
+
+def get_lineage_Reactome(fn_hierarchy):
+    child_2_parent_dict = get_child_2_parent_dict_RCTM_hierarchy(fn_hierarchy)
+    parent_2_children_dict = get_parent_2_children_dict(fn_hierarchy)
+    lineage_dict = {}
+    for parent, children in parent_2_children_dict.items():
+        lineage_dict[parent] = children
+    for child in child_2_parent_dict:
+        parents = get_parents_iterative(child, child_2_parent_dict)
+        if child in lineage_dict:
+            lineage_dict[child].union(parents)
+        else:
+            lineage_dict[child] = parents
+    return lineage_dict
+
+
+def get_child_2_parent_dict_RCTM_hierarchy(fn_in):
+    child_2_parent_dict = {}
+    with open(fn_in, "r") as fh_in:
+        for line in fh_in:
+            parent, child = line.split("\t")
+            child = child.strip()
+            if child not in child_2_parent_dict:
+                child_2_parent_dict[child] = {parent}
+            else:
+                child_2_parent_dict[child] |= {parent}
+    return child_2_parent_dict
+
+
+def get_parent_2_children_dict(fn_hierarchy):
+    parent_2_children_dict = {}
+    with open(fn_hierarchy, "r") as fh_in:
+        for line in fh_in:
+            parent, child = line.split("\t")
+            child = child.strip()
+            if parent not in parent_2_children_dict:
+                parent_2_children_dict[parent] = {child}
+            else:
+                parent_2_children_dict[parent] |= {child}
+    return parent_2_children_dict
+
+
+def get_parents_iterative(child, child_2_parent_dict):
+    """
+    par = {"C22":{"C1"}, "C21":{"C1"}, "C1":{"P1"}}
+    get_parents_iterative("C22", par)
+    """
+    if child not in child_2_parent_dict:
+        return []
+    # important to set() otherwise parent is updated in orig object
+    all_parents = set(child_2_parent_dict[child])
+    current_parents = set(all_parents)
+    while len(current_parents) > 0:
+        new_parents = set()
+        for parent in current_parents:
+            if parent in child_2_parent_dict:
+                temp_parents = child_2_parent_dict[parent].difference(all_parents)
+                all_parents.update(temp_parents)
+                new_parents.update(temp_parents)
+        current_parents = new_parents
+    return all_parents
+
+
+def create_funcenum_2_lineage_table():
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies()
+
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = query.PersistentQueryObject_STRING.get_lookup_arrays(low_memory=True)
+
+    term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
+
+    lineage_dict_enum = {}
+    term_no_translation_because_obsolete = []
+    for key, val in lineage_dict.items():
+        try:
+            key_enum = term_2_enum_dict[key]
+        except KeyError:
+            term_no_translation_because_obsolete.append(key)
+            continue
+        term_enum_temp = []
+        for ele in val:
+            try:
+                term_enum_temp.append(term_2_enum_dict[ele])
+            except KeyError:
+                term_no_translation_because_obsolete.append(ele)
+        lineage_dict_enum[key_enum] = sorted(term_enum_temp)
+
+    keys_sorted = sorted(lineage_dict_enum.keys())
+    with open(os.path.join(variables.TABLES_DIR, r"Lineage_table_STRING.txt"), "w") as fh_out:
+        for key in keys_sorted:
+            fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict_enum[key])))[1:-1].replace("'", '"') + "}\n")
+
+
+def add_enumerations_2_Function_2_ENSP_table(fn_in, fn_out, function_2_enum_dict, number_of_processes):
+    print("sorting the input {}".format(fn_in))
+    sort_file(fn_in, fn_in, columns="1,2", number_of_processes=number_of_processes, verbose=True) # #!!! uncomment (should already be sorted, but do to be sure)
+    print("creating new table \n{}\n".format(fn_out))
+    with open(fn_in, "r") as fh_in:
+        with open(fn_out, "w") as fh_out:
+            for line in fh_in:
+                taxid, etype, term_an, background_count, background_n, an_array = line.split("\t")
+                term_enum = function_2_enum_dict[term_an]
+                fh_out.write(taxid + "\t" + etype + "\t" + term_an + "\t" + str(term_enum) + "\t" + background_count + "\t" + background_n + "\t" + an_array) # no newline necessary
+
+def create_Taxid_2_FunctionCountArray_table_STRING(fn_in, fn_out_funcount):
+    print("sorting the input {}".format(fn_in))
+    # sort_file(fn_in, fn_in, columns="1,2", number_of_processes=number_of_processes, verbose=True) # #!!! uncomment (should already be sorted, but do to be sure)
+    print("creating new table \n{}\n".format(fn_out_funcount))
+    ### new table with
+    ### taxid, background_n, background_count_array (corresponds to functionalterm_arr indices, therefore sorted by term_enum, same length as term_enum)
+    max_background_count = 0
+    with open(fn_in, "r") as fh_in:
+        taxid, etype, term_an, term_enum, background_count, background_n, an_array = fh_in.readline().split("\t")
+        taxid_last = taxid
+        background_n_last = background_n
+        if int(background_count) > max_background_count:
+            max_background_count = int(background_count)
+        index_background_count_list = [(term_enum, int(background_count))]
+        with open(fn_out_funcount, "w") as fh_out_funcount:
+            for line in fh_in:
+                taxid, etype, term_an, term_enum, background_count, background_n, an_array = line.split("\t")
+                if int(background_count) > max_background_count:
+                    max_background_count = int(background_count)
+                if taxid == taxid_last:
+                    index_background_count_list.append((term_enum, int(background_count)))
+                else:
+                    index_backgroundCount_array_string = helper_list_of_tuples_2_Postgres_array(index_background_count_list)
+                    fh_out_funcount.write(taxid_last + "\t" + background_n_last + "\t" + index_backgroundCount_array_string + "\n")
+                    index_background_count_list = [(term_enum, int(background_count))]
+                taxid_last = taxid
+                background_n_last = background_n
+            index_backgroundCount_array_string = helper_list_of_tuples_2_Postgres_array(index_background_count_list)
+            fh_out_funcount.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+    print("max_background_count: {}".format(max_background_count))
+
+
+def helper_list_of_tuples_2_Postgres_array(index_background_count_list):
+    """
+    in: [(4, 1), (2, 6), (1, 7)]
+    out: '{{1,7},{2,6},{4,1}}'
+    :param index_background_count_list:
+    :return:
+    """
+    index_background_count_list.sort(key=lambda tup: tup[0])
+    index_backgroundCount_array_string = ""
+    for ele in index_background_count_list:
+        index_backgroundCount_array_string += "{{{0},{1}}},".format(ele[0], ele[1])
+    return "{" + index_backgroundCount_array_string[:-1] + "}"
+
+
+def create_FunctionEnum_2_year_arr(fn_in, fn_out, pqo, number_of_processes=1):
+    print("sorting the input {}".format(fn_in))
+    sort_file(fn_in, fn_in, columns="1,2", number_of_processes=number_of_processes, verbose=True)
+    print("creating additional columns for Functions_table")
+    funcEnum = 0
+    with open(fn_in, "r") as fh_in:
+        with open(fn_out, "w") as fh_out:
+            # for funcEnum, line in enumerate(fh_in, 0):
+            for line in fh_in:
+                etype, term, name, definition, description = line.split("\t")
+                description = description.strip()
+                if int(etype) == -24: # don't need obsolete GO terms
+                    continue
+
+                if etype == "-56": # PMID
+                    year = PMID_description_to_year(description)
+                else:
+                    year = "-1"
+
+                if int(etype) in variables.entity_types_with_ontology:
+                    level = pqo.functerm_2_level_dict[term]
+                    if np.isnan(level):
+                        level = "-1"
+                else:
+                    level = "-1"
+                    # add hierarchical level, default is -1 # what is a sensible default? np.nan or 0 or -1 --> -1 is better since hierarchy can be 0
+                fh_out.write(str(funcEnum) + "\t" + etype + "\t" + term + "\t" + description + "\t" + str(year) + "\t" + str(level) + "\n")
+                funcEnum += 1
+
+def PMID_description_to_year(string_):
+    try:
+        return string_[1:5]
+    except ValueError or IndexError:
+        return "-1"
+
+def Protein_2_Function_table_map_function_2_function_enumeration(fn_in, fn_out, function_2_enum_dict):
+    with open(fn_in, "r") as fh_in:
+        with open(fn_out, "w") as fh_out:
+            ENSP_last, function_arr_str, etype = fh_in.readline().strip().split("\t")
+            function_arr = ast.literal_eval(function_arr_str)
+            functionEnum_list = _helper(function_arr, function_2_enum_dict)
+
+            for line in fh_in:
+                ENSP, function_arr_str, etype = line.strip().split("\t")
+                function_arr = ast.literal_eval(function_arr_str)
+
+                if ENSP == ENSP_last:
+                    functionEnum_list += _helper(function_arr, function_2_enum_dict)
+                else:
+                    fh_out.write(ENSP_last + "\t" + "{" + str(sorted(functionEnum_list))[1:-1] + "}" + "\n") # etype is removed
+                    functionEnum_list = _helper(function_arr, function_2_enum_dict)
+
+                ENSP_last = ENSP
+            fh_out.write(ENSP + "\t" + "{" + str(sorted(functionEnum_list))[1:-1] + "}" + "\n") # etype is removed
+
+def _helper(function_arr, function_2_enum_dict):
+    functionEnum_list = []
+    for ele in function_arr:
+        try:
+            functionEnum_list.append(function_2_enum_dict[ele])
+        except KeyError:
+            print(ele)
+            raise StopIteration
+    return functionEnum_list
+
+def add_enumeration_column(fn_in, fn_out, number_of_processes=1):
+    print("sorting the input {}".format(fn_in))
+    sort_file(fn_in, fn_in, columns="1,2", number_of_processes=number_of_processes, verbose=True)
+    print("adding enumeration column to file {}".format(fn_out))
+    with open(fn_in, "r") as fh_in:
+        with open(fn_out, "w") as fh_out:
+            for i, line in enumerate(fh_in):
+                fh_out.write(str(i) + "\t" + line)
 
 def sort_function_2_ensp(fn_function_2_ensp, fn_function_2_ensp_sorted):
     with open(fn_function_2_ensp, "r") as fh_in:
@@ -336,6 +626,8 @@ def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest(fn_protein_2_f
             else:
                 ENSP_2_assocSet_dict[ENSP] |= {assoc}
 
+    print("producing new file {}".format(fn_protein_2_function_reduced))
+    print("producing new file {}".format(fn_protein_2_function_rest))
     with open(fn_protein_2_function, "r") as fh_in:
         with open(fn_protein_2_function_reduced, "w") as fh_out_reduced:
             with open(fn_protein_2_function_rest, "w") as fh_out_rest:
@@ -360,6 +652,7 @@ def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest(fn_protein_2_f
                                 fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
                     except KeyError:
                         fh_out_reduced.write(line)
+    print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
 
 def parse_taxid_2_proteins_get_all_ENSPs(fn_TaxID_2_Proteins_table_STRING):
     ENSP_set = set()
@@ -370,6 +663,8 @@ def parse_taxid_2_proteins_get_all_ENSPs(fn_TaxID_2_Proteins_table_STRING):
 
 def reduce_Protein_2_Function_table_2_STRING_proteins(fn_protein_2_function, fn_TaxID_2_Proteins_table_STRING, fn_protein_2_function_reduced, fn_protein_2_function_rest):
     ENSP_set = parse_taxid_2_proteins_get_all_ENSPs(fn_TaxID_2_Proteins_table_STRING)
+    print('producing new file {}'.format(fn_protein_2_function_reduced))
+    print('producing new file {}'.format(fn_protein_2_function_rest))
     with open(fn_protein_2_function, "r") as fh_in:
         with open(fn_protein_2_function_reduced, "w") as fh_out_reduced:
             with open(fn_protein_2_function_rest, "w") as fh_out_rest:
@@ -379,9 +674,12 @@ def reduce_Protein_2_Function_table_2_STRING_proteins(fn_protein_2_function, fn_
                         fh_out_reduced.write(line)
                     else:
                         fh_out_rest.write(line)
+    print("finished with reduce_Protein_2_Function_table_2_STRING_proteins")
 
 def reduce_Function_2_ENSP_table_by_min_ENSP_per_function(fn_func_2_ensp, fn_func_2_ensp_reduced, fn_func_2_ensp_rest):
     min_number = 1
+    print("producing new file {}".format(fn_func_2_ensp_reduced))
+    print("producing new file {}".format(fn_func_2_ensp_rest))
     with open(fn_func_2_ensp, "r") as fh_in:
         with open(fn_func_2_ensp_reduced, "w") as fh_out_reduced:
             with open(fn_func_2_ensp_rest, "w") as fh_out_rest:
@@ -390,6 +688,7 @@ def reduce_Function_2_ENSP_table_by_min_ENSP_per_function(fn_func_2_ensp, fn_fun
                         fh_out_reduced.write(line)
                     else:
                         fh_out_rest.write(line)
+    print("finished with reduce_Function_2_ENSP_table_by_min_ENSP_per_function")
 
 def change_UPK_2_KW(fn_in, from_="UPK:", to_="KW-"):
     fn_temp = fn_in + "_temp"
@@ -472,17 +771,22 @@ def clean_messy_string_v2(string_):
     else:
         return string_
 
-def sort_file(fn_in, fn_out, columns="1", fn_bash_script=None, number_of_processes=1, verbose=True):
+def sort_file(fn_in, fn_out, columns=None, fn_bash_script=None, number_of_processes=1, verbose=True):
     if verbose:
         print("#sorting file\nfn_in:\n{}\nfn_out:\n{}".format(fn_in, fn_out))
     if fn_bash_script is None:
         fn_bash_script = "bash_script_sort_{}.sh".format(os.path.basename(fn_in))
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
-        if PLATFORM == "linux":
+        # if PLATFORM == "linux":
+        if columns is not None:
             shellcmd = "sort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
         else:
-            shellcmd = "LC_ALL=C gsort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
+            shellcmd = "sort --parallel {} {} -o {}".format(number_of_processes, fn_in, fn_out)
+        # else:
+            # shellcmd = "LC_ALL=C gsort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
+        if PLATFORM != "linux":
+            shellcmd = shellcmd.replace("sort ", "LC_ALL=C gsort ")
         fh.write(shellcmd)
     if verbose:
         print(shellcmd)
@@ -513,7 +817,7 @@ def create_functions_2_ENSP_table(pqo, fn_out, number_of_processes=1, verbose=Tr
             for etype in sorted(variables.entity_types_with_data_in_functions_table):
                 assoc_dict = etype_2_association_dict[etype]
                 association_2_count_dict, association_2_ANs_dict, ans_counter = ratio.count_terms_manager(set(ans_list), assoc_dict)
-                # bubu# ans_counter --> number of AccessionNumbers with any association = background_n
+                # ans_counter --> number of AccessionNumbers with any association = background_n
                 # association_2_count_dict --> number of associations per given Association” = background_count
                 for association, ans in association_2_ANs_dict.items():
                     assert ans_counter >= association_2_count_dict[association]

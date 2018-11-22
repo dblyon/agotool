@@ -1,15 +1,21 @@
 import numpy as np
+import pandas as pd
 import os, sys
 from collections import defaultdict
 import psycopg2, math
-import pytest # should this be disabled for performance later?
+from contextlib import contextmanager
 
-# import user modules
-sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
+### import user modules
+sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import variables, obo_parser
+# print(os.getcwd())
+# print(sorted(os.listdir()))
+# print(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+# print(sorted(os.listdir(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))))
+import run_cythonized
 
 
-UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
+# UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
 FN_KEYWORDS = variables.FN_KEYWORDS
 FN_GO_SLIM = variables.FN_GO_SLIM
 FN_GO_BASIC = variables.FN_GO_BASIC
@@ -73,7 +79,8 @@ def get_cursor(env_dict=None, DB_DOCKER=None):
 
     if platform_ == "linux":
         try:
-            USER = os.environ['POSTGRES_USER']
+            # USER = os.environ['POSTGRES_USER']
+            USER = "postgres"
             PWD = os.environ['POSTGRES_PASSWORD']
             DBNAME = os.environ['POSTGRES_DB']
             PORT = '5432'
@@ -83,6 +90,7 @@ def get_cursor(env_dict=None, DB_DOCKER=None):
             raise StopIteration
         return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
 
+    # get_etype_cond_dict
     elif platform_ == "darwin":
         if not variables.DB_DOCKER:
             ### use local Postgres
@@ -167,22 +175,22 @@ def get_function_type_id_2_name_dict(function_type):
         id_2_name_dict[id_] = name
     return id_2_name_dict
 
-def map_secondary_2_primary_ANs(ans_list):
-    """
-    map secondary UniProt ANs to primary ANs,
-    AN only in dict if mapping exists
-    :param ans_list: ListOfString
-    :return: Dict (key: String(Secondary AN), val: String(Primary AN))
-    """
-    ans_list = str(ans_list)[1:-1]
-    result = get_results_of_statement("SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an WHERE protein_secondary_2_primary_an.sec IN({})".format(ans_list))
-    secondary_2_primary_dict = {}
-    for res in result:
-        secondary = res[0]
-        primary = res[1]
-        secondary_2_primary_dict[secondary] = primary
-    cursor.close()
-    return secondary_2_primary_dict
+# def map_secondary_2_primary_ANs(ans_list):
+#     """
+#     map secondary UniProt ANs to primary ANs,
+#     AN only in dict if mapping exists
+#     :param ans_list: ListOfString
+#     :return: Dict (key: String(Secondary AN), val: String(Primary AN))
+#     """
+#     ans_list = str(ans_list)[1:-1]
+#     result = get_results_of_statement("SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an WHERE protein_secondary_2_primary_an.sec IN({})".format(ans_list))
+#     secondary_2_primary_dict = {}
+#     for res in result:
+#         secondary = res[0]
+#         primary = res[1]
+#         secondary_2_primary_dict[secondary] = primary
+#     cursor.close()
+#     return secondary_2_primary_dict
 
 
 class PersistentQueryObject:
@@ -422,48 +430,137 @@ class PersistentQueryObject:
             an_2_functions_dict[an] = an_2_functions_dict[an].union(parents_temp)
         return an_2_functions_dict
 
+
+# from profilehooks import profile
+# from profilehooks import timecall
+# from profilehooks import coverage
+
 class PersistentQueryObject_STRING(PersistentQueryObject):
     """
     used to query protein 2 functional associations
     only protein_2_function is queried in Postgres,
     everything else is in memory but still deposited in the DB any way
     """
-    def __init__(self, low_memory=None):
-        # super(PersistentQueryObject, self).__init__() # py2 and py3
-        # super().__init__() # py3
-        self.type_2_association_dict = self.get_type_2_association_dict()
-        self.go_slim_set = self.get_go_slim_terms()
-        ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-        ### --> obsolete since using functerm_2_level_dict
-        # self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-        # self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
-        # self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
-        # self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
-        # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
-        # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
-        # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
-        # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
-        
+    def __init__(self, low_memory=False):
+        if variables.VERBOSE:
+            print("#"*80)
+            print("initializing PQO")
+        if variables.VERBOSE:
+            print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
+        if variables.VERBOSE:
+            print("getting lookup arrays")
+        if not low_memory: # override variables if "low_memory" passed to query initialization
+            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory)
+        else:
+            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = self.get_lookup_arrays(low_memory)
+        self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
-        ### lineage_dict: key: functional_association_term_name val: set of parent terms
-        ### functional term 2 hierarchical level dict
-        # self.functerm_2_level_dict = defaultdict(lambda: np.nan)
-        # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.go_dag))
-        # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.upk_dag))
-        # del self.go_dag # needed for cluster_filter
-        # del self.upk_dag
-        self.functerm_2_level_dict = self.get_functional_term_2_level_dict()
+        if variables.VERBOSE:
+            print("getting lineage dict")
+        self.lineage_dict_enum = get_lineage_dict_enum(as_array=False) # default is as set not array, check if this is necessary later
+        if variables.VERBOSE:
+            print("getting blacklisted terms")
+        self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr()
 
-        if low_memory is None: # override variables if "low_memory" passed to query initialization
-            low_memory = variables.LOW_MEMORY
+        if variables.VERBOSE:
+            print("getting get_ENSP_2_functionEnumArray_dict")
         if not low_memory:
-            ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
-            self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity()
-            self.function_an_2_description_dict = defaultdict(lambda: np.nan)
-            # an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
-            an_2_description_dict = get_function_an_2_description_dict()
-            self.function_an_2_description_dict.update(an_2_description_dict)
+            #foreground
+            self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict()
+
+        if variables.VERBOSE:
+            print("getting taxid_2_tuple_funcEnum_index_2_associations_counts ")
+        #background
+        self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations()
+
+        if variables.VERBOSE:
+            print("getting cond arrays")
+        self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
+        self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
+        self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
+        self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
+
+        # set all versions of preloaded_objects_per_analysis
+        if variables.VERBOSE:
+            print("getting preloaded objects per analysis")
+        self.reset_preloaded_objects_per_analysis(method="genome")
+        self.reset_preloaded_objects_per_analysis(method="characterize_foreground")
+        self.reset_preloaded_objects_per_analysis(method="compare_samples")
+        if variables.VERBOSE:
+            print("finished with PQO init")
+            print("#" * 80)
+
+    @contextmanager
+    def get_preloaded_objects_per_analysis(self, method="genome"):
+        if method == "genome":
+            yield self.preloaded_objects_per_analysis_genome
+        elif method == "characterize_foreground":
+            yield self.preloaded_objects_per_analysis_characterize_foreground
+        elif method == "compare_samples":
+            yield self.preloaded_objects_per_analysis_compare_samples
+        else:
+            raise NotImplementedError
+        ### regenerate arrays
+        self.reset_preloaded_objects_per_analysis(method)
+
+    def get_preloaded_objects_per_analysis_nonCON(self, method="genome"):
+        self.reset_preloaded_objects_per_analysis(method)
+        if method == "genome":
+            return self.preloaded_objects_per_analysis_genome
+        elif method == "characterize_foreground":
+            return self.preloaded_objects_per_analysis_characterize_foreground
+        elif method == "compare_samples":
+            return self.preloaded_objects_per_analysis_compare_samples
+        else:
+            return NotImplementedError
+
+
+    def reset_preloaded_objects_per_analysis(self, method="genome"):
+        if method == "genome":
+            self.preloaded_objects_per_analysis_genome = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="genome")
+        elif method == "characterize_foreground":
+            self.preloaded_objects_per_analysis_characterize_foreground = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="characterize_foreground")
+        elif method == "compare_samples":
+            self.preloaded_objects_per_analysis_compare_samples = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="compare_samples")
+        else:
+            raise NotImplementedError
+
+    def get_static_preloaded_objects(self, low_memory=False):
+        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict,ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+            static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
+                                        self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
+                                        self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
+                                        self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids)
+        else: # ToDo check with objects take most memory and adapt code here and in run_cythonize functions
+            # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
+            # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+            static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
+                                        self.etype_2_minmax_funcEnum, self.function_enumeration_len,
+                                        self.etype_cond_dict, self.taxid_2_proteome_count,
+                                        self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids)
+        return static_preloaded_objects
+
+    def get_blacklisted_terms_bool_arr(self):
+        blacklisted_terms_bool_arr = np.zeros(self.function_enumeration_len, dtype=np.dtype("uint8"))
+        # use uint8 and code as 0, 1 instead to make into mem view
+        for term_enum in variables.blacklisted_enum_terms:
+            blacklisted_terms_bool_arr[term_enum] = True
+        blacklisted_terms_bool_arr.flags.writeable = False
+        return blacklisted_terms_bool_arr
+
+    @staticmethod
+    def get_etype_2_minmax_funcEnum(entitytype_arr):
+        """
+        start and stop positions of funcEnum_array grouped by entity type
+        """
+        etype_2_minmax_funcEnum = {}
+        s = pd.Series(entitytype_arr)
+        for name, group in s.groupby(s):
+            etype_2_minmax_funcEnum[name] = (min(group.index), max(group.index))
+        return etype_2_minmax_funcEnum
 
     def get_functional_term_2_level_dict(self):
         go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
@@ -472,6 +569,61 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(go_dag))
         functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(upk_dag))
         return functerm_2_level_dict
+
+    @staticmethod
+    def get_lookup_arrays(low_memory):
+        """
+        funcEnum_2_hierarchical_level
+        simple numpy array of hierarchical levels
+        if -1 in DB --> convert to np.nan since these are missing values
+        # - funcEnum_2_year
+        # - funcEnum_2_hierarchical_level
+        # - funcEnum_2_etype
+        # - funcEnum_2_description
+        # - funcEnum_2_term
+        :param low_memory: Bool flag to return description_array
+        :return: immutable numpy array of int
+        """
+        result = get_results_of_statement("SELECT * FROM functions")
+        shape_ = len(result)
+        year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
+        entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
+        if not low_memory:
+            description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
+            # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
+            category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+        functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13")) # todo test if this influences speed (might be but not a bottleneck)
+        hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
+        indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
+        indices_arr.flags.writeable = False
+
+        for i, res in enumerate(result):
+            func_enum, etype, term, description, year, hierlevel = res
+            func_enum = int(func_enum)
+            etype = int(etype)
+            try:
+                year = int(year)
+            except ValueError: # e.g. "...."
+                year = -1
+            hierlevel = int(hierlevel)
+            entitytype_arr[func_enum] = etype
+            functionalterm_arr[func_enum] = term
+            year_arr[func_enum] = year
+            hierlevel_arr[func_enum] = hierlevel
+            if not low_memory:
+                description_arr[func_enum] = description
+                category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
+
+        year_arr.flags.writeable = False # make it immutable
+        hierlevel_arr.flags.writeable = False
+        entitytype_arr.flags.writeable = False
+        functionalterm_arr.flags.writeable = False
+        if not low_memory:
+            description_arr.flags.writeable = False
+            category_arr.flags.writeable = False
+            return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
+        else:
+            return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
 
     @staticmethod
     def get_functional_term_2_level_dict_from_dag(dag):
@@ -505,17 +657,256 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         etype_2_association_dict = {}
         for etype in variables.entity_types:
             etype_2_association_dict[etype] = {}
-        protein_ans_list = str(protein_ans_list)[1:-1]
-        result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(protein_ans_list))
+        result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function, protein_2_function.etype FROM protein_2_function WHERE protein_2_function.an IN({});".format(str(protein_ans_list)[1:-1]))
         for res in result:
             an, associations_list, etype = res
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
+def get_function_description_from_funcEnum(funcEnum_list):
+    funcEnum_2_description_dict = {}
+    funcEnum_list = str(funcEnum_list)[1:-1]
+    result = get_results_of_statement("SELECT functions.enum, functions.description FROM functions WHERE functions.enum IN({});".format(funcEnum_list))
+    for res in result:
+        funcEnum, description = res
+        funcEnum_2_description_dict[funcEnum] = description
+    return funcEnum_2_description_dict
+
+def get_cond_bool_array_of_etypes(etypes, function_enumeration_len, etype_cond_dict):
+    cond_etypes = np.zeros(function_enumeration_len, dtype=bool)
+    for etype in etypes:
+        cond_etypes = cond_etypes | etype_cond_dict["cond_{}".format(str(etype)[1:])]
+    cond_etypes.flags.writeable = False
+    return cond_etypes
+
+def get_lineage_Reactome(fn_hierarchy):
+    child_2_parent_dict = get_child_2_parent_dict_RCTM_hierarchy(fn_hierarchy)
+    parent_2_children_dict = get_parent_2_children_dict(fn_hierarchy)
+    lineage_dict = {}
+    for parent, children in parent_2_children_dict.items():
+        lineage_dict[parent] = children
+    for child in child_2_parent_dict:
+        parents = get_parents_iterative(child, child_2_parent_dict)
+        if child in lineage_dict:
+            lineage_dict[child].union(parents)
+        else:
+            lineage_dict[child] = parents
+    return lineage_dict
+
+def get_child_2_parent_dict_RCTM_hierarchy(fn_in):
+    child_2_parent_dict = {}
+    with open(fn_in, "r") as fh_in:
+        for line in fh_in:
+            parent, child = line.split("\t")
+            child = child.strip()
+            if child not in child_2_parent_dict:
+                child_2_parent_dict[child] = {parent}
+            else:
+                child_2_parent_dict[child] |= {parent}
+    return child_2_parent_dict
+
+def get_parent_2_children_dict(fn_hierarchy):
+    parent_2_children_dict = {}
+    with open(fn_hierarchy, "r") as fh_in:
+        for line in fh_in:
+            parent, child = line.split("\t")
+            child = child.strip()
+            if parent not in parent_2_children_dict:
+                parent_2_children_dict[parent] = {child}
+            else:
+                parent_2_children_dict[parent] |= {child}
+    return parent_2_children_dict
+
+def get_term_2_hierarchical_level_Reactome(fn_RCTM_term_2_level):
+    term_2_level_dict = {}
+    with open(fn_RCTM_term_2_level, "r") as fh_in:
+        for line in fh_in:
+            term, level = line.split("\t")
+            level = level.strip() # cast to int ?
+            term_2_level_dict[term] = level
+    return term_2_level_dict
+
+def get_parents_iterative(child, child_2_parent_dict):
+    """
+    par = {"C22":{"C1"}, "C21":{"C1"}, "C1":{"P1"}}
+    get_parents_iterative("C22", par)
+    """
+    if child not in child_2_parent_dict:
+        return []
+    # important to set() otherwise parent is updated in orig object
+    all_parents = set(child_2_parent_dict[child])
+    current_parents = set(all_parents)
+    while len(current_parents) > 0:
+        new_parents = set()
+        for parent in current_parents:
+            if parent in child_2_parent_dict:
+                temp_parents = child_2_parent_dict[parent].difference(all_parents)
+                all_parents.update(temp_parents)
+                new_parents.update(temp_parents)
+        current_parents = new_parents
+    return all_parents
+
+def get_lineage_dict_enum(as_array=False):
+    lineage_dict = {} # key: function enumeration, value: set of func enum array all parents and children
+    for res in get_results_of_statement("SELECT * FROM funcenum_2_lineage;"):
+        term, lineage = res
+        if as_array:
+            lineage_dict[term] = np.array(sorted(lineage), dtype=np.dtype("uint32"))
+        else:
+            lineage_dict[term] = set(lineage)
+    return lineage_dict
+
+def get_etype_cond_dict(etype_2_minmax_funcEnum, function_enumeration_len):
+    """
+    :return: Dict (key: Str(entity type e.g. 'cond_57'), val: Bool array of len function_enumeration_len)
+    """
+    # etype_2_minmax_funcEnum = self.etype_2_minmax_funcEnum # etype_2_minmax_funcEnum = pqo.get_etype_2_minmax_funcEnum(pqo.entitytype_arr)
+    # function_enumeration_len = self.function_enumeration_len # function_enumeration_len = pqo.entitytype_arr.shape[0]
+    etype_cond_dict = {}
+    for etype, min_max in etype_2_minmax_funcEnum.items():
+        min_, max_ = min_max
+        cond_name = "cond_{}".format(str(etype)[1:])
+        cond_arr = np.zeros(function_enumeration_len, dtype=bool)
+        cond_arr[min_:max_ + 1] = True
+        cond_arr.flags.writeable = False
+        etype_cond_dict[cond_name] = cond_arr
+    return etype_cond_dict
+
+def get_functionEnumArray_from_proteins(protein_ans_list, dict_2_array=False):
+    """
+    ENSP_2_functionEnumArray_dict =
+    {'1000565.METUNv1_00006': array([45130, 46056, 46149, 50102, 83861, 95081, 95232], dtype=uint32),
+    '1000565.METUNv1_00011': array([45130, 46056, 46149, 70030, 83861, 95232], dtype=uint32), ...
+    ENSP_2_funcEnumAssociations =
+    [('10090.ENSMUSP00000001812', [52, 280, 282, 405, ...
+    which functional associations are present for the given proteins
+    variable length array of Integers, each codes for a specific function (enumeration of function)
+    int32 Integer (-2147483648 to 2147483647), since enumeration between 0 and 6.815.598 (variables.function_enumeration_len)
+    :param protein_ans_list: List of String
+    :param dict_2_array: Bool (flag to get a dict of ENSPs with func enum arr as values, otherwise nested list of tuples (ENSP, list of func enums))
+    :return: List of Tuple( String(ENSP), List of Integers(function enumeration) )
+    """
+    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.an IN({});".format(str(protein_ans_list)[1:-1]))
+    if not dict_2_array:
+        return result
+    else:
+        dict_2_return = {}
+        for res in result:
+            ENSP, list_of_funcEnums = res
+            dict_2_return[ENSP] = np.array(list_of_funcEnums, dtype=np.dtype("uint32"))
+        return dict_2_return
+
+def get_ENSP_2_functionEnumArray_dict():
+    """
+    debug : ORDER BY bubu LIMIT 100 OFFSET 50;
+    21.839.546 Protein_2_FunctionEnum_table_STRING.txt
+    slow
+    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    1   56.979   56.979  479.601  479.601 query.py:774(get_ENSP_2_functionEnumArray_dict)
+    which functioal associations are present for the given proteins
+    variable length array of Integers, each codes for a specific function (enumeration of function)
+    int32 Integer (-2147483648 to 2147483647), since enumeration between 0 and 6.815.598 (variables.function_enumeration_len)
+    :return: List of Tuple( String(ENSP), List of Integers(function enumeration) )
+    """
+    ENSP_2_functionEnumArray_dict = {} # key: String (ENSP), val: np.array(uint32) of function enumerations
+    limit = 500000
+    for offset_ in range(0, 21839547, limit): # 21.500.000 # 21839547
+        if variables.VERBOSE:
+            # print(offset_)
+            print(".", end="")
+        result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum ORDER BY protein_2_functionenum.an LIMIT {} OFFSET {};".format(limit, offset_))
+        for res in result:
+            ENSP, funcEnumArray = res
+            ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
+    if variables.VERBOSE:
+        size_sum = 0
+        for dict_ in [ENSP_2_functionEnumArray_dict]:
+            size_sum += sys.getsizeof(dict_)
+        # print("size_sum", size_sum)
+        print()
+    ### size_sum 805.306.464 (size consistent within Docker on Ody, regardless of limit chunks)
+    return ENSP_2_functionEnumArray_dict
+
+def get_ENSP_2_functionEnumArray_dict_old():
+    """
+    debug : ORDER BY bubu LIMIT 100 OFFSET 50;
+    52.930.904 lines in Protein_2_Function_table_STRING.txt
+    slow
+    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    1   56.979   56.979  479.601  479.601 query.py:774(get_ENSP_2_functionEnumArray_dict)
+    which functioal associations are present for the given proteins
+    variable length array of Integers, each codes for a specific function (enumeration of function)
+    int32 Integer (-2147483648 to 2147483647), since enumeration between 0 and 6.815.598 (variables.function_enumeration_len)
+    :return: List of Tuple( String(ENSP), List of Integers(function enumeration) )
+    """
+    ENSP_2_functionEnumArray_dict = {} # key: String (ENSP), val: np.array(uint32) of function enumerations
+    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum;")
+    for res in result:
+        ENSP, funcEnumArray = res
+        ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
+    return ENSP_2_functionEnumArray_dict
+
+def get_background_taxid_2_funcEnum_index_2_associations_old():
+    taxid_2_funcEnum_index_2_associations = {} # for background preloaded
+    for taxid in get_taxids():
+        background_counts_list = get_background_count_array(taxid)
+        # need be uint32 not uint16 since funcEnum is 0 to 7mio
+        # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
+        funcEnum_index_2_associations = np.asarray(background_counts_list, dtype=np.dtype("uint32"))
+        funcEnum_index_2_associations.flags.writeable = False
+        taxid_2_funcEnum_index_2_associations[taxid] = funcEnum_index_2_associations
+    return taxid_2_funcEnum_index_2_associations
+
+def get_background_taxid_2_funcEnum_index_2_associations():
+    taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
+    for taxid in get_taxids():
+        background_counts_list = get_background_count_array(taxid)
+        # need be uint32 not uint16 since funcEnum is 0 to 7mio
+        # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
+        shape_ = len(background_counts_list)
+        index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
+        index_positions_arr[:] = np.nan
+        counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
+        counts_arr[:] = np.nan
+        for enum, index_count in enumerate(background_counts_list):
+            index_, count = index_count
+            index_positions_arr[enum] = index_
+            counts_arr[enum] = count
+        index_positions_arr.flags.writeable = False
+        counts_arr.flags.writeable = False
+        taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
+    return taxid_2_tuple_funcEnum_index_2_associations_counts
+
+
+
+def get_background_count_array(taxid):
+    """
+    # max_background_count: 58324 (from function_enumeration 47403 "47403   -51     KW-0181 Complete proteome       -1      1")
+    # (irrelevant but just for reference max_background_n: 98897)
+    old version:
+    np.array (of 32bit integer, fixed length and immutable, sparse matrix with 0 as default, otherwise counts of functional associations at index positions corresponding to functionalterm_arr)
+    new version:
+    list of tuples (index_position, count)
+    :param taxid: Integer (NCBI TaxID)
+    :return: List of tuples of Integers (index_position, count)
+    """
+    return get_results_of_statement("SELECT taxid_2_functioncountarray.background_count_array FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
+
 def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
     association_dict = {}
+    # print(protein_ans_list)
     protein_ans_list = str(protein_ans_list)[1:-1]
+    # print(protein_ans_list)
     result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE (protein_2_function.an IN({}) AND protein_2_function.etype ={});".format(protein_ans_list, etype))
+    for res in result:
+        an, associations_list = res
+        association_dict[an] = set(associations_list)
+    return association_dict
+
+def get_association_dict_from_proteins_list_v2(protein_ans_list):
+    association_dict = {}
+    protein_ans_list = str(protein_ans_list)[1:-1]
+    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.an IN({});".format(protein_ans_list))
     for res in result:
         an, associations_list = res
         association_dict[an] = set(associations_list)
@@ -546,13 +937,24 @@ def get_description_from_an(term_list):
         an_2_description_dict[an] = description
     return an_2_description_dict
 
-# def get_function_description_from_an(an_list):
-#     result = get_results_of_statement("SELECT functions.an, functions.description FROM functions WHERE functions.an IN({});".format(str(an_list)[1:-1]))
-#     an_2_description_dict = {}
-#     for res in result:
-#         an, description = res
-#         an_2_description_dict[an] = description
-#     return an_2_description_dict
+def get_function_an_2_enum__and__enum_2_function_an_dict():
+    result = get_results_of_statement("SELECT functions.enum, functions.an FROM functions")
+    function_2_enum_dict, enum_2_function_dict = {}, {}
+    for res in result:
+        enum, function_ = res
+        function_2_enum_dict[function_] = enum
+        enum_2_function_dict[enum] = function_
+    return function_2_enum_dict, enum_2_function_dict
+
+def get_function_arr():
+    result = get_results_of_statement("SELECT functions.enum, functions.an FROM functions")
+    term_arr = np.empty((len(result),), dtype=np.dtype('U13'))
+    for i, res in enumerate(result):
+        enum, function_ = res
+        assert i == enum
+        term_arr[i] = function_
+    term_arr.flags.writeable = False # make it immutable
+    return term_arr
 
 def get_termAN_from_humanName_functionType(functionType, humanName):
     if humanName is None:
@@ -567,7 +969,7 @@ def get_taxids():
     return all TaxIDs from taxid_2_proteins as sorted List of Integers
     :return: List of Integers
     """
-    result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein")
+    result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein;")
     return sorted([rec[0] for rec in result])
 
 def get_proteins_of_taxid(taxid):
@@ -593,7 +995,8 @@ def get_association_2_count_ANs_background_split_by_entity(taxid):
         etype_2_background_n[etype] = {}
 
     for rec in result:
-        _, etype, association, background_count, background_n, an_array = rec
+        # _, etype, association, background_count, background_n, an_array = rec
+        _, etype, association, enum, background_count, background_n, an_array = rec
         # etype = str(etype)
         etype_2_association_2_count_dict_background[etype][association] = background_count
         etype_2_association_2_ANs_dict_background[etype][association] = set(an_array)
@@ -608,7 +1011,8 @@ def from_taxid_get_association_2_count_split_by_entity(taxid):
         etype_2_association_2_count_dict[etype] = {}
 
     for rec in result:
-        _, etype, association, background_count, background_n, an_array = rec
+        # _, etype, association, background_count, background_n, an_array = rec
+        _, etype, association, enum, background_count, background_n, an_array = rec
         # etype = str(etype)
         etype_2_association_2_count_dict[etype][association] = background_count
     return etype_2_association_2_count_dict
@@ -656,6 +1060,9 @@ def get_functionAN_2_etype_dict():
     return an_2_etype_dict
 
 if __name__ == "__main__":
+    pqo = PersistentQueryObject_STRING(low_memory=True)
+
+
     # import os
     # user = os.environ['POSTGRES_USER']
     # pwd = os.environ['POSTGRES_PASSWORD']
@@ -668,12 +1075,12 @@ if __name__ == "__main__":
 
     # cursor = get_cursor()
     # cursor = get_cursor(host=host, dbname=db, user=user, password="postgres")
-    cursor = get_cursor()
-    cursor.execute("SELECT * FROM functions WHERE functions.type='GO' LIMIT 5")
-    cursor.execute("SELECT * FROM protein_2_function WHERE protein_2_function.an='A0A009DWB1'")
-    records = cursor.fetchall()
-    print(records)
-    cursor.close()
+    # cursor = get_cursor()
+    # cursor.execute("SELECT * FROM functions WHERE functions.type='GO' LIMIT 5")
+    # cursor.execute("SELECT * FROM protein_2_function WHERE protein_2_function.an='A0A009DWB1'")
+    # records = cursor.fetchall()
+    # print(records)
+    # cursor.close()
 
 
     # print(get_cursor())
@@ -699,3 +1106,73 @@ if __name__ == "__main__":
     # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs(ans_list)
     # # print(len(secondary_2_primary_dict))
     # # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs_v2(ans_list)
+
+
+# def __init__(self, low_memory=False):
+    #     print("initializing PQO")
+    #     # super(PersistentQueryObject, self).__init__() # py2 and py3
+    #     # super().__init__() # py3
+    #     # self.type_2_association_dict = self.get_type_2_association_dict()
+    #     # self.go_slim_set = self.get_go_slim_terms()
+    #     # ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
+    #     # ### --> obsolete since using functerm_2_level_dict
+    #     # self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
+    #     # self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
+    #     #blacklisted_terms_bool_arr
+    #     # self.lineage_dict = {}
+    #     # # key=GO-term, val=set of GO-terms (parents)
+    #     # for go_term_name in self.go_dag:
+    #     #     GOTerm_instance = self.go_dag[go_term_name]
+    #     #     self.lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
+    #     # for term_name in self.upk_dag:
+    #     #     Term_instance = self.upk_dag[term_name]
+    #     #     self.lineage_dict[term_name] = Term_instance.get_all_parents().union(Term_instance.get_all_children())
+    #     #
+    #     # fn_hierarchy = os.path.join(variables.DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+    #     # self.lineage_dict.update(get_lineage_Reactome(fn_hierarchy))
+    #
+    #     # self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
+    #     # self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
+    #     # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
+    #     # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
+    #     # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
+    #     # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
+    #     self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
+    #
+    #     ### lineage_dict: key: functional_association_term_name val: set of parent terms
+    #     ### functional term 2 hierarchical level dict
+    #     # self.functerm_2_level_dict = defaultdict(lambda: np.nan)
+    #     # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.go_dag))
+    #     # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.upk_dag))
+    #     # del self.go_dag # needed for cluster_filter
+    #     # del self.upk_dag
+    #     # self.functerm_2_level_dict = self.get_functional_term_2_level_dict()
+    #     if not low_memory: # override variables if "low_memory" passed to query initialization
+    #         # low_memory = variables.LOW_MEMORY
+    #     # if not low_memory:
+    #         ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
+    #         # self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity() # cf. if association is string
+    #         # self.function_an_2_description_dict = defaultdict(lambda: np.nan)
+    #         # an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
+    #         # an_2_description_dict = get_function_an_2_description_dict()
+    #         # self.function_an_2_description_dict.update(an_2_description_dict)
+    #
+    #         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory)
+    #     else:
+    #         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = self.get_lookup_arrays(low_memory)
+    #
+    #     self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
+    #     self.function_enumeration_len = self.functionalterm_arr.shape[0]
+    #     if not low_memory:
+    #         #foreground
+    #         self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict()
+    #         #background
+    #         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations()
+    #
+    #     self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
+    #     # self.cond_etypes_with_ontology = self.get_cond_bool_array_of_etypes(variables.entity_types_with_ontology)
+    #     # self.cond_etypes_rem_foreground_ids = self.get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids)
+    #     self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
+    #     self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
+    #     self.lineage_dict_enum = get_lineage_dict_enum()
+    #     self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr()

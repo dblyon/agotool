@@ -6,8 +6,8 @@ from fisher import pvalue
 import numpy as np
 import pandas as pd
 from decimal import Decimal
-
-from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg
+import multiple_testing
+from multiple_testing import Bonferroni, Sidak, HolmBonferroni, BenjaminiHochberg, BH_fast_v3
 import ratio
 
 
@@ -72,9 +72,9 @@ class EnrichmentStudy(object):
 
     def get_result(self, FDR_cutoff=None, fold_enrichment_for2background=None, p_value_uncorrected=None):
         self.df = self.filter_results(self.df, FDR_cutoff, fold_enrichment_for2background, p_value_uncorrected)
-        if self.method != "characterize_foreground": # since no p-values available
-            self.df["p_value"] = self.df["p_value"].apply(lambda x: "{:.2E}".format(Decimal(x)))
-            self.df["FDR"] = self.df["FDR"].apply(lambda x: "{:.2E}".format(Decimal(x)))
+        # if self.method != "characterize_foreground": # since no p-values available
+        #     self.df["p_value"] = self.df["p_value"].apply(lambda x: "{:.2E}".format(Decimal(x)))
+        #     self.df["FDR"] = self.df["FDR"].apply(lambda x: "{:.2E}".format(Decimal(x)))
         return self.df
 
     def run_compare_samples(self):
@@ -250,7 +250,7 @@ class EnrichmentStudy(object):
         #     foregr_n         |     backgr_n       |    n
         """
         fisher_dict = {}
-        term_list, description_list, p_value_list, foreground_ids_list, foreground_count_list = [], [], [], [], []
+        term_list, description_list, p_value_list, foreground_count_list = [], [], [], []
         for association, foreground_count in association_2_count_dict_foreground.items():
             try:
                 background_count = association_2_count_dict_background[association]
@@ -272,18 +272,65 @@ class EnrichmentStudy(object):
                 #p_val_uncorrected = stats.fisher_exact([[a, b], [c, d]], alternative='greater')[1]
                 fisher_dict[(a, b, c, d)] = p_val_uncorrected
             term_list.append(association)
-            # description_list.append(self.pqo.function_an_2_description_dict[association])
             p_value_list.append(p_val_uncorrected)
-            foreground_ids_list.append(';'.join(self.association_2_ANs_dict_foreground[association]))
+            # foreground_ids_list.append(';'.join(self.association_2_ANs_dict_foreground[association])) # !!! remove this and add infos after FDR filtering
             foreground_count_list.append(foreground_count)
+
+        # create DataFrame from List compare time setup
         df = pd.DataFrame({"term": term_list,
-                          # "description": description_list,
                           "p_value": p_value_list,
-                          "foreground_ids": foreground_ids_list,
+                          # "foreground_ids": foreground_ids_list, # do later
                           "foreground_count": foreground_count_list})
-        df = df.sort_values("p_value", ascending=True)
-        df["FDR"] = BenjaminiHochberg(df["p_value"].values, df.shape[0], array=True)
+        df = multiple_testing.BH_fast_v3(df)
         return df
+
+    def run_study_genome_v2(self, association_2_count_dict_foreground, association_2_count_dict_background, foreground_n, background_n):
+        """
+        ###################################################
+        # contingency table general variable names:
+        #     foreground       |     background     |
+        # -------------------------------------------------
+        # +   a = foregr_count |   c = backgr_count |   r1
+        # -------------------------------------------------
+        # -     b              |       d            |   r2
+        # -------------------------------------------------
+        #     foregr_n         |     backgr_n       |    n
+        """
+        fisher_dict = {}
+        len_dict = len(association_2_count_dict_foreground)
+        term_arr = np.empty((len_dict,), dtype=np.dtype('U13')) # cat Functions_table_STRING.txt | cut -f 2 | awk '{print length, $0}' | sort -nr | head -1
+        p_value_arr = np.zeros(shape=(len_dict, ), dtype="float64")
+        foreground_count_arr = np.zeros(shape=(len_dict, ), dtype="int8")
+
+        for i, (association, foreground_count) in enumerate(association_2_count_dict_foreground.items()):
+            try:
+                background_count = association_2_count_dict_background[association]
+            except KeyError:
+                self.args_dict["ERROR_association_2_count"] = "ERROR retrieving counts for association {} please contact david.lyon@uzh.ch with this error message".format(association)
+                return None
+            a = foreground_count # number of proteins associated with given GO-term
+            b = foreground_n - foreground_count # number of proteins not associated with GO-term
+            c = background_count
+            d = background_n - background_count
+            if d < 0:
+                d = 0
+            ### enriched or overrepresented --> right_tail or greater (but foreground and background are switched)
+            try:
+                p_val_uncorrected = fisher_dict[(a, b, c, d)]
+            except KeyError:
+                p_val_uncorrected = pvalue(a, b, c, d).right_tail
+                fisher_dict[(a, b, c, d)] = p_val_uncorrected
+            term_arr[i] = association
+            p_value_arr[i] = p_val_uncorrected
+            foreground_count_arr[i] = foreground_count
+
+        df = pd.DataFrame()
+        df["term"] = term_arr
+        df["p_value"] = p_value_arr
+        df["foreground_count"] = foreground_count_arr
+        df = multiple_testing.BH_fast_v3(df)
+        return df
+
 
     def get_ans_from_association(self, association, foreground):
         if foreground:
