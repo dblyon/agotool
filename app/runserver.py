@@ -302,10 +302,11 @@ class API_STRING(Resource):
             args_dict["FDR_cutoff"] = None
         if filter_PMID_top_n == 0:
             args_dict["filter_PMID_top_n"] = None
-        print("-"*80)
-        for key, val in sorted(args_dict.items()):
-            print(key, val)
-        print("-"*80)
+        if variables.VERBOSE:
+            print("-"*80)
+            for key, val in sorted(args_dict.items()):
+                print(key, val)
+            print("-"*80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."

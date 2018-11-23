@@ -28,18 +28,6 @@ RUN apt-get update \
         vim \
     && apt-get clean
 
-# Install MCL for clustering, install before python packages in case these change
-#RUN mkdir -p /software
-#RUN cd /software \
-#    && wget http://micans.org/mcl/src/mcl-14-137.tar.gz \
-#    && tar -xzvf mcl-14-137.tar.gz \
-#    && rm mcl-14-137.tar.gz \
-#    && cd /software/mcl-14-137 \
-#    && ./configure \
-#    && make install \
-#    && cd /software \
-#    && rm -rf /software/mcl-14-137
-
 RUN pip install --upgrade pip
 # Install Python packages
 RUN pip install \
@@ -51,6 +39,7 @@ RUN pip install \
         notebook \
     && rm -fr /root/.cache
 
+
 RUN mkdir -p /opt/services/flaskapp/src
 #VOLUME ["/opt/services/flaskapp/src"]
 #RUN echo $PYTHONPATH
@@ -59,14 +48,9 @@ RUN mkdir -p /opt/services/flaskapp/src
 COPY ./app/requirements.txt /opt/services/flaskapp/src/
 WORKDIR /opt/services/flaskapp/src
 RUN pip install -r requirements.txt
-
 COPY ./app /opt/services/flaskapp/src
-
 RUN cd python && python setup.py build_ext --inplace
-
 COPY ./app/.bashrc /root/.bashrc
-#COPY . /opt/services/flaskapp/src
-#COPY ./data/PostgreSQL/downloads/*.obo /agotool_data/PostgreSQL/downloads/
 WORKDIR /opt/services/flaskapp/src
-EXPOSE 5912
-CMD ["python", "runserver.py"]
+EXPOSE 8888
+CMD ["jupyter", "notebook"]

@@ -23,12 +23,13 @@ VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the prog
 ############################
 # function_enumeration_len = 6815598 # ?deprecated?
 #blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9995', 'KW-9996', 'KW-9997', 'KW-9998', 'KW-9999']
+# top level KW except Disease and Developmental stage
+# 'KW-9995' 'Disease',
+# 'KW-9996' 'Developmental stage'
 blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999',
-                     # top level KW except “Disease” and “Developmental stage”
-                     # 'KW-9995' 'Disease',
-                     # 'KW-9996' 'Developmental stage'                     
-                     'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614', 'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267'}
+                     'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614', 'KW-0814',
+                     'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267'}
                      # 'KW-9990' 'Technical term' and all its children
 blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
 
@@ -74,7 +75,7 @@ entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "foreground_ids", "year"]
 cols_sort_order_charcterize = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
-cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "foreground_ids", "year", "ratio_in_foreground", "ratio_in_background", "foreground_ids", "background_ids", "foreground_count", "background_count", "foreground_n", "background_n"]
+cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "year", "ratio_in_foreground", "ratio_in_background", "foreground_ids", "background_ids", "foreground_count", "background_count", "foreground_n", "background_n"]
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas

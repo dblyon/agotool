@@ -6,12 +6,13 @@ from cython cimport boundscheck, wraparound, cdivision, nonecheck
 cimport cython
 cimport numpy as np
 ctypedef np.uint8_t uint8
+
 from fisher import pvalue
 import pandas as pd
 
 import variables, query
-##################################################################
 
+##################################################################
 
 @boundscheck(False)
 @wraparound(False)
@@ -225,7 +226,7 @@ def get_preloaded_objects_for_single_analysis(blacklisted_terms_bool_arr, functi
         cond_terms_reduced_with_ontology = np.zeros(function_enumeration_len, dtype=bool)
         background_ids_arr_of_string = np.empty(shape=(function_enumeration_len,), dtype=object)
         # 12
-        return background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs
+        return foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs
     else:
         raise NotImplementedError
 
@@ -255,14 +256,6 @@ def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, 
     foreground_n = len(protein_ans)
     funcEnum_count_foreground, foreground_ids_arr_of_string = preloaded_objects_per_analysis
 
-#     ### count foreground
-#     if not low_memory:
-#         for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
-#             funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-#             count_terms_v3_cython(funcEnumAssociations, funcEnum_count_foreground)
-#     else:
-#         ENSP_2_funcEnumAssociations = query.get_functionEnumArray_from_proteins(protein_ans.tolist())
-#         count_terms_v4_cython(ENSP_2_funcEnumAssociations, funcEnum_count_foreground)
     ## count foreground
     if low_memory:
         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans.tolist(), dict_2_array=True)
@@ -318,41 +311,20 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids = static_preloaded_objects
     else: # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids = static_preloaded_objects
-#     background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs, cond_terms_reduced_with_ontology, cond_etypes_rem_foreground_ids_filtered = preloaded_objects_per_analysis
-    background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs = preloaded_objects_per_analysis
-
+    foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs = preloaded_objects_per_analysis
 
     foreground_n = len(protein_ans_fg)
     background_n = len(protein_ans_bg)
-#     ## count foreground
-#     if not low_memory:
-#         for ENSP in (ENSP for ENSP in protein_ans_fg if ENSP in ENSP_2_functionEnumArray_dict):
-#             funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-#             count_terms_v3_cython(funcEnumAssociations, funcEnum_count_foreground)
-#     else:
-#         ENSP_2_funcEnumAssociations = query.get_functionEnumArray_from_proteins(protein_ans_fg.tolist())
-#         count_terms_v4_cython(ENSP_2_funcEnumAssociations, funcEnum_count_foreground)
     ## count foreground
     if low_memory:
-        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans_fg.tolist(), dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
+        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans_fg.tolist() + protein_ans_bg.tolist(), dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
     for ENSP in (ENSP for ENSP in protein_ans_fg if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
         count_terms_v3_cython(funcEnumAssociations, funcEnum_count_foreground)
-
-#     ## count background
-#     if not low_memory:
-#         for ENSP in (ENSP for ENSP in protein_ans_bg if ENSP in ENSP_2_functionEnumArray_dict):
-#             funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-#             count_terms_v3_cython(funcEnumAssociations, funcEnum_count_background)
-#     else:
-#         ENSP_2_funcEnumAssociations = query.get_functionEnumArray_from_proteins(protein_ans_bg.tolist())
-#         count_terms_v4_cython(ENSP_2_funcEnumAssociations, funcEnum_count_background)
-    ## count foreground
-    if low_memory:
-        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans_bg.tolist(), dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
+    ## count background
     for ENSP in (ENSP for ENSP in protein_ans_bg if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-        count_terms_v3_cython(funcEnumAssociations, funcEnum_count_foreground)
+        count_terms_v3_cython(funcEnumAssociations, funcEnum_count_background)
 
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)

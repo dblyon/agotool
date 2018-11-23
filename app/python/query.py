@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import pandas as pd
 import os, sys
@@ -7,7 +8,7 @@ from contextlib import contextmanager
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import variables, obo_parser
+import variables #, obo_parser
 # print(os.getcwd())
 # print(sorted(os.listdir()))
 # print(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -492,7 +493,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("#" * 80)
 
     @contextmanager
-    def get_preloaded_objects_per_analysis(self, method="genome"):
+    def get_preloaded_objects_per_analysis_contextmanager(self, method="genome"):
         if method == "genome":
             yield self.preloaded_objects_per_analysis_genome
         elif method == "characterize_foreground":
@@ -504,7 +505,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         ### regenerate arrays
         self.reset_preloaded_objects_per_analysis(method)
 
-    def get_preloaded_objects_per_analysis_nonCON(self, method="genome"):
+    def get_preloaded_objects_per_analysis(self, method="genome"):
         self.reset_preloaded_objects_per_analysis(method)
         if method == "genome":
             return self.preloaded_objects_per_analysis_genome

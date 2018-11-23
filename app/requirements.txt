@@ -16,7 +16,7 @@ pytest-cov==2.5.1
 ipython==5.1
 markdown==2.6.11
 flask-markdown==0.3
+cython==0.29
 numba
 icc-rt
-cython
 asyncpg

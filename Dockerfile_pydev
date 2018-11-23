@@ -63,10 +63,6 @@ RUN pip install -r requirements.txt
 COPY ./app /opt/services/flaskapp/src
 
 RUN cd python && python setup.py build_ext --inplace
-
 COPY ./app/.bashrc /root/.bashrc
-#COPY . /opt/services/flaskapp/src
-#COPY ./data/PostgreSQL/downloads/*.obo /agotool_data/PostgreSQL/downloads/
 WORKDIR /opt/services/flaskapp/src
-EXPOSE 5912
-CMD ["python", "runserver.py"]
+CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]

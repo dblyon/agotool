@@ -496,3 +496,10 @@ KEGG:01100 --> map01100
 
 change descriptions for functional associations
 --> checkout email from PFAM/SMART...
+
+# try a query from the CLI
+curl -X POST "localhost:5912/api?enrichment_method=genome&taxid=9606" -d '{"foreground": "9606.ENSP00000251595%0d9606.ENSP00000322421%0d9606.ENSP00000333994"}'
+curl -X POST "localhost:5912/api?enrichment_method=genome&taxid=9606" -d "9606.ENSP00000259606.ENSP00000322421"
+
+/Users/dblyon/anaconda3/lib/gcc/x86_64-apple-darwin11.4.2/4.8.5/include-fixed/limits.h
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1

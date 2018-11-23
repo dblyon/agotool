@@ -44,6 +44,26 @@ services:
     depends_on:
       - db
 
+#  pydev:
+#    container_name: pydev
+#    build: Dockerfile_pydev
+#    volumes: # work within
+#      ####### Data bind mount
+#      ### Ody
+#      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
+#      ### Atlas
+#      # - /home/dblyon/agotool/data/:/agotool_data
+#    env_file:
+#      - ./app/env_file
+#    networks:
+#      - db_nw
+#      - web_nw
+#    depends_on:
+#      - db
+#    ports:
+#      - 8888:8888
+
+
   nginx:
     container_name: nginx
     image: "nginx:1.13.8"

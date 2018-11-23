@@ -24,24 +24,24 @@ def run_STRING_enrichment(pqo, ui, args_dict):
 
     enrichment_method = args_dict["enrichment_method"]
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
-    with pqo.get_preloaded_objects_per_analysis(method=enrichment_method) as preloaded_objects_per_analysis:
+    #with pqo.get_preloaded_objects_per_analysis_contextmanager(method=enrichment_method) as preloaded_objects_per_analysis:
+    preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis(method=enrichment_method)
+    if enrichment_method == "compare_samples":
+        protein_ans_fg = ui.get_foreground_an_set()
+        protein_ans_bg = ui.get_background_an_set()
+        df_2_return = run_cythonized.run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
 
-        if enrichment_method == "compare_samples":
-            protein_ans_fg = ui.get_foreground_an_set()
-            protein_ans_bg = ui.get_background_an_set()
-            df_2_return = run_cythonized.run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
+    elif enrichment_method == "characterize_foreground":
+        protein_ans = ui.get_an_redundant_foreground()
+        df_2_return = run_cythonized.run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
 
-        elif enrichment_method == "characterize_foreground":
-            protein_ans = ui.get_an_redundant_foreground()
-            df_2_return = run_cythonized.run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
+    ### for STRING internally disabled, otherwise this makes sense to use DONT DELETE
+    # if df_2_return.shape[0] == 0:
+    #     args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+    #     return False
 
-        if df_2_return.shape[0] == 0:
-            args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
-            return False
-
-        output_format = args_dict["output_format"]
-        return format_results(df_2_return, output_format, args_dict)
-
+    output_format = args_dict["output_format"]
+    return format_results(df_2_return, output_format, args_dict)
 
 def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
     taxid = check_taxids(args_dict)
@@ -57,14 +57,15 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         return False
 
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
-    with pqo.get_preloaded_objects_per_analysis(method="genome") as preloaded_objects_per_analysis:
-        df_2_return = run_cythonized.run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
-        if df_2_return.shape[0] == 0:
-            args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
-            return False
-
-        output_format=args_dict["output_format"]
-        return format_results(df_2_return, output_format, args_dict)
+    #with pqo.get_preloaded_objects_per_analysis_contextmanager(method="genome") as preloaded_objects_per_analysis:
+    preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis(method="genome")
+    df_2_return = run_cythonized.run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
+    ### for STRING internally disabled, otherwise this makes sense to use DONT DELETE
+    # if df_2_return.shape[0] == 0:
+    #     args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+    #     return False
+    output_format=args_dict["output_format"]
+    return format_results(df_2_return, output_format, args_dict)
 
 def filter_and_sort_PMID(df, PMID_top_100=True):
     ### remove blacklisted terms --> duplicate to cluster_filter.filter_parents_if_same_foreground_v2
