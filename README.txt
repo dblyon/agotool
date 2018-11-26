@@ -503,3 +503,28 @@ curl -X POST "localhost:5912/api?enrichment_method=genome&taxid=9606" -d "9606.E
 
 /Users/dblyon/anaconda3/lib/gcc/x86_64-apple-darwin11.4.2/4.8.5/include-fixed/limits.h
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1
+
+### flaskapp.conf backup
+server {
+    listen 80;
+    server_name localhost;
+    large_client_header_buffers 4 8m;
+    client_header_buffer_size 1k;
+    client_body_buffer_size     10M;
+    client_max_body_size        10M;
+
+    location / {
+        proxy_set_header   Host                 $host;
+        proxy_set_header   Host                 $http_host;
+        proxy_set_header   X-Real-IP            $remote_addr;
+        proxy_set_header   X-Forwarded-For      $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto    $scheme;
+
+        proxy_pass http://flaskapp:5912;
+        proxy_connect_timeout       6000;
+        proxy_send_timeout          6000;
+        proxy_read_timeout          6000;
+        send_timeout                6000;
+
+    }
+}

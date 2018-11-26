@@ -13,11 +13,11 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && apt-get install -y \
         gcc \
+        cmake \
         build-essential \
         zlib1g-dev \
         wget \
         unzip \
-        cmake \
         python3-dev \
         gfortran \
         libblas-dev \
@@ -49,7 +49,7 @@ RUN pip install \
         pandas \
         jupyter \
         notebook \
-    && rm -fr /root/.cache
+    && rm -rf /root/.cache
 
 RUN mkdir -p /opt/services/flaskapp/src
 #VOLUME ["/opt/services/flaskapp/src"]
@@ -59,6 +59,7 @@ RUN mkdir -p /opt/services/flaskapp/src
 COPY ./app/requirements.txt /opt/services/flaskapp/src/
 WORKDIR /opt/services/flaskapp/src
 RUN pip install -r requirements.txt
+RUN rm -rf /root/.cache
 
 COPY ./app /opt/services/flaskapp/src
 
