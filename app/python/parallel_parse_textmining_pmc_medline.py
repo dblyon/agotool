@@ -1,31 +1,32 @@
-import re, fileinput, sys
+import re, fileinput
 
 def parse_textmining_pmc_medline():
     # names = ['PMID_and_crap', 'authors', 'name_and_issue', 'year', 'title', 'text']
     etype = "-56"
-    name = ""
-    definition = ""
+    # name = ""
+    # definition = ""
     max_len_description = 250
     # xml tags e.g. "<i>Salmonella</i>" and others
     # tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]"]))
     tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
+    level = "-1"
     for line in fileinput.input():
         line_split = line.split("\t")
         PMID, *rest = line_split[0].split("|")
         PMID = PMID.strip()
-        DOI = ""
-        for ele in rest:
-            if ele.startswith("DOI:"):
-                DOI = ele.strip()
-        authors = line_split[1].strip()
-        journal_vol = line_split[2]
-        match = re.search("\d", journal_vol)
-        if match:
-            journal = journal_vol[:match.start()].strip()
-            volume = journal_vol[match.start():].strip()
-        else:
-            journal = journal_vol
-            volume = ""
+        # DOI = ""
+        # for ele in rest:
+        #     if ele.startswith("DOI:"):
+        #         DOI = ele.strip()
+        # authors = line_split[1].strip()
+        # journal_vol = line_split[2]
+        # match = re.search("\d", journal_vol)
+        # if match:
+        #     journal = journal_vol[:match.start()].strip()
+        #     volume = journal_vol[match.start():].strip()
+        # else:
+        #     journal = journal_vol
+        #     volume = ""
         year = line_split[3].strip()
         if not year:
             year = "...."
@@ -39,7 +40,9 @@ def parse_textmining_pmc_medline():
         title = clean_messy_string_v2(title)
         description = "(" + str(year) + ") " + title
         # | etype | an=PMID | name="" | definition="" | description=year: title |
-        print(etype + "\t" + PMID + "\t" + name + "\t" + definition + "\t" + description)
+        # print(etype + "\t" + PMID + "\t" + name + "\t" + definition + "\t" + description)
+        # | enum | etype | an | description | year | level |
+        print(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + level)
 
 def cut_long_string_at_word(string_, max_len_description):
     if len(string_) > max_len_description:

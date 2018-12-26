@@ -12,7 +12,7 @@ services:
      ### Ody
       - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
      ### Atlas
-      # - /home/dblyon/agotool/data/:/agotool_data
+      #- /home/dblyon/agotool/data/:/agotool_data
     ports: # expose port in order to connect to PostgreSQL from outside docker
       #- "5432:5432"
       - "5913:5432"
@@ -35,7 +35,7 @@ services:
       ### Ody
       - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
-      # - /home/dblyon/agotool/data/:/agotool_data
+      #- /home/dblyon/agotool/data/:/agotool_data
     env_file:
       - ./app/env_file
     networks:

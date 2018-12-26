@@ -516,7 +516,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         else:
             return NotImplementedError
 
-
     def reset_preloaded_objects_per_analysis(self, method="genome"):
         if method == "genome":
             self.preloaded_objects_per_analysis_genome = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="genome")
@@ -528,7 +527,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             raise NotImplementedError
 
     def get_static_preloaded_objects(self, low_memory=False):
-        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict,ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
@@ -593,7 +592,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
             # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
             category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
-        functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13")) # todo test if this influences speed (might be but not a bottleneck)
+        functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
         hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
         indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
         indices_arr.flags.writeable = False
@@ -996,9 +995,7 @@ def get_association_2_count_ANs_background_split_by_entity(taxid):
         etype_2_background_n[etype] = {}
 
     for rec in result:
-        # _, etype, association, background_count, background_n, an_array = rec
         _, etype, association, enum, background_count, background_n, an_array = rec
-        # etype = str(etype)
         etype_2_association_2_count_dict_background[etype][association] = background_count
         etype_2_association_2_ANs_dict_background[etype][association] = set(an_array)
         etype_2_background_n[etype] = background_n

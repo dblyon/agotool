@@ -48,8 +48,7 @@
 | 48432 | -52 | map00010 | Glycolysis Gluconeogenesis | -1 | -1 |
 | 48433 | -52 | map00020 | Citrate cycle (TCA cycle) | -1 | -1 |
 | 48961 | -53 | SM00006 | amyloid A4 | -1 | -1 |
-| 791705 | -56 | PMID:12926249 | (2003) | QMMM calculations of kinetic isotope effects in the chorismate mutase active site. | 2003 | -1 |
-| | -57 |
+| 791705 | -56 | PMID:12926249 | (2003) QMMM calculations of kinetic isotope effects in the chorismate mutase active site. | 2003 | -1 |
 
 
 ### function_2_ENSP [Function_2_ENSP_table_STRING.txt]

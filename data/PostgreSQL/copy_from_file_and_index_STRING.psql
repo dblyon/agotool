@@ -49,6 +49,7 @@ CREATE INDEX taxid_2_functioncountarray_taxid_idx ON taxid_2_functioncountarray 
 
 CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
 
+
 --CREATE TABLE protein_2_function(
 --    an text,
 --    function text ARRAY,

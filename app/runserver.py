@@ -11,7 +11,8 @@ from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-import query, userinput, run, cluster_filter, variables
+import query, userinput, run, variables, cluster_filter # todo remove cluster_filter
+# from profilehooks import profile
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -277,6 +278,7 @@ class API_STRING(Resource):
     def post(self):
         return self.post()
 
+    # @profile
     def post(self): #, output_format="json"):
         """
         watch out for difference between passing parameter through
@@ -297,7 +299,6 @@ class API_STRING(Resource):
         FDR_cutoff = args_dict["FDR_cutoff"]
         args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
         filter_PMID_top_n = args_dict["filter_PMID_top_n"]
-        # args_dict["PMID_top_100"] = string_2_bool(args_dict["PMID_top_100"])
         if FDR_cutoff == 0 or FDR_cutoff >= 1:
             args_dict["FDR_cutoff"] = None
         if filter_PMID_top_n == 0:

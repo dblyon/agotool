@@ -2,24 +2,25 @@ import os, multiprocessing
 import numpy as np
 ############################
 ### settings
-PRELOAD = False # set True in production
+PRELOAD = True # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 LOW_MEMORY = False # load function_an_2_description_dict or query DB
 DB_DOCKER = True # connect via local port vs via docker, in query.py
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING = False # profiling flaskapp --> check stdout, set to False in production
+PROFILING = True # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = True #False # print stuff to stdout
+VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
+temp_dont_run_analysis = False
 ############################
 # function_enumeration_len = 6815598 # ?deprecated?
 #blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9995', 'KW-9996', 'KW-9997', 'KW-9998', 'KW-9999']
@@ -169,3 +170,36 @@ def parse_env_file(fn):
 fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
 # print("VARIABLES env_file bubu: ", fn)
 param_2_val_dict = parse_env_file(fn)
+
+
+id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
+                              'GO:0005575': "-22",  # 'Cellular Component',
+                              'GO:0008150': "-21",  # 'Biological Process',
+                              "GO:OBSOLETE": "-24", # "GO obsolete
+                              # 'UPK:9990': "-51",  # 'Technical term',
+                              # 'UPK:9991': "-51",  # 'PTM',
+                              # 'UPK:9992': "-51",  # 'Molecular function',
+                              # 'UPK:9993': "-51",  # 'Ligand',
+                              # 'UPK:9994': "-51",  # 'Domain',
+                              # 'UPK:9995': "-51",  # 'Disease',
+                              # 'UPK:9996': "-51",  # 'Developmental stage',
+                              # 'UPK:9997': "-51",  # 'Coding sequence diversity',
+                              # 'UPK:9998': "-51",  # 'Cellular component',
+                              # 'UPK:9999': "-51",  # 'Biological process'
+                              'KW-9990': "-51",  # 'Technical term',
+                              'KW-9991': "-51",  # 'PTM',
+                              'KW-9992': "-51",  # 'Molecular function',
+                              'KW-9993': "-51",  # 'Ligand',
+                              'KW-9994': "-51",  # 'Domain',
+                              'KW-9995': "-51",  # 'Disease',
+                              'KW-9996': "-51",  # 'Developmental stage',
+                              'KW-9997': "-51",  # 'Coding sequence diversity',
+                              'KW-9998': "-51",  # 'Cellular component',
+                              'KW-9999': "-51",  # 'Biological process'
+                              "UniProtKeywords": "-51",
+                              'KEGG': "-52", # KEGG
+                              "SMART": "-53", # SMART domains
+                              "INTERPRO": "-54", # Interpro domains
+                              "PFAM": "-55", # Pfam domains
+                              "PMID": "-56", # Pubmed identifiers
+                              "Reactome": "-57"} # Reactome

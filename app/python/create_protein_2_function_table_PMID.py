@@ -1,6 +1,6 @@
 import pandas as pd
-import numpy as np
-import os, sys, re
+# import numpy as np
+import os, sys #, re
 import ast
 sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
 import variables
@@ -8,7 +8,6 @@ DOWNLOADS_DIR = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads" # variab
 TABLES_DIR = variables.TABLES_DIR
 # etype = "-56"
 etype = str(variables.functionType_2_entityType_dict["PMID"])
-
 
 
 def parse_textmining_entityID_2_proteinID(fn):
@@ -38,8 +37,6 @@ def sanity_check_2(df_txtID):
     assert len(df_txtID["textmining_id"].unique()) == len(df_txtID["ENSP"].unique())
 
 
-
-
 if __name__ == "__main__":
 
     fn_all_entities = os.path.join(DOWNLOADS_DIR, "all_entities.tsv")
@@ -56,7 +53,7 @@ if __name__ == "__main__":
     cond = df_txtID["ENSP"].isin(ENSP_set)
     print("reducing df_txtID from {} to {} rows".format(len(cond), sum(cond)))
     df_txtID = df_txtID[cond]
-    # sanity check that there is a one to one mapping between textmining_id and ENSP --> no --> first remove all ENSPs that are not in DB
+    # sanity check that there is a "one to one mapping" between textmining_id and ENSP --> no --> first remove all ENSPs that are not in DB
     sanity_check_2(df_txtID)
 
     # filter by ENSPs in DB --> TaxID_2_Protein_table_STRING.txt

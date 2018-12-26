@@ -423,17 +423,6 @@ docker run --rm -it --volume "/Users/dblyon/modules/cpr/agotool/app/:/opt/servic
 docker run --rm -it --network="agotool_db_nw" --name testing -e POSTGRES_USER="postgres" -e POSTGRES_PASSWORD="USE_YOUR_PASSWORD" -e POSTGRES_DB="agotool" -e APP_SECRET_KEY="USE_YOUR_SECRET_KEY" --volume "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool pytest -v ./app/python/test_userinput.py
 
 
-$ docker volume ls
-DRIVER              VOLUME NAME
-local               agotool_agotool_data
-local               agotool_dbdata
-
-$ docker volume ls
-DRIVER              VOLUME NAME
-local               agotool_agotool_data
-local               agotool_agotool_dbdata
-local               agotool_dbdata
-
 
 ### PYTEST workaround to flask crashing due to unknown reason
 # run docker without preloading so the website will not work, but the connection to the DB will be established and therefore
@@ -488,15 +477,6 @@ docker-compose up -d --scale flaskapp=2
 # http://agotool-api.meringlab.org/ # aquarius
 # http://agotool.meringlab.org/     # atlas
 
-
-ToDo:
-change DB identifiers
-UPK:9990 --> KW-9990
-KEGG:01100 --> map01100
-
-change descriptions for functional associations
---> checkout email from PFAM/SMART...
-
 # try a query from the CLI
 curl -X POST "localhost:5912/api?enrichment_method=genome&taxid=9606" -d '{"foreground": "9606.ENSP00000251595%0d9606.ENSP00000322421%0d9606.ENSP00000333994"}'
 curl -X POST "localhost:5912/api?enrichment_method=genome&taxid=9606" -d "9606.ENSP00000259606.ENSP00000322421"
@@ -504,6 +484,7 @@ curl -X POST "localhost:5912/api?enrichment_method=genome&taxid=9606" -d "9606.E
 /Users/dblyon/anaconda3/lib/gcc/x86_64-apple-darwin11.4.2/4.8.5/include-fixed/limits.h
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1
 
+##############################################################################
 ### flaskapp.conf backup
 server {
     listen 80;
@@ -528,3 +509,4 @@ server {
 
     }
 }
+##############################################################################

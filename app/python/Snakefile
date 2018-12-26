@@ -1,0 +1,219 @@
+import os, sys
+# sys.path.insert(0, os.path.join(os.getcwd(), "python"))
+import variables
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR
+TABLES_DIR = variables.TABLES_DIR
+PYTHON_DIR = variables.PYTHON_DIR
+NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
+number_of_processes_for_sorting = 4
+verbose = variables.VERBOSE
+##### files that need to be created for DB
+# - Functions_table_STRING.txt
+# - Protein_2_FunctionEnum_table_STRING.txt
+# - Entity_types_table_STRING.txt
+# - TaxID_2_Proteins_table_STRING.txt
+# - GO_2_Slim_table_STRING.txt
+# - Taxid_2_FunctionCountArray_table_STRING.txt
+# - Lineage_table_STRING.txt
+max_len_description = 250
+debug = True
+
+Functions_table_InterPro = os.path.join(TABLES_DIR, "Functions_table_InterPro.txt")
+Functions_table_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
+Functions_table_SMART = os.path.join(TABLES_DIR, "Functions_table_SMART.txt")
+Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
+Functions_table_GO = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
+Functions_table_UPK = os.path.join(TABLES_DIR, "Functions_table_UPK.txt")
+Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
+Functions_table_RCTM = os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")
+Functions_table_STRING = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+Function_2_ENSP_table_STRING = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
+
+
+Protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.txt")
+TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+
+Protein_2_function_table_RCTM = os.path.join(TABLES_DIR, "Protein_2_Function_table_RCTM.txt"),
+
+Protein_2_function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+Protein_2_functionEnum_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt")
+
+GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+UPK_keywords_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+
+
+# temp files
+TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+
+
+rule h_map_string2interpro:
+    input: # relative path to working dir
+        string2uniprot = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv"),
+        uniprot2interpro = os.path.join(DOWNLOADS_DIR, "protein2ipr.dat.gz")
+    output: # relative path to working dir
+        string2interpro = os.path.join(DOWNLOADS_DIR, "string2interpro.dat.gz")
+    #script: # relative path to Snakefile
+    #    "python/map_string_2_interpro.py"
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.map_string_2_interpro(r"{input.string2uniprot}", r"{input.uniprot2interpro}", r"{output.string2interpro}")'"""
+
+rule create_Functions_table_InterPro:
+    input:
+        fn_in_InterPro_name_2_AN = os.path.join(DOWNLOADS_DIR, "InterPro_name_2_AN.txt")
+    output:
+        Functions_table_InterPro = Functions_table_InterPro
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_InterPro(r"{input.fn_in_InterPro_name_2_AN}", r"{output.Functions_table_InterPro}")'"""
+
+rule create_Functions_table_KEGG:
+    input:
+        fn_in_pathway = os.path.join(DOWNLOADS_DIR, "pathway.list")
+    output:
+        Functions_table_KEGG = Functions_table_KEGG
+    params:
+        verbose = verbose
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_KEGG(r"{input.fn_in_pathway}", r"{output.Functions_table_KEGG}", {params.verbose})'"""
+
+rule create_Functions_table_SMART:
+    input:
+        fn_in_SMART_domain_descriptions = os.path.join(DOWNLOADS_DIR, "SMART_domain_descriptions.txt")
+    output:
+        Functions_table_SMART = Functions_table_SMART
+    params:
+        max_len_description = max_len_description
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_SMART(r"{input.fn_in_SMART_domain_descriptions}", r"{output.Functions_table_SMART}", {params.max_len_description})'"""
+
+rule create_Functions_table_PFAM:
+    input:
+        fn_in_Pfam = os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv")
+    output:
+        Functions_table_PFAM = Functions_table_PFAM
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_PFAM(r"{input.fn_in_Pfam}", r"{output.Functions_table_PFAM}")'"""
+
+rule create_Functions_table_GO:
+    input:
+        fn_in_go_basic = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+    output:
+        Functions_table_GO = Functions_table_GO
+    params:
+        is_upk = False
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_GO_or_UPK(r"{input.fn_in_go_basic}", r"{output.Functions_table_GO}", {params.is_upk})'"""
+
+rule create_Functions_table_UPK:
+    input:
+        fn_in_keywords = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+    output:
+        Functions_table_UPK = Functions_table_UPK
+    params:
+        is_upk = True
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_GO_or_UPK(r"{input.fn_in_keywords}", r"{output.Functions_table_UPK}", {params.is_upk})'"""
+
+rule create_Protein_2_Function_table_RCTM__and__Functions_table_RCTM:
+    input:
+        fn_associations = os.path.join(DOWNLOADS_DIR, "RCTM_associations.tsv"),
+        fn_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv"),
+        fn_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+    output:
+        Protein_2_function_table_RCTM = Protein_2_function_table_RCTM,
+        Functions_table_RCTM = Functions_table_RCTM
+    threads: number_of_processes_for_sorting
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(r"{input.fn_associations}", r"{input.fn_descriptions}", r"{input.fn_hierarchy}", r"{output.Protein_2_function_table_RCTM}", r"{output.Functions_table_RCTM}", {threads})'"""
+
+rule create_Functions_table_PMID: # textmining pmc medline --> using gnu parallel
+    input:
+        fn_in_pmc_medline = os.path.join(DOWNLOADS_DIR, "pmc_medline_small_example.tsv"),
+        python_script =  os.path.join(PYTHON_DIR, "parallel_parse_textmining_pmc_medline.py")
+    output:
+        Functions_table_PMID = Functions_table_PMID,
+        temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
+    threads: NUMBER_OF_PROCESSES
+    shell:
+        """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.fn_in_pmc_medline}", r"{input.python_script}", r"{output.Functions_table_PMID}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
+
+# rule create_Function_2_ENSP_table_STRING:
+#     input:
+#         fn_2_split = os.path.join(PYTHON_DIR, "taxids.txt"),
+#         python_script = os.path.join(PYTHON_DIR, "parallel_create_function_2_ENSP_table.py")
+#     output:
+#         fn_out_Function_2_ENSP_table_STRING = fn_out_Function_2_ENSP_table_STRING,
+#         temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
+#     threads: NUMBER_OF_PROCESSES
+#     shell:
+#         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.fn_2_split}", r"{input.python_script}", r"{output.fn_out_Function_2_ENSP_table_STRING}", temp_dir=r"{output.temp_dir}", cpu_number={threads}, KB_MB_GB="K", split_size="1")'"""
+
+rule create_Functions_table_STRING:
+    input:
+        fn_list_str = [Functions_table_InterPro,
+                       Functions_table_KEGG,
+                       Functions_table_SMART,
+                       Functions_table_PFAM,
+                       Functions_table_GO,
+                       Functions_table_UPK,
+                       Functions_table_PMID,
+                       Functions_table_RCTM]
+    output:
+        Functions_table_STRING = Functions_table_STRING,
+        fn_out_temp = temp(os.path.join(TABLES_DIR, "Functions_tables_STRING_temp.txt"))
+    threads: NUMBER_OF_PROCESSES
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.concatenate_Functions_tables(r"{input.fn_list_str}", r"{output.fn_out_temp}", r"{output.Functions_table_STRING}", {threads})'"""
+
+rule create_TaxID_2_Proteins_table_STRING:
+    input:
+        Protein_shorthands = Protein_shorthands
+    output:
+        TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+    threads: NUMBER_OF_PROCESSES
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.TaxID_2_Proteins_table_STRING}", {threads})'"""
+
+rule create_Protein_2_FunctionEnum_table_STRING:
+    input:
+        Protein_2_function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt"),
+        Functions_table_STRING = Functions_table_STRING
+    output:
+        Protein_2_functionEnum_table_STRING = Protein_2_functionEnum_table_STRING
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_map_function_2_function_enumeration(r"{input.Functions_table_STRING}", r"{input.Protein_2_function_table_STRING}", r"{output.Protein_2_functionEnum_table_STRING}")'"""
+
+rule create_Lineage_table_STRING:
+    input:
+        GO_basic_obo = GO_basic_obo,
+        UPK_keywords_obo = UPK_keywords_obo,
+        RCTM_hierarchy = RCTM_hierarchy,
+        Functions_table_STRING = Functions_table_STRING
+    output:
+        fn_out_lineage_table = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt")
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Lineage_table_STRING(r"{input.GO_basic_obo}", r"{input.UPK_keywords_obo}", r"{input.RCTM_hierarchy}", r"{input.Functions_table_STRING}", r"{output.fn_out_lineage_table}")'"""
+
+rule create_TaxID_2_Proteins_table:
+    input:
+        Protein_shorthands = Protein_shorthands
+    output:
+        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING
+    threads: NUMBER_OF_PROCESSES
+    params:
+        verbose = verbose
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.TaxID_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
+
+rule create_Taxid_2_FunctionCountArray_table_STRING:
+    input:
+        # Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
+        Protein_2_FunctionEnum_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt"),
+        Functions_table_STRING = Functions_table_STRING
+    output:
+        Taxid_2_FunctionCountArray_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
+    threads: NUMBER_OF_PROCESSES
+    params:
+        verbose = verbose
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Taxid_2_FunctionCountArray_table_STRING(r"{input.Protein_2_FunctionEnum_table_STRING}", r"{input.Functions_table_STRING}", r"{output.TaxID_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
