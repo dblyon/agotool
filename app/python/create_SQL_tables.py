@@ -297,7 +297,7 @@ def create_tables_STRING(verbose=True, delete_temp_files=False, clear_log_files=
      ##sort_file(fn_out, fn_out, columns="1,3", fn_bash_script=None, number_of_processes=number_of_processes, verbose=True)
      ### deprecated stop
 
-     ### - Functions_2_ENSP_table
+     ### - Function_2_ENSP_table
      ### #!!! dependency on creating DB first #!!!
      fn_out = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
      pqo = query.PersistentQueryObject_STRING()

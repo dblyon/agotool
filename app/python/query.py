@@ -438,7 +438,7 @@ class PersistentQueryObject:
 
 class PersistentQueryObject_STRING(PersistentQueryObject):
     """
-    used to query protein 2 functional associations
+    used to query protein 2 functional associationsfunction_enumeration_len
     only protein_2_function is queried in Postgres,
     everything else is in memory but still deposited in the DB any way
     """
@@ -446,7 +446,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         if variables.VERBOSE:
             print("#"*80)
             print("initializing PQO")
-        if variables.VERBOSE:
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
         if variables.VERBOSE:

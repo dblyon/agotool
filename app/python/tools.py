@@ -65,12 +65,11 @@ def sort_file(fn_in, fn_out, columns=None, fn_bash_script=None, number_of_proces
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
         if columns is not None:
-            shellcmd = "sort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
+            shellcmd = "LC_ALL=C sort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
         else:
-            shellcmd = "sort --parallel {} {} -o {}".format(number_of_processes, fn_in, fn_out)
-
-        if PLATFORM != "linux":
-            shellcmd = shellcmd.replace("sort ", "LC_ALL=C gsort ")
+            shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(number_of_processes, fn_in, fn_out)
+        # if PLATFORM != "linux":
+        #     shellcmd = shellcmd.replace("sort ", "LC_ALL=C gsort ")
         fh.write(shellcmd)
     if verbose:
         print(shellcmd)
@@ -91,3 +90,55 @@ def line_numbers(fn_in):
     with open(fn_in, "r") as fh_in:
         num_lines = sum(1 for _ in fh_in)
     return num_lines
+
+def yield_line_uncompressed_or_gz_file(fn):
+    """
+    adapted from
+    https://codebright.wordpress.com/2011/03/25/139/
+    and
+    https://www.reddit.com/r/Python/comments/2olhrf/fast_gzip_in_python/
+    http://pastebin.com/dcEJRs1i
+    :param fn: String (absolute path)
+    :return: GeneratorFunction (yields String)
+    """
+    if fn.endswith(".gz"):
+        if PLATFORM == "darwin": # OSX: "Darwin"
+            ph = subprocess.Popen(["gzcat", fn], stdout=subprocess.PIPE)
+        elif PLATFORM == "linux": # Debian: "Linux"
+            ph = subprocess.Popen(["zcat", fn], stdout=subprocess.PIPE)
+        else:
+            ph = subprocess.Popen(["cat", fn], stdout=subprocess.PIPE)
+
+        for line in ph.stdout:
+            yield line.decode("utf-8")
+    else:
+        with open(fn, "r") as fh:
+            for line in fh:
+                yield line
+
+def gunzip_file(fn_in, fn_out=None):
+    fn_bash_script = "bash_script_sort_{}.sh".format(os.path.basename(fn_in))
+    with open(fn_bash_script, "w") as fh:
+        fh.write("#!/usr/bin/env bash\n")
+        if fn_out is None:
+            fn_out = fn_in + "_temp"
+        shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_out)
+        fh.write(shellcmd_1 + "\n")
+    subprocess.call("chmod 744 ./{}".format(fn_bash_script), shell=True)
+    subprocess.call("./{}".format(fn_bash_script), shell=True)
+    os.remove(fn_bash_script)
+
+def diff_of_columns_of_2_files(fn_1, fn_2, column_number_1=0, column_number_2=0, sep="\t"):
+    list1, list2 = [], []
+    with open(fn_1, "r") as fh_1:
+        with open(fn_2, "r") as fh_2:
+            for line in fh_1:
+                list1.append(line.split(sep)[column_number_1].strip())
+            for line in fh_2:
+                list2.append(line.split(sep)[column_number_2].strip())
+    set1 = set(list1)
+    set2 = set(list2)
+    print("len of list1: {}, len of set1: {}".format(len(list1), len(set1)))
+    print("len of list2: {}, len of set2: {}".format(len(list2), len(set2)))
+    print("len and diff of set1 - set2: {}\n{}".format(len(set1 - set2), sorted(set1 - set2)))
+    print("len and diff of set2 - set1: {}\n{}".format(len(set2 - set1), sorted(set2 - set1)))

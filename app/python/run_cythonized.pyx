@@ -16,7 +16,7 @@ import variables, query
 
 @boundscheck(False)
 @wraparound(False)
-cdef create_funcEnum_count_background_v2(unsigned short[::1] funcEnum_count_background,
+cdef create_funcEnum_count_background_v2(unsigned int[::1] funcEnum_count_background,
                                           const unsigned int[:, ::1] funcEnum_index_2_associations):
     """
     without returning 'funcEnum_count' the function does inplace change of 'funcEnum_count'
@@ -67,7 +67,7 @@ cdef create_funcEnum_count_background_v4(unsigned int[::1] funcEnum_count_backgr
 
 @boundscheck(False)
 @wraparound(False)
-cdef count_terms_v3_cython(unsigned int[::1] funcEnum_associations,
+cdef count_terms_cy(unsigned int[::1] funcEnum_associations,
                           unsigned int[::1] funcEnum_count):
     """
     without returning 'funcEnum_count' the function does inplace change of 'funcEnum_count'
@@ -230,22 +230,35 @@ def get_preloaded_objects_for_single_analysis(blacklisted_terms_bool_arr, functi
     else:
         raise NotImplementedError
 
-
 @boundscheck(False)
 @wraparound(False)
 cdef filter_parents_if_same_foreground(uint8[::1] blacklisted_terms_bool_arr_temp,
-                                         cond_terms_reduced_with_ontology,
-                                         dict lineage_dict_enum, df):
+                                       cond_terms_reduced_with_ontology,
+                                       dict lineage_dict_enum,
+                                       df):
+    """    
+    potential speed up using C++ types for sets, BUT data is copied so profile 
+
+    # distutils: language = c++    
+    from libcpp.vector cimport vector
+    from libcpp.set cimport set 
+    """
     cdef:
         unsigned int term_enum, lineage_term
+        # unsigned int lineage
 
     for group_terms in df.sort_values(["foreground_ids", "hierarchical_level", "p_value"], ascending=[True, False, True]).groupby("foreground_ids", sort=False).apply(lambda group: group["term_enum"].values):
         group_terms_set = set(group_terms)
         for term_enum in group_terms:
             if blacklisted_terms_bool_arr_temp[term_enum] == 0: # False
                 cond_terms_reduced_with_ontology[term_enum] = True
-                for lineage_term in lineage_dict_enum[term_enum] & group_terms_set: # bitwise intersection
+                try:
+                    lineage = lineage_dict_enum[term_enum] & group_terms_set # bitwise intersection
+                except KeyError:
+                    lineage = group_terms_set
+                for lineage_term in lineage:
                     blacklisted_terms_bool_arr_temp[lineage_term] = 1 # True
+
 
 def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=False):
     if not low_memory:
@@ -261,7 +274,7 @@ def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, 
         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans.tolist(), dict_2_array=True)
     for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-        count_terms_v3_cython(funcEnumAssociations, funcEnum_count_foreground)
+        count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
 
     ### calc ratio in foreground, count foreground / len(protein_ans)
     ratio_in_foreground = funcEnum_count_foreground / foreground_n
@@ -320,11 +333,11 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans_fg.tolist() + protein_ans_bg.tolist(), dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
     for ENSP in (ENSP for ENSP in protein_ans_fg if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-        count_terms_v3_cython(funcEnumAssociations, funcEnum_count_foreground)
+        count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
     ## count background
     for ENSP in (ENSP for ENSP in protein_ans_bg if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-        count_terms_v3_cython(funcEnumAssociations, funcEnum_count_background)
+        count_terms_cy(funcEnumAssociations, funcEnum_count_background)
 
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)
@@ -459,7 +472,7 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans.tolist(), dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
     for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-        count_terms_v3_cython(funcEnumAssociations, funcEnum_count_foreground) # todo rename count_terms_v3_cython --> count_terms_cy
+        count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
 
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)
@@ -528,7 +541,8 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
                                     "etype": entitytype_arr[cond_2_return].view(),
                                     "description": description_arr[cond_2_return].view(),
                                     "foreground_count": funcEnum_count_foreground[cond_2_return].view(),
-                                    "foreground_ids": foreground_ids_arr_of_string[cond_2_return].view(),
+                                    "background_count": funcEnum_count_background[cond_2_return].view(),
+"foreground_ids": foreground_ids_arr_of_string[cond_2_return].view(),
                                     "year": year_arr[cond_2_return].view()})
     else:
         df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
@@ -537,6 +551,7 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
                                     "FDR": p_values_corrected[cond_2_return].view(),
                                     "etype": entitytype_arr[cond_2_return].view(),
                                     "foreground_count": funcEnum_count_foreground[cond_2_return].view(),
+                                    "background_count": funcEnum_count_background[cond_2_return].view(),
                                     "foreground_ids": foreground_ids_arr_of_string[cond_2_return].view(),
                                     "year": year_arr[cond_2_return].view(),
                                     "funcEnum": indices_arr[cond_2_return].view()})

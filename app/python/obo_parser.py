@@ -1,6 +1,6 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.realpath('./')))
-import query
+# import query
 
 
 try:
@@ -451,26 +451,26 @@ class Functional_term:
 
 
 
-class KEGG_pseudo_dag(dict):
-    """
-    depends on DB
-    kegg_pseudo_dag: description=name, goterm=id
-    """
-    def __init__(self):
-        KEGG_id_2_name_dict = query.get_function_type_id_2_name_dict("KEGG")
-        # kegg_pseudo_dag: description=name, goterm=id
-        for id_, name in KEGG_id_2_name_dict.items():
-            self[id_] = KEGGterm(id_, name)
+# class KEGG_pseudo_dag(dict):
+#     """
+#     depends on DB
+#     kegg_pseudo_dag: description=name, goterm=id
+#     """
+#     def __init__(self):
+#         KEGG_id_2_name_dict = query.get_function_type_id_2_name_dict("KEGG")
+#         # kegg_pseudo_dag: description=name, goterm=id
+#         for id_, name in KEGG_id_2_name_dict.items():
+#             self[id_] = KEGGterm(id_, name)
 
-class Pseudo_dag(dict):
-    """
-    depends on DB
-    pseudo_dag: description=name, goterm=id
-    """
-    def __init__(self, etype):
-        Function_id_2_name_dict = query.get_function_type_id_2_name_dict(etype)
-        for id_, name in Function_id_2_name_dict.items():
-            self[id_] = Functional_term(id_, name)
+# class Pseudo_dag(dict):
+#     """
+#     depends on DB
+#     pseudo_dag: description=name, goterm=id
+#     """
+#     def __init__(self, etype):
+#         Function_id_2_name_dict = query.get_function_type_id_2_name_dict(etype)
+#         for id_, name in Function_id_2_name_dict.items():
+#             self[id_] = Functional_term(id_, name)
 
 
 
@@ -488,14 +488,14 @@ class DOMterm:
         self.is_obsolete = False  # is_obsolete
 
 
-class DOM_pseudo_dag(dict):
-
-    def __init__(self):
-        # DOM_id_2_name_dict = query.get_DOM_id_2_name_dict()
-        DOM_id_2_name_dict = query.get_function_type_id_2_name_dict("DOM")
-        # DOM_pseudo_dag: description=name, DOM_term=id
-        for id_, name in DOM_id_2_name_dict.items():
-            self[id_] = DOMterm(id_, name)
+# class DOM_pseudo_dag(dict):
+#
+#     def __init__(self):
+#         # DOM_id_2_name_dict = query.get_DOM_id_2_name_dict()
+#         DOM_id_2_name_dict = query.get_function_type_id_2_name_dict("DOM")
+#         # DOM_pseudo_dag: description=name, DOM_term=id
+#         for id_, name in DOM_id_2_name_dict.items():
+#             self[id_] = DOMterm(id_, name)
 
 
 
