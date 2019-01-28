@@ -1,0 +1,24 @@
+name: agotool
+channels:
+  - anaconda
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3
+  - numpy
+  - cython
+  - pandas
+  - psycopg2
+  - retrying
+  - fisher
+  - Werkzeug
+  - WTForms
+  - Flask
+  - flask-restful
+  - networkx
+  - lxml
+  - pytest
+  - pytest-cov
+  - markdown
+  - flask-markdown
+  - requests

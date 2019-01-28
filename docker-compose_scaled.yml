@@ -12,9 +12,8 @@ services:
      ### Ody
       - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
      ### Atlas
-      # - /home/dblyon/agotool/data/:/agotool_data
+      #- /home/dblyon/agotool/data/:/agotool_data
     ports: # expose port in order to connect to PostgreSQL from outside docker
-      #- "5432:5432"
       - "5913:5432"
     env_file:
       - ./app/env_file
@@ -35,7 +34,7 @@ services:
       ### Ody
       - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
-      # - /home/dblyon/agotool/data/:/agotool_data
+      #- /home/dblyon/agotool/data/:/agotool_data
     env_file:
       - ./app/env_file
     networks:
@@ -58,7 +57,7 @@ services:
       ### Ody
       - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
-      # - /home/dblyon/agotool/data/:/agotool_data
+      #- /home/dblyon/agotool/data/:/agotool_data
     env_file:
       - ./app/env_file
     networks:
@@ -67,15 +66,14 @@ services:
     depends_on:
       - db
 
-
   nginx:
     container_name: nginx
     image: "nginx:1.13.8"
     ports:
-      #- "8080:80"
       - "5911:80"
     volumes:
       - ./app/conf.d:/etc/nginx/conf.d
+      - ./app/static:/var/www/static
     networks:
       - web_nw
     depends_on:

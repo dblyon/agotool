@@ -7,7 +7,8 @@ from collections import defaultdict
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 import re, obo_parser
-import tools, variables, ratio
+import tools, ratio
+import variables_snakemake as variables
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 BASH_LOCATION = r"/usr/bin/env bash"
@@ -87,26 +88,6 @@ def get_child_2_direct_parent_dict_RCTM_hierarchy(fn_in):
             else:
                 child_2_parent_dict[child] |= {parent}
     return child_2_parent_dict
-
-def get_parents_iterative(child, child_2_parent_dict):
-    """
-    par = {"C22":{"C1"}, "C21":{"C1"}, "C1":{"P1"}}
-    get_parents_iterative("C22", par)
-    """
-    if child not in child_2_parent_dict:
-        return []
-    # important to set() otherwise parent is updated in orig object
-    all_parents = set(child_2_parent_dict[child])
-    current_parents = set(all_parents)
-    while len(current_parents) > 0:
-        new_parents = set()
-        for parent in current_parents:
-            if parent in child_2_parent_dict:
-                temp_parents = child_2_parent_dict[parent].difference(all_parents)
-                all_parents.update(temp_parents)
-                new_parents.update(temp_parents)
-        current_parents = new_parents
-    return all_parents
 
 def create_protein_2_function_table_Reactome(fn_in, fn_out, child_2_parent_dict, return_all_terms=False):  # term_set_2_use_as_filter
     # entity_type = "-57"
@@ -200,21 +181,51 @@ def get_all_lineages(child, child_2_parent_dict):
     get_all_lineages(child, child_2_parent_dict)
     --> [['ATH-111997', 'ATH-1489509', 'ATH-9006925', 'ATH-162582'],
     ['ATH-111997', 'ATH-111996', 'ATH-112043', 'ATH-112040', 'ATH-111885', 'ATH-418594', 'ATH-388396', 'ATH-372790', 'ATH-162582']]
+
+    an = "GO:1904767"
+    lineage_dict[an] --> {'GO:0031406', 'GO:0005488', 'GO:0036094', 'GO:0043168', 'GO:0008289', 'GO:0005504', 'GO:0033293', 'GO:0043167', 'GO:0003674', 'GO:0043177'}
+    child_2_parent_dict[an] --> {'GO:0005504'}
     """
     all_lineages = []
     parents_2_remove = set()
-    try:
-        direct_parents = child_2_parent_dict[child]  # {'BTA-927802'}
-    except KeyError:
-        direct_parents = []
+    direct_parents = get_direct_parents(child, child_2_parent_dict)
     while True:
-        if len(direct_parents - parents_2_remove) == 0:
+        if len(direct_parents - parents_2_remove) == 0: # {'GO:0005504'} - {} --> {'GO:0005504'} != 0 # 2.iteration {'GO:0005504'} - {"GO:1904767", "GO:0005504", 'GO:0008289', 'GO:0005488', 'GO:0003674'} --> {}
             return all_lineages
         else:
-            parent = list(direct_parents - parents_2_remove)[0]  # 'BTA-927802'
-            lineage = [child, parent] + get_random_direct_lineage(parent, child_2_parent_dict, lineage=[])
+            parent = list(direct_parents - parents_2_remove)[0]  # 'GO:0005504'
+            lineage = [child, parent] + get_random_direct_lineage(parent, child_2_parent_dict, lineage=[]) # ["GO:1904767", "GO:0005504"] +  ['GO:0008289', 'GO:0005488', 'GO:0003674']
             all_lineages.append(lineage)
-            parents_2_remove.update(set(lineage))
+            parents_2_remove.update(set(lineage)) # {"GO:1904767", "GO:0005504", 'GO:0008289', 'GO:0005488', 'GO:0003674'}
+            direct_parents.update(get_direct_parents(parent, child_2_parent_dict))
+
+def get_direct_parents(child, child_2_parent_dict):
+    try:
+        # copy is necessary since child_2_parent_dict is otherwise modified by updating direct_parents in get_all_lineages
+        direct_parents = child_2_parent_dict[child].copy()
+    except KeyError:
+        direct_parents = []
+    return direct_parents
+
+def get_parents_iterative(child, child_2_parent_dict):
+    """
+    par = {"C22":{"C1"}, "C21":{"C1"}, "C1":{"P1"}}
+    get_parents_iterative("C22", par)
+    """
+    if child not in child_2_parent_dict:
+        return []
+    # important to set() otherwise parent is updated in orig object
+    all_parents = set(child_2_parent_dict[child])
+    current_parents = set(all_parents)
+    while len(current_parents) > 0:
+        new_parents = set()
+        for parent in current_parents:
+            if parent in child_2_parent_dict:
+                temp_parents = child_2_parent_dict[parent].difference(all_parents)
+                all_parents.update(temp_parents)
+                new_parents.update(temp_parents)
+        current_parents = new_parents
+    return all_parents
 
 def get_term_2_level_dict(child_2_parent_dict):
     """
@@ -225,12 +236,23 @@ def get_term_2_level_dict(child_2_parent_dict):
     term_2_level_dict = defaultdict(lambda: 1)
     for child in child_2_parent_dict.keys():
         lineages = get_all_lineages(child, child_2_parent_dict)
-        max_lineage = 0
+        max_lineage = 1
         for lineage in lineages:
-            if len(lineage) > max_lineage:
-                max_lineage = len(lineage)
+            len_lineage = len(lineage)
+            if len_lineage > max_lineage:
+                max_lineage = len_lineage
         term_2_level_dict[child] = max_lineage
     return term_2_level_dict
+
+def get_child_2_direct_parent_dict_from_dag(dag):
+    """
+    e.g. {'GO:1901681': {'GO:0005488'},
+    'GO:0090314': {'GO:0090313', 'GO:0090316', 'GO:1905477'}, ...}
+    """
+    child_2_direct_parents_dict = {}
+    for name, term_object in dag.items():
+        child_2_direct_parents_dict[name] = {p.id for p in term_object.parents}
+    return child_2_direct_parents_dict
 
 def create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_associations, fn_descriptions, fn_hierarchy, fn_protein_2_function_table_RCTM, fn_functions_table_RCTM, number_of_processes):
     """
@@ -243,14 +265,8 @@ def create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_asso
     """
     if variables.VERBOSE:
         print("### creating 2 tables:\n - Protein_2_Function_table_RCTM.txt\n - Function_table_RCTM.txt\n")
-    # fn_associations = os.path.join(DOWNLOADS_DIR, fn_associations)
-    # fn_associations_sorted = fn_associations + "_sorted.txt"
     # sort on first two columns in order to get all functional associations for a given ENSP in one block
     tools.sort_file(fn_associations, fn_associations, number_of_processes=number_of_processes, verbose=variables.VERBOSE)
-    # fn_descriptions = os.path.join(DOWNLOADS_DIR, fn_descriptions)
-    # fn_hierarchy = os.path.join(DOWNLOADS_DIR, fn_hierarchy)  # parent-child not child-parent
-    # fn_protein_2_function_table_RCTM = os.path.join(TABLES_DIR, "Protein_2_Function_table_RCTM.txt")
-    # fn_functions_table_RCTM = os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")
     child_2_parent_dict = get_child_2_direct_parent_dict_RCTM_hierarchy(fn_hierarchy)  # child_2_parent_dict --> child 2 direct parents
     term_2_level_dict = get_term_2_level_dict(child_2_parent_dict)
     all_terms = create_protein_2_function_table_Reactome(fn_in=fn_associations, fn_out=fn_protein_2_function_table_RCTM, child_2_parent_dict=child_2_parent_dict, return_all_terms=True)
@@ -420,16 +436,6 @@ def create_Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=Fa
             line2write_func = etype + "\t" + an + "\t" + description + "\t" + year + "\t" + level + "\n"
             fh_funcs.write(line2write_func)
 
-def get_child_2_direct_parent_dict_from_dag(dag):
-    """
-    e.g. {'GO:1901681': {'GO:0005488'},
-    'GO:0090314': {'GO:0090313', 'GO:0090316', 'GO:1905477'}, ...}
-    """
-    child_2_direct_parents_dict = {}
-    for name, term_object in dag.items():
-        child_2_direct_parents_dict[name] = {p.id for p in term_object.parents}
-    return child_2_direct_parents_dict
-
 def get_entity_type_from_GO_term(term, GO_dag):
     if term == "GO:0003674" or GO_dag[term].has_parent("GO:0003674"):
         return "-23"
@@ -523,7 +529,7 @@ def _helper_format_array(function_arr, function_2_enum_dict):
         try:
             functionEnum_list.append(function_2_enum_dict[ele])
         except KeyError:
-            print(ele)
+            print("no translation for: {}".format(ele))
             raise StopIteration
     return [int(ele) for ele in functionEnum_list]
 
@@ -561,10 +567,10 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
     # key=GO-term, val=set of GO-terms (parents)
     for go_term_name in go_dag:
         GOTerm_instance = go_dag[go_term_name]
-        lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
+        lineage_dict[go_term_name] = GOTerm_instance.get_all_parents() # .union(GOTerm_instance.get_all_children()) # wrong #!!!
     for term_name in upk_dag:
         Term_instance = upk_dag[term_name]
-        lineage_dict[term_name] = Term_instance.get_all_parents().union(Term_instance.get_all_children())
+        lineage_dict[term_name] = Term_instance.get_all_parents() # .union(Term_instance.get_all_children())
     lineage_dict.update(get_lineage_Reactome(fn_rctm_hierarchy))
     return lineage_dict
 
@@ -695,6 +701,7 @@ def create_Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_
     # - create array of zeros of function_enumeration_length
     # - for line in Protein_2_FunctionEnum_table_STRING
     #     add counts to array until taxid_new != taxid_previous
+    print("create_Taxid_2_FunctionCountArray_table_STRING")
     tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
@@ -718,6 +725,7 @@ def create_Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_
             index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
             background_n = taxid_2_total_protein_count_dict[taxid]
             fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+    print("Taxid_2_FunctionCountArray_table_STRING done :)")
 
 def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
     ENSP, funcEnum_set = line.split("\t")
@@ -1370,7 +1378,7 @@ def create_Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table
         fn_out_protein_2_function_rest=fn_out_Protein_2_Function_table_STRING_rest,
         number_of_processes=number_of_processes)
 
-def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_TaxID_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1, minimum_number_of_annotations=1):
+def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_TaxID_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
     """
     - reduce Protein_2_Function_table_2_STRING to relevant ENSPs (those that are in fn_in_TaxID_2_Proteins_table_STRING)
     - and remove duplicates
@@ -1389,8 +1397,8 @@ def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_t
                         continue
                     ls = line.split("\t")
                     ENSP = ls[0]
-                    num_funcs = len(ls[1].split(","))
-                    if ENSP in ENSP_set and num_funcs > minimum_number_of_annotations:
+                    # num_funcs = len(ls[1].split(","))
+                    if ENSP in ENSP_set:# and num_funcs > minimum_number_of_annotations: #!!! WRONG
                         fh_out_reduced.write(line)
                     else:
                         fh_out_rest.write(line)
@@ -1462,6 +1470,9 @@ def Functions_table_STRING_reduced(fn_in_Functions_table, fn_in_Function_2_ENSP_
             function_an = line.split("\t")[2]
             all_relevant_functions.update([function_an])
 
+    # discard all blacklisted terms from Protein_2_Function_table and Functions
+    all_relevant_functions = all_relevant_functions - set(variables.blacklisted_terms)
+
     counter = 0
     with open(fn_out_Functions_table_STRING_reduced, "w") as fh_out_reduced:
         with open(fn_out_Functions_table_STRING_removed, "w") as fh_out_removed:
@@ -1503,7 +1514,7 @@ def _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Funct
             function_2_etype_dict[an] = etype
     return function_2_funcEnum_dict, function_2_etype_dict
 
-def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_removed(fn_in_protein_2_function, fn_in_function_2_ensp_rest, fn_in_Functions_table_STRING_removed, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest):
+def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(fn_in_protein_2_function, fn_in_function_2_ensp_rest, fn_in_Functions_table_STRING_reduced, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest):
     # use Function_2_ENSP_table_STRING_rest to reduce Protein 2 function
     ENSP_2_assocSet_dict = {} # terms to be removed from protein_2_function
     with open(fn_in_function_2_ensp_rest, "r") as fh_in:
@@ -1517,49 +1528,50 @@ def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_
             else:
                 ENSP_2_assocSet_dict[ENSP] |= {assoc}
 
-    # remove all functional terms stemmming from fn_in_Functions_table_STRING_removed in fn_out_protein_2_function_reduced
-    funcs_2_ignore = []
-    with open(fn_in_Functions_table_STRING_removed, "r") as fh_in:
+    # if functional terms not in fn_in_Functions_table_STRING_reduced then don't include in fn_out_protein_2_function_reduced
+    funcs_2_include = []
+    with open(fn_in_Functions_table_STRING_reduced, "r") as fh_in:
         for line in fh_in:
-            funcs_2_ignore.append(line.split("\t")[2])
-    funcs_2_ignore = set(funcs_2_ignore)
+            funcs_2_include.append(line.split("\t")[2])
+    funcs_2_include = set(funcs_2_include)
 
-    # debug
-    counter = 0
     print("producing new file {}".format(fn_out_protein_2_function_reduced))
     print("producing new file {}".format(fn_out_protein_2_function_rest))
     with open(fn_in_protein_2_function, "r") as fh_in:
         with open(fn_out_protein_2_function_reduced, "w") as fh_out_reduced:
             with open(fn_out_protein_2_function_rest, "w") as fh_out_rest:
                 for line in fh_in:
-                    counter += 1
-                    if counter > 1000:
-                        return None
                     line_split = line.strip().split("\t")
                     ENSP = line_split[0]
                     assoc_set = literal_eval(line_split[1])
                     etype = line_split[2]
                     try:
                         assoc_set_2_remove = ENSP_2_assocSet_dict[ENSP]
-                        # assoc_set_2_remove.update(funcs_2_ignore) # bottleneck?
                         try:
-                            assoc_reduced = (assoc_set - assoc_set_2_remove) - funcs_2_ignore
-                            assoc_rest = (assoc_set - assoc_reduced)
-                        except TypeError:  # empty set, which should not happen
+                            assoc_reduced = assoc_set - assoc_set_2_remove
+                            assoc_rest = assoc_set - assoc_reduced
+                            assoc_reduced = [an for an in assoc_reduced if an in funcs_2_include]
+                        except TypeError: # empty set, which should not happen
                             continue
-
-                        if assoc_set == assoc_reduced:
-                            fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_set))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
-                        else:
-                            if assoc_reduced:
-                                fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_reduced))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
-                            if assoc_rest:
-                                fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
+                        if assoc_reduced:
+                            fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_reduced))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
+                        if assoc_rest:
+                            fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
                     except KeyError:
-                        fh_out_reduced.write(line)
+                        assoc_reduced, assoc_rest = [], []
+                        for an in assoc_set:
+                            if an in funcs_2_include:
+                                assoc_reduced.append(an)
+                            else:
+                                assoc_rest.append(an)
+                        if assoc_reduced:
+                            fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_reduced))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
+                        if assoc_rest:
+                            fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
     print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
 
 def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, fn_out_AFC_KS_DIR, verbose=True):
+    print("AFC_KS_enrichment_terms_flat_files start")
     ENSP_2_internalID_dict = {}
     with open(fn_in_Protein_shorthands, "r") as fh:
         for line in fh:
@@ -1591,12 +1603,13 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
                 fn_out = fn_out_prefix.format(taxid)
                 fh_out = open(fn_out, "w")
             if verbose:
-                if counter % 500 == 0:
+                if counter % 1000 == 0:
                     print(".", end="")
             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
             counter += 1
             taxid_last = taxid
         fh_out.close()
+    print("AFC_KS_enrichment_terms_flat_files done :)")
 
 def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
     list_2_return = []
@@ -1632,12 +1645,14 @@ if __name__ == "__main__":
     # fn_out_Protein_2_Function_table_UPK = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK.txt")
     # create_Protein_2_Function_table_UniProtKeyword(Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out_Protein_2_Function_table_UPK, number_of_processes=1, verbose=True)
 
+
+
     Protein_2_Function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
     Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")
-    Functions_table_STRING_removed = os.path.join(TABLES_DIR, "Functions_table_STRING_removed.txt")
+    Functions_table_STRING_reduced = os.path.join(TABLES_DIR, "Functions_table_STRING_reduced.txt")
     Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
     Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
-    reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_removed(Protein_2_Function_table_STRING, Function_2_ENSP_table_STRING_removed, Functions_table_STRING_removed, Protein_2_Function_table_STRING_reduced, Protein_2_Function_table_STRING_removed)
+    reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(Protein_2_Function_table_STRING, Function_2_ENSP_table_STRING_removed, Functions_table_STRING_reduced, Protein_2_Function_table_STRING_reduced, Protein_2_Function_table_STRING_removed)
     ### dubugging stop
 
 

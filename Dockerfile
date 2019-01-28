@@ -1,7 +1,6 @@
-FROM python:3.5
+FROM python:3.6
 
 MAINTAINER David Lyon <dblyon@gmail.com>
-#USER dblyon
 
 ENV PYTHONUNBUFFERED 1
 ENV HOME /root
@@ -42,9 +41,8 @@ RUN apt-get update \
 
 RUN pip install --upgrade pip
 # Install Python packages
-RUN pip install \
+RUN pip install --no-cache-dir \
         numpy \
-        scipy \
         cython \
         pandas \
         jupyter \
@@ -58,7 +56,7 @@ RUN mkdir -p /opt/services/flaskapp/src
 # We copy the requirements.txt file first to avoid cache invalidations
 COPY ./app/requirements.txt /opt/services/flaskapp/src/
 WORKDIR /opt/services/flaskapp/src
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 RUN rm -rf /root/.cache
 
 COPY ./app /opt/services/flaskapp/src

@@ -114,7 +114,7 @@
 | 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
 
 
-### taxid_2_protein [TaxID_2_Protein_table_STRING.txt]
+### taxid_2_proteins [TaxID_2_Proteins_table_STRING.txt]
 | taxid | count | an_array |
 |:---:|:---:|:---:|
 | 9606 | 19566 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} |
