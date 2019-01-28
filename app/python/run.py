@@ -27,12 +27,12 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     #with pqo.get_preloaded_objects_per_analysis_contextmanager(method=enrichment_method) as preloaded_objects_per_analysis:
     preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis(method=enrichment_method)
     if enrichment_method == "compare_samples":
-        protein_ans_fg = ui.get_foreground_an_set()
-        protein_ans_bg = ui.get_background_an_set()
+        protein_ans_fg = ui.get_foreground_an_set() # is a set
+        protein_ans_bg = ui.get_background_an_set() # is a set
         df_2_return = run_cythonized.run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
 
     elif enrichment_method == "characterize_foreground":
-        protein_ans = ui.get_an_redundant_foreground()
+        protein_ans = ui.get_an_redundant_foreground() # is a list
         df_2_return = run_cythonized.run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
 
     ### for STRING internally disabled, otherwise this makes sense to use DONT DELETE
@@ -50,7 +50,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         args_dict["ERROR_taxid"] = "Please provide a TaxID (a taxonomic identifier e.g. 9606 for Homo sapiens)"
         return False
 
-    protein_ans = ui.get_all_unique_ANs() # proteins_ans is a set
+    protein_ans = ui.get_all_unique_ANs() # proteins_ans is a list
     if variables.VERSION_ != "STRING":
         if not check_all_ENSPs_of_given_taxid(protein_ans, taxid):
             taxid_string = str(taxid)

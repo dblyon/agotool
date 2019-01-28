@@ -2,12 +2,12 @@ import os, multiprocessing
 import numpy as np
 ############################
 ### settings
-PRELOAD = True # set True in production
+PRELOAD = False # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
@@ -219,5 +219,8 @@ def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
 
 fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
-blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
+try:
+    blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
+except:
+    pass
 # blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))

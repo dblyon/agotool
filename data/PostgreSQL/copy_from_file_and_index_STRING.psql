@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS functions, protein_2_function, protein_2_functionenum, entity_types, taxid_2_protein, go_2_slim, ontologies, function_2_ensp;
-DROP INDEX IF EXISTS protein_2_function_an_etype_idx, function_2_ensp_taxid_idx, function_2_ensp_taxid_etype_idx, taxid_2_protein_taxid_idx;
+DROP TABLE IF EXISTS functions, protein_2_function, entity_types, taxid_2_protein, go_2_slim, taxid_2_functioncountarray, funcenum_2_lineage, protein_2_functionenum, ontologies, function_2_ensp;
+DROP INDEX IF EXISTS functions_enum_idx, functions_an_idx, functions_etype_an_idx, protein_2_functionenum_an_idx, protein_2_functionenum_an_idx, taxid_2_protein_taxid_idx, protein_2_function_an_etype_idx, function_2_ensp_taxid_idx, function_2_ensp_taxid_etype_idx, taxid_2_functioncountarray_taxid_idx;
 
 CREATE TABLE functions (
     enum integer,
@@ -42,12 +42,10 @@ CREATE INDEX functions_enum_idx ON functions (enum);
 CREATE INDEX functions_an_idx ON functions (an);
 CREATE INDEX functions_etype_an_idx ON functions (etype, an);
 CLUSTER functions USING functions_etype_an_idx;
-
 CREATE INDEX protein_2_functionenum_an_idx ON protein_2_functionenum (an);
-
 CREATE INDEX taxid_2_functioncountarray_taxid_idx ON taxid_2_functioncountarray (taxid);
-
 CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
+
 
 
 --CREATE TABLE protein_2_function(

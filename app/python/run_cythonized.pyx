@@ -12,12 +12,13 @@ import pandas as pd
 
 import variables, query
 
+
 ##################################################################
 
 @boundscheck(False)
 @wraparound(False)
 cdef create_funcEnum_count_background_v2(unsigned int[::1] funcEnum_count_background,
-                                          const unsigned int[:, ::1] funcEnum_index_2_associations):
+                                         const unsigned int[:, ::1] funcEnum_index_2_associations):
     """
     without returning 'funcEnum_count' the function does inplace change of 'funcEnum_count'
     :param funcEnum_array: np.array (of variable length, with functional enumeration 
@@ -32,16 +33,45 @@ cdef create_funcEnum_count_background_v2(unsigned int[::1] funcEnum_count_backgr
     """
     cdef int N, i, index_, count
     N = funcEnum_index_2_associations.shape[0]
+
     for i in range(N):
         index_ = funcEnum_index_2_associations[i][0]
         count = funcEnum_index_2_associations[i][1]
         funcEnum_count_background[index_] = count
 
+# @boundscheck(False)
+# @wraparound(False)
+# cdef create_funcEnum_count_background_v4(unsigned int[::1] funcEnum_count_background, # uint32
+#                                          const unsigned int[::1] funcEnum_index_arr, # uint32
+#                                          const unsigned short[::1] count_arr): # uint16
+#     """
+#     create_funcEnum_count_background_v3(funcEnum_count_background, index_positions_arr, counts_arr)
+#     without returning 'funcEnum_count' the function does inplace change of 'funcEnum_count'
+#     :param funcEnum_array: np.array (of variable length, with functional enumeration
+#     values, uint32,
+#     i.e. which functional associations
+#     are given for provided user input proteins)
+#     :param funcEnum_count: np.array (shape of array from 0 to max enumeration of
+#     functional-terms,
+#     uint32, each position codes for a
+#     specific functional term, the value is a count for the given user input)
+#     :return: None
+#     """
+#     cdef:
+#         int i, N = funcEnum_index_arr.shape[0]
+#         unsigned short index_
+#         unsigned short count
+
+#     for i in range(N):
+#         index_ = funcEnum_index_arr[i]
+#         count = count_arr[i]
+#         funcEnum_count_background[index_] = count
+
 @boundscheck(False)
 @wraparound(False)
-cdef create_funcEnum_count_background_v4(unsigned int[::1] funcEnum_count_background, # uint32
-                                          const unsigned int[::1] funcEnum_index_arr, # uint32
-                                          const unsigned short[::1] count_arr): # uint16
+cdef create_funcEnum_count_background_v5(unsigned int[::1] funcEnum_count_background, # uint32
+                                         const unsigned int[::1] funcEnum_index_arr, # uint32
+                                         const unsigned short[::1] count_arr): # uint16
     """
     create_funcEnum_count_background_v3(funcEnum_count_background, index_positions_arr, counts_arr)
     without returning 'funcEnum_count' the function does inplace change of 'funcEnum_count'
@@ -57,7 +87,7 @@ cdef create_funcEnum_count_background_v4(unsigned int[::1] funcEnum_count_backgr
     """
     cdef:
         int i, N = funcEnum_index_arr.shape[0]
-        unsigned short index_
+        unsigned int index_
         unsigned short count
 
     for i in range(N):
@@ -247,18 +277,18 @@ cdef filter_parents_if_same_foreground(uint8[::1] blacklisted_terms_bool_arr_tem
         unsigned int term_enum, lineage_term
         # unsigned int lineage
 
-    for group_terms in df.sort_values(["foreground_ids", "hierarchical_level", "p_value"], ascending=[True, False, True]).groupby("foreground_ids", sort=False).apply(lambda group: group["term_enum"].values):
+    for group_terms in df.sort_values(["foreground_ids", "p_value", "hierarchical_level"], ascending=[True, True, False]).groupby("foreground_ids", sort=False).apply(lambda group: group["term_enum"].values):
         group_terms_set = set(group_terms)
         for term_enum in group_terms:
             if blacklisted_terms_bool_arr_temp[term_enum] == 0: # False
                 cond_terms_reduced_with_ontology[term_enum] = True
                 try:
                     lineage = lineage_dict_enum[term_enum] & group_terms_set # bitwise intersection
-                except KeyError:
-                    lineage = group_terms_set
+                except KeyError: # not in hierarchy (even though it should be, but some Reactome terms are inconsistent)
+                    blacklisted_terms_bool_arr_temp[term_enum] = 1 # True
+                    continue
                 for lineage_term in lineage:
                     blacklisted_terms_bool_arr_temp[lineage_term] = 1 # True
-
 
 def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=False):
     if not low_memory:
@@ -449,7 +479,7 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
     df_2_return["background_n"] = background_n
     return df_2_return[variables.cols_sort_order_compare_samples]
 
-def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=False, debug=True):
+def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=False, debug=False):
     if not low_memory:
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids = static_preloaded_objects
     else:
@@ -460,7 +490,7 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     if not low_memory:
         funcEnum_index_2_associations = taxid_2_tuple_funcEnum_index_2_associations_counts[taxid]
         index_positions_arr, counts_arr = funcEnum_index_2_associations
-        create_funcEnum_count_background_v4(funcEnum_count_background, index_positions_arr, counts_arr)
+        create_funcEnum_count_background_v5(funcEnum_count_background, index_positions_arr, counts_arr)# v4 v5
     else:
         background_counts_list = query.get_background_count_array(taxid)
         funcEnum_index_2_associations = np.asarray(background_counts_list, dtype=np.dtype("uint32"))
@@ -469,7 +499,7 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
 
     ## count foreground
     if low_memory:
-        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans.tolist(), dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
+        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans, dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
     for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
         count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)

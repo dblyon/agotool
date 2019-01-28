@@ -453,14 +453,12 @@ docker run --rm -it --volume /Users/dblyon/modules/cpr/agotool:/mounted_data --v
 
 #### building working DB for STRING version_
 # create DBs
-docker exec -it agotool_db_1 psql -U postgres -d postgres -f /agotool_data/PostgreSQL/create_DBs.psql
 docker exec -it postgres psql -U postgres -d postgres -f /agotool_data/PostgreSQL/create_DBs.psql
 docker run -it --net agotool_db_nw --env-file /Users/dblyon/modules/cpr/agotool/app/env_file -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest python ./python/create_SQL_tables.py
 # populate DB for real
-docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/copy_from_file_and_index_STRING.psql
 docker exec -it postgres psql -U postgres -d gostring -f /agotool_data/PostgreSQL/copy_from_file_and_index_STRING.psql
-docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql
-docker exec -it agotool_db_1 psql -U postgres -d gostring -f /agotool_data/PostgreSQL/temp.psql
+docker exec -it postgres psql -U postgres -d gostring -f /agotool_data/PostgreSQL/drop_and_rename_STRING.psql
+docker exec -it postgres psql -U postgres -d gostring -f /agotool_data/PostgreSQL/temp.psql
 
 docker run -it --net agotool_db_nw --env-file /Users/dblyon/modules/cpr/agotool/app/env_file -v "/Users/dblyon/modules/cpr/agotool/data/:/agotool_data" -v "/Users/dblyon/modules/cpr/agotool/app/:/opt/services/flaskapp/src" agotool_flaskapp:latest pytest -vx ./python/test_query.py --pdb
 
@@ -485,7 +483,7 @@ curl -X POST "localhost:5912/api?enrichment_method=genome&taxid=9606" -d "9606.E
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1
 
 ##############################################################################
-### flaskapp.conf backup
+### flaskapp.conf /nginx backup for single flaskapp container/service
 server {
     listen 80;
     server_name localhost;
@@ -510,3 +508,52 @@ server {
     }
 }
 ##############################################################################
+### flaskapp.conf / nginx for multiple containers
+upstream flaskapp {
+    server flaskapp_1:5912;
+    server flaskapp_2:5912;
+}
+
+server {
+    listen 80;
+    server_name localhost;
+    large_client_header_buffers 4 8m;
+    client_header_buffer_size 1k;
+    client_body_buffer_size     10M;
+    client_max_body_size        10M;
+
+#    location ~ \.(css|js|ico|png)$ {
+#        root /var/www;
+#        expires 2h;
+#        access_log off;
+#    }
+    location ^~ /static {
+        root /var/www;
+        expires 2h;
+        access_log off;
+    }
+
+    location / {
+        proxy_set_header   Host                 $host;
+        proxy_set_header   Host                 $http_host;
+        proxy_set_header   X-Real-IP            $remote_addr;
+        proxy_set_header   X-Forwarded-For      $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto    $scheme;
+
+        proxy_pass http://flaskapp;
+        proxy_connect_timeout       6000;
+        proxy_send_timeout          6000;
+        proxy_read_timeout          6000;
+        send_timeout                6000;
+        proxy_max_temp_file_size    0;
+
+    }
+}
+
+
+
+rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11
+
+docker-compose up -d --no-deps --build service_name
+
+docker build -t flaskapp_alpine:latest -f ./Dockerfile_alpine .
