@@ -7,7 +7,7 @@ PRELOAD = True # set True in production
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
@@ -15,10 +15,10 @@ LOW_MEMORY = False # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING = False # profiling flaskapp --> check stdout, set to False in production
+PROFILING = True # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = True # print stuff to stdout
+VERBOSE = False # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 temp_dont_run_analysis = False

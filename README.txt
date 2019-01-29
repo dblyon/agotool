@@ -559,3 +559,5 @@ docker-compose up -d --no-deps --build service_name
 docker build -t flaskapp_alpine:latest -f ./Dockerfile_alpine .
 
 conda env create -n agotool -f conda_agotool.yml
+
+python setup.py build_ext --inplace

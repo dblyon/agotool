@@ -517,7 +517,8 @@ def Protein_2_Function_table_map_function_2_function_enumeration(fn_Functions_ta
                 if ENSP == ENSP_last:
                     functionEnum_list += _helper_format_array(function_arr, function_2_enum_dict)
                 else:
-                    fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n") # etype is removed
+                    if len(functionEnum_list) > 0:
+                        fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n") # etype is removed
                     functionEnum_list = _helper_format_array(function_arr, function_2_enum_dict)
 
                 ENSP_last = ENSP
@@ -528,9 +529,9 @@ def _helper_format_array(function_arr, function_2_enum_dict):
     for ele in function_arr:
         try:
             functionEnum_list.append(function_2_enum_dict[ele])
-        except KeyError:
-            print("no translation for: {}".format(ele))
-            raise StopIteration
+        except KeyError: # e.g. blacklisted terms
+            # print("no translation for: {}".format(ele))
+            return []
     return [int(ele) for ele in functionEnum_list]
 
 def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
@@ -1425,18 +1426,22 @@ def create_Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_P
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table)
     _, function_2_etype_dict = _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Functions_table) # funcenum not correct at this stage since some functions will be removed from Functions_table_STRING and thus the enumeration would be wrong
     with open(fn_in_Protein_2_Function_table, "r") as fh_in:
-        taxid_ENSP, taxid_last, etype, function_an_set = _helper_parse_line_prot_2_func(fh_in.readline())
+        taxid_ENSP, taxid_last, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(fh_in.readline())
         fh_in.seek(0)
         with open(fn_out_Function_2_ENSP_table, "w") as fh_out:
             with open(fn_out_Function_2_ENSP_table_reduced, "w") as fh_out_reduced:
                 with open(fn_out_Function_2_ENSP_table_removed, "w") as fh_out_removed:
                     for line in fh_in:
-                        taxid_ENSP, taxid, etype, function_an_set = _helper_parse_line_prot_2_func(line)
+                        taxid_ENSP, taxid, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(line)
                         if taxid != taxid_last:
                             num_ENSPs_total_for_taxid = taxid_2_total_protein_count_dict[taxid_last]
                             for function_an, ENSPs in function_2_ENSPs_dict.items():
                                 num_ENSPs = len(ENSPs)
                                 arr_of_ENSPs = format_list_of_string_2_postgres_array(ENSPs)
+                                try:
+                                    etype = function_2_etype_dict[function_an]
+                                except KeyError: # for blacklisted terms in variables.py
+                                    etype = "-1"
                                 fh_out.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
                                 if num_ENSPs > min_count:
                                     fh_out_reduced.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
@@ -1453,6 +1458,10 @@ def create_Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_P
                     for function_an, ENSPs in function_2_ENSPs_dict.items():
                         num_ENSPs = len(ENSPs)
                         arr_of_ENSPs = format_list_of_string_2_postgres_array(ENSPs)
+                        try:
+                            etype = function_2_etype_dict[function_an]
+                        except KeyError:  # for blacklisted terms in variables.py
+                            etype = "-1"
                         fh_out.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
                         if num_ENSPs > min_count:
                             fh_out_reduced.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
@@ -1595,19 +1604,22 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
         for line in fh_in:
             taxid, etype, association, background_count, background_n, an_array = line.split()
             an_array = literal_eval(an_array.strip())
-            description = association_2_description_dict[association]
+            try:
+                description = association_2_description_dict[association]
+            except KeyError: # since removed due to e.g. blacklisting
+                continue
             number_of_ENSPs = str(len(an_array))
             array_of_ENSPs_with_internal_IDS = " ".join(sorted(map_ENSPs_2_internalIDs(an_array, ENSP_2_internalID_dict)))
             if taxid != taxid_last:
                 fh_out.close()
                 fn_out = fn_out_prefix.format(taxid)
                 fh_out = open(fn_out, "w")
+            fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
             if verbose:
                 if counter % 1000 == 0:
                     print(".", end="")
-            fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
-            counter += 1
             taxid_last = taxid
+        counter += 1
         fh_out.close()
     print("AFC_KS_enrichment_terms_flat_files done :)")
 

@@ -445,7 +445,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     def __init__(self, low_memory=False, read_from_flat_files=None):
         if read_from_flat_files is None:
             read_from_flat_files = variables.READ_FROM_FLAT_FILES
-        print("read_from_flat_files: {}".format(read_from_flat_files))
         if variables.VERBOSE:
             print("#"*80)
             print("initializing PQO")

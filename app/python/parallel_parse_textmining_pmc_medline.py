@@ -39,6 +39,7 @@ def parse_textmining_pmc_medline():
         title = tags_2_remove.sub('', title)
         title = clean_messy_string_v2(title)
         description = "(" + str(year) + ") " + title
+        description = " ".join(description.split())
         # | etype | an=PMID | name="" | definition="" | description=year: title |
         # print(etype + "\t" + PMID + "\t" + name + "\t" + definition + "\t" + description)
         # | enum | etype | an | description | year | level |

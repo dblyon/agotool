@@ -22,3 +22,5 @@ dependencies:
   - markdown
   - flask-markdown
   - requests
+  - gcc
+  - clang
