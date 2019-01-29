@@ -15,7 +15,7 @@ LOW_MEMORY = False # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL
 DEBUG = False # for flask and some internals for printing, set to False in production
-PROFILING = True # profiling flaskapp --> check stdout, set to False in production
+PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = False # print stuff to stdout
