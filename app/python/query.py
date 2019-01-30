@@ -767,14 +767,24 @@ def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
     lineage_dict = {} # key: function enumeration, value: set of func enum array all parents and children
     if read_from_flat_files:
         results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Lineage_table_STRING.txt"))
+        for res in results:
+            term, lineage = res
+            term = int(term)
+            lineage = lineage[1:-1].split(",")
+            if len(lineage[0]) > 0:
+                lineage = [int(ele) for ele in lineage]
+                if as_array:
+                    lineage_dict[term] = np.array(sorted(lineage), dtype=np.dtype("uint32"))
+                else:
+                    lineage_dict[term] = set(lineage)
     else:
         results = get_results_of_statement("SELECT * FROM funcenum_2_lineage;")
-    for res in results:
-        term, lineage = res
-        if as_array:
-            lineage_dict[term] = np.array(sorted(lineage), dtype=np.dtype("uint32"))
-        else:
-            lineage_dict[term] = set(lineage)
+        for res in results:
+            term, lineage = res
+            if as_array:
+                lineage_dict[term] = np.array(sorted(lineage), dtype=np.dtype("uint32"))
+            else:
+                lineage_dict[term] = set(lineage)
     return lineage_dict
 
 def get_etype_cond_dict(etype_2_minmax_funcEnum, function_enumeration_len):

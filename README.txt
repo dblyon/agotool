@@ -554,6 +554,7 @@ server {
 
 rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11
 rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt dblyon@imlslnx-atlas.uzh.ch:/home/dblyon/agotool/data/PostgreSQL/tables ./
+rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . dblyon@san.embl.de:/home/dblyon/agotool/data/PostgreSQL/tables/
 
 docker-compose up -d --no-deps --build service_name
 
