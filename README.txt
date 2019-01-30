@@ -553,11 +553,20 @@ server {
 
 
 rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11
+rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt dblyon@imlslnx-atlas.uzh.ch:/home/dblyon/agotool/data/PostgreSQL/tables ./
 
 docker-compose up -d --no-deps --build service_name
 
 docker build -t flaskapp_alpine:latest -f ./Dockerfile_alpine .
 
+conda remove --name agotool --all
 conda env create -n agotool -f conda_agotool.yml
 
+
 python setup.py build_ext --inplace
+
+
+conda_agotool.yml:
+  - clang
+  - gcc
+  - libgcc

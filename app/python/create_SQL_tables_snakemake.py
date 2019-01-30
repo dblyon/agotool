@@ -925,14 +925,11 @@ def create_Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_P
                 MFs, CPs, BPs, not_in_OBO = divide_into_categories(GOterm_list, GO_dag, [], [], [], [])
                 GOterms_not_in_obo_temp += not_in_OBO
                 if MFs:
-                    fh_out.write(ENSP + "\t" + "{" + str(MFs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0003674'] + "\n")
+                    fh_out.write(ENSP + "\t" + "{" + str(MFs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0003674'] + "\n") # 'Molecular Function', -23
                 if CPs:
-                    fh_out.write(ENSP + "\t" + "{" + str(CPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0005575'] + "\n")
+                    fh_out.write(ENSP + "\t" + "{" + str(CPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0005575'] + "\n") # 'Cellular Component', -22
                 if BPs:
-                    fh_out.write(ENSP + "\t" + "{" + str(BPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0008150'] + "\n")
-    ### variables.id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
-    ###                               'GO:0005575': "-22",  # 'Cellular Component',
-    ###                               'GO:0008150': "-21",  # 'Biological Process',
+                    fh_out.write(ENSP + "\t" + "{" + str(BPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0008150'] + "\n") # 'Biological Process', -21
     GOterms_not_in_obo = sorted(set(GOterms_not_in_obo))
     fn_log = os.path.join(LOG_DIRECTORY, "create_SQL_tables_GOterms_not_in_OBO.log")
     os.remove(fn_in_temp)
@@ -1615,10 +1612,10 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
                 fn_out = fn_out_prefix.format(taxid)
                 fh_out = open(fn_out, "w")
             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
-            if verbose:
-                if counter % 1000 == 0:
-                    print(".", end="")
             taxid_last = taxid
+        if verbose:
+            if counter % 500 == 0:
+                print(".", end="")
         counter += 1
         fh_out.close()
     print("AFC_KS_enrichment_terms_flat_files done :)")

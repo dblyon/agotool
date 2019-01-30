@@ -491,6 +491,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.reset_preloaded_objects_per_analysis(method="compare_samples")
         if variables.VERBOSE:
             print("finished with PQO init")
+            print("gogogo and fly like the wind")
             print("#" * 80)
 
     @contextmanager

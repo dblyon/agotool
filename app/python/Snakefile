@@ -488,10 +488,10 @@ rule Lineage_table_STRING:
     output:
         Lineage_table = Lineage_table,
         Lineage_table_no_translation = Lineage_table_no_translation
-    # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Lineage_table_STRING(r"{input.GO_basic_obo}", r"{input.UPK_obo}", r"{input.RCTM_hierarchy}", r"{input.Functions_table_STRING_reduced}", r"{output.Lineage_table}", r"{output.Lineage_table_no_translation}")'"""
-    run:
-        cst.create_Lineage_table_STRING(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.Functions_table_STRING_reduced, output.Lineage_table, output.Lineage_table_no_translation)
+    shell:
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Lineage_table_STRING(r"{input.GO_basic_obo}", r"{input.UPK_obo}", r"{input.RCTM_hierarchy}", r"{input.Functions_table_STRING_reduced}", r"{output.Lineage_table}", r"{output.Lineage_table_no_translation}")'"""
+    # run:
+    #     cst.create_Lineage_table_STRING(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.Functions_table_STRING_reduced, output.Lineage_table, output.Lineage_table_no_translation)
 
 rule Taxid_2_FunctionCountArray_table_STRING:
     input:

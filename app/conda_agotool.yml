@@ -8,6 +8,7 @@ dependencies:
   - numpy
   - cython
   - pandas
+  - libgcc
   - psycopg2
   - retrying
   - fisher
@@ -22,5 +23,3 @@ dependencies:
   - markdown
   - flask-markdown
   - requests
-  - gcc
-  - clang
