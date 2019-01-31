@@ -1579,7 +1579,7 @@ def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_
                         if assoc_reduced:
                             fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_reduced))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
                         if assoc_rest:
-                            fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
+                            fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
     print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
 
 def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_out_AFC_KS_DIR, verbose=True):
