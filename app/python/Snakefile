@@ -118,6 +118,7 @@ Protein_2_FunctionEnum_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Functi
 Protein_2_Function_table_GO = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
 Protein_2_Function_table_InterPro = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
 Protein_2_Function_table_KEGG = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
+KEGG_TaxID_2_acronym_table = os.path.join(TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt")
 Protein_2_Function_table_PFAM = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM.txt")
 Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
 Protein_2_Function_table_RCTM = os.path.join(TABLES_DIR, "Protein_2_Function_table_RCTM.txt")
@@ -331,10 +332,11 @@ rule Protein_2_Function_table_KEGG:
     input:
         KEGG_benchmarking = KEGG_benchmarking
     output:
-        Protein_2_Function_table_KEGG = Protein_2_Function_table_KEGG
+        Protein_2_Function_table_KEGG = Protein_2_Function_table_KEGG,
+        KEGG_TaxID_2_acronym_table = KEGG_TaxID_2_acronym_table
     threads: NUMBER_OF_PROCESSES_sorting
     shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_KEGG_STRING(r"{input.KEGG_benchmarking}", r"{output.Protein_2_Function_table_KEGG}", {threads})'"""
+        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_KEGG(r"{input.KEGG_benchmarking}", r"{output.Protein_2_Function_table_KEGG}", r"{output.KEGG_TaxID_2_acronym_table}", {threads})'"""
 
 rule Protein_2_Function_table_SMART__and__PFAM_helper:
     input:
@@ -510,13 +512,14 @@ rule AFC_KS_enrichment_terms_flat_files:
     input:
         Protein_shorthands = Protein_shorthands,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced
+        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
+        KEGG_TaxID_2_acronym_table
     output:
         AFC_KS_DIR = AFC_KS_DIR
     params:
         verbose = verbose
     run:
-        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, output.AFC_KS_DIR, params.verbose)
+        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_TaxID_2_acronym_table, output.AFC_KS_DIR, params.verbose)
 
 
 

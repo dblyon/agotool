@@ -1,9 +1,8 @@
-import os, sys #, json, re, fnmatch, subprocess, time, datetime #, shlex  #, multiprocessing
+import os, sys, re
 import gzip
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-# from subprocess import call
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 import re, obo_parser
@@ -751,9 +750,10 @@ def helper_format_funcEnum(funcEnum_count_background):
     index_backgroundCount_array_string = "{" + string_2_write[:-1] + "}"
     return index_backgroundCount_array_string
 
-def create_Protein_2_Function_table_KEGG_STRING(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, number_of_processes=1):
+def create_Protein_2_Function_table_KEGG(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_TaxID_2_acronym_table, number_of_processes=1):
     fn_out_temp = fn_out_Protein_2_Function_table_KEGG + "_temp"
     # create long format of ENSP 2 KEGG table
+    taxid_2_acronym_dict = {}
     with open(fn_in_kegg_benchmarking, "r") as fh_in:
         with open(fn_out_temp, "w") as fh_out:
             for line in fh_in:
@@ -761,12 +761,19 @@ def create_Protein_2_Function_table_KEGG_STRING(fn_in_kegg_benchmarking, fn_out_
                 if KEGG.startswith("CONN_"):
                     continue
                 else: # e.g. bced00190 or rhi00290
+                    match = re.search("\d", KEGG)
+                    if match:
+                        index_ = match.start()
+                        acro = KEGG[:index_]
+                        taxid_2_acronym_dict[TaxID] = acro
                     KEGG = KEGG[-5:]
                 # add TaxID to complete the ENSP
                 ENSPs = [TaxID + "." + ENSP for ENSP in ENSPs]
                 for ENSP in ENSPs:
-                    # fh_out.write(ENSP + "\t" + "KEGG:" + KEGG + "\n")
                     fh_out.write(ENSP + "\t" + "map" + KEGG + "\n")
+    with open(fn_out_KEGG_TaxID_2_acronym_table, "w") as fh_acro:
+        for taxid, acronym in taxid_2_acronym_dict.items():
+            fh_acro.write(taxid + "\t" + acronym + "\n")
 
     # sort by first column and transform to wide format
     tools.sort_file(fn_out_temp, fn_out_temp, columns="1", number_of_processes=number_of_processes)
@@ -1363,12 +1370,12 @@ def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in
 
 def create_Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
-    # concatenate files
+    ### concatenate files
     fn_out_Protein_2_Function_table_STRING_temp = fn_out_Protein_2_Function_table_STRING + "_temp"
     fn_out_Protein_2_Function_table_STRING_rest = fn_out_Protein_2_Function_table_STRING + "_rest"
     tools.concatenate_files(fn_list, fn_out_Protein_2_Function_table_STRING_temp)
-    # # sort
-    # tools.sort_file(fn_out_Protein_2_Function_table_STRING_temp, fn_out_Protein_2_Function_table_STRING_temp, number_of_processes=number_of_processes)
+    ### sort
+    tools.sort_file(fn_out_Protein_2_Function_table_STRING_temp, fn_out_Protein_2_Function_table_STRING_temp, number_of_processes=number_of_processes)
     reduce_Protein_2_Function_table_2_STRING_proteins(
         fn_in_protein_2_function_temp=fn_out_Protein_2_Function_table_STRING_temp,
         fn_in_TaxID_2_Proteins_table_STRING=fn_in_TaxID_2_Proteins_table_STRING,
@@ -1395,8 +1402,7 @@ def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_t
                         continue
                     ls = line.split("\t")
                     ENSP = ls[0]
-                    # num_funcs = len(ls[1].split(","))
-                    if ENSP in ENSP_set:# and num_funcs > minimum_number_of_annotations: #!!! WRONG
+                    if ENSP in ENSP_set:
                         fh_out_reduced.write(line)
                     else:
                         fh_out_rest.write(line)
@@ -1576,7 +1582,7 @@ def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_
                             fh_out_reduced.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
     print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
 
-def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, fn_out_AFC_KS_DIR, verbose=True):
+def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_out_AFC_KS_DIR, verbose=True):
     print("AFC_KS_enrichment_terms_flat_files start")
     ENSP_2_internalID_dict = {}
     with open(fn_in_Protein_shorthands, "r") as fh:
@@ -1590,6 +1596,13 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
         for line in fh:
             enum, etype, an, description, year, level = line.split("\t")
             association_2_description_dict[an] = description
+
+    taxid_2_acronym_dict = {}
+    with open(KEGG_TaxID_2_acronym_table, "r") as fh:
+        for line in fh:
+            taxid, acronym = line.split("\t")
+            acronym = acronym.strip()
+            taxid_2_acronym_dict[taxid] = acronym
 
     counter = 0
     fn_out_prefix = os.path.join(fn_out_AFC_KS_DIR + "{}_AFC_KS_all_terms.tsv")
@@ -1611,6 +1624,13 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
                 fh_out.close()
                 fn_out = fn_out_prefix.format(taxid)
                 fh_out = open(fn_out, "w")
+            if etype == "-52": # KEGG
+                try:
+                    acronym = taxid_2_acronym_dict[taxid]
+                except KeyError:
+                    print("no KEGG acronym translation for TaxID: {}".format(taxid))
+                    acronym = "map"
+                association = association.replace("map", acronym)
             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
             taxid_last = taxid
         if verbose:
