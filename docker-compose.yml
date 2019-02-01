@@ -20,8 +20,8 @@ services:
     networks:
       - db_nw
 
-  flaskapp:
-    container_name: flaskapp
+  flaskapp_1:
+    container_name: flaskapp_1
     # restart: on-failure
     build: . # uncomment to build from Dockerfile, else pull from dockerhub
     # image: dblyon/python_agotool:latest
@@ -32,9 +32,9 @@ services:
 
       ####### Data bind mount
       ### Ody
-      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
+      # - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
-      #- /home/dblyon/agotool/data/:/agotool_data
+      - /home/dblyon/agotool/data/:/agotool_data
     env_file:
       - ./app/env_file
     networks:
@@ -43,57 +43,33 @@ services:
     depends_on:
       - db
 
-#  flaskapp_1:
-#    container_name: flaskapp_1
-#    # restart: on-failure
-#    build: . # uncomment to build from Dockerfile, else pull from dockerhub
-#    # image: dblyon/python_agotool:latest
-#    volumes:
-#      ####### app data, if DOCKER == True comment out, if DOCKER == False uncomment
-#      ## $ docker run -it --rm --name dd --mount type=bind,source=`pwd`/app,target=/opt/services/flaskapp/src  f6a48a325d61 bash
-#      #- ./app/:/opt/services/flaskapp/src
-#
-#      ####### Data bind mount
-#      ### Ody
-#      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
-#      ### Atlas
-#      #- /home/dblyon/agotool/data/:/agotool_data
-#    env_file:
-#      - ./app/env_file
-#    networks:
-#      - db_nw
-#      - web_nw
-#    depends_on:
-#      - db
+  flaskapp_2:
+    container_name: flaskapp_2
+    # restart: on-failure
+    build: . # uncomment to build from Dockerfile, else pull from dockerhub
+    # image: dblyon/python_agotool:latest
+    volumes:
+      ####### app data, if DOCKER == True comment out, if DOCKER == False uncomment
+      ## $ docker run -it --rm --name dd --mount type=bind,source=`pwd`/app,target=/opt/services/flaskapp/src  f6a48a325d61 bash
+      #- ./app/:/opt/services/flaskapp/src
 
-#  flaskapp_2:
-#    container_name: flaskapp_2
-#    # restart: on-failure
-#    build: . # uncomment to build from Dockerfile, else pull from dockerhub
-#    # image: dblyon/python_agotool:latest
-#    volumes:
-#      ####### app data, if DOCKER == True comment out, if DOCKER == False uncomment
-#      ## $ docker run -it --rm --name dd --mount type=bind,source=`pwd`/app,target=/opt/services/flaskapp/src  f6a48a325d61 bash
-#      #- ./app/:/opt/services/flaskapp/src
-#
-#      ####### Data bind mount
-#      ### Ody
-#      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
-#      ### Atlas
-#      #- /home/dblyon/agotool/data/:/agotool_data
-#    env_file:
-#      - ./app/env_file
-#    networks:
-#      - db_nw
-#      - web_nw
-#    depends_on:
-#      - db
+      ####### Data bind mount
+      ### Ody
+      # - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
+      ### Atlas
+      - /home/dblyon/agotool/data/:/agotool_data
+    env_file:
+      - ./app/env_file
+    networks:
+      - db_nw
+      - web_nw
+    depends_on:
+      - db
 
   nginx:
     container_name: nginx
     image: "nginx:1.13.8"
     ports:
-      #- "8080:80"
       - "5911:80"
     volumes:
       - ./app/conf.d:/etc/nginx/conf.d
@@ -101,9 +77,8 @@ services:
     networks:
       - web_nw
     depends_on:
-      - flaskapp
-#      - flaskapp_1
-#      - flaskapp_2
+      - flaskapp_1
+      - flaskapp_2
 
 networks:
   db_nw:
