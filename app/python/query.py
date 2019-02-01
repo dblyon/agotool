@@ -451,6 +451,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict(read_from_flat_files)
         if variables.VERBOSE:
+            print("getting KEGG TaxID 2 TaxName acronym translation")
+        self.kegg_taxid_2_acronym_dict = get_KEGG_TaxID_2_acronym_dict(read_from_flat_files)
+
+        if variables.VERBOSE:
             print("getting lookup arrays")
         if not low_memory: # override variables if "low_memory" passed to query initialization
             self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory, read_from_flat_files)
@@ -489,6 +493,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.reset_preloaded_objects_per_analysis(method="genome")
         self.reset_preloaded_objects_per_analysis(method="characterize_foreground")
         self.reset_preloaded_objects_per_analysis(method="compare_samples")
+
         if variables.VERBOSE:
             print("finished with PQO init")
             print("gogogo and fly like the wind")
@@ -534,7 +539,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
         else:
             # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
             # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
@@ -542,7 +547,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
         return static_preloaded_objects
 
     def get_blacklisted_terms_bool_arr(self):
@@ -669,6 +674,18 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             an, associations_list, etype = res
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
+
+def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):
+    KEGG_TaxID_2_acronym_dict = {}
+    if read_from_flat_files:
+        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt"))
+    else:
+        raise NotImplementedError # result = get_results_of_statement()
+    for res in results:
+        taxid, taxname = res
+        taxname = taxname.strip()
+        KEGG_TaxID_2_acronym_dict[int(taxid)] = taxname
+    return KEGG_TaxID_2_acronym_dict
 
 def get_results_of_statement_from_flat_file(file_name, columns=[]):
     with open(file_name, "r") as fh_in:

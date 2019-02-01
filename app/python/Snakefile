@@ -513,7 +513,7 @@ rule AFC_KS_enrichment_terms_flat_files:
         Protein_shorthands = Protein_shorthands,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
-        KEGG_TaxID_2_acronym_table
+        KEGG_TaxID_2_acronym_table = KEGG_TaxID_2_acronym_table
     output:
         AFC_KS_DIR = AFC_KS_DIR
     params:
