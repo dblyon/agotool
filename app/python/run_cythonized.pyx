@@ -593,6 +593,6 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
         # cond_2_return & etype_cond_dict["cond_52"] --> cond_KEGG_2_change
         # get a copy of that data and change it and concatenate with remaining results
         acronym = kegg_taxid_2_acronym_dict[taxid]
-        cond = df_2_return["etype"] == "-52" # KEGG
+        cond = df_2_return["etype"] == -52 # KEGG
         df_2_return.loc[cond, "term"] = df_2_return.loc[cond, "term"].apply(lambda s: s.replace("map", acronym))
     return df_2_return[variables.cols_sort_order_genome]
