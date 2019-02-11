@@ -398,6 +398,10 @@ class Userinput:
                 continue
             yield proteinGroups_background.tolist(), correction_factor
 
+    def iter_bins_cy(self):
+
+        pass
+
     def get_all_unique_ANs(self):
         """
         return all unique AccessionNumber provided by the user

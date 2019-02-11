@@ -2,13 +2,13 @@
 import os, sys, zlib
 import requests, time
 import urllib.request, urllib.parse
-from subprocess import call
+# from subprocess import call
 from retrying import retry
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.insert(0, PYTHON_DIR)
-import tools
-import variables
+# import tools
+import variables_snakemake as variables
 
 DOWNLOADS_DIR = variables.DOWNLOADS_DIR
 DIRECTORIES_LIST = variables.DIRECTORIES_LIST

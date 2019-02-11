@@ -1,5 +1,6 @@
 import re, fileinput
 
+
 def parse_textmining_pmc_medline():
     # names = ['PMID_and_crap', 'authors', 'name_and_issue', 'year', 'title', 'text']
     etype = "-56"
@@ -8,7 +9,7 @@ def parse_textmining_pmc_medline():
     max_len_description = 250
     # xml tags e.g. "<i>Salmonella</i>" and others
     # tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]"]))
-    tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
+    # tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
     level = "-1"
     for line in fileinput.input():
         line_split = line.split("\t")
@@ -36,13 +37,10 @@ def parse_textmining_pmc_medline():
             title = " ".join(line_split[4:]).strip()
         title = clean_messy_string_v2(title) # in order to capture foreign language titles' open and closing brackets e.g. "[bla bla bla]"
         title = cut_long_string_at_word(title, max_len_description)
-        title = tags_2_remove.sub('', title)
+        # title = tags_2_remove.sub('', title)
         title = clean_messy_string_v2(title)
         description = "(" + str(year) + ") " + title
-        description = " ".join(description.split())
-        # | etype | an=PMID | name="" | definition="" | description=year: title |
-        # print(etype + "\t" + PMID + "\t" + name + "\t" + definition + "\t" + description)
-        # | enum | etype | an | description | year | level |
+        description = " ".join(description.split()) # replace multiple spaces with single space
         print(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + level)
 
 def cut_long_string_at_word(string_, max_len_description):

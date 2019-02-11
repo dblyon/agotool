@@ -1,6 +1,5 @@
 import os, subprocess, sys, shutil
 PLATFORM = sys.platform
-NUMBER_OF_PROCESSES = 4
 
 
 def concatenate_files(fn_list, fn_out):
@@ -64,10 +63,6 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, recstart=None, KB_MB_GB="M", split_size=1000):
-    # unzip with pigz
-    # todo
-    # also try pigz for multithreaded compression/decompression
-    # time pigz -c -d -p 10 /home/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv.gz > /dev/null
     if cpu_number is None:
         cpu_number = NUMBER_OF_PROCESSES
     if split_size is None:
@@ -109,33 +104,14 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     ### remove temp files
     print("removing temp files")
     shutil.rmtree(temp_dir)
-
     # remove unzipped file
 
-
-
 if __name__ == "__main__":
-    pass
-    ### python parallel_parse.py && python create_SQL_tables.py && python create_protein_2_function_tabe_PMID.py
+    NUMBER_OF_PROCESSES = 24
+    ### python parallel_parse.py
     ### textmining pmc medline
-    # fn_2_split = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv"
-    # python_script = r"/home/dblyon/agotool/app/python/parallel_parse_textmining_pmc_medline.py"
-    # fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID.txt"
-    # temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
-    # parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir)
-
-    #### add new files to DB and
-    #  then comment top and uncomment bottom and run, then add new files to DB
-    ###
-    # fn_2_split = r"/Users/dblyon/modules/cpr/agotool/app/python/taxids.txt"
-    # python_script = r"/Users/dblyon/modules/cpr/agotool/app/python/parallel_create_function_2_ENSP_table.py"
-    # fn_out = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_ENSP_table_STRING.txt"
-    # temp_dir = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/temp"
-    # parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir, KB_MB_GB="K", split_size=1)
-
-    ##### add information to christian's KS and AFC test
-    # fn_2_split = r"/home/dblyon/agotool/app/python/pvalues.all_pmids.tsv"
-    # python_script = r"/home/dblyon/agotool/app/python/add_infos_afc.py"
-    # fn_out = r"/mnt/mnemo5/dblyon/pvalues.all_pmids.info.tsv"
-    # temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
-    # parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir, KB_MB_GB="K", split_size=1)
+    fn_2_split = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv"
+    python_script = r"/home/dblyon/agotool/app/python/parallel_parse_textmining_pmc_medline.py"
+    fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID.txt"
+    temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
+    parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir)

@@ -25,26 +25,18 @@ temp_dont_run_analysis = False
 if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
 ############################
-function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
-entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57}
+# function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
+entity_types = {-21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57}
 alpha = 0.05
-# "-21": {},  # | GO:0008150 | -21 | GO biological process |
-# "-22": {},  # | GO:0005575 | -22 | GO cellular component |
-# "-23": {},  # | GO:0003674 | -23 | GO molecular function |
-# "-51": {},  # UniProt keywords
-# "-52": {},  # KEGG
-# "-53": {},  # SMART
-# "-54": {},  # InterPro
-# "-55": {},  # PFAM
-# "-56": {}   # PMID
-# entity_types_with_data_in_functions_table = {"-21", "-22", "-23", "-51", "-52"}
-entity_types_with_data_in_functions_table = entity_types  # {-21, -22, -23, -51, -52, -53, -54, -55}
-entity_types_with_ontology = {-21, -22, -23, -51, -57}
+entity_types_with_data_in_functions_table = entity_types
+entity_types_with_ontology = {-21, -22, -23, -25, -26, -51, -57}
 entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
 
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,
                                   "Gene Ontology molecular function": -23,
+                                  "Brenda Tissue Ontology": -25,
+                                  "Disease Ontology": -26,
                                   "UniProt keywords": -51,
                                   "KEGG (Kyoto Encyclopedia of Genes and Genomes)": -52,
                                   "SMART (Simple Modular Architecture Research Tool)": -53,
@@ -56,6 +48,8 @@ functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
 entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
                                   -23: "Gene Ontology molecular function",
+                                  -25: "Brenda Tissue Ontology",
+                                  -26: "Disease Ontology",
                                   -51: "UniProt keywords",
                                   -52: "KEGG (Kyoto Encyclopedia of Genes and Genomes)",
                                   -53: "SMART (Simple Modular Architecture Research Tool)",
@@ -169,6 +163,8 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'GO:0005575': "-22",  # 'Cellular Component',
                               'GO:0008150': "-21",  # 'Biological Process',
                               "GO:OBSOLETE": "-24", # "GO obsolete
+                              "BTO tissues": "-25", # Brenda Tissue Ontology
+                              "DOID diseases": "-26", # Disease Ontology IDs
                               # 'UPK:9990': "-51",  # 'Technical term',
                               # 'UPK:9991': "-51",  # 'PTM',
                               # 'UPK:9992': "-51",  # 'Molecular function',

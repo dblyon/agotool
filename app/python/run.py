@@ -70,6 +70,10 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
             return False
     return format_results(df_2_return, args_dict["output_format"], args_dict)
 
+def run_abundance_correction(pqo, ui, args_dict):
+    pass
+
+
 def filter_and_sort_PMID(df, PMID_top_100=True):
     ### remove blacklisted terms --> duplicate to cluster_filter.filter_parents_if_same_foreground_v2
     # df = df[~df["term"].isin(variables.blacklisted_terms)]

@@ -5,7 +5,7 @@ import numpy as np
 from collections import defaultdict
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
-import re, obo_parser
+import obo_parser
 import tools, ratio
 import variables_snakemake as variables
 
@@ -468,6 +468,19 @@ def clean_messy_string(string_):
     except TypeError:
         return string_
 
+def clean_messy_string_v2(string_):
+    string_ = string_.strip().replace('"', "'")
+    tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
+    string_ = tags_2_remove.sub('', string_)
+    if string_.startswith("[") and string_.endswith("]"):
+        return clean_messy_string_v2(string_[1:-1])
+    elif string_.startswith("[") and string_.endswith("]."):
+        return clean_messy_string_v2(string_[1:-2])
+    elif string_.isupper():
+        return string_[0] + string_[1:].lower()
+    else:
+        return string_
+
 def concatenate_Functions_tables(fn_list_str, fn_out_temp, fn_out, number_of_processes):
     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt", "Functions_table_KEGG.txt", "Functions_table_SMART.txt", "Functions_table_PFAM.txt", "Functions_table_InterPro.txt", "Functions_table_RCTM.txt"]]
     fn_list = fn_list_str.split(" ")
@@ -533,8 +546,8 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
-    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy)
+def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation):
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     lineage_dict_enum = {}
@@ -560,7 +573,7 @@ def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hiera
         for term in term_no_translation_because_obsolete:
             fh_out_no_trans.write(term + "\n")
 
-def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy):
+def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)
     upk_dag = obo_parser.GODag(obo_file=fn_keywords_obo, upk=True)
@@ -571,6 +584,16 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
     for term_name in upk_dag:
         Term_instance = upk_dag[term_name]
         lineage_dict[term_name] = Term_instance.get_all_parents() # .union(Term_instance.get_all_children())
+
+    bto_dag = obo_parser.GODag(obo_file=fn_in_BTO_obo_Jensenlab)
+    for term_name in bto_dag:
+        Term_instance = bto_dag[term_name]
+        lineage_dict[term_name ] = Term_instance.get_all_parents()
+    doid_dag = obo_parser.GODag(obo_file=fn_in_DOID_obo_Jensenlab)
+    for term_name in doid_dag:
+        Term_instance = doid_dag[term_name]
+        lineage_dict[term_name ] = Term_instance.get_all_parents()
+
     lineage_dict.update(get_lineage_Reactome(fn_rctm_hierarchy))
     return lineage_dict
 
@@ -1355,18 +1378,15 @@ def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in
     # #!!! dependency on creating Functions_table_PMID.txt first
     # reduce Functions_table_PMID.txt to PMIDs that are in Protein_2_Function_table_PMID.txt
     PMID_set = set(df_stringmatches["PMID"].values)
-    # fn_temp = fn_out_Functions_table_PMID + "_temp"
-    # os.rename(fn_out_Functions_table_PMID, fn_temp)
-    PMID_not_relevant = []
+    # PMID_not_relevant = []
     with open(fn_in_Functions_table_PMID_temp, "r") as fh_in:
         with open(fn_out_Functions_table_PMID, "w") as fh_out:
             for line in fh_in:
                 PMID_including_prefix = line.split("\t")[1]
                 if int(PMID_including_prefix[5:]) in PMID_set:
                     fh_out.write(line)
-                else:
-                    PMID_not_relevant.append(PMID_including_prefix)
-    # os.remove(fn_temp)
+                # else:
+                #     PMID_not_relevant.append(PMID_including_prefix)
 
 def create_Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
@@ -1475,7 +1495,10 @@ def create_Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_P
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
 def Functions_table_STRING_reduced(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
-    # create Functions_table_STRING_reduced
+    """
+    create Functions_table_STRING_reduced
+    """
+    # get relevant set of functions
     all_relevant_functions = set()
     with open(fn_in_Function_2_ENSP_table_reduced, "r") as fh_in:
         for line in fh_in:
@@ -1493,6 +1516,9 @@ def Functions_table_STRING_reduced(fn_in_Functions_table, fn_in_Function_2_ENSP_
                     ls = line.split("\t")
                     wrong_enum, etype, function, description, year, hier_newline = ls
                     if function in all_relevant_functions:
+                        fh_out_reduced.write(str(counter) + "\t" + etype + "\t" + function + "\t" + description + "\t" + year + "\t" + hier_newline)
+                        counter += 1
+                    elif etype == "-25" or etype == "-26": # include all DOID and BTO terms
                         fh_out_reduced.write(str(counter) + "\t" + etype + "\t" + function + "\t" + description + "\t" + year + "\t" + hier_newline)
                         counter += 1
                     else:
@@ -1649,6 +1675,161 @@ def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
         except KeyError:
             print("{} # no internal ID found".format(ENSP))
     return list_2_return
+
+
+
+
+
+### Jensenlab
+def parse_Function_2_Description_PMID(Function_2_Description_PMID, Functions_table_PMID_temp, max_len_description=250): # string_matches
+    # df_stringmatches = parse_textmining_string_matches(string_matches)
+    # PMID_set = set(df_stringmatches["PMID"].values)
+    hierarchical_level = "-1"
+    with open(Function_2_Description_PMID, "r") as fh_in:
+        with open(Functions_table_PMID_temp, "w") as fh_out:
+            for line in fh_in:
+                ls = line.split("\t")
+                etype, PMID, description, year = ls
+                # if PMID not in PMID_set:
+                #     continue
+                year = year.strip()
+                if not year:
+                    year = "...."
+                description = clean_messy_string_v2(description)  # in order to capture foreign language titles' open and closing brackets e.g. "[bla bla bla]"
+                description = cut_long_string_at_word(description, max_len_description)
+                description = " ".join(description.split())  # replace multiple spaces with single space
+                fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
+
+def merge_Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
+    """
+    concatenate files, sort and create set of union of functional associations
+
+    :param Protein_2_Function_table_PMID_abstracts: string
+        1000565.METUNv1_03313   {"PMID:29179769"}       -56
+        1000565.METUNv1_03481   {"PMID:27682085"}       -56
+        1001530.BACE01000001_gene3552   {"PMID:9183020"}        -56
+    :param Protein_2_Function_table_PMID_fulltexts: string
+        1000565.METUNv1_03313   {"PMID:24905407","PMID:29179769"}       -56
+        1000565.METUNv1_00036   {"PMID:27708623"}       -56
+        1000565.METUNv1_00081   {"PMID:19514844","PMID:19943898"}       -56
+    :param Protein_2_Function_table_PMID: string
+    :param number_of_processes: Integer
+    :param verbose: Bool
+    :return: None
+    """
+    # concatenate files
+    tools.concatenate_files([Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts], Protein_2_Function_table_PMID_combi)
+    # sort files
+    tools.sort_file(Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID_combi, number_of_processes=number_of_processes, verbose=verbose)
+    # merge lines with duplicate ENSPs
+    with open(Protein_2_Function_table_PMID_combi, "r") as fh_in:
+        ls = fh_in.readline().split("\t")
+        fh_in.seek(0)
+        ENSP_last, PMID_arr_last, etype = ls
+        PMID_list = helper_string_array_to_list(PMID_arr_last)
+        with open(Protein_2_Function_table_PMID, "w") as fh_out:
+            for line in fh_in:
+                ls = line.split("\t")
+                ENSP, PMID_arr, etype = ls
+                if ENSP == ENSP_last: # add
+                    PMID_list += helper_string_array_to_list(PMID_arr)
+                else: # write
+                    fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(set(PMID_list))) + "\t" + etype)
+                    PMID_list = helper_string_array_to_list(PMID_arr) # create new list
+                    ENSP_last = ENSP
+            fh_out.write(ENSP + "\t" + format_list_of_string_2_postgres_array(sorted(set(PMID_list))) + "\t" + etype)
+
+def helper_string_array_to_list(string_):
+    """
+    string_ = '{"PMID:19514844","PMID:19943898"}'
+    ['PMID:19514844', 'PMID:19943898']
+    """
+    return [an[1:-1] for an in string_[1:-1].split(",")]
+
+def create_Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Jensenlab, DOID_obo_Jensenlab, Blacklisted_terms_Jensenlab, Functions_table_DOID_BTO):
+    """
+    - add hierarchical level, year placeholder
+    - merge with Functions_table
+    | enum | etype | an | description | year | level |
+    """
+    # get term 2 hierarchical level
+    bto_dag = obo_parser.GODag(obo_file=BTO_obo_Jensenlab)
+    child_2_parent_dict = get_child_2_direct_parent_dict_from_dag(bto_dag)  # obsolete or top level terms have empty set for parents
+    term_2_level_dict_bto = get_term_2_level_dict(child_2_parent_dict)
+    doid_dag = obo_parser.GODag(obo_file=DOID_obo_Jensenlab)
+    child_2_parent_dict = get_child_2_direct_parent_dict_from_dag(doid_dag)  # obsolete or top level terms have empty set for parents
+    term_2_level_dict_doid = get_term_2_level_dict(child_2_parent_dict)
+    term_2_level_dict = {}
+    term_2_level_dict.update(term_2_level_dict_doid)
+    term_2_level_dict.update(term_2_level_dict_bto)
+    # get blacklisted terms to exclude them
+    blacklisted_ans = []
+    with open(Blacklisted_terms_Jensenlab, "r") as fh:
+        for line in fh:
+            etype, an = line.split("\t")
+            blacklisted_ans.append(an.strip())
+    blacklisted_ans = set(blacklisted_ans)
+
+    year = "-1" # placeholder
+    with open(Function_2_Description_DOID_BTO_GO_down, "r") as fh_in:
+        with open(Functions_table_DOID_BTO, "w") as fh_out:
+            for line in fh_in:
+                etype, function_an, description = line.split("\t")
+                description = description.strip()
+                if function_an in blacklisted_ans:
+                    continue
+                try:
+                    level = term_2_level_dict[function_an] # level is an integer
+                except KeyError:
+                    level = -1
+                fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
+
+def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Protein_2_FunctionEnum_and_Score_table_STRING):
+    """
+    Protein_2_Function_and_Score_DOID_GO_BTO.txt
+    6239.C30G4.7    {{"GO:0043226",0.875},{"GO:0043227",0.875},{"GO:0043231",0.875},{"GO:0044424",2.96924}, ... , {"GO:0005737",2.742276},{"GO:0005777",0.703125}}      -22
+    10116.ENSRNOP00000049139        {{"GO:0005623",2.927737},{"GO:0044424",2.403304},{"GO:0044425",3},{"GO:0031224",3}, ... ,{"GO:0043232",0.375}}       -22
+
+    Protein_2_FunctionEnum_and_Score_table_STRING.txt
+    10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
+
+    - remove anything on blacklist (all_hidden.tsv) already happend while creating Functions_table_DOID_BTO (and all terms not present therein will be filtered out)
+    - omit GO-CC (etype -22)
+    """
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_STRING_reduced, low_memory=True)
+    term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
+
+    with open(Protein_2_Function_and_Score_DOID_GO_BTO, "r") as fh_in:
+        with open(Protein_2_FunctionEnum_and_Score_table_STRING, "w") as fh_out:
+            for line in fh_in:
+                ENSP, funcName_2_score_arr_str, etype = line.split("\t")
+                etype = etype.strip()
+                if etype == "-22": # omit GO-CC (etype -22)
+                    continue
+                else:
+                    funcEnum_2_score = []
+                    funcName_2_score_arr_str = funcName_2_score_arr_str.replace("{", "[")
+                    funcName_2_score_arr_str = funcName_2_score_arr_str.replace("}", "]")
+                    funcName_2_score_list = literal_eval(funcName_2_score_arr_str)
+                    for an_score in funcName_2_score_list:
+                        an, score = an_score
+                        try:
+                            anEnum = term_2_enum_dict[an]
+                        except KeyError:
+                            print(an, type(an))
+                            raise StopIteration
+                        funcEnum_2_score.append({anEnum, score})
+                    funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
+                    funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
+                    funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
+                    fh_out.write(ENSP + "\t" + funcEnum_2_score + "\n")
+
+
+
+
+
+
+
 
 
 

@@ -571,3 +571,146 @@ conda_agotool.yml:
   - clang
   - gcc
   - libgcc
+
+##############################################################################################################
+############################################ Lars' resources to download
+### at download.jensenlab.org/agotool
+- protein 2 function PMID
+- function 2 description PMID
+- filter list --> blacklist (general)
+- obo files
+### at download.jensenlab.org
+column_names = ENSP_without_TaxID, gene_name, function_ID, function_description, combined_score
+# Diseases
+http://download.jensenlab.org/human_disease_integrated_full.tsv
+# Compartments
+http://download.jensenlab.org/human_compartment_integrated_full.tsv
+http://download.jensenlab.org/mouse_compartment_integrated_full.tsv
+http://download.jensenlab.org/rat_compartment_integrated_full.tsv
+http://download.jensenlab.org/fly_compartment_integrated_full.tsv
+http://download.jensenlab.org/worm_compartment_integrated_full.tsv
+http://download.jensenlab.org/yeast_compartment_integrated_full.tsv
+http://download.jensenlab.org/arabidopsis_compartment_integrated_full.tsv
+# Tissues
+http://download.jensenlab.org/human_tissue_integrated_full.tsv
+http://download.jensenlab.org/mouse_tissue_integrated_full.tsv
+http://download.jensenlab.org/rat_tissue_integrated_full.tsv
+http://download.jensenlab.org/pig_tissue_integrated_full.tsv
+##############################################################################################################
+# Diseases
+http://download.jensenlab.org/human_disease_integrated_full.tsv
+ENSP00000264734 CLDN16  ICD10:N1        ICD10:N1        1.9
+ENSP00000292174 CXCR5   ICD10:G959      ICD10:G959      0.5
+ENSP00000332296 RARB    ICD10:Q112      ICD10:Q112      4.2
+# Compartments
+http://download.jensenlab.org/human_compartment_integrated_full.tsv
+ENSP00000234313 PLEK    GO:0005623      Cell    4.8
+ENSP00000249014 CDC42EP1        GO:0032432      Actin filament bundle   1.2
+ENSP00000257264 TCN1    GO:0097613      Dinoflagellate epicone  0.7
+http://download.jensenlab.org/mouse_compartment_integrated_full.tsv
+NSMUSP00000000342      Ccl11   GO:0098797      Plasma membrane protein complex 0.6
+ENSMUSP00000021036      Rffl    GO:0005634      Nucleus 1.9
+ENSMUSP00000027997      Rgs5    GO:0044459      Plasma membrane part    1.0
+http://download.jensenlab.org/rat_compartment_integrated_full.tsv
+ENSRNOP00000002790      Boc     GO:0043231      Intracellular membrane-bounded organelle        0.5
+ENSRNOP00000003511      Sox9    GO:0044420      Extracellular matrix component  1.3
+ENSRNOP00000009111      Aldob   GO:0005783      Endoplasmic reticulum   5.0
+http://download.jensenlab.org/fly_compartment_integrated_full.tsv
+http://download.jensenlab.org/worm_compartment_integrated_full.tsv
+http://download.jensenlab.org/yeast_compartment_integrated_full.tsv
+http://download.jensenlab.org/arabidopsis_compartment_integrated_full.tsv
+# Tissues
+http://download.jensenlab.org/human_tissue_integrated_full.tsv
+ENSP00000169298 ST6GAL1 BTO:0001424     Uterus  2.0
+ENSP00000261783 ARG2    BTO:0000601     Hippocampus     4.1
+ENSP00000299413 TRIM44  BTO:0003871     Uterine endometrial cancer cell 2.0
+http://download.jensenlab.org/mouse_tissue_integrated_full.tsv
+ENSMUSP00000022081      Spata9  BTO:0001086     Embryonic stem cell     0.4
+ENSMUSP00000031249      Sparcl1 BTO:0000082     Male reproductive system        2.0
+ENSMUSP00000037854      Plcl1   BTO:0003096     Internal male genital organ     0.3
+http://download.jensenlab.org/rat_tissue_integrated_full.tsv
+http://download.jensenlab.org/pig_tissue_integrated_full.tsv
+
+
+# documents_function2description.tsv
+-56     PMID:19389871   (2011) Antidiabetic Properties of Azardiracta indica and Bougainvillea spectabilis: In Vivo Studies in Murine Diabetes Model.   2011    -1
+-56     PMID:19389870   (2009) Decreased connectivity and cerebellar activity in autism during motor task performance.  2009    -1
+-56     PMID:19389872   (2009) Participation of functionally different macrophage populations and monocyte chemoattractant protein-1 in early stages of thioacetamide-induced rat hepatic injury.       2009    -1
+
+# documents_function2description.tsv
+287.DR97_10     {"PMID:8820243"}        -56
+287.DR97_1005   {"PMID:25870065","PMID:18776018","PMID:16952944","PMID:16625057","PMID:16385055","PMID:16079332","PMID:15385461","PMID:11514523"}       -56
+287.DR97_1007   {"PMID:22996729","PMID:12835925"}       -56
+
+##############################################################################################################
+
+# Protein_2_Function_table_PMID_abstracts.txt documents_protein2function.tsv # Protein 2 PMID relationships
+# merge these with other textmining results?
+# check if etype needs to be flipped to beginning of line
+287.DR97_10     {"PMID:8820243"}        -56
+287.DR97_1005   {"PMID:25870065","PMID:18776018","PMID:16952944","PMID:16625057","PMID:16385055","PMID:16079332","PMID:15385461","PMID:11514523"}       -56
+287.DR97_1007   {"PMID:22996729","PMID:12835925"}       -56
+
+# Protein_2_Function_table_PMID.txt
+1000565.METUNv1_00036   {"PMID:27708623"}       -56
+1000565.METUNv1_00081   {"PMID:19514844","PMID:19943898"}       -56
+1000565.METUNv1_00188   {"PMID:25978049"}       -56
+
+
+# Function_2_Description_PMID.txt documents_function2description.tsv # PMID function descriptions
+# cleanup descriptions, add placeholder "-1" for hierarchical level
+# later on: merge with other functions, reduce to PMIDs using Function_2_ENSP_table, and add enumerations
+-56     PMID:17181617   (2006) Outcomes of autoconjunctival grafting for primary pterygia when performed by consultant compared with trainee ophthalmologists.  2006
+-56     PMID:14710850   (2003) Hypoxia-induced irreversible S-phase arrest involves down-regulation of cyclin A.        2003
+-56     PMID:11086741   (2000) Anatomical cerebellar protection of contrecoup hematoma development. Analysis of the mechanism of 30 posterior fossa coup hematomas.     2000
+-56     PMID:9507593    (1997) Decrease in survival from AIDS after 1992 in Edinburgh.  1997
+
+
+# Protein_2_Function_and_Score_DOID_GO_BTO.txt integrated_protein2function.tsv # Protein 2 Function and Score relationships for etypes -22, -25, and -26 (GO cellular component, BTO tissues, and DOID diseases)
+6239.C30G4.7    {{"GO:0043226",0.875},{"GO:0043227",0.875},{"GO:0043231",0.875},{"GO:0044424",2.96924}, ... , {"GO:0005737",2.742276},{"GO:0005777",0.703125}}      -22
+10116.ENSRNOP00000049139        {{"GO:0005623",2.927737},{"GO:0044424",2.403304},{"GO:0044425",3},{"GO:0031224",3}, ... ,{"GO:0043232",0.375}}       -22
+ - remove anything on blacklist (all_hidden.tsv) already happend while creating Functions_table_DOID_BTO (and all terms not present therein will be filtered out)
+ - omit GO-CC (etype -22)
+ Variant A.)
+    using a hard cutoff of e.g. >= 3
+     - create Protein_2_Function_table_DOID and
+     - create Protein_2_Function_table_BTO
+    and add them to Protein_2_Function_table_STRING.txt
+ Variant B.)
+    use continuous scores
+    - translate function_name to function_enum
+    - create Protein_2_FunctionEnum_and_Score_table_STRING.txt (BTO and DOID, etype -25 and -26)
+    - create Taxid_2_FunctionCountArray_BTO_DOID.txt (add values to array using a function instead of merging tables)
+# Protein_2_FunctionEnum_and_Score_table_STRING.txt
+| 10116.ENSRNOP00000049139 | {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}} |
+# sum scores and scale to sum up to foreground_n
+#   --> scaling_factor = sum(scores) / foreground_n
+#   score * scaling_factor
+# create precomputed counts per genome analogous to Taxid_2_FunctionCountArray_table_STRING.txt
+# Taxid_2_FunctionCountArray_2_merge_BTO_DOID.txt
+| 9606 | 19566 | {{{0,3},{3,2},{4,3},{666,3}, ... ,{3000000,1}} |
+# sum scores and scale to sum up to background_n
+#   --> scaling_factor = sum(scores) / background_n
+#   score * scaling_factor --> and round to closest integer
+
+
+# Functions_table_DOID_BTO.txt integrated_function2description.tsv # GO, BTO, and DOID function descriptions
+ - add hierarchical level, year placeholder
+ - merge with Functions_table
+ - add things to Lineage table
+-26     DOID:0050483    DOID:0050483
+-26     DOID:0050662    Bestrophinopathy
+-26     DOID:0060317    Lung abscess
+-25     BTO:0003000     EB-1 cell
+-22     GO:0099012      Neuronal dense core vesicle membrane
+
+
+
+Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "function_2_description_PMID.tsv")
+Protein_2_Function_table_PMID_temp = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_temp.txt")
+Protein_2_Function_Jensenlab = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_Jensenlab.txt")
+Function_2_Description_Jensenlab = os.path.join(DOWNLOADS_DIR, "Function_2_Description_Jensenlab.txt")
+Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
+DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid.obo")
+GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go.obo")
+BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto.obo") # static file
