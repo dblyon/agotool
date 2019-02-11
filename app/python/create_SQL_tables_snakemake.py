@@ -1685,20 +1685,21 @@ def parse_Function_2_Description_PMID(Function_2_Description_PMID, Functions_tab
     # df_stringmatches = parse_textmining_string_matches(string_matches)
     # PMID_set = set(df_stringmatches["PMID"].values)
     hierarchical_level = "-1"
-    with open(Function_2_Description_PMID, "r") as fh_in:
-        with open(Functions_table_PMID_temp, "w") as fh_out:
-            for line in fh_in:
-                ls = line.split("\t")
-                etype, PMID, description, year = ls
-                # if PMID not in PMID_set:
-                #     continue
-                year = year.strip()
-                if not year:
-                    year = "...."
-                description = clean_messy_string_v2(description)  # in order to capture foreign language titles' open and closing brackets e.g. "[bla bla bla]"
-                description = cut_long_string_at_word(description, max_len_description)
-                description = " ".join(description.split())  # replace multiple spaces with single space
-                fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
+    # with open(Function_2_Description_PMID, "r") as fh_in:
+    #         for line in fh_in:
+    with open(Functions_table_PMID_temp, "w") as fh_out:
+        for line in tools.yield_line_uncompressed_or_gz_file(Function_2_Description_PMID):
+            ls = line.split("\t")
+            etype, PMID, description, year = ls
+            # if PMID not in PMID_set:
+            #     continue
+            year = year.strip()
+            if not year:
+                year = "...."
+            description = clean_messy_string_v2(description)  # in order to capture foreign language titles' open and closing brackets e.g. "[bla bla bla]"
+            description = cut_long_string_at_word(description, max_len_description)
+            description = " ".join(description.split())  # replace multiple spaces with single space
+            fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
 
 def merge_Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
     """
@@ -1771,18 +1772,19 @@ def create_Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO
     blacklisted_ans = set(blacklisted_ans)
 
     year = "-1" # placeholder
-    with open(Function_2_Description_DOID_BTO_GO_down, "r") as fh_in:
-        with open(Functions_table_DOID_BTO, "w") as fh_out:
-            for line in fh_in:
-                etype, function_an, description = line.split("\t")
-                description = description.strip()
-                if function_an in blacklisted_ans:
-                    continue
-                try:
-                    level = term_2_level_dict[function_an] # level is an integer
-                except KeyError:
-                    level = -1
-                fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
+    # with open(Function_2_Description_DOID_BTO_GO_down, "r") as fh_in:
+        # for line in fh_in:
+    with open(Functions_table_DOID_BTO, "w") as fh_out:
+        for line in tools.yield_line_uncompressed_or_gz_file(Function_2_Description_DOID_BTO_GO_down):
+            etype, function_an, description = line.split("\t")
+            description = description.strip()
+            if function_an in blacklisted_ans:
+                continue
+            try:
+                level = term_2_level_dict[function_an] # level is an integer
+            except KeyError:
+                level = -1
+            fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
 
 def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Protein_2_FunctionEnum_and_Score_table_STRING):
     """
@@ -1799,30 +1801,31 @@ def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_STRING_reduced, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
 
-    with open(Protein_2_Function_and_Score_DOID_GO_BTO, "r") as fh_in:
-        with open(Protein_2_FunctionEnum_and_Score_table_STRING, "w") as fh_out:
-            for line in fh_in:
-                ENSP, funcName_2_score_arr_str, etype = line.split("\t")
-                etype = etype.strip()
-                if etype == "-22": # omit GO-CC (etype -22)
-                    continue
-                else:
-                    funcEnum_2_score = []
-                    funcName_2_score_arr_str = funcName_2_score_arr_str.replace("{", "[")
-                    funcName_2_score_arr_str = funcName_2_score_arr_str.replace("}", "]")
-                    funcName_2_score_list = literal_eval(funcName_2_score_arr_str)
-                    for an_score in funcName_2_score_list:
-                        an, score = an_score
-                        try:
-                            anEnum = term_2_enum_dict[an]
-                        except KeyError:
-                            print(an, type(an))
-                            raise StopIteration
-                        funcEnum_2_score.append({anEnum, score})
-                    funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
-                    funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
-                    funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
-                    fh_out.write(ENSP + "\t" + funcEnum_2_score + "\n")
+    # with open(Protein_2_Function_and_Score_DOID_GO_BTO, "r") as fh_in:
+        # for line in fh_in:
+    with open(Protein_2_FunctionEnum_and_Score_table_STRING, "w") as fh_out:
+        for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
+            ENSP, funcName_2_score_arr_str, etype = line.split("\t")
+            etype = etype.strip()
+            if etype == "-22": # omit GO-CC (etype -22)
+                continue
+            else:
+                funcEnum_2_score = []
+                funcName_2_score_arr_str = funcName_2_score_arr_str.replace("{", "[")
+                funcName_2_score_arr_str = funcName_2_score_arr_str.replace("}", "]")
+                funcName_2_score_list = literal_eval(funcName_2_score_arr_str)
+                for an_score in funcName_2_score_list:
+                    an, score = an_score
+                    try:
+                        anEnum = term_2_enum_dict[an]
+                    except KeyError:
+                        print(an, type(an))
+                        raise StopIteration
+                    funcEnum_2_score.append({anEnum, score})
+                funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
+                funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
+                funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
+                fh_out.write(ENSP + "\t" + funcEnum_2_score + "\n")
 
 def create_Taxid_2_FunctionCountArray_2_merge_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_2_merge_BTO_DOID, number_of_processes=1, verbose=True):
     """

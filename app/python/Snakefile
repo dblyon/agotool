@@ -3,9 +3,11 @@ import os, sys
 import variables_snakemake as variables
 import create_SQL_tables_snakemake as cst
 import download_resources_snakemake as drs
+import tools
 from importlib import reload
 reload(cst)
 reload(drs)
+reload(tools)
 
 DOWNLOADS_DIR = variables.DOWNLOADS_DIR
 TABLES_DIR = variables.TABLES_DIR
@@ -70,12 +72,12 @@ URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.or
 URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
 URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
 URL_go_obo_Jensenlab = r"http://download.jensenlab.org/aGOtool/go.obo"
-Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt")
+Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
 Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
 Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
 Protein_2_Function_table_PMID_fulltexts = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_fulltexts.txt")
-Protein_2_Function_and_Score_DOID_GO_BTO = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_GO_BTO.txt")
-Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt")
+Protein_2_Function_and_Score_DOID_GO_BTO = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_GO_BTO.txt.gz")
+Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
 Functions_table_DOID_BTO = os.path.join(TABLES_DIR, "Function_2_Description_DOID_BTO.txt")
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
@@ -246,6 +248,7 @@ rule download_Protein_2_Function_table_PMID_abstracts:
         verbose = verbose
     run:
         drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_abstracts, params.verbose)
+        tools.gunzip_file(output.Protein_2_Function_table_PMID_abstracts)
 
 rule download_Protein_2_Function_and_Score_DOID_GO_BTO:
     output:
@@ -419,7 +422,7 @@ rule Functions_table_DOID_BTO:
     output:
         Functions_table_DOID_BTO = Functions_table_DOID_BTO
     run:
-        cst.create_Functions_table_DOID_BTO(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, output.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO)
+        cst.create_Functions_table_DOID_BTO(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO)
 
 
 rule Functions_table_STRING_all:
