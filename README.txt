@@ -706,11 +706,6 @@ http://download.jensenlab.org/pig_tissue_integrated_full.tsv
 
 
 
-Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "function_2_description_PMID.tsv")
-Protein_2_Function_table_PMID_temp = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_temp.txt")
-Protein_2_Function_Jensenlab = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_Jensenlab.txt")
-Function_2_Description_Jensenlab = os.path.join(DOWNLOADS_DIR, "Function_2_Description_Jensenlab.txt")
-Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
-DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid.obo")
-GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go.obo")
-BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto.obo") # static file
+
+
+merge_Protein_2_Function_table_PMID download_Function_2_Description_PMID Function_table_PMID_temp Protein_2_FunctionEnum_and_Score_table_STRING Functions_table_DOID_BTO Taxid_2_FunctionCountArray_2_merge_BTO_DOID

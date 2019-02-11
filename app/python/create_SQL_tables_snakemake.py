@@ -719,13 +719,13 @@ def create_TaxID_2_Proteins_table(fn_in_protein_shorthands, fn_out_TaxID_2_Prote
             ENSPs_2_write = sorted(set(ENSP_list))
             fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
-def create_Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_STRING, number_of_processes=1):
+def create_Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_STRING, number_of_processes=1, verbose=True):
     # - sort Protein_2_FunctionEnum_table_STRING.txt
     # - create array of zeros of function_enumeration_length
     # - for line in Protein_2_FunctionEnum_table_STRING
     #     add counts to array until taxid_new != taxid_previous
     print("create_Taxid_2_FunctionCountArray_table_STRING")
-    tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes)
+    tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
     with open(fn_out_Taxid_2_FunctionCountArray_table_STRING, "w") as fh_out:
@@ -769,7 +769,7 @@ def helper_format_funcEnum(funcEnum_count_background):
     enumeration_arr = enumeration_arr[cond]
     string_2_write = ""
     for ele in zip(enumeration_arr, funcEnum_count_background):
-        string_2_write += "{{{0},{1}}},".format(ele[0], ele[1])
+        string_2_write += "{{{0},{1}}},".format(ele[0], round(ele[1]))
     index_backgroundCount_array_string = "{" + string_2_write[:-1] + "}"
     return index_backgroundCount_array_string
 
@@ -1824,12 +1824,65 @@ def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_
                     funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
                     fh_out.write(ENSP + "\t" + funcEnum_2_score + "\n")
 
+def create_Taxid_2_FunctionCountArray_2_merge_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_2_merge_BTO_DOID, number_of_processes=1, verbose=True):
+    """
+    Protein_2_FunctionEnum_and_Score_table_STRING.txt
+    10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
+    ENSP to functionEnumeration and its respective score
+    multiple ENSPs per taxid --> scores get summed up per TaxID
 
+    Taxid_2_FunctionCountArray_2_merge_BTO_DOID.txt
+    9606  19566  {{{0,3},{3,2},{4,3},{666,3}, ... ,{3000000,1}}
 
+    """
+    if verbose:
+        print("creating Taxid_2_FunctionCountArray_2_merge_BTO_DOID")
+    # sort table to get group ENSPs of same TaxID
+    tools.sort_file(Protein_2_FunctionEnum_and_Score_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
+    # get dict
+    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
+    num_lines = tools.line_numbers(Functions_table_STRING)
 
+    with open(Protein_2_FunctionEnum_and_Score_table_STRING, "r") as fh_in:
+        with open(Taxid_2_FunctionCountArray_2_merge_BTO_DOID, "w") as fh_out:
+            line = next(fh_in)
+            fh_in.seek(0)
+            taxid_last, ENSP_last, funcEnum_2_count_list_last = helper_parse_line_protein_2_functionEnum_and_score(line)
+            funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
+            funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list_last)
+            for line in fh_in:
+                taxid, ENSP, funcEnum_2_count_list = helper_parse_line_protein_2_functionEnum_and_score(line)
+                if taxid == taxid_last:
+                    # add to existing arr
+                    funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
+                else:
+                    # write to file
+                    background_count = taxid_2_total_protein_count_dict[taxid_last]
+                    funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
+                    fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
+                    # regenerate arr
+                    funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
+                    funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
+                # current becomes last
+                taxid_last = taxid
 
+            background_count = taxid_2_total_protein_count_dict[taxid_last]
+            funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
+            fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
+    if verbose:
+        print("done with Taxid_2_FunctionCountArray_2_merge_BTO_DOID")
 
+def helper_parse_line_protein_2_functionEnum_and_score(line):
+    ENSP, funcEnum_2_count_arr = line.split("\t")
+    funcEnum_2_count_list = literal_eval(funcEnum_2_count_arr.strip().replace("{", "[").replace("}", "]"))
+    taxid = ENSP.split(".")[0]
+    return taxid, ENSP, funcEnum_2_count_list
 
+def helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list):
+    for funcEnum_count in funcEnum_2_count_list:
+        funcEnum, count = funcEnum_count
+        funcEnum_count_background[funcEnum] += count
+    return funcEnum_count_background
 
 
 
