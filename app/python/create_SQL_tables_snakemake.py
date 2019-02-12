@@ -1786,7 +1786,7 @@ def create_Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO
                 level = -1
             fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
 
-def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Protein_2_FunctionEnum_and_Score_table_STRING):
+def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Protein_2_FunctionEnum_and_Score_table_STRING, fn_an_without_translation):
     """
     Protein_2_Function_and_Score_DOID_GO_BTO.txt
     6239.C30G4.7    {{"GO:0043226",0.875},{"GO:0043227",0.875},{"GO:0043231",0.875},{"GO:0044424",2.96924}, ... , {"GO:0005737",2.742276},{"GO:0005777",0.703125}}      -22
@@ -1803,6 +1803,7 @@ def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_
 
     # with open(Protein_2_Function_and_Score_DOID_GO_BTO, "r") as fh_in:
         # for line in fh_in:
+    an_without_translation = []
     with open(Protein_2_FunctionEnum_and_Score_table_STRING, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
@@ -1818,14 +1819,17 @@ def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_
                     an, score = an_score
                     try:
                         anEnum = term_2_enum_dict[an]
-                    except KeyError:
-                        print(an, type(an))
-                        raise StopIteration
+                    except KeyError: # because e.g. blacklisted
+                        # print(an, type(an))
+                        # raise StopIteration
+                        an_without_translation.append(an)
                     funcEnum_2_score.append({anEnum, score})
                 funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
                 funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
                 funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
                 fh_out.write(ENSP + "\t" + funcEnum_2_score + "\n")
+    with open(fn_an_without_translation, "w"):
+        fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
 
 def create_Taxid_2_FunctionCountArray_2_merge_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_2_merge_BTO_DOID, number_of_processes=1, verbose=True):
     """

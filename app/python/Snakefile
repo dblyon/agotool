@@ -83,6 +83,7 @@ Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jen
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
 BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
+DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")
 # Reactome
 RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv") # https://reactome.org/download/current/ReactomePathwaysRelation.txt
 RCTM_associations = os.path.join(DOWNLOADS_DIR, "RCTM_associations.tsv") # #!!! missing ask Damian he probably did some kind of mapping
@@ -688,9 +689,10 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
         Protein_2_Function_and_Score_DOID_GO_BTO = Protein_2_Function_and_Score_DOID_GO_BTO,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced
     output:
-        Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING
+        Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING,
+        DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
     run:
-        cst.create_Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, output.Protein_2_FunctionEnum_and_Score_table_STRING)
+        cst.create_Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
 
 
 
@@ -702,3 +704,6 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
 # read_from_flat_files get_results_of_statement_from_flat_file
 
 # snakemake -nj 24 Protein_2_FunctionEnum_and_Score_table_STRING
+
+# fix Functions_table_PMID_temp.txt
+# -56     PMID:13883643   (1962) [On the problem of the basic principles and methods of prevention and treatment of stammering].  1962    -1
