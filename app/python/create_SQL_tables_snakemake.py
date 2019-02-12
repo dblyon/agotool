@@ -1814,14 +1814,13 @@ def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_
                 continue
             else:
                 funcEnum_2_score = []
-                funcName_2_score_arr_str = funcName_2_score_arr_str.replace("{", "[")
-                funcName_2_score_arr_str = funcName_2_score_arr_str.replace("}", "]")
+                funcName_2_score_arr_str = funcName_2_score_arr_str.replace("{", "[").replace("}", "]")
                 funcName_2_score_list = literal_eval(funcName_2_score_arr_str)
                 for an_score in funcName_2_score_list:
                     an, score = an_score
                     try:
                         anEnum = term_2_enum_dict[an]
-                        funcEnum_2_score.append({anEnum, score})
+                        funcEnum_2_score.append([anEnum, score])
                     except KeyError: # because e.g. blacklisted
                         an_without_translation.append(an)
                 funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order

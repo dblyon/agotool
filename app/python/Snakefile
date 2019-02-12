@@ -91,7 +91,6 @@ RCTM_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv") # https
 # --> there is an "R-" as prefix everywhere which Damian probably took out
 
 string_matches = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_matches.tsv"
-string_matches = os.path.join(DOWNLOADS_DIR, "string_matches.tsv")
 
 # pmc_medline = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv" # deprecated ?
 
@@ -707,3 +706,5 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
 
 # fix Functions_table_PMID_temp.txt
 # -56     PMID:13883643   (1962) [On the problem of the basic principles and methods of prevention and treatment of stammering].  1962    -1
+
+# Protein_2_FunctionEnum_and_Score_table_STRING
