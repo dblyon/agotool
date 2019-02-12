@@ -1696,9 +1696,11 @@ def parse_Function_2_Description_PMID(Function_2_Description_PMID, Functions_tab
             year = year.strip()
             if not year:
                 year = "...."
-            description = clean_messy_string_v2(description)  # in order to capture foreign language titles' open and closing brackets e.g. "[bla bla bla]"
-            description = cut_long_string_at_word(description, max_len_description)
-            description = " ".join(description.split())  # replace multiple spaces with single space
+            year_prefix = description[:7]
+            description_2_clean = description[7:]
+            description_2_clean = clean_messy_string_v2(description_2_clean)  # in order to capture foreign language titles' open and closing brackets e.g. "[bla bla bla]"
+            description_2_clean = cut_long_string_at_word(description_2_clean, max_len_description)
+            description = year_prefix + " ".join(description_2_clean.split())  # replace multiple spaces with single space
             fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
 
 def merge_Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
@@ -1819,16 +1821,14 @@ def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_
                     an, score = an_score
                     try:
                         anEnum = term_2_enum_dict[an]
+                        funcEnum_2_score.append({anEnum, score})
                     except KeyError: # because e.g. blacklisted
-                        # print(an, type(an))
-                        # raise StopIteration
                         an_without_translation.append(an)
-                    funcEnum_2_score.append({anEnum, score})
                 funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
                 funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
                 funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
                 fh_out.write(ENSP + "\t" + funcEnum_2_score + "\n")
-    with open(fn_an_without_translation, "w"):
+    with open(fn_an_without_translation, "w") as fh_an_without_translation:
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
 
 def create_Taxid_2_FunctionCountArray_2_merge_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_2_merge_BTO_DOID, number_of_processes=1, verbose=True):
