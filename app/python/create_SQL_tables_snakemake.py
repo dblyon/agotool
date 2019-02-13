@@ -1314,7 +1314,14 @@ def parse_textmining_string_matches(fn):
     df = pd.read_csv(fn, sep="\t", names=names)
     return df
 
-def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID, fn_out_Protein_2_Function_table_PMID):
+def get_all_ENSPs(TaxID_2_Proteins_table_STRING):
+    ENSP_set = set()
+    with open(TaxID_2_Proteins_table_STRING, "r") as fh:
+        for line in fh:
+            ENSP_set |= literal_eval(line.split("\t")[1])
+    return ENSP_set
+
+def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
     df_txtID = parse_textmining_entityID_2_proteinID(fn_in_all_entities)
     df_stringmatches = parse_textmining_string_matches(fn_in_string_matches)
     # sanity test that df_stringmatches.entity_id are all in df_txtID.textmining_id --> yes. textmining_id is a superset of entity_id --> after filtering df_txtID this is not true
@@ -1326,10 +1333,8 @@ def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in
     # --> simpler by filtering based on positive integers in species_id column ?
     # get all ENSPs
 
-    ENSP_set = set()
-    with open(fn_in_TaxID_2_Proteins_table_STRING, "r") as fh:
-        for line in fh:
-            ENSP_set |= literal_eval(line.split("\t")[1])
+    ENSP_set = get_all_ENSPs(fn_in_TaxID_2_Proteins_table_STRING)
+
     # reduce DF to ENSPs in DB
     cond = df_txtID["ENSP"].isin(ENSP_set)
     print("reducing df_txtID from {} to {} rows".format(len(cond), sum(cond)))
@@ -1375,16 +1380,17 @@ def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in
             PMID_with_prefix_list = ["PMID:" + str(PMID) for PMID in sorted(PMID_set)]
             fh_out.write(ENSP + "\t" + "{" + str(PMID_with_prefix_list)[1:-1].replace(" ", "").replace("'", '"') + "}" + "\t" + etype + "\n")
 
-    # #!!! dependency on creating Functions_table_PMID.txt first
     # reduce Functions_table_PMID.txt to PMIDs that are in Protein_2_Function_table_PMID.txt
-    PMID_set = set(df_stringmatches["PMID"].values)
+    # #!!! dependency on Lars initial text mining file (without automatic updates)
+    # PMID_set = set(df_stringmatches["PMID"].values) # how to fix this ??? --> disable since Function_2_ENSP retains only those functions which are associated with relevant ENSPs
+
     # PMID_not_relevant = []
-    with open(fn_in_Functions_table_PMID_temp, "r") as fh_in:
-        with open(fn_out_Functions_table_PMID, "w") as fh_out:
-            for line in fh_in:
-                PMID_including_prefix = line.split("\t")[1]
-                if int(PMID_including_prefix[5:]) in PMID_set:
-                    fh_out.write(line)
+    # with open(fn_in_Functions_table_PMID_temp, "r") as fh_in:
+    #     with open(fn_out_Functions_table_PMID, "w") as fh_out:
+    #         for line in fh_in:
+    #             PMID_including_prefix = line.split("\t")[1]
+    #             if int(PMID_including_prefix[5:]) in PMID_set:
+    #                 fh_out.write(line)
                 # else:
                 #     PMID_not_relevant.append(PMID_including_prefix)
 
@@ -1494,7 +1500,7 @@ def create_Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_P
     if verbose:
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
-def Functions_table_STRING_reduced(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
+def reduce_Functions_table_STRING(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
     """
     create Functions_table_STRING_reduced
     """
@@ -1703,10 +1709,11 @@ def parse_Function_2_Description_PMID(Function_2_Description_PMID, Functions_tab
             description = year_prefix + " ".join(description_2_clean.split())  # replace multiple spaces with single space
             fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
 
-def merge_Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
+def merge_Protein_2_Function_table_PMID(TaxID_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
     """
     concatenate files, sort and create set of union of functional associations
-
+    filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING
+    :param TaxID_2_Proteins_table_STRING: string
     :param Protein_2_Function_table_PMID_abstracts: string
         1000565.METUNv1_03313   {"PMID:29179769"}       -56
         1000565.METUNv1_03481   {"PMID:27682085"}       -56
@@ -1715,6 +1722,7 @@ def merge_Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_abstracts,
         1000565.METUNv1_03313   {"PMID:24905407","PMID:29179769"}       -56
         1000565.METUNv1_00036   {"PMID:27708623"}       -56
         1000565.METUNv1_00081   {"PMID:19514844","PMID:19943898"}       -56
+    :param Protein_2_Function_table_PMID_combi: string
     :param Protein_2_Function_table_PMID: string
     :param number_of_processes: Integer
     :param verbose: Bool
@@ -1725,6 +1733,9 @@ def merge_Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_abstracts,
     # sort files
     tools.sort_file(Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID_combi, number_of_processes=number_of_processes, verbose=verbose)
     # merge lines with duplicate ENSPs
+
+    ENSP_set = get_all_ENSPs(TaxID_2_Proteins_table_STRING)
+
     with open(Protein_2_Function_table_PMID_combi, "r") as fh_in:
         ls = fh_in.readline().split("\t")
         fh_in.seek(0)
@@ -1737,10 +1748,12 @@ def merge_Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_abstracts,
                 if ENSP == ENSP_last: # add
                     PMID_list += helper_string_array_to_list(PMID_arr)
                 else: # write
-                    fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(set(PMID_list))) + "\t" + etype)
+                    if ENSP_last in ENSP_set:
+                        fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(set(PMID_list))) + "\t" + etype)
                     PMID_list = helper_string_array_to_list(PMID_arr) # create new list
                     ENSP_last = ENSP
-            fh_out.write(ENSP + "\t" + format_list_of_string_2_postgres_array(sorted(set(PMID_list))) + "\t" + etype)
+            if ENSP in ENSP_set:
+                fh_out.write(ENSP + "\t" + format_list_of_string_2_postgres_array(sorted(set(PMID_list))) + "\t" + etype)
 
 def helper_string_array_to_list(string_):
     """
