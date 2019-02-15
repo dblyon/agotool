@@ -3,6 +3,7 @@ import gzip
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+from collections import deque
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 import re, obo_parser
@@ -162,7 +163,8 @@ def create_Functions_table_Reactome(fn_in, fn_out, term_2_level_dict, all_terms)
 def get_direct_parents(child, child_2_parent_dict):
     try:
         # copy is necessary since child_2_parent_dict is otherwise modified by updating direct_parents in get_all_lineages
-        direct_parents = child_2_parent_dict[child].copy()
+        # direct_parents = child_2_parent_dict[child].copy() # deprecated
+        direct_parents = child_2_parent_dict[child]
     except KeyError:
         direct_parents = []
     return direct_parents
@@ -216,33 +218,49 @@ def get_child_2_direct_parent_dict_from_dag(dag):
         child_2_direct_parents_dict[name] = {p.id for p in term_object.parents}
     return child_2_direct_parents_dict
 
-def extend_parents(child_2_parent_dict, lineages=[]):
-    for lineage in lineages:
-        parents = list(get_direct_parents(lineage[-1], child_2_parent_dict))
-        len_parents = len(parents)
-        if len_parents == 1: # if single direct parents recursively walk up the tree
-            lineage.extend(parents)
-            return extend_parents(child_2_parent_dict, lineages)
-        elif len_parents > 1: # multiple direct parents
-            lineage_temp = lineage[:]
-            lineage.extend([parents[0]]) # extend first parent
-            for parent in parents[1:]: # copy lineage for the other parents and extend with respective parent
-                lineages.append(lineage_temp + [parent])
-            return extend_parents(child_2_parent_dict, lineages)
-    return lineages
-
 def get_all_lineages(child, child_2_parent_dict):
     """
-    # child = "GO:0044237" # 2 paths, level 3
-    # child = "GO:0006629" # 2 paths, level 4
-    # child = "GO:0006082" # 4 paths, level 4
-    # child = "GO:2001304" # 22 paths, level 11
-    # child = "GO:0042557" # 124, 14
-    # child = "GO:0006082" # 4, 4
+    previous recursive version below
+    def extend_parents(child_2_parent_dict, lineages=[]):
+        for lineage in lineages:
+            parents = list(get_direct_parents(lineage[-1], child_2_parent_dict))
+            len_parents = len(parents)
+            if len_parents == 1: # if single direct parents recursively walk up the tree
+                lineage.extend(parents)
+                return extend_parents(child_2_parent_dict, lineages)
+            elif len_parents > 1: # multiple direct parents
+                lineage_temp = lineage[:]
+                lineage.extend([parents[0]]) # extend first parent
+                for parent in parents[1:]: # copy lineage for the other parents and extend with respective parent
+                    lineages.append(lineage_temp + [parent])
+                return extend_parents(child_2_parent_dict, lineages)
+        return lineages
+
+    def get_all_lineages(child, child_2_parent_dict):
+        lineages = []
+        for parent in get_direct_parents(child, child_2_parent_dict):
+            lineages += extend_parents(child_2_parent_dict, [[child, parent]])
+        return lineages
     """
-    lineages = []
-    for parent in get_direct_parents(child, child_2_parent_dict):
-        lineages += extend_parents(child_2_parent_dict, [[child, parent]])
+    lineage = [child]
+    lineages = [lineage]
+    visit_plan = deque()
+    visit_plan.append((child, lineage))
+    while visit_plan:
+        (next_to_visit, lineage) = visit_plan.pop() # # lineage = # for this next_to_visit dude
+        parents = list(get_direct_parents(next_to_visit, child_2_parent_dict))
+        len_parents = len(parents)
+        if len_parents == 1:  # if single direct parents recursively walk up the tree
+            lineage.append(parents[0])
+            visit_plan.append((parents[0], lineage))
+        elif len_parents > 1:  # multiple direct parents
+            # remove original/old lineage and replace with the forked
+            lineages.remove(lineage)
+            for parent in parents:  # copy lineage for the other parents and extend with respective parent
+                lineage_fork = lineage[:]
+                lineage_fork.append(parent)
+                lineages.append(lineage_fork)
+                visit_plan.append((parent, lineage_fork))
     return lineages
 
 def create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_associations, fn_descriptions, fn_hierarchy, fn_protein_2_function_table_RCTM, fn_functions_table_RCTM, number_of_processes):
