@@ -158,45 +158,6 @@ def create_Functions_table_Reactome(fn_in, fn_out, term_2_level_dict, all_terms)
                     fh_out.write(entity_type + "\t" + term + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
     return sorted(set(terms_with_hierarchy)), sorted(set(terms_without_hierarchy))
 
-def get_random_direct_lineage(child, child_2_parent_dict, lineage=[]):
-    """
-    child = "ATH-111997"
-    get_random_direct_lineage(child, child_2_parent_dict)
-    """
-    try:
-        parents = child_2_parent_dict[child]
-    except KeyError:
-        return lineage  # already at root
-    if len(parents) == 0: # already at root as well (for other cases)
-        return lineage
-    for parent in parents:  # select random parent
-        lineage.append(parent)
-        return get_random_direct_lineage(parent, child_2_parent_dict, lineage)
-
-def get_all_lineages(child, child_2_parent_dict):
-    """
-    child included in lineage
-    child = "ATH-111997"
-    get_all_lineages(child, child_2_parent_dict)
-    --> [['ATH-111997', 'ATH-1489509', 'ATH-9006925', 'ATH-162582'],
-    ['ATH-111997', 'ATH-111996', 'ATH-112043', 'ATH-112040', 'ATH-111885', 'ATH-418594', 'ATH-388396', 'ATH-372790', 'ATH-162582']]
-
-    an = "GO:1904767"
-    lineage_dict[an] --> {'GO:0031406', 'GO:0005488', 'GO:0036094', 'GO:0043168', 'GO:0008289', 'GO:0005504', 'GO:0033293', 'GO:0043167', 'GO:0003674', 'GO:0043177'}
-    child_2_parent_dict[an] --> {'GO:0005504'}
-    """
-    all_lineages = []
-    parents_2_remove = set()
-    direct_parents = get_direct_parents(child, child_2_parent_dict)
-    while True:
-        if len(direct_parents - parents_2_remove) == 0: # {'GO:0005504'} - {} --> {'GO:0005504'} != 0 # 2.iteration {'GO:0005504'} - {"GO:1904767", "GO:0005504", 'GO:0008289', 'GO:0005488', 'GO:0003674'} --> {}
-            return all_lineages
-        else:
-            parent = list(direct_parents - parents_2_remove)[0]  # 'GO:0005504'
-            lineage = [child, parent] + get_random_direct_lineage(parent, child_2_parent_dict, lineage=[]) # ["GO:1904767", "GO:0005504"] +  ['GO:0008289', 'GO:0005488', 'GO:0003674']
-            all_lineages.append(lineage)
-            parents_2_remove.update(set(lineage)) # {"GO:1904767", "GO:0005504", 'GO:0008289', 'GO:0005488', 'GO:0003674'}
-            direct_parents.update(get_direct_parents(parent, child_2_parent_dict))
 
 def get_direct_parents(child, child_2_parent_dict):
     try:
@@ -232,15 +193,17 @@ def get_term_2_level_dict(child_2_parent_dict):
     if term in hierarchy --> default to level 1
     if term not in hierarchy --> not present in dict
     """
+    sys.setrecursionlimit(3500)
     term_2_level_dict = defaultdict(lambda: 1)
     for child in child_2_parent_dict.keys():
         lineages = get_all_lineages(child, child_2_parent_dict)
-        max_lineage = 1
-        for lineage in lineages:
-            len_lineage = len(lineage)
-            if len_lineage > max_lineage:
-                max_lineage = len_lineage
-        term_2_level_dict[child] = max_lineage
+        try:
+            level = len(max(lineages, key=len)) # if not in dict
+        except ValueError: # if lineage [] but not [[]], which can happen for top root terms
+            level = 1
+        if level == 0: # for root terms
+            level = 1
+        term_2_level_dict[child] = level
     return term_2_level_dict
 
 def get_child_2_direct_parent_dict_from_dag(dag):
@@ -252,6 +215,35 @@ def get_child_2_direct_parent_dict_from_dag(dag):
     for name, term_object in dag.items():
         child_2_direct_parents_dict[name] = {p.id for p in term_object.parents}
     return child_2_direct_parents_dict
+
+def extend_parents(child_2_parent_dict, lineages=[]):
+    for lineage in lineages:
+        parents = list(get_direct_parents(lineage[-1], child_2_parent_dict))
+        len_parents = len(parents)
+        if len_parents == 1: # if single direct parents recursively walk up the tree
+            lineage.extend(parents)
+            return extend_parents(child_2_parent_dict, lineages)
+        elif len_parents > 1: # multiple direct parents
+            lineage_temp = lineage[:]
+            lineage.extend([parents[0]]) # extend first parent
+            for parent in parents[1:]: # copy lineage for the other parents and extend with respective parent
+                lineages.append(lineage_temp + [parent])
+            return extend_parents(child_2_parent_dict, lineages)
+    return lineages
+
+def get_all_lineages(child, child_2_parent_dict):
+    """
+    # child = "GO:0044237" # 2 paths, level 3
+    # child = "GO:0006629" # 2 paths, level 4
+    # child = "GO:0006082" # 4 paths, level 4
+    # child = "GO:2001304" # 22 paths, level 11
+    # child = "GO:0042557" # 124, 14
+    # child = "GO:0006082" # 4, 4
+    """
+    lineages = []
+    for parent in get_direct_parents(child, child_2_parent_dict):
+        lineages += extend_parents(child_2_parent_dict, [[child, parent]])
+    return lineages
 
 def create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_associations, fn_descriptions, fn_hierarchy, fn_protein_2_function_table_RCTM, fn_functions_table_RCTM, number_of_processes):
     """
