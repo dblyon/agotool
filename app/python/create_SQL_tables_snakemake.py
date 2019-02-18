@@ -43,13 +43,17 @@ def Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functions_tab
     tools.gunzip_file(fn_in_string2interpro, fn_in_temp)
     tools.sort_file(fn_in_temp, fn_in_temp, columns="1", number_of_processes=number_of_processes, verbose=verbose)
 
-    df = pd.read_csv(fn_in_Functions_table_InterPro, sep='\t', names=["etype", "AN", "description", "year", "level"]) # names=["etype", "name", "AN", "description"])
+    child_2_parent_dict, term_2_level_dict = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
+    df = pd.read_csv(fn_in_Functions_table_InterPro, sep='\t', names=["etype", "AN", "description", "year", "level"])
     InterPro_AN_superset = set(df["AN"].values.tolist())
     if verbose:
         print("parsing previous result to produce Protein_2_Function_table_InterPro.txt")
     entityType_InterPro = variables.id_2_entityTypeNumber_dict["INTERPRO"]
     with open(fn_out_Protein_2_Function_table_InterPro, "w") as fh_out:
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
+            # backtrack functions
+
+
             InterProID_list = sorted({id_ for id_ in InterProID_list if id_ in InterPro_AN_superset})
             if len(InterProID_list) >= 1:
                 fh_out.write(ENSP + "\t" + "{" + str(InterProID_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_InterPro + "\n")
@@ -345,7 +349,6 @@ def Functions_table_InterPro(fn_in_interprot_AN_2_name, fn_in_interpro_parent_2_
     df = df[["etype", "an", "description", "year", "level"]]
     df.to_csv(fn_out_Functions_table_InterPro, sep="\t", header=False, index=False)
 
-
 def get_child_2_direct_parents_and_term_2_level_dict_interpro(fn):
     """
     thus far no term has multiple parents, but code should capture these cases as well if they appear in the future
@@ -617,7 +620,7 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
+def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
     child_2_parent_dict, term_2_level_dict = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
 
 
@@ -665,7 +668,7 @@ def get_lineage_Reactome(fn_hierarchy):
     child_2_parent_dict = get_child_2_direct_parent_dict_RCTM_hierarchy(fn_hierarchy)
     parent_2_children_dict = get_parent_2_children_dict(fn_hierarchy)
     lineage_dict = {}
-    for parent, children in parent_2_children_dict.items():
+    for parent, children in parent_2_children_dict.items(): #!!! why do I need this?
         lineage_dict[parent] = children
     for child in child_2_parent_dict:
         parents = get_parents_iterative(child, child_2_parent_dict)

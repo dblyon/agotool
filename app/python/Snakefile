@@ -521,7 +521,7 @@ rule Lineage_table_STRING:
     # shell:
     #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Lineage_table_STRING(r"{input.GO_basic_obo}", r"{input.UPK_obo}", r"{input.RCTM_hierarchy}", r"{input.Functions_table_STRING_reduced}", r"{output.Lineage_table}", r"{output.Lineage_table_no_translation}")'"""
     run:
-        cst.create_Lineage_table_STRING(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced, output.Lineage_table, output.Lineage_table_no_translation)
+        cst.Lineage_table_STRING(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced, output.Lineage_table, output.Lineage_table_no_translation)
 
 rule Taxid_2_FunctionCountArray_table_STRING:
     input:
@@ -555,3 +555,4 @@ rule AFC_KS_enrichment_terms_flat_files:
 # rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11
 # Functions_table_UPK Functions_table_GO
 # read_from_flat_files get_results_of_statement_from_flat_file
+# snakemake -nj 24 -F Taxid_2_FunctionCountArray_table_STRING Lineage_table_STRING AFC_KS_enrichment_terms_flat_files
