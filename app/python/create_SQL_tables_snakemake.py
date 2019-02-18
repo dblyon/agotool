@@ -24,7 +24,7 @@ NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 VERSION_ = variables.VERSION_
 PLATFORM = sys.platform
 
-def create_Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functions_table_InterPro, fn_out_Protein_2_Function_table_InterPro, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functions_table_InterPro, fn_out_Protein_2_Function_table_InterPro, number_of_processes=1, verbose=True):
     """
     :param fn_in_string2interpro: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz)
     :param fn_out_Protein_2_Function_table_InterPro: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_InterPro.txt)
@@ -159,7 +159,6 @@ def create_Functions_table_Reactome(fn_in, fn_out, term_2_level_dict, all_terms)
                     fh_out.write(entity_type + "\t" + term + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
     return sorted(set(terms_with_hierarchy)), sorted(set(terms_without_hierarchy))
 
-
 def get_direct_parents(child, child_2_parent_dict):
     try:
         # copy is necessary since child_2_parent_dict is otherwise modified by updating direct_parents in get_all_lineages
@@ -195,7 +194,6 @@ def get_term_2_level_dict(child_2_parent_dict):
     if term in hierarchy --> default to level 1
     if term not in hierarchy --> not present in dict
     """
-    sys.setrecursionlimit(3500)
     term_2_level_dict = defaultdict(lambda: 1)
     for child in child_2_parent_dict.keys():
         lineages = get_all_lineages(child, child_2_parent_dict)
@@ -326,16 +324,92 @@ def map_string_2_interpro(fn_in_string2uniprot, fn_in_uniprot2interpro, fn_out_s
                 # fh_out.write('%s\t%s'%(string_id, line))
                 fh_out.write("{}\t{}".format(string_id, line))
 
-def create_Functions_table_InterPro(fn_in, fn_out):
+def Functions_table_InterPro(fn_in_interprot_AN_2_name, fn_in_interpro_parent_2_child_tree, fn_out_Functions_table_InterPro):
     """
     # | enum | etype | an | description | year | level |
+    ### old file called InterPro_name_2_AN.txt
+    # ftp://ftp.ebi.ac.uk/pub/databases/interpro/names.dat
+    # df = pd.read_csv(fn_in, sep='\t', names=["an", "description"])
+    # df["etype"] = variables.id_2_entityTypeNumber_dict["INTERPRO"]
+    # df["year"] = "-1"
+    # df["level"] = "-1"
+    # df = df[["etype", "an", "description", "year", "level"]]
+    # df.to_csv(fn_out, sep="\t", header=False, index=False)
     """
-    df = pd.read_csv(fn_in, sep='\t', names=["an", "description"])
-    df["etype"] = variables.id_2_entityTypeNumber_dict["INTERPRO"]
+    child_2_parent_dict, term_2_level_dict = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
+    df = pd.read_csv(fn_in_interprot_AN_2_name, sep='\t')
+    df = df.rename(columns={"ENTRY_AC": "an", "ENTRY_NAME": "description"})
     df["year"] = "-1"
-    df["level"] = "-1"
+    df["etype"] = variables.id_2_entityTypeNumber_dict["INTERPRO"]
+    df["level"] = df["an"].apply(lambda term: term_2_level_dict[term])
     df = df[["etype", "an", "description", "year", "level"]]
-    df.to_csv(fn_out, sep="\t", header=False, index=False)
+    df.to_csv(fn_out_Functions_table_InterPro, sep="\t", header=False, index=False)
+
+
+def get_child_2_direct_parents_and_term_2_level_dict_interpro(fn):
+    """
+    thus far no term has multiple parents, but code should capture these cases as well if they appear in the future
+
+    IPR041492::Haloacid dehalogenase-like hydrolase:: # term_previous=IPR041492, level_previous=0
+    --IPR006439::HAD hydrolase, subfamily IA:: # term=IPR006439, level=1 | term_previous=IPR006439, level_previous=1
+    ----IPR006323::Phosphonoacetaldehyde hydrolase:: # term=IPR006323, level=2 | term_previous=IPR006323, level_previous=2
+    ----IPR006328::L-2-Haloacid dehalogenase:: # term=IPR006328, level=2
+    ----IPR006346::2-phosphoglycolate phosphatase-like, prokaryotic::
+    ------IPR037512::Phosphoglycolate phosphatase, prokaryotic::
+    ----IPR006351::3-amino-5-hydroxybenzoic acid synthesis-related::
+    ----IPR010237::Pyrimidine 5-nucleotidase::
+    ----IPR010972::Beta-phosphoglucomutase::
+    ----IPR011949::HAD-superfamily hydrolase, subfamily IA, REG-2-like::
+    ----IPR011950::HAD-superfamily hydrolase, subfamily IA, CTE7::
+    ----IPR011951::HAD-superfamily hydrolase, subfamily IA, YjjG/YfnB::
+    ----IPR023733::Pyrophosphatase PpaX::
+    ----IPR023943::Enolase-phosphatase E1::
+    ------IPR027511::Enolase-phosphatase E1, eukaryotes::
+    :param fn: string (interpro_parent_2_child_tree.txt)
+    :return dict: key: string val: set of string
+    """
+    child_2_parent_dict = defaultdict(lambda: set())
+    term_2_level_dict = defaultdict(lambda: 1)
+    with open(fn, "r") as fh:
+        for line in fh:
+            if not line.startswith("-"):
+                term_previous = line.split(":")[0]
+                level_previous = 1
+                term_2_level_dict[term_previous] = level_previous
+            else:
+                term = line.split(":")[0]
+                index_ = term.rfind("-")
+                level_string = term[:index_ + 1]
+                term = term[index_ + 1:]
+                level = int(len(level_string) / 2) + 1
+                term_2_level_dict[term] = level
+                if level > level_previous:
+                    if term not in child_2_parent_dict:
+                        child_2_parent_dict[term] = {term_previous}
+                    else:
+                        child_2_parent_dict[term].update({term_previous})
+                elif level == level_previous:
+                    if term not in child_2_parent_dict:
+                        child_2_parent_dict[term] = child_2_parent_dict[term_previous]
+                    else:
+                        child_2_parent_dict[term].update({child_2_parent_dict[term_previous]})
+                elif level < level_previous:
+                    term_previous, level_previous = helper_get_previous_term_and_level(child_2_parent_dict, term_2_level_dict, term_previous, level)
+                    if term not in child_2_parent_dict:
+                        child_2_parent_dict[term] = {term_previous}
+                    else:
+                        child_2_parent_dict[term].update({term_previous})
+                level_previous = level
+                term_previous = term
+    return child_2_parent_dict, term_2_level_dict
+
+def helper_get_previous_term_and_level(child_2_parent_dict, term_2_level_dict, term_previous, level_current):
+    while True:
+        term_previous = next(iter(child_2_parent_dict[term_previous]))
+        level_previous = term_2_level_dict[term_previous]
+        if level_current > level_previous:
+            return term_previous, level_previous
+
 
 def create_Functions_table_KEGG(fn_in, fn_out, verbose=True):
     """
@@ -543,7 +617,10 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
+def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
+    child_2_parent_dict, term_2_level_dict = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
+
+
     lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
