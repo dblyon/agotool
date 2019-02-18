@@ -50,14 +50,14 @@ min_count = 1 # Function_2_ENSP_table: minimum number of ENSPs per TaxID for a e
 
 ### URLs
 URL_GO_basic_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
-URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
+# URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 URL_SwissProt_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz" # Swiss mirror
 URL_TrEMBL_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz"
 
 ### Downloads
 GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
-GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
+# GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")

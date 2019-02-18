@@ -1686,12 +1686,13 @@ if __name__ == "__main__":
 
 
 
-    Protein_2_Function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-    Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")
-    Functions_table_STRING_reduced = os.path.join(TABLES_DIR, "Functions_table_STRING_reduced.txt")
-    Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
-    Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
-    reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(Protein_2_Function_table_STRING, Function_2_ENSP_table_STRING_removed, Functions_table_STRING_reduced, Protein_2_Function_table_STRING_reduced, Protein_2_Function_table_STRING_removed)
+    # Protein_2_Function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+    # Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")
+    # Functions_table_STRING_reduced = os.path.join(TABLES_DIR, "Functions_table_STRING_reduced.txt")
+    # Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
+    # Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
+    # reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(Protein_2_Function_table_STRING, Function_2_ENSP_table_STRING_removed, Functions_table_STRING_reduced, Protein_2_Function_table_STRING_reduced, Protein_2_Function_table_STRING_removed)
     ### dubugging stop
-
-
+    GO_basic_obo = r"/home/dblyon/agotool/data/PostgreSQL/downloads/go-basic.obo"
+    Functions_table_GO = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_GO_v2.txt"
+    create_Functions_table_GO_or_UPK(GO_basic_obo, Functions_table_GO, is_upk=False)
