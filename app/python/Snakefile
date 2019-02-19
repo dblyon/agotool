@@ -103,6 +103,7 @@ Protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt") #
 URL_interpro_parent_2_child_tree = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/ParentChildTreeFile.txt"
 interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
 string_2_interpro = os.path.join(DOWNLOADS_DIR, "string_2_interpro.dat.gz") # Davide
+URL_uniprot_2_interpro = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/protein2ipr.dat.gz"
 uniprot_2_interpro = os.path.join(DOWNLOADS_DIR, "protein2ipr.dat.gz")
 URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
 interpro_AN_2_name = os.path.join(DOWNLOADS_DIR, "interpro_AN_2_name.txt") # InterPro_name_2_AN
@@ -217,21 +218,12 @@ rule download_Interpro_annotations: # update cycle? InterPro is updated approxim
 
 rule download_Interpro_descriptions:
     output:
-        InterPro_name_2_AN = InterPro_name_2_AN
-    params:
-        URL_InterPro_name_2_AN = URL_InterPro_name_2_AN,
-        verbose = verbose
-    run:
-        drs.download_gzip_file(params.URL_InterPro_name_2_AN, output.InterPro_name_2_AN, params.verbose)
-
-rule download_interpro_AN_2_name:
-    output:
         interpro_AN_2_name = interpro_AN_2_name
     params:
         URL_interpro_AN_2_name = URL_interpro_AN_2_name,
         verbose = verbose
     run:
-        drs.download_gzip_file(params.URL_interpro_AN_2_name, output.interpro_AN_2_name, verbose=params.verbose)
+        drs.download_gzip_file(params.URL_interpro_AN_2_name, output.interpro_AN_2_name, params.verbose)
 
 rule download_interpro_parent_2_child_tree:
     output:
