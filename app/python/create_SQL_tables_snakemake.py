@@ -876,7 +876,7 @@ def Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING,
     # - create array of zeros of function_enumeration_length
     # - for line in Protein_2_FunctionEnum_table_STRING
     #     add counts to array until taxid_new != taxid_previous
-    print("create_Taxid_2_FunctionCountArray_table_STRING")
+    print("creating Taxid_2_FunctionCountArray_table_STRING")
     tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
@@ -1473,7 +1473,7 @@ def get_all_ENSPs(TaxID_2_Proteins_table_STRING):
             ENSP_set |= literal_eval(line.split("\t")[1])
     return ENSP_set
 
-def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
+def Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
     df_txtID = parse_textmining_entityID_2_proteinID(fn_in_all_entities)
     df_stringmatches = parse_textmining_string_matches(fn_in_string_matches)
     # sanity test that df_stringmatches.entity_id are all in df_txtID.textmining_id --> yes. textmining_id is a superset of entity_id --> after filtering df_txtID this is not true
@@ -1651,7 +1651,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins
     if verbose:
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
-def reduce_Functions_table_STRING(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
+def Functions_table_STRING_reduced(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
     """
     create Functions_table_STRING_reduced
     """
@@ -1709,7 +1709,7 @@ def _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Funct
             function_2_etype_dict[an] = etype
     return function_2_funcEnum_dict, function_2_etype_dict
 
-def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_ensp_rest, fn_in_Functions_table_STRING_reduced, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest):
+def Protein_2_Function_table_reduced(fn_in_protein_2_function, fn_in_function_2_ensp_rest, fn_in_Functions_table_STRING_reduced, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest):
     """
     _by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced
     """
@@ -1955,7 +1955,7 @@ def Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Je
                 level = -1
             fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
 
-def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Protein_2_FunctionEnum_and_Score_table_STRING, fn_an_without_translation):
+def Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Protein_2_FunctionEnum_and_Score_table_STRING, fn_an_without_translation):
     """
     Protein_2_Function_and_Score_DOID_GO_BTO.txt
     6239.C30G4.7    {{"GO:0043226",0.875},{"GO:0043227",0.875},{"GO:0043231",0.875},{"GO:0044424",2.96924}, ... , {"GO:0005737",2.742276},{"GO:0005777",0.703125}}      -22
@@ -1997,7 +1997,7 @@ def create_Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_
     with open(fn_an_without_translation, "w") as fh_an_without_translation:
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
 
-def create_Taxid_2_FunctionCountArray_2_merge_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_2_merge_BTO_DOID, number_of_processes=1, verbose=True):
+def Taxid_2_FunctionCountArray_2_merge_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_2_merge_BTO_DOID, number_of_processes=1, verbose=True):
     """
     Protein_2_FunctionEnum_and_Score_table_STRING.txt
     10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}

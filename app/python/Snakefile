@@ -130,7 +130,7 @@ Functions_table_InterPro = os.path.join(TABLES_DIR, "Functions_table_InterPro.tx
 Functions_table_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
 Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
 Functions_table_PFAM_no_mapping = os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt")
-Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt") # unfiltered since filtering happens at reduce_Functions_table_STRING step via Function_2_ENSP_table
+Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt") # unfiltered since filtering happens at Functions_table_STRING_reduced step via Function_2_ENSP_table
 # Functions_table_PMID_temp = os.path.join(TABLES_DIR, "Functions_table_PMID_temp.txt") # deprecated
 Functions_table_RCTM = os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")
 Functions_table_SMART = os.path.join(TABLES_DIR, "Functions_table_SMART.txt")
@@ -383,10 +383,8 @@ rule Functions_table_GO:
         Functions_table_GO = Functions_table_GO
     params:
         is_upk = False
-    # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Functions_table_GO_or_UPK(r"{input.GO_basic_obo}", r"{output.Functions_table_GO}", {params.is_upk})'"""
     run:
-        cst.Functions_table_GO_or_UPK(input.GO_basic_obo, output.Functions_table_GO, params.is_upk)
+        cst.Functions_table_GO_or_UPK(input.GO_obo_Jensenlab, output.Functions_table_GO, params.is_upk)
 
 rule Functions_table_UPK:
     input:
@@ -542,7 +540,7 @@ rule Protein_2_Function_table_GO:
     # shell:
     #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_GO(fn_in_obo_file=r"{input.GO_basic_obo}", fn_in_knowledge=r"{input.GO_knowledge_Lars}", fn_out_Protein_2_Function_table_GO=r"{output.Protein_2_Function_table_GO}", number_of_processes={threads}, verbose={params.verbose})'"""
     run:
-        cst.Protein_2_Function_table_GO(input.GO_basic_obo, input.GO_knowledge_Lars, output.Protein_2_Function_table_GO, threads, params.verbose)
+        cst.Protein_2_Function_table_GO(input.GO_obo_Jensenlab, input.GO_knowledge_Lars, output.Protein_2_Function_table_GO, threads, params.verbose)
 
 rule Protein_2_Function_table_UPK:
     input:
@@ -561,7 +559,7 @@ rule Protein_2_Function_table_UPK:
     run:
         cst.Protein_2_Function_table_UniProtKeyword(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string, output.Protein_2_Function_table_UPK, threads, params.verbose)
 
-rule Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID:
+rule Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced:
     input:
         all_entities = all_entities,
         string_matches = string_matches,
@@ -572,8 +570,8 @@ rule Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID:
         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
     run:
         # removing Functions_table_PMID_temp, Functions_table_PMID due to autoupdates --> change Functions_table_PMID_temp to Functions_table_PMID
-        # cst.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
-        cst.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
+        # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
+        cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
 
 rule merge_Protein_2_Function_table_PMID:
     input:
@@ -632,7 +630,7 @@ rule Functions_table_STRING_reduced:
         Functions_table_STRING_removed = Functions_table_STRING_removed,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced
     run:
-        cst.reduce_Functions_table_STRING(input.Functions_table_STRING_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_STRING_reduced)
+        cst.Functions_table_STRING_reduced(input.Functions_table_STRING_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_STRING_reduced)
 
 rule Protein_2_Function_table_reduced:
     input:
@@ -643,12 +641,12 @@ rule Protein_2_Function_table_reduced:
         Protein_2_Function_table_STRING_reduced = Protein_2_Function_table_STRING_reduced,
         Protein_2_Function_table_STRING_removed = Protein_2_Function_table_STRING_removed
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.reduce_Protein_2_Function_table(r"{input.Protein_2_Function_table_STRING}", r"{input.Function_2_ENSP_table_STRING_removed}", r"{input.Functions_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_removed}")'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_reduced(r"{input.Protein_2_Function_table_STRING}", r"{input.Function_2_ENSP_table_STRING_removed}", r"{input.Functions_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_removed}")'"""
     # !!! MEMORY ISSUES WHEN USING RUN
     # run: # _and_Lineage_table_no_translation input.Lineage_table_no_translation,
-    #     cst.reduce_Protein_2_Function_table(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_removed, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
+    #     cst.Protein_2_Function_table_reduced(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_removed, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
     run:
-        cst.reduce_Protein_2_Function_table(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_reduced, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
+        cst.Protein_2_Function_table_reduced(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_reduced, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
 
 rule Protein_2_FunctionEnum_table_STRING:
     input:
@@ -676,7 +674,7 @@ rule Lineage_table_STRING:
     # shell:
     #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Lineage_table_STRING(r"{input.GO_obo_Jensenlab}", r"{input.UPK_obo}", r"{input.RCTM_hierarchy}", r"{input.Functions_table_STRING_reduced}", r"{output.Lineage_table}", r"{output.Lineage_table_no_translation}")'"""
     run:
-        cst.create_Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.Functions_table_STRING_reduced, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table, output.Lineage_table_no_translation)
+        cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.Functions_table_STRING_reduced, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table, output.Lineage_table_no_translation)
 
 rule Taxid_2_FunctionCountArray_2_merge_BTO_DOID:
     input:
@@ -689,7 +687,7 @@ rule Taxid_2_FunctionCountArray_2_merge_BTO_DOID:
     params:
         verbose = verbose
     run:
-        cst.create_Taxid_2_FunctionCountArray_2_merge_BTO_DOID(input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_2_merge_BTO_DOID, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_2_merge_BTO_DOID(input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_2_merge_BTO_DOID, threads, params.verbose)
 
 rule Taxid_2_FunctionCountArray_table_STRING:
     input:
@@ -705,7 +703,7 @@ rule Taxid_2_FunctionCountArray_table_STRING:
     params:
         verbose = verbose
     run:
-        cst.create_Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.TaxID_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.TaxID_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
 
 rule AFC_KS_enrichment_terms_flat_files:
     input:
@@ -728,13 +726,13 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
         Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING,
         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
     run:
-        cst.create_Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
+        cst.Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
 
 
 
 
 
-# Taxid_2_FunctionCountArray_table_STRING Lineage_table_STRING Protein_2_FunctionEnum_table_STRING Functions_table_STRING_all Function_2_ENSP_table reduce_Functions_table_STRING AFC_KS_enrichment_terms_flat_files
+# Taxid_2_FunctionCountArray_table_STRING Lineage_table_STRING Protein_2_FunctionEnum_table_STRING Functions_table_STRING_all Function_2_ENSP_table Functions_table_STRING_reduced AFC_KS_enrichment_terms_flat_files
 # rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11
 # Functions_table_UPK Functions_table_GO
 # read_from_flat_files get_results_of_statement_from_flat_file
@@ -752,4 +750,4 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
 #PMID appears but not in Func
 
 # filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING @merge_Protein_2_Function_table_PMID
-# Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID --> no ENSP filter, since filter Function_2_ENSP will kick in --> done
+# Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced --> no ENSP filter, since filter Function_2_ENSP will kick in --> done
