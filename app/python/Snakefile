@@ -236,14 +236,15 @@ rule download_interpro_parent_2_child_tree:
 
 rule download_Function_2_Description_PMID:
     output:
-        Function_2_Description_PMID_gz = Function_2_Description_PMID + ".gz",
+        # Function_2_Description_PMID_gz = Function_2_Description_PMID + ".gz",
         Function_2_Description_PMID = Function_2_Description_PMID
     params:
         URL_function_2_description_PMID = URL_function_2_description_PMID,
         verbose = verbose
     run:
-        drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID_gz, params.verbose)
-        tools.gunzip_file(output.Function_2_Description_PMID_gz, output.Function_2_Description_PMID)
+        # drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID_gz, params.verbose)
+        # tools.gunzip_file(output.Function_2_Description_PMID_gz, output.Function_2_Description_PMID)
+        drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID, params.verbose)
 
 rule download_Protein_2_Function_table_PMID_abstracts:
     output:
@@ -430,7 +431,7 @@ rule Function_table_PMID:
     output:
         Functions_table_PMID = Functions_table_PMID
     run:
-        cst.parse_Function_2_Description_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
+        cst.Function_2_Description_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
 
 rule Functions_table_DOID_BTO:
     input:
