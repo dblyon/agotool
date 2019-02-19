@@ -545,7 +545,7 @@ def clean_messy_string(string_):
 
 def concatenate_Functions_tables(fn_list_str, fn_out_temp, fn_out, number_of_processes):
     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt", "Functions_table_KEGG.txt", "Functions_table_SMART.txt", "Functions_table_PFAM.txt", "Functions_table_InterPro.txt", "Functions_table_RCTM.txt"]]
-    fn_list = fn_list_str.split(" ")
+    fn_list = [fn for fn in fn_list_str]
     # concatenate files
     tools.concatenate_files(fn_list, fn_out_temp)
     # sort
