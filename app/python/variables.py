@@ -25,7 +25,6 @@ temp_dont_run_analysis = False
 if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
 ############################
-# function_types = ("BP", "CP", "MF", "UPK", "KEGG", "DOM")
 entity_types = {-21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57}
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types

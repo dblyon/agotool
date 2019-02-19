@@ -63,6 +63,10 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, recstart=None, KB_MB_GB="M", split_size=1000):
+    # option to unzip with pigz
+    # also try pigz for multithreaded compression/decompression
+    # time pigz -c -d -p 10 /home/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv.gz > /dev/null
+    # wasn't faster
     if cpu_number is None:
         cpu_number = NUMBER_OF_PROCESSES
     if split_size is None:
@@ -102,8 +106,9 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     print("sorting concatenated file {}".format(fn_out))
     sort_file(fn_out, fn_out, number_of_processes=NUMBER_OF_PROCESSES)
     ### remove temp files
-    print("removing temp files")
-    shutil.rmtree(temp_dir)
+    # print("removing temp files")
+    # shutil.rmtree(temp_dir)
+
     # remove unzipped file
 
 if __name__ == "__main__":

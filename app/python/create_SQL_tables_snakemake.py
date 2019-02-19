@@ -3,6 +3,7 @@ import gzip
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+from collections import deque
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 import obo_parser
@@ -23,10 +24,11 @@ NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 VERSION_ = variables.VERSION_
 PLATFORM = sys.platform
 
-def create_Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functions_table_InterPro, fn_out_Protein_2_Function_table_InterPro, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functions_table_InterPro, fn_in_interpro_parent_2_child_tree, fn_out_Protein_2_Function_table_InterPro, number_of_processes=1, verbose=True):
     """
     :param fn_in_string2interpro: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz)
     :param fn_out_Protein_2_Function_table_InterPro: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_InterPro.txt)
+    :param fn_in_interpro_parent_2_child_tree: String (download from interpro downloads page)
     :param fn_in_Functions_table_InterPro: String (/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_InterPro.txt) with InterPro ANs to verify
     :param number_of_processes: Integer (number of cores, shouldn't be too high since Disks are probably the bottleneck even with SSD, e.g. max 4)
     :param verbose: Bool (flag to print infos)
@@ -41,17 +43,24 @@ def create_Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functi
     fn_in_temp = fn_in_string2interpro + "_temp"
     tools.gunzip_file(fn_in_string2interpro, fn_in_temp)
     tools.sort_file(fn_in_temp, fn_in_temp, columns="1", number_of_processes=number_of_processes, verbose=verbose)
-
-    df = pd.read_csv(fn_in_Functions_table_InterPro, sep='\t', names=["etype", "AN", "description", "year", "level"]) # names=["etype", "name", "AN", "description"])
+    child_2_parent_dict, _ = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
+    lineage_dict = get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict)
+    df = pd.read_csv(fn_in_Functions_table_InterPro, sep='\t', names=["etype", "AN", "description", "year", "level"])
     InterPro_AN_superset = set(df["AN"].values.tolist())
     if verbose:
         print("parsing previous result to produce Protein_2_Function_table_InterPro.txt")
     entityType_InterPro = variables.id_2_entityTypeNumber_dict["INTERPRO"]
     with open(fn_out_Protein_2_Function_table_InterPro, "w") as fh_out:
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
-            InterProID_list = sorted({id_ for id_ in InterProID_list if id_ in InterPro_AN_superset})
+            # InterProID_list = sorted({id_ for id_ in InterProID_list if id_ in InterPro_AN_superset})
+            # backtrack functions
+            InterProID_set = set()
+            for id_ in InterProID_list:
+                if id_ in InterPro_AN_superset:
+                    InterProID_set.update(lineage_dict[id_])
+            InterProID_list = sorted(InterProID_set)
             if len(InterProID_list) >= 1:
-                fh_out.write(ENSP + "\t" + "{" + str(InterProID_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_InterPro + "\n")
+                fh_out.write(ENSP + "\t" + format_list_of_string_2_postgres_array(InterProID_list) + "\t" + entityType_InterPro + "\n")
     os.remove(fn_in_temp)
     if verbose:
         print("done create_Protein_2_Function_table_InterPro\n")
@@ -72,21 +81,6 @@ def parse_string2interpro_yield_entry(fn_in):
             InterProID_list = [InterProID]
             ENSP_previous = ENSP
     yield (ENSP_previous, InterProID_list)
-
-def get_child_2_direct_parent_dict_RCTM_hierarchy(fn_in):
-    """
-    child_2_parent_dict --> child 2 direct parents
-    """
-    child_2_parent_dict = {}
-    with open(fn_in, "r") as fh_in:
-        for line in fh_in:
-            parent, child = line.split("\t")
-            child = child.strip()
-            if child not in child_2_parent_dict:
-                child_2_parent_dict[child] = {parent}
-            else:
-                child_2_parent_dict[child] |= {parent}
-    return child_2_parent_dict
 
 def create_protein_2_function_table_Reactome(fn_in, fn_out, child_2_parent_dict, return_all_terms=False):  # term_set_2_use_as_filter
     # entity_type = "-57"
@@ -205,7 +199,8 @@ def create_Functions_table_Reactome(fn_in, fn_out, term_2_level_dict, all_terms)
 def get_direct_parents(child, child_2_parent_dict):
     try:
         # copy is necessary since child_2_parent_dict is otherwise modified by updating direct_parents in get_all_lineages
-        direct_parents = child_2_parent_dict[child].copy()
+        # direct_parents = child_2_parent_dict[child].copy() # deprecated
+        direct_parents = child_2_parent_dict[child]
     except KeyError:
         direct_parents = []
     return direct_parents
@@ -259,36 +254,52 @@ def get_child_2_direct_parent_dict_from_dag(dag):
         child_2_direct_parents_dict[name] = {p.id for p in term_object.parents}
     return child_2_direct_parents_dict
 
-def extend_parents(child_2_parent_dict, lineages=[]):
-    for lineage in lineages:
-        parents = list(get_direct_parents(lineage[-1], child_2_parent_dict))
-        len_parents = len(parents)
-        if len_parents == 1: # if single direct parents recursively walk up the tree
-            lineage.extend(parents)
-            return extend_parents(child_2_parent_dict, lineages)
-        elif len_parents > 1: # multiple direct parents
-            lineage_temp = lineage[:]
-            lineage.extend([parents[0]]) # extend first parent
-            for parent in parents[1:]: # copy lineage for the other parents and extend with respective parent
-                lineages.append(lineage_temp + [parent])
-            return extend_parents(child_2_parent_dict, lineages)
-    return lineages
-
 def get_all_lineages(child, child_2_parent_dict):
     """
-    # child = "GO:0044237" # 2 paths, level 3
-    # child = "GO:0006629" # 2 paths, level 4
-    # child = "GO:0006082" # 4 paths, level 4
-    # child = "GO:2001304" # 22 paths, level 11
-    # child = "GO:0042557" # 124, 14
-    # child = "GO:0006082" # 4, 4
+    previous recursive version below
+    def extend_parents(child_2_parent_dict, lineages=[]):
+        for lineage in lineages:
+            parents = list(get_direct_parents(lineage[-1], child_2_parent_dict))
+            len_parents = len(parents)
+            if len_parents == 1: # if single direct parents recursively walk up the tree
+                lineage.extend(parents)
+                return extend_parents(child_2_parent_dict, lineages)
+            elif len_parents > 1: # multiple direct parents
+                lineage_temp = lineage[:]
+                lineage.extend([parents[0]]) # extend first parent
+                for parent in parents[1:]: # copy lineage for the other parents and extend with respective parent
+                    lineages.append(lineage_temp + [parent])
+                return extend_parents(child_2_parent_dict, lineages)
+        return lineages
+
+    def get_all_lineages(child, child_2_parent_dict):
+        lineages = []
+        for parent in get_direct_parents(child, child_2_parent_dict):
+            lineages += extend_parents(child_2_parent_dict, [[child, parent]])
+        return lineages
     """
-    lineages = []
-    for parent in get_direct_parents(child, child_2_parent_dict):
-        lineages += extend_parents(child_2_parent_dict, [[child, parent]])
+    lineage = [child]
+    lineages = [lineage]
+    visit_plan = deque()
+    visit_plan.append((child, lineage))
+    while visit_plan:
+        (next_to_visit, lineage) = visit_plan.pop() # # lineage = # for this next_to_visit dude
+        parents = list(get_direct_parents(next_to_visit, child_2_parent_dict))
+        len_parents = len(parents)
+        if len_parents == 1:  # if single direct parents recursively walk up the tree
+            lineage.append(parents[0])
+            visit_plan.append((parents[0], lineage))
+        elif len_parents > 1:  # multiple direct parents
+            # remove original/old lineage and replace with the forked
+            lineages.remove(lineage)
+            for parent in parents:  # copy lineage for the other parents and extend with respective parent
+                lineage_fork = lineage[:]
+                lineage_fork.append(parent)
+                lineages.append(lineage_fork)
+                visit_plan.append((parent, lineage_fork))
     return lineages
 
-def create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_associations, fn_descriptions, fn_hierarchy, fn_protein_2_function_table_RCTM, fn_functions_table_RCTM, number_of_processes):
+def Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_associations, fn_descriptions, fn_hierarchy, fn_protein_2_function_table_RCTM, fn_functions_table_RCTM, number_of_processes):
     """
     fn_associations=snakemake.input[0],
     fn_descriptions=snakemake.input[1],
@@ -301,7 +312,7 @@ def create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_asso
         print("### creating 2 tables:\n - Protein_2_Function_table_RCTM.txt\n - Function_table_RCTM.txt\n")
     # sort on first two columns in order to get all functional associations for a given ENSP in one block
     tools.sort_file(fn_associations, fn_associations, number_of_processes=number_of_processes, verbose=variables.VERBOSE)
-    child_2_parent_dict = get_child_2_direct_parent_dict_RCTM_hierarchy(fn_hierarchy)  # child_2_parent_dict --> child 2 direct parents
+    child_2_parent_dict = get_child_2_direct_parent_dict_RCTM(fn_hierarchy)  # child_2_parent_dict --> child 2 direct parents
     term_2_level_dict = get_term_2_level_dict(child_2_parent_dict)
     all_terms = create_protein_2_function_table_Reactome(fn_in=fn_associations, fn_out=fn_protein_2_function_table_RCTM, child_2_parent_dict=child_2_parent_dict, return_all_terms=True)
     terms_with_hierarchy, terms_without_hierarchy = create_Functions_table_Reactome(fn_in=fn_descriptions, fn_out=fn_functions_table_RCTM, term_2_level_dict=term_2_level_dict, all_terms=all_terms)
@@ -309,7 +320,7 @@ def create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(fn_asso
         print("number of terms_without_hierarchy", len(terms_without_hierarchy))
         print("## done with RCTM tables")
 
-def map_string_2_interpro(fn_in_string2uniprot, fn_in_uniprot2interpro, fn_out_string2interpro):
+def string_2_interpro(fn_in_string2uniprot, fn_in_uniprot2interpro, fn_out_string2interpro):
     """
     fn_in_string2uniprot=snakemake.input[0],
     fn_in_uniprot2interpro=snakemake.input[1],
@@ -351,18 +362,92 @@ def map_string_2_interpro(fn_in_string2uniprot, fn_in_uniprot2interpro, fn_out_s
                 # fh_out.write('%s\t%s'%(string_id, line))
                 fh_out.write("{}\t{}".format(string_id, line))
 
-def create_Functions_table_InterPro(fn_in, fn_out):
+def Functions_table_InterPro(fn_in_interprot_AN_2_name, fn_in_interpro_parent_2_child_tree, fn_out_Functions_table_InterPro):
     """
     # | enum | etype | an | description | year | level |
+    ### old file called InterPro_name_2_AN.txt
+    # ftp://ftp.ebi.ac.uk/pub/databases/interpro/names.dat
+    # df = pd.read_csv(fn_in, sep='\t', names=["an", "description"])
+    # df["etype"] = variables.id_2_entityTypeNumber_dict["INTERPRO"]
+    # df["year"] = "-1"
+    # df["level"] = "-1"
+    # df = df[["etype", "an", "description", "year", "level"]]
+    # df.to_csv(fn_out, sep="\t", header=False, index=False)
     """
-    df = pd.read_csv(fn_in, sep='\t', names=["an", "description"])
-    df["etype"] = variables.id_2_entityTypeNumber_dict["INTERPRO"]
+    child_2_parent_dict, term_2_level_dict = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
+    df = pd.read_csv(fn_in_interprot_AN_2_name, sep='\t')
+    df = df.rename(columns={"ENTRY_AC": "an", "ENTRY_NAME": "description"})
     df["year"] = "-1"
-    df["level"] = "-1"
+    df["etype"] = variables.id_2_entityTypeNumber_dict["INTERPRO"]
+    df["level"] = df["an"].apply(lambda term: term_2_level_dict[term])
     df = df[["etype", "an", "description", "year", "level"]]
-    df.to_csv(fn_out, sep="\t", header=False, index=False)
+    df.to_csv(fn_out_Functions_table_InterPro, sep="\t", header=False, index=False)
 
-def create_Functions_table_KEGG(fn_in, fn_out, verbose=True):
+def get_child_2_direct_parents_and_term_2_level_dict_interpro(fn):
+    """
+    thus far no term has multiple parents, but code should capture these cases as well if they appear in the future
+
+    IPR041492::Haloacid dehalogenase-like hydrolase:: # term_previous=IPR041492, level_previous=0
+    --IPR006439::HAD hydrolase, subfamily IA:: # term=IPR006439, level=1 | term_previous=IPR006439, level_previous=1
+    ----IPR006323::Phosphonoacetaldehyde hydrolase:: # term=IPR006323, level=2 | term_previous=IPR006323, level_previous=2
+    ----IPR006328::L-2-Haloacid dehalogenase:: # term=IPR006328, level=2
+    ----IPR006346::2-phosphoglycolate phosphatase-like, prokaryotic::
+    ------IPR037512::Phosphoglycolate phosphatase, prokaryotic::
+    ----IPR006351::3-amino-5-hydroxybenzoic acid synthesis-related::
+    ----IPR010237::Pyrimidine 5-nucleotidase::
+    ----IPR010972::Beta-phosphoglucomutase::
+    ----IPR011949::HAD-superfamily hydrolase, subfamily IA, REG-2-like::
+    ----IPR011950::HAD-superfamily hydrolase, subfamily IA, CTE7::
+    ----IPR011951::HAD-superfamily hydrolase, subfamily IA, YjjG/YfnB::
+    ----IPR023733::Pyrophosphatase PpaX::
+    ----IPR023943::Enolase-phosphatase E1::
+    ------IPR027511::Enolase-phosphatase E1, eukaryotes::
+    :param fn: string (interpro_parent_2_child_tree.txt)
+    :return dict: key: string val: set of string
+    """
+    child_2_parent_dict = defaultdict(lambda: set())
+    term_2_level_dict = defaultdict(lambda: 1)
+    with open(fn, "r") as fh:
+        for line in fh:
+            if not line.startswith("-"):
+                term_previous = line.split(":")[0]
+                level_previous = 1
+                term_2_level_dict[term_previous] = level_previous
+            else:
+                term = line.split(":")[0]
+                index_ = term.rfind("-")
+                level_string = term[:index_ + 1]
+                term = term[index_ + 1:]
+                level = int(len(level_string) / 2) + 1
+                term_2_level_dict[term] = level
+                if level > level_previous:
+                    if term not in child_2_parent_dict:
+                        child_2_parent_dict[term] = {term_previous}
+                    else:
+                        child_2_parent_dict[term].update({term_previous})
+                elif level == level_previous:
+                    if term not in child_2_parent_dict:
+                        child_2_parent_dict[term] = child_2_parent_dict[term_previous]
+                    else:
+                        child_2_parent_dict[term].update({child_2_parent_dict[term_previous]})
+                elif level < level_previous:
+                    term_previous, level_previous = helper_get_previous_term_and_level(child_2_parent_dict, term_2_level_dict, term_previous, level)
+                    if term not in child_2_parent_dict:
+                        child_2_parent_dict[term] = {term_previous}
+                    else:
+                        child_2_parent_dict[term].update({term_previous})
+                level_previous = level
+                term_previous = term
+    return child_2_parent_dict, term_2_level_dict
+
+def helper_get_previous_term_and_level(child_2_parent_dict, term_2_level_dict, term_previous, level_current):
+    while True:
+        term_previous = next(iter(child_2_parent_dict[term_previous]))
+        level_previous = term_2_level_dict[term_previous]
+        if level_current > level_previous:
+            return term_previous, level_previous
+
+def Functions_table_KEGG(fn_in, fn_out, verbose=True):
     """
     # | enum | etype | an | description | year | level |
     """
@@ -381,7 +466,7 @@ def create_Functions_table_KEGG(fn_in, fn_out, verbose=True):
                 string_2_write = etype + "\t" + an + "\t" + description + "\t" + year +"\t" + level + "\n"
                 fh_out.write(string_2_write)
 
-def create_Functions_table_SMART(fn_in, fn_out_functions_table_SMART, max_len_description, fn_out_map_name_2_an_SMART):
+def Functions_table_SMART(fn_in, fn_out_functions_table_SMART, max_len_description, fn_out_map_name_2_an_SMART):
     """
     # | enum | etype | an | description | year | level |
     """
@@ -419,7 +504,7 @@ def parse_SMART(s, max_len_description=80):
     string_ = cut_long_string_at_word(string_, max_len_description=max_len_description)
     return string_
 
-def create_Functions_table_PFAM(fn_in, fn_out_functions_table_PFAM, fn_out_map_name_2_an):
+def Functions_table_PFAM(fn_in, fn_out_functions_table_PFAM, fn_out_map_name_2_an):
     # ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz (from 24/02/2017 downloaded 20180808)
     # fn = r"/home/dblyon/agotool/data/PostgreSQL/downloads/Pfam-A.clans.tsv"
     # fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PFAM.txt"
@@ -433,7 +518,7 @@ def create_Functions_table_PFAM(fn_in, fn_out_functions_table_PFAM, fn_out_map_n
     df2 = df[["name", "an"]]
     df2.to_csv(fn_out_map_name_2_an, sep="\t", header=False, index=False)
 
-def create_Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=False):
+def Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=False):
     """
     # fn_in_go_basic = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
     # fn_out_funcs = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
@@ -548,7 +633,7 @@ def get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Funct
             enum_2_function_dict[enum] = function_
     return function_2_enum_dict, enum_2_function_dict
 
-def Protein_2_Function_table_map_function_2_function_enumeration(fn_Functions_table_STRING, fn_in_Protein_2_function_table_STRING, fn_out_Protein_2_functionEnum_table_STRING, number_of_processes=1):
+def Protein_2_FunctionEnum_table_STRING(fn_Functions_table_STRING, fn_in_Protein_2_function_table_STRING, fn_out_Protein_2_functionEnum_table_STRING, number_of_processes=1):
     function_2_enum_dict, enum_2_function_dict = get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING)
     tools.sort_file(fn_in_Protein_2_function_table_STRING, fn_in_Protein_2_function_table_STRING, number_of_processes=number_of_processes)
     with open(fn_in_Protein_2_function_table_STRING, "r") as fh_in:
@@ -581,8 +666,8 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation):
-    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab)
+def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     lineage_dict_enum = {}
@@ -608,17 +693,18 @@ def create_Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hiera
         for term in term_no_translation_because_obsolete:
             fh_out_no_trans.write(term + "\n")
 
-def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab):
+def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)
     upk_dag = obo_parser.GODag(obo_file=fn_keywords_obo, upk=True)
     # key=GO-term, val=set of GO-terms (parents)
     for go_term_name in go_dag:
         GOTerm_instance = go_dag[go_term_name]
-        lineage_dict[go_term_name] = GOTerm_instance.get_all_parents() # .union(GOTerm_instance.get_all_children()) # wrong #!!!
+        # lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children()) # wrong for this use case
+        lineage_dict[go_term_name] = GOTerm_instance.get_all_parents()
     for term_name in upk_dag:
         Term_instance = upk_dag[term_name]
-        lineage_dict[term_name] = Term_instance.get_all_parents() # .union(Term_instance.get_all_children())
+        lineage_dict[term_name] = Term_instance.get_all_parents()
 
     bto_dag = obo_parser.GODag(obo_file=fn_in_BTO_obo_Jensenlab)
     for term_name in bto_dag:
@@ -629,34 +715,65 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
         Term_instance = doid_dag[term_name]
         lineage_dict[term_name ] = Term_instance.get_all_parents()
 
-    lineage_dict.update(get_lineage_Reactome(fn_rctm_hierarchy))
+    # lineage_dict.update(get_lineage_Reactome(fn_rctm_hierarchy))
+    child_2_parent_dict = get_child_2_direct_parent_dict_RCTM(fn_rctm_hierarchy)
+    lineage_dict.update(get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict))
+
+    child_2_parent_dict, term_2_level_dict = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
+    lineage_dict.update(get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict))
     return lineage_dict
 
-def get_lineage_Reactome(fn_hierarchy):
-    child_2_parent_dict = get_child_2_direct_parent_dict_RCTM_hierarchy(fn_hierarchy)
-    parent_2_children_dict = get_parent_2_children_dict(fn_hierarchy)
-    lineage_dict = {}
-    for parent, children in parent_2_children_dict.items():
-        lineage_dict[parent] = children
-    for child in child_2_parent_dict:
-        parents = get_parents_iterative(child, child_2_parent_dict)
+# def get_lineage_Reactome(fn_hierarchy): #, debug=False): # deprecated
+#     lineage_dict = defaultdict(lambda: set())
+#     child_2_parent_dict = get_child_2_direct_parent_dict_RCTM(fn_hierarchy)
+#     # parent_2_children_dict = get_parent_2_child_dict_RCTM(fn_hierarchy)
+#     # if not debug:
+#     #     for parent, children in parent_2_children_dict.items(): #!!! why do I need this? lineage from children to parents is needed not from parents to all children
+#     #         lineage_dict[parent] = children
+#     for child in child_2_parent_dict:
+#         parents = get_parents_iterative(child, child_2_parent_dict)
+#         if child in lineage_dict:
+#             lineage_dict[child].union(parents)
+#         else:
+#             lineage_dict[child] = parents
+#     return lineage_dict
+
+def get_lineage_from_child_2_direct_parent_dict(child_2_direct_parent_dict):
+    lineage_dict = defaultdict(lambda: set())
+    for child in child_2_direct_parent_dict:
+        parents = get_parents_iterative(child, child_2_direct_parent_dict)
         if child in lineage_dict:
             lineage_dict[child].union(parents)
         else:
             lineage_dict[child] = parents
     return lineage_dict
 
-def get_parent_2_children_dict(fn_hierarchy):
-    parent_2_children_dict = {}
-    with open(fn_hierarchy, "r") as fh_in:
+# def get_parent_2_child_dict_RCTM(fn_hierarchy): # deprecated
+#     parent_2_children_dict = {}
+#     with open(fn_hierarchy, "r") as fh_in:
+#         for line in fh_in:
+#             parent, child = line.split("\t")
+#             child = child.strip()
+#             if parent not in parent_2_children_dict:
+#                 parent_2_children_dict[parent] = {child}
+#             else:
+#                 parent_2_children_dict[parent] |= {child}
+#     return parent_2_children_dict
+
+def get_child_2_direct_parent_dict_RCTM(fn_in):
+    """
+    child_2_parent_dict --> child 2 direct parents
+    """
+    child_2_parent_dict = {}
+    with open(fn_in, "r") as fh_in:
         for line in fh_in:
             parent, child = line.split("\t")
             child = child.strip()
-            if parent not in parent_2_children_dict:
-                parent_2_children_dict[parent] = {child}
+            if child not in child_2_parent_dict:
+                child_2_parent_dict[child] = {parent}
             else:
-                parent_2_children_dict[parent] |= {child}
-    return parent_2_children_dict
+                child_2_parent_dict[child] |= {parent}
+    return child_2_parent_dict
 
 def get_lookup_arrays(fn_in_functions, low_memory):
     """
@@ -724,7 +841,7 @@ def yield_split_line_from_file(fn_in, line_numbers=False, split_on="\t"):
             line_split[-1] = line_split[-1].strip()
             yield line_split
 
-def create_TaxID_2_Proteins_table(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
+def TaxID_2_Proteins_table(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
     if verbose:
         print("Creating TaxID_2_Proteins_table.txt")
         print("protein_shorthands needs sorting, doing it now")
@@ -754,7 +871,7 @@ def create_TaxID_2_Proteins_table(fn_in_protein_shorthands, fn_out_TaxID_2_Prote
             ENSPs_2_write = sorted(set(ENSP_list))
             fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
-def create_Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_STRING, number_of_processes=1, verbose=True):
+def Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_STRING, number_of_processes=1, verbose=True):
     # - sort Protein_2_FunctionEnum_table_STRING.txt
     # - create array of zeros of function_enumeration_length
     # - for line in Protein_2_FunctionEnum_table_STRING
@@ -808,7 +925,7 @@ def helper_format_funcEnum(funcEnum_count_background):
     index_backgroundCount_array_string = "{" + string_2_write[:-1] + "}"
     return index_backgroundCount_array_string
 
-def create_Protein_2_Function_table_KEGG(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_TaxID_2_acronym_table, number_of_processes=1):
+def Protein_2_Function_table_KEGG(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_TaxID_2_acronym_table, number_of_processes=1):
     fn_out_temp = fn_out_Protein_2_Function_table_KEGG + "_temp"
     # create long format of ENSP 2 KEGG table
     taxid_2_acronym_dict = {}
@@ -864,7 +981,7 @@ def long_2_wide_format(fn_in, fn_out, etype=None):
             else:
                 fh_out.write(an + "\t{" + ','.join('"' + item + '"' for item in sorted(set(function_list))) + "}\t" + etype + "\n")
 
-def create_Protein_2_Function_table_SMART_and_PFAM_temp(fn_in_dom_prot_full, fn_out_SMART_temp, fn_out_PFAM_temp, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_SMART_and_PFAM_temp(fn_in_dom_prot_full, fn_out_SMART_temp, fn_out_PFAM_temp, number_of_processes=1, verbose=True):
     """
     :param fn_in_dom_prot_full: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string11_dom_prot_full.sql)
     :param fn_out_SMART_temp: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_SMART.txt)
@@ -956,7 +1073,7 @@ def map_Name_2_AN(fn_in, fn_out, fn_dict, fn_no_mapping):
     with open(fn_no_mapping, "w") as fh_no_mapping:
         fh_no_mapping.write("\n".join(sorted(set(name_no_mapping_list))))
 
-def create_Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_2_Function_table_GO, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_2_Function_table_GO, number_of_processes=1, verbose=True):
     """
     secondary GOids are converted to primary GOids
     e.g. goterm: 'GO:0007610' has secondary id 'GO:0044708', thus if 'GO:0044708' is associated it will be mapped to 'GO:0007610'
@@ -1076,7 +1193,7 @@ def divide_into_categories(GOterm_list, GO_dag,
                 MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
     return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
 
-def create_Protein_2_Function_table_UniProtKeyword(fn_in_Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out_Protein_2_Function_table_UPK, number_of_processes=1,  verbose=True):
+def Protein_2_Function_table_UniProtKeyword(fn_in_Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out_Protein_2_Function_table_UPK, number_of_processes=1,  verbose=True):
     if verbose:
         print("\ncreate_Protein_2_Function_table_UniProtKeywords")
     UPK_dag = obo_parser.GODag(obo_file=fn_in_obo, upk=True)
@@ -1428,7 +1545,7 @@ def create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in
                 # else:
                 #     PMID_not_relevant.append(PMID_including_prefix)
 
-def create_Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
+def Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
     ### concatenate files
     fn_out_Protein_2_Function_table_STRING_temp = fn_out_Protein_2_Function_table_STRING + "_temp"
@@ -1476,7 +1593,7 @@ def parse_taxid_2_proteins_get_all_ENSPs(fn_TaxID_2_Proteins_table_STRING):
             ENSP_set |= literal_eval(line.split("\t")[1])  # reduce DF to ENSPs in DB
     return ENSP_set
 
-def create_Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins_table, fn_in_Functions_table,
+def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins_table, fn_in_Functions_table,
         fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_removed,
         min_count=1, verbose=True):
     """
@@ -1592,7 +1709,10 @@ def _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Funct
             function_2_etype_dict[an] = etype
     return function_2_funcEnum_dict, function_2_etype_dict
 
-def reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(fn_in_protein_2_function, fn_in_function_2_ensp_rest, fn_in_Functions_table_STRING_reduced, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest):
+def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_ensp_rest, fn_in_Functions_table_STRING_reduced, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest):
+    """
+    _by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced
+    """
     # use Function_2_ENSP_table_STRING_rest to reduce Protein 2 function
     ENSP_2_assocSet_dict = {} # terms to be removed from protein_2_function
     with open(fn_in_function_2_ensp_rest, "r") as fh_in:
@@ -1796,7 +1916,7 @@ def helper_string_array_to_list(string_):
     """
     return [an[1:-1] for an in string_[1:-1].split(",")]
 
-def create_Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Jensenlab, DOID_obo_Jensenlab, Blacklisted_terms_Jensenlab, Functions_table_DOID_BTO):
+def Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Jensenlab, DOID_obo_Jensenlab, Blacklisted_terms_Jensenlab, Functions_table_DOID_BTO):
     """
     - add hierarchical level, year placeholder
     - merge with Functions_table
@@ -1973,11 +2093,7 @@ if __name__ == "__main__":
     # Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
     # Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
     # reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(Protein_2_Function_table_STRING, Function_2_ENSP_table_STRING_removed, Functions_table_STRING_reduced, Protein_2_Function_table_STRING_reduced, Protein_2_Function_table_STRING_removed)
-
-    ### dubugging start
-    fn_go = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/go-basic.obo"
-    GO_dag = obo_parser.GODag(obo_file=fn_go, upk=False)
-    child_2_parent_dict = get_child_2_direct_parent_dict_from_dag(GO_dag)  # obsolete or top level terms have empty set for parents
-    child = "GO:0044237"
-    # cst.get_direct_parents(an, child_2_parent_dict)
-    get_all_lineages_v2(child, child_2_parent_dict)
+    ### dubugging stop
+    GO_basic_obo = r"/home/dblyon/agotool/data/PostgreSQL/downloads/go-basic.obo"
+    Functions_table_GO = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_GO_v2.txt"
+    Functions_table_GO_or_UPK(GO_basic_obo, Functions_table_GO, is_upk=False)
