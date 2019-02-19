@@ -410,7 +410,7 @@ rule Protein_2_Function_table_SMART:
     # shell:
     #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.map_Name_2_AN(fn_in=r"{input.Protein_2_Function_table_SMART_temp}", fn_out=r"{output.Protein_2_Function_table_SMART}", fn_dict=r"{input.map_name_2_an_SMART}", fn_no_mapping=r"{output.Functions_table_SMART_no_mapping}")'"""
     run:
-        map_Name_2_AN(input.Protein_2_Function_table_SMART_temp, output.Protein_2_Function_table_SMART, input.map_name_2_an_SMART, output.Functions_table_SMART_no_mapping)
+        cst.map_Name_2_AN(input.Protein_2_Function_table_SMART_temp, output.Protein_2_Function_table_SMART, input.map_name_2_an_SMART, output.Functions_table_SMART_no_mapping)
 
 rule Protein_2_Function_table_PFAM:
     input:
