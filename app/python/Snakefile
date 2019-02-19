@@ -233,22 +233,25 @@ rule download_Interpro_descriptions:
 
 rule download_Function_2_Description_PMID:
     output:
+        Function_2_Description_PMID_gz = Function_2_Description_PMID + ".gz",
         Function_2_Description_PMID = Function_2_Description_PMID
     params:
         URL_function_2_description_PMID = URL_function_2_description_PMID,
         verbose = verbose
     run:
-        drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID, params.verbose)
+        drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID_gz, params.verbose)
+        tools.gunzip_file(output.Function_2_Description_PMID_gz, output.Function_2_Description_PMID)
 
 rule download_Protein_2_Function_table_PMID_abstracts:
     output:
+        Protein_2_Function_table_PMID_abstracts_gz = Protein_2_Function_table_PMID_abstracts + ".gz",
         Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts
     params:
         URL_protein_2_function_PMID = URL_protein_2_function_PMID,
         verbose = verbose
     run:
-        drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_abstracts, params.verbose)
-        tools.gunzip_file(output.Protein_2_Function_table_PMID_abstracts)
+        drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_abstracts_gz, params.verbose)
+        tools.gunzip_file(output.Protein_2_Function_table_PMID_abstracts_gz, output.Protein_2_Function_table_PMID_abstracts)
 
 rule download_Protein_2_Function_and_Score_DOID_GO_BTO:
     output:
