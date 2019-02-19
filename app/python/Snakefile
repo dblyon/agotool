@@ -220,7 +220,7 @@ rule download_Interpro_annotations: # update cycle? InterPro is updated approxim
         URL_uniprot_2_interpro = URL_uniprot_2_interpro,
         verbose = verbose
     run:
-        drs.download_gzip_file(params.URL_uniprot_2_interpro, ouput.uniprot_2_interpro, params.verbose)
+        drs.download_gzip_file(params.URL_uniprot_2_interpro, output.uniprot_2_interpro, params.verbose)
 
 rule download_Interpro_descriptions:
     output:
@@ -229,7 +229,7 @@ rule download_Interpro_descriptions:
         URL_InterPro_name_2_AN = URL_InterPro_name_2_AN,
         verbose = verbose
     run:
-        drs.download_gzip_file(params.URL_InterPro_name_2_AN, ouput.InterPro_name_2_AN, params.verbose)
+        drs.download_gzip_file(params.URL_InterPro_name_2_AN, output.InterPro_name_2_AN, params.verbose)
 
 rule download_Function_2_Description_PMID:
     output:
