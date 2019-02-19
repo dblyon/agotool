@@ -147,16 +147,18 @@ temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
 parallel_parse_textmining_pmc_medline = os.path.join(PYTHON_DIR, "parallel_parse_textmining_pmc_medline.py")
 
 
-# ### download resources
-# rule download_GO_basic_obo:
-#     output:
-#         GO_basic_obo = GO_basic_obo
-#     params:
-#         verbose = verbose,
-#         URL_GO_basic_obo = URL_GO_basic_obo
-#     shell:
-#         """python -c 'import download_resources_snakemake; download_resources_snakemake.download_requests(url=r"{params.URL_GO_basic_obo}", file_name=r"{output.GO_basic_obo}", verbose={params.verbose})'"""
-#
+### download resources
+rule download_GO_basic_obo:
+    output:
+        GO_basic_obo = GO_basic_obo
+    params:
+        verbose = verbose,
+        URL_GO_basic_obo = URL_GO_basic_obo
+    # shell:
+    #     """python -c 'import download_resources_snakemake; download_resources_snakemake.download_requests(url=r"{params.URL_GO_basic_obo}", file_name=r"{output.GO_basic_obo}", verbose={params.verbose})'"""
+    run:
+        drs.download_requests(params.URL_GO_basic_obo, output.GO_basic_obo, params.verbose)
+
 # rule download_GO_slim_obo:
 #     output:
 #         GO_slim_obo = GO_slim_obo
@@ -165,33 +167,39 @@ parallel_parse_textmining_pmc_medline = os.path.join(PYTHON_DIR, "parallel_parse
 #         URL_GO_slim_obo = URL_GO_slim_obo
 #     shell:
 #         """python -c 'import download_resources_snakemake; download_resources_snakemake.download_requests(url=r"{params.URL_GO_slim_obo}", file_name=r"{output.GO_slim_obo}", verbose={params.verbose})'"""
-#
-# rule download_UPK_obo:
-#     output:
-#         UPK_obo = UPK_obo
-#     params:
-#         verbose = verbose,
-#         URL_UPK_obo = URL_UPK_obo
-#     shell:
-#         """python -c 'import download_resources_snakemake; download_resources_snakemake.download_requests(url=r"{params.URL_UPK_obo}", file_name=r"{output.UPK_obo}", verbose={params.verbose})'"""
-#
-# rule download_SwissProt_dump:
-#     output:
-#         SwissProt_dump = SwissProt_dump
-#     params:
-#         verbose = verbose,
-#         URL_SwissProt_dump = URL_SwissProt_dump
-#     shell:
-#         """python -c 'import download_resources_snakemake; download_resources_snakemake.download_gzip_file(url=r"{params.URL_SwissProt_dump}", file_name=r"{output.SwissProt_dump}", verbose={params.verbose})'"""
-#
-# rule download_TrEMBL_dump:
-#     output:
-#         TrEMBL_dump = TrEMBL_dump
-#     params:
-#         verbose = verbose,
-#         URL_TrEMBL_dump = URL_TrEMBL_dump
-#     shell:
-#         """python -c 'import download_resources_snakemake; download_resources_snakemake.download_gzip_file(url=r"{params.URL_TrEMBL_dump}", file_name=r"{output.TrEMBL_dump}", verbose={params.verbose})'"""
+
+rule download_UPK_obo:
+    output:
+        UPK_obo = UPK_obo
+    params:
+        verbose = verbose,
+        URL_UPK_obo = URL_UPK_obo
+    # shell:
+    #     """python -c 'import download_resources_snakemake; download_resources_snakemake.download_requests(url=r"{params.URL_UPK_obo}", file_name=r"{output.UPK_obo}", verbose={params.verbose})'"""
+    run:
+        drs.download_requests(params.URL_UPK_obo, output.UPK_obo, params.verbose)
+
+rule download_SwissProt_dump:
+    output:
+        SwissProt_dump = SwissProt_dump
+    params:
+        verbose = verbose,
+        URL_SwissProt_dump = URL_SwissProt_dump
+    # shell:
+    #     """python -c 'import download_resources_snakemake; download_resources_snakemake.download_gzip_file(url=r"{params.URL_SwissProt_dump}", file_name=r"{output.SwissProt_dump}", verbose={params.verbose})'"""
+    run:
+        drs.download_gzip_file(params.URL_SwissProt_dump, output.SwissProt_dump, params.verbose)
+
+rule download_TrEMBL_dump:
+    output:
+        TrEMBL_dump = TrEMBL_dump
+    params:
+        verbose = verbose,
+        URL_TrEMBL_dump = URL_TrEMBL_dump
+    # shell:
+    #     """python -c 'import download_resources_snakemake; download_resources_snakemake.download_gzip_file(url=r"{params.URL_TrEMBL_dump}", file_name=r"{output.TrEMBL_dump}", verbose={params.verbose})'"""
+    run:
+        drs.download_gzip_file(params.URL_TrEMBL_dump, output.TrEMBL_dump, params.verbose)
 
 rule download_interpro_AN_2_name:
     output:
@@ -213,8 +221,7 @@ rule download_interpro_parent_2_child_tree:
 
 
 ### create SQL tables
-
-rule map_string_2_interpro:
+rule string_2_interpro:
     input: # relative path to working dir
         uniprot_2_string = uniprot_2_string,
         uniprot_2_interpro = uniprot_2_interpro
@@ -225,21 +232,20 @@ rule map_string_2_interpro:
     # shell:
     #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.map_string_2_interpro(r"{input.uniprot_2_string}", r"{input.uniprot_2_interpro}", r"{output.string_2_interpro}")'"""
     run:
-        cst.map_string_2_interpro(input.uniprot_2_string, input.uniprot_2_interpro, output.string_2_interpro)
+        cst.string_2_interpro(input.uniprot_2_string, input.uniprot_2_interpro, output.string_2_interpro)
 
 rule Protein_2_Function_table_InterPro:
     input:
         string_2_interpro = string_2_interpro,
-        Functions_table_InterPro = Functions_table_InterPro
+        Functions_table_InterPro = Functions_table_InterPro,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
         Protein_2_Function_table_InterPro = Protein_2_Function_table_InterPro,
     params:
         verbose = verbose
     threads: NUMBER_OF_PROCESSES_sorting
-    # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_InterPro(r"{input.string_2_interpro}", r"{input.Functions_table_InterPro}", r"{output.Protein_2_Function_table_InterPro}", number_of_processes={threads}, verbose={params.verbose})'"""
     run:
-        cst.Protein_2_Function_table_InterPro(input.string_2_interpro, input.Functions_table_InterPro, output.Protein_2_Function_table_InterPro, number_of_processes=threads, verbose=params.verbose)
+        cst.Protein_2_Function_table_InterPro(input.string_2_interpro, input.Functions_table_InterPro, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro, number_of_processes=threads, verbose=params.verbose)
 
 rule Functions_table_InterPro:
     input:
@@ -247,8 +253,6 @@ rule Functions_table_InterPro:
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
         Functions_table_InterPro = Functions_table_InterPro
-    # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_InterPro(r"{input.InterPro_name_2_AN}", r"{output.Functions_table_InterPro}")'"""
     run:
         cst.Functions_table_InterPro(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_InterPro)
 
@@ -259,8 +263,10 @@ rule Functions_table_KEGG:
         Functions_table_KEGG = Functions_table_KEGG
     params:
         verbose = verbose
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_KEGG(r"{input.KEGG_pathway}", r"{output.Functions_table_KEGG}", {params.verbose})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_KEGG(r"{input.KEGG_pathway}", r"{output.Functions_table_KEGG}", {params.verbose})'"""
+    run:
+        cst.Functions_table_KEGG(input.KEGG_pathway, output.Functions_table_KEGG, params.verbose)
 
 rule Functions_table_SMART:
     input:
@@ -270,8 +276,10 @@ rule Functions_table_SMART:
         map_name_2_an_SMART = map_name_2_an_SMART
     params:
         max_len_description = max_len_description
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_SMART(r"{input.SMART_domain_descriptions}", r"{output.Functions_table_SMART}", {params.max_len_description}, r"{output.map_name_2_an_SMART}")'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Functions_table_SMART(r"{input.SMART_domain_descriptions}", r"{output.Functions_table_SMART}", {params.max_len_description}, r"{output.map_name_2_an_SMART}")'"""
+    run:
+        cst.Functions_table_SMART(input.SMART_domain_descriptions, output.Functions_table_SMART, params.max_len_description, output.map_name_2_an_SMART)
 
 rule Functions_table_PFAM:
     input:
@@ -279,8 +287,10 @@ rule Functions_table_PFAM:
     output:
         Functions_table_PFAM = Functions_table_PFAM,
         map_name_2_an_PFAM = map_name_2_an_PFAM
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_PFAM(r"{input.PFAM_clans}", r"{output.Functions_table_PFAM}", r"{output.map_name_2_an_PFAM}")'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Functions_table_PFAM(r"{input.PFAM_clans}", r"{output.Functions_table_PFAM}", r"{output.map_name_2_an_PFAM}")'"""
+    run:
+        cst.Functions_table_PFAM(input.PFAM_clans, output.Functions_table_PFAM, output.map_name_2_an_PFAM)
 
 rule Functions_table_GO:
     input:
@@ -289,10 +299,10 @@ rule Functions_table_GO:
         Functions_table_GO = Functions_table_GO
     params:
         is_upk = False
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_GO_or_UPK(r"{input.GO_basic_obo}", r"{output.Functions_table_GO}", {params.is_upk})'"""
-    # run:
-    #     cst.create_Functions_table_GO_or_UPK(input.GO_basic_obo, output.Functions_table_GO, params.is_upk)
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Functions_table_GO_or_UPK(r"{input.GO_basic_obo}", r"{output.Functions_table_GO}", {params.is_upk})'"""
+    run:
+        cst.Functions_table_GO_or_UPK(input.GO_basic_obo, output.Functions_table_GO, params.is_upk)
 
 rule Functions_table_UPK:
     input:
@@ -301,8 +311,10 @@ rule Functions_table_UPK:
         Functions_table_UPK = Functions_table_UPK
     params:
         is_upk = True
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Functions_table_GO_or_UPK(r"{input.UPK_obo}", r"{output.Functions_table_UPK}", {params.is_upk})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Functions_table_GO_or_UPK(r"{input.UPK_obo}", r"{output.Functions_table_UPK}", {params.is_upk})'"""
+    run:
+        cst.Functions_table_GO_or_UPK(input.UPK_obo, output.Functions_table_UPK, params.is_upk)
 
 rule Protein_2_Function_table_RCTM__and__Functions_table_RCTM:
     input:
@@ -313,8 +325,10 @@ rule Protein_2_Function_table_RCTM__and__Functions_table_RCTM:
         Protein_2_Function_table_RCTM = Protein_2_Function_table_RCTM,
         Functions_table_RCTM = Functions_table_RCTM
     threads: NUMBER_OF_PROCESSES_sorting
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM(r"{input.RCTM_associations}", r"{input.RCTM_descriptions}", r"{input.RCTM_hierarchy}", r"{output.Protein_2_Function_table_RCTM}", r"{output.Functions_table_RCTM}", {threads})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_RCTM__and__Function_table_RCTM(r"{input.RCTM_associations}", r"{input.RCTM_descriptions}", r"{input.RCTM_hierarchy}", r"{output.Protein_2_Function_table_RCTM}", r"{output.Functions_table_RCTM}", {threads})'"""
+    run:
+        cst.Protein_2_Function_table_RCTM__and__Function_table_RCTM(input.RCTM_associations, input.RCTM_descriptions, input.RCTM_hierarchy, output.Protein_2_Function_table_RCTM, output.Functions_table_RCTM, threads)
 
 rule Functions_table_PMID_temp: # textmining pmc medline --> using gnu parallel
     input:
@@ -341,8 +355,11 @@ rule Functions_table_STRING_all:
         Functions_table_STRING_all = Functions_table_STRING_all,
         Functions_tables_STRING_temp = Functions_tables_STRING_temp
     threads: NUMBER_OF_PROCESSES_sorting
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.concatenate_Functions_tables(r"{input.fn_list_str}", r"{output.Functions_tables_STRING_temp}", r"{output.Functions_table_STRING_all}", {threads})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.concatenate_Functions_tables(r"{input.fn_list_str}", r"{output.Functions_tables_STRING_temp}", r"{output.Functions_table_STRING_all}", {threads})'"""
+    run:
+        cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_tables_STRING_temp, output.Functions_table_STRING_all, threads)
+
 
 rule TaxID_2_Proteins_table_STRING:
     input:
@@ -352,8 +369,10 @@ rule TaxID_2_Proteins_table_STRING:
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.TaxID_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.TaxID_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
+    run:
+        cst.TaxID_2_Proteins_table(input.Protein_shorthands, output.TaxID_2_Proteins_table_STRING, threads, params.verbose)
 
 rule Protein_2_Function_table_KEGG:
     input:
@@ -362,8 +381,10 @@ rule Protein_2_Function_table_KEGG:
         Protein_2_Function_table_KEGG = Protein_2_Function_table_KEGG,
         KEGG_TaxID_2_acronym_table = KEGG_TaxID_2_acronym_table
     threads: NUMBER_OF_PROCESSES_sorting
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_KEGG(r"{input.KEGG_benchmarking}", r"{output.Protein_2_Function_table_KEGG}", r"{output.KEGG_TaxID_2_acronym_table}", {threads})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_KEGG(r"{input.KEGG_benchmarking}", r"{output.Protein_2_Function_table_KEGG}", r"{output.KEGG_TaxID_2_acronym_table}", {threads})'"""
+    run:
+        cst.Protein_2_Function_table_KEGG(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG, output.KEGG_TaxID_2_acronym_table, threads)
 
 rule Protein_2_Function_table_SMART__and__PFAM_helper:
     input:
@@ -374,8 +395,10 @@ rule Protein_2_Function_table_SMART__and__PFAM_helper:
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_SMART_and_PFAM_temp(r"{input.protein_domain_annotations}", r"{output.Protein_2_Function_table_SMART_temp}", r"{output.Protein_2_Function_table_PFAM_temp}", {threads}, {params.verbose})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_SMART_and_PFAM_temp(r"{input.protein_domain_annotations}", r"{output.Protein_2_Function_table_SMART_temp}", r"{output.Protein_2_Function_table_PFAM_temp}", {threads}, {params.verbose})'"""
+    run:
+        cst.Protein_2_Function_table_SMART_and_PFAM_temp(input.protein_domain_annotations, output.Protein_2_Function_table_SMART_temp, output.Protein_2_Function_table_PFAM_temp, threads, params.verbose)
 
 rule Protein_2_Function_table_SMART:
     input:
@@ -384,8 +407,10 @@ rule Protein_2_Function_table_SMART:
     output:
         Protein_2_Function_table_SMART = Protein_2_Function_table_SMART,
         Functions_table_SMART_no_mapping = Functions_table_SMART_no_mapping
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.map_Name_2_AN(fn_in=r"{input.Protein_2_Function_table_SMART_temp}", fn_out=r"{output.Protein_2_Function_table_SMART}", fn_dict=r"{input.map_name_2_an_SMART}", fn_no_mapping=r"{output.Functions_table_SMART_no_mapping}")'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.map_Name_2_AN(fn_in=r"{input.Protein_2_Function_table_SMART_temp}", fn_out=r"{output.Protein_2_Function_table_SMART}", fn_dict=r"{input.map_name_2_an_SMART}", fn_no_mapping=r"{output.Functions_table_SMART_no_mapping}")'"""
+    run:
+        map_Name_2_AN(input.Protein_2_Function_table_SMART_temp, output.Protein_2_Function_table_SMART, input.map_name_2_an_SMART, output.Functions_table_SMART_no_mapping)
 
 rule Protein_2_Function_table_PFAM:
     input:
@@ -394,8 +419,10 @@ rule Protein_2_Function_table_PFAM:
     output:
         Protein_2_Function_table_PFAM = Protein_2_Function_table_PFAM,
         Functions_table_PFAM_no_mapping = Functions_table_PFAM_no_mapping
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.map_Name_2_AN(fn_in=r"{input.Protein_2_Function_table_PFAM_temp}", fn_out=r"{output.Protein_2_Function_table_PFAM}", fn_dict=r"{input.map_name_2_an_PFAM}", fn_no_mapping=r"{output.Functions_table_PFAM_no_mapping}")'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.map_Name_2_AN(fn_in=r"{input.Protein_2_Function_table_PFAM_temp}", fn_out=r"{output.Protein_2_Function_table_PFAM}", fn_dict=r"{input.map_name_2_an_PFAM}", fn_no_mapping=r"{output.Functions_table_PFAM_no_mapping}")'"""
+    run:
+        cst.map_Name_2_AN(input.Protein_2_Function_table_PFAM_temp, output.Protein_2_Function_table_PFAM, input.map_name_2_an_PFAM, output.Functions_table_PFAM_no_mapping)
 
 rule Protein_2_Function_table_GO:
     input:
@@ -406,8 +433,10 @@ rule Protein_2_Function_table_GO:
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_GO(fn_in_obo_file=r"{input.GO_basic_obo}", fn_in_knowledge=r"{input.GO_knowledge_Lars}", fn_out_Protein_2_Function_table_GO=r"{output.Protein_2_Function_table_GO}", number_of_processes={threads}, verbose={params.verbose})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_GO(fn_in_obo_file=r"{input.GO_basic_obo}", fn_in_knowledge=r"{input.GO_knowledge_Lars}", fn_out_Protein_2_Function_table_GO=r"{output.Protein_2_Function_table_GO}", number_of_processes={threads}, verbose={params.verbose})'"""
+    run:
+        cst.Protein_2_Function_table_GO(input.GO_basic_obo, input.GO_knowledge_Lars, output.Protein_2_Function_table_GO, threads, params.verbose)
 
 rule Protein_2_Function_table_UPK:
     input:
@@ -421,8 +450,10 @@ rule Protein_2_Function_table_UPK:
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_UniProtKeyword(r"{input.Functions_table_UPK}", r"{input.UPK_obo}", r"{input.SwissProt_dump}", r"{input.TrEMBL_dump}", r"{input.uniprot_2_string}", r"{output.Protein_2_Function_table_UPK}", number_of_processes={threads}, verbose={params.verbose})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_UniProtKeyword(r"{input.Functions_table_UPK}", r"{input.UPK_obo}", r"{input.SwissProt_dump}", r"{input.TrEMBL_dump}", r"{input.uniprot_2_string}", r"{output.Protein_2_Function_table_UPK}", number_of_processes={threads}, verbose={params.verbose})'"""
+    run:
+        cst.Protein_2_Function_table_UniProtKeyword(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string, output.Protein_2_Function_table_UPK, threads, params.verbose)
 
 rule Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID:
     input:
@@ -434,9 +465,9 @@ rule Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID:
         Functions_table_PMID = Functions_table_PMID,
         Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(r"{input.all_entities}", r"{input.string_matches}", r"{input.TaxID_2_Proteins_table_STRING}", r"{input.Functions_table_PMID_temp}", r"{output.Functions_table_PMID}", r"{output.Protein_2_Function_table_PMID}")'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(r"{input.all_entities}", r"{input.string_matches}", r"{input.TaxID_2_Proteins_table_STRING}", r"{input.Functions_table_PMID_temp}", r"{output.Functions_table_PMID}", r"{output.Protein_2_Function_table_PMID}")'"""
     run:
-        cst.create_Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID)
+        cst.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID)
 
 rule Protein_2_Function_table_STRING:
     input:
@@ -453,9 +484,9 @@ rule Protein_2_Function_table_STRING:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Protein_2_Function_table_STRING(r"{input.fn_list_str}", r"{input.TaxID_2_Proteins_table_STRING}", r"{output.Protein_2_Function_table_STRING}", {threads})'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_STRING(r"{input.fn_list_str}", r"{input.TaxID_2_Proteins_table_STRING}", r"{output.Protein_2_Function_table_STRING}", {threads})'"""
     run:
-        cst.create_Protein_2_Function_table_STRING(input.fn_list_str, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING, threads)
+        cst.Protein_2_Function_table_STRING(input.fn_list_str, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING, threads)
 
 rule Function_2_ENSP_table:
     input:
@@ -470,9 +501,9 @@ rule Function_2_ENSP_table:
         min_count = min_count,
         verbose = verbose
     run:
-        cst.create_Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
+        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
 
-rule reduce_Functions_table_STRING:
+rule Functions_table_STRING_reduced:
     input:
         Functions_table_STRING_all = Functions_table_STRING_all,
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced
@@ -482,7 +513,7 @@ rule reduce_Functions_table_STRING:
     run:
         cst.Functions_table_STRING_reduced(input.Functions_table_STRING_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_STRING_reduced)
 
-rule reduce_Protein_2_Function_table:
+rule Protein_2_Function_table_reduced:
     input:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING,
         Function_2_ENSP_table_STRING_removed = Function_2_ENSP_table_STRING_removed,
@@ -490,11 +521,13 @@ rule reduce_Protein_2_Function_table:
     output:
         Protein_2_Function_table_STRING_reduced = Protein_2_Function_table_STRING_reduced,
         Protein_2_Function_table_STRING_removed = Protein_2_Function_table_STRING_removed
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(r"{input.Protein_2_Function_table_STRING}", r"{input.Function_2_ENSP_table_STRING_removed}", r"{input.Functions_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_removed}")'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.reduce_Protein_2_Function_table(r"{input.Protein_2_Function_table_STRING}", r"{input.Function_2_ENSP_table_STRING_removed}", r"{input.Functions_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_reduced}", r"{output.Protein_2_Function_table_STRING_removed}")'"""
     # !!! MEMORY ISSUES WHEN USING RUN
     # run: # _and_Lineage_table_no_translation input.Lineage_table_no_translation,
-    #     cst.reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_removed, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
+    #     cst.reduce_Protein_2_Function_table(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_removed, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
+    run:
+        cst.reduce_Protein_2_Function_table(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_reduced, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
 
 rule Protein_2_FunctionEnum_table_STRING:
     input:
@@ -504,9 +537,9 @@ rule Protein_2_FunctionEnum_table_STRING:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_map_function_2_function_enumeration(r"{input.Functions_table_STRING_reduced}", r"{input.Protein_2_Function_table_STRING_reduced}", r"{output.Protein_2_FunctionEnum_table_STRING}")'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_FunctionEnum_table_STRING(r"{input.Functions_table_STRING_reduced}", r"{input.Protein_2_Function_table_STRING_reduced}", r"{output.Protein_2_FunctionEnum_table_STRING}")'"""
     run:
-        cst.Protein_2_Function_table_map_function_2_function_enumeration(input.Functions_table_STRING_reduced, input.Protein_2_Function_table_STRING_reduced, output.Protein_2_FunctionEnum_table_STRING, threads)
+        cst.Protein_2_FunctionEnum_table_STRING(input.Functions_table_STRING_reduced, input.Protein_2_Function_table_STRING_reduced, output.Protein_2_FunctionEnum_table_STRING, threads)
 
 rule Lineage_table_STRING:
     input:
@@ -533,8 +566,10 @@ rule Taxid_2_FunctionCountArray_table_STRING:
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
-    shell:
-        """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Taxid_2_FunctionCountArray_table_STRING(r"{input.Protein_2_FunctionEnum_table_STRING}", r"{input.Functions_table_STRING_reduced}", r"{input.TaxID_2_Proteins_table_STRING}", r"{output.Taxid_2_FunctionCountArray_table_STRING}", {threads})'"""
+    # shell:
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Taxid_2_FunctionCountArray_table_STRING(r"{input.Protein_2_FunctionEnum_table_STRING}", r"{input.Functions_table_STRING_reduced}", r"{input.TaxID_2_Proteins_table_STRING}", r"{output.Taxid_2_FunctionCountArray_table_STRING}", {threads})'"""
+    run:
+        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.TaxID_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads)
 
 rule AFC_KS_enrichment_terms_flat_files:
     input:
@@ -548,6 +583,14 @@ rule AFC_KS_enrichment_terms_flat_files:
         verbose = verbose
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_TaxID_2_acronym_table, output.AFC_KS_DIR, params.verbose)
+
+# rule blacklist_terms:
+#     input:
+#         jensenlab_hidden
+#         meringlab_blacklisted
+#     output:
+#         blacklisted_terms
+# NotImplementedYetExceptionalException
 
 
 
