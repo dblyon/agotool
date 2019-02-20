@@ -922,14 +922,20 @@ def Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING,
                 # 9606 19566 {{202,22},{2000004,24}}
                 # 7777 66 {{902,22},{589,24}}
                 taxid, background_n, funcEnum_count_arr = line.split("\t")
-                funcEnum_count_arr = list(literal_eval(funcEnum_count_arr.strip()[1:-1]))
+                funcEnum_count_arr = literal_eval(funcEnum_count_arr.replace("{", "[").replace("}", "]"))
                 if taxid != taxid_last:
-                    fh_out.write(taxid_last + "\t" + background_n_last + "\t" + str(funcEnum_count_arr_last).replace(" ", "").replace("[", "{").replace("]", "}"))
+                    fh_out.write(taxid_last + "\t" + background_n_last + "\t" + str(funcEnum_count_arr_last).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
                 else:
                     # merge stuff and write to file (only 2 lines of same taxid if any at all)
                     funcEnum_count_arr = helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr)
-                    fh_out.write(taxid + "\t" + background_n + "\t" + str(funcEnum_count_arr).replace(" ", "").replace("[", "{").replace("]", "}"))
+                    fh_out.write(taxid + "\t" + background_n + "\t" + str(funcEnum_count_arr).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
                 taxid_last, background_n_last, funcEnum_count_arr_last = taxid, background_n, funcEnum_count_arr
+            if taxid != taxid_last:
+                fh_out.write(taxid_last + "\t" + background_n_last + "\t" + str(funcEnum_count_arr_last).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
+            else:
+                # merge stuff and write to file (only 2 lines of same taxid if any at all)
+                funcEnum_count_arr = helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr)
+                fh_out.write(taxid + "\t" + background_n + "\t" + str(funcEnum_count_arr).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
     print("Taxid_2_FunctionCountArray_table_STRING done :)")
 
 def helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr):
