@@ -236,7 +236,7 @@ rule download_interpro_parent_2_child_tree:
 
 rule download_Function_2_Description_PMID:
     output:
-        # Function_2_Description_PMID_gz = Function_2_Description_PMID + ".gz",
+        # Function_2_Description_PMID_gz = Functions_table_PMID + ".gz",
         Function_2_Description_PMID = Function_2_Description_PMID
     params:
         URL_function_2_description_PMID = URL_function_2_description_PMID,
@@ -425,13 +425,13 @@ rule Protein_2_Function_table_RCTM__and__Functions_table_RCTM:
 #     shell:
 #         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.pmc_medline}", r"{input.parallel_parse_textmining_pmc_medline}", r"{output.Functions_table_PMID_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
 
-rule Function_table_PMID:
+rule Functions_table_PMID:
     input:
         Function_2_Description_PMID = Function_2_Description_PMID
     output:
         Functions_table_PMID = Functions_table_PMID
     run:
-        cst.Function_2_Description_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
+        cst.Functions_table_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
 
 rule Functions_table_DOID_BTO:
     input:
@@ -748,7 +748,7 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
 # Protein_2_FunctionEnum_and_Score_table_STRING
 
 # fix  this
-# $  zcat Function_2_Description_PMID.txt.gz | grep "PMID:29923822"
+# $  zcat Functions_table_PMID.txt.gz | grep "PMID:29923822"
 # -56     PMID:29923822   (2018) Investigation of the role of GBF1 in the replication of positive-sense single-stranded RNA viruses.      2018
 #PMID appears but not in Func
 

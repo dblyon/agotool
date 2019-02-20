@@ -657,7 +657,7 @@ http://download.jensenlab.org/pig_tissue_integrated_full.tsv
 1000565.METUNv1_00188   {"PMID:25978049"}       -56
 
 
-# Function_2_Description_PMID.txt documents_function2description.tsv # PMID function descriptions
+# Functions_table_PMID.txt documents_function2description.tsv # PMID function descriptions
 # cleanup descriptions, add placeholder "-1" for hierarchical level
 # later on: merge with other functions, reduce to PMIDs using Function_2_ENSP_table, and add enumerations
 -56     PMID:17181617   (2006) Outcomes of autoconjunctival grafting for primary pterygia when performed by consultant compared with trainee ophthalmologists.  2006
