@@ -1478,6 +1478,7 @@ def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_en
 
 def Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
+    fn_list = [fn for fn in fn_list]
     ### concatenate files
     fn_out_Protein_2_Function_table_STRING_temp = fn_out_Protein_2_Function_table_STRING + "_temp"
     fn_out_Protein_2_Function_table_STRING_rest = fn_out_Protein_2_Function_table_STRING + "_rest"
