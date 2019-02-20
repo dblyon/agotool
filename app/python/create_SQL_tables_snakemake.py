@@ -1473,7 +1473,7 @@ def get_all_ENSPs(TaxID_2_Proteins_table_STRING):
             ENSP_set |= literal_eval(line.split("\t")[1])
     return ENSP_set
 
-def Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
+def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
     df_txtID = parse_textmining_entityID_2_proteinID(fn_in_all_entities)
     df_stringmatches = parse_textmining_string_matches(fn_in_string_matches)
     # sanity test that df_stringmatches.entity_id are all in df_txtID.textmining_id --> yes. textmining_id is a superset of entity_id --> after filtering df_txtID this is not true

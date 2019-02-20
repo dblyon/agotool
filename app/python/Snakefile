@@ -560,7 +560,7 @@ rule Protein_2_Function_table_UPK:
     run:
         cst.Protein_2_Function_table_UniProtKeyword(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string, output.Protein_2_Function_table_UPK, threads, params.verbose)
 
-rule Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced:
+rule Protein_2_Function_table_PMID_fulltexts:
     input:
         all_entities = all_entities,
         string_matches = string_matches,
@@ -572,7 +572,7 @@ rule Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced:
     run:
         # removing Functions_table_PMID_temp, Functions_table_PMID due to autoupdates --> change Functions_table_PMID_temp to Functions_table_PMID
         # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
-        cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
+        cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
 
 rule Protein_2_Function_table_PMID:
     input:
