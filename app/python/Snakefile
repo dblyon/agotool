@@ -574,7 +574,7 @@ rule Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced:
         # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
         cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
 
-rule merge_Protein_2_Function_table_PMID:
+rule Protein_2_Function_table_PMID:
     input:
         TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
         Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts,
@@ -586,7 +586,7 @@ rule merge_Protein_2_Function_table_PMID:
     params:
         verbose = verbose
     run:
-        cst.merge_Protein_2_Function_table_PMID(input.TaxID_2_Proteins_table_STRING, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
+        cst.Protein_2_Function_table_PMID(input.TaxID_2_Proteins_table_STRING, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
 
 rule Protein_2_Function_table_STRING:
     input:
@@ -752,5 +752,5 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
 # -56     PMID:29923822   (2018) Investigation of the role of GBF1 in the replication of positive-sense single-stranded RNA viruses.      2018
 #PMID appears but not in Func
 
-# filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING @merge_Protein_2_Function_table_PMID
+# filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING @Protein_2_Function_table_PMID
 # Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced --> no ENSP filter, since filter Function_2_ENSP will kick in --> done

@@ -1864,7 +1864,7 @@ def Function_2_Description_PMID(Function_2_Description_PMID, Functions_table_PMI
             description = year_prefix + " ".join(description_2_clean.split())  # replace multiple spaces with single space
             fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
 
-def merge_Protein_2_Function_table_PMID(TaxID_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_PMID(TaxID_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
     """
     concatenate files, sort and create set of union of functional associations
     filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING
