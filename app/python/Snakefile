@@ -81,7 +81,7 @@ Protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt") #
 URL_interpro_parent_2_child_tree = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/ParentChildTreeFile.txt"
 interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
 string_2_interpro = os.path.join(DOWNLOADS_DIR, "string_2_interpro.dat.gz") # Davide
-uniprot_2_interpro = os.path.join(DOWNLOADS_DIR, "protein2ipr.dat.gz")
+uniprot_2_interpro = os.path.join(DOWNLOADS_DIR, "protein_2_ipr.dat.gz")
 URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
 interpro_AN_2_name = os.path.join(DOWNLOADS_DIR, "interpro_AN_2_name.txt") # InterPro_name_2_AN
 

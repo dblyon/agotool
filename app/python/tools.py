@@ -116,12 +116,17 @@ def yield_line_uncompressed_or_gz_file(fn):
             for line in fh:
                 yield line
 
-def gunzip_file(fn_in, fn_out=None):
+def gunzip_file(fn_in, fn_out=None, verbose=False):
+    if not os.path.isfile(fn_in):
+        print("gunzip_file: File Name {} does not exits".format(fn_in))
+        raise StopIteration
     fn_bash_script = "bash_script_sort_{}.sh".format(os.path.basename(fn_in))
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
         if fn_out is None:
             fn_out = fn_in + "_temp"
+        if verbose:
+            print("gunzipping {} to {}".format(fn_in, fn_out))
         shellcmd_1 = "gunzip -c {} > {}".format(fn_in, fn_out)
         fh.write(shellcmd_1 + "\n")
     subprocess.call("chmod 744 ./{}".format(fn_bash_script), shell=True)

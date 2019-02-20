@@ -54,11 +54,10 @@ def Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functions_tab
         for ENSP, InterProID_list in parse_string2interpro_yield_entry(fn_in_temp):
             # InterProID_list = sorted({id_ for id_ in InterProID_list if id_ in InterPro_AN_superset})
             # backtrack functions
-            InterProID_set = set()
+            InterProID_set = set(InterProID_list)
             for id_ in InterProID_list:
-                if id_ in InterPro_AN_superset:
-                    InterProID_set.update(lineage_dict[id_])
-            InterProID_list = sorted(InterProID_set)
+                InterProID_set.update(lineage_dict[id_])
+            InterProID_list = sorted(InterProID_set.intersection(InterPro_AN_superset))
             if len(InterProID_list) >= 1:
                 fh_out.write(ENSP + "\t" + format_list_of_string_2_postgres_array(InterProID_list) + "\t" + entityType_InterPro + "\n")
     os.remove(fn_in_temp)
