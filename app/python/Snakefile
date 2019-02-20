@@ -156,8 +156,9 @@ Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Fu
 Protein_2_Function_table_UPK = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK.txt")
 Protein_2_FunctionEnum_and_Score_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt")
 TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+Taxid_2_FunctionCountArray_table_STRING_temp = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING_temp.txt")
 Taxid_2_FunctionCountArray_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
-Taxid_2_FunctionCountArray_2_merge_BTO_DOID = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_2_merge_BTO_DOID.txt")
+Taxid_2_FunctionCountArray_table_BTO_DOID = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_BTO_DOID.txt") # Taxid_2_FunctionCountArray_2_merge_BTO_DOID
 map_name_2_an_PFAM = os.path.join(TABLES_DIR, "map_name_2_an_PFAM.txt")
 map_name_2_an_SMART = os.path.join(TABLES_DIR, "map_name_2_an_SMART.txt")
 AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "afc_ks/"))
@@ -679,34 +680,34 @@ rule Lineage_table_STRING:
         cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced,
                                  input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table, output.Lineage_table_no_translation)
 
-rule Taxid_2_FunctionCountArray_2_merge_BTO_DOID:
+rule Taxid_2_FunctionCountArray_table_BTO_DOID: #!!! merge with Taxid_2_FunctionCountArray_table_STRING
     input:
         TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING
     output:
-        Taxid_2_FunctionCountArray_2_merge_BTO_DOID = Taxid_2_FunctionCountArray_2_merge_BTO_DOID
+        Taxid_2_FunctionCountArray_table_BTO_DOID = Taxid_2_FunctionCountArray_table_BTO_DOID
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_FunctionCountArray_2_merge_BTO_DOID(input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_2_merge_BTO_DOID, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_BTO_DOID(input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_table_BTO_DOID, threads, params.verbose)
 
 rule Taxid_2_FunctionCountArray_table_STRING:
     input:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING #,
-        # Taxid_2_FunctionCountArray_2_merge_BTO_DOID = Taxid_2_FunctionCountArray_2_merge_BTO_DOID
-        # input.Taxid_2_FunctionCountArray_2_merge_BTO_DOID
+        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_FunctionCountArray_table_BTO_DOID = Taxid_2_FunctionCountArray_table_BTO_DOID
         # tables could be merged at some later point #!!!
     output:
+        Taxid_2_FunctionCountArray_table_STRING_temp = Taxid_2_FunctionCountArray_table_STRING_temp,
         Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.TaxID_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.TaxID_2_Proteins_table_STRING, input.Taxid_2_FunctionCountArray_table_BTO_DOID, output.Taxid_2_FunctionCountArray_table_STRING_temp, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
 
 rule AFC_KS_enrichment_terms_flat_files:
     input:
