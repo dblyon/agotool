@@ -666,6 +666,7 @@ rule Lineage_table_STRING:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
         UPK_obo = UPK_obo,
         RCTM_hierarchy = RCTM_hierarchy,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         DOID_obo_Jensenlab = DOID_obo_Jensenlab,
         BTO_obo_Jensenlab = BTO_obo_Jensenlab
@@ -675,7 +676,8 @@ rule Lineage_table_STRING:
     # shell:
     #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Lineage_table_STRING(r"{input.GO_obo_Jensenlab}", r"{input.UPK_obo}", r"{input.RCTM_hierarchy}", r"{input.Functions_table_STRING_reduced}", r"{output.Lineage_table}", r"{output.Lineage_table_no_translation}")'"""
     run:
-        cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.Functions_table_STRING_reduced, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table, output.Lineage_table_no_translation)
+        cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced,
+                                 input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table, output.Lineage_table_no_translation)
 
 rule Taxid_2_FunctionCountArray_2_merge_BTO_DOID:
     input:
