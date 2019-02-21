@@ -943,7 +943,7 @@ def helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_a
     funcEnum_count_arr_last = sorted(funcEnum_count_arr_last)
     funcEnum_list = [ele[0] for ele in funcEnum_count_arr_last]
     # no duplicate function enumerations since the etypes being merged are different
-    assert len(set(funcEnum_list)) == len(funcEnum_list)
+    #assert len(set(funcEnum_list)) == len(funcEnum_list)
     return funcEnum_count_arr_last
 
 def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
