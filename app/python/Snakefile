@@ -22,7 +22,7 @@ verbose = variables.VERBOSE
 # - Functions_table_STRING_reduced.txt
 # - Protein_2_FunctionEnum_table_STRING.txt
 # - Entity_types_table_STRING.txt
-# - TaxID_2_Proteins_table_STRING.txt
+# - Taxid_2_Proteins_table_STRING.txt
 # - Taxid_2_FunctionCountArray_table_STRING.txt
 # - Lineage_table_STRING.txt
 
@@ -126,7 +126,7 @@ Function_2_ENSP_table_STRING = os.path.join(TABLES_DIR, "Function_2_ENSP_table_S
 Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_reduced.txt")
 Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")
 Functions_table_GO = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
-Functions_table_InterPro = os.path.join(TABLES_DIR, "Functions_table_InterPro.txt")
+Functions_table_INTERPRO = os.path.join(TABLES_DIR, "Functions_table_INTERPRO.txt")
 Functions_table_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
 Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
 Functions_table_PFAM_no_mapping = os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt")
@@ -155,7 +155,7 @@ Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Fu
 Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
 Protein_2_Function_table_UPK = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK.txt")
 Protein_2_FunctionEnum_and_Score_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt")
-TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 Taxid_2_FunctionCountArray_table_STRING_temp = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING_temp.txt")
 Taxid_2_FunctionCountArray_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
 Taxid_2_FunctionCountArray_table_BTO_DOID = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_BTO_DOID.txt") # Taxid_2_FunctionCountArray_2_merge_BTO_DOID
@@ -172,14 +172,14 @@ parallel_parse_textmining_pmc_medline = os.path.join(PYTHON_DIR, "parallel_parse
 
 ###################################################################################################
 ### download resources
-rule download_GO_obo:
-    output:
-        GO_obo = GO_obo
-    params:
-        URL_GO_obo = URL_GO_obo,
-        verbose = verbose
-    run:
-        drs.download_requests(params.URL_GO_obo, output.GO_obo, params.verbose)
+# rule download_GO_obo:
+#     output:
+#         GO_obo = GO_obo
+#     params:
+#         URL_GO_obo = URL_GO_obo,
+#         verbose = verbose
+#     run:
+#         drs.download_requests(params.URL_GO_obo, output.GO_obo, params.verbose)
 
 rule download_UPK_obo:
     output:
@@ -208,7 +208,7 @@ rule download_TrEMBL_dump:
     run:
         drs.download_gzip_file(params.URL_TrEMBL_dump, output.TrEMBL_dump, params.verbose)
 
-rule download_Interpro_annotations: # update cycle? InterPro is updated approximately every 8 weeks
+rule download_Protein_2_Function_Interpro: # update cycle? InterPro is updated approximately every 8 weeks
     output:
         uniprot_2_interpro = uniprot_2_interpro
     params:
@@ -217,7 +217,7 @@ rule download_Interpro_annotations: # update cycle? InterPro is updated approxim
     run:
         drs.download_gzip_file(params.URL_uniprot_2_interpro, output.uniprot_2_interpro, params.verbose)
 
-rule download_Interpro_descriptions:
+rule download_descriptions_Interpro:
     output:
         interpro_AN_2_name = interpro_AN_2_name
     params:
@@ -226,7 +226,7 @@ rule download_Interpro_descriptions:
     run:
         drs.download_gzip_file(params.URL_interpro_AN_2_name, output.interpro_AN_2_name, params.verbose)
 
-rule download_interpro_parent_2_child_tree:
+rule download_ontology_Interpro:
     output:
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     params:
@@ -235,7 +235,7 @@ rule download_interpro_parent_2_child_tree:
     run:
         drs.download_gzip_file(params.URL_interpro_parent_2_child_tree, output.interpro_parent_2_child_tree, verbose=params.verbose)
 
-rule download_Function_2_Description_PMID:
+rule download_descriptions_PMID:
     output:
         # Function_2_Description_PMID_gz = Functions_table_PMID + ".gz",
         Function_2_Description_PMID = Function_2_Description_PMID
@@ -267,7 +267,7 @@ rule download_Protein_2_Function_and_Score_DOID_GO_BTO:
     run:
         drs.download_requests(params.URL_integrated_protein_2_function_Jensenlab, output.Protein_2_Function_and_Score_DOID_GO_BTO, params.verbose)
 
-rule download_Function_2_Description_DOID_BTO_GO:
+rule download_Descriptions_DOID_BTO_GO:
     output:
         Function_2_Description_DOID_BTO_GO_down = Function_2_Description_DOID_BTO_GO_down
     params:
@@ -276,7 +276,7 @@ rule download_Function_2_Description_DOID_BTO_GO:
     run:
         drs.download_requests(params.URL_integrated_function_2_description_Jensenlab, output.Function_2_Description_DOID_BTO_GO_down, params.verbose)
 
-rule download_Blacklisted_terms_Jensenlab:
+rule download_Blacklist_Jensenlab:
     output:
         Blacklisted_terms_Jensenlab = Blacklisted_terms_Jensenlab
     params:
@@ -323,7 +323,7 @@ rule string_2_interpro:
 rule Protein_2_Function_table_InterPro:
     input:
         string_2_interpro = string_2_interpro,
-        Functions_table_InterPro = Functions_table_InterPro,
+        Functions_table_INTERPRO = Functions_table_INTERPRO,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
         Protein_2_Function_table_InterPro = Protein_2_Function_table_InterPro,
@@ -331,16 +331,16 @@ rule Protein_2_Function_table_InterPro:
         verbose = verbose
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_InterPro(input.string_2_interpro, input.Functions_table_InterPro, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro, number_of_processes=threads, verbose=params.verbose)
+        cst.Protein_2_Function_table_InterPro(input.string_2_interpro, input.Functions_table_INTERPRO, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro, number_of_processes=threads, verbose=params.verbose)
 
-rule Functions_table_InterPro:
+rule Functions_table_INTERPRO:
     input:
         interpro_AN_2_name = interpro_AN_2_name,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
-        Functions_table_InterPro = Functions_table_InterPro
+        Functions_table_INTERPRO = Functions_table_INTERPRO
     run:
-        cst.Functions_table_InterPro(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_InterPro)
+        cst.Functions_table_INTERPRO(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_INTERPRO)
 
 rule Functions_table_KEGG:
     input:
@@ -445,10 +445,9 @@ rule Functions_table_DOID_BTO:
     run:
         cst.Functions_table_DOID_BTO(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO)
 
-
 rule Functions_table_STRING_all:
     input:
-        fn_list_str = [Functions_table_InterPro,
+        fn_list_str = [Functions_table_INTERPRO,
                        Functions_table_KEGG,
                        Functions_table_SMART,
                        Functions_table_PFAM,
@@ -466,19 +465,18 @@ rule Functions_table_STRING_all:
     run:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_tables_STRING_temp, output.Functions_table_STRING_all, threads)
 
-
-rule TaxID_2_Proteins_table_STRING:
+rule Taxid_2_Proteins_table_STRING:
     input:
         Protein_shorthands = Protein_shorthands
     output:
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.TaxID_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.Taxid_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
     run:
-        cst.TaxID_2_Proteins_table(input.Protein_shorthands, output.TaxID_2_Proteins_table_STRING, threads, params.verbose)
+        cst.TaxID_2_Proteins_table(input.Protein_shorthands, output.Taxid_2_Proteins_table_STRING, threads, params.verbose)
 
 rule Protein_2_Function_table_KEGG:
     input:
@@ -565,19 +563,19 @@ rule Protein_2_Function_table_PMID_fulltexts:
     input:
         all_entities = all_entities,
         string_matches = string_matches,
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         # Functions_table_PMID_temp = Functions_table_PMID_temp
     output:
         # Functions_table_PMID = Functions_table_PMID,
         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
     run:
         # removing Functions_table_PMID_temp, Functions_table_PMID due to autoupdates --> change Functions_table_PMID_temp to Functions_table_PMID
-        # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
-        cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
+        # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
+        cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
 
 rule Protein_2_Function_table_PMID:
     input:
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts,
         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
     output:
@@ -587,11 +585,11 @@ rule Protein_2_Function_table_PMID:
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_PMID(input.TaxID_2_Proteins_table_STRING, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
+        cst.Protein_2_Function_table_PMID(input.Taxid_2_Proteins_table_STRING, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
 
 rule Protein_2_Function_table_STRING:
     input:
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         fn_list_str = [Protein_2_Function_table_InterPro,
                        Protein_2_Function_table_KEGG,
                        Protein_2_Function_table_SMART,
@@ -604,14 +602,14 @@ rule Protein_2_Function_table_STRING:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_STRING(r"{input.fn_list_str}", r"{input.TaxID_2_Proteins_table_STRING}", r"{output.Protein_2_Function_table_STRING}", {threads})'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_STRING(r"{input.fn_list_str}", r"{input.Taxid_2_Proteins_table_STRING}", r"{output.Protein_2_Function_table_STRING}", {threads})'"""
     run:
-        cst.Protein_2_Function_table_STRING(input.fn_list_str, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING, threads)
+        cst.Protein_2_Function_table_STRING(input.fn_list_str, input.Taxid_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING, threads)
 
 rule Function_2_ENSP_table:
     input:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING,
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         Functions_table_STRING_all = Functions_table_STRING_all,
     output:
         Function_2_ENSP_table_STRING = Function_2_ENSP_table_STRING,
@@ -621,7 +619,7 @@ rule Function_2_ENSP_table:
         min_count = min_count,
         verbose = verbose
     run:
-        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
+        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
 
 rule Functions_table_STRING_reduced:
     input:
@@ -682,7 +680,7 @@ rule Lineage_table_STRING:
 
 rule Taxid_2_FunctionCountArray_table_BTO_DOID: #!!! merge with Taxid_2_FunctionCountArray_table_STRING
     input:
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING
     output:
@@ -691,13 +689,13 @@ rule Taxid_2_FunctionCountArray_table_BTO_DOID: #!!! merge with Taxid_2_Function
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_FunctionCountArray_table_BTO_DOID(input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_table_BTO_DOID, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_BTO_DOID(input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_table_BTO_DOID, threads, params.verbose)
 
 rule Taxid_2_FunctionCountArray_table_STRING:
     input:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         Taxid_2_FunctionCountArray_table_BTO_DOID = Taxid_2_FunctionCountArray_table_BTO_DOID
         # tables could be merged at some later point #!!!
     output:
@@ -707,7 +705,7 @@ rule Taxid_2_FunctionCountArray_table_STRING:
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.TaxID_2_Proteins_table_STRING, input.Taxid_2_FunctionCountArray_table_BTO_DOID, output.Taxid_2_FunctionCountArray_table_STRING_temp, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, input.Taxid_2_FunctionCountArray_table_BTO_DOID, output.Taxid_2_FunctionCountArray_table_STRING_temp, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
 
 rule AFC_KS_enrichment_terms_flat_files:
     input:
@@ -753,5 +751,5 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
 # -56     PMID:29923822   (2018) Investigation of the role of GBF1 in the replication of positive-sense single-stranded RNA viruses.      2018
 #PMID appears but not in Func
 
-# filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING @Protein_2_Function_table_PMID
+# filter PMID associations that are not STRING ENSPs. use Taxid_2_Proteins_table_STRING @Protein_2_Function_table_PMID
 # Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced --> no ENSP filter, since filter Function_2_ENSP will kick in --> done

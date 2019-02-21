@@ -1032,13 +1032,22 @@ def get_termAN_from_humanName_functionType(functionType, humanName):
 def parse_result_child_parent(result):
     return set([item for sublist in result for item in sublist])
 
-def get_taxids():
+def get_taxids(read_from_flat_files=False, fn=None):
     """
     return all TaxIDs from taxid_2_proteins as sorted List of Integers
     :return: List of Integers
     """
-    result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein;")
-    return sorted([rec[0] for rec in result])
+    if read_from_flat_files:
+        taxids = []
+        if fn is None:
+            TaxID_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+        with open(TaxID_2_Proteins_table_STRING, "r") as fh:
+            for line in fh:
+                taxids.append(line.split("\t")[0])
+        return taxids
+    else:
+        result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein;")
+        return sorted([rec[0] for rec in result])
 
 def get_proteins_of_taxid(taxid):
     result = get_results_of_statement("SELECT taxid_2_protein.an_array FROM taxid_2_protein WHERE taxid_2_protein.taxid={}".format(taxid))

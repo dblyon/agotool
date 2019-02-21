@@ -361,7 +361,7 @@ def string_2_interpro(fn_in_string2uniprot, fn_in_uniprot2interpro, fn_out_strin
                 # fh_out.write('%s\t%s'%(string_id, line))
                 fh_out.write("{}\t{}".format(string_id, line))
 
-def Functions_table_InterPro(fn_in_interprot_AN_2_name, fn_in_interpro_parent_2_child_tree, fn_out_Functions_table_InterPro):
+def Functions_table_INTERPRO(fn_in_interprot_AN_2_name, fn_in_interpro_parent_2_child_tree, fn_out_Functions_table_InterPro):
     """
     # | enum | etype | an | description | year | level |
     ### old file called InterPro_name_2_AN.txt
@@ -925,11 +925,10 @@ def Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING,
                 funcEnum_count_arr = literal_eval(funcEnum_count_arr.replace("{", "[").replace("}", "]"))
                 if taxid != taxid_last:
                     fh_out.write(taxid_last + "\t" + background_n_last + "\t" + str(funcEnum_count_arr_last).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
+                    taxid_last, background_n_last, funcEnum_count_arr_last = taxid, background_n, funcEnum_count_arr
                 else:
-                    # merge stuff and write to file (only 2 lines of same taxid if any at all)
-                    funcEnum_count_arr = helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr)
-                    fh_out.write(taxid + "\t" + background_n + "\t" + str(funcEnum_count_arr).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
-                taxid_last, background_n_last, funcEnum_count_arr_last = taxid, background_n, funcEnum_count_arr
+                    # merge stuff
+                    funcEnum_count_arr_last = helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr)
             if taxid != taxid_last:
                 fh_out.write(taxid_last + "\t" + background_n_last + "\t" + str(funcEnum_count_arr_last).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
             else:
