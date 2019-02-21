@@ -66,13 +66,15 @@ SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 ### Jensenlab
 URL_function_2_description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
+Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
+
 URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
 URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
 URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
 URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
 URL_go_obo_Jensenlab = r"http://download.jensenlab.org/aGOtool/go.obo"
-Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
+
 Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
 Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
 Protein_2_Function_table_PMID_fulltexts = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_fulltexts.txt")
