@@ -65,22 +65,26 @@ UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 ### Jensenlab
-URL_function_2_description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
-Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
-
-URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
-URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
-URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
 URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
 URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
 URL_go_obo_Jensenlab = r"http://download.jensenlab.org/aGOtool/go.obo"
 
-Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
-Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
-Protein_2_Function_table_PMID_fulltexts = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_fulltexts.txt")
-Protein_2_Function_and_Score_DOID_GO_BTO = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_GO_BTO.txt.gz")
+URL_function_2_description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
+Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
+
+URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
 Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
 Functions_table_DOID_BTO = os.path.join(TABLES_DIR, "Function_2_Description_DOID_BTO.txt")
+
+URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
+Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
+
+URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
+Protein_2_Function_and_Score_DOID_GO_BTO = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_GO_BTO.txt.gz")
+
+Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
+Protein_2_Function_table_PMID_fulltexts = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_fulltexts.txt")
+
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
@@ -728,12 +732,13 @@ rule AFC_KS_enrichment_terms_flat_files:
 rule Protein_2_FunctionEnum_and_Score_table_STRING:
     input:
         Protein_2_Function_and_Score_DOID_GO_BTO = Protein_2_Function_and_Score_DOID_GO_BTO,
-        Functions_table_STRING_reduced = Functions_table_STRING_reduced
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
     output:
         Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING,
         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
+        cst.Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
 
 
 

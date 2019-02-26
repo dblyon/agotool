@@ -2007,7 +2007,7 @@ def Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Je
                 level = -1
             fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
 
-def Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Protein_2_FunctionEnum_and_Score_table_STRING, fn_an_without_translation):
+def Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Taxid_2_Proteins_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, fn_an_without_translation):
     """
     Protein_2_Function_and_Score_DOID_GO_BTO.txt
     6239.C30G4.7    {{"GO:0043226",0.875},{"GO:0043227",0.875},{"GO:0043231",0.875},{"GO:0044424",2.96924}, ... , {"GO:0005737",2.742276},{"GO:0005777",0.703125}}      -22
@@ -2021,6 +2021,7 @@ def Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_D
     """
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_STRING_reduced, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
+    ENSP_set = get_all_ENSPs(Taxid_2_Proteins_table_STRING)
 
     # with open(Protein_2_Function_and_Score_DOID_GO_BTO, "r") as fh_in:
         # for line in fh_in:
@@ -2028,6 +2029,8 @@ def Protein_2_FunctionEnum_and_Score_table_STRING(Protein_2_Function_and_Score_D
     with open(Protein_2_FunctionEnum_and_Score_table_STRING, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
+            if ENSP not in ENSP_set:
+                continue
             etype = etype.strip()
             if etype == "-22": # omit GO-CC (etype -22)
                 continue
