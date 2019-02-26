@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os, sys
 from collections import defaultdict
-import psycopg2, math
+import psycopg2 #, math
 from contextlib import contextmanager
 
 ### import user modules
@@ -1049,9 +1049,19 @@ def get_taxids(read_from_flat_files=False, fn=None):
         result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein;")
         return sorted([rec[0] for rec in result])
 
-def get_proteins_of_taxid(taxid):
-    result = get_results_of_statement("SELECT taxid_2_protein.an_array FROM taxid_2_protein WHERE taxid_2_protein.taxid={}".format(taxid))
-    return sorted(result[0][0])
+def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_TaxID_2_Proteins_table_STRING=None):
+    if not read_from_flat_files:
+        result = get_results_of_statement("SELECT taxid_2_protein.an_array FROM taxid_2_protein WHERE taxid_2_protein.taxid={}".format(taxid))
+        return sorted(result[0][0])
+    else:
+        if fn_TaxID_2_Proteins_table_STRING is None:
+            fn_TaxID_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+        with open(fn_TaxID_2_Proteins_table_STRING, "r") as fh:
+            for line in fh:
+                taxid_line, prot_arr, background_count = line.split("\t")
+                if taxid_line == str(taxid):
+                    prot_arr = prot_arr[1:-1].replace("'", "").replace('"', "").split(",")
+                    return sorted(prot_arr)
 
 def get_TaxID_2_proteome_count_dict(read_from_flat_files=False):
     taxid_2_proteome_count_dict = {}

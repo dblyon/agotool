@@ -3,26 +3,24 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import random
 import pandas as pd
-# import numpy as np
-
 import pytest
+import query, variables
+# import userinput
 
-import query, userinput, variables
 
-
-@pytest.fixture(scope='session')
-def pqo():
-    """
-    get pqo (Persistent Query Object)
-    """
-    return query.PersistentQueryObject()
+# @pytest.fixture(scope='session')
+# def pqo():
+#     """
+#     get pqo (Persistent Query Object)
+#     """
+#     return query.PersistentQueryObject()
 
 @pytest.fixture(scope='session')
 def pqo_STRING():
     """
     get pqo (Persistent Query Object)
     """
-    return query.PersistentQueryObject_STRING()
+    return query.PersistentQueryObject_STRING(low_memory=False, read_from_flat_files=True)
 
 @pytest.fixture(scope='session')
 def get_something():
@@ -44,7 +42,7 @@ def TaxIDs(request):
 def random_foreground_background(): # used TaxIDs fixture previously, but now it it random on TaxID level as well
     for _ in range(10):
         taxid = random.choice(query.get_taxids())
-        background = query.get_proteins_of_taxid(taxid)
+        background = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
         foreground = random.sample(background, 200)
         return foreground, background, taxid
 

@@ -666,7 +666,7 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation):
+def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation, fn_out_lineage_table_hr):
     lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
@@ -689,9 +689,15 @@ def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, f
     with open(fn_out_lineage_table, "w") as fh_out:
         for key in keys_sorted:
             fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict_enum[key])))[1:-1].replace("'", '"') + "}\n")
+
     with open(fn_out_no_translation, "w") as fh_out_no_trans:
         for term in term_no_translation_because_obsolete:
             fh_out_no_trans.write(term + "\n")
+
+    with open(fn_out_lineage_table_hr, "w") as fh_out_hr:
+        for key, value in lineage_dict.items():
+            fh_out_hr.write(str(key) + "\t" + "{" + str(sorted(set(value)))[1:-1].replace("'", '"') + "}\n")
+
 
 def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree):
     lineage_dict = {}
@@ -1506,6 +1512,9 @@ def parse_textmining_entityID_2_proteinID(fn):
     return df
 
 def parse_textmining_string_matches(fn):
+    """
+    # textmining_id = entity_id
+    """
     names=['PMID', 'sentence', 'paragraph', 'location_start', 'location_end', 'matched_string', 'species', 'entity_id']
     df = pd.read_csv(fn, sep="\t", names=names)
     return df
@@ -1518,6 +1527,9 @@ def get_all_ENSPs(TaxID_2_Proteins_table_STRING):
     return ENSP_set
 
 def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
+    """
+    textmining_id = entity_id
+    """
     df_txtID = parse_textmining_entityID_2_proteinID(fn_in_all_entities)
     df_stringmatches = parse_textmining_string_matches(fn_in_string_matches)
     # sanity test that df_stringmatches.entity_id are all in df_txtID.textmining_id --> yes. textmining_id is a superset of entity_id --> after filtering df_txtID this is not true
