@@ -30,6 +30,7 @@ alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
 entity_types_with_ontology = {-21, -22, -23, -25, -26, -51, -57}
 entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
+entity_types_with_scores = {-25, -26} # BTO, DOID
 
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,

@@ -114,7 +114,6 @@ uniprot_2_interpro = os.path.join(DOWNLOADS_DIR, "protein2ipr.dat.gz")
 URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
 interpro_AN_2_name = os.path.join(DOWNLOADS_DIR, "interpro_AN_2_name.txt") # InterPro_name_2_AN
 
-
 uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv") # Damain script --> run on cluster
 
 protein_domain_annotations = os.path.join(DOWNLOADS_DIR, "string11_dom_prot_full_v3.sql") # Ivica --> static
@@ -150,6 +149,7 @@ Lineage_table_no_translation = os.path.join(TABLES_DIR, "Lineage_table_no_transl
 Lineage_table_hr = os.path.join(TABLES_DIR, "Lineage_table_hr.txt") # Human Readable
 Protein_2_FunctionEnum_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt")
 Protein_2_Function_table_PMID_combi = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_combi.txt")
+Protein_2_Function_DOID_BTO = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO.txt")
 Protein_2_Function_table_GO = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
 Protein_2_Function_table_InterPro = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
 Protein_2_Function_table_KEGG = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
@@ -604,7 +604,8 @@ rule Protein_2_Function_table_STRING:
                        Protein_2_Function_table_GO,
                        Protein_2_Function_table_UPK,
                        Protein_2_Function_table_PMID,
-                       Protein_2_Function_table_RCTM]
+                       Protein_2_Function_table_RCTM,
+                       Protein_2_Function_DOID_BTO]
     output:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
@@ -684,37 +685,36 @@ rule Lineage_table_STRING:
     # shell:
     #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Lineage_table_STRING(r"{input.GO_obo_Jensenlab}", r"{input.UPK_obo}", r"{input.RCTM_hierarchy}", r"{input.Functions_table_STRING_reduced}", r"{output.Lineage_table}", r"{output.Lineage_table_no_translation}")'"""
     run:
-        cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced,
-                                 input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table, output.Lineage_table_no_translation, output.Lineage_table_hr)
+        cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table, output.Lineage_table_no_translation, output.Lineage_table_hr)
 
-rule Taxid_2_FunctionCountArray_table_BTO_DOID: #!!! merge with Taxid_2_FunctionCountArray_table_STRING
-    input:
-        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
-        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING
-    output:
-        Taxid_2_FunctionCountArray_table_BTO_DOID = Taxid_2_FunctionCountArray_table_BTO_DOID
-    threads: NUMBER_OF_PROCESSES_sorting
-    params:
-        verbose = verbose
-    run:
-        cst.Taxid_2_FunctionCountArray_table_BTO_DOID(input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_table_BTO_DOID, threads, params.verbose)
+# rule Taxid_2_FunctionCountArray_table_BTO_DOID: #!!! merge with Taxid_2_FunctionCountArray_table_STRING
+#     input:
+#         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
+#         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+#         Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING
+#     output:
+#         Taxid_2_FunctionCountArray_table_BTO_DOID = Taxid_2_FunctionCountArray_table_BTO_DOID
+#     threads: NUMBER_OF_PROCESSES_sorting
+#     params:
+#         verbose = verbose
+#     run:
+#         cst.Taxid_2_FunctionCountArray_table_BTO_DOID(input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_reduced, input.Protein_2_FunctionEnum_and_Score_table_STRING, output.Taxid_2_FunctionCountArray_table_BTO_DOID, threads, params.verbose)
 
 rule Taxid_2_FunctionCountArray_table_STRING:
     input:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
-        Taxid_2_FunctionCountArray_table_BTO_DOID = Taxid_2_FunctionCountArray_table_BTO_DOID
+        # Taxid_2_FunctionCountArray_table_BTO_DOID = Taxid_2_FunctionCountArray_table_BTO_DOID
         # tables could be merged at some later point #!!!
     output:
-        Taxid_2_FunctionCountArray_table_STRING_temp = Taxid_2_FunctionCountArray_table_STRING_temp,
+        # Taxid_2_FunctionCountArray_table_STRING_temp = Taxid_2_FunctionCountArray_table_STRING_temp,
         Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, input.Taxid_2_FunctionCountArray_table_BTO_DOID, output.Taxid_2_FunctionCountArray_table_STRING_temp, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads, params.verbose)
 
 rule AFC_KS_enrichment_terms_flat_files:
     input:
@@ -729,16 +729,28 @@ rule AFC_KS_enrichment_terms_flat_files:
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_TaxID_2_acronym_table, output.AFC_KS_DIR, params.verbose)
 
-rule Protein_2_FunctionEnum_and_Score_table_STRING:
+# rule Protein_2_FunctionEnum_and_Score_table_STRING: # old_retain_scores
+#     input:
+#         Protein_2_Function_and_Score_DOID_GO_BTO = Protein_2_Function_and_Score_DOID_GO_BTO,
+#         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+#         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
+#     output:
+#         Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING,
+#         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
+#     run:
+#         cst.Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
+
+rule Protein_2_Function_DOID_BTO:
     input:
         Protein_2_Function_and_Score_DOID_GO_BTO = Protein_2_Function_and_Score_DOID_GO_BTO,
-        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
     output:
-        Protein_2_FunctionEnum_and_Score_table_STRING = Protein_2_FunctionEnum_and_Score_table_STRING,
-        DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
+        Protein_2_Function_DOID_BTO = Protein_2_Function_DOID_BTO,
+    params:
+        score_cutoff = 3.0
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
+        cst.Protein_2_Function_DOID_BTO(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Taxid_2_Proteins_table_STRING, params.score_cutoff, output.Protein_2_Function_DOID_BTO)
+
 
 
 
@@ -763,3 +775,12 @@ rule Protein_2_FunctionEnum_and_Score_table_STRING:
 
 # filter PMID associations that are not STRING ENSPs. use Taxid_2_Proteins_table_STRING @Protein_2_Function_table_PMID
 # Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced --> no ENSP filter, since filter Function_2_ENSP will kick in --> done
+
+# ToDo
+# 1.) cleanup Functions_table_STRING
+# e.g.
+# $ grep "GO:0005634" Functions_table_STRING.txt
+# 17614   -22     GO:0005634      Nucleus -1      -1
+# 17615   -22     GO:0005634      nucleus -1      8
+# 2.) Taxid_2_FunctionCountArray_table_STRING
+# got counts from Taxid_2_FunctionCountArray_table_BTO_DOID without applying the same algo as for the foreground

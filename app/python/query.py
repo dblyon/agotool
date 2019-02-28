@@ -487,6 +487,11 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
         self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
 
+        if variables.VERBOSE:
+            print("getting ENSP_2_Score_dict careful since this uses offset indices for BTO and DOID")
+        self.ENSP_2_tuple_funcEnum_score_dict = get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
+
+
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
             print("getting preloaded objects per analysis")
@@ -674,6 +679,52 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             an, associations_list, etype = res
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
+
+def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
+    """
+    key = ENSP
+    val = tuple(arr of function Enumeration, arr of scores)
+    for BTO and DOID terms
+
+    Protein_2_FunctionEnum_and_Score_table_STRING.txt
+    10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}}
+    """
+    ENSP_2_tuple_funcEnum_score_dict = {}
+    if read_from_flat_files:
+        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt"))
+    else:
+        raise NotImplementedError
+
+    for res in results:
+        index_ = 0
+        ENSP, funcEnum_score_arr_orig = res
+        if funcEnum_score_arr_orig == "{}":
+            continue
+        funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
+        number_of_functions = len(funcEnum_score_arr)
+        score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32"))
+        funcEnum_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("uint32"))
+        if len(funcEnum_score_arr) == 1:
+            fs = funcEnum_score_arr[0][1:-2].split(",")
+            try:
+                funcEnum, score = int(fs[0]), float(fs[1])
+            except:
+                print(funcEnum_score_arr_orig)
+                print(funcEnum_score_arr)
+                raise StopIteration
+            score_arr[index_] = score
+            funcEnum_arr[index_] = funcEnum
+        else:
+            funcName_2_score_list_temp = [funcEnum_score_arr[0][1:].split(",")] + [ele.split(",") for ele in funcEnum_score_arr[1:-1]] + [funcEnum_score_arr[-1][:-2].split(",")]
+            for sublist in funcName_2_score_list_temp:
+                funcEnum, score = int(sublist[0]), float(sublist[1])
+                score_arr[index_] = score
+                funcEnum_arr[index_] = funcEnum
+                index_ += 1
+        score_arr.flags.writeable = False
+        funcEnum_arr.flags.writeable = False
+        ENSP_2_tuple_funcEnum_score_dict[ENSP] = (funcEnum_arr, score_arr)
+    return ENSP_2_tuple_funcEnum_score_dict
 
 def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):
     KEGG_TaxID_2_acronym_dict = {}
@@ -1040,8 +1091,8 @@ def get_taxids(read_from_flat_files=False, fn=None):
     if read_from_flat_files:
         taxids = []
         if fn is None:
-            TaxID_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
-        with open(TaxID_2_Proteins_table_STRING, "r") as fh:
+            Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+        with open(Taxid_2_Proteins_table_STRING, "r") as fh:
             for line in fh:
                 taxids.append(line.split("\t")[0])
         return taxids
@@ -1049,14 +1100,14 @@ def get_taxids(read_from_flat_files=False, fn=None):
         result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein;")
         return sorted([rec[0] for rec in result])
 
-def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_TaxID_2_Proteins_table_STRING=None):
+def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins_table_STRING=None):
     if not read_from_flat_files:
         result = get_results_of_statement("SELECT taxid_2_protein.an_array FROM taxid_2_protein WHERE taxid_2_protein.taxid={}".format(taxid))
         return sorted(result[0][0])
     else:
-        if fn_TaxID_2_Proteins_table_STRING is None:
-            fn_TaxID_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
-        with open(fn_TaxID_2_Proteins_table_STRING, "r") as fh:
+        if fn_Taxid_2_Proteins_table_STRING is None:
+            fn_Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+        with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
             for line in fh:
                 taxid_line, prot_arr, background_count = line.split("\t")
                 if taxid_line == str(taxid):
@@ -1066,7 +1117,7 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_TaxID_2_Proteins
 def get_TaxID_2_proteome_count_dict(read_from_flat_files=False):
     taxid_2_proteome_count_dict = {}
     if read_from_flat_files:
-        result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt"), columns=[0, 2])
+        result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt"), columns=[0, 2])
     else:
         result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count FROM taxid_2_protein;")
     for res in result:
