@@ -922,4 +922,4 @@ if __name__ == "__main__":
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
     # sun IP 10110
-    app.run(host='0.0.0.0', port=5912, processes=1, debug=variables.DEBUG)
+    app.run(host='0.0.0.0', port=5914, processes=1, debug=variables.DEBUG)
