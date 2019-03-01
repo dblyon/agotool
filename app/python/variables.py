@@ -25,14 +25,15 @@ temp_dont_run_analysis = False
 if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
 ############################
-entity_types = {-21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57}
+entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57}
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
-entity_types_with_ontology = {-21, -22, -23, -25, -26, -51, -57}
+entity_types_with_ontology = {-20, -21, -22, -23, -25, -26, -51, -57}
 entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
-entity_types_with_scores = {-25, -26} # BTO, DOID
+entity_types_with_scores = {-20, -25, -26} # GO-CC,  BTO, DOID
 
-functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
+functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
+                                  "Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,
                                   "Gene Ontology molecular function": -23,
                                   "Brenda Tissue Ontology": -25,
@@ -45,7 +46,8 @@ functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "PMID": -56,
                                   "Reactome": -57}
 
-entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
+entityType_2_functionType_dict = {-20: "Gene Ontology molecular function TEXTMINING",
+                                  -21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
                                   -23: "Gene Ontology molecular function",
                                   -25: "Brenda Tissue Ontology",
@@ -63,7 +65,6 @@ cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "categ
 cols_sort_order_charcterize = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
 # cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "year", "ratio_in_foreground", "ratio_in_background", "foreground_ids", "background_ids", "foreground_count", "background_count", "foreground_n", "background_n"]
 cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"] # should be the same as cols_sort_order_genome
-
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas
@@ -159,7 +160,8 @@ fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
 param_2_val_dict = parse_env_file(fn)
 
 
-id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
+id_2_entityTypeNumber_dict = {'GOCC:0005575': "-20",  # 'Cellular Component TEXTMINING',
+                              'GO:0003674': "-23",  # 'Molecular Function',
                               'GO:0005575': "-22",  # 'Cellular Component',
                               'GO:0008150': "-21",  # 'Biological Process',
                               "GO:OBSOLETE": "-24", # "GO obsolete

@@ -517,7 +517,7 @@ def Functions_table_PFAM(fn_in, fn_out_functions_table_PFAM, fn_out_map_name_2_a
     df2 = df[["name", "an"]]
     df2.to_csv(fn_out_map_name_2_an, sep="\t", header=False, index=False)
 
-def Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=False):
+def Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=False, GO_CC_textmining_additional_etype=False):
     """
     # fn_in_go_basic = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
     # fn_out_funcs = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
@@ -525,6 +525,10 @@ def Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=False):
     # | enum | etype | an | description | year | level |
     id_, name --> Functions_table.txt
     id_, is_a_list --> Child_2_Parent_table_GO.txt
+    :param fn_in_go_basic: string
+    :param fn_out_functions: string
+    :param is_upk: Boolean (flag for UniProtKeywords vs Gene Ontology)
+    :param GO_CC_textmining_additional_etype: Boolean (flag to substitute etype -22 with -20 to create a separate category for textmining results)
     :return:
     """
     obo = obo_parser.OBOReader_2_text(fn_in_go_basic)
@@ -543,6 +547,13 @@ def Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=False):
                 etype = str(get_entity_type_from_GO_term(id_, GO_dag))
             else:
                 etype = "-51"
+
+            # only use GO-CC terms and convert etype to -20
+            if GO_CC_textmining_additional_etype:
+                if etype == "-22":
+                    etype = "-20"
+                else:
+                    continue
 
             if str(etype) == "-24": # don't need obsolete GO terms
                 continue
@@ -666,8 +677,8 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation, fn_out_lineage_table_hr):
-    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree)
+def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation, fn_out_lineage_table_hr, GO_CC_textmining_additional_etype=False):
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     lineage_dict_enum = {}
@@ -699,7 +710,7 @@ def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, f
             fh_out_hr.write(str(key) + "\t" + "{" + str(sorted(set(value)))[1:-1].replace("'", '"') + "}\n")
 
 
-def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree):
+def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype=False):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)
     upk_dag = obo_parser.GODag(obo_file=fn_keywords_obo, upk=True)
@@ -708,6 +719,13 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
         GOTerm_instance = go_dag[go_term_name]
         # lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children()) # wrong for this use case
         lineage_dict[go_term_name] = GOTerm_instance.get_all_parents()
+    if GO_CC_textmining_additional_etype:
+        for go_term_name in go_dag:
+            etype = str(get_entity_type_from_GO_term(go_term_name, go_dag))
+            if etype == "-22": # GO-CC need be changed since unique names needed
+                GOTerm_instance = go_dag[go_term_name]
+                lineage_dict[go_term_name.replace("GO:", "GOCC:")] = {ele.replace("GO:", "GOCC:") for ele in GOTerm_instance.get_all_parents()}
+
     for term_name in upk_dag:
         Term_instance = upk_dag[term_name]
         lineage_dict[term_name] = Term_instance.get_all_parents()
@@ -1999,7 +2017,7 @@ def helper_string_array_to_list(string_):
     """
     return [an[1:-1] for an in string_[1:-1].split(",")]
 
-def Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Jensenlab, DOID_obo_Jensenlab, Blacklisted_terms_Jensenlab, Functions_table_DOID_BTO):
+def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Jensenlab, DOID_obo_Jensenlab, GO_obo_Jensenlab, Blacklisted_terms_Jensenlab, Functions_table_DOID_BTO_GOCC, GO_CC_textmining_additional_etype=True):
     """
     - add hierarchical level, year placeholder
     - merge with Functions_table
@@ -2012,9 +2030,13 @@ def Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Je
     doid_dag = obo_parser.GODag(obo_file=DOID_obo_Jensenlab)
     child_2_parent_dict = get_child_2_direct_parent_dict_from_dag(doid_dag)  # obsolete or top level terms have empty set for parents
     term_2_level_dict_doid = get_term_2_level_dict(child_2_parent_dict)
+    gocc_dag = obo_parser.GODag(obo_file=GO_obo_Jensenlab)
+    child_2_parent_dict = get_child_2_direct_parent_dict_from_dag(gocc_dag)  # obsolete or top level terms have empty set for parents
+    term_2_level_dict_gocc = get_term_2_level_dict(child_2_parent_dict)
     term_2_level_dict = {}
     term_2_level_dict.update(term_2_level_dict_doid)
     term_2_level_dict.update(term_2_level_dict_bto)
+    term_2_level_dict.update(term_2_level_dict_gocc)
     # get blacklisted terms to exclude them
     blacklisted_ans = []
     with open(Blacklisted_terms_Jensenlab, "r") as fh:
@@ -2024,11 +2046,13 @@ def Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Je
     blacklisted_ans = set(blacklisted_ans)
 
     year = "-1" # placeholder
-    # with open(Function_2_Description_DOID_BTO_GO_down, "r") as fh_in:
-        # for line in fh_in:
-    with open(Functions_table_DOID_BTO, "w") as fh_out:
+    with open(Functions_table_DOID_BTO_GOCC, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Function_2_Description_DOID_BTO_GO_down):
             etype, function_an, description = line.split("\t")
+            if GO_CC_textmining_additional_etype:
+                if etype == "-22":
+                    etype = "-20"
+                    function_an = function_an.replace("GO:", "GOCC:")
             description = description.strip()
             if function_an in blacklisted_ans:
                 continue
@@ -2038,7 +2062,7 @@ def Functions_table_DOID_BTO(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Je
                 level = -1
             fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
 
-def Protein_2_FunctionEnum_and_Score_table_STRING_old_retain_scores(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Taxid_2_Proteins_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, fn_an_without_translation):
+def Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Taxid_2_Proteins_table_STRING, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, fn_an_without_translation, GO_CC_textmining_additional_etype=False):
     """
     temp
     3702.AT1G01010.1        {{"GO:0005777",0.535714},{"GO:0005783",0.214286},{"GO:0044444",1.234689},{"GO:0043226",3.257143},{"GO:0005575",4.2},{"GO:0044425",3},{"GO:0042579",0.535714},{"GO:0016020",3},{"GO:0031224",3},{"GO:0005794",0.642857},{"GO:0005854",0.741623},{"GO:0044214",0.639807},{"GO:0043227",3.257143},{"GO:0005622",4.166357},{"GO:0005737",1.234689},{"GO:0009507",0.214286},{"GO:0005773",0.428571},{"GO:0043229",3.257143},{"GO:0005829",1.189679},{"GO:0005623",4.195121},{"GO:0009536",0.214286},{"GO:0005634",3.257143},{"GO:0044464",4.195121},{"GO:0016021",3},{"GO:0043231",3.257143},{"GO:0044424",4.166357}}        -22
@@ -2050,7 +2074,7 @@ def Protein_2_FunctionEnum_and_Score_table_STRING_old_retain_scores(Protein_2_Fu
     6239.C30G4.7    {{"GO:0043226",0.875},{"GO:0043227",0.875},{"GO:0043231",0.875},{"GO:0044424",2.96924}, ... , {"GO:0005737",2.742276},{"GO:0005777",0.703125}}      -22
     10116.ENSRNOP00000049139        {{"GO:0005623",2.927737},{"GO:0044424",2.403304},{"GO:0044425",3},{"GO:0031224",3}, ... ,{"GO:0043232",0.375}}       -22
 
-    Protein_2_FunctionEnum_and_Score_table_STRING.txt
+    Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC.txt
     10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
 
     - remove anything on blacklist (all_hidden.tsv) already happend while creating Functions_table_DOID_BTO (and all terms not present therein will be filtered out)
@@ -2060,12 +2084,11 @@ def Protein_2_FunctionEnum_and_Score_table_STRING_old_retain_scores(Protein_2_Fu
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     ENSP_set = get_all_ENSPs(Taxid_2_Proteins_table_STRING)
     an_without_translation = []
-    with open(Protein_2_FunctionEnum_and_Score_table_STRING, "w") as fh_out:
+    with open(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
+            etype = etype.strip()
             if ENSP not in ENSP_set: # debug
-                continue
-            if etype.strip() == "-22": # omit GO-CC (etype -22)
                 continue
             else:
                 funcEnum_2_score = []
@@ -2074,6 +2097,10 @@ def Protein_2_FunctionEnum_and_Score_table_STRING_old_retain_scores(Protein_2_Fu
                 funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
                 for an_score in funcName_2_score_list:
                     an, score = an_score
+                    if GO_CC_textmining_additional_etype:
+                        if etype == "-22": # change etype to separate etype GO-CC (etype -22 --> -20)
+                            # etype = "-20"
+                            an = an.replace("GO:", "GOCC:")
                     try:
                         anEnum = term_2_enum_dict[an]
                         funcEnum_2_score.append([anEnum, score])
@@ -2088,7 +2115,7 @@ def Protein_2_FunctionEnum_and_Score_table_STRING_old_retain_scores(Protein_2_Fu
     with open(fn_an_without_translation, "w") as fh_an_without_translation:
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
 
-def Protein_2_Function_table_DOID_BTO(Protein_2_Function_and_Score_DOID_GO_BTO, Taxid_2_Proteins_table_STRING, score_cutoff, Protein_2_Function_table_DOID_BTO):
+def Protein_2_Function_table_DOID_BTO_hard_cutoff(Protein_2_Function_and_Score_DOID_GO_BTO, Taxid_2_Proteins_table_STRING, score_cutoff, Protein_2_Function_table_DOID_BTO):
     """
     - remove anything on blacklist (all_hidden.tsv) already happend while creating Functions_table_DOID_BTO (and all terms not present therein will be filtered out)
     - omit GO-CC (etype -22)
@@ -2124,9 +2151,9 @@ def helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str):
             funcName_2_score_list.append([sublist[0], float(sublist[1])])
     return funcName_2_score_list
 
-def Taxid_2_FunctionCountArray_table_BTO_DOID_old_retain_scores(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_table_BTO_DOID, number_of_processes=1, verbose=True):
+def Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC, number_of_processes=1, verbose=True):
     """
-    Protein_2_FunctionEnum_and_Score_table_STRING.txt
+    Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC.txt
     10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
     ENSP to functionEnumeration and its respective score
     scores >= 3 --> presence
@@ -2138,17 +2165,17 @@ def Taxid_2_FunctionCountArray_table_BTO_DOID_old_retain_scores(TaxID_2_Proteins
 
     """
     if verbose:
-        print("creating Taxid_2_FunctionCountArray_table_BTO_DOID")
+        print("creating Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC")
     # sort table to get group ENSPs of same TaxID
-    tools.sort_file(Protein_2_FunctionEnum_and_Score_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
+    tools.sort_file(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, number_of_processes=number_of_processes, verbose=verbose)
     # get dict
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
     # reduce to relevant ENSPs
     ENSP_set = get_all_ENSPs(TaxID_2_Proteins_table)
 
-    with open(Protein_2_FunctionEnum_and_Score_table_STRING, "r") as fh_in:
-        with open(Taxid_2_FunctionCountArray_table_BTO_DOID, "w") as fh_out:
+    with open(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, "r") as fh_in:
+        with open(Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC, "w") as fh_out:
             line = next(fh_in)
             fh_in.seek(0)
             taxid_last, ENSP_last, funcEnum_2_count_list_last = helper_parse_line_protein_2_functionEnum_and_score(line)
@@ -2178,59 +2205,59 @@ def Taxid_2_FunctionCountArray_table_BTO_DOID_old_retain_scores(TaxID_2_Proteins
     if verbose:
         print("done with Taxid_2_FunctionCountArray_table_BTO_DOID")
 
-def Taxid_2_FunctionCountArray_table_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, Taxid_2_FunctionCountArray_table_BTO_DOID, number_of_processes=1, verbose=True):
-    """
-    Protein_2_FunctionEnum_and_Score_table_STRING.txt
-    10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
-    ENSP to functionEnumeration and its respective score
-    scores >= 3 --> presence
-    scores < 3 --> absence
-    multiple ENSPs per taxid --> scores get summed up per TaxID
-
-    Taxid_2_FunctionCountArray_table_BTO_DOID.txt
-    9606  19566  {{{0,3},{3,2},{4,3},{666,3}, ... ,{3000000,1}}
-
-    """
-    if verbose:
-        print("creating Taxid_2_FunctionCountArray_table_BTO_DOID")
-    # sort table to get group ENSPs of same TaxID
-    tools.sort_file(Protein_2_FunctionEnum_and_Score_table_STRING, Protein_2_FunctionEnum_and_Score_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
-    # get dict
-    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
-    num_lines = tools.line_numbers(Functions_table_STRING)
-    # reduce to relevant ENSPs
-    ENSP_set = get_all_ENSPs(TaxID_2_Proteins_table)
-
-    with open(Protein_2_FunctionEnum_and_Score_table_STRING, "r") as fh_in:
-        with open(Taxid_2_FunctionCountArray_table_BTO_DOID, "w") as fh_out:
-            line = next(fh_in)
-            fh_in.seek(0)
-            taxid_last, ENSP_last, funcEnum_2_count_list_last = helper_parse_line_protein_2_functionEnum_and_score(line)
-            funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
-            funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list_last)
-            for line in fh_in:
-                taxid, ENSP, funcEnum_2_count_list = helper_parse_line_protein_2_functionEnum_and_score(line)
-                if ENSP not in ENSP_set:
-                    continue
-                if taxid == taxid_last:
-                    # add to existing arr
-                    funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
-                else:
-                    # write to file
-                    background_count = taxid_2_total_protein_count_dict[taxid_last]
-                    funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
-                    fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
-                    # regenerate arr
-                    funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
-                    funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
-                # current becomes last
-                taxid_last = taxid
-
-            background_count = taxid_2_total_protein_count_dict[taxid_last]
-            funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
-            fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
-    if verbose:
-        print("done with Taxid_2_FunctionCountArray_table_BTO_DOID")
+# def Taxid_2_FunctionCountArray_table_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Taxid_2_FunctionCountArray_table_BTO_DOID, number_of_processes=1, verbose=True):
+#     """
+#     Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC.txt
+#     10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
+#     ENSP to functionEnumeration and its respective score
+#     scores >= 3 --> presence
+#     scores < 3 --> absence
+#     multiple ENSPs per taxid --> scores get summed up per TaxID
+#
+#     Taxid_2_FunctionCountArray_table_BTO_DOID.txt
+#     9606  19566  {{{0,3},{3,2},{4,3},{666,3}, ... ,{3000000,1}}
+#
+#     """
+#     if verbose:
+#         print("creating Taxid_2_FunctionCountArray_table_BTO_DOID")
+#     # sort table to get group ENSPs of same TaxID
+#     tools.sort_file(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, number_of_processes=number_of_processes, verbose=verbose)
+#     # get dict
+#     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
+#     num_lines = tools.line_numbers(Functions_table_STRING)
+#     # reduce to relevant ENSPs
+#     ENSP_set = get_all_ENSPs(TaxID_2_Proteins_table)
+#
+#     with open(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, "r") as fh_in:
+#         with open(Taxid_2_FunctionCountArray_table_BTO_DOID, "w") as fh_out:
+#             line = next(fh_in)
+#             fh_in.seek(0)
+#             taxid_last, ENSP_last, funcEnum_2_count_list_last = helper_parse_line_protein_2_functionEnum_and_score(line)
+#             funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
+#             funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list_last)
+#             for line in fh_in:
+#                 taxid, ENSP, funcEnum_2_count_list = helper_parse_line_protein_2_functionEnum_and_score(line)
+#                 if ENSP not in ENSP_set:
+#                     continue
+#                 if taxid == taxid_last:
+#                     # add to existing arr
+#                     funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
+#                 else:
+#                     # write to file
+#                     background_count = taxid_2_total_protein_count_dict[taxid_last]
+#                     funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
+#                     fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
+#                     # regenerate arr
+#                     funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
+#                     funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
+#                 # current becomes last
+#                 taxid_last = taxid
+#
+#             background_count = taxid_2_total_protein_count_dict[taxid_last]
+#             funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
+#             fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
+#     if verbose:
+#         print("done with Taxid_2_FunctionCountArray_table_BTO_DOID")
 
 def helper_parse_line_protein_2_functionEnum_and_score(line):
     """

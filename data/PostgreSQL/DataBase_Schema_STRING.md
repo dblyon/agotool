@@ -3,6 +3,7 @@
 |:---:|:---:|:---:|
 | GO:0008150 | -21 | GO biological process |
 | GO:0005575 | -22 | GO cellular component |
+| GO:0005575 | -20 | GO cellular component Textmining |
 | GO:0003674 | -23 | GO molecular function |
 | GO:OBSOLETE | -24 | GO obsolete |
 | KW-9990 | -51 | UniProt keyword Technical term |
