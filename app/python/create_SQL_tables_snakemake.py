@@ -954,8 +954,8 @@ def Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING,
     tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
-    print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_STRING_temp))
-    with open(fn_out_Taxid_2_FunctionCountArray_table_STRING_temp, "w") as fh_out:
+    print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_STRING))
+    with open(fn_out_Taxid_2_FunctionCountArray_table_STRING, "w") as fh_out:
         with open(Protein_2_FunctionEnum_table_STRING, "r") as fh_in:
             funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
             line = next(fh_in)
