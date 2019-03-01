@@ -539,7 +539,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             raise NotImplementedError
 
     def get_static_preloaded_objects(self, low_memory=False):
-        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
@@ -547,7 +547,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
         else:
             # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
-            # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+            # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.taxid_2_proteome_count,

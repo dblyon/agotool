@@ -2088,13 +2088,13 @@ def Protein_2_FunctionEnum_and_Score_table_STRING_old_retain_scores(Protein_2_Fu
     with open(fn_an_without_translation, "w") as fh_an_without_translation:
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
 
-def Protein_2_Function_DOID_BTO(Protein_2_Function_and_Score_DOID_GO_BTO, Taxid_2_Proteins_table_STRING, score_cutoff, Protein_2_Function_DOID_BTO):
+def Protein_2_Function_table_DOID_BTO(Protein_2_Function_and_Score_DOID_GO_BTO, Taxid_2_Proteins_table_STRING, score_cutoff, Protein_2_Function_table_DOID_BTO):
     """
     - remove anything on blacklist (all_hidden.tsv) already happend while creating Functions_table_DOID_BTO (and all terms not present therein will be filtered out)
     - omit GO-CC (etype -22)
     """
     ENSP_set = get_all_ENSPs(Taxid_2_Proteins_table_STRING)
-    with open(Protein_2_Function_DOID_BTO, "w") as fh_out:
+    with open(Protein_2_Function_table_DOID_BTO, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
             if ENSP not in ENSP_set: # debug
@@ -2110,7 +2110,7 @@ def Protein_2_Function_DOID_BTO(Protein_2_Function_and_Score_DOID_GO_BTO, Taxid_
                         funcs_list.append(an)
                 if len(funcs_list) == 0: # don't add empty results due to blacklisting or GO-CC terms
                     continue
-                fh_out.write(ENSP + "\t" + format_list_of_string_2_postgres_array(funcs_list) + "\t" + etype + "\n")
+                fh_out.write(ENSP + "\t" + format_list_of_string_2_postgres_array(funcs_list) + "\t" + etype)
 
 def helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str):
     funcName_2_score_list = []

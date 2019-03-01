@@ -149,7 +149,7 @@ Lineage_table_no_translation = os.path.join(TABLES_DIR, "Lineage_table_no_transl
 Lineage_table_hr = os.path.join(TABLES_DIR, "Lineage_table_hr.txt") # Human Readable
 Protein_2_FunctionEnum_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt")
 Protein_2_Function_table_PMID_combi = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_combi.txt")
-Protein_2_Function_DOID_BTO = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO.txt")
+Protein_2_Function_table_DOID_BTO = os.path.join(TABLES_DIR, "Protein_2_Function_table_DOID_BTO.txt")
 Protein_2_Function_table_GO = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
 Protein_2_Function_table_InterPro = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
 Protein_2_Function_table_KEGG = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
@@ -605,7 +605,7 @@ rule Protein_2_Function_table_STRING:
                        Protein_2_Function_table_UPK,
                        Protein_2_Function_table_PMID,
                        Protein_2_Function_table_RCTM,
-                       Protein_2_Function_DOID_BTO]
+                       Protein_2_Function_table_DOID_BTO]
     output:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
@@ -740,16 +740,16 @@ rule AFC_KS_enrichment_terms_flat_files:
 #     run:
 #         cst.Protein_2_FunctionEnum_and_Score_table_STRING(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Protein_2_FunctionEnum_and_Score_table_STRING, output.DOID_GO_BTO_an_without_translation)
 
-rule Protein_2_Function_DOID_BTO:
+rule Protein_2_Function_table_DOID_BTO:
     input:
         Protein_2_Function_and_Score_DOID_GO_BTO = Protein_2_Function_and_Score_DOID_GO_BTO,
         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
     output:
-        Protein_2_Function_DOID_BTO = Protein_2_Function_DOID_BTO,
+        Protein_2_Function_table_DOID_BTO = Protein_2_Function_table_DOID_BTO,
     params:
         score_cutoff = 3.0
     run:
-        cst.Protein_2_Function_DOID_BTO(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Taxid_2_Proteins_table_STRING, params.score_cutoff, output.Protein_2_Function_DOID_BTO)
+        cst.Protein_2_Function_table_DOID_BTO(input.Protein_2_Function_and_Score_DOID_GO_BTO, input.Taxid_2_Proteins_table_STRING, params.score_cutoff, output.Protein_2_Function_table_DOID_BTO)
 
 
 
