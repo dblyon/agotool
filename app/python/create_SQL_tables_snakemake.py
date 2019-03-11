@@ -2030,9 +2030,16 @@ def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_o
     doid_dag = obo_parser.GODag(obo_file=DOID_obo_Jensenlab)
     child_2_parent_dict = get_child_2_direct_parent_dict_from_dag(doid_dag)  # obsolete or top level terms have empty set for parents
     term_2_level_dict_doid = get_term_2_level_dict(child_2_parent_dict)
+
     gocc_dag = obo_parser.GODag(obo_file=GO_obo_Jensenlab)
     child_2_parent_dict = get_child_2_direct_parent_dict_from_dag(gocc_dag)  # obsolete or top level terms have empty set for parents
-    term_2_level_dict_gocc = get_term_2_level_dict(child_2_parent_dict)
+    term_2_level_dict_gocc_temp = get_term_2_level_dict(child_2_parent_dict)
+    term_2_level_dict_gocc = {}
+    # convert "GO:" to "GOCC:"
+    for term, level in term_2_level_dict_gocc_temp.items():
+        term = term.replace("GO:", "GOCC:")
+        term_2_level_dict_gocc[term] = level
+
     term_2_level_dict = {}
     term_2_level_dict.update(term_2_level_dict_doid)
     term_2_level_dict.update(term_2_level_dict_bto)
