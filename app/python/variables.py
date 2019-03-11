@@ -18,7 +18,7 @@ DEBUG = False # for flask and some internals for printing, set to False in produ
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = True # print stuff to stdout
+VERBOSE = False # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 temp_dont_run_analysis = False
@@ -28,7 +28,7 @@ if READ_FROM_FLAT_FILES and LOW_MEMORY:
 entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57}
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
-entity_types_with_ontology = {-21, -22, -23, -51, -54, -57}
+entity_types_with_ontology = {-21, -22, -23, -51, -57} # turn InterPro filter off
 entity_types_rem_foreground_ids = {-52, -53, -55} # all_etypes - PMID - ontologies
 
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
