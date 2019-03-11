@@ -3,6 +3,7 @@
 ### get the code to run the python flask app from github
 # clone git repo (master branch is STRING v11)
 git clone https://github.com/dblyon/agotool.git
+git checkout STRING_v11
 cd ./agotool/app
 
 ### install anaconda (follow online instructions)
@@ -18,6 +19,8 @@ rsync -avP /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11.3/STRING_v1
 # or alternatively rsync the txt files
 cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11.3
 rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . dblyon@san.embl.de:/home/dblyon/agotool/data/PostgreSQL/tables/
+# cd to agotool/data/PostgreSQL/tables/ and unzip files
+unzip STRING_v11.3_flat_files.zip
 
 
 ### activate the environment (or use absolute path of python bin)
@@ -27,7 +30,7 @@ conda info -e
 
 ### compile/build the Cythonized extension module
 cd agotool/app/python
-# compile run_cythonized.***.so
+# compile run_cythonized.*.so
 /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python setup.py build_ext --inplace
 
 ### start the python flask server
