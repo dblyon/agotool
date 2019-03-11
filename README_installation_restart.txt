@@ -31,10 +31,10 @@ conda info -e
 ### compile/build the Cythonized extension module
 cd agotool/app/python
 # compile run_cythonized.*.so
-/mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python setup.py build_ext --inplace
+/mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python setup.py build_ext --inplace --force
 
 ### start the python flask server
+# stop old python flask server if still running and then restart new one
 cd ./agotool/app
 nohup /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python runserver.py  &>/dev/null &
 ################################################################################
-

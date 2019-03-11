@@ -11,7 +11,7 @@ from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-import query, userinput, run, variables, cluster_filter # todo remove cluster_filter
+import query, userinput, run, variables
 # from profilehooks import profile
 ###############################################################################
 variables.makedirs_()
