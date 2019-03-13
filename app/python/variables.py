@@ -210,10 +210,10 @@ tables_dict = {
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_FIN.txt"),
     "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt"),
     "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
-    "TaxID_2_Proteins_table": os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_FIN.txt"),
+    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt"),
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_FIN.txt"),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_FIN.txt"),
-    "KEGG_TaxID_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_TaxID_2_acronym_table_FIN.txt")
+    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt")
 }
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):

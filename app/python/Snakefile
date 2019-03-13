@@ -147,7 +147,7 @@ Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
 Functions_table_FIN = variables.tables_dict["Functions_table"]
 Functions_table_STRING_removed = os.path.join(TABLES_DIR, "Functions_table_STRING_removed.txt")
 Functions_table_UPK = os.path.join(TABLES_DIR, "Functions_table_UPK.txt")
-Lineage_table_FIN = variables.tables_dict["Lineaege_table"]
+Lineage_table_FIN = variables.tables_dict["Lineage_table"]
 Lineage_table_no_translation = os.path.join(TABLES_DIR, "Lineage_table_no_translation.txt")
 Lineage_table_hr = os.path.join(TABLES_DIR, "Lineage_table_hr.txt") # Human Readable
 # Protein_2_FunctionEnum_table_FIN = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt")
@@ -157,8 +157,8 @@ Protein_2_Function_table_DOID_BTO = os.path.join(TABLES_DIR, "Protein_2_Function
 Protein_2_Function_table_GO = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
 Protein_2_Function_table_InterPro = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
 Protein_2_Function_table_KEGG = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
-# KEGG_TaxID_2_acronym_table = os.path.join(TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt")
-KEGG_TaxID_2_acronym_table_FIN = variables.tables_dict["KEGG_TaxID_2_acronym_table"]
+# KEGG_Taxid_2_acronym_table = os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table.txt")
+KEGG_Taxid_2_acronym_table_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
 Protein_2_Function_table_PFAM = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM.txt")
 Protein_2_Function_table_RCTM = os.path.join(TABLES_DIR, "Protein_2_Function_table_RCTM.txt")
 Protein_2_Function_table_SMART = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
@@ -497,10 +497,10 @@ rule Protein_2_Function_table_KEGG:
         KEGG_benchmarking = KEGG_benchmarking
     output:
         Protein_2_Function_table_KEGG = Protein_2_Function_table_KEGG,
-        KEGG_TaxID_2_acronym_table_FIN = KEGG_TaxID_2_acronym_table_FIN
+        KEGG_Taxid_2_acronym_table_FIN = KEGG_Taxid_2_acronym_table_FIN
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_KEGG(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG, output.KEGG_TaxID_2_acronym_table_FIN, threads)
+        cst.Protein_2_Function_table_KEGG(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG, output.KEGG_Taxid_2_acronym_table_FIN, threads)
 
 rule Protein_2_Function_table_SMART__and__PFAM_helper:
     input:
@@ -704,13 +704,13 @@ rule AFC_KS_enrichment_terms_flat_files:
         Protein_shorthands = Protein_shorthands,
         Functions_table_FIN = Functions_table_FIN,
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
-        KEGG_TaxID_2_acronym_table_FIN = KEGG_TaxID_2_acronym_table_FIN
+        KEGG_Taxid_2_acronym_table_FIN = KEGG_Taxid_2_acronym_table_FIN
     output:
         AFC_KS_DIR = AFC_KS_DIR
     params:
         verbose = verbose
     run:
-        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_FIN, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_TaxID_2_acronym_table_FIN, output.AFC_KS_DIR, params.verbose)
+        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_FIN, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_Taxid_2_acronym_table_FIN, output.AFC_KS_DIR, params.verbose)
 
 rule Protein_2_FunctionEnum_and_Score_table: # retain_scores
     input:
