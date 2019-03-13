@@ -1650,7 +1650,7 @@ def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_mat
                 # else:
                 #     PMID_not_relevant.append(PMID_including_prefix)
 
-def Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
+def Protein_2_Function_table_FIN(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
     ### concatenate files
     fn_out_Protein_2_Function_table_STRING_temp = fn_out_Protein_2_Function_table_STRING + "_temp"
@@ -2119,7 +2119,7 @@ def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_
                 funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
                 for an_score in funcName_2_score_list:
                     an, score = an_score
-                    if GO_CC_textmining_additional_etype:
+                    if GO_CC_textmining_additional_etype: # works only if GOCC textmining etype 20 is included in Functions_table_all and then not excluded in Functions_table_FIN
                         if etype == "-22": # change etype to separate etype GO-CC (etype -22 --> -20)
                             an = an.replace("GO:", "GOCC:")
                     try:
@@ -2128,7 +2128,7 @@ def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_
                     except KeyError: # because e.g. blacklisted
                         an_without_translation.append(an)
 
-        if len(funcEnum_2_score) > 0:  # don't add empty results due to blacklisting or GO-CC terms
+        if len(funcEnum_2_score) > 0 and ENSP in ENSP_set:  # don't add empty results due to blacklisting or GO-CC terms
             funcEnum_2_score.sort(key=lambda sublist: sublist[0])  # sort anEnum in ascending order
             funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
             funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")

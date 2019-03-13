@@ -693,7 +693,7 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
     """
     ENSP_2_tuple_funcEnum_score_dict = {}
     if read_from_flat_files:
-        fn = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt")
+        # fn = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt")
         fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
         results = get_results_of_statement_from_flat_file(fn)
     else:
@@ -734,7 +734,7 @@ def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):
     KEGG_TaxID_2_acronym_dict = {}
     if read_from_flat_files:
         # fn = os.path.join(variables.TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt")
-        fn = variables.tables_dict["KEGG_TaxID_2_acronym_table"]
+        fn = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
         results = get_results_of_statement_from_flat_file(fn)
     else:
         raise NotImplementedError # result = get_results_of_statement()

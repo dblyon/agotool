@@ -1,4 +1,4 @@
-### entity_types [Entity_types_table_STRING.txt]
+### entity_types [Entity_types_table_FIN.txt]
 | an | etype | name |
 |:---:|:---:|:---:|
 | GO:0008150 | -21 | GO biological process |
@@ -38,7 +38,7 @@
 | clusters | -78 | STRING clusters |
 
 
-### functions [Functions_table_STRING.txt]
+### functions [Functions_table_FIN.txt]
 | enum | etype | an | description | year | level |
 |:---:|:---:|:---:|:---:|:---:|:--:|
 | 0 | -21 | GO:0000001 | mitochondrion inheritance | -1 | 5 |
@@ -52,7 +52,7 @@
 | 791705 | -56 | PMID:12926249 | (2003) QMMM calculations of kinetic isotope effects in the chorismate mutase active site. | 2003 | -1 |
 
 
-### function_2_ENSP [Function_2_ENSP_table_STRING.txt]
+### function_2_ENSP [Function_2_ENSP_table_FIN.txt]
 | taxid | etype | association | background_count | background_n | an_array |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } |
@@ -60,25 +60,7 @@
 | 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'9606.ENSP00000000412'} |
 
 
-### go_2_slim [GO_2_Slim_table_STRING.txt]
-| an | slim |
-|:---:|:---:|
-| GO:0000003 | 1 |
-
-
-### ontologies [Ontologies_table_STRING.txt]
-| child | parent | direct | etype |
-|:---:|:---:|:---:|:---:|
-| GO:0008152 | GO:0008150 | 1 | -21 |
-| GO:0032259 | GO:0008152 | 1 | -21 |
-| GO:0032259 | GO:0008150 | 0 | -21 |
-| GO:0097042 | GO:0005575 | 0 | -22 |
-| GO:0072591 | GO:0003674 | 0 | -23 |
-| KW-0440 | KW-9993 | 0 | -51 |
-| KW-0440 | KW-9994 | 1 | -51 |
-
-
-### protein_2_function [Protein_2_Function_table_STRING.txt]
+### protein_2_function [Protein_2_Function_table_FIN.txt]
 | an | func_array | etype |
 |:---:|:---:|:---:|
 | 9606.ENSP00000000233 | {"GO:0006810","GO:0007154","GO:0007165","GO:0007264","GO:0008104","GO:0008150","GO:0008150","GO:0008152","GO:0009987","GO:0015031","GO:0015833","GO:0016192","GO:0023052","GO:0033036","GO:0035556","GO:0042886","GO:0044700","GO:0044763","GO:0045184","GO:0050789","GO:0050794","GO:0050896","GO:0051179","GO:0051234","GO:0051716","GO:0065007","GO:0071702","GO:0071705"} | -21 |
@@ -92,7 +74,7 @@
 | 9606.ENSP00000000412 | {"PF09451","PF02157"} | -55 |
 
 
-### protein_2_functionEnum [Protein_2_FunctionEnum_table_STRING.txt]
+### protein_2_functionEnum [Protein_2_FunctionEnum_table_FIN.txt]
 | an | func_enum_array |
 |:---:|:---:|
 | 1000565.METUNv1_00006 | {47403, 48329, 48422, 52375, 86134, 97354, 97505} |
@@ -108,27 +90,27 @@
 | 9986.ENSOCUP00000018664 | {47403, 48329, 48422} |
 
 
-### lineage [Lineage_table_STRING.txt]
+### lineage [Lineage_table_FIN.txt]
 | func_enum | func_enum_array |
 | 0 | {2803, 2809, 3348, 4057, 5420, 14355, 14358, 15352, 15697, 15698, 15703, 19423} |
 | 1 | {2803, 2809, 3348, 4057, 5420, 9249, 19423} |
 | 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
 
 
-### taxid_2_proteins [TaxID_2_Proteins_table_STRING.txt]
+### taxid_2_proteins [TaxID_2_Proteins_table_FIN.txt]
 | taxid | an_array | count |
 |:---:|:---:|:---:|
 | 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 |
 | 1000565 | {"1000565.METUNv1_00006","1000565.METUNv1_00011","1000565.METUNv1_00018","1000565.METUNv1_00019", ...} | 12345 |
 
 
-### Taxid_2_FunctionCountArray [Taxid_2_FunctionCountArray_table_STRING.txt]
+### Taxid_2_FunctionCountArray [Taxid_2_FunctionCountArray_table_FIN.txt]
 | taxid | background_n | background_count_array |
 |:---:|:---:|:---:|
 | 9606 | 19566 | {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ... |
 | 100901 | 647 | {{3328085,2},{3635192,6},{4454829,2},{47234,4}, ... |
 | 7230 | 14594 | {{100001,2},{1000164,6},{100046,2},{100058,9}, ... |
 
-### Protein_2_FunctionEnum_and_Score_table_STRING.txt
+### Protein_2_FunctionEnum_and_Score_table_FIN.txt
 |:---:|:---:|
 | 9606.ENSP00000000233 | {{33885,1.00616},{34752,0.709055},{35541,1.297117},{35543,1.296111},{35907,0.600582},{36031,0.670014},{36271,0.527888},{36276,0.552587}, ... } |
