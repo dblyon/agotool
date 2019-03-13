@@ -75,7 +75,7 @@ Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Descriptio
 
 URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
 Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
-Functions_table_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Function_2_Description_DOID_BTO_GOCC.txt")
+Functions_table_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Functions_table_DOID_BTO_GOCC.txt")
 
 URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
 Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
@@ -142,7 +142,7 @@ Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt") # un
 Functions_table_RCTM = os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")
 Functions_table_SMART = os.path.join(TABLES_DIR, "Functions_table_SMART.txt")
 Functions_table_SMART_no_mapping = os.path.join(TABLES_DIR, "Functions_table_SMART_no_mapping.txt")
-Functions_table_STRING_all = os.path.join(TABLES_DIR, "Functions_table_STRING_all.txt")
+Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
 # Functions_table_FIN = os.path.join(TABLES_DIR, "Functions_table_FIN.txt") # reduced table
 Functions_table_FIN = variables.tables_dict["Functions_table"]
 Functions_table_STRING_removed = os.path.join(TABLES_DIR, "Functions_table_STRING_removed.txt")
@@ -463,7 +463,7 @@ rule Functions_table_DOID_BTO_GOCC:
 #     run:
 #         cst.Functions_table_GO_or_UPK(input.GO_obo_Jensenlab, output.Functions_table_GO, params.is_upk, param.GO_CC_textmining_additional_etype)
 
-rule Functions_table_STRING_all:
+rule Functions_table_all:
     input:
         fn_list_str = [Functions_table_INTERPRO,
                        Functions_table_KEGG,
@@ -475,11 +475,11 @@ rule Functions_table_STRING_all:
                        Functions_table_RCTM,
                        Functions_table_DOID_BTO_GOCC]
     output:
-        Functions_table_STRING_all = Functions_table_STRING_all,
+        Functions_table_all = Functions_table_all,
         Functions_tables_STRING_temp = Functions_tables_STRING_temp
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_tables_STRING_temp, output.Functions_table_STRING_all, threads)
+        cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_tables_STRING_temp, output.Functions_table_all, threads)
 
 rule Taxid_2_Proteins_table_FIN:
     input:
@@ -490,17 +490,17 @@ rule Taxid_2_Proteins_table_FIN:
     params:
         verbose = verbose
     run:
-        cst.TaxID_2_Proteins_table(input.Protein_shorthands, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
+        cst.TaxID_2_Proteins_table_FIN(input.Protein_shorthands, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
 
 rule Protein_2_Function_table_KEGG:
     input:
         KEGG_benchmarking = KEGG_benchmarking
     output:
         Protein_2_Function_table_KEGG = Protein_2_Function_table_KEGG,
-        KEGG_TaxID_2_acronym_table = KEGG_TaxID_2_acronym_table
+        KEGG_TaxID_2_acronym_table_FIN = KEGG_TaxID_2_acronym_table_FIN
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_KEGG(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG, output.KEGG_TaxID_2_acronym_table, threads)
+        cst.Protein_2_Function_table_KEGG(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG, output.KEGG_TaxID_2_acronym_table_FIN, threads)
 
 rule Protein_2_Function_table_SMART__and__PFAM_helper:
     input:
@@ -610,7 +610,7 @@ rule Function_2_ENSP_table:
     input:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING,
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
-        Functions_table_STRING_all = Functions_table_STRING_all,
+        Functions_table_all = Functions_table_all,
     output:
         Function_2_ENSP_table_STRING = Function_2_ENSP_table_STRING,
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
@@ -619,18 +619,17 @@ rule Function_2_ENSP_table:
         min_count = min_count,
         verbose = verbose
     run:
-        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.Taxid_2_Proteins_table_FIN, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
+        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.Taxid_2_Proteins_table_FIN, input.Functions_table_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
 
 rule Functions_table_FIN:
     input:
-        Functions_table_STRING_all = Functions_table_STRING_all,
+        Functions_table_all = Functions_table_all,
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
-
     output:
         Functions_table_STRING_removed = Functions_table_STRING_removed,
         Functions_table_FIN = Functions_table_FIN
     run:
-        cst.Functions_table_FIN(input.Functions_table_STRING_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_FIN)
+        cst.Functions_table_FIN(input.Functions_table_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_FIN)
 
 rule Protein_2_Function_table_reduced:
     input:
@@ -705,13 +704,13 @@ rule AFC_KS_enrichment_terms_flat_files:
         Protein_shorthands = Protein_shorthands,
         Functions_table_FIN = Functions_table_FIN,
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
-        KEGG_TaxID_2_acronym_table = KEGG_TaxID_2_acronym_table
+        KEGG_TaxID_2_acronym_table_FIN = KEGG_TaxID_2_acronym_table_FIN
     output:
         AFC_KS_DIR = AFC_KS_DIR
     params:
         verbose = verbose
     run:
-        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_FIN, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_TaxID_2_acronym_table, output.AFC_KS_DIR, params.verbose)
+        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_FIN, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_TaxID_2_acronym_table_FIN, output.AFC_KS_DIR, params.verbose)
 
 rule Protein_2_FunctionEnum_and_Score_table: # retain_scores
     input:
@@ -739,7 +738,7 @@ rule Protein_2_FunctionEnum_and_Score_table: # retain_scores
 
 ##########################################################################################
 ##### some stuff below
-# Taxid_2_FunctionCountArray_table_FIN Lineage_table_FIN Protein_2_FunctionEnum_table_FIN Functions_table_STRING_all Function_2_ENSP_table Functions_table_FIN AFC_KS_enrichment_terms_flat_files
+# Taxid_2_FunctionCountArray_table_FIN Lineage_table_FIN Protein_2_FunctionEnum_table_FIN Functions_table_all Function_2_ENSP_table Functions_table_FIN AFC_KS_enrichment_terms_flat_files
 # rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11
 # Functions_table_UPK Functions_table_GO
 # read_from_flat_files get_results_of_statement_from_flat_file
