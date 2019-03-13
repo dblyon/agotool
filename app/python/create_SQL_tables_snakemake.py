@@ -1780,7 +1780,7 @@ def Functions_table_FIN(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduc
                     if function in all_relevant_functions:
                         fh_out_reduced.write(str(counter) + "\t" + etype + "\t" + function + "\t" + description + "\t" + year + "\t" + hier_newline)
                         counter += 1
-                    elif etype == "-25" or etype == "-26": # include all DOID and BTO terms
+                    elif etype == "-25" or etype == "-26" or etype == "-20": # include all DOID and BTO terms and GOCC (additional etype)
                         fh_out_reduced.write(str(counter) + "\t" + etype + "\t" + function + "\t" + description + "\t" + year + "\t" + hier_newline)
                         counter += 1
                     else:
