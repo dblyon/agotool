@@ -2069,7 +2069,7 @@ def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_o
                 level = -1
             fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
 
-def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Taxid_2_Proteins_table_STRING, Protein_2_FunctionEnum_and_Score_table, fn_an_without_translation, GO_CC_textmining_additional_etype=False):
+def Protein_2_FunctionEnum_and_Score_table_FIN(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Taxid_2_Proteins_table_STRING, Protein_2_FunctionEnum_and_Score_table, fn_an_without_translation, GO_CC_textmining_additional_etype=False):
     """
     temp
     3702.AT1G01010.1        {{"GO:0005777",0.535714},{"GO:0005783",0.214286},{"GO:0044444",1.234689},{"GO:0043226",3.257143},{"GO:0005575",4.2},{"GO:0044425",3},{"GO:0042579",0.535714},{"GO:0016020",3},{"GO:0031224",3},{"GO:0005794",0.642857},{"GO:0005854",0.741623},{"GO:0044214",0.639807},{"GO:0043227",3.257143},{"GO:0005622",4.166357},{"GO:0005737",1.234689},{"GO:0009507",0.214286},{"GO:0005773",0.428571},{"GO:0043229",3.257143},{"GO:0005829",1.189679},{"GO:0005623",4.195121},{"GO:0009536",0.214286},{"GO:0005634",3.257143},{"GO:0044464",4.195121},{"GO:0016021",3},{"GO:0043231",3.257143},{"GO:0044424",4.166357}}        -22
@@ -2090,6 +2090,7 @@ def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_
     - remove anything on blacklist (all_hidden.tsv) already happend while creating Functions_table_DOID_BTO (and all terms not present therein will be filtered out)
     - omit GO-CC (etype -22)
     """
+    ENSP_last, ENSP = "bubu", "bubu"
     funcEnum_2_score = []
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_STRING_reduced, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
@@ -2103,30 +2104,26 @@ def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
             etype = etype.strip()
-            if ENSP not in ENSP_set:
-                continue
-            else:
-                if ENSP != ENSP_last: # write old results and parse new
-                    if len(funcEnum_2_score) == 0: # don't add empty results due to blacklisting or GO-CC terms
-                        continue
+            if ENSP != ENSP_last: # write old results and parse new
+                if len(funcEnum_2_score) > 0 and ENSP in ENSP_set: # don't add empty results due to blacklisting or GO-CC terms
                     funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
                     funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
                     funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
                     fh_out.write(ENSP_last + "\t" + funcEnum_2_score + "\n")
-                    funcEnum_2_score = []
-                    ENSP_last = ENSP
-                # parse current and add to funcEnum_2_score
-                funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
-                for an_score in funcName_2_score_list:
-                    an, score = an_score
-                    if GO_CC_textmining_additional_etype: # works only if GOCC textmining etype 20 is included in Functions_table_all and then not excluded in Functions_table_FIN
-                        if etype == "-22": # change etype to separate etype GO-CC (etype -22 --> -20)
-                            an = an.replace("GO:", "GOCC:")
-                    try:
-                        anEnum = term_2_enum_dict[an]
-                        funcEnum_2_score.append([anEnum, score])
-                    except KeyError: # because e.g. blacklisted
-                        an_without_translation.append(an)
+                funcEnum_2_score = []
+                ENSP_last = ENSP
+            # parse current and add to funcEnum_2_score
+            funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
+            for an_score in funcName_2_score_list:
+                an, score = an_score
+                if GO_CC_textmining_additional_etype: # works only if GOCC textmining etype 20 is included in Functions_table_all and then not excluded in Functions_table_FIN
+                    if etype == "-22": # change etype to separate etype GO-CC (etype -22 --> -20)
+                        an = an.replace("GO:", "GOCC:")
+                try:
+                    anEnum = term_2_enum_dict[an]
+                    funcEnum_2_score.append([anEnum, score])
+                except KeyError: # because e.g. blacklisted
+                    an_without_translation.append(an)
 
         if len(funcEnum_2_score) > 0 and ENSP in ENSP_set:  # don't add empty results due to blacklisting or GO-CC terms
             funcEnum_2_score.sort(key=lambda sublist: sublist[0])  # sort anEnum in ascending order
