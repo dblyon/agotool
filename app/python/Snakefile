@@ -162,7 +162,7 @@ Protein_2_Function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_t
 Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
 Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
 Protein_2_Function_table_UPK = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK.txt")
-Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC.txt")
+Protein_2_FunctionEnum_and_Score_table = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table.txt")
 Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 Taxid_2_FunctionCountArray_table_STRING_temp = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING_temp.txt")
 Taxid_2_FunctionCountArray_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
@@ -707,18 +707,18 @@ rule AFC_KS_enrichment_terms_flat_files:
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_TaxID_2_acronym_table, output.AFC_KS_DIR, params.verbose)
 
-rule Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC: # retain_scores
+rule Protein_2_FunctionEnum_and_Score_table: # retain_scores
     input:
         Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
     output:
-        Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC = Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC,
+        Protein_2_FunctionEnum_and_Score_table = Protein_2_FunctionEnum_and_Score_table,
         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, output.DOID_GO_BTO_an_without_translation, params.GO_CC_textmining_additional_etype)
+        cst.Protein_2_FunctionEnum_and_Score_table(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Protein_2_FunctionEnum_and_Score_table, output.DOID_GO_BTO_an_without_translation, params.GO_CC_textmining_additional_etype)
 
 # rule Protein_2_Function_table_DOID_BTO: # hard_cutoff
 #     input:
@@ -753,11 +753,43 @@ rule Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC: # retain_scores
 # filter PMID associations that are not STRING ENSPs. use Taxid_2_Proteins_table_STRING @Protein_2_Function_table_PMID
 # Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced --> no ENSP filter, since filter Function_2_ENSP will kick in --> done
 
-# ToDo
+##### ToDo
 # 1.) cleanup Functions_table_STRING
 # e.g.
 # $ grep "GO:0005634" Functions_table_STRING.txt
 # 17614   -22     GO:0005634      Nucleus -1      -1
 # 17615   -22     GO:0005634      nucleus -1      8
-# 2.) Taxid_2_FunctionCountArray_table_STRING
+
+# 2.) Taxid_2_FunctionCountArray_table_STRING  --> fixed
 # got counts from Taxid_2_FunctionCountArray_table_BTO_DOID without applying the same algo as for the foreground
+
+# 3.) Protein_2_FunctionEnum_and_Score_table_STRING --> done test it
+# single row entry per etype which should be merged
+
+# 4.) WikiPathways
+# link http://data.wikipathways.org
+# use gmt = Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
+# map Entrez Gene IDs to UniProt using ???
+# map Entrez Gene IDs to STRING IDs using ???
+# Functions_table_Wikipathways.txt ???
+
+# 5.) ? How to count Jensenlab Scores?
+# bin into 5 categories, like using a hard-cutoff, and merge results (correcting p-values * number_of_bins), duplicate terms --> select best p-value?
+# bins: 0-5, 1-5, 2-5, 3-5, 4-5
+
+# 6.) unify names
+# Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC_tables.txt Protein_2_FunctionEnum_and_Score_table_STRING.txt
+
+# Alex Pico
+# -  no hierarchy/ontology present --> no backtracking needed
+# - link out to basic URL of pathway or revision?
+    # e.g.
+    # https://www.wikipathways.org/instance/WP261
+    # https://www.wikipathways.org/instance/WP261_r92999
+# - Is there a table with all pathways?
+    # e.g. Glycine biosynthesis; WikiP_ID
+    # is "Glycine biosynthesis" for Arabidopsis different to another plant?
+
+# 7.) change STRING to FIN
+# - snakemake
+# - query flat files

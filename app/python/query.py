@@ -476,7 +476,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict(read_from_flat_files)
 
         if variables.VERBOSE:
-            print("getting taxid_2_tuple_funcEnum_index_2_associations_counts ")
+            print("getting taxid_2_tuple_funcEnum_index_2_associations_counts")
         #background
         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
 
@@ -491,7 +491,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting ENSP_2_Score_dict careful since this uses offset indices for BTO and DOID")
         self.ENSP_2_tuple_funcEnum_score_dict = get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
 
-
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
             print("getting preloaded objects per analysis")
@@ -501,7 +500,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("finished with PQO init")
-            print("gogogo and fly like the wind")
+            print("GO go go and fly like the wind")
             print("#" * 80)
 
     @contextmanager
@@ -684,10 +683,11 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
     """
     key = ENSP
     val = tuple(arr of function Enumeration, arr of scores)
-    for BTO and DOID terms
+    for BTO, DOID, and GO-CC terms
 
     Protein_2_FunctionEnum_and_Score_table_STRING.txt
     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}}
+    :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
     """
     ENSP_2_tuple_funcEnum_score_dict = {}
     if read_from_flat_files:
