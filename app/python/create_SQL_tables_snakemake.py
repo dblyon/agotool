@@ -2096,20 +2096,9 @@ def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_
     ENSP_set = get_all_ENSPs(Taxid_2_Proteins_table_STRING)
     an_without_translation = []
     with open(Protein_2_FunctionEnum_and_Score_table, "w") as fh_out:
-        ENSP_last, funcName_2_score_arr_str_last, etype_last = next(fh_out).split("\t")
-        fh_out.seek(0)
-        if ENSP_last in ENSP_set:
-            funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str_last)
-            for an_score in funcName_2_score_list:
-                an, score = an_score
-                if GO_CC_textmining_additional_etype:
-                    if etype_last == "-22":  # change etype to separate etype GO-CC (etype -22 --> -20)
-                        an = an.replace("GO:", "GOCC:")
-                try:
-                    anEnum = term_2_enum_dict[an]
-                    funcEnum_2_score.append([anEnum, score])
-                except KeyError:  # because e.g. blacklisted
-                    an_without_translation.append(an)
+        for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
+            ENSP_last, funcName_2_score_arr_str_last, etype_last = line.split("\t")
+            break
 
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_GO_BTO):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
@@ -2125,13 +2114,13 @@ def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_
                     funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
                     fh_out.write(ENSP_last + "\t" + funcEnum_2_score + "\n")
                     funcEnum_2_score = []
-                # parse current
+                    ENSP_last = ENSP
+                # parse current and add to funcEnum_2_score
                 funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
                 for an_score in funcName_2_score_list:
                     an, score = an_score
                     if GO_CC_textmining_additional_etype:
                         if etype == "-22": # change etype to separate etype GO-CC (etype -22 --> -20)
-                            # etype = "-20" # unused
                             an = an.replace("GO:", "GOCC:")
                     try:
                         anEnum = term_2_enum_dict[an]
@@ -2139,30 +2128,14 @@ def Protein_2_FunctionEnum_and_Score_table(Protein_2_Function_and_Score_DOID_GO_
                     except KeyError: # because e.g. blacklisted
                         an_without_translation.append(an)
 
+        if len(funcEnum_2_score) > 0:  # don't add empty results due to blacklisting or GO-CC terms
+            funcEnum_2_score.sort(key=lambda sublist: sublist[0])  # sort anEnum in ascending order
+            funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
+            funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
+            fh_out.write(ENSP + "\t" + funcEnum_2_score + "\n")
+
     with open(fn_an_without_translation, "w") as fh_an_without_translation:
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
-
-def helper_bubu(ENSP, funcName_2_score_arr_str, etype, ENSP_set, GO_CC_textmining_additional_etype, term_2_enum_dict, an_without_translation):
-    etype = etype.strip()
-    if ENSP not in ENSP_set:  # debug
-        # continue
-        return False
-    else:
-        funcEnum_2_score = []
-        funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
-        for an_score in funcName_2_score_list:
-            an, score = an_score
-            if GO_CC_textmining_additional_etype:
-                if etype == "-22":  # change etype to separate etype GO-CC (etype -22 --> -20)
-                    # etype = "-20"
-                    an = an.replace("GO:", "GOCC:")
-            try:
-                anEnum = term_2_enum_dict[an]
-                funcEnum_2_score.append([anEnum, score])
-            except KeyError:  # because e.g. blacklisted
-                an_without_translation.append(an)
-    return True
-
 
 def Protein_2_Function_table_DOID_BTO_hard_cutoff(Protein_2_Function_and_Score_DOID_GO_BTO, Taxid_2_Proteins_table_STRING, score_cutoff, Protein_2_Function_table_DOID_BTO):
     """
