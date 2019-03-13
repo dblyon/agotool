@@ -644,11 +644,11 @@ def get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Funct
             enum_2_function_dict[enum] = function_
     return function_2_enum_dict, enum_2_function_dict
 
-def Protein_2_FunctionEnum_table_STRING(fn_Functions_table_STRING, fn_in_Protein_2_function_table_STRING, fn_out_Protein_2_functionEnum_table_STRING, number_of_processes=1):
+def Protein_2_FunctionEnum_table_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table_STRING, fn_out_Protein_2_functionEnum_table_FIN, number_of_processes=1):
     function_2_enum_dict, enum_2_function_dict = get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING)
     tools.sort_file(fn_in_Protein_2_function_table_STRING, fn_in_Protein_2_function_table_STRING, number_of_processes=number_of_processes)
     with open(fn_in_Protein_2_function_table_STRING, "r") as fh_in:
-        with open(fn_out_Protein_2_functionEnum_table_STRING, "w") as fh_out:
+        with open(fn_out_Protein_2_functionEnum_table_FIN, "w") as fh_out:
             ENSP_last, function_arr_str, etype = fh_in.readline().strip().split("\t")
             function_arr = literal_eval(function_arr_str)
             functionEnum_list = _helper_format_array(function_arr, function_2_enum_dict)
@@ -677,7 +677,7 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation, fn_out_lineage_table_hr, GO_CC_textmining_additional_etype=False):
+def Lineage_table_FIN(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_no_translation, fn_out_lineage_table_hr, GO_CC_textmining_additional_etype=False):
     lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
@@ -865,7 +865,7 @@ def yield_split_line_from_file(fn_in, line_numbers=False, split_on="\t"):
             line_split[-1] = line_split[-1].strip()
             yield line_split
 
-def TaxID_2_Proteins_table(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
+def TaxID_2_Proteins_table_FIN(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
     if verbose:
         print("Creating TaxID_2_Proteins_table.txt")
         print("protein_shorthands needs sorting, doing it now")
@@ -963,17 +963,17 @@ def TaxID_2_Proteins_table(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_tab
 #                 fh_out.write(taxid + "\t" + background_n + "\t" + str(funcEnum_count_arr).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
 #     print("Taxid_2_FunctionCountArray_table_STRING done :)")
 
-def Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_STRING, number_of_processes=1, verbose=True):
+def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
     # - sort Protein_2_FunctionEnum_table_STRING.txt
     # - create array of zeros of function_enumeration_length
     # - for line in Protein_2_FunctionEnum_table_STRING
     #     add counts to array until taxid_new != taxid_previous
-    print("creating Taxid_2_FunctionCountArray_table_STRING")
+    print("creating Taxid_2_FunctionCountArray_table_FIN")
     tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
-    print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_STRING))
-    with open(fn_out_Taxid_2_FunctionCountArray_table_STRING, "w") as fh_out:
+    print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_FIN))
+    with open(fn_out_Taxid_2_FunctionCountArray_table_FIN, "w") as fh_out:
         with open(Protein_2_FunctionEnum_table_STRING, "r") as fh_in:
             funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
             line = next(fh_in)
@@ -1756,7 +1756,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins
     if verbose:
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
-def Functions_table_STRING_reduced(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
+def Functions_table_FIN(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
     """
     create Functions_table_STRING_reduced
     """

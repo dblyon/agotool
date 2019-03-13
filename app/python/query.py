@@ -597,7 +597,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         :return: immutable numpy array of int
         """
         if read_from_flat_files:
-            result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt"))
+            # fn = os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt")
+            fn = variables.tables_dict["Functions_table"]
+            result = get_results_of_statement_from_flat_file(fn)
             result = list(result)
         else:
             result = get_results_of_statement("SELECT * FROM functions")
@@ -691,7 +693,9 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
     """
     ENSP_2_tuple_funcEnum_score_dict = {}
     if read_from_flat_files:
-        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt"))
+        fn = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt")
+        fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+        results = get_results_of_statement_from_flat_file(fn)
     else:
         raise NotImplementedError
 
@@ -729,7 +733,9 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
 def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):
     KEGG_TaxID_2_acronym_dict = {}
     if read_from_flat_files:
-        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt"))
+        # fn = os.path.join(variables.TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt")
+        fn = variables.tables_dict["KEGG_TaxID_2_acronym_table"]
+        results = get_results_of_statement_from_flat_file(fn)
     else:
         raise NotImplementedError # result = get_results_of_statement()
     for res in results:
@@ -834,7 +840,9 @@ def get_parents_iterative(child, child_2_parent_dict):
 def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
     lineage_dict = {} # key: function enumeration, value: set of func enum array all parents and children
     if read_from_flat_files:
-        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Lineage_table_STRING.txt"))
+        # fn = os.path.join(variables.TABLES_DIR, "Lineage_table_STRING.txt")
+        fn = variables.tables_dict["Lineage_table"]
+        results = get_results_of_statement_from_flat_file(fn)
         for res in results:
             term, lineage = res
             term = int(term)
@@ -909,7 +917,9 @@ def get_ENSP_2_functionEnumArray_dict(read_from_flat_files=False):
     """
     ENSP_2_functionEnumArray_dict = {} # key: String (ENSP), val: np.array(uint32) of function enumerations
     if read_from_flat_files:
-        result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt"))
+        # fn = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt")
+        fn = variables.tables_dict["Protein_2_FunctionEnum_table"]
+        result = get_results_of_statement_from_flat_file(fn)
         for res in result:
             ENSP, funcEnumArray = res
             funcEnumArray = funcEnumArray[1:-1].split(",")
@@ -977,7 +987,9 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
             counts_arr.flags.writeable = False
             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
     else:
-        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt"))
+        # fn = os.path.join(variables.TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
+        fn = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
+        results = get_results_of_statement_from_flat_file(fn)
         for res in results:
             taxid, background_count, background_count_array = res
             taxid = int(taxid)
@@ -1091,7 +1103,8 @@ def get_taxids(read_from_flat_files=False, fn=None):
     if read_from_flat_files:
         taxids = []
         if fn is None:
-            Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+            # Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+            Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table"]
         with open(Taxid_2_Proteins_table_STRING, "r") as fh:
             for line in fh:
                 taxids.append(line.split("\t")[0])
@@ -1106,7 +1119,8 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
         return sorted(result[0][0])
     else:
         if fn_Taxid_2_Proteins_table_STRING is None:
-            fn_Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+            # fn_Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+            fn_Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table"]
         with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
             for line in fh:
                 taxid_line, prot_arr, background_count = line.split("\t")
@@ -1117,7 +1131,9 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
 def get_TaxID_2_proteome_count_dict(read_from_flat_files=False):
     taxid_2_proteome_count_dict = {}
     if read_from_flat_files:
-        result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt"), columns=[0, 2])
+        # fn = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+        fn = variables.tables_dict["Taxid_2_Proteins_table"]
+        result = get_results_of_statement_from_flat_file(fn, columns=[0, 2])
     else:
         result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count FROM taxid_2_protein;")
     for res in result:
