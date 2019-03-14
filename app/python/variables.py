@@ -207,13 +207,14 @@ blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
 
 ##### final Tables / flat-files needed for flask app / PostgreSQL
 tables_dict = {
-    "Functions_table": os.path.join(TABLES_DIR, "Functions_table_FIN.txt"),
-    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt"),
     "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
-    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt"),
-    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_FIN.txt"),
+    "Functions_table": os.path.join(TABLES_DIR, "Functions_table_FIN.txt"),
+    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_FIN.txt"),
-    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt")
+    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_FIN.txt"),
+    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt"),
+    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_FIN.txt"),
+    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt"),
 }
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
