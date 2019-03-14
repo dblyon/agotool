@@ -735,33 +735,10 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
 #         score_cutoff = 3.0
 #     run:
 #         cst.Protein_2_Function_table_DOID_BTO(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Taxid_2_Proteins_table_FIN, params.score_cutoff, output.Protein_2_Function_table_DOID_BTO)
-
+##########################################################################################
 ##########################################################################################
 ##### some stuff below
-# Taxid_2_FunctionCountArray_table_FIN Lineage_table_FIN Protein_2_FunctionEnum_table_FIN Functions_table_all Function_2_ENSP_table Functions_table_FIN AFC_KS_enrichment_terms_flat_files
-# rsync -avP --recursive --files-from=./files_for_DB_STRINGv11.txt . /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11
-# Functions_table_UPK Functions_table_GO
-# read_from_flat_files get_results_of_statement_from_flat_file
-
-# snakemake -nj 24 Protein_2_FunctionEnum_and_Score_table_STRING
-
-# fix Functions_table_PMID_temp.txt
-# -56     PMID:13883643   (1962) [On the problem of the basic principles and methods of prevention and treatment of stammering].  1962    -1
-
-# Protein_2_FunctionEnum_and_Score_table_STRING
-
-# fix  this
-# $  zcat Functions_table_PMID.txt.gz | grep "PMID:29923822"
-# -56     PMID:29923822   (2018) Investigation of the role of GBF1 in the replication of positive-sense single-stranded RNA viruses.      2018
-#PMID appears but not in Func
-
-# filter PMID associations that are not STRING ENSPs. use Taxid_2_Proteins_table_FIN @Protein_2_Function_table_PMID
-# Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced --> no ENSP filter, since filter Function_2_ENSP will kick in --> done
-
 ##### ToDo
-# 3.) Protein_2_FunctionEnum_and_Score_table_FIN --> done test it
-# single row entry per etype which should be merged
-
 # 4.) WikiPathways
 # link http://data.wikipathways.org
 # use gmt = Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
@@ -786,10 +763,3 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
     # e.g. Glycine biosynthesis; WikiP_ID
     # is "Glycine biosynthesis" for Arabidopsis different to another plant?
 # - translating the existing species names to NCBI taxids isn't an issue, but automatic updates would not catch this.
-
-
-# 7.) change STRING to FIN
-# - snakemake
-# - query flat files
-
-# 8.) check jensenlab blacklisted components

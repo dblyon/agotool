@@ -463,6 +463,13 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
         if variables.VERBOSE:
+            print("getting cond arrays")
+        self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
+        self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
+        self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
+        self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
+
+        if variables.VERBOSE:
             print("getting lineage dict")
         self.lineage_dict_enum = get_lineage_dict_enum(False, read_from_flat_files) # default is as set not array, check if this is necessary later
         if variables.VERBOSE:
@@ -479,13 +486,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting taxid_2_tuple_funcEnum_index_2_associations_counts")
         #background
         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
-
-        if variables.VERBOSE:
-            print("getting cond arrays")
-        self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
-        self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
-        self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
-        self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
 
         if variables.VERBOSE:
             print("getting ENSP_2_Score_dict careful since this uses offset indices for BTO and DOID")
@@ -766,7 +766,11 @@ def get_function_description_from_funcEnum(funcEnum_list):
 def get_cond_bool_array_of_etypes(etypes, function_enumeration_len, etype_cond_dict):
     cond_etypes = np.zeros(function_enumeration_len, dtype=bool)
     for etype in etypes:
-        cond_etypes = cond_etypes | etype_cond_dict["cond_{}".format(str(etype)[1:])]
+        try:
+            etype_cond = etype_cond_dict["cond_{}".format(str(etype)[1:])]
+        except KeyError: # e.g. new etype which not implemented yet, already in variable.py documentation
+            continue
+        cond_etypes = cond_etypes | etype_cond
     cond_etypes.flags.writeable = False
     return cond_etypes
 
