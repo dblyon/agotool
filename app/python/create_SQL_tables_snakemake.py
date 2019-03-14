@@ -2049,7 +2049,11 @@ def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_o
     with open(Blacklisted_terms_Jensenlab, "r") as fh:
         for line in fh:
             etype, an = line.split("\t")
-            blacklisted_ans.append(an.strip())
+            # don't include Lars' blacklisted GO terms
+            # Lars' blacklist is for a subcellular localization resource, so telling that the protein is part of complex X is not
+            # really the information that you are after. But for the enrichment, the situation is different.
+            if etype != "-22":
+                blacklisted_ans.append(an.strip())
     blacklisted_ans = set(blacklisted_ans)
 
     year = "-1" # placeholder

@@ -791,3 +791,5 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
 # 7.) change STRING to FIN
 # - snakemake
 # - query flat files
+
+# 8.) check jensenlab blacklisted components
