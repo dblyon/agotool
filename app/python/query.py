@@ -687,6 +687,16 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
     val = tuple(arr of function Enumeration, arr of scores)
     for BTO, DOID, and GO-CC terms
 
+    e.g. {'3702.AT1G01010.1': (array([ 213,  254,  255,  261,  325,  356,  360,  365,  375,  397,  417,
+                  615,  643,  747,  748, 1080, 1812, 1899, 1900, 1902, 1904, 1995,
+                 2051, 2052, 2070, 2088], dtype=uint32),
+          array([4.2     , 4.166357, 4.195121, 3.257143, 1.234689, 0.428571,
+                 0.535714, 0.214286, 0.642857, 1.189679, 0.739057, 0.214286,
+                 0.214286, 3.      , 3.      , 3.      , 0.535714, 3.257143,
+                 3.257143, 3.257143, 3.257143, 0.641885, 4.166357, 3.      ,
+                 1.234689, 4.195121], dtype=float32)), ...
+                 }
+
     Protein_2_FunctionEnum_and_Score_table_STRING.txt
     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}}
     :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))

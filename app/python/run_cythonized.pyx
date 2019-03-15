@@ -169,12 +169,13 @@ cdef BenjaminiHochberg_cy(double[::1] p_values,
     """
     ein index array mit absoluten positionen, pvals absolut und pvalscorr absolut
     p_values_2_BH, p_values_2_BH.shape[0], p_values_corrected_2_BH, indices_of_p_values_2_BH)
-    :param p_values: unsorted array of float
-    :param num_total_test: Integer
-    :param p_values_corrected: array of float (1.0 by default), shape is full function_enumeration_len NOT p_values    
-    :param indices_2_BH: indices of superset, shape of array reduced to p_values_2_BH
     iterate over p_values in p_values_2_BH_sort_order
     set p_value_corrected at positions from indices_2_BH[p_values_2_BH_sort_order]
+    :param p_values: unsorted array of float
+    :param num_total_tests: unsigned Integer
+    :param p_values_corrected: array of float (1.0 by default), shape is full function_enumeration_len NOT p_values    
+    :param indices_2_BH: indices of superset, shape of array reduced to p_values_2_BH
+    :return: None (since modifying p_values_corrected in-place)
     """
     cdef:
         double prev_bh_value = 0.0
@@ -494,7 +495,7 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     if not low_memory:
         funcEnum_index_2_associations = taxid_2_tuple_funcEnum_index_2_associations_counts[taxid]
         index_positions_arr, counts_arr = funcEnum_index_2_associations
-        create_funcEnum_count_background_v5(funcEnum_count_background, index_positions_arr, counts_arr)# v4 v5
+        create_funcEnum_count_background_v5(funcEnum_count_background, index_positions_arr, counts_arr) # v4 v5
     else:
         background_counts_list = query.get_background_count_array(taxid)
         funcEnum_index_2_associations = np.asarray(background_counts_list, dtype=np.dtype("uint32"))

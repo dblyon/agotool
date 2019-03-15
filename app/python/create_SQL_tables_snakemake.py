@@ -2017,7 +2017,7 @@ def helper_string_array_to_list(string_):
     """
     return [an[1:-1] for an in string_[1:-1].split(",")]
 
-def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Jensenlab, DOID_obo_Jensenlab, GO_obo_Jensenlab, Blacklisted_terms_Jensenlab, Functions_table_DOID_BTO_GOCC, GO_CC_textmining_additional_etype=True):
+def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_obo_Jensenlab, DOID_obo_Jensenlab, GO_obo_Jensenlab, Blacklisted_terms_Jensenlab, Functions_table_DOID_BTO_GOCC, GO_CC_textmining_additional_etype=True, number_of_processes=4, verbose=True):
     """
     - add hierarchical level, year placeholder
     - merge with Functions_table
@@ -2072,6 +2072,32 @@ def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_o
             except KeyError:
                 level = -1
             fh_out.write(etype + "\t" + function_an + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
+
+    # remove redundant terms, keep those with "better" descriptions (not simply GO-ID as description e.g.
+    # -22     GO:0000793      Condensed chromosome
+    # -22     GO:0000793      GO:0000793
+    # sort it
+    # remove redundant terms
+    # overwrite redundant file with cleaned up version
+    tools.sort_file(Functions_table_DOID_BTO_GOCC, Functions_table_DOID_BTO_GOCC, number_of_processes=number_of_processes, verbose=verbose)
+    func_redundancy_dict = {}
+    Functions_table_DOID_BTO_GOCC_temp = Functions_table_DOID_BTO_GOCC + "_temp"
+    with open(Functions_table_DOID_BTO_GOCC_temp, "w") as fh_out:
+        with open(Functions_table_DOID_BTO_GOCC, "r") as fh_in:
+            line = next(fh_in)
+            etype_last, function_last, description_last, year_last, hier_last = line.split("\t")
+            func_redundancy_dict[function_last] = line
+            for line in fh_in:
+                etype, function, description, year, hier = line.split("\t")
+                if function in func_redundancy_dict:
+                    # take every description, but overwrite existing only if function_id is not equal to description
+                    if function.replace("GOCC:", "GO:").strip().lower() != description.strip().lower():
+                        func_redundancy_dict[function] = line
+                else:
+                    func_redundancy_dict[function] = line
+        for line in sorted(func_redundancy_dict.values()):
+            fh_out.write(line)
+    os.rename(Functions_table_DOID_BTO_GOCC_temp, Functions_table_DOID_BTO_GOCC)
 
 def Protein_2_FunctionEnum_and_Score_table_FIN(Protein_2_Function_and_Score_DOID_GO_BTO, Functions_table_STRING_reduced, Taxid_2_Proteins_table_STRING, Protein_2_FunctionEnum_and_Score_table, fn_an_without_translation, GO_CC_textmining_additional_etype=False):
     """
