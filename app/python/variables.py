@@ -49,7 +49,7 @@ functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING":
                                   "Reactome": -57,
                                   "WikiPathways": -58}
 
-entityType_2_functionType_dict = {-20: "Gene Ontology molecular function TEXTMINING",
+entityType_2_functionType_dict = {-20: "Gene Ontology cellular component TEXTMINING",
                                   -21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
                                   -23: "Gene Ontology molecular function",

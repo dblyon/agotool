@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-import os, sys, zlib
-import requests, time
+import os, sys #, zlib
+import requests #, time
 import urllib.request, urllib.parse
+from bs4 import BeautifulSoup
 # from subprocess import call
 from retrying import retry
 
@@ -61,8 +62,30 @@ def download_gzip_file(url, file_name, verbose=True):
     if verbose:
         print("finished download")
 
+def download_WikiPathways(url, download_dir, verbose=True):
+    """
+    download flat files in GMT format
+    Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
+    e.g.
+    'http://data.wikipathways.org/current/gmt/wikipathways-20190310-gmt-Anopheles_gambiae.gmt'
+    :param url: String (http://data.wikipathways.org/current/gmt)
+    :param download_dir: String
+    :param verbose: Bool (flag)
+    :return: None
+    """
+    # get potential URLs to download
+    files_2_download = sorted(set(get_list_of_files_2_download_from_http(url, ext="gmt")))
+    # download and rename
+    for url in files_2_download:
+        # check if needed, rename?
+        basename = os.path.basename(url)
+        file_name = os.path.join(download_dir, basename)
+        download_requests(url, file_name, verbose=verbose)
 
-
+def get_list_of_files_2_download_from_http(url, ext=''):
+    page = requests.get(url).text
+    soup = BeautifulSoup(page, 'html.parser')
+    return [url + '/' + node.get('href')[2:] for node in soup.find_all('a') if node.get('href').endswith(ext)]
 
 
 

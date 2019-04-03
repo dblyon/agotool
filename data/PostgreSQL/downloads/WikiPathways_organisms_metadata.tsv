@@ -1,0 +1,38 @@
+Genus species	Common Name	TaxID	UniGene	two-letter code
+Anopheles gambiae	Mosquito_Ag 	7165	aga	Ag
+Arabidopsis thaliana	Arabidopsis	3702	ath	At
+Aspergillus niger	Black mold	5061	ani	An
+Bacillus subtilis	Bsubtilis	1423	bsu	Bs
+Bos taurus	Cow	9913	bta	Bt
+Caenorhabditis elegans	Celegans	6239	cel	Ce
+Callithrix jacchus	Marmoset	9483	cja	Cj
+Canis familiaris	Dog	9615	cfa	Cf
+Ciona intestinalis	Sea Squirt 	7719	 	Ci
+Danio rerio	Zebrafish	7955	dre	Dr
+Drosophila melanogaster	Fruitfly	7227	dme	Dm
+Equus caballus	Horse	9796	eca	Qc
+Escherichia coli	Ecoli	562	eco	Ec
+Gallus gallus	Chicken	9031	gga	Gg
+Gibberella zeae	Fusarium gramaninearum	5518		Gz
+Glycine max	Soybean	3847		Gm
+Homo sapiens	Human	9606	hsa	Hs
+Monodelphis domestica	Opossum	13616	 	Md
+Mus musculus	Mouse	10090	mmu	Mm
+Mycobacterium tuberculosis	Tuberculosis	1773		Mx
+Oryza glaberrima	African Rice	4538		Og
+Oryza indica	Indian Rice	39946		Oi
+Oryza rufipogon	Red Rice	4529		Or
+Oryza sativa	Japanese Rice	39947	osa	Oj
+Pan troglodytes	Chimp	9598	ptr	Pt
+Populus trichocarpa	Western Balsam Poplar	3694	pth	Pi
+Rattus norvegicus	Rat	10116	rno	Rn
+Saccharomyces cerevisiae	Yeast	4932	sce 	Sc
+Solanum lycopersicum	Tomato	4081		Sl
+Sorex araneus	Shrew	42254		Sa
+Sorghum bicolor	Sorghum	4558	sbi	Sb
+Sus scrofa	Pig	9823	ssc	Ss
+Takifugu rubripes	Tora Fugu	31033	 	Fr
+Tetraodon nigroviridis	Pufferfish	99883	 	Tn
+Vitis vinifera	Wine Grape	29760	vvi	Vv
+Xenopus tropicalis	Xenopus	8364	xtr	Xt
+Zea mays	Maize	4577	zm	Zm

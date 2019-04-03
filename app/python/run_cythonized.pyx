@@ -309,6 +309,7 @@ def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, 
         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans.tolist(), dict_2_array=True)
     for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
+        # #!!! limit_2_entity_type --> NotImplemented yet by conditional arrays
         count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
 
     ### calc ratio in foreground, count foreground / len(protein_ans)

@@ -180,10 +180,20 @@ AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "afc_ks/"))
 Protein_2_Function_table_SMART_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART_temp.txt")
 Protein_2_Function_table_PFAM_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM_temp.txt")
 Functions_tables_temp = temp(os.path.join(TABLES_DIR, "Functions_tables_temp.txt"))
-temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
+# temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
 ### scripts
 parallel_parse_textmining_pmc_medline = os.path.join(PYTHON_DIR, "parallel_parse_textmining_pmc_medline.py")
 
+
+### WikiPathways
+URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on the 11th
+URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz" # monthly download?
+UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping_selected.tab.gz")
+WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
+Protein_2_Function_table_WikiPathways = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways.txt")
+# https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
+STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz")
+Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
 ###################################################################################################
 ### download resources
 # rule download_GO_obo:
@@ -317,6 +327,29 @@ rule download_GO_obo_Jensenlab:
     run:
         drs.download_requests(params.URL_go_obo_Jensenlab, output.GO_obo_Jensenlab, params.verbose)
 
+# map Entrez Gene IDs to UniProt using ??? ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
+# --> fast one ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz
+# map Entrez Gene IDs to STRING IDs using ???
+# Functions_table_Wikipathways.txt ???
+
+rule download_WikiPathways:
+    input:
+        DOWNLOADS_DIR = DOWNLOADS_DIR
+    params:
+        URL_WikiPathways_GMT = URL_WikiPathways_GMT,
+        verbose = verbose
+    run:
+        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, params.verbose)
+
+rule download_UniProt_ID_mapping:
+    output:
+        UniProt_ID_mapping = UniProt_ID_mapping
+    params:
+        URL_UniProt_ID_mapping = URL_UniProt_ID_mapping,
+        verbose = verbose
+    run:
+        drs.download_gzip_file(params.URL_UniProt_ID_mapping, output.UniProt_ID_mapping, params.verbose)
+
 ###################################################################################################
 ### create tables
 
@@ -448,8 +481,8 @@ rule Functions_table_DOID_BTO_GOCC: # these are not being filtered to relevant o
     output:
         Functions_table_DOID_BTO_GOCC = Functions_table_DOID_BTO_GOCC
     params:
-        GO_CC_textmining_additional_etype = True
-        NUMBER_OF_PROCESSES_sorting = NUMBER_OF_PROCESSES_sorting
+        GO_CC_textmining_additional_etype = True,
+        NUMBER_OF_PROCESSES_sorting = NUMBER_OF_PROCESSES_sorting,
         verbose = verbose
     run:
         cst.Functions_table_DOID_BTO_GOCC(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.GO_obo_Jensenlab, input.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO_GOCC, params.GO_CC_textmining_additional_etype, params.NUMBER_OF_PROCESSES_sorting, params.verbose)
@@ -475,7 +508,8 @@ rule Functions_table_all:
                        Functions_table_UPK,
                        Functions_table_PMID,
                        Functions_table_RCTM,
-                       Functions_table_DOID_BTO_GOCC]
+                       Functions_table_DOID_BTO_GOCC,
+                       Functions_table_WikiPathways]
     output:
         Functions_table_all = Functions_table_all,
         Functions_tables_temp = Functions_tables_temp
@@ -591,6 +625,20 @@ rule Protein_2_Function_table_PMID:
     run:
         cst.Protein_2_Function_table_PMID(input.Taxid_2_Proteins_table_FIN, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
 
+rule Protein_2_Function__and__Functions_table_WikiPathways:
+    input:
+        WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
+        UniProt_ID_mapping = UniProt_ID_mapping,
+        STRING_EntrezGeneID_2_STRING = STRING_EntrezGeneID_2_STRING,
+        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
+    output:
+        Protein_2_Function_table_WikiPathways = Protein_2_Function_table_WikiPathways,
+        Functions_table_WikiPathways = Functions_table_WikiPathways
+    params:
+        verbose = verbose
+    run:
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.STRING_EntrezGeneID_2_STRING, input.Taxid_2_Proteins_table_FIN, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways, params.verbose)
+
 rule Protein_2_Function_table:
     input:
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
@@ -601,7 +649,8 @@ rule Protein_2_Function_table:
                        Protein_2_Function_table_GO,
                        Protein_2_Function_table_UPK,
                        Protein_2_Function_table_PMID,
-                       Protein_2_Function_table_RCTM] # Protein_2_Function_table_DOID_BTO
+                       Protein_2_Function_table_RCTM,
+                       Protein_2_Function_table_WikiPathways] # Protein_2_Function_table_DOID_BTO
     output:
         Protein_2_Function_table = Protein_2_Function_table
     threads: NUMBER_OF_PROCESSES_sorting
@@ -741,10 +790,21 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
 ##########################################################################################
 ##### some stuff below
 ##### ToDo
+### CronJobs or something similar for the automatic updates
+# - WikiPathways, update on the 11th of each month
+# - UniProt ???
+# - Jensenlab on Monday each week
+# - Reactome
+# - InterPro
+
+
+
+
 # 4.) WikiPathways, update on the 11th of each month
 # link http://data.wikipathways.org
 # use gmt = Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
 # map Entrez Gene IDs to UniProt using ??? ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
+# --> fast one ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz
 # map Entrez Gene IDs to STRING IDs using ???
 # Functions_table_Wikipathways.txt ???
 
@@ -752,20 +812,4 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
 # bin into 5 categories, like using a hard-cutoff, and merge results (correcting p-values * number_of_bins), duplicate terms --> select best p-value?
 # bins: 0-5, 1-5, 2-5, 3-5, 4-5
 
-# 6.) unify names
-# Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC_tables.txt Protein_2_FunctionEnum_and_Score_table_STRING.txt
-
-# Alex Pico
-# - no hierarchy/ontology present --> no backtracking needed
-# - link out to basic URL of pathway or revision?
-    # e.g.
-    # https://www.wikipathways.org/instance/WP261
-    # https://www.wikipathways.org/instance/WP261_r92999
-# - Is there a table with all pathways?
-    # e.g. Glycine biosynthesis; WikiP_ID
-    # is "Glycine biosynthesis" for Arabidopsis different to another plant?
-# - translating the existing species names to NCBI taxids isn't an issue, but automatic updates would not catch this.
-
-
-### scores Jensenlab
-# fix issue where FDR is 0 and p_value is 1
+# parse UniProtAN to other functional annotations apart from keywords (which are)

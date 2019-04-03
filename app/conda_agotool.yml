@@ -9,7 +9,6 @@ dependencies:
   - cython
   - pandas
   - libgcc
-  - psycopg2
   - retrying
   - fisher
   - Werkzeug
@@ -23,3 +22,4 @@ dependencies:
   - markdown
   - flask-markdown
   - requests
+  - beautifulsoup4

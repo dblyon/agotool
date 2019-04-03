@@ -2332,6 +2332,141 @@ def helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_lis
         funcEnum_count_background[funcEnum] += count
     return funcEnum_count_background
 
+def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_organisms_metadata, fn_in_UniProt_ID_mapping, fn_in_STRING_EntrezGeneID_2_STRING, fn_in_Taxid_2_Proteins_table_FIN, fn_out_Functions_table_WikiPathways, fn_out_Protein_2_Function_table_WikiPathways, verbose=True):
+    """
+    link http://data.wikipathways.org
+    use gmt = Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
+    map Entrez Gene IDs to UniProt using ??? ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
+    :param fn_in_WikiPathways_organisms_metadata: String
+    :param fn_in_UniProt_ID_mapping: String
+    :param fn_in_STRING_EntrezGeneID_2_STRING: String
+    :param fn_in_Taxid_2_Proteins_table_FIN: String
+    :param fn_out_Functions_table_WikiPathways: String
+    :param fn_out_Protein_2_Function_table_WikiPathways: String
+    :param verbose: Bool
+    :return: None
+    """
+    if verbose:
+        print("creating Functions_table_WikiPathways and Protein_2_Function_table_WikiPathways")
+    df_wiki_meta = pd.read_csv(fn_in_WikiPathways_organisms_metadata, sep="\t")
+    df_wiki_meta["Genus species"] = df_wiki_meta["Genus species"].apply(lambda s: "_".join(s.split(" ")))
+    TaxName_2_TaxID_dict = pd.Series(df_wiki_meta["TaxID"].values, index=df_wiki_meta["Genus species"]).to_dict()
+
+    if verbose:
+        print("getting all ENSPs to reduce input")
+    ENSP_set = get_all_ENSPs(fn_in_Taxid_2_Proteins_table_FIN)
+
+    # | enum | etype | an | description | year | level |
+    year = "-1"
+    level = "-1"
+    etype = str(variables.functionType_2_entityType_dict["WikiPathways"])
+
+    col_names = ['UniProtKB-AC', 'UniProtKB-ID', 'GeneID (EntrezGene)', 'RefSeq', 'GI', 'PDB', 'GO', 'UniRef100', 'UniRef90', 'UniRef50', 'UniParc', 'PIR', 'NCBI-taxon', 'MIM', 'UniGene', 'PubMed', 'EMBL', 'EMBL-CDS', 'Ensembl', 'Ensembl_TRS', 'Ensembl_PRO', 'Additional PubMed']
+    if verbose:
+        print("parsing {}".format(fn_in_UniProt_ID_mapping))
+    df_UniProt_ID_mapping = pd.read_csv(fn_in_UniProt_ID_mapping, sep="\t", names=col_names, usecols=["UniProtKB-AC", "GeneID (EntrezGene)", "NCBI-taxon"])
+    if verbose:
+        print("parsing {}".format(fn_in_STRING_EntrezGeneID_2_STRING))
+    EntrezGeneID_2_ENSPsList_dict = get_EntrezGeneID_2_ENSPsList_dict(fn_in_STRING_EntrezGeneID_2_STRING)
+
+    fn_list = [os.path.join(DOWNLOADS_DIR, fn) for fn in os.listdir(DOWNLOADS_DIR) if fn.endswith(".gmt")]
+    with open(fn_out_Functions_table_WikiPathways, "w") as fh_out_functions:  # etype | an | description | year | level
+        with open(fn_out_Protein_2_Function_table_WikiPathways, "w") as fh_out_protein_2_function:  # an | func_array | etype
+            for fn_wiki in fn_list:
+                if verbose:
+                    print("processing {}".format(fn_wiki))
+                taxname = fn_wiki.split("-gmt-")[-1].replace(".gmt", "")
+                try:
+                    taxid = TaxName_2_TaxID_dict[taxname]  # taxid is an integer --> necessary for
+                except KeyError:
+                    print("WikiPathways, couldn't translate TaxName from file: {}".format(fn_wiki))
+                    continue
+                EntrezGeneID_2_UniProtAN_dict = get_EntrezGeneID_2_UniProtAN_dict(df_UniProt_ID_mapping, taxid)
+                with open(fn_wiki, "r") as fh_in:
+                    # remember pathway to proteins mapping --> then translate to ENSP to func_array
+                    WikiPathwayID_2_EntrezGeneIDList_dict = {}
+                    for line in fh_in:  # DNA Replication%WikiPathways_20190310%WP1223%Anopheles gambiae	http://www.wikipathways.org/instance/WP1223_r68760	1275918	1275917	1282031	3290537	1276035	1280711	1281887	1279642	1274553	1279643	1276738	1275769	1274119	1274537	1270475	1275768	1271764	1276999	1273769	1269746	1278028	1279877	1275573	1270041	1276468	1281755	1280005	1270681	1277651	1274882	1274822	1272643	1281195	3291042
+                        pathwayName_version_pathwayID_TaxName, url_, *entrez_ids = line.strip().split("\t")  # 'DNA Replication', 'WikiPathways_20190310', 'WP1223', 'Anopheles gambiae', ['1275918', ... ]
+                        pathwayName, version, pathwayID, TaxName = pathwayName_version_pathwayID_TaxName.split("%")
+                        description = pathwayName
+                        an = pathwayID
+                        WikiPathwayID_2_EntrezGeneIDList_dict[pathwayID] = entrez_ids
+                        fh_out_functions.write(etype + "\t" + an + "\t" + description + "\t" + year + "\t" + level + "\n")  # check for uniqueness of names/ IDs later
+
+                    # map to UniProt and to STRING, single pathway to multiple entrez_ids translate to ENSP/UniProtAN to multiple pathways
+                    ENSP_2_wiki_dict, UniProt_2_wiki_dict = {}, {}
+                    for WikiPathwayID, EntrezGeneID_list in WikiPathwayID_2_EntrezGeneIDList_dict.items():
+                        for EntrezGeneID in EntrezGeneID_list:
+                            try:
+                                UniProtAN_list = EntrezGeneID_2_UniProtAN_dict[EntrezGeneID]
+                            except KeyError:
+                                UniProtAN_list = []
+                            for UniProtAN in UniProtAN_list:
+                                if UniProtAN not in UniProt_2_wiki_dict:
+                                    UniProt_2_wiki_dict[UniProtAN] = [WikiPathwayID]
+                                else:
+                                    UniProt_2_wiki_dict[UniProtAN].append(WikiPathwayID)
+
+                            try:
+                                ENSP_list = EntrezGeneID_2_ENSPsList_dict[EntrezGeneID]
+                            except KeyError:
+                                ENSP_list = []
+                            for ENSP in [ENSP for ENSP in ENSP_list if ENSP in ENSP_set]: # reduce to relevant ENSPs
+                                if ENSP not in ENSP_2_wiki_dict:
+                                    ENSP_2_wiki_dict[ENSP] = [WikiPathwayID]
+                                else:
+                                    ENSP_2_wiki_dict[ENSP].append(WikiPathwayID)
+
+                    for ENSP, wiki_list in ENSP_2_wiki_dict.items():
+                        an = ENSP
+                        func_array = format_list_of_string_2_postgres_array(list(set(wiki_list)))
+                        fh_out_protein_2_function.write(an + "\t" + func_array + "\t" + etype + "\n")
+                    for UniProtAN, wiki_list in UniProt_2_wiki_dict.items():
+                        an = UniProtAN
+                        func_array = format_list_of_string_2_postgres_array(list(set(wiki_list)))
+                        fh_out_protein_2_function.write(an + "\t" + func_array + "\t" + etype + "\n")
+
+
+
+def get_EntrezGeneID_2_UniProtAN_dict(df_UniProt_ID_mapping, taxid):
+    taxid = int(taxid)
+    cond = df_UniProt_ID_mapping["NCBI-taxon"] == taxid
+    EntrezGeneID_2_UniProtAN_dict = {}
+    for row in df_UniProt_ID_mapping.loc[cond, ["UniProtKB-AC", "GeneID (EntrezGene)"]].itertuples():
+        _, uniprot_an, geneIDs_list = row
+        try:
+            geneIDs_list = geneIDs_list.split("; ")
+        except AttributeError: # for np.nan
+            continue
+        for geneID in geneIDs_list:
+            if geneID not in EntrezGeneID_2_UniProtAN_dict:
+                EntrezGeneID_2_UniProtAN_dict[geneID] = [uniprot_an]
+            else:
+                EntrezGeneID_2_UniProtAN_dict[geneID].append(uniprot_an)
+    return EntrezGeneID_2_UniProtAN_dict
+
+def get_EntrezGeneID_2_ENSPsList_dict(fn):
+    """
+    EntrezGeneID
+    e.g.
+    102619773|102628203
+    --> multiple EntrezGeneIDs map to single UniProtAN
+    and single EntrezGeneID maps to multiple UniProtAN
+    e.g.
+    103484309	3656.XP_008439609.1
+    103484309	3656.XP_008439546.1
+    """
+    # fn = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz"
+    df_entrez_2_string = pd.read_csv(fn, sep="\t", names=["TaxID", "EntrezGeneID", "ENSP"], skiprows=1)
+    EntrezGeneID_2_ENSPsList_dict = {}
+    for row in df_entrez_2_string.itertuples():
+        _, _, EntrezGeneIDs, ENSP = row
+        for EntrezGeneID in EntrezGeneIDs.split("|"):
+            if EntrezGeneID not in EntrezGeneID_2_ENSPsList_dict:
+                EntrezGeneID_2_ENSPsList_dict[EntrezGeneID] = [ENSP]
+            else:
+                EntrezGeneID_2_ENSPsList_dict[EntrezGeneID].append(ENSP)
+    return EntrezGeneID_2_ENSPsList_dict
 
 
 if __name__ == "__main__":

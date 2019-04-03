@@ -32,11 +32,12 @@ MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 ###############################################################################
 # ToDo 2018
-# - debug cython filter_parents (cf. old to new version without filter_parents) --> done
 # - buy goliath domain?
 # - use cProfile on compiled cython --> done but not that great to inspect
 # - replace bool array with uint8 array and casting to bool & using prange with nogil
 # - reimplement "limit_2_entity_type"
+# - Memory leak
+# - sort results based on S-values (volcano plot style), something like effect-size
 
 # go_slim_or_basic --> filter for slim terms
 # check out DF sorting before returning results, year and FDR not sorted correctly
@@ -179,7 +180,7 @@ parser.add_argument("FDR_cutoff", type=float,
 
 parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
-    default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57")
+    default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57;-58")
 
 parser.add_argument("privileged", type=str,
     default="False")
@@ -267,6 +268,8 @@ parser.add_argument("p_value_uncorrected", type=float,
     default=0)
 
 
+from gc import get_objects
+
 class API_STRING(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
@@ -285,6 +288,10 @@ class API_STRING(Resource):
         - part of the path (url) is variable in resource
         - or parameters of form
         """
+        self.before = defaultdict(int)
+        for i in get_objects():
+            self.before[type(i)] += 1
+
         args_dict = defaultdict(lambda: None)
         args_dict["foreground"] = request.form.get("foreground")
         args_dict["output_format"] = request.form.get("output_format")
@@ -328,6 +335,12 @@ class API_STRING(Resource):
             return help_page(args_dict)
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
+
+        self.after = defaultdict(int)
+        for i in get_objects():
+            self.after[type(i)] += 1
+        print([(k, self.after[k] - self.before[k]) for k in self.after if self.after[k] - self.before[k]])
+        self.before = self.after.copy()
 
         if results_all_function_types is False:
             print("returning help page")

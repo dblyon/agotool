@@ -852,7 +852,7 @@ def get_parents_iterative(child, child_2_parent_dict):
     return all_parents
 
 def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
-    lineage_dict = {} # key: function enumeration, value: set of func enum array all parents and children
+    lineage_dict = {} # key: function enumeration, value: set of func enum array all parents
     if read_from_flat_files:
         # fn = os.path.join(variables.TABLES_DIR, "Lineage_table_STRING.txt")
         fn = variables.tables_dict["Lineage_table"]
@@ -874,6 +874,20 @@ def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
             if as_array:
                 lineage_dict[term] = np.array(sorted(lineage), dtype=np.dtype("uint32"))
             else:
+                lineage_dict[term] = set(lineage)
+    return lineage_dict
+
+def get_lineage_dict_hr(read_from_flat_files=True):
+    # fn = r"/home/dblyon/agotool/data/PostgreSQL/tables/Lineage_table_hr.txt"
+    lineage_dict = {} # key: function name, value: set of function names (all parents)
+    if read_from_flat_files:
+        fn = os.path.join(variables.TABLES_DIR, "Lineage_table_hr.txt")
+        # fn = variables.tables_dict["Lineage_table_hr"]
+        results = get_results_of_statement_from_flat_file(fn)
+        for res in results:
+            term, lineage = res
+            lineage = [ele[1:-1] for ele in lineage.replace(" ", "").replace("'", '"')[1:-1].split(",")]
+            if len(lineage[0]) > 0:
                 lineage_dict[term] = set(lineage)
     return lineage_dict
 
