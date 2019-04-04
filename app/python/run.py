@@ -18,7 +18,6 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         return False
 
     # ToDo:
-    # limit_2_entity_type = args_dict["limit_2_entity_type"]
     # go_slim_or_basic = args_dict["go_slim_or_basic"]
     # indent = args_dict["indent"]
 
