@@ -1,4 +1,4 @@
-import os, sys, logging, time
+import os, sys, logging, time, argparse
 from collections import defaultdict
 import numpy as np
 from lxml import etree
@@ -862,53 +862,58 @@ def results_back():
 ################################################################################
 # results_clustered.html
 ################################################################################
-@app.route('/results_clustered', methods=["GET", "POST"])
-def results_clustered():
-    form = Results_Form(request.form)
-    inflation_factor = form.inflation_factor.data
-    session_id = request.form['session_id']
-    limit_2_entity_type = request.form['limit_2_entity_type']
-    # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
-    indent = request.form['indent']
-    file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
-    header, results = read_results_file(fn_results_orig_absolute)
-    if not form.validate():
-        return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form)
-    try:
-        mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
-        cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
-    except cluster_filter.TimeOutException:
-        return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)])
-
-    num_clusters = len(cluster_list)
-    file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
-    results2display = []
-    with open(fn_results_clustered_absolute, 'w') as fh:
-        fh.write(header)
-        for cluster in cluster_list:
-            results_one_cluster = []
-            for res_index in cluster:
-                res = results[res_index]
-                fh.write(res + '\n')
-                results_one_cluster.append(res.split('\t'))
-            fh.write('#'*80)
-            results2display.append(results_one_cluster)
-    header = header.split("\t")
-    ellipsis_indices = elipsis(header)
-    ip = request.environ['REMOTE_ADDR']
-    string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
-    string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, indent, num_clusters, inflation_factor)
-    log_activity(string2log)
-    return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
-                           file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
-                           ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id,
-                           num_clusters=num_clusters, inflation_factor=inflation_factor)
+# @app.route('/results_clustered', methods=["GET", "POST"])
+# def results_clustered():
+#     form = Results_Form(request.form)
+#     inflation_factor = form.inflation_factor.data
+#     session_id = request.form['session_id']
+#     limit_2_entity_type = request.form['limit_2_entity_type']
+#     # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+#     indent = request.form['indent']
+#     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+#     header, results = read_results_file(fn_results_orig_absolute)
+#     if not form.validate():
+#         return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form)
+#     try:
+#         mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
+#         cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+#     except cluster_filter.TimeOutException:
+#         return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)])
+#
+#     num_clusters = len(cluster_list)
+#     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
+#     results2display = []
+#     with open(fn_results_clustered_absolute, 'w') as fh:
+#         fh.write(header)
+#         for cluster in cluster_list:
+#             results_one_cluster = []
+#             for res_index in cluster:
+#                 res = results[res_index]
+#                 fh.write(res + '\n')
+#                 results_one_cluster.append(res.split('\t'))
+#             fh.write('#'*80)
+#             results2display.append(results_one_cluster)
+#     header = header.split("\t")
+#     ellipsis_indices = elipsis(header)
+#     ip = request.environ['REMOTE_ADDR']
+#     string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
+#     string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, indent, num_clusters, inflation_factor)
+#     log_activity(string2log)
+#     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
+#                            file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
+#                            ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id,
+#                            num_clusters=num_clusters, inflation_factor=inflation_factor)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
     file_name = "results_" + suffix + session_id + ".tsv"
     fn_results_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     fn_results_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     return file_name, fn_results_absolute, fn_results_relative
+
+def error_(parser):
+    sys.stderr.write("The arguments passed are invalid.\nPlease check the input parameters.\n\n")
+    parser.print_help()
+    sys.exit(2)
 
 if __name__ == "__main__":
     # ToDo potential speedup
@@ -918,5 +923,16 @@ if __name__ == "__main__":
     ################################################################################
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
-    # sun IP 10110
-    app.run(host='0.0.0.0', port=5912, processes=1, debug=variables.DEBUG)
+    ### SAN port 10110
+    ### PISCES port 10110 IP 127.0.0.0
+    parser = argparse.ArgumentParser()
+    parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.0' (is also the default)", type=str, default="127.0.0.0")
+    parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
+    args = parser.parse_args()
+    for arg in sorted(vars(args)):
+        if getattr(args, arg) is None:
+            error_(parser)
+    IP, port = args.IP, args.port
+    print("#" * 80)
+    print("running aGOtool on IP {} port {}".format(IP, port))
+    app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
