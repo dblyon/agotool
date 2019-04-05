@@ -934,5 +934,6 @@ if __name__ == "__main__":
     ################################################################################
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
-    # sun IP 10110
+    ## SAN port 10110
+    ## agotool.meringlab.org/api port 5911
     app.run(host='0.0.0.0', port=5911, processes=1, debug=variables.DEBUG)

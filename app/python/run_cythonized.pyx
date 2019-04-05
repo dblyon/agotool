@@ -309,8 +309,19 @@ def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, 
         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans.tolist(), dict_2_array=True)
     for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
-        # #!!! limit_2_entity_type --> NotImplemented yet by conditional arrays
         count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
+
+    ## limit to given entity types
+    limit_2_entity_type = args_dict["limit_2_entity_type"]
+    if limit_2_entity_type is not None:
+        cond_limit_2_entity_type = np.zeros(function_enumeration_len, dtype=bool)
+        for cond_name in ["cond_" + etype[1:] for etype in limit_2_entity_type.split(";")]:
+            try:
+                cond_limit_2_entity_type |= etype_cond_dict[cond_name] # add other etypes
+            except KeyError: # user provided etype can be mistyped of non-existent
+                pass
+        # set funcEnumAssociations to zero where cond_limit_2_entity_type is False
+        funcEnum_count_foreground[~cond_limit_2_entity_type] = 0
 
     ### calc ratio in foreground, count foreground / len(protein_ans)
     ratio_in_foreground = funcEnum_count_foreground / foreground_n
@@ -374,6 +385,18 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
     for ENSP in (ENSP for ENSP in protein_ans_bg if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
         count_terms_cy(funcEnumAssociations, funcEnum_count_background)
+
+    ## limit to given entity types
+    limit_2_entity_type = args_dict["limit_2_entity_type"]
+    if limit_2_entity_type is not None:
+        cond_limit_2_entity_type = np.zeros(function_enumeration_len, dtype=bool)
+        for cond_name in ["cond_" + etype[1:] for etype in limit_2_entity_type.split(";")]:
+            try:
+                cond_limit_2_entity_type |= etype_cond_dict[cond_name] # add other etypes
+            except KeyError: # user provided etype can be mistyped of non-existent
+                pass
+        # set funcEnumAssociations to zero where cond_limit_2_entity_type is False
+        funcEnum_count_foreground[~cond_limit_2_entity_type] = 0
 
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)
@@ -509,6 +532,18 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
         count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
+
+    ## limit to given entity types
+    limit_2_entity_type = args_dict["limit_2_entity_type"]
+    if limit_2_entity_type is not None:
+        cond_limit_2_entity_type = np.zeros(function_enumeration_len, dtype=bool)
+        for cond_name in ["cond_" + etype[1:] for etype in limit_2_entity_type.split(";")]:
+            try:
+                cond_limit_2_entity_type |= etype_cond_dict[cond_name] # add other etypes
+            except KeyError: # user provided etype can be mistyped of non-existent
+                pass
+        # set funcEnumAssociations to zero where cond_limit_2_entity_type is False
+        funcEnum_count_foreground[~cond_limit_2_entity_type] = 0
 
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)

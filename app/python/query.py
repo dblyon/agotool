@@ -851,7 +851,7 @@ def get_parents_iterative(child, child_2_parent_dict):
         current_parents = new_parents
     return all_parents
 
-def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
+def get_lineage_dict_enum(as_array=False, read_from_flat_files=False, cast_2_int=True):
     lineage_dict = {} # key: function enumeration, value: set of func enum array all parents
     if read_from_flat_files:
         # fn = os.path.join(variables.TABLES_DIR, "Lineage_table_STRING.txt")
@@ -862,7 +862,8 @@ def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
             term = int(term)
             lineage = lineage[1:-1].split(",")
             if len(lineage[0]) > 0:
-                lineage = [int(ele) for ele in lineage]
+                if cast_2_int:  # string to integer
+                    lineage = [int(ele) for ele in lineage]
                 if as_array:
                     lineage_dict[term] = np.array(sorted(lineage), dtype=np.dtype("uint32"))
                 else:
