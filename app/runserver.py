@@ -924,14 +924,14 @@ if __name__ == "__main__":
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
     ### SAN port 10110
-    ### PISCES port 10110 IP 127.0.0.0
-    parser = argparse.ArgumentParser()
-    parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.0' (is also the default)", type=str, default="127.0.0.0")
-    parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
-    args = parser.parse_args()
+    ### PISCES port 10110 IP 127.0.0.1
+    argparse_parser = argparse.ArgumentParser()
+    argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1")
+    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
+    args = argparse_parser.parse_args()
     for arg in sorted(vars(args)):
         if getattr(args, arg) is None:
-            error_(parser)
+            error_(argparse_parser)
     IP, port = args.IP, args.port
     print("#" * 80)
     print("running aGOtool on IP {} port {}".format(IP, port))
