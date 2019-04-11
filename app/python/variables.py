@@ -18,57 +18,99 @@ DEBUG = False # for flask and some internals for printing, set to False in produ
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = False # print stuff to stdout
+VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 temp_dont_run_analysis = False
 if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
 ############################
-entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57}
-PMID = {-56}
+entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58}
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
-entity_types_with_ontology = {-21, -22, -23, -51, -57} # turn InterPro filter off
-# entity_types_rem_foreground_ids = {-52, -53, -54, -55}
-entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # all_etypes - PMID - ontologies
+entity_types_with_ontology = {-20, -21, -22, -23, -25, -26, -51, -57} # Interpro has ontology, but omitted here to turn off filter_parents functionality
+PMID = {-57}
+# entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
+entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology
+entity_types_with_scores = {-20, -25, -26} # GO-CC,  BTO, DOID
 
-functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
+functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
+                                  "Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,
                                   "Gene Ontology molecular function": -23,
+                                  "Brenda Tissue Ontology": -25,
+                                  "Disease Ontology": -26,
                                   "UniProt keywords": -51,
                                   "KEGG (Kyoto Encyclopedia of Genes and Genomes)": -52,
                                   "SMART (Simple Modular Architecture Research Tool)": -53,
                                   "INTERPRO": -54,
                                   "PFAM (Protein FAMilies)": -55,
                                   "PMID": -56,
-                                  "Reactome": -57}
+                                  "Reactome": -57,
+                                  "WikiPathways": -58}
 
-entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
+entityType_2_functionType_dict = {-20: "Gene Ontology cellular component TEXTMINING",
+                                  -21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
                                   -23: "Gene Ontology molecular function",
+                                  -25: "Brenda Tissue Ontology",
+                                  -26: "Disease Ontology",
                                   -51: "UniProt keywords",
                                   -52: "KEGG (Kyoto Encyclopedia of Genes and Genomes)",
                                   -53: "SMART (Simple Modular Architecture Research Tool)",
                                   -54: "INTERPRO",
                                   -55: "PFAM (Protein FAMilies)",
                                   -56: "PMID (PubMed IDentifier)",
-                                  -57: "Reactome"}
+                                  -57: "Reactome",
+                                  -58: "WikiPathways"}
+
+id_2_entityTypeNumber_dict = {'GOCC:0005575': "-20",  # 'Cellular Component TEXTMINING',
+                              'GO:0003674': "-23",  # 'Molecular Function',
+                              'GO:0005575': "-22",  # 'Cellular Component',
+                              'GO:0008150': "-21",  # 'Biological Process',
+                              "GO:OBSOLETE": "-24", # "GO obsolete
+                              "BTO tissues": "-25", # Brenda Tissue Ontology
+                              "DOID diseases": "-26", # Disease Ontology IDs
+                              # 'UPK:9990': "-51",  # 'Technical term',
+                              # 'UPK:9991': "-51",  # 'PTM',
+                              # 'UPK:9992': "-51",  # 'Molecular function',
+                              # 'UPK:9993': "-51",  # 'Ligand',
+                              # 'UPK:9994': "-51",  # 'Domain',
+                              # 'UPK:9995': "-51",  # 'Disease',
+                              # 'UPK:9996': "-51",  # 'Developmental stage',
+                              # 'UPK:9997': "-51",  # 'Coding sequence diversity',
+                              # 'UPK:9998': "-51",  # 'Cellular component',
+                              # 'UPK:9999': "-51",  # 'Biological process'
+                              'KW-9990': "-51",  # 'Technical term',
+                              'KW-9991': "-51",  # 'PTM',
+                              'KW-9992': "-51",  # 'Molecular function',
+                              'KW-9993': "-51",  # 'Ligand',
+                              'KW-9994': "-51",  # 'Domain',
+                              'KW-9995': "-51",  # 'Disease',
+                              'KW-9996': "-51",  # 'Developmental stage',
+                              'KW-9997': "-51",  # 'Coding sequence diversity',
+                              'KW-9998': "-51",  # 'Cellular component',
+                              'KW-9999': "-51",  # 'Biological process'
+                              "UniProtKeywords": "-51",
+                              'KEGG': "-52", # KEGG
+                              "SMART": "-53", # SMART domains
+                              "INTERPRO": "-54", # Interpro domains
+                              "PFAM": "-55", # Pfam domains
+                              "PMID": "-56", # Pubmed identifiers
+                              "Reactome": "-57", # Reactome
+                              "WikiPathways": "-58"}  # WikiPathways
+
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
 cols_sort_order_charcterize = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
-# cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "year", "ratio_in_foreground", "ratio_in_background", "foreground_ids", "background_ids", "foreground_count", "background_count", "foreground_n", "background_n"]
 cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"] # should be the same as cols_sort_order_genome
-
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas
-# api_url = "http://localhost:5911/api" # local
 api_url = "http://0.0.0.0:5911/api" # local
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-# e.g. '/opt/services/flaskapp/src/python'
 if DOCKER:
     APP_DIR = "/opt/services/flaskapp/src"
     DATA_DIR = "/agotool_data"
@@ -76,11 +118,8 @@ else: # relative path on host
     APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
     DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
 
-# DATA_DIR = "/agotool_data"
-
-# WEBSERVER_DATA = DATA_DIR #os.path.join(PROJECT_DIR, 'data')
-EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata") #os.path.join(PROJECT_DIR, 'data/exampledata')
-SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session') #os.path.join(PROJECT_DIR, 'data/session')
+EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata")
+SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
 
 # FLASK_DATA = APP_DIR
@@ -155,49 +194,27 @@ fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
 # print("VARIABLES env_file bubu: ", fn)
 param_2_val_dict = parse_env_file(fn)
 
-
-id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
-                              'GO:0005575': "-22",  # 'Cellular Component',
-                              'GO:0008150': "-21",  # 'Biological Process',
-                              "GO:OBSOLETE": "-24", # "GO obsolete
-                              # 'UPK:9990': "-51",  # 'Technical term',
-                              # 'UPK:9991': "-51",  # 'PTM',
-                              # 'UPK:9992': "-51",  # 'Molecular function',
-                              # 'UPK:9993': "-51",  # 'Ligand',
-                              # 'UPK:9994': "-51",  # 'Domain',
-                              # 'UPK:9995': "-51",  # 'Disease',
-                              # 'UPK:9996': "-51",  # 'Developmental stage',
-                              # 'UPK:9997': "-51",  # 'Coding sequence diversity',
-                              # 'UPK:9998': "-51",  # 'Cellular component',
-                              # 'UPK:9999': "-51",  # 'Biological process'
-                              'KW-9990': "-51",  # 'Technical term',
-                              'KW-9991': "-51",  # 'PTM',
-                              'KW-9992': "-51",  # 'Molecular function',
-                              'KW-9993': "-51",  # 'Ligand',
-                              'KW-9994': "-51",  # 'Domain',
-                              'KW-9995': "-51",  # 'Disease',
-                              'KW-9996': "-51",  # 'Developmental stage',
-                              'KW-9997': "-51",  # 'Coding sequence diversity',
-                              'KW-9998': "-51",  # 'Cellular component',
-                              'KW-9999': "-51",  # 'Biological process'
-                              "UniProtKeywords": "-51",
-                              'KEGG': "-52", # KEGG
-                              "SMART": "-53", # SMART domains
-                              "INTERPRO": "-54", # Interpro domains
-                              "PFAM": "-55", # Pfam domains
-                              "PMID": "-56", # Pubmed identifiers
-                              "Reactome": "-57"} # Reactome
-
-# function_enumeration_len = 6815598 # ?deprecated?
-#blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9995', 'KW-9996', 'KW-9997', 'KW-9998', 'KW-9999']
+### Blacklisted terms
 # top level KW except Disease and Developmental stage
 # 'KW-9995' 'Disease',
 # 'KW-9996' 'Developmental stage'
+# 'KW-9990' 'Technical term' and all its children
 blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
                      'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614',
                      'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999'}
-# 'KW-9990' 'Technical term' and all its children
+
+##### final Tables / flat-files needed for flask app / PostgreSQL
+tables_dict = {
+    "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
+    "Functions_table": os.path.join(TABLES_DIR, "Functions_table_FIN.txt"),
+    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
+    "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_FIN.txt"),
+    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_FIN.txt"),
+    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt"),
+    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_FIN.txt"),
+    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt"),
+}
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
     "| enum | etype | an | description | year | level |"
@@ -212,6 +229,7 @@ def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
     blacklisted_enum_terms = sorted(blacklisted_enum_terms)
     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
 
-fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+fn_functions_table = tables_dict["Functions_table"]
 blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
-# blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
+
+jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]

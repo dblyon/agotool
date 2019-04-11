@@ -655,6 +655,23 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
     lineage_dict.update(get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict))
     return lineage_dict
 
+def get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree):
+    child_2_parent_dict, parent_2_child_dict = {}, {}
+    child_2_parent_dict.update(get_child_2_direct_parent_dict_from_dag(obo_parser.GODag(obo_file=fn_go_basic_obo)))
+    child_2_parent_dict.update(get_child_2_direct_parent_dict_from_dag(obo_parser.GODag(obo_file=fn_keywords_obo, upk=True)))
+    child_2_parent_dict.update(get_child_2_direct_parent_dict_RCTM(fn_rctm_hierarchy))
+    child_2_parent_dict_temp, _ = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
+    child_2_parent_dict.update(child_2_parent_dict_temp)
+
+    for child, parent in child_2_parent_dict.items():
+        if parent not in parent_2_child_dict:
+            parent_2_child_dict[parent] = [child]
+        else:
+            parent_2_child_dict[parent].append(child)
+    return parent_2_child_dict
+
+
+
 # def get_lineage_Reactome(fn_hierarchy): #, debug=False): # deprecated
 #     lineage_dict = defaultdict(lambda: set())
 #     child_2_parent_dict = get_child_2_direct_parent_dict_RCTM(fn_hierarchy)
@@ -1693,7 +1710,10 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
                             fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
     print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
 
-def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_out_AFC_KS_DIR, verbose=True):
+def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_out_AFC_KS_DIR, verbose=True):
+    parent_2_direct_children_dict = get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
+
+
     print("AFC_KS_enrichment_terms_flat_files start")
     ENSP_2_internalID_dict = {}
     with open(fn_in_Protein_shorthands, "r") as fh:
@@ -1720,7 +1740,9 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
     with open(fn_in_Function_2_ENSP_table_STRING_reduced, "r") as fh_in:
         taxid_last, etype, association, background_count, background_n, an_array = fh_in.readline().split()
         fn_out = fn_out_prefix.format(taxid_last)
+        fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
         fh_out = open(fn_out, "w")
+        fh_out_lineage = open(fn_out_lineage, "w")
         fh_in.seek(0)
         for line in fh_in:
             taxid, etype, association, background_count, background_n, an_array = line.split()
@@ -1733,8 +1755,11 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
             array_of_ENSPs_with_internal_IDS = " ".join(sorted(map_ENSPs_2_internalIDs(an_array, ENSP_2_internalID_dict)))
             if taxid != taxid_last:
                 fh_out.close()
+                fh_out_lineage.close()
                 fn_out = fn_out_prefix.format(taxid)
+                fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
                 fh_out = open(fn_out, "w")
+                fh_out_lineage = open(fn_out_lineage, "w")
             if etype == "-52": # KEGG
                 try:
                     acronym = taxid_2_acronym_dict[taxid]
@@ -1743,12 +1768,21 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
                     acronym = "map"
                 association = association.replace("map", acronym)
             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
+            try:
+                children_list = parent_2_direct_children_dict[association]
+            except KeyError:
+                if int(etype) in variables.entity_types_with_ontology:
+                    print("{} without children".format(association))
+                children_list = False
+            if children_list:
+                fh_out_lineage.write(association+ "\t" + "\t".join(children_list) + "\n")
             taxid_last = taxid
         if verbose:
             if counter % 500 == 0:
                 print(".", end="")
         counter += 1
         fh_out.close()
+        fh_out_lineage.close()
     print("AFC_KS_enrichment_terms_flat_files done :)")
 
 def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
