@@ -114,19 +114,31 @@ class Userinput:
                 return self.foreground, self.background, False
 
         ### remove splice variant appendix and drop duplicates
-        try:
-            self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
-        except AttributeError: # np.nan can't be split
-            return self.foreground, self.background, False
+        if variables.VERSION_ == "STRING":
+            try:
+                self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.split_IDs)
+            except AttributeError: # np.nan can't be split
+                return self.foreground, self.background, False
+        elif variables.VERSION_ == "aGOtool":
+            try:
+                self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
+            except AttributeError: # np.nan can't be split
+                return self.foreground, self.background, False
         if self.enrichment_method != "compare_groups": # abundance_correction
             self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
         # if self.enrichment_method != "characterize_foreground": # abundance_correction
         if self.enrichment_method not in {"characterize_foreground", "genome"}:
-            try:
-                self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
-            except AttributeError:
-                return self.foreground, self.background, False
+            if variables.VERSION_ == "STRING":
+                try:
+                    self.background[col_background] = self.background[col_background].apply(self.split_IDs)
+                except AttributeError:
+                    return self.foreground, self.background, False
+            elif variables.VERSION_ == "aGOtool":
+                try:
+                    self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
+                except AttributeError:
+                    return self.foreground, self.background, False
             self.background = self.background.drop_duplicates(subset=col_background)
 
         ### map abundance from background to foreground, set default missing value for NaNs
@@ -305,6 +317,17 @@ class Userinput:
         :return: String
         """
         return ";".join(sorted([ele.split("-")[0] for ele in string_.split(";")]))
+
+    @staticmethod
+    def split_IDs(string_):
+        """
+        STRING version should NOT remove splice variants since STRING internal identifiers can have '-' such as
+        4932.YFR032C-A
+        4932.YFR032C-B
+        :param string_: String
+        :return: String
+        """
+        return ";".join(sorted([ele for ele in string_.split(";")]))
 
     @staticmethod
     def map_intensities_2_foreground(foreground_series, an_2_intensity_dict):
