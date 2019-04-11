@@ -797,19 +797,19 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
 # - Reactome
 # - InterPro
 
-
-
-
-# 4.) WikiPathways, update on the 11th of each month
-# link http://data.wikipathways.org
-# use gmt = Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
-# map Entrez Gene IDs to UniProt using ??? ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
-# --> fast one ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz
-# map Entrez Gene IDs to STRING IDs using ???
-# Functions_table_Wikipathways.txt ???
-
 # 5.) ? How to count Jensenlab Scores?
 # bin into 5 categories, like using a hard-cutoff, and merge results (correcting p-values * number_of_bins), duplicate terms --> select best p-value?
 # bins: 0-5, 1-5, 2-5, 3-5, 4-5
 
 # parse UniProtAN to other functional annotations apart from keywords (which are)
+
+# read Lars literature and ask him about the differences of annotation information/quality
+
+
+### UniProt dump files
+# add UniProt AN 2
+# - GO
+# - KeyWords
+# - InterPro
+# - Pfam
+#

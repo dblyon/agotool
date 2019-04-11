@@ -188,6 +188,7 @@ class GOTerm:
                 return True
         return False
 
+
     # def get_all_parents(self):
     #     all_parents = set()
     #     for p in self.parents:

@@ -105,13 +105,15 @@ def create_protein_2_function_table_Reactome(fn_in, fn_out, child_2_parent_dict,
                     if return_all_terms:
                         all_terms = all_terms.union(set(term_list))
                 else:
-                    term_string_array = "{" + str(sorted(set(term_list)))[1:-1].replace("'", '"') + "}"
+                    # term_string_array = "{" + str(sorted(set(term_list)))[1:-1].replace("'", '"') + "}"
+                    term_string_array = format_list_of_string_2_postgres_array(sorted(set(term_list)))
                     fh_out.write(ENSP_last + "\t" + term_string_array + "\t" + entity_type + "\n")
                     term_list = [term] + list(get_parents_iterative(term, child_2_parent_dict))
                     if return_all_terms:
                         all_terms = all_terms.union(set(term_list))
                 ENSP_last = ENSP
-            term_string_array = "{" + str(sorted(set(term_list)))[1:-1].replace("'", '"') + "}"
+            # term_string_array = "{" + str(sorted(set(term_list)))[1:-1].replace("'", '"') + "}"
+            term_string_array = format_list_of_string_2_postgres_array(sorted(set(term_list)))
             fh_out.write(ENSP_last + "\t" + term_string_array + "\t" + entity_type + "\n")
             term_list = [term] + list(get_parents_iterative(term, child_2_parent_dict))
             if return_all_terms:
@@ -1031,6 +1033,7 @@ def Protein_2_Function_table_KEGG(fn_in_kegg_benchmarking, fn_out_Protein_2_Func
     with open(fn_in_kegg_benchmarking, "r") as fh_in:
         with open(fn_out_temp, "w") as fh_out:
             for line in fh_in:
+                # 292     bced03020       4       DM42_1447 DM42_1480 DM42_1481 DM42_836
                 TaxID, KEGG, num_ENSPs, *ENSPs = line.split()
                 if KEGG.startswith("CONN_"):
                     continue
@@ -1261,7 +1264,7 @@ def get_all_parent_terms(GOterm_list, GO_dag):
             not_in_obo.append(GOterm)
     return sorted(set(parents).union(set(GOterm_list))), sorted(set(not_in_obo))
 
-def divide_into_categories(GOterm_list, GO_dag,
+def divide_into_categories_old(GOterm_list, GO_dag,
                            MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
     """
     split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
@@ -1292,6 +1295,40 @@ def divide_into_categories(GOterm_list, GO_dag,
                 MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
     return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
 
+def divide_into_categories(GOterm_list, GO_dag,
+                           MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
+    """
+    split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
+    'GO:0003674': "-23",  # 'Molecular Function',
+    'GO:0005575': "-22",  # 'Cellular Component',
+    'GO:0008150': "-21",  # 'Biological Process',
+    29,687 Biological process
+    11,110 Molecular Function
+    4,206 Celular component
+    :param GOterm_list: List of String
+    :param GO_dag: Dict like object
+    :return: Tuple (List of String x 3)
+    """
+    for term in GOterm_list:
+        namespace = GO_dag[term].namespace
+        if namespace == "biological_process":
+            BPs.append(GO_dag[term].id)
+        elif namespace == "molecular_function":
+            MFs.append(GO_dag[term].id)
+        elif namespace == "cellular_component":
+            CPs.append(GO_dag[term].id)
+        else:
+            try:
+                GO_id = GO_dag[term].id
+            except KeyError:
+                not_in_OBO.append(term)
+                continue
+            if GO_dag[GO_id].is_obsolete:
+                not_in_OBO.append(term)
+            else:
+                MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
+    return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
+
 def Protein_2_Function_table_UniProtKeyword(fn_in_Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out_Protein_2_Function_table_UPK, number_of_processes=1,  verbose=True):
     if verbose:
         print("\ncreate_Protein_2_Function_table_UniProtKeywords")
@@ -1301,8 +1338,6 @@ def Protein_2_Function_table_UniProtKeyword(fn_in_Functions_table_UPK, fn_in_obo
     uniprot_2_ENSPs_dict = parse_full_uniprot_2_string(fn_in_uniprot_2_string)
     entityType_UniProtKeywords = variables.id_2_entityTypeNumber_dict["UniProtKeywords"]
     UPKs_not_in_obo_list = []
-    # import ipdb
-    # ipdb.set_trace()
     with open(fn_out_Protein_2_Function_table_UPK, "w") as fh_out:
         if verbose:
             print("parsing {}".format(fn_in_uniprot_SwissProt_dat))
@@ -1364,6 +1399,59 @@ def Protein_2_Function_table_UniProtKeyword(fn_in_Functions_table_UPK, fn_in_obo
     if verbose:
         print("Number of UniProt Keywords not in OBO: ", len(UPKs_not_in_obo_list))
         print("done create_Protein_2_Function_table_UniProtKeywords\n")
+
+def Protein_2_Function_table_UniProtKeyword_UniProtSpace(fn_in_Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_out_Protein_2_Function_table_UPK, number_of_processes=1,  verbose=True):
+    if verbose:
+        print("\ncreate_Protein_2_Function_table_UniProtKeywords")
+    UPK_dag = obo_parser.GODag(obo_file=fn_in_obo, upk=True)
+    UPK_Name_2_AN_dict = get_keyword_2_upkan_dict(fn_in_Functions_table_UPK)  # depends on create_Child_2_Parent_table_UPK__and__Functions_table_UPK__and__Function_2_definition_UPK
+    entityType_UniProtKeywords = variables.id_2_entityTypeNumber_dict["UniProtKeywords"]
+    UPKs_not_in_obo_list = []
+    with open(fn_out_Protein_2_Function_table_UPK, "w") as fh_out:
+        if verbose:
+            print("parsing {}".format(fn_in_uniprot_SwissProt_dat))
+        for UniProtAN_list, KeyWords_list in parse_uniprot_dat_dump_yield_entry(fn_in_uniprot_SwissProt_dat):
+            for UniProtAN in UniProtAN_list:
+                if len(KeyWords_list) >= 1:
+                    UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, KeyWords_list)
+                    UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+                    UPK_ANs, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, UPK_dag)
+                    UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+                else:
+                    continue
+                if len(UPK_ANs) >= 1:
+                    fh_out.write(UniProtAN + "\t" + "{" + str(sorted(UPK_ANs))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
+
+        if verbose:
+            print("parsing {}".format(fn_in_uniprot_TrEMBL_dat))
+        for UniProtAN_list, KeyWords_list in parse_uniprot_dat_dump_yield_entry(fn_in_uniprot_TrEMBL_dat):
+            for UniProtAN in UniProtAN_list:
+                if len(KeyWords_list) >= 1:
+                    UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, KeyWords_list)
+                    UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+                    UPK_ANs, UPKs_not_in_obo_temp = get_all_parent_terms(UPK_ANs, UPK_dag)
+                    UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+                else:
+                    continue
+                if len(UPK_ANs) >= 1:
+                    fh_out.write(UniProtAN + "\t" + "{" + str(sorted(UPK_ANs))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType_UniProtKeywords + "\n")
+
+    ### table Protein_2_Function_table_UniProtKeywords.txt needs sorting
+    tools.sort_file(fn_out_Protein_2_Function_table_UPK, fn_out_Protein_2_Function_table_UPK, columns="1", number_of_processes=number_of_processes, verbose=verbose)
+
+    UPKs_not_in_obo_list = sorted(set(UPKs_not_in_obo_list))
+    fn_log = os.path.join(LOG_DIRECTORY, "create_SQL_tables_UniProtKeywords_not_in_OBO.log")
+    with open(fn_log, "w") as fh_out:
+        fh_out.write(";".join(UPKs_not_in_obo_list))
+
+        print("#!$%^@"*80)
+        print("writing uniprot_2_string_missing_mapping to log file\n", os.path.join(LOG_DIRECTORY, "create_SQL_tables_STRING.log"))
+        print("#!$%^@" * 80)
+
+    if verbose:
+        print("Number of UniProt Keywords not in OBO: ", len(UPKs_not_in_obo_list))
+        print("done create_Protein_2_Function_table_UniProtKeywords\n")
+
 
 def parse_full_uniprot_2_string(fn_in):
     """
@@ -1551,7 +1639,8 @@ def yield_entry_UniProt_dat_dump(fn_in):
             lines_list = []
     if lines_list:
         if len(lines_list[0]) == 0:
-            return None
+            # return None #
+            yield StopIteration
     else:
         yield lines_list
 

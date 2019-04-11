@@ -1,4 +1,4 @@
-import os, json, sys, re, fnmatch, subprocess, time, datetime #, shlex  #, multiprocessing
+import os, json, sys, fnmatch, subprocess, time, datetime #, shlex  #, multiprocessing
 import pandas as pd
 import numpy as np
 from subprocess import call

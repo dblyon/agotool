@@ -17,8 +17,7 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         args_dict["ERROR_enrichment_method"] = "ERROR: enrichment_method {} is not implemented. Please check the input parameters and examples.".format(enrichment_method)
         return False
 
-    # ToDo:
-    # limit_2_entity_type = args_dict["limit_2_entity_type"]
+    ### ToDo
     # go_slim_or_basic = args_dict["go_slim_or_basic"]
     # indent = args_dict["indent"]
 
