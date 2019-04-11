@@ -451,8 +451,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict(read_from_flat_files)
         if variables.VERBOSE:
-            print("getting KEGG TaxID 2 TaxName acronym translation")
-        self.kegg_taxid_2_acronym_dict = get_KEGG_TaxID_2_acronym_dict(read_from_flat_files)
+            print("getting KEGG Taxid 2 TaxName acronym translation")
+        self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files)
 
         if variables.VERBOSE:
             print("getting lookup arrays")
@@ -675,10 +675,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
-def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):
+def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True):
     KEGG_TaxID_2_acronym_dict = {}
     if read_from_flat_files:
-        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt"))
+        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "KEGG_Taxid_2_acronym_table.txt"))
     else:
         raise NotImplementedError # result = get_results_of_statement()
     for res in results:

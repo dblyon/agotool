@@ -920,9 +920,12 @@ if __name__ == "__main__":
     # processes should be "1", otherwise nginx throws 502 errors with large files
     ### SAN port 10110
     ### PISCES port 10110 IP 127.0.0.1
+    ### agotool.meringlab 0.0.0.0 5911
     argparse_parser = argparse.ArgumentParser()
-    argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", action='store_const', const="127.0.0.1")
-    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", action="store_const", const="10110")
+    # argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", action='store_const', const="127.0.0.1")
+    # argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", action="store_const", const="10110")
+    argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1")
+    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
     args = argparse_parser.parse_args()
     for arg in sorted(vars(args)):
         if getattr(args, arg) is None:

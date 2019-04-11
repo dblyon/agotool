@@ -1,4 +1,4 @@
-import os, sys
+Taxid_2_Proteins_table_STRINGimport os, sys
 # sys.path.insert(0, os.path.join(os.getcwd(), "python"))
 import variables_snakemake as variables
 import create_SQL_tables_snakemake as cst
@@ -20,7 +20,7 @@ verbose = variables.VERBOSE
 # - Functions_table_STRING_reduced.txt
 # - Protein_2_FunctionEnum_table_STRING.txt
 # - Entity_types_table_STRING.txt
-# - TaxID_2_Proteins_table_STRING.txt
+# - Taxid_2_Proteins_table_STRING.txt
 # - Taxid_2_FunctionCountArray_table_STRING.txt
 # - Lineage_table_STRING.txt
 
@@ -133,7 +133,7 @@ Protein_2_Function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_t
 Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_reduced.txt")
 Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
 Protein_2_Function_table_UPK = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK.txt")
-TaxID_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt")
+Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 Taxid_2_FunctionCountArray_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
 map_name_2_an_PFAM = os.path.join(TABLES_DIR, "map_name_2_an_PFAM.txt")
 map_name_2_an_SMART = os.path.join(TABLES_DIR, "map_name_2_an_SMART.txt")
@@ -361,18 +361,18 @@ rule Functions_table_STRING_all:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_tables_STRING_temp, output.Functions_table_STRING_all, threads)
 
 
-rule TaxID_2_Proteins_table_STRING:
+rule Taxid_2_Proteins_table_STRING:
     input:
         Protein_shorthands = Protein_shorthands
     output:
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.TaxID_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.TaxID_2_Proteins_table(r"{input.Protein_shorthands}", r"{output.Taxid_2_Proteins_table_STRING}", {threads}, {params.verbose})'"""
     run:
-        cst.TaxID_2_Proteins_table(input.Protein_shorthands, output.TaxID_2_Proteins_table_STRING, threads, params.verbose)
+        cst.Taxid_2_Proteins_table(input.Protein_shorthands, output.Taxid_2_Proteins_table_STRING, threads, params.verbose)
 
 rule Protein_2_Function_table_KEGG:
     input:
@@ -459,19 +459,19 @@ rule Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID:
     input:
         all_entities = all_entities,
         string_matches = string_matches,
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         Functions_table_PMID_temp = Functions_table_PMID_temp
     output:
         Functions_table_PMID = Functions_table_PMID,
         Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(r"{input.all_entities}", r"{input.string_matches}", r"{input.TaxID_2_Proteins_table_STRING}", r"{input.Functions_table_PMID_temp}", r"{output.Functions_table_PMID}", r"{output.Protein_2_Function_table_PMID}")'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(r"{input.all_entities}", r"{input.string_matches}", r"{input.Taxid_2_Proteins_table_STRING}", r"{input.Functions_table_PMID_temp}", r"{output.Functions_table_PMID}", r"{output.Protein_2_Function_table_PMID}")'"""
     run:
-        cst.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(input.all_entities, input.string_matches, input.TaxID_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID)
+        cst.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_STRING, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID)
 
 rule Protein_2_Function_table_STRING:
     input:
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         fn_list_str = [Protein_2_Function_table_InterPro,
                        Protein_2_Function_table_KEGG,
                        Protein_2_Function_table_SMART,
@@ -484,14 +484,14 @@ rule Protein_2_Function_table_STRING:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_STRING(r"{input.fn_list_str}", r"{input.TaxID_2_Proteins_table_STRING}", r"{output.Protein_2_Function_table_STRING}", {threads})'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_STRING(r"{input.fn_list_str}", r"{input.Taxid_2_Proteins_table_STRING}", r"{output.Protein_2_Function_table_STRING}", {threads})'"""
     run:
-        cst.Protein_2_Function_table_STRING(input.fn_list_str, input.TaxID_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING, threads)
+        cst.Protein_2_Function_table_STRING(input.fn_list_str, input.Taxid_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING, threads)
 
 rule Function_2_ENSP_table:
     input:
         Protein_2_Function_table_STRING = Protein_2_Function_table_STRING,
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         Functions_table_STRING_all = Functions_table_STRING_all,
     output:
         Function_2_ENSP_table_STRING = Function_2_ENSP_table_STRING,
@@ -501,7 +501,7 @@ rule Function_2_ENSP_table:
         min_count = min_count,
         verbose = verbose
     run:
-        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.TaxID_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
+        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
 
 rule Functions_table_STRING_reduced:
     input:
@@ -560,16 +560,16 @@ rule Taxid_2_FunctionCountArray_table_STRING:
     input:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        TaxID_2_Proteins_table_STRING = TaxID_2_Proteins_table_STRING
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
     output:
         Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Taxid_2_FunctionCountArray_table_STRING(r"{input.Protein_2_FunctionEnum_table_STRING}", r"{input.Functions_table_STRING_reduced}", r"{input.TaxID_2_Proteins_table_STRING}", r"{output.Taxid_2_FunctionCountArray_table_STRING}", {threads})'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.create_Taxid_2_FunctionCountArray_table_STRING(r"{input.Protein_2_FunctionEnum_table_STRING}", r"{input.Functions_table_STRING_reduced}", r"{input.Taxid_2_Proteins_table_STRING}", r"{output.Taxid_2_FunctionCountArray_table_STRING}", {threads})'"""
     run:
-        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.TaxID_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads)
+        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads)
 
 rule AFC_KS_enrichment_terms_flat_files:
     input:

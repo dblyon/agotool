@@ -1415,7 +1415,7 @@ def parse_textmining_string_matches(fn):
     df = pd.read_csv(fn, sep="\t", names=names)
     return df
 
-def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID, fn_out_Protein_2_Function_table_PMID):
+def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_entities, fn_in_string_matches, fn_in_Taxid_2_Proteins_table_STRING, fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID, fn_out_Protein_2_Function_table_PMID):
     df_txtID = parse_textmining_entityID_2_proteinID(fn_in_all_entities)
     df_stringmatches = parse_textmining_string_matches(fn_in_string_matches)
     # sanity test that df_stringmatches.entity_id are all in df_txtID.textmining_id --> yes. textmining_id is a superset of entity_id --> after filtering df_txtID this is not true
@@ -1428,7 +1428,7 @@ def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_en
     # get all ENSPs
 
     ENSP_set = set()
-    with open(fn_in_TaxID_2_Proteins_table_STRING, "r") as fh:
+    with open(fn_in_Taxid_2_Proteins_table_STRING, "r") as fh:
         for line in fh:
             ENSP_set |= literal_eval(line.split("\t")[1])
     # reduce DF to ENSPs in DB
@@ -1534,14 +1534,14 @@ def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_t
     tools.sort_file(fn_out_protein_2_function_reduced, fn_out_protein_2_function_reduced, number_of_processes=number_of_processes)
     print("finished with reduce_Protein_2_Function_table_2_STRING_proteins")
 
-def parse_taxid_2_proteins_get_all_ENSPs(fn_TaxID_2_Proteins_table_STRING):
+def parse_taxid_2_proteins_get_all_ENSPs(fn_Taxid_2_Proteins_table_STRING):
     ENSP_set = set()
-    with open(fn_TaxID_2_Proteins_table_STRING, "r") as fh:
+    with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
         for line in fh:
             ENSP_set |= literal_eval(line.split("\t")[1])  # reduce DF to ENSPs in DB
     return ENSP_set
 
-def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins_table, fn_in_Functions_table,
+def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins_table, fn_in_Functions_table,
         fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_removed,
         min_count=1, verbose=True):
     """
@@ -1551,7 +1551,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins
         print("creating Function_2_ENSP_table this will take a while")
 
     function_2_ENSPs_dict = defaultdict(list)
-    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table)
+    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table)
     _, function_2_etype_dict = _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Functions_table) # funcenum not correct at this stage since some functions will be removed from Functions_table_STRING and thus the enumeration would be wrong
     with open(fn_in_Protein_2_Function_table, "r") as fh_in:
         taxid_ENSP, taxid_last, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(fh_in.readline())
@@ -1630,9 +1630,9 @@ def _helper_parse_line_prot_2_func(line):
     function_an_set = literal_eval(function_an_set_str)
     return taxid_ENSP, taxid, etype, function_an_set
 
-def _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table_STRING):
+def _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table_STRING):
     taxid_2_total_protein_count_dict = {}
-    with open(fn_in_TaxID_2_Proteins_table_STRING, "r") as fh_in:
+    with open(fn_in_Taxid_2_Proteins_table_STRING, "r") as fh_in:
         for line in fh_in:
             taxid, ENSP_arr_str, count = line.split("\t")
             # count = int(count.strip())
