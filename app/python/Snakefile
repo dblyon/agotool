@@ -66,31 +66,31 @@ UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 ### Jensenlab
-URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
-URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
+#URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
+#URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
 URL_go_obo_Jensenlab = r"http://download.jensenlab.org/aGOtool/go.obo"
 
 URL_function_2_description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
 Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
 
-URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
-Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
-Functions_table_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Functions_table_DOID_BTO_GOCC.txt")
+# URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
+# Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
+# Functions_table_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Functions_table_DOID_BTO_GOCC.txt")
 
-URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
-Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
+#URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
+#Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
 
-URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
-Protein_2_Function_and_Score_DOID_BTO_GOCC = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC.txt.gz")
+#URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
+#Protein_2_Function_and_Score_DOID_BTO_GOCC = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC.txt.gz")
 
 Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
 Protein_2_Function_table_PMID_fulltexts = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_fulltexts.txt")
 
-Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
-DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
+#Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
+#DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
-BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
-DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")
+#BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
+#DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")
 # Reactome
 RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv") # https://reactome.org/download/current/ReactomePathwaysRelation.txt
 RCTM_associations = os.path.join(DOWNLOADS_DIR, "RCTM_associations.tsv") # #!!! missing ask Damian he probably did some kind of mapping
@@ -186,14 +186,14 @@ parallel_parse_textmining_pmc_medline = os.path.join(PYTHON_DIR, "parallel_parse
 
 
 ### WikiPathways
-URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on the 11th
-URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz" # monthly download?
-UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping_selected.tab.gz")
-WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
-Protein_2_Function_table_WikiPathways = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways.txt")
-# https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
-STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz")
-Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
+#URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on the 11th
+#URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz" # monthly download?
+#UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping_selected.tab.gz")
+#WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
+#Protein_2_Function_table_WikiPathways = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways.txt")
+## https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
+#STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz")
+#Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
 ###################################################################################################
 ### download resources
 # rule download_GO_obo:
@@ -271,52 +271,52 @@ rule download_descriptions_PMID:
         # tools.gunzip_file(output.Function_2_Description_PMID_gz, output.Function_2_Description_PMID)
         drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID, params.verbose)
 
-rule download_Protein_2_Function_table_PMID_abstracts:
-    output:
-        Protein_2_Function_table_PMID_abstracts_gz = Protein_2_Function_table_PMID_abstracts + ".gz",
-        Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts
-    params:
-        URL_protein_2_function_PMID = URL_protein_2_function_PMID,
-        verbose = verbose
-    run:
-        drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_abstracts_gz, params.verbose)
-        tools.gunzip_file(output.Protein_2_Function_table_PMID_abstracts_gz, output.Protein_2_Function_table_PMID_abstracts)
+#rule download_Protein_2_Function_table_PMID_abstracts:
+#    output:
+#        Protein_2_Function_table_PMID_abstracts_gz = Protein_2_Function_table_PMID_abstracts + ".gz",
+#        Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts
+#    params:
+#        URL_protein_2_function_PMID = URL_protein_2_function_PMID,
+#        verbose = verbose
+#    run:
+#        drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_abstracts_gz, params.verbose)
+#        tools.gunzip_file(output.Protein_2_Function_table_PMID_abstracts_gz, output.Protein_2_Function_table_PMID_abstracts)
 
-rule download_Protein_2_Function_and_Score_DOID_BTO_GOCC:
-    output:
-        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC
-    params:
-        URL_integrated_protein_2_function_Jensenlab = URL_integrated_protein_2_function_Jensenlab,
-        verbose = verbose
-    run:
-        drs.download_requests(params.URL_integrated_protein_2_function_Jensenlab, output.Protein_2_Function_and_Score_DOID_BTO_GOCC, params.verbose)
-
-rule download_Descriptions_DOID_BTO_GO:
-    output:
-        Function_2_Description_DOID_BTO_GO_down = Function_2_Description_DOID_BTO_GO_down
-    params:
-        URL_integrated_function_2_description_Jensenlab = URL_integrated_function_2_description_Jensenlab,
-        verbose = verbose
-    run:
-        drs.download_requests(params.URL_integrated_function_2_description_Jensenlab, output.Function_2_Description_DOID_BTO_GO_down, params.verbose)
-
-rule download_Blacklist_Jensenlab:
-    output:
-        Blacklisted_terms_Jensenlab = Blacklisted_terms_Jensenlab
-    params:
-        URL_blacklisted_terms_Jensenlab = URL_blacklisted_terms_Jensenlab,
-        verbose = verbose
-    run:
-        drs.download_requests(params.URL_blacklisted_terms_Jensenlab, output.Blacklisted_terms_Jensenlab, params.verbose)
-
-rule download_DOID_obo_Jensenlab:
-    output:
-        DOID_obo_Jensenlab = DOID_obo_Jensenlab
-    params:
-        URL_doid_obo = URL_doid_obo,
-        verbose = verbose
-    run:
-        drs.download_requests(params.URL_doid_obo, output.DOID_obo_Jensenlab, params.verbose)
+#rule download_Protein_2_Function_and_Score_DOID_BTO_GOCC:
+#    output:
+#        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC
+#    params:
+#        URL_integrated_protein_2_function_Jensenlab = URL_integrated_protein_2_function_Jensenlab,
+#        verbose = verbose
+#    run:
+#        drs.download_requests(params.URL_integrated_protein_2_function_Jensenlab, output.Protein_2_Function_and_Score_DOID_BTO_GOCC, params.verbose)
+#
+#rule download_Descriptions_DOID_BTO_GO:
+#    output:
+#        Function_2_Description_DOID_BTO_GO_down = Function_2_Description_DOID_BTO_GO_down
+#    params:
+#        URL_integrated_function_2_description_Jensenlab = URL_integrated_function_2_description_Jensenlab,
+#        verbose = verbose
+#    run:
+#        drs.download_requests(params.URL_integrated_function_2_description_Jensenlab, output.Function_2_Description_DOID_BTO_GO_down, params.verbose)
+#
+#rule download_Blacklist_Jensenlab:
+#    output:
+#        Blacklisted_terms_Jensenlab = Blacklisted_terms_Jensenlab
+#    params:
+#        URL_blacklisted_terms_Jensenlab = URL_blacklisted_terms_Jensenlab,
+#        verbose = verbose
+#    run:
+#        drs.download_requests(params.URL_blacklisted_terms_Jensenlab, output.Blacklisted_terms_Jensenlab, params.verbose)
+#
+#rule download_DOID_obo_Jensenlab:
+#    output:
+#        DOID_obo_Jensenlab = DOID_obo_Jensenlab
+#    params:
+#        URL_doid_obo = URL_doid_obo,
+#        verbose = verbose
+#    run:
+#        drs.download_requests(params.URL_doid_obo, output.DOID_obo_Jensenlab, params.verbose)
 
 rule download_GO_obo_Jensenlab:
     output:
@@ -332,23 +332,23 @@ rule download_GO_obo_Jensenlab:
 # map Entrez Gene IDs to STRING IDs using ???
 # Functions_table_Wikipathways.txt ???
 
-rule download_WikiPathways:
-    input:
-        DOWNLOADS_DIR = DOWNLOADS_DIR
-    params:
-        URL_WikiPathways_GMT = URL_WikiPathways_GMT,
-        verbose = verbose
-    run:
-        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, params.verbose)
+#rule download_WikiPathways:
+#    input:
+#        DOWNLOADS_DIR = DOWNLOADS_DIR
+#    params:
+#        URL_WikiPathways_GMT = URL_WikiPathways_GMT,
+#        verbose = verbose
+#    run:
+#        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, params.verbose)
 
-rule download_UniProt_ID_mapping:
-    output:
-        UniProt_ID_mapping = UniProt_ID_mapping
-    params:
-        URL_UniProt_ID_mapping = URL_UniProt_ID_mapping,
-        verbose = verbose
-    run:
-        drs.download_gzip_file(params.URL_UniProt_ID_mapping, output.UniProt_ID_mapping, params.verbose)
+#rule download_UniProt_ID_mapping:
+#    output:
+#        UniProt_ID_mapping = UniProt_ID_mapping
+#    params:
+#        URL_UniProt_ID_mapping = URL_UniProt_ID_mapping,
+#        verbose = verbose
+#    run:
+#        drs.download_gzip_file(params.URL_UniProt_ID_mapping, output.UniProt_ID_mapping, params.verbose)
 
 ###################################################################################################
 ### create tables
@@ -471,21 +471,21 @@ rule Functions_table_PMID:
     run:
         cst.Functions_table_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
 
-rule Functions_table_DOID_BTO_GOCC: # these are not being filtered to relevant ones, but since number is small (~20k), the impact should be negligible
-    input:
-        Function_2_Description_DOID_BTO_GO_down = Function_2_Description_DOID_BTO_GO_down,
-        BTO_obo_Jensenlab = BTO_obo_Jensenlab,
-        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
-        GO_obo_Jensenlab = GO_obo_Jensenlab,
-        Blacklisted_terms_Jensenlab = Blacklisted_terms_Jensenlab
-    output:
-        Functions_table_DOID_BTO_GOCC = Functions_table_DOID_BTO_GOCC
-    params:
-        GO_CC_textmining_additional_etype = True,
-        NUMBER_OF_PROCESSES_sorting = NUMBER_OF_PROCESSES_sorting,
-        verbose = verbose
-    run:
-        cst.Functions_table_DOID_BTO_GOCC(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.GO_obo_Jensenlab, input.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO_GOCC, params.GO_CC_textmining_additional_etype, params.NUMBER_OF_PROCESSES_sorting, params.verbose)
+#rule Functions_table_DOID_BTO_GOCC: # these are not being filtered to relevant ones, but since number is small (~20k), the impact should be negligible
+#    input:
+#        Function_2_Description_DOID_BTO_GO_down = Function_2_Description_DOID_BTO_GO_down,
+#        BTO_obo_Jensenlab = BTO_obo_Jensenlab,
+#        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+#        GO_obo_Jensenlab = GO_obo_Jensenlab,
+#        Blacklisted_terms_Jensenlab = Blacklisted_terms_Jensenlab
+#    output:
+#        Functions_table_DOID_BTO_GOCC = Functions_table_DOID_BTO_GOCC
+#    params:
+#        GO_CC_textmining_additional_etype = True,
+#        NUMBER_OF_PROCESSES_sorting = NUMBER_OF_PROCESSES_sorting,
+#        verbose = verbose
+#    run:
+#        cst.Functions_table_DOID_BTO_GOCC(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.GO_obo_Jensenlab, input.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO_GOCC, params.GO_CC_textmining_additional_etype, params.NUMBER_OF_PROCESSES_sorting, params.verbose)
 
 # rule Functions_table_GOCC_textmining: # using Functions_table_DOID_BTO_GOCC instead
 #     input:
@@ -507,9 +507,9 @@ rule Functions_table_all:
                        Functions_table_GO,
                        Functions_table_UPK,
                        Functions_table_PMID,
-                       Functions_table_RCTM,
-                       Functions_table_DOID_BTO_GOCC,
-                       Functions_table_WikiPathways]
+                       Functions_table_RCTM] #,
+                       #Functions_table_DOID_BTO_GOCCi] #,
+                       # Functions_table_WikiPathways]
     output:
         Functions_table_all = Functions_table_all,
         Functions_tables_temp = Functions_tables_temp
@@ -625,20 +625,20 @@ rule Protein_2_Function_table_PMID:
     run:
         cst.Protein_2_Function_table_PMID(input.Taxid_2_Proteins_table_FIN, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
 
-rule Protein_2_Function__and__Functions_table_WikiPathways:
-    input:
-        WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
-        UniProt_ID_mapping = UniProt_ID_mapping,
-        STRING_EntrezGeneID_2_STRING = STRING_EntrezGeneID_2_STRING,
-        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
-    output:
-        Protein_2_Function_table_WikiPathways = Protein_2_Function_table_WikiPathways,
-        Functions_table_WikiPathways = Functions_table_WikiPathways
-    params:
-        verbose = verbose
-    run:
-        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.STRING_EntrezGeneID_2_STRING, input.Taxid_2_Proteins_table_FIN, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways, params.verbose)
-
+#rule Protein_2_Function__and__Functions_table_WikiPathways:
+#    input:
+#        WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
+#        UniProt_ID_mapping = UniProt_ID_mapping,
+#        STRING_EntrezGeneID_2_STRING = STRING_EntrezGeneID_2_STRING,
+#        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
+#    output:
+#        Protein_2_Function_table_WikiPathways = Protein_2_Function_table_WikiPathways,
+#        Functions_table_WikiPathways = Functions_table_WikiPathways
+#    params:
+#        verbose = verbose
+#    run:
+#        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.STRING_EntrezGeneID_2_STRING, input.Taxid_2_Proteins_table_FIN, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways, params.verbose)
+#
 rule Protein_2_Function_table:
     input:
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
@@ -649,8 +649,8 @@ rule Protein_2_Function_table:
                        Protein_2_Function_table_GO,
                        Protein_2_Function_table_UPK,
                        Protein_2_Function_table_PMID,
-                       Protein_2_Function_table_RCTM,
-                       Protein_2_Function_table_WikiPathways] # Protein_2_Function_table_DOID_BTO
+                       Protein_2_Function_table_RCTM] #,
+                       # Protein_2_Function_table_WikiPathways] # Protein_2_Function_table_DOID_BTO
     output:
         Protein_2_Function_table = Protein_2_Function_table
     threads: NUMBER_OF_PROCESSES_sorting
@@ -703,23 +703,36 @@ rule Protein_2_FunctionEnum_table_FIN:
     run:
         cst.Protein_2_FunctionEnum_table_FIN(input.Functions_table_FIN, input.Protein_2_Function_table_reduced, output.Protein_2_FunctionEnum_table_FIN, threads)
 
-rule Lineage_table_FIN:
+#rule Lineage_table_FIN:
+#    input:
+#        GO_obo_Jensenlab = GO_obo_Jensenlab,
+#        UPK_obo = UPK_obo,
+#        RCTM_hierarchy = RCTM_hierarchy,
+#        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+#        Functions_table_FIN = Functions_table_FIN,
+#        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+#        BTO_obo_Jensenlab = BTO_obo_Jensenlab
+#    output:
+#        Lineage_table_FIN = Lineage_table_FIN,
+#        Lineage_table_no_translation = Lineage_table_no_translation,
+#        Lineage_table_hr = Lineage_table_hr
+#    params:
+#        GO_CC_textmining_additional_etype = True
+#    run:
+#        cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_FIN, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table_FIN, output.Lineage_table_no_translation, output.Lineage_table_hr, params.GO_CC_textmining_additional_etype)
+
+rule Lineage_table_STRING:
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
         UPK_obo = UPK_obo,
         RCTM_hierarchy = RCTM_hierarchy,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree,
         Functions_table_FIN = Functions_table_FIN,
-        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
-        BTO_obo_Jensenlab = BTO_obo_Jensenlab
     output:
         Lineage_table_FIN = Lineage_table_FIN,
         Lineage_table_no_translation = Lineage_table_no_translation,
-        Lineage_table_hr = Lineage_table_hr
-    params:
-        GO_CC_textmining_additional_etype = True
     run:
-        cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_FIN, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table_FIN, output.Lineage_table_no_translation, output.Lineage_table_hr, params.GO_CC_textmining_additional_etype)
+        cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_FIN, output.Lineage_table_FIN, output.Lineage_table_no_translation)
 
 # rule Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC: # retain_score
 #     input:
@@ -767,27 +780,18 @@ rule AFC_KS_enrichment_terms_flat_files:
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_FIN, input.Function_2_ENSP_table_reduced, input.KEGG_Taxid_2_acronym_table_FIN, input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
 
-# rule Lineages_AFC_KS:
-#     input:
-#         Lineage_table_hr = Lineage_table_hr
-
-
-
-
-rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
-    input:
-        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC,
-        Functions_table_FIN = Functions_table_FIN,
-        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
-    output:
-        Protein_2_FunctionEnum_and_Score_table_FIN = Protein_2_FunctionEnum_and_Score_table_FIN,
-        DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
-    params:
-        GO_CC_textmining_additional_etype = True
-    run:
-        cst.Protein_2_FunctionEnum_and_Score_table_FIN(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Functions_table_FIN, input.Taxid_2_Proteins_table_FIN, output.Protein_2_FunctionEnum_and_Score_table_FIN, output.DOID_GO_BTO_an_without_translation, params.GO_CC_textmining_additional_etype)
-
-
+#rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores, belongs to branch autoupdates
+#    input:
+#        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC,
+#        Functions_table_FIN = Functions_table_FIN,
+#        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
+#    output:
+#        Protein_2_FunctionEnum_and_Score_table_FIN = Protein_2_FunctionEnum_and_Score_table_FIN,
+#        DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
+#    params:
+#        GO_CC_textmining_additional_etype = True
+#    run:
+#        cst.Protein_2_FunctionEnum_and_Score_table_FIN(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Functions_table_FIN, input.Taxid_2_Proteins_table_FIN, output.Protein_2_FunctionEnum_and_Score_table_FIN, output.DOID_GO_BTO_an_without_translation, params.GO_CC_textmining_additional_etype)
 
 # rule Protein_2_Function_table_DOID_BTO: # hard_cutoff
 #     input:
@@ -799,30 +803,3 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
 #         score_cutoff = 3.0
 #     run:
 #         cst.Protein_2_Function_table_DOID_BTO(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Taxid_2_Proteins_table_FIN, params.score_cutoff, output.Protein_2_Function_table_DOID_BTO)
-##########################################################################################
-##########################################################################################
-##### some stuff below
-##### ToDo
-### CronJobs or something similar for the automatic updates
-# - WikiPathways, update on the 11th of each month
-# - UniProt ???
-# - Jensenlab on Monday each week
-# - Reactome
-# - InterPro
-
-# 5.) ? How to count Jensenlab Scores?
-# bin into 5 categories, like using a hard-cutoff, and merge results (correcting p-values * number_of_bins), duplicate terms --> select best p-value?
-# bins: 0-5, 1-5, 2-5, 3-5, 4-5
-
-# parse UniProtAN to other functional annotations apart from keywords (which are)
-
-# read Lars literature and ask him about the differences of annotation information/quality
-
-
-### UniProt dump files
-# add UniProt AN 2
-# - GO
-# - KeyWords
-# - InterPro
-# - Pfam
-#
