@@ -703,7 +703,7 @@ rule Protein_2_FunctionEnum_table_FIN:
 #    run:
 #        cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_FIN, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table_FIN, output.Lineage_table_no_translation, output.Lineage_table_hr, params.GO_CC_textmining_additional_etype)
 
-rule Lineage_table_STRING:
+rule Lineage_table_FIN:
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
         UPK_obo = UPK_obo,
@@ -714,7 +714,7 @@ rule Lineage_table_STRING:
         Lineage_table_FIN = Lineage_table_FIN,
         Lineage_table_no_translation = Lineage_table_no_translation,
     run:
-        cst.Lineage_table_STRING(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_FIN, output.Lineage_table_FIN, output.Lineage_table_no_translation)
+        cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_FIN, output.Lineage_table_FIN, output.Lineage_table_no_translation)
 
 # rule Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC: # retain_score
 #     input:
