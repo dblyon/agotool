@@ -637,7 +637,7 @@ rule Protein_2_Function_table:
         Protein_2_Function_table = Protein_2_Function_table
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table(input.fn_list_str, input.Taxid_2_Proteins_table_FIN, output.Protein_2_Function_table, threads)
+        cst.Protein_2_Function_table_FIN(input.fn_list_str, input.Taxid_2_Proteins_table_FIN, output.Protein_2_Function_table, threads)
 
 rule Function_2_ENSP_table:
     input:

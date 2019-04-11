@@ -1492,7 +1492,7 @@ def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_en
                     PMID_not_relevant.append(PMID_including_prefix)
     # os.remove(fn_temp)
 
-def Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
+def Protein_2_Function_table_FIN(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
     fn_list = [fn for fn in fn_list]
     ### concatenate files
@@ -1503,18 +1503,18 @@ def Protein_2_Function_table_STRING(fn_list, fn_in_TaxID_2_Proteins_table_STRING
     tools.sort_file(fn_out_Protein_2_Function_table_STRING_temp, fn_out_Protein_2_Function_table_STRING_temp, number_of_processes=number_of_processes)
     reduce_Protein_2_Function_table_2_STRING_proteins(
         fn_in_protein_2_function_temp=fn_out_Protein_2_Function_table_STRING_temp,
-        fn_in_TaxID_2_Proteins_table_STRING=fn_in_TaxID_2_Proteins_table_STRING,
+        fn_in_Taxid_2_Proteins_table_STRING=fn_in_Taxid_2_Proteins_table_STRING,
         fn_out_protein_2_function_reduced=fn_out_Protein_2_Function_table_STRING,
         fn_out_protein_2_function_rest=fn_out_Protein_2_Function_table_STRING_rest,
         number_of_processes=number_of_processes)
 
-def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_TaxID_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
+def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_Taxid_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
     """
-    - reduce Protein_2_Function_table_2_STRING to relevant ENSPs (those that are in fn_in_TaxID_2_Proteins_table_STRING)
+    - reduce Protein_2_Function_table_2_STRING to relevant ENSPs (those that are in fn_in_Taxid_2_Proteins_table_STRING)
     - and remove duplicates
     second reduction step is done elsewhere (minimum number of functional associations per taxon)
     """
-    ENSP_set = parse_taxid_2_proteins_get_all_ENSPs(fn_in_TaxID_2_Proteins_table_STRING)
+    ENSP_set = parse_taxid_2_proteins_get_all_ENSPs(fn_in_Taxid_2_Proteins_table_STRING)
     print('producing new file {}'.format(fn_out_protein_2_function_reduced))
     print('producing new file {}'.format(fn_out_protein_2_function_rest))
     with open(fn_in_protein_2_function_temp, "r") as fh_in:
