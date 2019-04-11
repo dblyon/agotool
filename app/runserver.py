@@ -916,23 +916,19 @@ def error_(parser):
     sys.exit(2)
 
 if __name__ == "__main__":
-    # ToDo potential speedup
-    # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
-    # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
-    # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
-    ################################################################################
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
     ### SAN port 10110
     ### PISCES port 10110 IP 127.0.0.1
     argparse_parser = argparse.ArgumentParser()
-    argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1")
-    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
+    argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", action='store_const', const="127.0.0.1")
+    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", action="store_const", const="10110")
     args = argparse_parser.parse_args()
     for arg in sorted(vars(args)):
         if getattr(args, arg) is None:
             error_(argparse_parser)
     IP, port = args.IP, args.port
+    print(IP, port)
     print("#" * 80)
     print("running aGOtool on IP {} port {}".format(IP, port))
     app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
