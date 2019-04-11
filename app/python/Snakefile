@@ -70,8 +70,8 @@ TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 #URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
 URL_go_obo_Jensenlab = r"http://download.jensenlab.org/aGOtool/go.obo"
 
-URL_function_2_description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
-Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
+# URL_function_2_description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
+# Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
 
 # URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
 # Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
@@ -99,7 +99,7 @@ RCTM_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv") # https
 
 string_matches = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_matches.tsv"
 
-# pmc_medline = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv" # deprecated ?
+pmc_medline = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv" # deprecated in autoupdates
 
 GO_knowledge_Lars = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz" # Lars
 all_entities = os.path.join(DOWNLOADS_DIR, "all_entitiesq.tsv.gz") # Lars mapping
@@ -138,7 +138,7 @@ Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
 Functions_table_PFAM_no_mapping = os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt")
 Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt") # unfiltered since filtering happens at Functions_table_FIN step via Function_2_ENSP_table
 # deprecated Functions_table_GOCC_textmining = os.path.join(TABLES_DIR, "Functions_table_GOCC_textmining.txt") # redundant with GOCC but keeping this to keep a cleaner separation of textmining results with the rest, also obo file versions might differ
-# Functions_table_PMID_temp = os.path.join(TABLES_DIR, "Functions_table_PMID_temp.txt") # deprecated
+Functions_table_PMID_temp = os.path.join(TABLES_DIR, "Functions_table_PMID_temp.txt") # deprecated in branch autoupdates
 Functions_table_RCTM = os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")
 Functions_table_SMART = os.path.join(TABLES_DIR, "Functions_table_SMART.txt")
 Functions_table_SMART_no_mapping = os.path.join(TABLES_DIR, "Functions_table_SMART_no_mapping.txt")
@@ -180,20 +180,10 @@ AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "afc_ks/"))
 Protein_2_Function_table_SMART_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART_temp.txt")
 Protein_2_Function_table_PFAM_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM_temp.txt")
 Functions_tables_temp = temp(os.path.join(TABLES_DIR, "Functions_tables_temp.txt"))
-# temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
+temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
 ### scripts
 parallel_parse_textmining_pmc_medline = os.path.join(PYTHON_DIR, "parallel_parse_textmining_pmc_medline.py")
 
-
-### WikiPathways
-#URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on the 11th
-#URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz" # monthly download?
-#UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping_selected.tab.gz")
-#WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
-#Protein_2_Function_table_WikiPathways = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways.txt")
-## https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
-#STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz")
-#Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
 ###################################################################################################
 ### download resources
 # rule download_GO_obo:
@@ -259,17 +249,17 @@ rule download_ontology_Interpro:
     run:
         drs.download_gzip_file(params.URL_interpro_parent_2_child_tree, output.interpro_parent_2_child_tree, verbose=params.verbose)
 
-rule download_descriptions_PMID:
-    output:
-        # Function_2_Description_PMID_gz = Functions_table_PMID + ".gz",
-        Function_2_Description_PMID = Function_2_Description_PMID
-    params:
-        URL_function_2_description_PMID = URL_function_2_description_PMID,
-        verbose = verbose
-    run:
-        # drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID_gz, params.verbose)
-        # tools.gunzip_file(output.Function_2_Description_PMID_gz, output.Function_2_Description_PMID)
-        drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID, params.verbose)
+# rule download_descriptions_PMID:
+#     output:
+#         # Function_2_Description_PMID_gz = Functions_table_PMID + ".gz",
+#         Function_2_Description_PMID = Function_2_Description_PMID
+#     params:
+#         URL_function_2_description_PMID = URL_function_2_description_PMID,
+#         verbose = verbose
+#     run:
+#         # drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID_gz, params.verbose)
+#         # tools.gunzip_file(output.Function_2_Description_PMID_gz, output.Function_2_Description_PMID)
+#         drs.download_requests(params.URL_function_2_description_PMID, output.Function_2_Description_PMID, params.verbose)
 
 #rule download_Protein_2_Function_table_PMID_abstracts:
 #    output:
@@ -326,11 +316,6 @@ rule download_GO_obo_Jensenlab:
         verbose = verbose
     run:
         drs.download_requests(params.URL_go_obo_Jensenlab, output.GO_obo_Jensenlab, params.verbose)
-
-# map Entrez Gene IDs to UniProt using ??? ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
-# --> fast one ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz
-# map Entrez Gene IDs to STRING IDs using ???
-# Functions_table_Wikipathways.txt ???
 
 #rule download_WikiPathways:
 #    input:
@@ -452,24 +437,24 @@ rule Protein_2_Function_table_RCTM__and__Functions_table_RCTM:
         cst.Protein_2_Function_table_RCTM__and__Function_table_RCTM(input.RCTM_associations, input.RCTM_descriptions, input.RCTM_hierarchy, output.Protein_2_Function_table_RCTM, output.Functions_table_RCTM, threads)
 
 ### deprecated since using Lars' DB dump
-# rule Functions_table_PMID_temp: # textmining pmc medline --> using gnu parallel
-#     input:
-#         pmc_medline = pmc_medline,
-#         parallel_parse_textmining_pmc_medline = parallel_parse_textmining_pmc_medline
-#     output:
-#         Functions_table_PMID_temp = Functions_table_PMID_temp,
-#         temp_dir = temp_dir
-#     threads: NUMBER_OF_PROCESSES
-#     shell:
-#         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.pmc_medline}", r"{input.parallel_parse_textmining_pmc_medline}", r"{output.Functions_table_PMID_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
-
-rule Functions_table_PMID:
+rule Functions_table_PMID_temp: # textmining pmc medline --> using gnu parallel
     input:
-        Function_2_Description_PMID = Function_2_Description_PMID
+        pmc_medline = pmc_medline,
+        parallel_parse_textmining_pmc_medline = parallel_parse_textmining_pmc_medline
     output:
-        Functions_table_PMID = Functions_table_PMID
-    run:
-        cst.Functions_table_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
+        Functions_table_PMID_temp = Functions_table_PMID_temp,
+        temp_dir = temp_dir
+    threads: NUMBER_OF_PROCESSES
+    shell:
+        """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.pmc_medline}", r"{input.parallel_parse_textmining_pmc_medline}", r"{output.Functions_table_PMID_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
+
+# rule Functions_table_PMID:
+#     input:
+#         Function_2_Description_PMID = Function_2_Description_PMID
+#     output:
+#         Functions_table_PMID = Functions_table_PMID
+#     run:
+#         cst.Functions_table_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
 
 #rule Functions_table_DOID_BTO_GOCC: # these are not being filtered to relevant ones, but since number is small (~20k), the impact should be negligible
 #    input:
@@ -526,7 +511,7 @@ rule Taxid_2_Proteins_table_FIN:
     params:
         verbose = verbose
     run:
-        cst.TaxID_2_Proteins_table_FIN(input.Protein_shorthands, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
+        cst.Taxid_2_Proteins_table_FIN(input.Protein_shorthands, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
 
 rule Protein_2_Function_table_KEGG:
     input:
@@ -597,48 +582,46 @@ rule Protein_2_Function_table_UPK:
     run:
         cst.Protein_2_Function_table_UniProtKeyword(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string, output.Protein_2_Function_table_UPK, threads, params.verbose)
 
-rule Protein_2_Function_table_PMID_fulltexts:
+rule Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID:
     input:
         all_entities = all_entities,
         string_matches = string_matches,
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
-        # Functions_table_PMID_temp = Functions_table_PMID_temp
+        Functions_table_PMID_temp = Functions_table_PMID_temp
     output:
-        # Functions_table_PMID = Functions_table_PMID,
-        Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
-    run:
-        # removing Functions_table_PMID_temp, Functions_table_PMID due to autoupdates --> change Functions_table_PMID_temp to Functions_table_PMID
-        # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_FIN, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
-        cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_FIN, output.Protein_2_Function_table_PMID_fulltexts)
-
-rule Protein_2_Function_table_PMID:
-    input:
-        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
-        Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts,
-        Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
-    output:
-        Protein_2_Function_table_PMID_combi = Protein_2_Function_table_PMID_combi,
+        Functions_table_PMID = Functions_table_PMID,
         Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
-    threads: NUMBER_OF_PROCESSES_sorting
-    params:
-        verbose = verbose
     run:
-        cst.Protein_2_Function_table_PMID(input.Taxid_2_Proteins_table_FIN, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
+        cst.Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_FIN, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID)
 
-#rule Protein_2_Function__and__Functions_table_WikiPathways:
-#    input:
-#        WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
-#        UniProt_ID_mapping = UniProt_ID_mapping,
-#        STRING_EntrezGeneID_2_STRING = STRING_EntrezGeneID_2_STRING,
-#        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
-#    output:
-#        Protein_2_Function_table_WikiPathways = Protein_2_Function_table_WikiPathways,
-#        Functions_table_WikiPathways = Functions_table_WikiPathways
-#    params:
-#        verbose = verbose
-#    run:
-#        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.STRING_EntrezGeneID_2_STRING, input.Taxid_2_Proteins_table_FIN, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways, params.verbose)
+# rule Protein_2_Function_table_PMID_fulltexts:
+#     input:
+#         all_entities = all_entities,
+#         string_matches = string_matches,
+#         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
+#         # Functions_table_PMID_temp = Functions_table_PMID_temp
+#     output:
+#         # Functions_table_PMID = Functions_table_PMID,
+#         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
+#     run:
+#         # removing Functions_table_PMID_temp, Functions_table_PMID due to autoupdates --> change Functions_table_PMID_temp to Functions_table_PMID
+#         # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_FIN, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
+#         cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_FIN, output.Protein_2_Function_table_PMID_fulltexts)
 #
+# rule Protein_2_Function_table_PMID:
+#     input:
+#         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
+#         Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts,
+#         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
+#     output:
+#         Protein_2_Function_table_PMID_combi = Protein_2_Function_table_PMID_combi,
+#         Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
+#     threads: NUMBER_OF_PROCESSES_sorting
+#     params:
+#         verbose = verbose
+#     run:
+#         cst.Protein_2_Function_table_PMID(input.Taxid_2_Proteins_table_FIN, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, NUMBER_OF_PROCESSES_sorting, params.verbose)
+
 rule Protein_2_Function_table:
     input:
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
@@ -649,8 +632,7 @@ rule Protein_2_Function_table:
                        Protein_2_Function_table_GO,
                        Protein_2_Function_table_UPK,
                        Protein_2_Function_table_PMID,
-                       Protein_2_Function_table_RCTM] #,
-                       # Protein_2_Function_table_WikiPathways] # Protein_2_Function_table_DOID_BTO
+                       Protein_2_Function_table_RCTM]
     output:
         Protein_2_Function_table = Protein_2_Function_table
     threads: NUMBER_OF_PROCESSES_sorting
@@ -779,27 +761,3 @@ rule AFC_KS_enrichment_terms_flat_files:
         verbose = verbose
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_FIN, input.Function_2_ENSP_table_reduced, input.KEGG_Taxid_2_acronym_table_FIN, input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
-
-#rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores, belongs to branch autoupdates
-#    input:
-#        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC,
-#        Functions_table_FIN = Functions_table_FIN,
-#        Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
-#    output:
-#        Protein_2_FunctionEnum_and_Score_table_FIN = Protein_2_FunctionEnum_and_Score_table_FIN,
-#        DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation
-#    params:
-#        GO_CC_textmining_additional_etype = True
-#    run:
-#        cst.Protein_2_FunctionEnum_and_Score_table_FIN(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Functions_table_FIN, input.Taxid_2_Proteins_table_FIN, output.Protein_2_FunctionEnum_and_Score_table_FIN, output.DOID_GO_BTO_an_without_translation, params.GO_CC_textmining_additional_etype)
-
-# rule Protein_2_Function_table_DOID_BTO: # hard_cutoff
-#     input:
-#         Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC,
-#         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
-#     output:
-#         Protein_2_Function_table_DOID_BTO = Protein_2_Function_table_DOID_BTO,
-#     params:
-#         score_cutoff = 3.0
-#     run:
-#         cst.Protein_2_Function_table_DOID_BTO(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Taxid_2_Proteins_table_FIN, params.score_cutoff, output.Protein_2_Function_table_DOID_BTO)
