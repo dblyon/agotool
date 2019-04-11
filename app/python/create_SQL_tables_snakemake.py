@@ -1712,8 +1712,6 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
 
 def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_out_AFC_KS_DIR, verbose=True):
     parent_2_direct_children_dict = get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
-
-
     print("AFC_KS_enrichment_terms_flat_files start")
     ENSP_2_internalID_dict = {}
     with open(fn_in_Protein_shorthands, "r") as fh:
