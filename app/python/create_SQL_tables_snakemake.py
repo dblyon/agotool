@@ -1,7 +1,9 @@
-import os, sys, re
+import os, sys
 import gzip
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
+
 from collections import defaultdict
 from collections import deque
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -1734,7 +1736,6 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
             acronym = acronym.strip()
             taxid_2_acronym_dict[taxid] = acronym
 
-    counter = 0
     fn_out_prefix = os.path.join(fn_out_AFC_KS_DIR + "{}_AFC_KS_all_terms.tsv")
     with open(fn_in_Function_2_ENSP_table_STRING_reduced, "r") as fh_in:
         taxid_last, etype, association, background_count, background_n, an_array = fh_in.readline().split()
@@ -1767,19 +1768,12 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
                     acronym = "map"
                 association = association.replace("map", acronym)
             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
+            taxid_last = taxid
             try:
                 children_list = parent_2_direct_children_dict[association]
             except KeyError:
-                if int(etype) in variables.entity_types_with_ontology:
-                    print("{} without children".format(association))
-                children_list = False
-            if children_list:
-                fh_out_lineage.write(association+ "\t" + "\t".join(children_list) + "\n")
-            taxid_last = taxid
-        if verbose:
-            if counter % 500 == 0:
-                print(".", end="")
-        counter += 1
+                continue
+            fh_out_lineage.write(association + "\t" + "\t".join(children_list) + "\n")
         fh_out.close()
         fh_out_lineage.close()
     print("AFC_KS_enrichment_terms_flat_files done :)")
