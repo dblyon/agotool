@@ -1047,7 +1047,7 @@ def get_proteins_of_taxid(taxid):
 def get_TaxID_2_proteome_count_dict(read_from_flat_files=False):
     taxid_2_proteome_count_dict = {}
     if read_from_flat_files:
-        result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "TaxID_2_Proteins_table_STRING.txt"), columns=[0, 2])
+        result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt"), columns=[0, 2])
     else:
         result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count FROM taxid_2_protein;")
     for res in result:
