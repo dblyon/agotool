@@ -587,3 +587,6 @@ rule AFC_KS_enrichment_terms_flat_files:
         verbose = verbose
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_removed, input.KEGG_Taxid_2_acronym_table, input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
+
+
+# snakemake -nF -j 24 Taxid_2_FunctionCountArray_table_STRING Lineage_table_STRING AFC_KS_enrichment_terms_flat_files
