@@ -663,11 +663,12 @@ def get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_
     child_2_parent_dict_temp, _ = get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
     child_2_parent_dict.update(child_2_parent_dict_temp)
 
-    for child, parent in child_2_parent_dict.items():
-        if parent not in parent_2_child_dict:
-            parent_2_child_dict[parent] = [child]
-        else:
-            parent_2_child_dict[parent].append(child)
+    for child, parents_list in child_2_parent_dict.items():
+        for parent in parents_list:
+            if parent not in parent_2_child_dict:
+                parent_2_child_dict[parent] = [child]
+            else:
+                parent_2_child_dict[parent].append(child)
     return parent_2_child_dict
 
 
@@ -1492,7 +1493,7 @@ def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_en
                     PMID_not_relevant.append(PMID_including_prefix)
     # os.remove(fn_temp)
 
-def Protein_2_Function_table_FIN(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
+def Protein_2_Function_table_STRING(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
     fn_list = [fn for fn in fn_list]
     ### concatenate files

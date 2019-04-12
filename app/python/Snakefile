@@ -1,4 +1,4 @@
-Taxid_2_Proteins_table_STRINGimport os, sys
+import os, sys
 # sys.path.insert(0, os.path.join(os.getcwd(), "python"))
 import variables_snakemake as variables
 import create_SQL_tables_snakemake as cst
