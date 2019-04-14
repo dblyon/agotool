@@ -159,15 +159,6 @@ rule download_GO_basic_obo:
     run:
         drs.download_requests(params.URL_GO_basic_obo, output.GO_basic_obo, params.verbose)
 
-# rule download_GO_slim_obo:
-#     output:
-#         GO_slim_obo = GO_slim_obo
-#     params:
-#         verbose = verbose,
-#         URL_GO_slim_obo = URL_GO_slim_obo
-#     shell:
-#         """python -c 'import download_resources_snakemake; download_resources_snakemake.download_requests(url=r"{params.URL_GO_slim_obo}", file_name=r"{output.GO_slim_obo}", verbose={params.verbose})'"""
-
 rule download_UPK_obo:
     output:
         UPK_obo = UPK_obo
@@ -575,7 +566,7 @@ rule AFC_KS_enrichment_terms_flat_files:
     input:
         Protein_shorthands = Protein_shorthands,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        Function_2_ENSP_table_STRING_removed = Function_2_ENSP_table_STRING_removed,
+        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
         KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
         GO_basic_obo = GO_basic_obo,
         UPK_obo = UPK_obo,
@@ -586,7 +577,7 @@ rule AFC_KS_enrichment_terms_flat_files:
     params:
         verbose = verbose
     run:
-        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_removed, input.KEGG_Taxid_2_acronym_table, input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
+        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_Taxid_2_acronym_table, input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
 
 
 # snakemake -nF -j 24 Taxid_2_FunctionCountArray_table_STRING Lineage_table_STRING AFC_KS_enrichment_terms_flat_files

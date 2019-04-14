@@ -609,7 +609,7 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             return []
     return [int(ele) for ele in functionEnum_list]
 
-def Lineage_table_FIN(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
+def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_out_lineage_table, fn_out_no_translation):
     lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
