@@ -35,11 +35,10 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 # - buy goliath domain?
 # - use cProfile on compiled cython --> done but not that great to inspect
 # - replace bool array with uint8 array and casting to bool & using prange with nogil
-# - reimplement "limit_2_entity_type"
 # - Memory leak
 # - sort results based on S-values (volcano plot style), something like effect-size
 
-# go_slim_or_basic --> filter for slim terms
+# - go_slim_or_basic --> filter for slim terms
 # check out DF sorting before returning results, year and FDR not sorted correctly
 # - consistency with single and double quotes
 # - return unused identifiers
@@ -49,7 +48,6 @@ functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 # - debug copy&paste fields
 # - debug file upload field
 # - replace example file
-# - make KEGG private --> done
 # - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
 # - update "info_check_input.html" with REST API usage infos
 # - offer option to omit testing GO-terms with few associations (e.g. 10)

@@ -33,6 +33,9 @@ PMID = {-57}
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology
 entity_types_with_scores = {-20, -25, -26} # GO-CC,  BTO, DOID
+searchspace_2_entityType_dict = {"STRING": -60,
+                                 "UniProt": -61}
+
 
 functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
                                   "Gene Ontology biological process": -21,
@@ -71,16 +74,6 @@ id_2_entityTypeNumber_dict = {'GOCC:0005575': "-20",  # 'Cellular Component TEXT
                               "GO:OBSOLETE": "-24", # "GO obsolete
                               "BTO tissues": "-25", # Brenda Tissue Ontology
                               "DOID diseases": "-26", # Disease Ontology IDs
-                              # 'UPK:9990': "-51",  # 'Technical term',
-                              # 'UPK:9991': "-51",  # 'PTM',
-                              # 'UPK:9992': "-51",  # 'Molecular function',
-                              # 'UPK:9993': "-51",  # 'Ligand',
-                              # 'UPK:9994': "-51",  # 'Domain',
-                              # 'UPK:9995': "-51",  # 'Disease',
-                              # 'UPK:9996': "-51",  # 'Developmental stage',
-                              # 'UPK:9997': "-51",  # 'Coding sequence diversity',
-                              # 'UPK:9998': "-51",  # 'Cellular component',
-                              # 'UPK:9999': "-51",  # 'Biological process'
                               'KW-9990': "-51",  # 'Technical term',
                               'KW-9991': "-51",  # 'PTM',
                               'KW-9992': "-51",  # 'Molecular function',
@@ -99,7 +92,6 @@ id_2_entityTypeNumber_dict = {'GOCC:0005575': "-20",  # 'Cellular Component TEXT
                               "PMID": "-56", # Pubmed identifiers
                               "Reactome": "-57", # Reactome
                               "WikiPathways": "-58"}  # WikiPathways
-
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
@@ -211,9 +203,9 @@ tables_dict = {
     "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_FIN.txt"),
     "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_FIN.txt"),
-    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt"),
+    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt"), # 2 separate tables? faster searching vs complex code --> 1 table, also due re-enumeration of potential new functions
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_FIN.txt"),
-    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt"),
+    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt"), # add column with STRING/UniProt type distinction
 }
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
@@ -233,3 +225,4 @@ fn_functions_table = tables_dict["Functions_table"]
 blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
 
 jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
+jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]

@@ -519,6 +519,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     def get_preloaded_objects_per_analysis(self, method="genome"):
         self.reset_preloaded_objects_per_analysis(method)
         if method == "genome":
+            # funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest,
+            # blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs
             return self.preloaded_objects_per_analysis_genome
         elif method == "characterize_foreground":
             return self.preloaded_objects_per_analysis_characterize_foreground
@@ -681,7 +683,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
-def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
+def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
     """
     key = ENSP
     val = tuple(arr of function Enumeration, arr of scores)
@@ -703,8 +705,8 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True):
     """
     ENSP_2_tuple_funcEnum_score_dict = {}
     if read_from_flat_files:
-        # fn = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_STRING.txt")
-        fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+        if fn is None:
+            fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
         results = get_results_of_statement_from_flat_file(fn)
     else:
         raise NotImplementedError
@@ -749,7 +751,8 @@ def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):
     else:
         raise NotImplementedError # result = get_results_of_statement()
     for res in results:
-        taxid, taxname = res
+        # taxid, taxname = res
+        taxname, taxid = res
         taxname = taxname.strip()
         KEGG_TaxID_2_acronym_dict[int(taxid)] = taxname
     return KEGG_TaxID_2_acronym_dict
