@@ -423,8 +423,11 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
 
     if FDR_cutoff is not None:
         cond_filter = p_values_corrected <= FDR_cutoff
-    elif filter_foreground_count_one is not None and FDR_cutoff is None:
-        cond_filter = funcEnum_count_foreground > 1
+
+    if filter_foreground_count_one is True:  # remove terms without only one annotation
+        cond_filter &= funcEnum_count_foreground > 1
+    else: # remove terms without any annotation
+        cond_filter &= funcEnum_count_foreground > 0
 
     if filter_PMID_top_n is not None:
         cond_PMID_2_filter = cond_filter & etype_cond_dict["cond_56"] # -56
@@ -566,10 +569,18 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     filter_foreground_count_one = args_dict["filter_foreground_count_one"]
     filter_PMID_top_n = args_dict["filter_PMID_top_n"]
     filter_parents = args_dict["filter_parents"]
+    # if FDR_cutoff is not None:
+    #     cond_filter = p_values_corrected <= FDR_cutoff
+    # elif filter_foreground_count_one is not None and FDR_cutoff is None:
+    #     cond_filter = funcEnum_count_foreground > 1
     if FDR_cutoff is not None:
         cond_filter = p_values_corrected <= FDR_cutoff
-    elif filter_foreground_count_one is not None and FDR_cutoff is None:
-        cond_filter = funcEnum_count_foreground > 1
+
+    if filter_foreground_count_one is True:  # remove terms without only one annotation
+        cond_filter &= funcEnum_count_foreground > 1
+    else: # remove terms without any annotation
+        cond_filter &= funcEnum_count_foreground > 0
+
     if filter_PMID_top_n is not None:
         cond_PMID_2_filter = cond_filter & etype_cond_dict["cond_56"] # -56
         df_PMID = pd.DataFrame({"foreground_count": funcEnum_count_foreground[cond_PMID_2_filter].view(),
