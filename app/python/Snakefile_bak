@@ -96,7 +96,7 @@ Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
 Protein_2_Function_and_Score_DOID_BTO_GOCC = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC.txt.gz")
 
-Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
+Protein_2_Function_table_PMID_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_STS.txt")
 Protein_2_Function_table_PMID_fulltexts = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_fulltexts.txt")
 
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
@@ -171,9 +171,9 @@ Lineage_table_hr = os.path.join(TABLES_DIR, "Lineage_table_hr.txt") # Human Read
 Protein_2_FunctionEnum_table_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
 Protein_2_Function_table_PMID_combi = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_combi.txt")
 Protein_2_Function_table_DOID_BTO = os.path.join(TABLES_DIR, "Protein_2_Function_table_DOID_BTO.txt")
-Protein_2_Function_table_GO = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
-Protein_2_Function_table_InterPro = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
-Protein_2_Function_table_KEGG = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
+Protein_2_Function_table_GO_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO_STS.txt")
+Protein_2_Function_table_InterPro_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro_STS.txt")
+Protein_2_Function_table_KEGG_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_STS.txt")
 # KEGG_Taxid_2_acronym_table = os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table.txt")
 KEGG_Taxid_2_acronym_table_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
 Protein_2_Function_table_PFAM = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM.txt")
@@ -387,18 +387,18 @@ rule string_2_interpro:
     run:
         cst.string_2_interpro(input.uniprot_2_string, input.uniprot_2_interpro, output.string_2_interpro)
 
-rule Protein_2_Function_table_InterPro:
+rule Protein_2_Function_table_InterPro_STS:
     input:
         string_2_interpro = string_2_interpro,
         Functions_table_INTERPRO = Functions_table_INTERPRO,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
-        Protein_2_Function_table_InterPro = Protein_2_Function_table_InterPro,
+        Protein_2_Function_table_InterPro_STS = Protein_2_Function_table_InterPro_STS,
     params:
         verbose = verbose
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_InterPro(input.string_2_interpro, input.Functions_table_INTERPRO, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro, number_of_processes=threads, verbose=params.verbose)
+        cst.Protein_2_Function_table_InterPro_STS(input.string_2_interpro, input.Functions_table_INTERPRO, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro_STS, number_of_processes=threads, verbose=params.verbose)
 
 rule Functions_table_INTERPRO:
     input:
@@ -548,15 +548,15 @@ rule Taxid_2_Proteins_table_FIN:
     run:
         cst.TaxID_2_Proteins_table_FIN(input.Protein_shorthands, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
 
-rule Protein_2_Function_table_KEGG:
+rule Protein_2_Function_table_KEGG_STS:
     input:
         KEGG_benchmarking = KEGG_benchmarking
     output:
-        Protein_2_Function_table_KEGG = Protein_2_Function_table_KEGG,
+        Protein_2_Function_table_KEGG_STS = Protein_2_Function_table_KEGG_STS,
         KEGG_Taxid_2_acronym_table_FIN = KEGG_Taxid_2_acronym_table_FIN
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_KEGG(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG, output.KEGG_Taxid_2_acronym_table_FIN, threads)
+        cst.Protein_2_Function_table_KEGG_STS(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG_STS, output.KEGG_Taxid_2_acronym_table_FIN, threads)
 
 rule Protein_2_Function_table_SMART__and__PFAM_helper:
     input:
@@ -590,17 +590,17 @@ rule Protein_2_Function_table_PFAM:
     run:
         cst.map_Name_2_AN(input.Protein_2_Function_table_PFAM_temp, output.Protein_2_Function_table_PFAM, input.map_name_2_an_PFAM, output.Functions_table_PFAM_no_mapping)
 
-rule Protein_2_Function_table_GO:
+rule Protein_2_Function_table_GO_STS:
     input:
         GO_knowledge_Lars = GO_knowledge_Lars,
         GO_obo_Jensenlab = GO_obo_Jensenlab
     output:
-        Protein_2_Function_table_GO = Protein_2_Function_table_GO
+        Protein_2_Function_table_GO_STS = Protein_2_Function_table_GO_STS
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_GO(input.GO_obo_Jensenlab, input.GO_knowledge_Lars, output.Protein_2_Function_table_GO, threads, params.verbose)
+        cst.Protein_2_Function_table_GO_STS(input.GO_obo_Jensenlab, input.GO_knowledge_Lars, output.Protein_2_Function_table_GO_STS, threads, params.verbose)
 
 rule Protein_2_Function_table_UPK:
     input:
@@ -615,7 +615,7 @@ rule Protein_2_Function_table_UPK:
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_UniProtKeyword(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string, output.Protein_2_Function_table_UPK, threads, params.verbose)
+        cst.Protein_2_Function_table_UPK_STS(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string, output.Protein_2_Function_table_UPK, threads, params.verbose)
 
 rule Protein_2_Function_table_PMID_fulltexts:
     input:
@@ -631,19 +631,19 @@ rule Protein_2_Function_table_PMID_fulltexts:
         # cst.Protein_2_Function_table_PMID__and__Functions_table_PMID_reduced(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_FIN, input.Functions_table_PMID_temp, output.Functions_table_PMID, output.Protein_2_Function_table_PMID_fulltexts)
         cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_FIN, output.Protein_2_Function_table_PMID_fulltexts)
 
-rule Protein_2_Function_table_PMID:
+rule Protein_2_Function_table_PMID_STS:
     input:
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
         Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts,
         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
     output:
         Protein_2_Function_table_PMID_combi = Protein_2_Function_table_PMID_combi,
-        Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
+        Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_PMID(input.Taxid_2_Proteins_table_FIN, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, threads, params.verbose)
+        cst.Protein_2_Function_table_PMID_STS(input.Taxid_2_Proteins_table_FIN, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID_STS, threads, params.verbose)
 
 rule Protein_2_Function__and__Functions_table_WikiPathways:
     input:
@@ -663,13 +663,13 @@ rule Protein_2_Function__and__Functions_table_WikiPathways:
 rule Protein_2_Function_table:
     input:
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
-        fn_list_str = [Protein_2_Function_table_InterPro,
-                       Protein_2_Function_table_KEGG,
+        fn_list_str = [Protein_2_Function_table_InterPro_STS,
+                       Protein_2_Function_table_KEGG_STS,
                        Protein_2_Function_table_SMART,
                        Protein_2_Function_table_PFAM,
-                       Protein_2_Function_table_GO,
+                       Protein_2_Function_table_GO_STS,
                        Protein_2_Function_table_UPK,
-                       Protein_2_Function_table_PMID,
+                       Protein_2_Function_table_PMID_STS,
                        Protein_2_Function_table_RCTM,
                        Protein_2_Function_table_WikiPathways,
                        Protein_2_Function_table_UniProt_dump] # Protein_2_Function_table_DOID_BTO
@@ -816,7 +816,7 @@ rule Protein_2_Function_table_KEGG_UP: # and Protein_2_Function_table_KEGG_UP_EN
         Protein_2_Function_table_KEGG_UP_ENSP_benchmark = Protein_2_Function_table_KEGG_UP_ENSP_benchmark,
         KEGG_entry_no_pathway_annotation = KEGG_entry_no_pathway_annotation
     run:
-        cst.Protein_2_Function_table_KEGG_UP_and_ENSP_2_KEGG_benchmark(input.KEGG_dir, input.UniProt_2_STRING_2_KEGG, input.Protein_2_Function_table_KEGG_UP, input.Protein_2_Function_table_KEGG_UP_ENSP_benchmark, input.KEGG_entry_no_pathway_annotation)
+        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_dir, input.UniProt_2_STRING_2_KEGG, input.Protein_2_Function_table_KEGG_UP, input.Protein_2_Function_table_KEGG_UP_ENSP_benchmark, input.KEGG_entry_no_pathway_annotation)
 
 rule Protein_2_Function_table_UP:
     input:
@@ -833,7 +833,7 @@ rule Protein_2_Function_table_UP:
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_UniProt_UniProtSpace(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProt_dump, output.UniProt_2_STRING_2_KEGG, params.verbose)
+        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProt_dump, output.UniProt_2_STRING_2_KEGG, params.verbose)
 
 # rule Protein_2_Function_table_DOID_BTO: # hard_cutoff
 #     input:

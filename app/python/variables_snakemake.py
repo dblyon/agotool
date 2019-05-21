@@ -30,6 +30,8 @@ PMID = {-57}
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology
 entity_types_with_scores = {-20, -25, -26} # GO-CC,  BTO, DOID
+searchspace_2_entityType_dict = {"STRING": -60,
+                                 "UniProt": -61}
 
 functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
                                   "Gene Ontology biological process": -21,

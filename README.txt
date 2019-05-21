@@ -651,7 +651,7 @@ http://download.jensenlab.org/pig_tissue_integrated_full.tsv
 287.DR97_1005   {"PMID:25870065","PMID:18776018","PMID:16952944","PMID:16625057","PMID:16385055","PMID:16079332","PMID:15385461","PMID:11514523"}       -56
 287.DR97_1007   {"PMID:22996729","PMID:12835925"}       -56
 
-# Protein_2_Function_table_PMID.txt
+# Protein_2_Function_table_PMID_STS.txt
 1000565.METUNv1_00036   {"PMID:27708623"}       -56
 1000565.METUNv1_00081   {"PMID:19514844","PMID:19943898"}       -56
 1000565.METUNv1_00188   {"PMID:25978049"}       -56
@@ -708,7 +708,7 @@ http://download.jensenlab.org/pig_tissue_integrated_full.tsv
 
 
 
-Protein_2_Function_table_PMID download_Function_2_Description_PMID Function_table_PMID_temp Protein_2_FunctionEnum_and_Score_table_STRING Functions_table_DOID_BTO Taxid_2_FunctionCountArray_2_merge_BTO_DOID download_Interpro_descriptions
+Protein_2_Function_table_PMID_STS download_Function_2_Description_PMID Function_table_PMID_temp Protein_2_FunctionEnum_and_Score_table_STRING Functions_table_DOID_BTO Taxid_2_FunctionCountArray_2_merge_BTO_DOID download_Interpro_descriptions
 
 
 

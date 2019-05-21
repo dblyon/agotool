@@ -37,6 +37,12 @@ verbose = variables.VERBOSE
 # omit SMART ?
 # WikiPathways
 
+### File nomenclature logic
+# from_2_to_etype_searchspace (e.g. Protein_2_Function_UPK_STS.txt Function_2_Proteins_table_UPS.txt)
+# FIN --> FINal table used for agotool
+# UPS UniProt search space
+# STS STRING search space
+
 
 ### Parameters
 max_len_description = 250
@@ -109,13 +115,13 @@ WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gm
 STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz") # https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
 
 ################################################## Tables
-Protein_2_Function_table_UniProt_dump = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProt_dump.txt")
+Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
 UniProt_2_STRING_2_KEGG = os.path.join(TABLES_DIR, "UniProt_2_STRING_2_KEGG.txt")
-Protein_2_Function_table_KEGG_UP = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UP.txt")
-Protein_2_Function_table_KEGG_UP_ENSP_benchmark = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UP_ENSP_benchmark.txt") # ENSP 2 KEGG benchmark coming from UniProt 2 KEGG and mapping STRING 2 UniProt
+Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
+Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS_ENSP_benchmark.txt") # ENSP 2 KEGG benchmark coming from UniProt 2 KEGG and mapping STRING 2 UniProt
 KEGG_entry_no_pathway_annotation = os.path.join(TABLES_DIR, "KEGG_entry_no_pathway_annotation.txt")
 Functions_table_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Functions_table_DOID_BTO_GOCC.txt")
-Protein_2_Function_table_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID.txt")
+Protein_2_Function_table_PMID_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_STS.txt")
 DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")
 Protein_2_Function_table_PMID_fulltexts = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_fulltexts.txt")
 KEGG_Taxid_2_acronym_table_STRING = os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_STRING.txt")
@@ -126,13 +132,13 @@ KEGG_Taxid_2_acronym_table_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_tab
 Function_2_ENSP_table = os.path.join(TABLES_DIR, "Function_2_ENSP_table.txt")
 Function_2_ENSP_table_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_reduced.txt")
 Function_2_ENSP_table_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_removed.txt")
-Function_2_Proteins_table_UniProt = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UniProt.txt")
-Function_2_Proteins_table_UniProt_reduced = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UniProt_reduced.txt")
-Function_2_Proteins_table_UniProt_removed = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UniProt_removed.txt")
+Function_2_Proteins_table_UPS = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS.txt")
+Function_2_Proteins_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS_reduced.txt")
+Function_2_Proteins_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS_removed.txt")
 Function_2_Proteins_table_FIN = os.path.join(TABLES_DIR, "Function_2_Proteins_table_FIN.txt")
 
 Functions_table_GO = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
-Functions_table_INTERPRO = os.path.join(TABLES_DIR, "Functions_table_INTERPRO.txt")
+Functions_table_InterPro = os.path.join(TABLES_DIR, "Functions_table_InterPro.txt")
 Functions_table_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
 Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
 Functions_table_PFAM_no_mapping = os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt")
@@ -155,19 +161,19 @@ Lineage_table_hr = os.path.join(TABLES_DIR, "Lineage_table_hr.txt") # Human Read
 Protein_2_FunctionEnum_table_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
 Protein_2_Function_table_PMID_combi = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_combi.txt")
 Protein_2_Function_table_DOID_BTO = os.path.join(TABLES_DIR, "Protein_2_Function_table_DOID_BTO.txt")
-Protein_2_Function_table_GO = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO.txt")
-Protein_2_Function_table_InterPro = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro.txt")
-Protein_2_Function_table_KEGG = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG.txt")
-Protein_2_Function_table_PFAM = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM.txt")
-Protein_2_Function_table_RCTM = os.path.join(TABLES_DIR, "Protein_2_Function_table_RCTM.txt")
-Protein_2_Function_table_SMART = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART.txt")
+Protein_2_Function_table_GO_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_GO_STS.txt")
+Protein_2_Function_table_InterPro_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_InterPro_STS.txt")
+Protein_2_Function_table_KEGG_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_STS.txt")
+Protein_2_Function_table_PFAM_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PFAM_STS.txt")
+Protein_2_Function_table_RCTM_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_RCTM_STS.txt")
+Protein_2_Function_table_SMART_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_SMART_STS.txt")
 Protein_2_Function_table = os.path.join(TABLES_DIR, "Protein_2_Function_table.txt")
 Protein_2_Function_table_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_reduced.txt")
 Protein_2_Function_table_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_removed.txt")
-Protein_2_Function_table_UPK = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK.txt")
+Protein_2_Function_table_UPK_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK_STS.txt")
 Protein_2_FunctionEnum_and_Score_table_FIN = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_FIN.txt")
-Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
-Taxid_2_Proteins_table_UniProt = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_UniProt.txt")
+Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STS.txt")
+Taxid_2_Proteins_table_UPS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_UPS.txt")
 # Taxid_2_Proteins_table_FIN = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt")
 Taxid_2_Proteins_table_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
 Taxid_2_FunctionCountArray_table_temp = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_temp.txt")
@@ -354,27 +360,27 @@ rule string_2_interpro:
     run:
         cst.string_2_interpro(input.uniprot_2_string_v11, input.uniprot_2_interpro, output.string_2_interpro)
 
-rule Protein_2_Function_table_InterPro:
+rule Protein_2_Function_table_InterPro_STS:
     input:
         string_2_interpro = string_2_interpro,
         Functions_table_INTERPRO = Functions_table_INTERPRO,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
-        Protein_2_Function_table_InterPro = Protein_2_Function_table_InterPro,
+        Protein_2_Function_table_InterPro_STS = Protein_2_Function_table_InterPro_STS,
     params:
         verbose = verbose
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_InterPro(input.string_2_interpro, input.Functions_table_INTERPRO, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro, number_of_processes=threads, verbose=params.verbose)
+        cst.Protein_2_Function_table_InterPro_STS(input.string_2_interpro, input.Functions_table_INTERPRO, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro_STS, number_of_processes=threads, verbose=params.verbose)
 
-rule Functions_table_INTERPRO:
+rule Functions_table_InterPro:
     input:
         interpro_AN_2_name = interpro_AN_2_name,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
-        Functions_table_INTERPRO = Functions_table_INTERPRO
+        Functions_table_InterPro = Functions_table_InterPro
     run:
-        cst.Functions_table_INTERPRO(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_INTERPRO)
+        cst.Functions_table_InterPro(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_INTERPRO)
 
 rule Functions_table_KEGG:
     input:
@@ -426,17 +432,17 @@ rule Functions_table_UPK:
     run:
         cst.Functions_table_GO_or_UPK(input.UPK_obo, output.Functions_table_UPK, params.is_upk)
 
-rule Protein_2_Function_table_RCTM__and__Functions_table_RCTM:
+rule Protein_2_Function_table_RCTM__and__Functions_table_RCTM: # STRING space
     input:
         RCTM_associations = RCTM_associations,
         RCTM_descriptions = RCTM_descriptions,
         RCTM_hierarchy = RCTM_hierarchy
     output:
-        Protein_2_Function_table_RCTM = Protein_2_Function_table_RCTM,
+        Protein_2_Function_table_RCTM_STS = Protein_2_Function_table_RCTM_STS,
         Functions_table_RCTM = Functions_table_RCTM
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_RCTM__and__Function_table_RCTM(input.RCTM_associations, input.RCTM_descriptions, input.RCTM_hierarchy, output.Protein_2_Function_table_RCTM, output.Functions_table_RCTM, threads)
+        cst.Protein_2_Function_table_RCTM__and__Function_table_RCTM(input.RCTM_associations, input.RCTM_descriptions, input.RCTM_hierarchy, output.Protein_2_Function_table_RCTM_STS, output.Functions_table_RCTM, threads)
 
 rule Functions_table_PMID:
     input:
@@ -464,7 +470,7 @@ rule Functions_table_DOID_BTO_GOCC: # these are not being filtered to relevant o
 
 rule Functions_table_all:
     input:
-        fn_list_str = [Functions_table_INTERPRO,
+        fn_list_str = [Functions_table_InterPro,
                        Functions_table_KEGG,
                        Functions_table_SMART,
                        Functions_table_PFAM,
@@ -481,16 +487,16 @@ rule Functions_table_all:
     run:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_tables_temp, output.Functions_table_all, threads)
 
-rule Taxid_2_Proteins_table_STRING:
+rule Taxid_2_Proteins_table_STS:
     input:
         Protein_shorthands = Protein_shorthands
     output:
-        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_Proteins_table_STRING(input.Protein_shorthands, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
+        cst.Taxid_2_Proteins_table_STS(input.Protein_shorthands, output.Taxid_2_Proteins_table_STS, threads, params.verbose)
 
 rule download_UniProt_reference_proteomes:
     output:
@@ -500,25 +506,25 @@ rule download_UniProt_reference_proteomes:
     run:
         drs.download_UniProt_reference_proteomes(output.UniProt_reference_proteomes_dir, params.verbose)
 
-rule Taxid_2_Proteins_table_UniProt:
+rule Taxid_2_Proteins_table_UPS:
     input:
         UniProt_reference_proteomes_dir = UniProt_reference_proteomes_dir
     output:
-        Taxid_2_Proteins_table_UniProt = Taxid_2_Proteins_table_UniProt
+        Taxid_2_Proteins_table_UPS = Taxid_2_Proteins_table_UPS
     run:
-        cst.Taxid_2_Proteins_table_UniProt(input.UniProt_reference_proteomes_dir, output.Taxid_2_Proteins_table_UniProt)
+        cst.Taxid_2_Proteins_table_UPS(input.UniProt_reference_proteomes_dir, output.Taxid_2_Proteins_table_UPS)
 
 rule Taxid_2_Proteins_table_FIN: #  --> Snakemake_STRING
     input:
-        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
-        Taxid_2_Proteins_table_UniProt = Taxid_2_Proteins_table_UniProt
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
+        Taxid_2_Proteins_table_UPS = Taxid_2_Proteins_table_UPS
     output:
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_Proteins_table_FIN(input.Taxid_2_Proteins_table_STRING, input.Taxid_2_Proteins_table_UniProt, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
+        cst.Taxid_2_Proteins_table_FIN(input.Taxid_2_Proteins_table_STS, input.Taxid_2_Proteins_table_UPS, output.Taxid_2_Proteins_table_FIN, threads, params.verbose)
 
 rule Taxid_2_funcEnum_2_scores_table_FIN:
     input:
@@ -528,7 +534,7 @@ rule Taxid_2_funcEnum_2_scores_table_FIN:
     run:
         cst.Taxid_2_funcEnum_2_scores_table_FIN(input.Protein_2_FunctionEnum_and_Score_table_FIN, output.Taxid_2_funcEnum_2_scores_table_FIN)
 
-rule Protein_2_Function_table_SMART__and__PFAM_helper:
+rule Protein_2_Function_table_SMART__and__PFAM_helper: # STRING space
     input:
         protein_domain_annotations = protein_domain_annotations
     output:
@@ -540,39 +546,39 @@ rule Protein_2_Function_table_SMART__and__PFAM_helper:
     run:
         cst.Protein_2_Function_table_SMART_and_PFAM_temp(input.protein_domain_annotations, output.Protein_2_Function_table_SMART_temp, output.Protein_2_Function_table_PFAM_temp, threads, params.verbose)
 
-rule Protein_2_Function_table_SMART:
+rule Protein_2_Function_table_SMART_STS:
     input:
         Protein_2_Function_table_SMART_temp = Protein_2_Function_table_SMART_temp,
         map_name_2_an_SMART = map_name_2_an_SMART
     output:
-        Protein_2_Function_table_SMART = Protein_2_Function_table_SMART,
+        Protein_2_Function_table_SMART_STS = Protein_2_Function_table_SMART_STS,
         Functions_table_SMART_no_mapping = Functions_table_SMART_no_mapping
     run:
-        cst.map_Name_2_AN(input.Protein_2_Function_table_SMART_temp, output.Protein_2_Function_table_SMART, input.map_name_2_an_SMART, output.Functions_table_SMART_no_mapping)
+        cst.map_Name_2_AN(input.Protein_2_Function_table_SMART_temp, output.Protein_2_Function_table_SMART_STS, input.map_name_2_an_SMART, output.Functions_table_SMART_no_mapping)
 
-rule Protein_2_Function_table_PFAM:
+rule Protein_2_Function_table_PFAM_STS:
     input:
         Protein_2_Function_table_PFAM_temp = Protein_2_Function_table_PFAM_temp,
         map_name_2_an_PFAM = map_name_2_an_PFAM
     output:
-        Protein_2_Function_table_PFAM = Protein_2_Function_table_PFAM,
+        Protein_2_Function_table_PFAM_STS = Protein_2_Function_table_PFAM_STS,
         Functions_table_PFAM_no_mapping = Functions_table_PFAM_no_mapping
     run:
-        cst.map_Name_2_AN(input.Protein_2_Function_table_PFAM_temp, output.Protein_2_Function_table_PFAM, input.map_name_2_an_PFAM, output.Functions_table_PFAM_no_mapping)
+        cst.map_Name_2_AN(input.Protein_2_Function_table_PFAM_temp, output.Protein_2_Function_table_PFAM_STS, input.map_name_2_an_PFAM, output.Functions_table_PFAM_no_mapping)
 
-rule Protein_2_Function_table_GO:
+rule Protein_2_Function_table_GO_STS:
     input:
         GO_knowledge_Lars = GO_knowledge_Lars,
         GO_obo_Jensenlab = GO_obo_Jensenlab
     output:
-        Protein_2_Function_table_GO = Protein_2_Function_table_GO
+        Protein_2_Function_table_GO_STS = Protein_2_Function_table_GO_STS
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_GO(input.GO_obo_Jensenlab, input.GO_knowledge_Lars, output.Protein_2_Function_table_GO, threads, params.verbose)
+        cst.Protein_2_Function_table_GO_STS(input.GO_obo_Jensenlab, input.GO_knowledge_Lars, output.Protein_2_Function_table_GO_STS, threads, params.verbose)
 
-rule Protein_2_Function_table_UPK:
+rule Protein_2_Function_table_UPK_STS: # STRING Space
     input:
         Functions_table_UPK = Functions_table_UPK,
         UPK_obo = UPK_obo,
@@ -580,43 +586,43 @@ rule Protein_2_Function_table_UPK:
         TrEMBL_dump = TrEMBL_dump,
         uniprot_2_string_v11 = uniprot_2_string_v11
     output:
-        Protein_2_Function_table_UPK = Protein_2_Function_table_UPK
+        Protein_2_Function_table_UPK_STS = Protein_2_Function_table_UPK_STS
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_UniProtKeyword(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string_v11, output.Protein_2_Function_table_UPK, threads, params.verbose)
+        cst.Protein_2_Function_table_UPK_STS(input.Functions_table_UPK, input.UPK_obo, input.SwissProt_dump, input.TrEMBL_dump, input.uniprot_2_string_v11, output.Protein_2_Function_table_UPK_STS, threads, params.verbose)
 
-rule Protein_2_Function_table_PMID_fulltexts:
+rule Protein_2_Function_table_PMID_fulltexts: # STRING space
     input:
         all_entities = all_entities,
         string_matches = string_matches,
-        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
     output:
         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
     run:
-        cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_STRING, output.Protein_2_Function_table_PMID_fulltexts)
+        cst.Protein_2_Function_table_PMID_fulltexts(input.all_entities, input.string_matches, input.Taxid_2_Proteins_table_STS, output.Protein_2_Function_table_PMID_fulltexts)
 
-rule Protein_2_Function_table_PMID:
+rule Protein_2_Function_table_PMID_STS: # STRING space
     input:
-        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
         Protein_2_Function_table_PMID_abstracts = Protein_2_Function_table_PMID_abstracts,
         Protein_2_Function_table_PMID_fulltexts = Protein_2_Function_table_PMID_fulltexts
     output:
         Protein_2_Function_table_PMID_combi = Protein_2_Function_table_PMID_combi,
-        Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
+        Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_PMID(input.Taxid_2_Proteins_table_STRING, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID, threads, params.verbose)
+        cst.Protein_2_Function_table_PMID_STS(input.Taxid_2_Proteins_table_STS, input.Protein_2_Function_table_PMID_abstracts, input.Protein_2_Function_table_PMID_fulltexts, output.Protein_2_Function_table_PMID_combi, output.Protein_2_Function_table_PMID_STS, threads, params.verbose)
 
 rule Protein_2_Function__and__Functions_table_WikiPathways: # ENSPs and UniProt AC/ID
     input:
         WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
         UniProt_ID_mapping = UniProt_ID_mapping,
         STRING_EntrezGeneID_2_STRING = STRING_EntrezGeneID_2_STRING,
-        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
         WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
     output:
         Protein_2_Function_table_WikiPathways = Protein_2_Function_table_WikiPathways,
@@ -624,21 +630,22 @@ rule Protein_2_Function__and__Functions_table_WikiPathways: # ENSPs and UniProt 
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.STRING_EntrezGeneID_2_STRING, input.Taxid_2_Proteins_table_STRING, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways, params.verbose)
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.STRING_EntrezGeneID_2_STRING, input.Taxid_2_Proteins_table_STS, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways, params.verbose)
 
 rule Protein_2_Function_table:
     input:
         Taxid_2_Proteins_table_FIN = Taxid_2_Proteins_table_FIN,
-        fn_list_str = [Protein_2_Function_table_InterPro,
-                       Protein_2_Function_table_KEGG,
-                       Protein_2_Function_table_SMART,
-                       Protein_2_Function_table_PFAM,
-                       Protein_2_Function_table_GO,
-                       Protein_2_Function_table_UPK,
-                       Protein_2_Function_table_PMID,
-                       Protein_2_Function_table_RCTM,
-                       Protein_2_Function_table_WikiPathways,
-                       Protein_2_Function_table_UniProt_dump] # Protein_2_Function_table_DOID_BTO
+        fn_list_str = [Protein_2_Function_table_InterPro_STS,
+                       Protein_2_Function_table_KEGG_STS,
+                       Protein_2_Function_table_SMART_STS,
+                       Protein_2_Function_table_PFAM_STS,
+                       Protein_2_Function_table_GO_STS,
+                       Protein_2_Function_table_UPK_STS,
+                       Protein_2_Function_table_PMID_STS,
+                       Protein_2_Function_table_RCTM_STS,
+                       Protein_2_Function_table_WikiPathways, # STS & UPS
+                       Protein_2_Function_table_UniProtDump_UPS] # UPK, GO, RCTM, Interpro, PFam
+                       # Protein_2_Function_table_DOID_BTO
     output:
         Protein_2_Function_table = Protein_2_Function_table
     threads: NUMBER_OF_PROCESSES_sorting
@@ -648,7 +655,7 @@ rule Protein_2_Function_table:
 rule Function_2_ENSP_table:
     input:
         Protein_2_Function_table = Protein_2_Function_table,
-        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
         Functions_table_all = Functions_table_all,
     output:
         Function_2_ENSP_table = Function_2_ENSP_table,
@@ -658,16 +665,16 @@ rule Function_2_ENSP_table:
         min_count = min_count,
         verbose = verbose
     run:
-        cst.Function_2_ENSP_table(input.Protein_2_Function_table, input.Taxid_2_Proteins_table_STRING, input.Functions_table_all, output.Function_2_ENSP_table, output.Function_2_ENSP_table_reduced, output.Function_2_ENSP_table_removed, min_count=params.min_count, verbose=params.verbose)
+        cst.Function_2_ENSP_table(input.Protein_2_Function_table, input.Taxid_2_Proteins_table_STS, input.Functions_table_all, output.Function_2_ENSP_table, output.Function_2_ENSP_table_reduced, output.Function_2_ENSP_table_removed, min_count=params.min_count, verbose=params.verbose)
 
-rule Function_2_Proteins_table_UniProt: # not NotImplementedFunction
+rule Function_2_Proteins_table_UPS: # NotImplementedFunction
     input:
-        Protein_2_Function_table_UniProt_dump = Protein_2_Function_table_UniProt_dump,
-        Taxid_2_Proteins_table_UniProt = Taxid_2_Proteins_table_UniProt
+        Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS,
+        Taxid_2_Proteins_table_UPS = Taxid_2_Proteins_table_UPS
     output:
-        Function_2_Proteins_table_UniProt = Function_2_Proteins_table_UniProt,
-        Function_2_Proteins_table_UniProt_reduced = Function_2_Proteins_table_UniProt_reduced,
-        Function_2_Proteins_table_UniProt_removed = Function_2_Proteins_table_UniProt_removed
+        Function_2_Proteins_table_UPS = Function_2_Proteins_table_UPS,
+        Function_2_Proteins_table_UPS_reduced = Function_2_Proteins_table_UPS_reduced,
+        Function_2_Proteins_table_UPS_removed = Function_2_Proteins_table_UPS_removed
     run:
         cst.NotImplementedFunction()
 
@@ -790,28 +797,28 @@ rule Protein_2_FunctionEnum_and_Score_table_FIN: # retain_scores
     run:
         cst.Protein_2_FunctionEnum_and_Score_table_FIN(input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Functions_table_STRING, input.Taxid_2_Proteins_table_FIN, output.Protein_2_FunctionEnum_and_Score_table_FIN, output.DOID_GO_BTO_an_without_translation, params.GO_CC_textmining_additional_etype)
 
-rule Protein_2_Function_table_KEGG:
+rule Protein_2_Function_table_KEGG_STS:
     input:
         KEGG_benchmarking = KEGG_benchmarking
     output:
-        Protein_2_Function_table_KEGG = Protein_2_Function_table_KEGG,
+        Protein_2_Function_table_KEGG_STS = Protein_2_Function_table_KEGG_STS,
         KEGG_Taxid_2_acronym_table_STRING = KEGG_Taxid_2_acronym_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_KEGG(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG, output.KEGG_Taxid_2_acronym_table_STRING, threads)
+        cst.Protein_2_Function_table_KEGG_STS(input.KEGG_benchmarking, output.Protein_2_Function_table_KEGG_STS, output.KEGG_Taxid_2_acronym_table_STRING, threads)
 
-rule Protein_2_Function_table_KEGG_UP: # and Protein_2_Function_table_KEGG_UP_ENSP_benchmark
+rule Protein_2_Function_table_KEGG_UPS: # and Protein_2_Function_table_KEGG_UP_ENSP_benchmark
     input:
         KEGG_dir = KEGG_dir,
         UniProt_2_STRING_2_KEGG = UniProt_2_STRING_2_KEGG
     output:
-        Protein_2_Function_table_KEGG_UP = Protein_2_Function_table_KEGG_UP,
-        Protein_2_Function_table_KEGG_UP_ENSP_benchmark = Protein_2_Function_table_KEGG_UP_ENSP_benchmark,
+        Protein_2_Function_table_KEGG_UPS = Protein_2_Function_table_KEGG_UPS,
+        Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = Protein_2_Function_table_KEGG_UPS_ENSP_benchmark,
         KEGG_entry_no_pathway_annotation = KEGG_entry_no_pathway_annotation
     run:
-        cst.Protein_2_Function_table_KEGG_UP_and_ENSP_2_KEGG_benchmark(input.KEGG_dir, input.UniProt_2_STRING_2_KEGG, input.Protein_2_Function_table_KEGG_UP, input.Protein_2_Function_table_KEGG_UP_ENSP_benchmark, input.KEGG_entry_no_pathway_annotation)
+        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_dir, input.UniProt_2_STRING_2_KEGG, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
 
-rule Protein_2_Function_table_UP:
+rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniProtDump_UPS
     input:
         Functions_table_UPK = Functions_table_UPK,
         GO_obo = GO_obo, # not Jensenlab obo
@@ -821,13 +828,13 @@ rule Protein_2_Function_table_UP:
         interpro_parent_2_child_tree = interpro_parent_2_child_tree,
         RCTM_hierarchy = RCTM_hierarchy
     output:
-        Protein_2_Function_table_UniProt_dump = Protein_2_Function_table_UniProt_dump, # UPK, GO, RCTM, Interpro, PFam
+        Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
         UniProt_2_STRING_2_KEGG = UniProt_2_STRING_2_KEGG,
         UniProt_AC_2_ID = UniProt_AC_2_ID
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_UniProt_UniProtSpace(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProt_dump, output.UniProt_2_STRING_2_KEGG, output.UniProt_AC_2_ID, params.verbose)
+        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.UniProt_2_STRING_2_KEGG, output.UniProt_AC_2_ID, params.verbose)
 
 ##########################################################################################
 ##########################################################################################
@@ -940,7 +947,7 @@ rule Protein_2_Function_table_UP:
 
 
 ### ToDo:
-# - Taxid_2_Proteins_table_FIN --> Taxid_2_Proteins_table_STRING for all
+# - Taxid_2_Proteins_table_FIN --> Taxid_2_Proteins_table_STS for all
 # - KEGG_Taxid_2_acronym_table_STRING aus KEGG dump neu erstellen --> merge with UniProt dump
 # - Protein_2_FunctionEnum_and_Score_table_FIN --> map to UniProt AC and ID
 
@@ -964,3 +971,8 @@ rule Protein_2_Function_table_UP:
 
 # ask Lars about the differences of annotation information/quality
 ### ToDo compare GO annotations from Lars to UniProt-retrieved
+
+# # TODO:
+# dtype warning Taxid_2_Proteins_table/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: numpy.dtype size changed, may indicate binary incompatibility
+#  Wikipathways extra download dir
+# wiki tqdm for all don't show individual files

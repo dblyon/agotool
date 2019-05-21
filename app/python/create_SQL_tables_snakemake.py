@@ -28,7 +28,7 @@ NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 VERSION_ = variables.VERSION_
 PLATFORM = sys.platform
 
-def Protein_2_Function_table_InterPro(fn_in_string2interpro, fn_in_Functions_table_InterPro, fn_in_interpro_parent_2_child_tree, fn_out_Protein_2_Function_table_InterPro, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_InterPro_STS(fn_in_string2interpro, fn_in_Functions_table_InterPro, fn_in_interpro_parent_2_child_tree, fn_out_Protein_2_Function_table_InterPro, number_of_processes=1, verbose=True):
     """
     :param fn_in_string2interpro: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string2interpro.dat.gz)
     :param fn_out_Protein_2_Function_table_InterPro: String (e.g. /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/Protein_2_Function_table_InterPro.txt)
@@ -871,7 +871,7 @@ def yield_split_line_from_file(fn_in, line_numbers=False, split_on="\t"):
             line_split[-1] = line_split[-1].strip()
             yield line_split
 
-def Taxid_2_Proteins_table_STRING(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
+def Taxid_2_Proteins_table_STS(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
     if verbose:
         print("Creating TaxID_2_Proteins_table_STRING.txt")
         print("protein_shorthands needs sorting, doing it now")
@@ -901,7 +901,7 @@ def Taxid_2_Proteins_table_STRING(fn_in_protein_shorthands, fn_out_TaxID_2_Prote
             ENSPs_2_write = sorted(set(ENSP_list))
             fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
-def Taxid_2_Proteins_table_UniProt(UniProt_reference_proteomes_dir, Taxid_2_Proteins_table_UniProt):
+def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins_table_UniProt):
     with open(Taxid_2_Proteins_table_UniProt, "w") as fh_out:
         for fn in [fn for fn in os.listdir(UniProt_reference_proteomes_dir) if fn.endswith(".fasta.gz")]:
             taxid, fasta, gz = os.path.basename(fn).split("_")[-1].split(".")
@@ -1062,7 +1062,7 @@ def helper_format_funcEnum(funcEnum_count_background):
         string_2_write += "{{{0},{1}}},".format(ele[0], int(round(ele[1])))
     return "{" + string_2_write[:-1] + "}" # index_backgroundCount_array_string
 
-def Protein_2_Function_table_KEGG(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_TaxID_2_acronym_table, number_of_processes=1):
+def Protein_2_Function_table_KEGG_STS(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_TaxID_2_acronym_table, number_of_processes=1):
     fn_out_temp = fn_out_Protein_2_Function_table_KEGG + "_temp"
     # create long format of ENSP 2 KEGG table
     taxid_2_acronym_dict = {}
@@ -1211,7 +1211,7 @@ def map_Name_2_AN(fn_in, fn_out, fn_dict, fn_no_mapping):
     with open(fn_no_mapping, "w") as fh_no_mapping:
         fh_no_mapping.write("\n".join(sorted(set(name_no_mapping_list))))
 
-def Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_2_Function_table_GO, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_GO_STS(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_2_Function_table_GO, number_of_processes=1, verbose=True):
     """
     secondary GOids are converted to primary GOids
     e.g. goterm: 'GO:0007610' has secondary id 'GO:0044708', thus if 'GO:0044708' is associated it will be mapped to 'GO:0007610'
@@ -1365,7 +1365,7 @@ def divide_into_categories(GOterm_list, GO_dag,
                 MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
     return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
 
-def Protein_2_Function_table_UniProtKeyword(fn_in_Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out_Protein_2_Function_table_UPK, number_of_processes=1,  verbose=True):
+def Protein_2_Function_table_UPK_STS(fn_in_Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out_Protein_2_Function_table_UPK, number_of_processes=1,  verbose=True):
     if verbose:
         print("\ncreate_Protein_2_Function_table_UniProtKeywords")
     UPK_dag = obo_parser.GODag(obo_file=fn_in_obo, upk=True)
@@ -1542,56 +1542,7 @@ def parse_uniprot_dat_dump_yield_entry(fn_in):
         Keywords_list = [cleanup_Keyword(keyword) for keyword in Keywords_list if len(keyword) > 0]
         yield (UniProtAN_list, Keywords_list)
 
-def helper_parse_UniProt_dump_other_functions(list_of_string):
-    """
-    e.g. input
-    [['EMBL; AY548484; AAT09660.1; -; Genomic_DNA.'],
-     ['RefSeq; YP_031579.1; NC_005946.1.'],
-     ['ProteinModelPortal; Q6GZX4; -.'],
-     ['SwissPalm; Q6GZX4; -.'],
-     ['GeneID; 2947773; -.'],
-     ['KEGG; vg:2947773; -.'],
-     ['Proteomes; UP000008770; Genome.'],
-     ['GO; GO:0046782; P:regulation of viral transcription; IEA:InterPro.'],
-     ['InterPro; IPR007031; Poxvirus_VLTF3.'],
-     ['Pfam; PF04947; Pox_VLTF3; 1.']]
-     EnsemblPlants; AT3G09880.1; AT3G09880.1; AT3G09880.
-    """
-    GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes = [], [], [], [], [], [], []
-    for row in list_of_string:
-        row_split = row.split(";")
-        func_type = row_split[0]
-        try:
-            annotation = row_split[1].strip()
-        except IndexError:
-            continue
-        if func_type == "KEGG":
-            KEGG.append(annotation)
-        elif func_type == "GO":
-            GO.append(annotation)
-        elif func_type == "InterPro":
-            InterPro.append(annotation)
-        elif func_type == "Pfam":
-            Pfam.append(annotation)
-        elif func_type == "Reactome":
-            Reactome.append(annotation)
-        elif func_type == "STRING":
-            funcs_2_return = []
-            try:
-                for func in [func.strip() for func in row_split[1:]]:
-                    if func.endswith("."):
-                        func = func[:-1]
-                    if func == "-":
-                        continue
-                    funcs_2_return.append(func)
-            except IndexError:
-                continue
-            STRING += funcs_2_return
-        elif func_type == "Proteomes":
-            Proteomes.append(annotation)
-    return [GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes]
-
-def Protein_2_Function_table_UniProt_UniProtSpace(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, fn_out_UniProt_2_STRING_2_KEGG_mapping, fn_out_UniProt_AC_2_ID, verbose=True):
+def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, fn_out_UniProt_2_STRING_2_KEGG_mapping, fn_out_UniProt_AC_2_ID, verbose=True):
     if verbose:
         print("\nparsing UniProt dumps: creating 2 output files \n{}\n{}".format(fn_out_Protein_2_Function_table_UniProt_dump, fn_out_UniProt_2_STRING_2_KEGG_mapping))
 
@@ -1619,9 +1570,9 @@ def Protein_2_Function_table_UniProt_UniProtSpace(fn_in_Functions_table_UPK, fn_
                     if verbose:
                         print("parsing {}".format(uniprot_dump_fn))
                     # for UniProtAC_and_ID_list, functions_2_return, NCBI_Taxid in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
-                    for UniProtID, UniProtAC_list, functions_2_return, NCBI_Taxid in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
-                        Keywords_list, GOterm_list, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes = functions_2_return
-
+                    for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
+                        Keywords_list, GOterm_list, InterPro, Pfam, KEGG, Reactome, STRING, *Proteomes = functions_2_return
+                        # ['Complete proteome', 'Reference proteome', 'Transcription', 'Activator', 'Transcription regulation', ['GO:0046782'], ['IPR007031'], ['PF04947'], ['vg:2947773'], [], [], ['UP000008770']]
                         # for UniProtAN in UniProtAC_and_ID_list:
                         if len(Keywords_list) > 0:
                             UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, Keywords_list)
@@ -1676,9 +1627,9 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
         hsa:7529    path:hsa04722)
     """
     for entry in yield_entry_UniProt_dat_dump(fn_in):
-        UniProtAC_list, Keywords_string = [], ""
+        UniProtAC_list, Keywords_string, functions_2_return = [], "", []
         Functions_other_list = []
-        NCBI_Taxid = "-1"
+        UniProtID, NCBI_Taxid = "-1", "-1"
         for line in entry:
             try:
                 line_code, rest = line.split(maxsplit=1)
@@ -1700,9 +1651,62 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
 
         UniProtAC_list = sorted(set(UniProtAC_list))
         Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
-        other_functions = helper_parse_UniProt_dump_other_functions(Functions_other_list) # GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
-        functions_2_return = Keywords_list + other_functions # Keywords_list, GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
-        yield UniProtID, UniProtAC_list, functions_2_return, NCBI_Taxid
+        other_functions = helper_parse_UniProt_dump_other_functions(Functions_other_list)
+        # GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
+        functions_2_return.append(Keywords_list)
+        functions_2_return += other_functions
+        # Keywords_list, GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
+        #                GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
+        yield UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return
+
+def helper_parse_UniProt_dump_other_functions(list_of_string):
+    """
+    e.g. input
+    [['EMBL; AY548484; AAT09660.1; -; Genomic_DNA.'],
+     ['RefSeq; YP_031579.1; NC_005946.1.'],
+     ['ProteinModelPortal; Q6GZX4; -.'],
+     ['SwissPalm; Q6GZX4; -.'],
+     ['GeneID; 2947773; -.'],
+     ['KEGG; vg:2947773; -.'],
+     ['Proteomes; UP000008770; Genome.'],
+     ['GO; GO:0046782; P:regulation of viral transcription; IEA:InterPro.'],
+     ['InterPro; IPR007031; Poxvirus_VLTF3.'],
+     ['Pfam; PF04947; Pox_VLTF3; 1.']]
+     EnsemblPlants; AT3G09880.1; AT3G09880.1; AT3G09880.
+    """
+    GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes = [], [], [], [], [], [], []
+    for row in list_of_string:
+        row_split = row.split(";")
+        func_type = row_split[0]
+        try:
+            annotation = row_split[1].strip()
+        except IndexError:
+            continue
+        if func_type == "KEGG":
+            KEGG.append(annotation)
+        elif func_type == "GO":
+            GO.append(annotation)
+        elif func_type == "InterPro":
+            InterPro.append(annotation)
+        elif func_type == "Pfam":
+            Pfam.append(annotation)
+        elif func_type == "Reactome":
+            Reactome.append(annotation)
+        elif func_type == "STRING":
+            funcs_2_return = []
+            try:
+                for func in [func.strip() for func in row_split[1:]]:
+                    if func.endswith("."):
+                        func = func[:-1]
+                    if func == "-":
+                        continue
+                    funcs_2_return.append(func)
+            except IndexError:
+                continue
+            STRING += funcs_2_return
+        elif func_type == "Proteomes":
+            Proteomes.append(annotation)
+    return [GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes]
 
 # def UniProt_2_STRING_2_KEGG_from_dump(fn_list_uniprot_dump, fn_out_UniProt_2_STRING_2_KEGG): # deprecated
 #     with open(fn_out_UniProt_2_STRING_2_KEGG, "w") as fh_out:
@@ -1822,7 +1826,7 @@ def get_KEGG_Protein_2_pathwayName_dict(fn_list):
 #         for kegg_entry in no_pathway_annotation_KEGG_proteins:
 #             fh_out_KEGG_entry_no_pathway_annotation.write(kegg_entry + "\n")
 
-def Protein_2_Function_table_KEGG_UP_and_ENSP_2_KEGG_benchmark(KEGG_dir, fn_in_UniProt_2_STRING_2_KEGG, fn_out_Protein_2_Function_table_KEGG_UP, fn_out_Protein_2_Function_table_KEGG_UP_ENSP_benchmark, fn_out_KEGG_entry_no_pathway_annotation, verbose=True):
+def Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(KEGG_dir, fn_in_UniProt_2_STRING_2_KEGG, fn_out_Protein_2_Function_table_KEGG_UP, fn_out_Protein_2_Function_table_KEGG_UP_ENSP_benchmark, fn_out_KEGG_entry_no_pathway_annotation, verbose=True):
     """
     fn_out_Protein_2_Function_table_KEGG_UP_ENSP_benchmark: ENSP 2 KEGG benchmark coming from UniProt 2 KEGG and mapping STRING 2 UniProt
     """
@@ -2087,7 +2091,7 @@ def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_mat
                 # else:
                 #     PMID_not_relevant.append(PMID_including_prefix)
 
-def Protein_2_Function_table_FIN(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
+def Protein_2_Function_table(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
     ### concatenate files
     fn_out_Protein_2_Function_table_STRING_temp = fn_out_Protein_2_Function_table_STRING + "_temp"
@@ -2401,7 +2405,7 @@ def Functions_table_PMID(Function_2_Description_PMID, Functions_table_PMID_temp,
             description = year_prefix + " ".join(description_2_clean.split())  # replace multiple spaces with single space
             fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
 
-def Protein_2_Function_table_PMID(TaxID_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_PMID_STS(TaxID_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
     """
     concatenate files, sort and create set of union of functional associations
     filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING
@@ -2906,7 +2910,7 @@ def get_EntrezGeneID_2_ENSPsList_dict(fn):
     return EntrezGeneID_2_ENSPsList_dict
 
 def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
-    ENSP_2_tuple_funcEnum_scTaxid_2_Proteins_table_FINore_dict = query.get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
+    ENSP_2_tuple_funcEnum_score_dict = query.get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
     with open(fn_out_Taxid_2_funcEnum_2_scores_table_FIN, "w") as fh_out:
         for taxid in variables.jensenlab_supported_taxids :
             background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
@@ -2914,6 +2918,10 @@ def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_t
             for funcEnum in sorted(funcEnum_2_scores_dict_bg.keys()):
                 scores = funcEnum_2_scores_dict_bg[funcEnum]
                 fh_out.write(str(taxid) + "\t" + str(funcEnum) + "\t" + "\t".join([str(ele) for ele in scores]) + "\n")
+
+def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UniProtDump_UPS, fn_in_Taxid_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS):
+    pass
+
 
 
 if __name__ == "__main__":
