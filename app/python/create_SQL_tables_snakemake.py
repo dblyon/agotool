@@ -902,6 +902,10 @@ def Taxid_2_Proteins_table_STS(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins
             fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
 def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins_table_UniProt):
+    """
+    Taxid_2_Proteins_table_UniProt --> UniProt entry name (ID) not accession
+
+    """
     with open(Taxid_2_Proteins_table_UniProt, "w") as fh_out:
         for fn in [fn for fn in os.listdir(UniProt_reference_proteomes_dir) if fn.endswith(".fasta.gz")]:
             taxid, fasta, gz = os.path.basename(fn).split("_")[-1].split(".")
@@ -2919,7 +2923,10 @@ def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_t
                 scores = funcEnum_2_scores_dict_bg[funcEnum]
                 fh_out.write(str(taxid) + "\t" + str(funcEnum) + "\t" + "\t".join([str(ele) for ele in scores]) + "\n")
 
-def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UniProtDump_UPS, fn_in_Taxid_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS):
+def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UniProtDump_UPS, fn_in_Taxid_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS_removed):
+    """
+    restrict output by UniProt entry names from fn_in_Taxid_2_Proteins_table_UPS
+    """
     pass
 
 

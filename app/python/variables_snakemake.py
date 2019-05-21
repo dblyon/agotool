@@ -148,7 +148,7 @@ STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
 PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "test")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
-FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema_STRING.md")
+FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema.md")
 FN_HELP_ENTITY_TYPES = os.path.join(POSTGRESQL_DIR, "example_help_entity_types.md")
 FN_HELP_PARAMETERS = os.path.join(POSTGRESQL_DIR, "example_help_parameters.md")
 

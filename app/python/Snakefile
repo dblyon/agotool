@@ -506,7 +506,7 @@ rule download_UniProt_reference_proteomes:
     run:
         drs.download_UniProt_reference_proteomes(output.UniProt_reference_proteomes_dir, params.verbose)
 
-rule Taxid_2_Proteins_table_UPS:
+rule Taxid_2_Proteins_table_UPS: # 
     input:
         UniProt_reference_proteomes_dir = UniProt_reference_proteomes_dir
     output:

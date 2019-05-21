@@ -92,17 +92,26 @@
 
 ### lineage [Lineage_table_FIN.txt]
 | func_enum | func_enum_array |
+|:---:|:---:|
 | 0 | {2803, 2809, 3348, 4057, 5420, 14355, 14358, 15352, 15697, 15698, 15703, 19423} |
 | 1 | {2803, 2809, 3348, 4057, 5420, 9249, 19423} |
 | 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
 
 
-### taxid_2_proteins [TaxID_2_Proteins_table_FIN.txt]
+### taxid_2_proteins [TaxID_2_Proteins_table_FIN.txt] # UniProt entry names not accessions
 | taxid | an_array | count | etype |
-|:---:|:---:|:---:|
+|:---:|:---:|:---:|:---:|
 | 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 | -60 |
 | 9606 | {} | 19566 | -61 |
 | 1000565 | {"1000565.METUNv1_00006","1000565.METUNv1_00011","1000565.METUNv1_00018","1000565.METUNv1_00019", ...} | 12345 |
+
+
+### uniprot_ac_2_id [UniProt_AC_2_ID.txt] # accession to entry name
+| an | id |
+|:---:|:---:|
+| Q6GZX4 | 001R_FRG3G |
+| Q6GZX3 | 002L_FRG3G |
+| Q197F8 | 002R_IIV3 |
 
 
 ### Taxid_2_FunctionCountArray [Taxid_2_FunctionCountArray_table_FIN.txt]
@@ -111,6 +120,7 @@
 | 9606 | 19566 | {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ... |
 | 100901 | 647 | {{3328085,2},{3635192,6},{4454829,2},{47234,4}, ... |
 | 7230 | 14594 | {{100001,2},{1000164,6},{100046,2},{100058,9}, ... |
+
 
 ### Protein_2_FunctionEnum_and_Score_table_FIN.txt
 |:---:|:---:|
