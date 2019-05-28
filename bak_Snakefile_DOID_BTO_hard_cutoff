@@ -417,9 +417,9 @@ rule Protein_2_Function_table_RCTM__and__Functions_table_RCTM:
         Functions_table_RCTM = Functions_table_RCTM
     threads: NUMBER_OF_PROCESSES_sorting
     # shell:
-    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_RCTM__and__Function_table_RCTM(r"{input.RCTM_associations}", r"{input.RCTM_descriptions}", r"{input.RCTM_hierarchy}", r"{output.Protein_2_Function_table_RCTM}", r"{output.Functions_table_RCTM}", {threads})'"""
+    #     """python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.Protein_2_Function_table_RCTM__and__Functions_table_RCTM(r"{input.RCTM_associations}", r"{input.RCTM_descriptions}", r"{input.RCTM_hierarchy}", r"{output.Protein_2_Function_table_RCTM}", r"{output.Functions_table_RCTM}", {threads})'"""
     run:
-        cst.Protein_2_Function_table_RCTM__and__Function_table_RCTM(input.RCTM_associations, input.RCTM_descriptions, input.RCTM_hierarchy, output.Protein_2_Function_table_RCTM, output.Functions_table_RCTM, threads)
+        cst.Protein_2_Function_table_RCTM__and__Functions_table_RCTM(input.RCTM_associations, input.RCTM_descriptions, input.RCTM_hierarchy, output.Protein_2_Function_table_RCTM, output.Functions_table_RCTM, threads)
 
 ### deprecated since using Lars' DB dump
 # rule Functions_table_PMID_temp: # textmining pmc medline --> using gnu parallel

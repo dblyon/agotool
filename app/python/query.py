@@ -449,7 +449,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("#"*80)
             print("initializing PQO")
             print("getting taxid_2_proteome_count")
-        self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict(read_from_flat_files)
+        self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
+
         if variables.VERBOSE:
             print("getting KEGG TaxID 2 TaxName acronym translation")
         self.kegg_taxid_2_acronym_dict = get_KEGG_TaxID_2_acronym_dict(read_from_flat_files)
@@ -1160,11 +1161,19 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
                     prot_arr = prot_arr[1:-1].replace("'", "").replace('"', "").split(",")
                     return sorted(prot_arr)
 
-def get_TaxID_2_proteome_count_dict(read_from_flat_files=False):
+def get_TaxID_2_proteome_count_dict(read_from_flat_files=False, fn=None): #, searchspace=None):
+    """
+    :param read_from_flat_files: Bool flag
+    :param fn: None or String (file to read or default)
+    # :param searchspace: None or String (variables.searchspace_2_entityType_dict "STRING" or "UniProt" / "aGOtool")
+    :return: dict
+    """
+    if fn is None:
+        fn = variables.tables_dict["Taxid_2_Proteins_table"]
+    # if searchspace is not None:
+    #     return get_TaxID_2_proteome_count_dict_by_searchspace(read_from_flat_files, fn, searchspace)
     taxid_2_proteome_count_dict = {}
     if read_from_flat_files:
-        # fn = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
-        fn = variables.tables_dict["Taxid_2_Proteins_table"]
         result = get_results_of_statement_from_flat_file(fn, columns=[0, 2])
     else:
         result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count FROM taxid_2_protein;")
@@ -1172,6 +1181,25 @@ def get_TaxID_2_proteome_count_dict(read_from_flat_files=False):
         taxid, count = res
         taxid_2_proteome_count_dict[int(taxid)] = int(count)
     return taxid_2_proteome_count_dict
+
+# def get_TaxID_2_proteome_count_dict_by_searchspace(read_from_flat_files, fn, searchspace): # deprecated
+#     taxid_2_proteome_count_dict = {}
+#     try:
+#         etype_2_be = variables.searchspace_2_entityType_dict[searchspace]
+#         etype_2_be = str(etype_2_be)
+#     except KeyError:
+#         print("variables.searchspace_2_entityType_dict doesn't have key '{}'".format(searchspace))
+#         return taxid_2_proteome_count_dict
+#     if read_from_flat_files:
+#         result = get_results_of_statement_from_flat_file(fn, columns=[0, 2, 3])
+#     else:
+#         result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count, taxid_2_protein.searchspace FROM taxid_2_protein;")
+#
+#     for res in result:
+#         taxid, count, etype = res
+#         if etype == etype_2_be:
+#             taxid_2_proteome_count_dict[int(taxid)] = int(count)
+#     return taxid_2_proteome_count_dict
 
 def get_association_2_count_ANs_background_split_by_entity(taxid):
     result = get_results_of_statement("SELECT * FROM function_2_ensp WHERE function_2_ensp.taxid={}".format(taxid))

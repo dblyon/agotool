@@ -31,12 +31,31 @@ PROFILING = variables.PROFILING
 MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 ###############################################################################
+def error_(parser):
+    sys.stderr.write("The arguments passed are invalid.\nPlease check the input parameters.\n\n")
+    parser.print_help()
+    sys.exit(2)
+
+argparse_parser = argparse.ArgumentParser()
+argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1")
+argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
+argparse_parser.add_argument("verbose", help="add 'verbose' as an argument to print more information", type=str, default="False", nargs="?")
+args = argparse_parser.parse_args()
+for arg in sorted(vars(args)):
+    if getattr(args, arg) is None:
+        error_(argparse_parser)
+IP, port = args.IP, args.port
+if args.verbose == "verbose" or args.verbose == "v":
+    variables.VERBOSE = True
+###############################################################################
+
 # ToDo 2018
 # - buy goliath domain?
 # - use cProfile on compiled cython --> done but not that great to inspect
 # - replace bool array with uint8 array and casting to bool & using prange with nogil
 # - Memory leak
 # - sort results based on S-values (volcano plot style), something like effect-size
+# - report userinput 2 mapped ID and make available as download
 
 # - go_slim_or_basic --> filter for slim terms
 # check out DF sorting before returning results, year and FDR not sorted correctly
@@ -924,12 +943,6 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     fn_results_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     return file_name, fn_results_absolute, fn_results_relative
 
-
-def error_(parser):
-    sys.stderr.write("The arguments passed are invalid.\nPlease check the input parameters.\n\n")
-    parser.print_help()
-    sys.exit(2)
-
 if __name__ == "__main__":
     # ToDo potential speedup
     # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
@@ -940,15 +953,6 @@ if __name__ == "__main__":
     # processes should be "1", otherwise nginx throws 502 errors with large files
     ### SAN port 10110
     ### PISCES port 10110 IP 127.0.0.1
-    argparse_parser = argparse.ArgumentParser()
-    argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1")
-    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
-    args = argparse_parser.parse_args()
-    for arg in sorted(vars(args)):
-        if getattr(args, arg) is None:
-            error_(argparse_parser)
-    IP, port = args.IP, args.port
     print("#" * 80)
     print("running aGOtool on IP {} port {}".format(IP, port))
     app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
-

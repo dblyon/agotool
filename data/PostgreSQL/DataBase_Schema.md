@@ -1,3 +1,48 @@
+## go_2_slim [GO_2_Slim_table.txt]
+##### an(Text); slim(Boolean)
+| an | slim |
+|:---:|:---:|
+| GO:0000003 | 1 |
+
+
+## protein_secondary_2_primary_an [Protein_Secondary_2_Primary_AN_table.txt] merge with ### uniprot_ac_2_id [UniProt_AC_2_ID.txt] # accession to entry name
+##### Secondary (Text); Prim(Text) ("Primary" is a reserved PostgreSQL word)
+| sec | pri |
+|:---:|:---:|
+| A0A021WW06 | P40417 | --> replace with translation of AC_old to UniProtID
+| ENSPsomethingsomething | UniProtID |
+| Q6GZX4 | 001R_FRG3G |
+| Q6GZX3 | 002L_FRG3G |
+| Q197F8 | 002R_IIV3 |
+
+to map Jensenlab Score data to UniProt
+ ENSP 2 UniProtID mapping needed
+
+given:
+- secondary 2 primary UniProt AC (URL_UNIPROT_SECONDARY_2_PRIMARY_AN = r"ftp://ftp.uniprot.org/pub/databases/uniprot/knowledgebase/docs/sec_ac.txt")
+- UniProt AC 2 ID (from UniProt dump or URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz")
+ ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
+- UniProtAC/ID 2 ENSP (UniProt_2_STRING_2_KEGG.txt from UniProt dump)
+- UniProtAC 2 ENSP (uniprot_2_string_v11 "full_uniprot_2_string.jan_2018.clean.tsv") # ENSP 2 UniProtID is a one 2 one mapping :)
+
+wanted:
+- ENSP 2 UniProtID
+- UniProtAC 2 UniProtID
+- secondary AC 2 UniProtID
+? - synonym ID 2 UniProtID ? --> not needed for now (would have to parse "ID   ADAM9_HUMAN             Reviewed;         819 AA." and 
+"GN   Name=ADAM9; Synonyms=KIAA0021, MCMP, MDC9, MLTNG;" from UniProt dump)
+
+
+query using:
+- UniProt AC
+- UniProt ID
+- ENSP
+--> maps to UniProt ID
+
+
+URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz"
+
+
 ### entity_types [Entity_types_table_FIN.txt]
 | an | etype | name |
 |:---:|:---:|:---:|
@@ -38,7 +83,7 @@
 | clusters | -78 | STRING clusters |
 
 
-### functions [Functions_table_FIN.txt]
+### functions [Functions_table_UPS_FIN.txt]
 | enum | etype | an | description | year | level |
 |:---:|:---:|:---:|:---:|:---:|:--:|
 | 0 | -21 | GO:0000001 | mitochondrion inheritance | -1 | 5 |
@@ -52,42 +97,33 @@
 | 791705 | -56 | PMID:12926249 | (2003) QMMM calculations of kinetic isotope effects in the chorismate mutase active site. | 2003 | -1 |
 
 
-### function_2_ENSP [Function_2_ENSP_table_FIN.txt]
-| taxid | etype | association | background_count | background_n | an_array |
+### function_2_Protein [Function_2_Protein_table_UPS.txt]  
+| taxid | etype | association | background_count | background_n | uniprotid_array |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'9606.ENSP00000000233', '9606.ENSP00000000412', ... } |
 | 9606 | -21 | 'GO:0006897' | 2 | 3919 | {'9606.ENSP00000000412', ...} |
 | 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'9606.ENSP00000000412'} |
+| 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'UniProtID1', 'UniProtID2', ... } |
+| 9606 | -21 | 'GO:0006897' | 2 | 3919 | {'UniProtID3', ...} |
+| 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'UniProtID3'} |
 
 
-### protein_2_function [Protein_2_Function_table.txt]
-| an | func_array | etype |
+### protein_2_function [Protein_2_Function_table_UPS.txt]
+| uniprotid | func_array | etype | taxid | 
+|:---:|:---:|:---:|:---:|
+| 001R_FRG3G | {"KW-0010","KW-0181","KW-0804","KW-0805","KW-1185","KW-9990","KW-9992","KW-9999"} | -51 | 1234 | 
+| 001R_FRG3G | {"GO:0008150","GO:0043900","GO:0043903","GO:0046782","GO:0050789","GO:0050792","GO:0065007"} | -21 | 1234 |
+| 001R_FRG3G | {"IPR007031"} |-54 | 1234 |
+| 001R_FRG3G | {"PF04947"} | -55 | 1234 |
+| 002L_FRG3G | {"KW-0181","KW-0472","KW-0812","KW-1043","KW-1133","KW-1185","KW-9990","KW-9994","KW-9998"} | -51 | 1234 |
+
+
+### protein_2_functionEnum [Protein_2_FunctionEnum_table_UPS_FIN.txt]
+| uniprotid | func_enum_array | taxid |
 |:---:|:---:|:---:|
-| 9606.ENSP00000000233 | {"GO:0006810","GO:0007154","GO:0007165","GO:0007264","GO:0008104","GO:0008150","GO:0008150","GO:0008152","GO:0009987","GO:0015031","GO:0015833","GO:0016192","GO:0023052","GO:0033036","GO:0035556","GO:0042886","GO:0044700","GO:0044763","GO:0045184","GO:0050789","GO:0050794","GO:0050896","GO:0051179","GO:0051234","GO:0051716","GO:0065007","GO:0071702","GO:0071705"} | -21 |
-| 9606.ENSP00000000233 | {"GO:0005575","GO:0005576","GO:0005622","GO:0005623","GO:0005737","GO:0005794","GO:0005886","GO:0012505","GO:0016020","GO:0031982","GO:0031988","GO:0043226","GO:0043227","GO:0043229","GO:0043230","GO:0043231","GO:0044421","GO:0044424","GO:0044444","GO:0044464","GO:0048471","GO:0065010","GO:0070062","GO:0071944","GO:1903561"} | -22 |
-| 9606.ENSP00000000233 | {"GO:0000166","GO:0001882","GO:0001883","GO:0003674","GO:0003824","GO:0003924","GO:0005488","GO:0005525","GO:0016462","GO:0016787","GO:0016817","GO:0016818","GO:0017076","GO:0017111","GO:0019001","GO:0032549","GO:0032550","GO:0032553","GO:0032555","GO:0032561","GO:0035639","GO:0036094","GO:0043167","GO:0043168","GO:0097159","GO:0097367","GO:1901265","GO:1901363"} | -23 |
-| 9606.ENSP00000000233 | {"KW-0002","KW-0181","KW-0333","KW-0342","KW-0449","KW-0472","KW-0519","KW-0547","KW-0653","KW-0813","KW-0931","KW-0963","KW-1185","KW-9990","KW-9991","KW-9993","KW-9998","KW-9999"} | -51 |
-| 9606.ENSP00000000233 | {"map04144"} | -52 |
-| 9606.ENSP00000000233 | {"Arf","Gtr1_RagA","MMR_HSR1","Ras","Roc","SRPRB"}" | -53 |
-| 9606.ENSP00000005587 | {"SM00233","SM00326"} | -53 |
-| 9606.ENSP00000000233 | {"IPR005225","IPR006689","IPR024156","IPR027417"} | -54 |
-| 9606.ENSP00000000412 | {"PF09451","PF02157"} | -55 |
-
-
-### protein_2_functionEnum [Protein_2_FunctionEnum_table_FIN.txt]
-| an | func_enum_array |
-|:---:|:---:|
-| 1000565.METUNv1_00006 | {47403, 48329, 48422, 52375, 86134, 97354, 97505} |
-| 1193181.BN10_100007 | {47403, 47665, 47963, 48277, 48329, 48422, 48426, 48430, 52979, 61216, 86802} |
-| 1230343.CANP01000023_gene1527 | {47403, 47665, 47963, 48277, 48422, 48426, 48430} |
-| 1286170.RORB6_22675 | {47403, 47440, 47743, 48422, 48424, 53868, 75137, 82814, 85480} |
-| 1537715.JQFJ01000002_gene718 | {49160} |
-| 211165.AJLN01000153_gene695 | {100879} |
-| 246196.MSMEI_2975 | {47397, 47403, 48329, 48422, 48426, 51824, 59740, 1812416, 1914629, 2064397, 2516845, 2542738, 2579066, 2787936, 3317676, 3378861, 3552644, 4064473, 4205464, 4398263, 5424544, 5522838} |
-| 38833.XP_003059384.1 | {47403, 48329, 48422, 49005, 51951, 60573, 96979, 97269, 97582} |
-| 794846.AJQU01000003_gene1109 | {47403, 48422, 53420, 69968, 87113} |
-| 9606.ENSP00000298492 | {78, 93, 95, 1557, 2377, 2408, 2670, 2771, 2803, 2814, 2818, 2843, 2845, 2846, 2853, 3348, 3349, 3432, 4057, 5420, 5615, 6509, 7297, 7319, 10550, 11801, 11918, 12247, 12316, 12317, 12329, 12333, 14335, 15112, 15390, 15448, 18561, 18628, 18629, 18794, 19344, ... |
-| 9986.ENSOCUP00000018664 | {47403, 48329, 48422} |
+| 1000565.METUNv1_00006 | {47403, 48329, 48422, 52375, 86134, 97354, 97505} | 1000565 | 
+| 1193181.BN10_100007 | {47403, 47665, 47963, 48277, 48329, 48422, 48426, 48430, 52979, 61216, 86802} | 1193181 |
+| 1230343.CANP01000023_gene1527 | {47403, 47665, 47963, 48277, 48422, 48426, 48430} | 1230343 |
 
 
 ### lineage [Lineage_table_FIN.txt]
@@ -98,30 +134,35 @@
 | 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
 
 
-### taxid_2_proteins [TaxID_2_Proteins_table_FIN.txt] # UniProt entry names not accessions
-| taxid | an_array | count | etype |
-|:---:|:---:|:---:|:---:|
-| 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 | -60 |
-| 9606 | {} | 19566 | -61 |
-| 1000565 | {"1000565.METUNv1_00006","1000565.METUNv1_00011","1000565.METUNv1_00018","1000565.METUNv1_00019", ...} | 12345 |
-
-
-### uniprot_ac_2_id [UniProt_AC_2_ID.txt] # accession to entry name
-| an | id |
-|:---:|:---:|
-| Q6GZX4 | 001R_FRG3G |
-| Q6GZX3 | 002L_FRG3G |
-| Q197F8 | 002R_IIV3 |
-
-
-### Taxid_2_FunctionCountArray [Taxid_2_FunctionCountArray_table_FIN.txt]
-| taxid | background_n | background_count_array |
+### taxid_2_proteins [Taxid_2_Proteins_table_UPS.txt]
+| taxid | an_array | count |
 |:---:|:---:|:---:|
-| 9606 | 19566 | {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ... |
-| 100901 | 647 | {{3328085,2},{3635192,6},{4454829,2},{47234,4}, ... |
-| 7230 | 14594 | {{100001,2},{1000164,6},{100046,2},{100058,9}, ... |
+| 9606 | {"1433B_HUMAN","1433E_HUMAN","1433F_HUMAN","1433G_HUMAN", ...} | 20874 |
+| 10090 | {"1433B_MOUSE","1433E_MOUSE","1433F_MOUSE", ...} | 22287 |
 
 
-### Protein_2_FunctionEnum_and_Score_table_FIN.txt
+### taxid_2_functioncountarray [Taxid_2_FunctionCountArray_table_FIN.txt]
+| taxid | background_n | background_count_array | dbtype |
+|:---:|:---:|:---:|:---:|
+| 9606 | 19566 | {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ... | 1 |
+| 100901 | 647 | {{3328085,2},{3635192,6},{4454829,2},{47234,4}, ... | 1 |
+| 7230 | 14594 | {{100001,2},{1000164,6},{100046,2},{100058,9}, ... | 1 |
+| 9606 | 19566 | {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ... | 2 |
+| 100901 | 647 | {{3328085,2},{3635192,6},{4454829,2},{47234,4}, ... | 2 |
+| 7230 | 14594 | {{100001,2},{1000164,6},{100046,2},{100058,9}, ... | 2 |
+
+
+### taxid_2_funcenum_2_scores [Taxid_2_funcEnum_2_scores_table_FIN.txt]
+| taxid | func_enum | score_array |
+|:---:|:---:|:---:|
+| 9606 | 0 | {0.611452,1.67871,1.21, ...} |
+| 9606 | 1 | {5.0,0.69, ...} |
+| 10090 | 0 | {1.45,0.5744,...} |
+| 10090 | 1 | {0.5,0.7477,...} |
+
+
+
+### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_FIN.txt]
+| uniprotid | funcenum_score_arr | taxid |
 |:---:|:---:|
-| 9606.ENSP00000000233 | {{33885,1.00616},{34752,0.709055},{35541,1.297117},{35543,1.296111},{35907,0.600582},{36031,0.670014},{36271,0.527888},{36276,0.552587}, ... } |
+| 9606.ENSP00000000233 | {{33885,1.00616},{34752,0.709055},{35541,1.297117},{35543,1.296111},{35907,0.600582},{36031,0.670014},{36271,0.527888},{36276,0.552587}, ... } | 9606 |

@@ -88,12 +88,12 @@ def get_list_of_files_2_download_from_http(url, ext=''):
     soup = BeautifulSoup(page, 'html.parser')
     return [url + '/' + node.get('href')[2:] for node in soup.find_all('a') if node.get('href').endswith(ext)]
 
-def download_UniProt_reference_proteomes(download_dir, verbose=True):
+def download_UniProt_background_proteomes(download_dir, verbose=True):
     # UniProt_reference_proteomes_partial_link = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/reference_proteomes"
     site = "ftp.expasy.org"
     files_2_download = []
     for domain in ["Eukaryota", "Bacteria", "Archaea"]:
-        workdir = "databases/uniprot/current_release/knowledgebase/reference_proteomes/{}".format(domain)
+        workdir = "databases/uniprot/current_release/knowledgebase/background_proteomes/{}".format(domain)
         ftp = FTP(site)
         ftp.login()
         ftp.cwd(workdir)
@@ -120,4 +120,4 @@ def download_UniProt_reference_proteomes(download_dir, verbose=True):
 if __name__ == "__main__":
     DOWNLOADS_DIR = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads"
     UniProt_reference_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_ref_prots")
-    download_UniProt_reference_proteomes(UniProt_reference_proteomes_dir, verbose=True)
+    download_UniProt_background_proteomes(UniProt_reference_proteomes_dir, verbose=True)

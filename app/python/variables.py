@@ -1,4 +1,4 @@
-import os, multiprocessing
+import os, multiprocessing, sys
 import numpy as np
 ############################
 ### settings
@@ -20,7 +20,7 @@ TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
-VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
+VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the program
 temp_dont_run_analysis = False
 if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
@@ -33,9 +33,8 @@ PMID = {-57}
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology
 entity_types_with_scores = {-20, -25, -26} # GO-CC,  BTO, DOID
-searchspace_2_entityType_dict = {"STRING": -60,
-                                 "UniProt": -61}
-
+# searchspace_2_entityType_dict = {"STRING": -60,
+#                                  "UniProt": -61}
 
 functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
                                   "Gene Ontology biological process": -21,
@@ -197,15 +196,23 @@ blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999'}
 
 ##### final Tables / flat-files needed for flask app / PostgreSQL
+if VERSION_ == "UniProt":
+    appendix = "UPS_FIN"
+elif VERSION_ == "STRING":
+    appendix = "STS_FIN"
+else:
+    print("VERSION_ {} not know".format(VERSION_))
+    raise sys.exit(2)
+
 tables_dict = {
     "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
-    "Functions_table": os.path.join(TABLES_DIR, "Functions_table_FIN.txt"),
     "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
-    "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_FIN.txt"),
-    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_FIN.txt"),
-    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_FIN.txt"), # 2 separate tables? faster searching vs complex code --> 1 table, also due re-enumeration of potential new functions
-    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_FIN.txt"),
-    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt"), # add column with STRING/UniProt type distinction
+    "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
+    "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
+    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)),
+    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
+    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
+    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
 }
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
