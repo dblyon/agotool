@@ -470,42 +470,22 @@ rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniPro
     run:
         cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.UniProt_AC_2_ID_2_Taxid, params.verbose)
 
-### deprecated since using Lars' DB dump
-# rule Functions_table_PMID_temp: # textmining pmc medline --> using gnu parallel
+# rule Protein_2_Function_table_UniProtDump_UPS_parallel: # doens't work properly, regex parsing
 #     input:
-#         pmc_medline = pmc_medline,
-#         parallel_parse_textmining_pmc_medline = parallel_parse_textmining_pmc_medline
+#         # Functions_table_UPK = Functions_table_UPK,
+#         # GO_obo = GO_obo, # not Jensenlab obo
+#         # UPK_obo = UPK_obo,
+#         SwissProt_dump_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat"),
+#         # TrEMBL_dump = TrEMBL_dump,
+#         # interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+#         # RCTM_hierarchy = RCTM_hierarchy,
+#         parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
 #     output:
-#         Functions_table_PMID_temp = Functions_table_PMID_temp,
-#         temp_dir = temp_dir
+#         temp_dir = directory(os.path.join(TABLES_DIR, "temp")),
+#         Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp.txt"), # Protein_2_Function_table_UniProtDump_UPS, UniProtID_2_ENSPs_2_KEGGs_2_Taxid, UniProt_AC_2_ID_2_Taxid
 #     threads: NUMBER_OF_PROCESSES
 #     shell:
-#         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.pmc_medline}", r"{input.parallel_parse_textmining_pmc_medline}", r"{output.Functions_table_PMID_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
-
-# temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
-# parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
-
-
-rule Protein_2_Function_table_UniProtDump_UPS_parallel:
-    input:
-        # Functions_table_UPK = Functions_table_UPK,
-        # GO_obo = GO_obo, # not Jensenlab obo
-        # UPK_obo = UPK_obo,
-        SwissProt_dump = SwissProt_dump,
-        # TrEMBL_dump = TrEMBL_dump,
-        # interpro_parent_2_child_tree = interpro_parent_2_child_tree,
-        # RCTM_hierarchy = RCTM_hierarchy,
-        parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
-    output:
-        temp_dir = directory(os.path.join(TABLES_DIR, "temp")),
-        Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp.txt"), # Protein_2_Function_table_UniProtDump_UPS, UniProtID_2_ENSPs_2_KEGGs_2_Taxid, UniProt_AC_2_ID_2_Taxid
-    threads: NUMBER_OF_PROCESSES
-    params:
-        verbose = verbose
-    shell:
-        """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.SwissProt_dump}", r"{input.parallel_parse_UniProt_dump}", r"{output.Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
-        
-
+#         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.SwissProt_dump_dat}", r"{input.parallel_parse_UniProt_dump}", r"{output.Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads}, recstart=r"^ID", recend=r"\/\/", KB_MB_GB="M", split_size="100")'"""
 
 rule Protein_2_Function_table_KEGG_UPS: # and Protein_2_Function_table_KEGG_UP_ENSP_benchmark TODO add taxid --> DONE
     input:

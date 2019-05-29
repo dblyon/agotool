@@ -1,5 +1,6 @@
 import os, subprocess, sys, shutil
 PLATFORM = sys.platform
+NUMBER_OF_PROCESSES = 24
 
 
 def concatenate_files(fn_list, fn_out):
@@ -90,8 +91,9 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
             for fn in [os.path.join(temp_dir, fn) for fn in os.listdir(temp_dir)]:
                 os.unlink(fn)
     # run the python script in parallel
-    # shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, split_size, recstart, python_script, temp_dir, "{#}", KB_MB_GB)
-    shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --recend "{4}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, split_size, recstart, recend, python_script, temp_dir, "{#}", KB_MB_GB)
+    # shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(
+    # fn_2_split, cpu_number, split_size, recstart, python_script, temp_dir, "{#}", KB_MB_GB)
+    shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --recend "{8}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, split_size, recstart, python_script, temp_dir, "{#}", KB_MB_GB, recend)
     fn_bash_script = "bash_script_parallel_{}.sh".format(os.path.basename(fn_2_split))
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
@@ -107,7 +109,7 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     concatenate_files(fn_list, fn_out)
     ### sort in place
     print("sorting concatenated file {}".format(fn_out))
-    sort_file(fn_out, fn_out, number_of_processes=NUMBER_OF_PROCESSES)
+    sort_file(fn_out, fn_out, number_of_processes=cpu_number)
     ### remove temp files
     # print("removing temp files")
     # shutil.rmtree(temp_dir)
@@ -115,7 +117,6 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     # remove unzipped file
 
 if __name__ == "__main__":
-    NUMBER_OF_PROCESSES = 24
     ### python parallel_parse.py
     ### textmining pmc medline
     fn_2_split = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv"
@@ -123,3 +124,12 @@ if __name__ == "__main__":
     fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PMID.txt"
     temp_dir = r"/home/dblyon/agotool/data/PostgreSQL/tables/temp"
     parallel_script(fn_2_split, python_script, fn_out, temp_dir=temp_dir)
+
+# e.g. of working cmd
+# parallel -a /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv --gnu -j24 --bar --pipepart --block 1000M --recstart "
+# " --joblog split_log.txt "python /home/dblyon/agotool/app/python/parallel_parse_textmining_pmc_medline.py > /home/dblyon/agotool/data/PostgreSQL/tables/temp/part_{#}.txt"
+
+# not working yet
+# parallel -a /home/dblyon/agotool/data/PostgreSQL/downloads/uniprot_sprot.dat.gz --gnu -j24 --bar --pipepart --block 1000M --recstart "^ID" --recend "/\/" --joblog split_log.txt "python /home/dblyon/agotool/app/python/parallel_parse_UniProt_dump.py > /home/dblyon/agotool/data/PostgreSQL/tables/temp/part_{#}.txt"
+
+# pigz -c -d -p 4 /home/dblyon/agotool/data/PostgreSQL/downloads/uniprot_sprot.dat.gz | parallel --gnu -j24 --bar --pipepart --block 1000M --recstart "^ID" --recend "/\/" --joblog split_log.txt "python /home/dblyon/agotool/app/python/parallel_parse_UniProt_dump.py > /home/dblyon/agotool/data/PostgreSQL/tables/temp/part_{#}.txt"

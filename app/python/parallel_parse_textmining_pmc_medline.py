@@ -72,4 +72,3 @@ def clean_messy_string_v2(string_):
 
 if __name__ == "__main__":
     parse_textmining_pmc_medline()
-
