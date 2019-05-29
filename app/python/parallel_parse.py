@@ -62,7 +62,7 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
-def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, recstart=None, KB_MB_GB="M", split_size=1000):
+def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number=None, recstart=None, recend=None, KB_MB_GB="M", split_size=1000):
     # option to unzip with pigz
     # also try pigz for multithreaded compression/decompression
     # time pigz -c -d -p 10 /home/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv.gz > /dev/null
@@ -72,7 +72,9 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
     if split_size is None:
         split_size = 1000
     if recstart is None:
-        recstart = "\n"
+        recstart = "\n" # ^ID (UniProt dump)
+    if recend is None:
+        recend = "\n" # \/\/ (UniProt dump)
 
     if temp_dir is None:
         temp_dir = os.path.join(os.path.dirname(fn_2_split), "temp")
@@ -88,7 +90,8 @@ def parallel_script(fn_2_split, python_script, fn_out, temp_dir=None, cpu_number
             for fn in [os.path.join(temp_dir, fn) for fn in os.listdir(temp_dir)]:
                 os.unlink(fn)
     # run the python script in parallel
-    shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, split_size, recstart, python_script, temp_dir, "{#}", KB_MB_GB)
+    # shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, split_size, recstart, python_script, temp_dir, "{#}", KB_MB_GB)
+    shellcmd = 'parallel -a {0} --gnu -j{1} --bar --pipepart --block {2}{7} --recstart "{3}" --recend "{4}" --joblog split_log.txt "python {4} > {5}/part_{6}.txt"'.format(fn_2_split, cpu_number, split_size, recstart, recend, python_script, temp_dir, "{#}", KB_MB_GB)
     fn_bash_script = "bash_script_parallel_{}.sh".format(os.path.basename(fn_2_split))
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")

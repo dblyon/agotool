@@ -229,7 +229,10 @@ def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
 
 fn_functions_table = tables_dict["Functions_table"]
-blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
+try:
+    blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
+except:
+    pass
 
 jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]

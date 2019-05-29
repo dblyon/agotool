@@ -131,7 +131,7 @@ Function_2_ENSP_table_STRING = os.path.join(TABLES_DIR, "Function_2_ENSP_table_S
 Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_reduced.txt")
 Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")
 Functions_table_GO = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
-Functions_table_INTERPRO = os.path.join(TABLES_DIR, "Functions_table_INTERPRO.txt")
+Functions_table_InterPro = os.path.join(TABLES_DIR, "Functions_table_InterPro.txt")
 Functions_table_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
 Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
 Functions_table_PFAM_no_mapping = os.path.join(TABLES_DIR, "Functions_table_PFAM_no_mapping.txt")
@@ -330,7 +330,7 @@ rule string_2_interpro:
 rule Protein_2_Function_table_InterPro_STS:
     input:
         string_2_interpro = string_2_interpro,
-        Functions_table_INTERPRO = Functions_table_INTERPRO,
+        Functions_table_InterPro = Functions_table_InterPro,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
         Protein_2_Function_table_InterPro_STS = Protein_2_Function_table_InterPro_STS,
@@ -338,16 +338,16 @@ rule Protein_2_Function_table_InterPro_STS:
         verbose = verbose
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_InterPro_STS(input.string_2_interpro, input.Functions_table_INTERPRO, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro_STS, number_of_processes=threads, verbose=params.verbose)
+        cst.Protein_2_Function_table_InterPro_STS(input.string_2_interpro, input.Functions_table_InterPro, input.interpro_parent_2_child_tree, output.Protein_2_Function_table_InterPro_STS, number_of_processes=threads, verbose=params.verbose)
 
-rule Functions_table_INTERPRO:
+rule Functions_table_InterPro:
     input:
         interpro_AN_2_name = interpro_AN_2_name,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
     output:
-        Functions_table_INTERPRO = Functions_table_INTERPRO
+        Functions_table_InterPro = Functions_table_InterPro
     run:
-        cst.Functions_table_INTERPRO(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_INTERPRO)
+        cst.Functions_table_InterPro(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_InterPro)
 
 rule Functions_table_KEGG:
     input:
@@ -454,7 +454,7 @@ rule Functions_table_DOID_BTO:
 
 rule Functions_table_STRING_all:
     input:
-        fn_list_str = [Functions_table_INTERPRO,
+        fn_list_str = [Functions_table_InterPro,
                        Functions_table_KEGG,
                        Functions_table_SMART,
                        Functions_table_PFAM,

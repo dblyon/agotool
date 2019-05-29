@@ -157,7 +157,7 @@ def Functions_table_Reactome_combispeed(fn_in_desciptions, fn_out_Functions_tabl
                     fh_out.write(entity_type + "\t" + term + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
     return sorted(set(terms_with_hierarchy)), sorted(set(terms_without_hierarchy))
 
-def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_table_RCTM, all_terms):
+def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_table_RCTM, all_terms=None):
     """
     :param fn_in_desciptions: String (RCTM_descriptions.tsv)
     :param fn_in_hierarchy: String
@@ -188,8 +188,13 @@ def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_ta
                 except KeyError:
                     terms_without_hierarchy.append(term)
                     level = "-1"
-                if term in all_terms:  # filter relevant terms that occur in protein_2_functions_tables_RCTM.txt
+                if all_terms is None:
                     fh_out.write(entity_type + "\t" + term + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
+                else:
+                    if term in all_terms:  # filter relevant terms that occur in protein_2_functions_tables_RCTM.txt
+                        fh_out.write(entity_type + "\t" + term + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
+
+
     return sorted(set(terms_with_hierarchy)), sorted(set(terms_without_hierarchy))
 
 
@@ -403,7 +408,7 @@ def string_2_interpro(fn_in_string2uniprot, fn_in_uniprot2interpro, fn_out_strin
                 # fh_out.write('%s\t%s'%(string_id, line))
                 fh_out.write("{}\t{}".format(string_id, line))
 
-def Functions_table_INTERPRO(fn_in_interprot_AN_2_name, fn_in_interpro_parent_2_child_tree, fn_out_Functions_table_InterPro):
+def Functions_table_InterPro(fn_in_interprot_AN_2_name, fn_in_interpro_parent_2_child_tree, fn_out_Functions_table_InterPro):
     """
     # | enum | etype | an | description | year | level |
     ### old file called InterPro_name_2_AN.txt
@@ -1370,39 +1375,38 @@ def get_all_parent_terms(GOterm_list, GO_dag):
             not_in_obo.append(GOterm)
     return sorted(set(parents).union(set(GOterm_list))), sorted(set(not_in_obo))
 
-def divide_into_categories_old(GOterm_list, GO_dag,
-                           MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
-    """
-    split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
-    'GO:0003674': "-23",  # 'Molecular Function',
-    'GO:0005575': "-22",  # 'Cellular Component',
-    'GO:0008150': "-21",  # 'Biological Process',
-    :param GOterm_list: List of String
-    :param GO_dag: Dict like object
-    :return: Tuple (List of String x 3)
-    """
-#     MFs, CPs, BPs, not_in_OBO = [], [], [], []
-    for term in GOterm_list:
-        if term == "GO:0003674" or GO_dag[term].has_parent("GO:0003674"):
-            MFs.append(GO_dag[term].id)
-        elif term == "GO:0005575" or GO_dag[term].has_parent("GO:0005575"):
-            CPs.append(GO_dag[term].id)
-        elif term == "GO:0008150" or GO_dag[term].has_parent("GO:0008150"):
-            BPs.append(GO_dag[term].id)
-        else:
-            try:
-                GO_id = GO_dag[term].id
-            except KeyError:
-                not_in_OBO.append(term)
-                continue
-            if GO_dag[GO_id].is_obsolete:
-                not_in_OBO.append(term)
-            else:
-                MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
-    return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
+# def divide_into_categories_old(GOterm_list, GO_dag,
+#                            MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
+#     """
+#     split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
+#     'GO:0003674': "-23",  # 'Molecular Function',
+#     'GO:0005575': "-22",  # 'Cellular Component',
+#     'GO:0008150': "-21",  # 'Biological Process',
+#     :param GOterm_list: List of String
+#     :param GO_dag: Dict like object
+#     :return: Tuple (List of String x 3)
+#     """
+# #     MFs, CPs, BPs, not_in_OBO = [], [], [], []
+#     for term in GOterm_list:
+#         if term == "GO:0003674" or GO_dag[term].has_parent("GO:0003674"):
+#             MFs.append(GO_dag[term].id)
+#         elif term == "GO:0005575" or GO_dag[term].has_parent("GO:0005575"):
+#             CPs.append(GO_dag[term].id)
+#         elif term == "GO:0008150" or GO_dag[term].has_parent("GO:0008150"):
+#             BPs.append(GO_dag[term].id)
+#         else:
+#             try:
+#                 GO_id = GO_dag[term].id
+#             except KeyError:
+#                 not_in_OBO.append(term)
+#                 continue
+#             if GO_dag[GO_id].is_obsolete:
+#                 not_in_OBO.append(term)
+#             else:
+#                 MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
+#     return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
 
-def divide_into_categories(GOterm_list, GO_dag,
-                           MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
+def divide_into_categories(GOterm_list, GO_dag, MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
     """
     split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
     'GO:0003674': "-23",  # 'Molecular Function',
@@ -1612,7 +1616,7 @@ def parse_uniprot_dat_dump_yield_entry(fn_in):
         Keywords_list = [cleanup_Keyword(keyword) for keyword in Keywords_list if len(keyword) > 0]
         yield (UniProtAN_list, Keywords_list)
 
-def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping, fn_out_UniProt_AC_2_ID, verbose=True):
+def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping, fn_out_UniProt_AC_2_ID_2_Taxid, verbose=True):
     if verbose:
         print("\nparsing UniProt dumps: creating 2 output files \n{}\n{}".format(fn_out_Protein_2_Function_table_UniProt_dump, fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping))
 
@@ -1635,7 +1639,7 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
 
     with open(fn_out_Protein_2_Function_table_UniProt_dump, "w") as fh_out:
         with open(fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping, "w") as fh_out_KEGG:
-            with open(fn_out_UniProt_AC_2_ID, "w") as fh_out_UniProt_AC_2_ID:
+            with open(fn_out_UniProt_AC_2_ID_2_Taxid, "w") as fh_out_UniProt_AC_2_ID:
                 for uniprot_dump_fn in fn_in_list_uniprot_dumps:
                     if verbose:
                         print("parsing {}".format(uniprot_dump_fn))
@@ -1715,9 +1719,10 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
             elif line_code == "DR":
                 Functions_other_list.append(rest)
             elif line_code == "OX":
-                # rest = rest.strip()
+                # OX   NCBI_TaxID=654924;
+                # OX   NCBI_TaxID=418404 {ECO:0000313|EMBL:QAB05112.1};
                 if rest.startswith("NCBI_TaxID="):
-                    NCBI_Taxid = rest.replace("NCBI_TaxID=", "").split(";")[0]
+                    NCBI_Taxid = rest.replace("NCBI_TaxID=", "").split(";")[0].split()[0]
 
         # UniProtAC_list = sorted(set(UniProtAC_list))Taxid_2_funcEnum_2_scores_table_FIN
         Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list

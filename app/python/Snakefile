@@ -92,7 +92,7 @@ UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping_selected.ta
 
 WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
 WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gmt_file.txt")
-STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz") # https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
+# STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz") # https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
 
 URL_interpro_parent_2_child_tree = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/ParentChildTreeFile.txt"
 interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
@@ -116,7 +116,7 @@ Protein_2_Function_table_UPS_reduced = os.path.join(TABLES_DIR, "Protein_2_Funct
 # Protein_2_Function_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_removed.txt") # deprecated
 
 UniProtID_2_ENSPs_2_KEGGs_2_Taxid = os.path.join(TABLES_DIR, "UniProtID_2_ENSPs_2_KEGGs_2_Taxid.txt")
-UniProt_AC_2_ID = os.path.join(TABLES_DIR, "UniProt_AC_2_ID.txt")
+UniProt_AC_2_ID_2_Taxid = os.path.join(TABLES_DIR, "UniProt_AC_2_ID_2_Taxid.txt")
 Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
 Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
@@ -287,13 +287,13 @@ rule download_descriptions_RCTM:
     run:
         drs.download_requests(params.URL_RCTM_descriptions, output.RCTM_descriptions, params.verbose)
 
-rule download_UniProt_background_proteomes:
+rule download_UniProt_reference_proteomes:
     output:
         UniProt_background_proteomes_dir = directory(UniProt_background_proteomes_dir)
     params:
         verbose = verbose
     run:
-        drs.download_UniProt_background_proteomes(output.UniProt_background_proteomes_dir, params.verbose)
+        drs.download_UniProt_reference_proteomes(output.UniProt_background_proteomes_dir, params.verbose)
 ###################################################################################################
 ### create tables
 rule Functions_table_GO:
@@ -323,7 +323,7 @@ rule Functions_table_InterPro:
     output:
         Functions_table_InterPro = Functions_table_InterPro
     run:
-        cst.Functions_table_InterPro(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_INTERPRO)
+        cst.Functions_table_InterPro(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_InterPro)
 
 rule Functions_table_KEGG:
     input:
@@ -450,7 +450,7 @@ rule KEGG_Taxid_2_acronym_table_UPS_FIN:
     output:
         KEGG_Taxid_2_acronym_table_UPS_FIN = KEGG_Taxid_2_acronym_table_UPS_FIN
     run:
-        cst.KEGG_Taxid_2_acronym_table_UPS(input.KEGG_taxonomic_rank_file, output.KEGG_Taxid_2_acronym_table_UPS)
+        cst.KEGG_Taxid_2_acronym_table_UPS(input.KEGG_taxonomic_rank_file, output.KEGG_Taxid_2_acronym_table_UPS_FIN)
 
 rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniProtDump_UPS # TODO add Taxid column at the end --> DONE
     input:
@@ -464,11 +464,48 @@ rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniPro
     output:
         Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, Pfam
         UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
-        UniProt_AC_2_ID = UniProt_AC_2_ID
+        UniProt_AC_2_ID_2_Taxid = UniProt_AC_2_ID_2_Taxid
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.UniProt_AC_2_ID, params.verbose)
+        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.UniProt_AC_2_ID_2_Taxid, params.verbose)
+
+### deprecated since using Lars' DB dump
+# rule Functions_table_PMID_temp: # textmining pmc medline --> using gnu parallel
+#     input:
+#         pmc_medline = pmc_medline,
+#         parallel_parse_textmining_pmc_medline = parallel_parse_textmining_pmc_medline
+#     output:
+#         Functions_table_PMID_temp = Functions_table_PMID_temp,
+#         temp_dir = temp_dir
+#     threads: NUMBER_OF_PROCESSES
+#     shell:
+#         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.pmc_medline}", r"{input.parallel_parse_textmining_pmc_medline}", r"{output.Functions_table_PMID_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
+
+# temp_dir = directory(os.path.join(TABLES_DIR, "temp"))
+# parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
+
+
+rule Protein_2_Function_table_UniProtDump_UPS_parallel:
+    input:
+        # Functions_table_UPK = Functions_table_UPK,
+        # GO_obo = GO_obo, # not Jensenlab obo
+        # UPK_obo = UPK_obo,
+        SwissProt_dump = SwissProt_dump,
+        # TrEMBL_dump = TrEMBL_dump,
+        # interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+        # RCTM_hierarchy = RCTM_hierarchy,
+        parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
+    output:
+        temp_dir = directory(os.path.join(TABLES_DIR, "temp")),
+        Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp.txt"), # Protein_2_Function_table_UniProtDump_UPS, UniProtID_2_ENSPs_2_KEGGs_2_Taxid, UniProt_AC_2_ID_2_Taxid
+    threads: NUMBER_OF_PROCESSES
+    params:
+        verbose = verbose
+    shell:
+        """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.SwissProt_dump}", r"{input.parallel_parse_UniProt_dump}", r"{output.Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads})'"""
+        
+
 
 rule Protein_2_Function_table_KEGG_UPS: # and Protein_2_Function_table_KEGG_UP_ENSP_benchmark TODO add taxid --> DONE
     input:
@@ -494,7 +531,7 @@ rule Protein_2_Function__and__Functions_table_WikiPathways: # ENSPs and UniProt 
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.STRING_EntrezGeneID_2_STRING, input.Taxid_2_Proteins_table_STS, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS, params.verbose)
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS, params.verbose)
 
 rule Protein_2_Function_table_UPS: # TODO add taxid --> DONE added previously
     input:
