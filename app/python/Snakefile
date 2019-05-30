@@ -489,14 +489,14 @@ rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniPro
 
 rule Protein_2_Function_table_KEGG_UPS: # and Protein_2_Function_table_KEGG_UP_ENSP_benchmark TODO add taxid --> DONE
     input:
-        KEGG_dir = KEGG_dir,
+        KEGG_organisms_dir = KEGG_organisms_dir,
         UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid
     output:
         Protein_2_Function_table_KEGG_UPS = Protein_2_Function_table_KEGG_UPS,
         Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = Protein_2_Function_table_KEGG_UPS_ENSP_benchmark,
         KEGG_entry_no_pathway_annotation = KEGG_entry_no_pathway_annotation
     run:
-        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_dir, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
+        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_organisms_dir, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
 
 rule Protein_2_Function__and__Functions_table_WikiPathways: # ENSPs and UniProt AC/ID TODO add Taxid --> DONE
     input:
@@ -520,7 +520,7 @@ rule Protein_2_Function_table_UPS: # TODO add taxid --> DONE added previously
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table(input.fn_list_str, output.Protein_2_Function_table_UPS, threads)
+        cst.Protein_2_Function_table_UPS(input.fn_list_str, output.Protein_2_Function_table_UPS, threads)
 
 # rule Protein_2_Function_table_reduced: # TODO depreacated restricting at the end of pipeline
 #     input:
