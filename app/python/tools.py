@@ -86,10 +86,10 @@ def concatenate_files(fn_list, fn_out):
                 for line in fh_in:
                     fh_out.write(line)
 
-# def line_numbers(fn_in):
-#     with open(fn_in, "r") as fh_in:
-#         num_lines = sum(1 for _ in fh_in)
-#     return num_lines
+def line_numbers(fn_in):
+    with open(fn_in, "r") as fh_in:
+        num_lines = sum(1 for _ in fh_in)
+    return num_lines
 
 def yield_line_uncompressed_or_gz_file(fn):
     """

@@ -89,7 +89,7 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 0 | -21 | GO:0000001 | mitochondrion inheritance | -1 | 5 |
 | 1 | -21 | GO:0000002 | mitochondrial genome maintenance | -1 | 5 |
 | 2 | -21 | GO:0000003 | reproduction | -1 | 1 |
-| 47234 | -51 | KW-0001 | 2Fe-2S | -1 | 2 |
+| 47234 | -51 | KW-0001 | 2Fe-2S | -1 | 2 |``
 | 47235 | -51 | KW-0002 | 3D-structure | -1 | 1 |
 | 48432 | -52 | map00010 | Glycolysis Gluconeogenesis | -1 | -1 |
 | 48433 | -52 | map00020 | Citrate cycle (TCA cycle) | -1 | -1 |
@@ -108,6 +108,14 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'UniProtID3'} |
 
 
+### lineage [Lineage_table_FIN.txt]
+| func_enum | func_enum_array |
+|:---:|:---:|
+| 0 | {2803, 2809, 3348, 4057, 5420, 14355, 14358, 15352, 15697, 15698, 15703, 19423} |
+| 1 | {2803, 2809, 3348, 4057, 5420, 9249, 19423} |
+| 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
+
+
 ### protein_2_function [Protein_2_Function_table_UPS.txt]
 | uniprotid | func_array | etype | taxid | 
 |:---:|:---:|:---:|:---:|
@@ -118,7 +126,13 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 002L_FRG3G | {"KW-0181","KW-0472","KW-0812","KW-1043","KW-1133","KW-1185","KW-9990","KW-9994","KW-9998"} | -51 | 1234 |
 
 
-### protein_2_functionEnum [Protein_2_FunctionEnum_table_UPS_FIN.txt]
+### Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS [Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt]
+| uniprotid | func_array | etype | taxid | 
+|:---:|:---:|:---:|:---:|
+| 3702.AT1G01010.1 | {"GO:0005777", "GO:0005783"} | -22 | 3702 |
+
+
+### protein_2_functionenum [Protein_2_FunctionEnum_table_UPS_FIN.txt]
 | uniprotid | func_enum_array | taxid |
 |:---:|:---:|:---:|
 | 1000565.METUNv1_00006 | {47403, 48329, 48422, 52375, 86134, 97354, 97505} | 1000565 | 
@@ -126,15 +140,13 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 1230343.CANP01000023_gene1527 | {47403, 47665, 47963, 48277, 48422, 48426, 48430} | 1230343 |
 
 
-### lineage [Lineage_table_FIN.txt]
-| func_enum | func_enum_array |
+### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
+| uniprotid | funcenum_score_arr | taxid |
 |:---:|:---:|
-| 0 | {2803, 2809, 3348, 4057, 5420, 14355, 14358, 15352, 15697, 15698, 15703, 19423} |
-| 1 | {2803, 2809, 3348, 4057, 5420, 9249, 19423} |
-| 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
+| 9606.ENSP00000000233 | {{33885,1.00616},{34752,0.709055},{35541,1.297117},{35543,1.296111},{35907,0.600582},{36031,0.670014},{36271,0.527888},{36276,0.552587}, ... } | 9606 |
 
 
-### taxid_2_proteins [Taxid_2_Proteins_table_UPS.txt]
+### taxid_2_proteins [Taxid_2_Proteins_table_UPS_FIN.txt]
 | taxid | an_array | count |
 |:---:|:---:|:---:|
 | 9606 | {"1433B_HUMAN","1433E_HUMAN","1433F_HUMAN","1433G_HUMAN", ...} | 20874 |
@@ -159,10 +171,3 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 9606 | 1 | {5.0,0.69, ...} |
 | 10090 | 0 | {1.45,0.5744,...} |
 | 10090 | 1 | {0.5,0.7477,...} |
-
-
-
-### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_FIN.txt]
-| uniprotid | funcenum_score_arr | taxid |
-|:---:|:---:|
-| 9606.ENSP00000000233 | {{33885,1.00616},{34752,0.709055},{35541,1.297117},{35543,1.296111},{35907,0.600582},{36031,0.670014},{36271,0.527888},{36276,0.552587}, ... } | 9606 |

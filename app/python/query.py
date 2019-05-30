@@ -490,7 +490,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("getting ENSP_2_Score_dict careful since this uses offset indices for BTO and DOID")
-        self.ENSP_2_tuple_funcEnum_score_dict = get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
+        self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
 
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
@@ -684,7 +684,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
-def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
+def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
     """
     key = ENSP
     val = tuple(arr of function Enumeration, arr of scores)
@@ -702,6 +702,9 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
 
     Protein_2_FunctionEnum_and_Score_table_STRING.txt
     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}}
+
+    Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt
+    10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}} 10090
     :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
     """
     ENSP_2_tuple_funcEnum_score_dict = {}
@@ -714,7 +717,14 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
 
     for res in results:
         index_ = 0
-        ENSP, funcEnum_score_arr_orig = res
+        if variables.VERSION_ == "UniProt":
+            protein_AN, funcEnum_score_arr_orig, taxid = res
+        elif variables.VERSION_ == "STRING":
+            protein_AN, funcEnum_score_arr_orig = res
+        else:
+            print("Not implemented version {}".format(variables.VERSION_))
+            raise StopIteration
+
         if funcEnum_score_arr_orig == "{}":
             continue
         funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
@@ -740,7 +750,7 @@ def get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
                 index_ += 1
         score_arr.flags.writeable = False
         funcEnum_arr.flags.writeable = False
-        ENSP_2_tuple_funcEnum_score_dict[ENSP] = (funcEnum_arr, score_arr)
+        ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
     return ENSP_2_tuple_funcEnum_score_dict
 
 def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):

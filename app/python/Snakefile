@@ -50,7 +50,8 @@ Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_
 URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
 Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
-Protein_2_Function_and_Score_DOID_BTO_GOCC = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC.txt.gz")
+Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
+Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
@@ -65,7 +66,7 @@ if hostname == "ody":
 elif hostname == "atlas":
     # string_matches = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_matches.tsv"
     KEGG_dir = r"/mnt/mnemo5/dblyon/STRING_freeze_v11/kegg"
-    KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
+    KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms")
     KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, r"genes/misc/taxonomic_rank")
     KEGG_pathway = os.path.join(KEGG_dir, "pathway/pathway.list")
 
@@ -138,7 +139,7 @@ Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_
 Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
 Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS_ENSP_benchmark.txt")
 KEGG_entry_no_pathway_annotation = os.path.join(TABLES_DIR, "KEGG_entry_no_pathway_annotation.txt")
-Taxid_2_FunctionEnum_2_Scores_table_UPS = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS.txt")
+Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
 ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
 ###################################################################################################
 ### download resources
@@ -204,14 +205,14 @@ rule download_ontology_Interpro:
     run:
         drs.download_gzip_file(params.URL_interpro_parent_2_child_tree, output.interpro_parent_2_child_tree, verbose=params.verbose)
 
-rule download_Protein_2_Function_and_Score_DOID_BTO_GOCC:
+rule download_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS:
     output:
-        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
     params:
         URL_integrated_protein_2_function_Jensenlab = URL_integrated_protein_2_function_Jensenlab,
         verbose = verbose
     run:
-        drs.download_requests(params.URL_integrated_protein_2_function_Jensenlab, output.Protein_2_Function_and_Score_DOID_BTO_GOCC, params.verbose)
+        drs.download_requests(params.URL_integrated_protein_2_function_Jensenlab, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, params.verbose)
 
 rule download_descriptions_DOID_BTO_GO:
     output:
@@ -395,28 +396,30 @@ rule Functions_table_all:
     run:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_table_all, threads)
 
-rule Function_2_Proteins_table_UPS: # TODO # analogous to Function_2_ENSP_table
+rule Function_2_Proteins_table_UPS:
     input:
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN, # for background_counts, but not to restrict by reference proteome
+        Functions_table_all = Functions_table_all
     output:
         Function_2_Proteins_table_UPS = Function_2_Proteins_table_UPS,
         Function_2_Proteins_table_UPS_reduced = Function_2_Proteins_table_UPS_reduced,
         Function_2_Proteins_table_UPS_removed = Function_2_Proteins_table_UPS_removed
     threads: NUMBER_OF_PROCESSES_sorting
-    run:# helper_convert_str_arr_2_nested_list
-        cst.Function_2_Proteins_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_and_Score_DOID_BTO_GOCC, output.fn_out_Function_2_Proteins_table_UPS, output.fn_out_Function_2_Proteins_table_UPS_reduced, output.fn_out_Function_2_Proteins_table_UPS_removed, threads)
+    run: # helper_convert_str_arr_2_nested_list
+        cst.Function_2_Proteins_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Proteins_table_UPS, output.Function_2_Proteins_table_UPS_reduced, output.Function_2_Proteins_table_UPS_removed, threads)
 
 rule Functions_table_UPS_FIN:
     input:
         Functions_table_all = Functions_table_all, # superset
         Function_2_Proteins_table_UPS_reduced = Function_2_Proteins_table_UPS_reduced, # include all prefiltered functions
-        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC # include
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
     output:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         Functions_table_UPS_removed = Functions_table_UPS_removed
     run:
-        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Proteins_table_UPS_reduced, input.Protein_2_Function_and_Score_DOID_BTO_GOCC, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
+        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Proteins_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
 rule Taxid_2_Proteins_table_UPS_FIN:
     input:
@@ -452,7 +455,7 @@ rule KEGG_Taxid_2_acronym_table_UPS_FIN:
     run:
         cst.KEGG_Taxid_2_acronym_table_UPS(input.KEGG_taxonomic_rank_file, output.KEGG_Taxid_2_acronym_table_UPS_FIN)
 
-rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniProtDump_UPS # TODO add Taxid column at the end --> DONE
+rule Protein_2_Function_table_UniProtDump_UPS:
     input:
         Functions_table_UPK = Functions_table_UPK,
         GO_obo = GO_obo, # not Jensenlab obo
@@ -487,7 +490,7 @@ rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniPro
 #     shell:
 #         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.SwissProt_dump_dat}", r"{input.parallel_parse_UniProt_dump}", r"{output.Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads}, recstart=r"^ID", recend=r"\/\/", KB_MB_GB="M", split_size="100")'"""
 
-rule Protein_2_Function_table_KEGG_UPS: # and Protein_2_Function_table_KEGG_UP_ENSP_benchmark TODO add taxid --> DONE
+rule Protein_2_Function_table_KEGG_UPS:
     input:
         KEGG_organisms_dir = KEGG_organisms_dir,
         UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid
@@ -498,7 +501,7 @@ rule Protein_2_Function_table_KEGG_UPS: # and Protein_2_Function_table_KEGG_UP_E
     run:
         cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_organisms_dir, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
 
-rule Protein_2_Function__and__Functions_table_WikiPathways: # ENSPs and UniProt AC/ID TODO add Taxid --> DONE
+rule Protein_2_Function__and__Functions_table_WikiPathways:
     input:
         WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
         UniProt_ID_mapping = UniProt_ID_mapping,
@@ -511,7 +514,7 @@ rule Protein_2_Function__and__Functions_table_WikiPathways: # ENSPs and UniProt 
     run:
         cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
 
-rule Protein_2_Function_table_UPS: # TODO add taxid --> DONE added previously
+rule Protein_2_Function_table_UPS:
     input:
         fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
                        Protein_2_Function_table_KEGG_UPS,
@@ -529,7 +532,7 @@ rule Protein_2_Function_table_UPS: # TODO add taxid --> DONE added previously
 #     run:
 #         cst.NotImplementedFunction()
 
-rule Protein_2_FunctionEnum_table_UPS_FIN: # TODO check for background proteome add Taxid to end
+rule Protein_2_FunctionEnum_table_UPS_FIN:
     input:
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS,
         Functions_table_UPS_FIN = Functions_table_UPS_FIN
@@ -542,19 +545,20 @@ rule Protein_2_FunctionEnum_table_UPS_FIN: # TODO check for background proteome 
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
         UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC = Protein_2_Function_and_Score_DOID_BTO_GOCC,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
         Functions_table_UPS_FIN = Functions_table_UPS_FIN # Functions_table_STRING = Functions_table_STRING,
         # Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
     output:
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN,
         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation,
         ENSP_2_UniProtID_without_translation = ENSP_2_UniProtID_without_translation
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation, params.GO_CC_textmining_additional_etype) # input.Taxid_2_Proteins_table_UPS_FIN
+        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation, params.GO_CC_textmining_additional_etype) # input.Taxid_2_Proteins_table_UPS_FIN
 
-rule Taxid_2_FunctionCountArray_table_UPS_FIN: # TODO restrict to UniProtAN/UniProtIDs of background proteome, adapt parser to UniProtID plus taxid vs ENSP
+rule Taxid_2_FunctionCountArray_table_UPS_FIN: # restricted to UniProtIDs of reference proteome
     input:
         Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN,
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
@@ -567,10 +571,10 @@ rule Taxid_2_FunctionCountArray_table_UPS_FIN: # TODO restrict to UniProtAN/UniP
     run:
         cst.Taxid_2_FunctionCountArray_table_UPS(input.Protein_2_FunctionEnum_table_UPS_FIN, input.Functions_table_UPS_FIN, input.Taxid_2_Proteins_table_UPS_FIN, output.Taxid_2_FunctionCountArray_table_UPS_FIN, threads, params.verbose)
 
-rule Taxid_2_FunctionEnum_2_Scores_table_UPS:
+rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference proteome via Taxid_2_Proteins_table_UPS_FIN.txt (get_proteins_of_taxid)
     input:
         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN
     output:
-        Taxid_2_FunctionEnum_2_Scores_table_UPS = Taxid_2_FunctionEnum_2_Scores_table_UPS
+        Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     run:
         cst.Taxid_2_funcEnum_2_scores_table_FIN(input.Protein_2_FunctionEnum_and_Score_table_FIN, output.Taxid_2_funcEnum_2_scores_table_FIN)
