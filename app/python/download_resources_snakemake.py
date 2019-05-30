@@ -75,11 +75,11 @@ def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file, verbos
     # get potential URLs to download
     files_2_download = sorted(set(get_list_of_files_2_download_from_http(url, ext="gmt")))
     # download and rename
-    for url in files_2_download:
+    for url in tqdm(files_2_download):
         # check if needed, rename?
         basename = os.path.basename(url)
         file_name = os.path.join(download_dir, basename)
-        download_requests(url, file_name, verbose=verbose)
+        download_requests(url, file_name, verbose=False)
     with open(WikiPathways_not_a_gmt_file, "w") as fh_out:
         fh_out.write("downloaded {} number of gmt files".format(len(files_2_download)))
 

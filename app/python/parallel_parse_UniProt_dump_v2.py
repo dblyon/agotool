@@ -4,8 +4,9 @@ import zlib, gzip
 import tools, variables
 import create_SQL_tables_snakemake as cst
 import obo_parser
-import random
+import random, multiprocessing
 
+from collections import deque
 PLATFORM = sys.platform
 
 
@@ -31,6 +32,44 @@ PLATFORM = sys.platform
 
 
 
+from multiprocessing import JoinableQueue
+
+from multiprocessing.context import Process
+
+
+class Renderer:
+    queue = None
+
+    def __init__(self, nb_workers=2):
+        self.queue = JoinableQueue()
+        self.processes = [Process(target=self.upload) for i in range(nb_workers)]
+        for p in self.processes:
+            p.start()
+
+    def render(self, item):
+        self.queue.put(item)
+
+    def upload(self):
+        while True:
+            item = self.queue.get()
+            if item is None:
+                break
+
+            # process your item here
+
+            self.queue.task_done()
+
+    def terminate(self):
+        """ wait until queue is empty and terminate processes """
+        self.queue.join()
+        for p in self.processes:
+            p.terminate()
+
+# r = Renderer()
+# r.render(item1)
+# r.render(item2)
+# r.terminate()
+
 
 
 def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping, fn_out_UniProt_AC_2_ID_2_Taxid, verbose=True):
@@ -40,16 +79,6 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
     #     fn_out = fn_in.replace("gz", "") + ".temp"
     #     fn_in_list_uniprot_dumps_temp.append(fn_out)
     #     unzip_file(fn_in, fn_out, number_of_processes=4)
-
-    counter = 0
-    entry_chunk_size = 1000
-    entries_
-    for uniprot_dump in fn_in_list_uniprot_dumps:
-        for entry in yield_entry_UniProt_dat_dump(uniprot_dump):
-            for entries in
-
-
-
 
     fn_in_Functions_table_UPK = os.path.join(variables.TABLES_DIR, "Functions_table_UPK.txt")
     fn_in_obo_GO = os.path.join(variables.DOWNLOADS_DIR, "go-basic.obo")
@@ -66,29 +95,61 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
     GO_dag = obo_parser.GODag(obo_file=fn_in_obo_GO, upk=False)
     UPK_dag = obo_parser.GODag(obo_file=fn_in_obo_UPK, upk=True)
     UPK_Name_2_AN_dict = cst.get_keyword_2_upkan_dict(fn_in_Functions_table_UPK)
-    UPKs_not_in_obo_list, GOterms_not_in_obo_temp = [], []
+    # UPKs_not_in_obo_list, GOterms_not_in_obo_temp = [], []
     child_2_parent_dict_interpro, _ = cst.get_child_2_direct_parents_and_term_2_level_dict_interpro(fn_in_interpro_parent_2_child_tree)
     lineage_dict_interpro = cst.get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict_interpro)
     child_2_parent_dict_reactome = cst.get_child_2_direct_parent_dict_RCTM(fn_in_hierarchy_reactome)
 
 
-    for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2_parallel():
+    counter = 0
+    num_entries = 1000
+    num_workers = 10
+    # pool = multiprocessing.Pool(num_workers)
+    queue = JoinableQueue()
+    entries_2_work = deque()
+    # entries_2_work.append()
+    for uniprot_dump in fn_in_list_uniprot_dumps:
+        for entries in yield_entry_UniProt_dat_dump_parallel(uniprot_dump, num_entries):
+            entries_2_work.append(entries)
+
+
+            stuff = entries, UPK_Name_2_AN_dict, UPK_dag, lineage_dict_interpro, child_2_parent_dict_reactome, GO_dag, etype_UniProtKeywords, etype_GOMF, etype_GOCC, etype_GOBP, etype_interpro, etype_pfam, etype_reactome
+            # pool.map(bubu, stuff)
+            queue.join(bubu, stuff)
+
+
+
+
+
+def yield_entry_UniProt_dat_dump_parallel(fn_in, num_entries=100):
+    entries = []
+    counter = 0
+    for entry in cst.yield_entry_UniProt_dat_dump(fn_in):
+        entries.append(entry)
+        counter += 1
+        if counter % num_entries == 0:
+            yield entries
+            entries = []
+    yield entries
+
+def bubu(entries, UPK_Name_2_AN_dict, UPK_dag, lineage_dict_interpro, child_2_parent_dict_reactome, GO_dag, etype_UniProtKeywords, etype_GOMF, etype_GOCC, etype_GOBP, etype_interpro, etype_pfam, etype_reactome):
+    for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2_parallel(entries):
         Keywords_list, GOterm_list, InterPro, Pfam, KEGG, Reactome, STRING, *Proteomes = functions_2_return
         # ['Complete proteome', 'Reference proteome', 'Transcription', 'Activator', 'Transcription regulation', ['GO:0046782'], ['IPR007031'], ['PF04947'], ['vg:2947773'], [], [], ['UP000008770']]
         # for UniProtAN in UniProtAC_and_ID_list:
         if len(Keywords_list) > 0:
             UPK_ANs, UPKs_not_in_obo_temp = cst.map_keyword_name_2_AN(UPK_Name_2_AN_dict, Keywords_list)
-            UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+            # UPKs_not_in_obo_list += UPKs_not_in_obo_temp
             UPK_ANs, UPKs_not_in_obo_temp = cst.get_all_parent_terms(UPK_ANs, UPK_dag)
-            UPKs_not_in_obo_list += UPKs_not_in_obo_temp
+            # UPKs_not_in_obo_list += UPKs_not_in_obo_temp
             if len(UPK_ANs) > 0:
                 # fh_out.write(UniProtID + "\t" + cst.format_list_of_string_2_postgres_array(sorted(UPK_ANs)) + "\t" + etype_UniProtKeywords + "\t" + NCBI_Taxid + "\n")
                 print(UniProtID + "\t" + cst.format_list_of_string_2_postgres_array(sorted(UPK_ANs)) + "\t" + etype_UniProtKeywords + "\t" + NCBI_Taxid + "\n")
         if len(GOterm_list) > 0: # do backtracking, split GO into 3 categories and add etype
             GOterm_list, not_in_obo_GO = cst.get_all_parent_terms(GOterm_list, GO_dag)
-            GOterms_not_in_obo_temp += not_in_obo_GO
+            # GOterms_not_in_obo_temp += not_in_obo_GO
             MFs, CPs, BPs, not_in_obo_GO = cst.divide_into_categories(GOterm_list, GO_dag, [], [], [], [])
-            GOterms_not_in_obo_temp += not_in_obo_GO
+            # GOterms_not_in_obo_temp += not_in_obo_GO
             if MFs:
                 # fh_out.write(UniProtID + "\t" + cst.format_list_of_string_2_postgres_array(sorted(MFs)) + "\t" + etype_GOMF + "\t" + NCBI_Taxid + "\n")  # 'Molecular Function', -23
                 print(UniProtID + "\t" + cst.format_list_of_string_2_postgres_array(sorted(MFs)) + "\t" + etype_GOMF + "\t" + NCBI_Taxid + "\n")  # 'Molecular Function', -23
@@ -123,7 +184,7 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
             # fh_out_UniProt_AC_2_ID_2_Taxid.write("{}\t{}\t{}\n".format(AC, UniProtID, NCBI_Taxid))
             print("111_UniProt_AC_2_ID_2_Taxid {}\t{}\t{}\n".format(AC, UniProtID, NCBI_Taxid))
 
-def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
+def parse_uniprot_dat_dump_yield_entry_v2_parallel(entries):
     """
     UniProtKeywords
     GO
@@ -137,7 +198,8 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
         hsa:7529    path:hsa04114
         hsa:7529    path:hsa04722)
     """
-    for entry in yield_entry_UniProt_dat_dump(fn_in):
+    # for entry in yield_entry_UniProt_dat_dump(fn_in):
+    for entry in entries:
         UniProtAC_list, Keywords_string, functions_2_return = [], "", []
         Functions_other_list = []
         UniProtID, NCBI_Taxid = "-1", "-1"
@@ -162,8 +224,8 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
                     NCBI_Taxid = rest.replace("NCBI_TaxID=", "").split(";")[0].split()[0]
 
         # UniProtAC_list = sorted(set(UniProtAC_list))Taxid_2_funcEnum_2_scores_table_FIN
-        Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
-        other_functions = helper_parse_UniProt_dump_other_functions(Functions_other_list)
+        Keywords_list = [cst.cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
+        other_functions = cst.helper_parse_UniProt_dump_other_functions(Functions_other_list)
         # GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
         functions_2_return.append(Keywords_list)
         functions_2_return += other_functions

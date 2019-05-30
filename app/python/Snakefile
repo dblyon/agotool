@@ -508,10 +508,8 @@ rule Protein_2_Function__and__Functions_table_WikiPathways: # ENSPs and UniProt 
     output:
         Functions_table_WikiPathways = Functions_table_WikiPathways,
         Protein_2_Function_table_WikiPathways_UPS = Protein_2_Function_table_WikiPathways_UPS
-    params:
-        verbose = verbose
     run:
-        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS, params.verbose)
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
 
 rule Protein_2_Function_table_UPS: # TODO add taxid --> DONE added previously
     input:

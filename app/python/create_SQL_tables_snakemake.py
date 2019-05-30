@@ -6,7 +6,7 @@ from collections import defaultdict
 from collections import deque
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
-import tqdm
+from tqdm import tqdm
 import tarfile
 
 import obo_parser
@@ -667,6 +667,7 @@ def concatenate_Functions_tables(fn_list_str, fn_out, number_of_processes): # fn
     # sort
     tools.sort_file(fn_out, fn_out, number_of_processes=number_of_processes)
     # don't add functional enumeration column yet, reduce table first
+    print("finished creating {}".format(fn_out))
 
 def format_list_of_string_2_postgres_array(list_of_string):
     """
@@ -2988,8 +2989,8 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
     etype = str(variables.functionType_2_entityType_dict["WikiPathways"])
 
     col_names = ['UniProtKB-AC', 'UniProtKB-ID', 'GeneID (EntrezGene)', 'RefSeq', 'GI', 'PDB', 'GO', 'UniRef100', 'UniRef90', 'UniRef50', 'UniParc', 'PIR', 'NCBI-taxon', 'MIM', 'UniGene', 'PubMed', 'EMBL', 'EMBL-CDS', 'Ensembl', 'Ensembl_TRS', 'Ensembl_PRO', 'Additional PubMed']
-    if verbose:
-        print("parsing {}".format(fn_in_UniProt_ID_mapping))
+    # if verbose:
+    #     print("parsing {}".format(fn_in_UniProt_ID_mapping))
     df_UniProt_ID_mapping = pd.read_csv(fn_in_UniProt_ID_mapping, sep="\t", names=col_names, usecols=["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)", "NCBI-taxon"])
     # if verbose:
     #     print("parsing {}".format(fn_in_STRING_EntrezGeneID_2_STRING))
@@ -3000,8 +3001,8 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
     with open(fn_out_Functions_table_WikiPathways, "w") as fh_out_functions:  # etype | an | description | year | level
         with open(fn_out_Protein_2_Function_table_WikiPathways, "w") as fh_out_protein_2_function:  # an | func_array | etype
             for fn_wiki in fn_list:
-                if verbose:
-                    print("processing {}".format(fn_wiki))
+                # if verbose:
+                #     print("processing {}".format(fn_wiki))
                 taxname = fn_wiki.split("-gmt-")[-1].replace(".gmt", "")
                 try:
                     taxid = TaxName_2_TaxID_dict[taxname]  # taxid is an integer
@@ -3050,7 +3051,7 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
                     for UniProtID, wiki_list in UniProt_2_wiki_dict.items():
                         ID = UniProtID
                         func_array = format_list_of_string_2_postgres_array(list(set(wiki_list)))
-                        fh_out_protein_2_function.write(ID + "\t" + func_array + "\t" + etype + "\t" + taxid + "\n")
+                        fh_out_protein_2_function.write(ID + "\t" + func_array + "\t" + etype + "\t" + str(taxid) + "\n")
 
 def get_EntrezGeneID_2_UniProtID_dict(df_UniProt_ID_mapping, taxid):
     taxid = int(taxid)
