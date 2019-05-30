@@ -547,7 +547,6 @@ rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
         UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
         Functions_table_UPS_FIN = Functions_table_UPS_FIN # Functions_table_STRING = Functions_table_STRING,
-        # Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
     output:
         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN,
@@ -556,7 +555,7 @@ rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation, params.GO_CC_textmining_additional_etype) # input.Taxid_2_Proteins_table_UPS_FIN
+        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation, params.GO_CC_textmining_additional_etype)
 
 rule Taxid_2_FunctionCountArray_table_UPS_FIN: # restricted to UniProtIDs of reference proteome
     input:
@@ -577,4 +576,4 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
     output:
         Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     run:
-        cst.Taxid_2_funcEnum_2_scores_table_FIN(input.Protein_2_FunctionEnum_and_Score_table_FIN, output.Taxid_2_funcEnum_2_scores_table_FIN)
+        cst.Taxid_2_funcEnum_2_scores_table_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
