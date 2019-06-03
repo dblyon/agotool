@@ -2796,9 +2796,7 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_in_UniProtID_2_ENSPs_2_KEGGs, 
      - translate to UniProtID on the fly using ENSP_2_UniProtID
     see other comments above
     """
-    # df_temp = pd.read_csv(fn_in_UniProtID_2_ENSPs_2_KEGGs, sep="\t", names=["UniProtID", "ENSPs", "KEGGs"])
-    # ENSP_2_UniProtID_dict = pd.Series(df_temp["UniProtID"].values, index=df_temp["ENSP"]).to_dict()
-    ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs)
+    ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs) # defaultdict
 
     ENSP_last, ENSP = "bubu", "bubu"
     funcEnum_2_score = []
@@ -2806,7 +2804,6 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_in_UniProtID_2_ENSPs_2_KEGGs, 
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     an_without_translation, ENSP_without_translation = [], []
 
-    # with open(fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "w") as fh_out_Prot_2_func:
     with open(fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
             ENSP_last, funcName_2_score_arr_str_last, etype_last = line.split("\t")
@@ -2816,24 +2813,17 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_in_UniProtID_2_ENSPs_2_KEGGs, 
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
             etype = etype.strip()
             taxid = ENSP.split(".")[0]
-            # try:
-            #     UniProtID = ENSP_2_UniProtID_dict[ENSP]
-            # except KeyError:
-            #     UniProtID = "UniProtID_unknown"
-            # funcName_list = helper_grep_funcNames(funcName_2_score_arr_str)
-            # fh_out_Prot_2_func.write(UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list) + "\t" + etype + "\t"+ taxid + "\n")
             if ENSP != ENSP_last: # write old results and parse new
                 if len(funcEnum_2_score) > 0: # don't add empty results due to blacklisting or GO-CC terms
                     funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
                     funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
                     funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
-                    try:
-                        UniProtID = ENSP_2_UniProtID_dict[ENSP_last]
-                    except KeyError:
+                    UniProtID_list = ENSP_2_UniProtID_dict[ENSP_last]
+                    if len(UniProtID_list) >= 1:
+                        for UniProtID in UniProtID_list:
+                            fh_out.write(UniProtID + "\t" + funcEnum_2_score + "\t" + taxid + "\n")
+                    else:
                         ENSP_without_translation.append(ENSP_last)
-                        UniProtID = False
-                    if UniProtID:
-                        fh_out.write(UniProtID + "\t" + funcEnum_2_score + "\t" + taxid + "\n")
                 funcEnum_2_score = []
                 ENSP_last = ENSP
             # parse current and add to funcEnum_2_score
@@ -2853,13 +2843,19 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_in_UniProtID_2_ENSPs_2_KEGGs, 
             funcEnum_2_score.sort(key=lambda sublist: sublist[0])  # sort anEnum in ascending order
             funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
             funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
-            try:
-                UniProtID = ENSP_2_UniProtID_dict[ENSP_last]
-            except KeyError:
+            # try:
+            #     UniProtID = ENSP_2_UniProtID_dict[ENSP_last]
+            # except KeyError:
+            #     ENSP_without_translation.append(ENSP_last)
+            #     UniProtID = False
+            # if UniProtID:
+            #     fh_out.write(UniProtID + "\t" + funcEnum_2_score + "\t" + taxid + "\n")
+            UniProtID_list = ENSP_2_UniProtID_dict[ENSP_last]
+            if len(UniProtID_list) >= 1:
+                for UniProtID in UniProtID_list:
+                    fh_out.write(UniProtID + "\t" + funcEnum_2_score + "\t" + taxid + "\n")
+            else:
                 ENSP_without_translation.append(ENSP_last)
-                UniProtID = False
-            if UniProtID:
-                fh_out.write(UniProtID + "\t" + funcEnum_2_score + "\t" + taxid + "\n")
 
     with open(fn_out_DOID_GO_BTO_an_without_translation, "w") as fh_an_without_translation:
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
@@ -2873,37 +2869,24 @@ def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_in_UniProtID_2_ENSPs_2_
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
             etype = etype.strip()
             taxid = ENSP.split(".")[0]
-            try:
-                UniProtID = ENSP_2_UniProtID_dict[ENSP]
-            except KeyError:
-                UniProtID = "UniProtID_unknown"
+            UniProtID_list = ENSP_2_UniProtID_dict[ENSP] # defaultdict
             funcName_list = helper_grep_funcNames(funcName_2_score_arr_str)
-            fh_out_Prot_2_func.write(UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list) + "\t" + etype + "\t"+ taxid + "\n")
+            for UniProtID in UniProtID_list:
+                fh_out_Prot_2_func.write(UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list) + "\t" + etype + "\t"+ taxid + "\n")
 
 def get_ENSP_2_UniProtID_dict(UniprotID_2_ENSPs_2_KEGGs):
-    # id_list, ensp_list = [], []
-    ENSP_2_UniProtID_dict = {}
+    """
+    :param UniprotID_2_ENSPs_2_KEGGs: String (input file)
+    :return: defaultdict (key: ENSP, val: list of UniProtIDs)
+    """
+    ENSP_2_UniProtID_dict = defaultdict(lambda: [])
     with open(UniprotID_2_ENSPs_2_KEGGs, "r") as fh_in:
         for line in fh_in:
             UniProtID, ENSP, KEGG, taxid = line.split("\t")
-            taxid = taxid.strip()
             if len(ENSP) > 0:
                 for ENSP in ENSP.split(";"):
-                    # ensp_list.append(ENSP)
-                    # id_list.append(UniProtID)
-                    if ENSP not in ENSP_2_UniProtID_dict:
-                        ENSP_2_UniProtID_dict[ENSP] = UniProtID
-                    elif ENSP_2_UniProtID_dict[ENSP] != UniProtID: # if doesn't map to same UniProtID
-                        print("ENSP {} with multiple different UniProtIDs".format(UniProtID))
-                        raise StopIteration
-                    else:
-                        print("this shouldn't happen")
-                        raise StopIteration
+                    ENSP_2_UniProtID_dict[ENSP].append(UniProtID)
     return ENSP_2_UniProtID_dict
-    # df_UPS_2_add = pd.DataFrame()
-    # df_UPS_2_add["ENSP"] = ensp_list
-    # df_UPS_2_add["UniProtID"] = id_list
-
 
 def Protein_2_Function_table_DOID_BTO_hard_cutoff(Protein_2_Function_and_Score_DOID_GO_BTO, Taxid_2_Proteins_table_STRING, score_cutoff, Protein_2_Function_table_DOID_BTO):
     """

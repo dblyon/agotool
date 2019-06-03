@@ -26,7 +26,6 @@ verbose = variables.VERBOSE
 ### Parameters
 max_len_description = 250
 min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID for a each functional_association
-
 ################################################## URLs & Downloads
 URL_GO_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
 GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
@@ -71,7 +70,6 @@ elif hostname == "atlas":
     KEGG_pathway = os.path.join(KEGG_dir, "pathway/pathway.list")
 
 URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on the 11th
-
 PFAM_clans = os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv")
 map_name_2_an_PFAM = os.path.join(TABLES_DIR, "map_name_2_an_PFAM.txt")
 Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
@@ -113,8 +111,6 @@ Function_2_Proteins_table_UPS = os.path.join(TABLES_DIR, "Function_2_Proteins_ta
 Function_2_Proteins_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS_reduced.txt")
 Function_2_Proteins_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS_removed.txt")
 Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-Protein_2_Function_table_UPS_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_reduced.txt") # deprecated since not reduced to background proteome as in STRING_v11
-# Protein_2_Function_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_removed.txt") # deprecated
 
 UniProtID_2_ENSPs_2_KEGGs_2_Taxid = os.path.join(TABLES_DIR, "UniProtID_2_ENSPs_2_KEGGs_2_Taxid.txt")
 UniProt_AC_2_ID_2_Taxid = os.path.join(TABLES_DIR, "UniProt_AC_2_ID_2_Taxid.txt")

@@ -140,7 +140,7 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 1230343.CANP01000023_gene1527 | {47403, 47665, 47963, 48277, 48422, 48426, 48430} | 1230343 |
 
 
-### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
+### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt] ? reduce to primary UniProtIDs ?
 | uniprotid | funcenum_score_arr | taxid |
 |:---:|:---:|
 | 9606.ENSP00000000233 | {{33885,1.00616},{34752,0.709055},{35541,1.297117},{35543,1.296111},{35907,0.600582},{36031,0.670014},{36271,0.527888},{36276,0.552587}, ... } | 9606 |
