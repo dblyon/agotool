@@ -708,7 +708,13 @@ def Protein_2_FunctionEnum_table_FIN(fn_Functions_table_STRING, fn_in_Protein_2_
             functionEnum_list = _helper_format_array(function_arr, function_2_enum_dict)
 
             for line in fh_in:
-                ENSP, function_arr_str, etype = line.strip().split("\t")
+                if variables.VERSION_ == "UniProt":
+                    ENSP, function_arr_str, etype, taxid = fh_in.readline().split("\t")
+                    taxid = taxid.strip()
+                elif variables.VERSION_ == "STRING":
+                    ENSP, function_arr_str, etype = fh_in.readline().split("\t")
+                    etype = etype.strip()
+                # ENSP, function_arr_str, etype = line.strip().split("\t")
                 function_arr = literal_eval(function_arr_str)
 
                 if ENSP == ENSP_last:
@@ -2303,7 +2309,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
 def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_in_Taxid_2_Proteins_table_UPS_FIN, fn_in_Functions_table_all, fn_out_Function_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS_removed, number_of_threads, min_count=1):
-    """
+    """ # ToDo duplicate UniProtIDs --> remove and investigate source
     merge fn_in_Protein_2_Function_table_UPS and fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_UPS
     then sort based on Taxid and UniProtID
     then iterate over merged table
@@ -2315,9 +2321,10 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
     # Protein_2_Function_table_without_score_temp = fn_in_Protein_2_Function_table_UPS + ".without_score_temp"
     tools.concatenate_files([fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS], Protein_2_Function_table_merged)
     tools.sort_file(Protein_2_Function_table_merged, Protein_2_Function_table_merged, columns="4,1", number_of_processes=number_of_threads)
-
+    print("done sorting, creating Function_2_Proteins_table_UPS and removed, reduced files")
     function_2_UniProtID_dict = defaultdict(list)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table_UPS_FIN)
+    # taxid_2_total_protein_count_dict defaults to -1 for taxids without reference proteomes --> use number of all proteins for given taxid instead?
     function_2_etype_dict = _helper_get_function_2_etype_dict(fn_in_Functions_table_all) # funcenum not correct at this stage therefore not present
     with open(Protein_2_Function_table_merged, "r") as fh_in:
         # taxid_ENSP, taxid_last, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(fh_in.readline())
@@ -2334,7 +2341,7 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
                             num_UniProtIDs_total_for_taxid = taxid_2_total_protein_count_dict[taxid_last]
                             for function_an, UniProtIDs in function_2_UniProtID_dict.items():
                                 num_UniProtIDs = len(UniProtIDs)
-                                arr_of_UniProtIDs = format_list_of_string_2_postgres_array(UniProtIDs)
+                                arr_of_UniProtIDs = format_list_of_string_2_postgres_array(sorted(set(UniProtIDs)))
                                 try:
                                     etype = function_2_etype_dict[function_an]
                                 except KeyError: # for blacklisted terms in variables.py
@@ -2352,7 +2359,7 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
                     num_UniProtIDs_total_for_taxid = taxid_2_total_protein_count_dict[taxid]
                     for function_an, UniProtIDs in function_2_UniProtID_dict.items():
                         num_UniProtIDs = len(UniProtIDs)
-                        arr_of_UniProtIDs = format_list_of_string_2_postgres_array(UniProtIDs)
+                        arr_of_UniProtIDs = format_list_of_string_2_postgres_array(sorted(set(UniProtIDs)))
                         try:
                             etype = function_2_etype_dict[function_an]
                         except KeyError:  # for blacklisted terms in variables.py
@@ -2407,11 +2414,12 @@ def _helper_parse_line_prot_2_func(line):
 def _helper_parse_line_prot_2_func_UPS(line):
     uniprotid, func_array, etype, taxid = line.split("\t")
     taxid = taxid.strip()
-    function_name_set = literal_eval(func_array)
+    # function_name_set = literal_eval(func_array)
+    function_name_set = func_array[1:-1].replace('"', "").split(",")
     return uniprotid, taxid, etype, function_name_set
 
 def _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table_STRING):
-    taxid_2_total_protein_count_dict = {}
+    taxid_2_total_protein_count_dict = defaultdict(lambda: "-1")
     with open(fn_in_TaxID_2_Proteins_table_STRING, "r") as fh_in:
         for line in fh_in:
             taxid, ENSP_arr_str, count = line.split("\t")
@@ -3211,7 +3219,7 @@ def get_EntrezGeneID_2_ENSPsList_dict(fn):
     return EntrezGeneID_2_ENSPsList_dict
 
 def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
-    ENSP_2_tuple_funcEnum_score_dict = query.get_ENSP_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
+    ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
     with open(fn_out_Taxid_2_funcEnum_2_scores_table_FIN, "w") as fh_out:
         for taxid in variables.jensenlab_supported_taxids :
             background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
@@ -3259,12 +3267,6 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Proteins_table_UPS_r
                     else:
                         fh_out_removed.write(line)
 
-
-
-
-
-
-
 if __name__ == "__main__":
     # create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM()
 
@@ -3296,6 +3298,16 @@ if __name__ == "__main__":
     # Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
     # reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest_and_Functions_table_STRING_reduced(Protein_2_Function_table_STRING, Function_2_ENSP_table_STRING_removed, Functions_table_STRING_reduced, Protein_2_Function_table_STRING_reduced, Protein_2_Function_table_STRING_removed)
     ### dubugging stop
-    GO_basic_obo = r"/home/dblyon/agotool/data/PostgreSQL/downloads/go-basic.obo"
-    Functions_table_GO = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_GO_v2.txt"
-    Functions_table_GO_or_UPK(GO_basic_obo, Functions_table_GO, is_upk=False)
+    # GO_basic_obo = r"/home/dblyon/agotool/data/PostgreSQL/downloads/go-basic.obo"
+    # Functions_table_GO = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_GO_v2.txt"
+    # Functions_table_GO_or_UPK(GO_basic_obo, Functions_table_GO, is_upk=False)
+    Protein_2_Function_table_UPS = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Protein_2_Function_table_UPS_temp.txt"
+    Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt"
+    Taxid_2_Proteins_table_UPS_FIN = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt"
+    Functions_table_all = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table_all.txt"
+    Function_2_Proteins_table_UPS_all = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Proteins_table_UPS_temp_deleteme.txt"
+    Function_2_Proteins_table_UPS_reduced = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Proteins_table_UPS_reduced_temp_deleteme.txt"
+    Function_2_Proteins_table_UPS_removed = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Proteins_table_UPS_removed_temp_deleteme.txt"
+    Function_2_Proteins_table_UPS(Protein_2_Function_table_UPS, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Taxid_2_Proteins_table_UPS_FIN, Functions_table_all, Function_2_Proteins_table_UPS_all, Function_2_Proteins_table_UPS_reduced, Function_2_Proteins_table_UPS_removed, 4)
+
+

@@ -68,8 +68,8 @@ def sort_file(fn_in, fn_out, columns=None, fn_bash_script=None, number_of_proces
             shellcmd = "LC_ALL=C sort --parallel {} -k {} {} -o {}".format(number_of_processes, columns, fn_in, fn_out)
         else:
             shellcmd = "LC_ALL=C sort --parallel {} {} -o {}".format(number_of_processes, fn_in, fn_out)
-        # if PLATFORM != "linux":
-        #     shellcmd = shellcmd.replace("sort ", "LC_ALL=C gsort ")
+        if PLATFORM != "linux":
+            shellcmd = shellcmd.replace("sort", "gsort")
         fh.write(shellcmd)
     if verbose:
         print(shellcmd)

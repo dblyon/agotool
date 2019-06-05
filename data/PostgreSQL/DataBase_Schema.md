@@ -106,6 +106,9 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 9606 | -21 | 'GO:0006810' | 3 | 3919 | {'UniProtID1', 'UniProtID2', ... } |
 | 9606 | -21 | 'GO:0006897' | 2 | 3919 | {'UniProtID3', ...} |
 | 9606 | -21 | 'GO:0006898' | 1 | 3919 | {'UniProtID3'} |
+| 654924 | -51 | KW-0181 | 2 | -1 | {"001R_FRG3G","002L_FRG3G"} |
+| 9606 | -22 | GO:0044444 | 2 | 20874 | {"1433B_HUMAN","1433B_HUMAN"} |
+| 9606 | -22 | GO:0005774 | 2 | 20874 | {"1433B_HUMAN","1433B_HUMAN"} |
 
 
 ### lineage [Lineage_table_FIN.txt]
@@ -119,17 +122,18 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 ### protein_2_function [Protein_2_Function_table_UPS.txt]
 | uniprotid | func_array | etype | taxid | 
 |:---:|:---:|:---:|:---:|
-| 001R_FRG3G | {"KW-0010","KW-0181","KW-0804","KW-0805","KW-1185","KW-9990","KW-9992","KW-9999"} | -51 | 1234 | 
-| 001R_FRG3G | {"GO:0008150","GO:0043900","GO:0043903","GO:0046782","GO:0050789","GO:0050792","GO:0065007"} | -21 | 1234 |
-| 001R_FRG3G | {"IPR007031"} |-54 | 1234 |
-| 001R_FRG3G | {"PF04947"} | -55 | 1234 |
-| 002L_FRG3G | {"KW-0181","KW-0472","KW-0812","KW-1043","KW-1133","KW-1185","KW-9990","KW-9994","KW-9998"} | -51 | 1234 |
+| 001R_FRG3G | {"KW-0010","KW-0181","KW-0804","KW-0805","KW-1185","KW-9990","KW-9992","KW-9999"} | -51 | 654924 | 
+| 001R_FRG3G | {"GO:0008150","GO:0043900","GO:0043903","GO:0046782","GO:0050789","GO:0050792","GO:0065007"} | -21 | 654924 |
+| 001R_FRG3G | {"IPR007031"} |-54 | 654924 |
+| 001R_FRG3G | {"PF04947"} | -55 | 654924 |
+| 002L_FRG3G | {"KW-0181","KW-0472","KW-0812","KW-1043","KW-1133","KW-1185","KW-9990","KW-9994","KW-9998"} | -51 | 654924 |
 
 
 ### Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS [Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt]
 | uniprotid | func_array | etype | taxid | 
 |:---:|:---:|:---:|:---:|
-| 3702.AT1G01010.1 | {"GO:0005777", "GO:0005783"} | -22 | 3702 |
+| G3XA30_MOUSE | {"GO:0005622","GO:0005886","GO:0016020","GO:0044424","GO:0044464","GO:0043231","GO:0005856","GO:0044444","GO:0043228","GO:0043226","GO:0005737","GO:0043227","GO:0043232","GO:0005634","GO:0005576","GO:0005829","GO:0071944","GO:0005575","GO:0005623","GO:0043229"} | -22 | 10090 |
+| PCOC1_RAT | {"GO:0005886","GO:0043227","GO:0044464","GO:0043229","GO:0044424","GO:0016020","GO:0016942","GO:0005576","GO:0005622","GO:0043226","GO:0005615","GO:0043231","GO:0044421","GO:0036454","GO:0071944","GO:0005575","GO:0005634","GO:0005623"} | -22 | 10116 |
 
 
 ### protein_2_functionenum [Protein_2_FunctionEnum_table_UPS_FIN.txt]

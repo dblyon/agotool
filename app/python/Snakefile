@@ -530,8 +530,8 @@ rule Protein_2_Function_table_UPS:
 
 rule Protein_2_FunctionEnum_table_UPS_FIN:
     input:
-        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS,
-        Functions_table_UPS_FIN = Functions_table_UPS_FIN
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN,
+        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS
     output:
         Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN
     threads: NUMBER_OF_PROCESSES_sorting
@@ -592,3 +592,8 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
         Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     run:
         cst.Taxid_2_funcEnum_2_scores_table_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
+
+
+# TODO
+# - rule Function_2_Proteins_table_UPS: sorting slow and not parallel. change all tables putting taxid to first column, change sorting to be numerical --> not sure sorting needs to be fixed
+# - Function_2_Proteins_table --> Function_2_Protein_table
