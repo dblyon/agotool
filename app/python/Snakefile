@@ -47,7 +47,8 @@ Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Descriptio
 URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
 Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
 URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
-Protein_2_Function_table_PMID_abstracts = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
+Protein_2_Function_table_PMID_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
+Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt")
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
 Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
@@ -136,7 +137,10 @@ Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPat
 Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS_ENSP_benchmark.txt")
 KEGG_entry_no_pathway_annotation = os.path.join(TABLES_DIR, "KEGG_entry_no_pathway_annotation.txt")
 Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
+ENSP_2_UniProtID_without_translation_1 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_1.txt")
+ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
 ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
+protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 ###################################################################################################
 ### download resources
 rule download_descriptions_PMID:
@@ -147,6 +151,17 @@ rule download_descriptions_PMID:
         verbose = verbose
     run:
         drs.download_requests(params.URL_Function_2_Description_PMID, output.Function_2_Description_PMID, params.verbose)
+
+rule download_Protein_2_Function_table_PMID:
+    output:
+        Protein_2_Function_table_PMID_STS_gz = Protein_2_Function_table_PMID_STS + ".gz",
+        Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS
+    params:
+        URL_protein_2_function_PMID = URL_protein_2_function_PMID,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_STS_gz, params.verbose)
+        tools.gunzip_file(output.Protein_2_Function_table_PMID_STS_gz, output.Protein_2_Function_table_PMID_STS)
 
 rule download_RCTM_hierarchy:
     params:
@@ -405,7 +420,7 @@ rule Function_2_Proteins_table_UPS:
     threads: NUMBER_OF_PROCESSES_sorting
     run: # helper_convert_str_arr_2_nested_list
         cst.Function_2_Proteins_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Proteins_table_UPS, output.Function_2_Proteins_table_UPS_reduced, output.Function_2_Proteins_table_UPS_removed, threads)
-
+ # 539.864.691
 # rule Functions_table_UPS_FIN: # duplicate
 #     input:
 #         Functions_table_all = Functions_table_all, # superset
@@ -510,23 +525,27 @@ rule Protein_2_Function__and__Functions_table_WikiPathways:
     run:
         cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
 
+rule Protein_2_Function_table_PMID_UPS:
+    input:
+        Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS,
+        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
+        ENSP_2_UniProtID_without_translation_1 = ENSP_2_UniProtID_without_translation_1
+    output:
+        Protein_2_Function_table_PMID_UPS = Protein_2_Function_table_PMID_UPS
+    run:
+        cst.Protein_2_Function_table_PMID_UPS(input.Protein_2_Function_table_PMID_STS, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.ENSP_2_UniProtID_without_translation_1, output.Protein_2_Function_table_PMID_UPS)
+
 rule Protein_2_Function_table_UPS:
     input:
         fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
                        Protein_2_Function_table_KEGG_UPS,
-                       Protein_2_Function_table_WikiPathways_UPS]
+                       Protein_2_Function_table_WikiPathways_UPS,
+                       Protein_2_Function_table_PMID_UPS]
     output:
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS
     threads: NUMBER_OF_PROCESSES_sorting
     run:
         cst.Protein_2_Function_table_UPS(input.fn_list_str, output.Protein_2_Function_table_UPS, threads)
-
-# rule Protein_2_Function_table_reduced: # TODO depreacated restricting at the end of pipeline
-#     input:
-#     output:
-#         Protein_2_Function_table_reduced
-#     run:
-#         cst.NotImplementedFunction()
 
 rule Protein_2_FunctionEnum_table_UPS_FIN:
     input:
@@ -537,6 +556,15 @@ rule Protein_2_FunctionEnum_table_UPS_FIN:
     threads: NUMBER_OF_PROCESSES_sorting
     run:
         cst.Protein_2_FunctionEnum_table_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, threads)
+
+rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
+    input:
+        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
+    output:
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
+    run:
+        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS)
 
 rule Functions_table_UPS_FIN:
     input:
@@ -549,15 +577,6 @@ rule Functions_table_UPS_FIN:
     run:
         cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Proteins_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
-rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
-    input:
-        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
-    output:
-        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
-    run:
-        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS)
-
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
         UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
@@ -566,11 +585,21 @@ rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     output:
         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN,
         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation,
-        ENSP_2_UniProtID_without_translation = ENSP_2_UniProtID_without_translation
+        ENSP_2_UniProtID_without_translation_2 = ENSP_2_UniProtID_without_translation_2
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation, params.GO_CC_textmining_additional_etype)
+        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, params.GO_CC_textmining_additional_etype)
+
+rule ENSP_2_UniProtID_without_translation:
+    input:
+        fn_list = [ENSP_2_UniProtID_without_translation_1, ENSP_2_UniProtID_without_translation_2],
+        protein_shorthands = protein_shorthands
+    output:
+        ENSP_2_UniProtID_without_translation = ENSP_2_UniProtID_without_translation
+    # threads: NUMBER_OF_PROCESSES_sorting
+    run:
+        cst.ENSP_2_UniProtID_without_translation(input.fn_list, input.protein_shorthands, output.ENSP_2_UniProtID_without_translation)
 
 rule Taxid_2_FunctionCountArray_table_UPS_FIN: # restricted to UniProtIDs of reference proteome
     input:

@@ -2341,7 +2341,8 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
                             num_UniProtIDs_total_for_taxid = taxid_2_total_protein_count_dict[taxid_last]
                             for function_an, UniProtIDs in function_2_UniProtID_dict.items():
                                 num_UniProtIDs = len(UniProtIDs)
-                                arr_of_UniProtIDs = format_list_of_string_2_postgres_array(sorted(set(UniProtIDs)))
+                                # arr_of_UniProtIDs = format_list_of_string_2_postgres_array(sorted(set(UniProtIDs)))
+                                arr_of_UniProtIDs = ";".join(sorted(set(UniProtIDs)))
                                 try:
                                     etype = function_2_etype_dict[function_an]
                                 except KeyError: # for blacklisted terms in variables.py
@@ -2359,7 +2360,8 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
                     num_UniProtIDs_total_for_taxid = taxid_2_total_protein_count_dict[taxid]
                     for function_an, UniProtIDs in function_2_UniProtID_dict.items():
                         num_UniProtIDs = len(UniProtIDs)
-                        arr_of_UniProtIDs = format_list_of_string_2_postgres_array(sorted(set(UniProtIDs)))
+                        # arr_of_UniProtIDs = format_list_of_string_2_postgres_array(sorted(set(UniProtIDs)))
+                        arr_of_UniProtIDs = ";".join(sorted(set(UniProtIDs)))
                         try:
                             etype = function_2_etype_dict[function_an]
                         except KeyError:  # for blacklisted terms in variables.py
@@ -2370,8 +2372,7 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
                         else:
                             fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_UniProtIDs) + "\t" + str(num_UniProtIDs_total_for_taxid) + "\t" + arr_of_UniProtIDs + "\n")
 
-    tools.sort_file(fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS_reduced)
-
+    tools.sort_file(fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS_reduced, number_of_processes=number_of_threads)
 
 
 def Functions_table_STRING(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
@@ -3242,12 +3243,6 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Proteins_table_UPS_r
         for line in fh_in:
             functions_2_include.update({line.split("\t")[2]})
 
-    # for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC):
-    #     ENSP, funcName_2_score_arr_str, etype = line.split("\t")
-    #     funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
-    #     for funcName_score in funcName_2_score_list:
-    #         funcName, score = funcName_score
-    #         functions_2_include.update({funcName})
     with open(Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "r") as fh_in:
         for line in fh_in:
             uniprotid, taxid, etype, function_name_set = _helper_parse_line_prot_2_func_UPS(line)
@@ -3261,11 +3256,45 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Proteins_table_UPS_r
             with open(Functions_table_UPS_removed, "w") as fh_out_removed:
                 for line in fh_in:
                     funcName = line.split("\t")[1]
-                    if funcName in functions_2_include:
+                    if funcName in functions_2_include or funcName.startswith("GOCC:"):
                         fh_out_reduced.write(str(enum) + "\t" + line)
                         enum += 1
                     else:
                         fh_out_removed.write(line)
+
+def Protein_2_Function_table_PMID_UPS(fn_in_Protein_2_Function_table_PMID_STS, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_out_ENSP_2_UniProtID_without_translation, fn_out_Protein_2_Function_table_PMID_UPS):
+    # 287.DR97_1450   {"PMID:28118378","PMID:26729493","PMID:17493134","PMID:16956383"}       -56
+    ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid)
+    with open(fn_in_Protein_2_Function_table_PMID_STS, "r") as fh_in:
+        with open(fn_out_Protein_2_Function_table_PMID_UPS, "w") as fh_out:
+            with open(fn_out_ENSP_2_UniProtID_without_translation, "w") as fh_out_no_translation:
+                for line in fh_in:
+                    ENSP, PMID_etype_newline = line.split("\t", 1)
+                    UniProtID_list = ENSP_2_UniProtID_dict[ENSP]
+                    if len(UniProtID_list) > 0:
+                        for UniProtID in UniProtID_list:
+                            fh_out.write(UniProtID + "\t" + PMID_etype_newline)
+                    else:
+                        fh_out_no_translation.write(ENSP + "\n")
+
+def ENSP_2_UniProtID_without_translation(fn_in_list, protein_shorthands, ENSP_2_UniProtID_without_translation):
+    """
+    capture all ENSPs without translation to a UniProt ID that are part of protein_shorthands
+    """
+    ENSP_set = {}
+    with open(protein_shorthands, "r") as fh_in:
+        for line in fh_in:
+            ENSP = line.split()[0]
+            ENSP_set |= {ENSP}
+
+    for fn in fn_in_list:
+        with open(fn, "r") as fh_in:
+            with open(ENSP_2_UniProtID_without_translation, "w") as fh_out:
+                for line in fh_in:
+                    ENSP = line.strip()
+                    if ENSP in ENSP_set:
+                        fh_out.write(ENSP + "\n")
+
 
 if __name__ == "__main__":
     # create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM()
