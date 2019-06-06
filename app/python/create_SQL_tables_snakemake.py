@@ -694,8 +694,8 @@ def Protein_2_FunctionEnum_table_FIN(fn_Functions_table_STRING, fn_in_Protein_2_
     with open(fn_in_Protein_2_function_table, "r") as fh_in:
         with open(fn_out_Protein_2_functionEnum_table_FIN, "w") as fh_out:
             if variables.VERSION_ == "UniProt":
-                ENSP_last, function_arr_str, etype, taxid = fh_in.readline().split("\t")
-                taxid = taxid.strip()
+                taxid, ENSP_last, function_arr_str, etype = fh_in.readline().split("\t")
+                # etype = etype.strip()
             elif variables.VERSION_ == "STRING":
                 ENSP_last, function_arr_str, etype = fh_in.readline().split("\t")
             function_arr = literal_eval(function_arr_str)
@@ -703,8 +703,8 @@ def Protein_2_FunctionEnum_table_FIN(fn_Functions_table_STRING, fn_in_Protein_2_
 
             for line in fh_in:
                 if variables.VERSION_ == "UniProt":
-                    ENSP, function_arr_str, etype, taxid = line.split("\t")
-                    taxid = taxid.strip()
+                    taxid, ENSP, function_arr_str, etype = line.split("\t")
+                    # etype = etype.strip()
                 elif variables.VERSION_ == "STRING":
                     ENSP, function_arr_str, etype = line.split("\t")
                 # function_arr = literal_eval(function_arr_str)
@@ -1098,7 +1098,7 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
     background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
     """
     print("creating Taxid_2_FunctionCountArray_table_FIN")
-    tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, columns="3,1", number_of_processes=number_of_processes, verbose=verbose) # sort on Taxid and UniProtID
+    tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, number_of_processes=number_of_processes, verbose=verbose) # sort on Taxid and UniProtID
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_UPS_FIN)
     print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_FIN))
@@ -2300,7 +2300,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins
     if verbose:
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
-def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_in_Taxid_2_Proteins_table_UPS_FIN, fn_in_Functions_table_all, fn_out_Function_2_Proteins_table_UPS, fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS_removed, number_of_threads, min_count=1):
+def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_in_Taxid_2_Proteins_table_UPS_FIN, fn_in_Functions_table_all, fn_out_Function_2_Protein_table_UPS, fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_removed, number_of_threads, min_count=1):
     """ # ToDo duplicate UniProtIDs --> remove and investigate source
     merge fn_in_Protein_2_Function_table_UPS and fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_UPS
     then sort based on Taxid and UniProtID
@@ -2312,22 +2312,22 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
     Protein_2_Function_table_merged = fn_in_Protein_2_Function_table_UPS + ".concat_temp"
     tools.concatenate_files([fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS], Protein_2_Function_table_merged)
     tools.sort_file(Protein_2_Function_table_merged, Protein_2_Function_table_merged, number_of_processes=number_of_threads)
-    print("done sorting, creating Function_2_Proteins_table_UPS and removed, reduced files")
+    print("done sorting, creating Function_2_Protein_table_UPS and removed, reduced files")
     function_2_UniProtID_dict = defaultdict(list)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table_UPS_FIN)
     # taxid_2_total_protein_count_dict defaults to -1 for taxids without reference proteomes --> use number of all proteins for given taxid instead?
     function_2_etype_dict = _helper_get_function_2_etype_dict(fn_in_Functions_table_all) # funcenum not correct at this stage therefore not present
     with open(Protein_2_Function_table_merged, "r") as fh_in:
         # taxid_ENSP, taxid_last, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(fh_in.readline())
-        UniProtID, taxid_last, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func_UPS(fh_in.readline())
+        taxid_last, UniProtID, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func_UPS(fh_in.readline())
 
         fh_in.seek(0)
-        with open(fn_out_Function_2_Proteins_table_UPS, "w") as fh_out:
-            with open(fn_out_Function_2_Proteins_table_UPS_reduced, "w") as fh_out_reduced:
-                with open(fn_out_Function_2_Proteins_table_UPS_removed, "w") as fh_out_removed:
+        with open(fn_out_Function_2_Protein_table_UPS, "w") as fh_out:
+            with open(fn_out_Function_2_Protein_table_UPS_reduced, "w") as fh_out_reduced:
+                with open(fn_out_Function_2_Protein_table_UPS_removed, "w") as fh_out_removed:
                     for line in fh_in:
                         # taxid_ENSP, taxid, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(line)
-                        UniProtID, taxid, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func_UPS(line)
+                        taxid, UniProtID, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func_UPS(line)
                         if taxid != taxid_last:
                             num_UniProtIDs_total_for_taxid = taxid_2_total_protein_count_dict[taxid_last]
                             for function_an, UniProtIDs in function_2_UniProtID_dict.items():
@@ -2363,7 +2363,7 @@ def Function_2_Proteins_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prot
                         else:
                             fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_UniProtIDs) + "\t" + str(num_UniProtIDs_total_for_taxid) + "\t" + arr_of_UniProtIDs + "\n")
 
-    tools.sort_file(fn_out_Function_2_Proteins_table_UPS_reduced, fn_out_Function_2_Proteins_table_UPS_reduced, number_of_processes=number_of_threads)
+    tools.sort_file(fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_reduced, number_of_processes=number_of_threads)
 
 
 def Functions_table_STRING(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
@@ -2404,11 +2404,11 @@ def _helper_parse_line_prot_2_func(line):
     return taxid_ENSP, taxid, etype, function_an_set
 
 def _helper_parse_line_prot_2_func_UPS(line):
-    uniprotid, func_array, etype, taxid = line.split("\t")
-    taxid = taxid.strip()
+    taxid, uniprotid, func_array, etype = line.split("\t")
+    etype = etype.strip()
     # function_name_set = literal_eval(func_array)
     function_name_set = set(func_array[1:-1].replace('"', "").split(","))
-    return uniprotid, taxid, etype, function_name_set
+    return taxid, uniprotid, etype, function_name_set
 
 def _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table_STRING):
     taxid_2_total_protein_count_dict = defaultdict(lambda: "-1")
@@ -2872,7 +2872,7 @@ def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_in_UniProtID_2_ENSPs_2_
             UniProtID_list = ENSP_2_UniProtID_dict[ENSP] # defaultdict
             funcName_list = helper_grep_funcNames(funcName_2_score_arr_str)
             for UniProtID in UniProtID_list:
-                fh_out_Prot_2_func.write(UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list) + "\t" + etype + "\t"+ taxid + "\n")
+                fh_out_Prot_2_func.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list) + "\t" + etype + "\n")
 
 def get_ENSP_2_UniProtID_dict(UniprotID_2_ENSPs_2_KEGGs):
     """
@@ -3220,16 +3220,16 @@ def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_t
                 scores = funcEnum_2_scores_dict_bg[funcEnum]
                 fh_out.write(str(taxid) + "\t" + str(funcEnum) + "\t{" + ",".join([str(ele) for ele in scores]) + "}\n")
 
-def Functions_table_UPS_FIN(Functions_table_all, Function_2_Proteins_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Functions_table_UPS_FIN, Functions_table_UPS_removed):
+def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Functions_table_UPS_FIN, Functions_table_UPS_removed):
     """
     Functions_table_all is the superset
-    Function_2_Proteins_table_UPS_reduced use all these prefiltered functions
+    Function_2_Protein_table_UPS_reduced use all these prefiltered functions
     Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS parse and use all functions since not in above table
     Functions_table_UPS_FIN reduced subset
     Functions_table_UPS_removed removed subset
     """
     functions_2_include = set()
-    with open(Function_2_Proteins_table_UPS_reduced, "r") as fh_in:
+    with open(Function_2_Protein_table_UPS_reduced, "r") as fh_in:
     # 1000565 -51     KW-0003 5       3926    {"1000565.METUNv1_01117","1000565.METUNv1_02206","1000565.METUNv1_02527","1000565.METUNv1_03205","1000565.METUNv1_03227"}
     # 654924  -51     KW-1185 7       -1      014R_FRG3G;015R_FRG3G;017L_FRG3G;018L_FRG3G;019R_FRG3G;020R_FRG3G;021L_FRG3G
         for line in fh_in:
@@ -3237,7 +3237,7 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Proteins_table_UPS_r
 
     with open(Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "r") as fh_in:
         for line in fh_in:
-            uniprotid, taxid, etype, function_name_set = _helper_parse_line_prot_2_func_UPS(line)
+            taxid, uniprotid, etype, function_name_set = _helper_parse_line_prot_2_func_UPS(line)
             functions_2_include.update(function_name_set)
 
     enum = 0
@@ -3327,9 +3327,9 @@ if __name__ == "__main__":
     Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt"
     Taxid_2_Proteins_table_UPS_FIN = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt"
     Functions_table_all = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table_all.txt"
-    Function_2_Proteins_table_UPS_all = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Proteins_table_UPS_temp_deleteme.txt"
-    Function_2_Proteins_table_UPS_reduced = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Proteins_table_UPS_reduced_temp_deleteme.txt"
-    Function_2_Proteins_table_UPS_removed = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Proteins_table_UPS_removed_temp_deleteme.txt"
-    Function_2_Proteins_table_UPS(Protein_2_Function_table_UPS, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Taxid_2_Proteins_table_UPS_FIN, Functions_table_all, Function_2_Proteins_table_UPS_all, Function_2_Proteins_table_UPS_reduced, Function_2_Proteins_table_UPS_removed, 4)
+    Function_2_Protein_table_UPS_all = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Protein_table_UPS_temp_deleteme.txt"
+    Function_2_Protein_table_UPS_reduced = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Protein_table_UPS_reduced_temp_deleteme.txt"
+    Function_2_Protein_table_UPS_removed = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Function_2_Protein_table_UPS_removed_temp_deleteme.txt"
+    Function_2_Protein_table_UPS(Protein_2_Function_table_UPS, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Taxid_2_Proteins_table_UPS_FIN, Functions_table_all, Function_2_Protein_table_UPS_all, Function_2_Protein_table_UPS_reduced, Function_2_Protein_table_UPS_removed, 4)
 
 

@@ -108,9 +108,9 @@ RCTM_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv")
 Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
 Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
 
-Function_2_Proteins_table_UPS = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS.txt")
-Function_2_Proteins_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS_reduced.txt")
-Function_2_Proteins_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS_removed.txt")
+Function_2_Protein_table_UPS = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
+Function_2_Protein_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_reduced.txt")
+Function_2_Protein_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_removed.txt")
 Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
 
 Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
@@ -407,30 +407,19 @@ rule Functions_table_all:
     run:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_table_all, threads)
 
-rule Function_2_Proteins_table_UPS:
+rule Function_2_Protein_table_UPS:
     input:
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS,
         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
         Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN, # for background_counts, but not to restrict by reference proteome
         Functions_table_all = Functions_table_all
     output:
-        Function_2_Proteins_table_UPS = Function_2_Proteins_table_UPS,
-        Function_2_Proteins_table_UPS_reduced = Function_2_Proteins_table_UPS_reduced,
-        Function_2_Proteins_table_UPS_removed = Function_2_Proteins_table_UPS_removed
+        Function_2_Protein_table_UPS = Function_2_Protein_table_UPS,
+        Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced,
+        Function_2_Protein_table_UPS_removed = Function_2_Protein_table_UPS_removed
     threads: NUMBER_OF_PROCESSES_sorting
     run: # helper_convert_str_arr_2_nested_list
-        cst.Function_2_Proteins_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Proteins_table_UPS, output.Function_2_Proteins_table_UPS_reduced, output.Function_2_Proteins_table_UPS_removed, threads)
- # 539.864.691
-# rule Functions_table_UPS_FIN: # duplicate
-#     input:
-#         Functions_table_all = Functions_table_all, # superset
-#         Function_2_Proteins_table_UPS_reduced = Function_2_Proteins_table_UPS_reduced, # include all prefiltered functions
-#         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
-#     output:
-#         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
-#         Functions_table_UPS_removed = Functions_table_UPS_removed
-#     run:
-#         cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Proteins_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
+        cst.Function_2_Protein_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Protein_table_UPS, output.Function_2_Protein_table_UPS_reduced, output.Function_2_Protein_table_UPS_removed, threads)
 
 rule Taxid_2_Proteins_table_UPS_FIN:
     input:
@@ -569,13 +558,13 @@ rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
 rule Functions_table_UPS_FIN:
     input:
         Functions_table_all = Functions_table_all, # superset
-        Function_2_Proteins_table_UPS_reduced = Function_2_Proteins_table_UPS_reduced, # include all prefiltered functions
+        Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced, # include all prefiltered functions
         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
     output:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         Functions_table_UPS_removed = Functions_table_UPS_removed
     run:
-        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Proteins_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
+        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
@@ -624,7 +613,7 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
 
 
 # TODO
-# - rule Function_2_Proteins_table_UPS: sorting slow and not parallel. change all tables putting taxid to first column, change sorting to be numerical --> not sure sorting needs to be fixed
+# - rule Function_2_Protein_table_UPS: sorting slow and not parallel. change all tables putting taxid to first column, change sorting to be numerical --> not sure sorting needs to be fixed
 # - Function_2_Proteins_table --> Function_2_Protein_table
 
 
@@ -669,3 +658,6 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
 #   15799 -55
 #   87195 -56
 #    1273 -58
+
+# ToDo rerun
+#
