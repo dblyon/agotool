@@ -11,7 +11,7 @@ import tarfile
 
 import obo_parser
 import tools, ratio, query
-import variables_snakemake as variables
+import variables
 import run_cythonized
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
@@ -2416,7 +2416,7 @@ def _helper_parse_line_prot_2_func_UPS(line):
     uniprotid, func_array, etype, taxid = line.split("\t")
     taxid = taxid.strip()
     # function_name_set = literal_eval(func_array)
-    function_name_set = func_array[1:-1].replace('"', "").split(",")
+    function_name_set = set(func_array[1:-1].replace('"', "").split(","))
     return uniprotid, taxid, etype, function_name_set
 
 def _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table_STRING):
@@ -3222,7 +3222,7 @@ def get_EntrezGeneID_2_ENSPsList_dict(fn):
 def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
     ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
     with open(fn_out_Taxid_2_funcEnum_2_scores_table_FIN, "w") as fh_out:
-        for taxid in variables.jensenlab_supported_taxids :
+        for taxid in variables.jensenlab_supported_taxids:
             background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
             funcEnum_2_scores_dict_bg = run_cythonized.collect_scores_per_term_v0(background_ENSPs, ENSP_2_tuple_funcEnum_score_dict)
             for funcEnum in sorted(funcEnum_2_scores_dict_bg.keys()):
@@ -3270,10 +3270,11 @@ def Protein_2_Function_table_PMID_UPS(fn_in_Protein_2_Function_table_PMID_STS, f
             with open(fn_out_ENSP_2_UniProtID_without_translation, "w") as fh_out_no_translation:
                 for line in fh_in:
                     ENSP, PMID_etype_newline = line.split("\t", 1)
+                    taxid = ENSP.split(".")[0]
                     UniProtID_list = ENSP_2_UniProtID_dict[ENSP]
                     if len(UniProtID_list) > 0:
                         for UniProtID in UniProtID_list:
-                            fh_out.write(UniProtID + "\t" + PMID_etype_newline)
+                            fh_out.write(UniProtID + "\t" + PMID_etype_newline.strip() + "\t" + taxid + "\n")
                     else:
                         fh_out_no_translation.write(ENSP + "\n")
 
@@ -3281,7 +3282,7 @@ def ENSP_2_UniProtID_without_translation(fn_in_list, protein_shorthands, ENSP_2_
     """
     capture all ENSPs without translation to a UniProt ID that are part of protein_shorthands
     """
-    ENSP_set = {}
+    ENSP_set = set()
     with open(protein_shorthands, "r") as fh_in:
         for line in fh_in:
             ENSP = line.split()[0]

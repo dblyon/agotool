@@ -528,12 +528,12 @@ rule Protein_2_Function__and__Functions_table_WikiPathways:
 rule Protein_2_Function_table_PMID_UPS:
     input:
         Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS,
-        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
-        ENSP_2_UniProtID_without_translation_1 = ENSP_2_UniProtID_without_translation_1
+        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid
     output:
-        Protein_2_Function_table_PMID_UPS = Protein_2_Function_table_PMID_UPS
+        Protein_2_Function_table_PMID_UPS = Protein_2_Function_table_PMID_UPS,
+        ENSP_2_UniProtID_without_translation_1 = ENSP_2_UniProtID_without_translation_1
     run:
-        cst.Protein_2_Function_table_PMID_UPS(input.Protein_2_Function_table_PMID_STS, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.ENSP_2_UniProtID_without_translation_1, output.Protein_2_Function_table_PMID_UPS)
+        cst.Protein_2_Function_table_PMID_UPS(input.Protein_2_Function_table_PMID_STS, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.ENSP_2_UniProtID_without_translation_1, output.Protein_2_Function_table_PMID_UPS)
 
 rule Protein_2_Function_table_UPS:
     input:

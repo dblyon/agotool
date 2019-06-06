@@ -20,7 +20,7 @@ READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from P
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
-VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
+VERSION_ = "aGOtool" # switch between "STRING" and "aGOtool" versions of the program
 temp_dont_run_analysis = False
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58}
