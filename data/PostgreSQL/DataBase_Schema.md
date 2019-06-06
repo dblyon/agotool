@@ -125,34 +125,34 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 2 | {255, 402, 2890, 2895, 2896, 3348, 6754, 6755, 7520, ... } |
 
 
-### protein_2_function [Protein_2_Function_table_UPS.txt]
-| uniprotid | func_array | etype | taxid | 
+### protein_2_function [Protein_2_Function_table_UPS.txt] # TODO change taxid uniprotid column sort order
+| taxid | uniprotid | func_array | etype | 
 |:---:|:---:|:---:|:---:|
-| 001R_FRG3G | {"KW-0010","KW-0181","KW-0804","KW-0805","KW-1185","KW-9990","KW-9992","KW-9999"} | -51 | 654924 | 
-| 001R_FRG3G | {"GO:0008150","GO:0043900","GO:0043903","GO:0046782","GO:0050789","GO:0050792","GO:0065007"} | -21 | 654924 |
-| 001R_FRG3G | {"IPR007031"} |-54 | 654924 |
-| 001R_FRG3G | {"PF04947"} | -55 | 654924 |
-| 002L_FRG3G | {"KW-0181","KW-0472","KW-0812","KW-1043","KW-1133","KW-1185","KW-9990","KW-9994","KW-9998"} | -51 | 654924 |
+| 654924 | 001R_FRG3G | {"KW-0010","KW-0181","KW-0804","KW-0805","KW-1185","KW-9990","KW-9992","KW-9999"} | -51 |
+| 654924 | 001R_FRG3G | {"GO:0008150","GO:0043900","GO:0043903","GO:0046782","GO:0050789","GO:0050792","GO:0065007"} | -21 |
+| 654924 | 001R_FRG3G | {"IPR007031"} |-54 |
+| 654924 | 001R_FRG3G | {"PF04947"} | -55 |
+| 654924 | 002L_FRG3G | {"KW-0181","KW-0472","KW-0812","KW-1043","KW-1133","KW-1185","KW-9990","KW-9994","KW-9998"} | -51 |
 
 
-### Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS [Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt]
-| uniprotid | func_array | etype | taxid | 
+### Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS [Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt] # TODO change taxid uniprotid column sort order
+| taxid | uniprotid | func_array | etype | 
 |:---:|:---:|:---:|:---:|
 | G3XA30_MOUSE | {"GO:0005622","GO:0005886","GO:0016020","GO:0044424","GO:0044464","GO:0043231","GO:0005856","GO:0044444","GO:0043228","GO:0043226","GO:0005737","GO:0043227","GO:0043232","GO:0005634","GO:0005576","GO:0005829","GO:0071944","GO:0005575","GO:0005623","GO:0043229"} | -22 | 10090 |
 | PCOC1_RAT | {"GO:0005886","GO:0043227","GO:0044464","GO:0043229","GO:0044424","GO:0016020","GO:0016942","GO:0005576","GO:0005622","GO:0043226","GO:0005615","GO:0043231","GO:0044421","GO:0036454","GO:0071944","GO:0005575","GO:0005634","GO:0005623"} | -22 | 10116 |
 
 
-### protein_2_functionenum [Protein_2_FunctionEnum_table_UPS_FIN.txt]
-| uniprotid | func_enum_array | taxid |
+### protein_2_functionenum [Protein_2_FunctionEnum_table_UPS_FIN.txt] # TODO change taxid uniprotid column sort order
+| taxid | uniprotid | func_enum_array |
 |:---:|:---:|:---:|
 | 1000565.METUNv1_00006 | {47403, 48329, 48422, 52375, 86134, 97354, 97505} | 1000565 | 
 | 1193181.BN10_100007 | {47403, 47665, 47963, 48277, 48329, 48422, 48426, 48430, 52979, 61216, 86802} | 1193181 |
 | 1230343.CANP01000023_gene1527 | {47403, 47665, 47963, 48277, 48422, 48426, 48430} | 1230343 |
 
 
-### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt] ? reduce to primary UniProtIDs ?
-| uniprotid | funcenum_score_arr | taxid |
-|:---:|:---:|
+### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt] ? reduce to primary UniProtIDs ? # TODO change taxid uniprotid column sort order
+| taxid | uniprotid | funcenum_score_arr |
+|:---:|:---:|:---:|
 | 9606.ENSP00000000233 | {{33885,1.00616},{34752,0.709055},{35541,1.297117},{35543,1.296111},{35907,0.600582},{36031,0.670014},{36271,0.527888},{36276,0.552587}, ... } | 9606 |
 
 

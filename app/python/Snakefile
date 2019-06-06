@@ -43,12 +43,12 @@ URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hi
 URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
 URL_go_obo_Jensenlab = r"http://download.jensenlab.org/aGOtool/go.obo"
 URL_Function_2_Description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
-Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz")
+Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz") # 29.678.010
 URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
 Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
 URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
-Protein_2_Function_table_PMID_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt")
-Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt")
+Protein_2_Function_table_PMID_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID_abstracts.txt") # 295.762
+Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt") # 177.656 lines and 5.305.811 unique PMIDs
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
 Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
@@ -113,8 +113,8 @@ Function_2_Proteins_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Pro
 Function_2_Proteins_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Proteins_table_UPS_removed.txt")
 Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
 
-UniProtID_2_ENSPs_2_KEGGs_2_Taxid = os.path.join(TABLES_DIR, "UniProtID_2_ENSPs_2_KEGGs_2_Taxid.txt")
-UniProt_AC_2_ID_2_Taxid = os.path.join(TABLES_DIR, "UniProt_AC_2_ID_2_Taxid.txt")
+Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
+Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
 Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
 Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
@@ -477,12 +477,12 @@ rule Protein_2_Function_table_UniProtDump_UPS:
         RCTM_hierarchy = RCTM_hierarchy
     output:
         Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, Pfam
-        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
-        UniProt_AC_2_ID_2_Taxid = UniProt_AC_2_ID_2_Taxid
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
+        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.UniProt_AC_2_ID_2_Taxid, params.verbose)
+        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Taxid_UniProt_AC_2_ID, params.verbose)
 
 # rule Protein_2_Function_table_UniProtDump_UPS_parallel: # doens't work properly, regex parsing
 #     input:
@@ -496,7 +496,7 @@ rule Protein_2_Function_table_UniProtDump_UPS:
 #         parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
 #     output:
 #         temp_dir = directory(os.path.join(TABLES_DIR, "temp")),
-#         Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp.txt"), # Protein_2_Function_table_UniProtDump_UPS, UniProtID_2_ENSPs_2_KEGGs_2_Taxid, UniProt_AC_2_ID_2_Taxid
+#         Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp.txt"), # Protein_2_Function_table_UniProtDump_UPS, Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID
 #     threads: NUMBER_OF_PROCESSES
 #     shell:
 #         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.SwissProt_dump_dat}", r"{input.parallel_parse_UniProt_dump}", r"{output.Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads}, recstart=r"^ID", recend=r"\/\/", KB_MB_GB="M", split_size="100")'"""
@@ -504,13 +504,13 @@ rule Protein_2_Function_table_UniProtDump_UPS:
 rule Protein_2_Function_table_KEGG_UPS:
     input:
         KEGG_organisms_dir = KEGG_organisms_dir,
-        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
     output:
         Protein_2_Function_table_KEGG_UPS = Protein_2_Function_table_KEGG_UPS,
         Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = Protein_2_Function_table_KEGG_UPS_ENSP_benchmark,
         KEGG_entry_no_pathway_annotation = KEGG_entry_no_pathway_annotation
     run:
-        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_organisms_dir, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
+        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_organisms_dir, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
 
 rule Protein_2_Function__and__Functions_table_WikiPathways:
     input:
@@ -528,12 +528,12 @@ rule Protein_2_Function__and__Functions_table_WikiPathways:
 rule Protein_2_Function_table_PMID_UPS:
     input:
         Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS,
-        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
     output:
         Protein_2_Function_table_PMID_UPS = Protein_2_Function_table_PMID_UPS,
         ENSP_2_UniProtID_without_translation_1 = ENSP_2_UniProtID_without_translation_1
     run:
-        cst.Protein_2_Function_table_PMID_UPS(input.Protein_2_Function_table_PMID_STS, input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, output.ENSP_2_UniProtID_without_translation_1, output.Protein_2_Function_table_PMID_UPS)
+        cst.Protein_2_Function_table_PMID_UPS(input.Protein_2_Function_table_PMID_STS, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.ENSP_2_UniProtID_without_translation_1, output.Protein_2_Function_table_PMID_UPS)
 
 rule Protein_2_Function_table_UPS:
     input:
@@ -559,12 +559,12 @@ rule Protein_2_FunctionEnum_table_UPS_FIN:
 
 rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
     input:
-        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
     output:
         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
     run:
-        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS)
+        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS)
 
 rule Functions_table_UPS_FIN:
     input:
@@ -579,7 +579,7 @@ rule Functions_table_UPS_FIN:
 
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
-        UniProtID_2_ENSPs_2_KEGGs_2_Taxid = UniProtID_2_ENSPs_2_KEGGs_2_Taxid,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
         Functions_table_UPS_FIN = Functions_table_UPS_FIN # Functions_table_STRING = Functions_table_STRING,
     output:
@@ -589,7 +589,7 @@ rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.UniProtID_2_ENSPs_2_KEGGs_2_Taxid, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, params.GO_CC_textmining_additional_etype)
+        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, params.GO_CC_textmining_additional_etype)
 
 rule ENSP_2_UniProtID_without_translation:
     input:
@@ -626,3 +626,46 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
 # TODO
 # - rule Function_2_Proteins_table_UPS: sorting slow and not parallel. change all tables putting taxid to first column, change sorting to be numerical --> not sure sorting needs to be fixed
 # - Function_2_Proteins_table --> Function_2_Protein_table
+
+
+# why are there so few PMID -56 in Functions_table_UPS_FIN.txt ?
+
+# $ cut -f 2 Functions_table_STRING.txt | sort | uniq -c
+#   17251 -21
+#    2413 -22
+#    5038 -23
+#     921 -51
+#     437 -52
+#    1268 -53
+#   26965 -54
+#   13938 -55
+# 3592745 -56
+#   19955 -57
+
+# $ cut -f 1 Functions_table_all.txt | sort | uniq -c
+#    3934 -20
+#   29614 -21
+#    4193 -22
+#   11138 -23
+#    4964 -25
+#   11618 -26
+#    1199 -51
+#     524 -52
+#   36713 -54
+#   16712 -55
+# 29678010 -56
+#   23437 -57
+#    1590 -58
+
+#  $ cut -f2 Functions_table_UPS_FIN.txt|sort | uniq -c
+#    3934 -20
+#   16355 -21
+#    3381 -22
+#    6398 -23
+#    3978 -25
+#    6663 -26
+#     917 -51
+#   35399 -54
+#   15799 -55
+#   87195 -56
+#    1273 -58
