@@ -718,13 +718,13 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
     for res in results:
         index_ = 0
         if variables.VERSION_ == "UniProt":
-            protein_AN, funcEnum_score_arr_orig, taxid = res
+            taxid, protein_AN, funcEnum_score_arr_orig = res
         elif variables.VERSION_ == "STRING":
             protein_AN, funcEnum_score_arr_orig = res
         else:
             print("Not implemented version {}".format(variables.VERSION_))
             raise StopIteration
-
+        funcEnum_score_arr_orig = funcEnum_score_arr_orig.strip()
         if funcEnum_score_arr_orig == "{}":
             continue
         funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]

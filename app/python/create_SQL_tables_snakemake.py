@@ -971,6 +971,10 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
             # | 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 | -60 | --> add etype when merging with STRING ENSP space
             an_arr = format_list_of_string_2_postgres_array(sorted(set(uniprot_ans)))
             fh_out.write("{}\t{}\t{}\n".format(taxid, an_arr, num_ans))
+            if taxid == "559292": # duplicate entry for Yeast reference proteome on taxonomic rank species (instead of strain level)
+                fh_out.write("{}\t{}\t{}\n".format("4932", an_arr, num_ans))
+            elif taxid == "284812":
+                fh_out.write("{}\t{}\t{}\n".format("4896", an_arr, num_ans))
 
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):
     # concatenate STRING ENSPs and UniProt AC
@@ -1094,6 +1098,7 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
     # - create array of zeros of function_enumeration_length
     # - for line in Protein_2_FunctionEnum_table_UPS_FIN
     #     add counts to array until taxid_new != taxid_previous
+    # only use Taxids that exist in TaxID_2_Proteins_table, since these are UniProt Reference Proteome proteins (no ref prot for other taxids)
     """
     background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
     """
@@ -1108,23 +1113,78 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
             line = next(fh_in)
             fh_in.seek(0)
             taxid_previous, UniProtID, funcEnum_set = helper_parse_line_Protein_2_FunctionEnum_table_UPS(line)
-            UniProtID_set = set(query.get_proteins_of_taxid(taxid_previous, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+            if taxid_previous in taxid_2_total_protein_count_dict:
+                UniProtID_set = set(query.get_proteins_of_taxid(taxid_previous, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+            else:
+                UniProtID_set = set()
 
             for line in fh_in:
                 taxid, UniProtID, funcEnum_set = helper_parse_line_Protein_2_FunctionEnum_table_UPS(line)
                 if taxid != taxid_previous:
                     index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
                     background_n = taxid_2_total_protein_count_dict[taxid_previous]
-                    fh_out.write(taxid_previous + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+                    if taxid in taxid_2_total_protein_count_dict:
+                        fh_out.write(taxid_previous + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
                     funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
-                    UniProtID_set = set(query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+                    if taxid in taxid_2_total_protein_count_dict:
+                        UniProtID_set = set(query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+                    else:
+                        UniProtID_set = set()
 
                 if UniProtID in UniProtID_set: # restrict to reference proteome
                     funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_set)
                 taxid_previous = taxid
             index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
             background_n = taxid_2_total_protein_count_dict[taxid]
-            fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+            if taxid in taxid_2_total_protein_count_dict:
+                fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+
+# def Taxid_2_FunctionCountArray_table_UPS_v2(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
+#     # - sort Protein_2_FunctionEnum_table_UPS_FIN.txt on Taxid and UniProtID
+#     # - create array of zeros of function_enumeration_length
+#     # - for line in Protein_2_FunctionEnum_table_UPS_FIN
+#     #     add counts to array until taxid_new != taxid_previous
+#     # only use Taxids that exist in TaxID_2_Proteins_table, since these are UniProt Reference Proteome proteins (no ref prot for other taxids)
+#     """
+#     background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
+#     """
+#     print("creating Taxid_2_FunctionCountArray_table_FIN")
+#     tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, number_of_processes=number_of_processes, verbose=verbose) # sort on Taxid and UniProtID
+#     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
+#     num_lines = tools.line_numbers(Functions_table_UPS_FIN)
+#     print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_FIN))
+#     with open(fn_out_Taxid_2_FunctionCountArray_table_FIN, "w") as fh_out:
+#         for entry in yield_entry_Protein_2_FunctionEnum_table_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, taxid_2_total_protein_count_dict.keys()):
+#
+#
+#         with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
+#             funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
+#             line = next(fh_in)
+#             fh_in.seek(0)
+#             taxid_previous, UniProtID, funcEnum_set = helper_parse_line_Protein_2_FunctionEnum_table_UPS(line)
+#             UniProtID_set = set(query.get_proteins_of_taxid(taxid_previous, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+#
+#             for line in fh_in:
+#                 taxid, UniProtID, funcEnum_set = helper_parse_line_Protein_2_FunctionEnum_table_UPS(line)
+#                 if taxid != taxid_previous:
+#                     index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
+#                     background_n = taxid_2_total_protein_count_dict[taxid_previous]
+#                     fh_out.write(taxid_previous + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+#                     funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
+#                     UniProtID_set = set(query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+#
+#                 if UniProtID in UniProtID_set: # restrict to reference proteome
+#                     funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_set)
+#                 taxid_previous = taxid
+#             index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
+#             background_n = taxid_2_total_protein_count_dict[taxid]
+#             fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+
+# def yield_entry_Protein_2_FunctionEnum_table_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, taxid_whitelist):
+#     with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
+
+
+
 
 def helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr):
     funcEnum_count_arr_last += funcEnum_count_arr
@@ -1141,9 +1201,9 @@ def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
     return taxid, ENSP, funcEnum_set
 
 def helper_parse_line_Protein_2_FunctionEnum_table_UPS(line):
-    UniProtID, funcEnum_set, taxid = line.split("\t")
-    taxid = taxid.strip()
-    funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())}
+    taxid, UniProtID, funcEnum_set = line.split("\t")
+    # funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())}
+    funcEnum_set = {int(num) for num in funcEnum_set.strip()[1:-1].split(",")}
     return taxid, UniProtID, funcEnum_set
 
 def helper_count_funcEnum(funcEnum_count, funcEnum_set):
@@ -1934,7 +1994,7 @@ def Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(KEGG_dir, fn_in_
     if verbose:
         print("number of KEGG files to parse {}".format(len(fn_list_KEGG_tar_gz)))
     KEGG_Protein_2_pathwayNames_list_dict = get_KEGG_Protein_2_pathwayName_dict(fn_list_KEGG_tar_gz)
-
+    etype = variables.id_2_entityTypeNumber_dict["KEGG"]
     no_pathway_annotation_KEGG_proteins = []
     with open(fn_out_Protein_2_Function_table_KEGG_UP, "w") as fh_out:
         with open(fn_out_Protein_2_Function_table_KEGG_UP_ENSP_benchmark, "w") as fh_out_ENSP:
@@ -1952,7 +2012,7 @@ def Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(KEGG_dir, fn_in_
                             no_pathway_annotation_KEGG_proteins.append(kegg_protein_entry)
                     pathwayNames_set = set(pathwayNames_list)
                     if len(pathwayNames_set) > 0:
-                        fh_out.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(sorted(pathwayNames_set)) + "\n")
+                        fh_out.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(sorted(pathwayNames_set)) + "\t" + etype + "\n")
                         for ENSP in ENSP_list:
                             fh_out_ENSP.write(ENSP + "\t" + format_list_of_string_2_postgres_array(sorted(pathwayNames_set)) + "\n")
     with open(fn_out_KEGG_entry_no_pathway_annotation, "w") as fh_out_KEGG_entry_no_pathway_annotation:
@@ -3211,6 +3271,16 @@ def get_EntrezGeneID_2_ENSPsList_dict(fn):
     return EntrezGeneID_2_ENSPsList_dict
 
 def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
+    """
+    since UniProt ref prot for 4932 doesn't exist but does exist for 559292
+    --> create duplicate of 559292 for taxid 4932
+    4932 Saccharomyces cerevisiae, Jensenlab
+    559292 Saccharomyces cerevisiae S288C, UniProt Reference Proteome
+    4932 --> 559292
+    4896 Schizosaccharomyces pombe, Jensenlab
+    284812 Schizosaccharomyces pombe 972h-, UniProt Reference Proteome
+    4896 --> 284812
+    """
     ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
     with open(fn_out_Taxid_2_funcEnum_2_scores_table_FIN, "w") as fh_out:
         for taxid in variables.jensenlab_supported_taxids:

@@ -235,7 +235,8 @@ except:
     pass
 
 jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
-jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 559292, 284812]
+jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
+
 # 4932 Saccharomyces cerevisiae, Jensenlab
 # 559292 Saccharomyces cerevisiae S288C, UniProt Reference Proteome
 # 4932 --> 559292
@@ -243,3 +244,15 @@ jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 559292, 2848
 # 284812 Schizosaccharomyces pombe 972h-, UniProt Reference Proteome
 # 4896 --> 284812
 # ToDo test if user with query of 4932 gets background proteome for 559292
+# ToDo check/do functional annotation transfer from Jensenlab 4932 to 559292 ???
+# Only UniProt Reference Proteomes used for enrichment method "genome"
+# strain level information duplicated from to 559292 --> 4932 and 284812 --> 4896 (Taxid_2_Proteins_table_UPS_FIN.txt expanded)
+# Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt
+# 10090
+# 10116
+# 3702
+# 4896
+# 4932
+# 6239
+# 7227
+# 9606
