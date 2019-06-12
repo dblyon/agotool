@@ -544,7 +544,7 @@ rule Protein_2_FunctionEnum_table_UPS_FIN:
         Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_FunctionEnum_table_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, threads)
+        cst.Protein_2_FunctionEnum_table_UPS_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, threads)
 
 rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
     input:

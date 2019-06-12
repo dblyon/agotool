@@ -25,7 +25,7 @@ temp_dont_run_analysis = False
 if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
 ############################
-entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58}
+entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # ToDo SMART is missing in UniProt version
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
 entity_types_with_ontology = {-20, -21, -22, -23, -25, -26, -51, -57} # Interpro has ontology, but omitted here to turn off filter_parents functionality
