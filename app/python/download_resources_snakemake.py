@@ -64,7 +64,7 @@ def download_gzip_file(url, file_name, verbose=True):
     if verbose:
         print("finished download")
 
-def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file, verbose=True):
+def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file):
     """
     download flat files in GMT format
     Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.

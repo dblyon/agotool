@@ -159,6 +159,7 @@ def Functions_table_Reactome_combispeed(fn_in_desciptions, fn_out_Functions_tabl
 
 def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_table_RCTM, all_terms=None):
     """
+    entity_type = "-57"
     :param fn_in_desciptions: String (RCTM_descriptions.tsv)
     :param fn_in_hierarchy: String
     :param fn_out_Functions_table_RCTM: String (Function_table_RCTM.txt)
@@ -171,7 +172,6 @@ def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_ta
     """
     child_2_parent_dict = get_child_2_direct_parent_dict_RCTM(fn_in_hierarchy)  # child_2_parent_dict --> child 2 direct parents
     term_2_level_dict = get_term_2_level_dict(child_2_parent_dict)
-    # entity_type = "-57"
     entity_type = variables.id_2_entityTypeNumber_dict["Reactome"]
     year = "-1"
     terms_with_hierarchy, terms_without_hierarchy = [], []
@@ -193,54 +193,7 @@ def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_ta
                 else:
                     if term in all_terms:  # filter relevant terms that occur in protein_2_functions_tables_RCTM.txt
                         fh_out.write(entity_type + "\t" + term + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
-
-
     return sorted(set(terms_with_hierarchy)), sorted(set(terms_without_hierarchy))
-
-
-# def get_random_direct_lineage(child, child_2_parent_dict, lineage=[]):
-#     """
-#     does not include child
-#     child = "ATH-111997"
-#     get_random_direct_lineage(child, child_2_parent_dict)
-#     """
-#     try:
-#         parents = child_2_parent_dict[child]
-#     except KeyError:
-#         return lineage  # already at root
-#     if len(parents) == 0: # already at root as well (for other cases)
-#         return lineage
-#     for parent in parents:  # select random parent
-#         lineage.append(parent)
-#         return get_random_direct_lineage(parent, child_2_parent_dict, lineage)
-
-# def get_all_lineages(child, child_2_parent_dict):
-#     """
-#     child included in lineage
-#     child = "ATH-111997"
-#     get_all_lineages(child, child_2_parent_dict)
-#     --> [['ATH-111997', 'ATH-1489509', 'ATH-9006925', 'ATH-162582'],
-#     ['ATH-111997', 'ATH-111996', 'ATH-112043', 'ATH-112040', 'ATH-111885', 'ATH-418594', 'ATH-388396', 'ATH-372790', 'ATH-162582']]
-#
-#     an = "GO:1904767"
-#     lineage_dict[an] --> {'GO:0031406', 'GO:0005488', 'GO:0036094', 'GO:0043168', 'GO:0008289', 'GO:0005504', 'GO:0033293', 'GO:0043167', 'GO:0003674', 'GO:0043177'}
-#     child_2_parent_dict[an] --> {'GO:0005504'}
-#     """
-#     all_lineages = []
-#     parents_2_remove = set()
-#     direct_parents = get_direct_parents(child, child_2_parent_dict)
-#     while True:
-#         if len(direct_parents - parents_2_remove) == 0:
-#             return all_lineages
-#         else:
-#             # pick a parent
-#             parent = list(direct_parents - parents_2_remove)[0]
-#             lineage = [child, parent] + get_random_direct_lineage(parent, child_2_parent_dict, lineage=[])
-#             all_lineages.append(lineage)
-#             # parents_2_remove.update(set(lineage))
-#             parents_2_remove.update({parent})
-#             direct_parents.update(get_direct_parents(parent, child_2_parent_dict))
-
 
 def get_direct_parents(child, child_2_parent_dict):
     try:
@@ -770,7 +723,6 @@ def Lineage_table_FIN(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_i
         for key, value in lineage_dict.items():
             fh_out_hr.write(str(key) + "\t" + "{" + str(sorted(set(value)))[1:-1].replace("'", '"') + "}\n")
 
-
 def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype=False):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)
@@ -808,21 +760,6 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
     lineage_dict.update(get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict))
     return lineage_dict
 
-# def get_lineage_Reactome(fn_hierarchy): #, debug=False): # deprecated
-#     lineage_dict = defaultdict(lambda: set())
-#     child_2_parent_dict = get_child_2_direct_parent_dict_RCTM(fn_hierarchy)
-#     # parent_2_children_dict = get_parent_2_child_dict_RCTM(fn_hierarchy)
-#     # if not debug:
-#     #     for parent, children in parent_2_children_dict.items(): #!!! why do I need this? lineage from children to parents is needed not from parents to all children
-#     #         lineage_dict[parent] = children
-#     for child in child_2_parent_dict:
-#         parents = get_parents_iterative(child, child_2_parent_dict)
-#         if child in lineage_dict:
-#             lineage_dict[child].union(parents)
-#         else:
-#             lineage_dict[child] = parents
-#     return lineage_dict
-
 def get_lineage_from_child_2_direct_parent_dict(child_2_direct_parent_dict):
     lineage_dict = defaultdict(lambda: set())
     for child in child_2_direct_parent_dict:
@@ -833,18 +770,6 @@ def get_lineage_from_child_2_direct_parent_dict(child_2_direct_parent_dict):
             lineage_dict[child] = parents
     return lineage_dict
 
-# def get_parent_2_child_dict_RCTM(fn_hierarchy): # deprecated
-#     parent_2_children_dict = {}
-#     with open(fn_hierarchy, "r") as fh_in:
-#         for line in fh_in:
-#             parent, child = line.split("\t")
-#             child = child.strip()
-#             if parent not in parent_2_children_dict:
-#                 parent_2_children_dict[parent] = {child}
-#             else:
-#                 parent_2_children_dict[parent] |= {child}
-#     return parent_2_children_dict
-
 def get_child_2_direct_parent_dict_RCTM(fn_in):
     """
     child_2_parent_dict --> child 2 direct parents
@@ -854,6 +779,10 @@ def get_child_2_direct_parent_dict_RCTM(fn_in):
         for line in fh_in:
             parent, child = line.split("\t")
             child = child.strip()
+            if child.startswith("R-"):
+                child = child[2:]
+            if parent.startswith("R-"):
+                parent = parent[2:]
             if child not in child_2_parent_dict:
                 child_2_parent_dict[child] = {parent}
             else:
@@ -972,11 +901,11 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
             assert num_ans == len(set(uniprot_ans))
             # | 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 | -60 | --> add etype when merging with STRING ENSP space
             an_arr = format_list_of_string_2_postgres_array(sorted(set(uniprot_ans)))
-            fh_out.write("{}\t{}\t{}\n".format(taxid, an_arr, num_ans))
+            fh_out.write("{}\t{}\t{}\n".format(taxid, num_ans, an_arr))
             if taxid == "559292": # duplicate entry for Yeast reference proteome on taxonomic rank species (instead of strain level)
-                fh_out.write("{}\t{}\t{}\n".format("4932", an_arr, num_ans))
+                fh_out.write("{}\t{}\t{}\n".format("4932", num_ans, an_arr))
             elif taxid == "284812":
-                fh_out.write("{}\t{}\t{}\n".format("4896", an_arr, num_ans))
+                fh_out.write("{}\t{}\t{}\n".format("4896", num_ans, an_arr))
 
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):
     # concatenate STRING ENSPs and UniProt AC
@@ -990,79 +919,7 @@ def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_
             etype = variables.searchspace_2_entityType_dict["UniProt"]
             for line in fh_in2:
                 fh_out.write(line.strip() + "\t{}\n".format(etype))
-    # sort
     tools.sort_file(fn_out_Taxid_2_Proteins_table_FIN, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes=number_of_processes, verbose=verbose)
-
-
-
-
-# def Taxid_2_FunctionCountArray_table_STRING_old_retain_scores(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, Taxid_2_FunctionCountArray_table_BTO_DOID, fn_out_Taxid_2_FunctionCountArray_table_STRING_temp, fn_out_Taxid_2_FunctionCountArray_table_STRING, number_of_processes=1, verbose=True):
-#     # - sort Protein_2_FunctionEnum_table_STRING.txt
-#     # - create array of zeros of function_enumeration_length
-#     # - for line in Protein_2_FunctionEnum_table_STRING
-#     #     add counts to array until taxid_new != taxid_previous
-#     print("creating Taxid_2_FunctionCountArray_table_STRING")
-#     tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
-#     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
-#     num_lines = tools.line_numbers(Functions_table_STRING)
-#     print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_STRING_temp))
-#     with open(fn_out_Taxid_2_FunctionCountArray_table_STRING_temp, "w") as fh_out:
-#         with open(Protein_2_FunctionEnum_table_STRING, "r") as fh_in:
-#             funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
-#             line = next(fh_in)
-#             fh_in.seek(0)
-#             taxid_previous, ENSP, funcEnum_set = helper_parse_line_Protein_2_FunctionEnum_table_STRING(line)
-#
-#             for line in fh_in:
-#                 taxid, ENSP, funcEnum_set = helper_parse_line_Protein_2_FunctionEnum_table_STRING(line)
-#                 if taxid != taxid_previous:
-#                     index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
-#                     background_n = taxid_2_total_protein_count_dict[taxid_previous]
-#                     fh_out.write(taxid_previous + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
-#                     funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
-#
-#                 funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_set)
-#                 taxid_previous = taxid
-#             index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
-#             background_n = taxid_2_total_protein_count_dict[taxid]
-#             fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
-#
-#         # add everything from Taxid_2_FunctionCountArray_table_BTO_DOID.txt
-#         # sort the resulting concatendated file
-#         # merge lines
-#         with open(Taxid_2_FunctionCountArray_table_BTO_DOID, "r") as fh_2_add:
-#             for line in fh_2_add:
-#                 fh_out.write(line)
-#     print("merging results with {}".format(Taxid_2_FunctionCountArray_table_BTO_DOID))
-#     # sort
-#     tools.sort_file(fn_out_Taxid_2_FunctionCountArray_table_STRING_temp, fn_out_Taxid_2_FunctionCountArray_table_STRING_temp, number_of_processes=number_of_processes, verbose=verbose)
-#     # merge lines
-#     with open(fn_out_Taxid_2_FunctionCountArray_table_STRING_temp, "r") as fh_in:
-#         with open(fn_out_Taxid_2_FunctionCountArray_table_STRING, "w") as fh_out:
-#             # don't seek(0) otherwise duplicates are created and assert fails
-#             taxid_last, background_n_last, funcEnum_count_arr_last = next(fh_in).split("\t")
-#             funcEnum_count_arr_last = literal_eval(funcEnum_count_arr_last.replace("{", "[").replace("}", "]"))
-#             for line in fh_in:
-#                 # 1234 654 {{502,22},{5000004,24}}
-#                 # 5234 777 {{702,22},{589,24}}
-#                 # 9606 19566 {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ...
-#                 # 9606 19566 {{202,22},{2000004,24}}
-#                 # 7777 66 {{902,22},{589,24}}
-#                 taxid, background_n, funcEnum_count_arr = line.split("\t")
-#                 funcEnum_count_arr = literal_eval(funcEnum_count_arr.replace("{", "[").replace("}", "]"))
-#                 if taxid != taxid_last:
-#                     fh_out.write(taxid_last + "\t" + background_n_last + "\t" + str(funcEnum_count_arr_last).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
-#                     taxid_last, background_n_last, funcEnum_count_arr_last = taxid, background_n, funcEnum_count_arr
-#                 else:
-#                     # merge stuff
-#                     funcEnum_count_arr_last = helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr)
-#             if taxid != taxid_last:
-#                 fh_out.write(taxid_last + "\t" + background_n_last + "\t" + str(funcEnum_count_arr_last).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
-#             else:
-#                 # merge stuff and write to file (only 2 lines of same taxid if any at all)
-#                 funcEnum_count_arr = helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_arr)
-#                 fh_out.write(taxid + "\t" + background_n + "\t" + str(funcEnum_count_arr).replace(" ", "").replace("[", "{").replace("]", "}") + "\n")
-#     print("Taxid_2_FunctionCountArray_table_STRING done :)")
 
 def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
     # - sort Protein_2_FunctionEnum_table_STRING.txt
@@ -1094,7 +951,6 @@ def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Fu
             index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
             background_n = taxid_2_total_protein_count_dict[taxid]
             fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
-
 
 def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
     """
@@ -1416,37 +1272,6 @@ def get_all_parent_terms(GOterm_list, GO_dag):
             not_in_obo.append(GOterm)
     return sorted(set(parents).union(set(GOterm_list))), sorted(set(not_in_obo))
 
-# def divide_into_categories_old(GOterm_list, GO_dag,
-#                            MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
-#     """
-#     split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
-#     'GO:0003674': "-23",  # 'Molecular Function',
-#     'GO:0005575': "-22",  # 'Cellular Component',
-#     'GO:0008150': "-21",  # 'Biological Process',
-#     :param GOterm_list: List of String
-#     :param GO_dag: Dict like object
-#     :return: Tuple (List of String x 3)
-#     """
-# #     MFs, CPs, BPs, not_in_OBO = [], [], [], []
-#     for term in GOterm_list:
-#         if term == "GO:0003674" or GO_dag[term].has_parent("GO:0003674"):
-#             MFs.append(GO_dag[term].id)
-#         elif term == "GO:0005575" or GO_dag[term].has_parent("GO:0005575"):
-#             CPs.append(GO_dag[term].id)
-#         elif term == "GO:0008150" or GO_dag[term].has_parent("GO:0008150"):
-#             BPs.append(GO_dag[term].id)
-#         else:
-#             try:
-#                 GO_id = GO_dag[term].id
-#             except KeyError:
-#                 not_in_OBO.append(term)
-#                 continue
-#             if GO_dag[GO_id].is_obsolete:
-#                 not_in_OBO.append(term)
-#             else:
-#                 MFs, CPs, BPs, not_in_OBO = divide_into_categories([GO_id], GO_dag, MFs, CPs, BPs, not_in_OBO)
-#     return sorted(MFs), sorted(CPs), sorted(BPs), sorted(not_in_OBO)
-
 def divide_into_categories(GOterm_list, GO_dag, MFs=[], CPs=[], BPs=[], not_in_OBO=[]):
     """
     split a list of GO-terms into the 3 parent categories in the following order MFs, CPs, BPs
@@ -1602,7 +1427,6 @@ def Protein_2_Function_table_UniProtKeyword_UniProtSpace(fn_in_Functions_table_U
     if verbose:
         print("Number of UniProt Keywords not in OBO: ", len(UPKs_not_in_obo_list))
         print("done create_Protein_2_Function_table_UniProtKeywords\n")
-
 
 def parse_full_uniprot_2_string(fn_in):
     """
@@ -1806,7 +1630,9 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
             InterPro.append(annotation)
         elif func_type == "Pfam":
             Pfam.append(annotation)
-        elif func_type == "Reactome":
+        elif func_type == "Reactome":        # DR   Reactome; R-DME-6799198; Complex I biogenesis.
+            if annotation.startswith("R-"):  # R-DME-6799198 --> DME-6799198
+                annotation = annotation[2:]
             Reactome.append(annotation)
         elif func_type == "STRING":
             funcs_2_return = []
@@ -1823,14 +1649,6 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
         elif func_type == "Proteomes":
             Proteomes.append(annotation)
     return [GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes]
-
-# def UniProt_2_STRING_2_KEGG_from_dump(fn_list_uniprot_dump, fn_out_UniProt_2_STRING_2_KEGG): # deprecated
-#     with open(fn_out_UniProt_2_STRING_2_KEGG, "w") as fh_out:
-#         for uniprot_dump_file in fn_list_uniprot_dump:
-#             for stuff in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_file):
-#                 UniProtAN_and_ID_list, Keywords_list, GO, InterPro, Pfam, KEGG, Reactome, STRING = stuff
-#                 for uniprot in UniProtAN_and_ID_list:
-#                     fh_out.write(uniprot + "\t" + ";".join(STRING) + "\t" + ";".join(KEGG) + "\n")
 
 def KEGG_Taxid_2_acronym_table_UPS(fn_in_KEGG_taxonomic_rank_file, fn_out_KEGG_Taxid_2_acronym_table_UP):
     """
@@ -1906,41 +1724,6 @@ def get_KEGG_Protein_2_pathwayName_dict(fn_list):
             else:
                 Protein_2_pathwayName_dict[KeggProtein].append(pathwayName)
     return Protein_2_pathwayName_dict
-
-# def Protein_2_Function_table_KEGG_UP(KEGG_Protein_2_pathwayNames_list_dict, fn_in_UniProt_2_KEGG_mapping, fn_out_Protein_2_Function_table_KEGG_UP, fn_out_KEGG_entry_no_pathway_annotation, verbose=True):
-#     """
-#     # head fn_in_UniProt_2_KEGG_mapping.txt
-#     # Q6GZX4  vg:2947773      -52
-#     # Q6GZX3  vg:2947774      -52
-#     # Q197F8  vg:4156251      -52
-#     # Q197F7  vg:4156252      -52
-#     : param fn_list_KEGG_tar_gz: List of String (list of tar.gz each containing a .list file with protein to pathway annotation)
-#     : param fn_in_UniProt_2_KEGG_mapping: String (UniProtAC to KEGG protein entry) include UniProtID?
-#     : param fn_out_Protein_2_Function_table_KEGG_UP: String
-#     : return: None
-#     """
-#     etype_KEGG = variables.id_2_entityTypeNumber_dict['KEGG']
-#     no_pathway_annotation_KEGG_proteins = []
-# #     if verbose:
-# #         print("number of KEGG files to parse {}".format(len(fn_list_KEGG_tar_gz)))
-# #     KEGG_Protein_2_pathwayNames_list_dict = get_KEGG_Protein_2_pathwayName_dict(fn_list_KEGG_tar_gz)
-#     with open(fn_out_Protein_2_Function_table_KEGG_UP, "w") as fh_out:
-#         with open(fn_in_UniProt_2_KEGG_mapping, "r") as fh_in:  # always a one to many mapping
-#             for line in fh_in:
-#                 uniprot_an_or_id, kegg_an = line.split("\t") # single UniProt AC or ID
-#                 kegg_protein_list = kegg_an.strip().split(";")
-#                 pathwayNames_list = []
-#                 for kegg_protein_entry in kegg_protein_list:
-#                     try:
-#                         pathwayNames_list += KEGG_Protein_2_pathwayNames_list_dict[kegg_protein_entry]
-#                     except KeyError:
-#                         no_pathway_annotation_KEGG_proteins.append(kegg_protein_entry)
-#                 pathwayNames_set = set(pathwayNames_list)
-#                 if len(pathwayNames_set) > 0:
-#                     fh_out.write(uniprot_an_or_id + "\t" + cst.format_list_of_string_2_postgres_array(sorted(pathwayNames_set)) + "\t" + etype_KEGG + "\n")
-#     with open(fn_out_KEGG_entry_no_pathway_annotation, "w") as fh_out_KEGG_entry_no_pathway_annotation:
-#         for kegg_entry in no_pathway_annotation_KEGG_proteins:
-#             fh_out_KEGG_entry_no_pathway_annotation.write(kegg_entry + "\n")
 
 def Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(KEGG_dir, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, fn_out_Protein_2_Function_table_KEGG_UP, fn_out_Protein_2_Function_table_KEGG_UP_ENSP_benchmark, fn_out_KEGG_entry_no_pathway_annotation, verbose=True):
     """
@@ -2316,7 +2099,7 @@ def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prote
     then sort based on Taxid and UniProtID
     then iterate over merged table
 
-    sort fn_in_Protein_2_Function_table_UPS by Taxid and UniProtID
+    sort fn_in_Protein_2_Function_table_UPS by Taxid and UnFunctions_table_RCTMProtID
     sort fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPSby Taxid and UniProtID
     """
     Protein_2_Function_table_merged = fn_in_Protein_2_Function_table_UPS + ".concat_temp"
@@ -2410,8 +2193,8 @@ def _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table_ST
     taxid_2_total_protein_count_dict = defaultdict(lambda: "-1")
     with open(fn_in_TaxID_2_Proteins_table_STRING, "r") as fh_in:
         for line in fh_in:
-            taxid, ENSP_arr_str, count = line.split("\t")
-            taxid_2_total_protein_count_dict[taxid] = count.strip()
+            taxid, count, __ENSP_arr_str= line.split("\t")
+            taxid_2_total_protein_count_dict[taxid] = count
     return taxid_2_total_protein_count_dict
 
 def _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Functions_table):
@@ -2986,60 +2769,6 @@ def Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC(TaxID_2_Proteins_table, Funct
     if verbose:
         print("done with Taxid_2_FunctionCountArray_table_BTO_DOID")
 
-# def Taxid_2_FunctionCountArray_table_BTO_DOID(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Taxid_2_FunctionCountArray_table_BTO_DOID, number_of_processes=1, verbose=True):
-#     """
-#     Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC.txt
-#     10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
-#     ENSP to functionEnumeration and its respective score
-#     scores >= 3 --> presence
-#     scores < 3 --> absence
-#     multiple ENSPs per taxid --> scores get summed up per TaxID
-#
-#     Taxid_2_FunctionCountArray_table_BTO_DOID.txt
-#     9606  19566  {{{0,3},{3,2},{4,3},{666,3}, ... ,{3000000,1}}
-#
-#     """
-#     if verbose:
-#         print("creating Taxid_2_FunctionCountArray_table_BTO_DOID")
-#     # sort table to get group ENSPs of same TaxID
-#     tools.sort_file(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, number_of_processes=number_of_processes, verbose=verbose)
-#     # get dict
-#     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
-#     num_lines = tools.line_numbers(Functions_table_STRING)
-#     # reduce to relevant ENSPs
-#     ENSP_set = get_all_ENSPs(TaxID_2_Proteins_table)
-#
-#     with open(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, "r") as fh_in:
-#         with open(Taxid_2_FunctionCountArray_table_BTO_DOID, "w") as fh_out:
-#             line = next(fh_in)
-#             fh_in.seek(0)
-#             taxid_last, ENSP_last, funcEnum_2_count_list_last = helper_parse_line_protein_2_functionEnum_and_score(line)
-#             funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
-#             funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list_last)
-#             for line in fh_in:
-#                 taxid, ENSP, funcEnum_2_count_list = helper_parse_line_protein_2_functionEnum_and_score(line)
-#                 if ENSP not in ENSP_set:
-#                     continue
-#                 if taxid == taxid_last:
-#                     # add to existing arr
-#                     funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
-#                 else:
-#                     # write to file
-#                     background_count = taxid_2_total_protein_count_dict[taxid_last]
-#                     funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
-#                     fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
-#                     # regenerate arr
-#                     funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("float64"))
-#                     funcEnum_count_background = helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_list)
-#                 # current becomes last
-#                 taxid_last = taxid
-#
-#             background_count = taxid_2_total_protein_count_dict[taxid_last]
-#             funcEnum_2_count_arr = helper_format_funcEnum(funcEnum_count_background)
-#             fh_out.write(taxid_last + "\t" + background_count + "\t" + funcEnum_2_count_arr + "\n")
-#     if verbose:
-#         print("done with Taxid_2_FunctionCountArray_table_BTO_DOID")
-
 def helper_parse_line_protein_2_functionEnum_and_score(line):
     """
     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082},{26747,2.382463},{26749,1.838262},{26761,1.597329},{26773,1.749074},{26781,1.597329},{26783,0.208875},{26784,2.294204},{26785,1.79201},{26786,2.358938},{26787,0.208875},{26790,1.904616},{26791,1.972038},{26797,1.813061},{26799,1.869913},{26840,2.344152},{26843,1.265298},{26844,1.544971},{26845,1.265298},{26847,1.068671},{26851,1.265298},{26856,0.632311},{26865,1.648461},{26868,1.547682},{26876,1.696821},{26883,1.349304},{26912,1.069535},{26927,0.667956},{26950,2.113912},{26953,0.833023},{26960,1.068671},{26961,1.597329},{26966,0.730319},{26974,1.696821},{26977,0.685772},{26978,1.307823},{26997,1.265298},{27001,1.307823},{27007,1.402294},{27020,2.215},{27026,1.866082},{27032,2.215},{27036,2.163989},{27044,2.05538},{27052,1.734702},{27061,2.382463},{27083,1.022137},{27089,1.069535},{27112,1.959711},{27115,1.959711},{27116,1.527146},{27130,2.113408},{27131,1.544971},{27132,1.544971},{27147,1.85957},{27153,1.696211},{27164,1.092252},{27171,2.382463},{27174,0.743434},{27176,1.769245},{27177,1.325972},{27179,1.681244},{27189,2.647931},{27190,1.79841},{27196,2.382463},{27198,2.05538},{27225,1.972038},{27234,2.321567},{27243,1.704611},{27266,0.825288},{27271,1.869913},{27283,1.597329},{27295,1.09578},{27298,1.263053},{27310,2.031935},{27326,1.263053},{27328,2.215},{27332,1.83149},{27336,1.808592},{27346,1.643376},{27350,1.890247},{27373,2.294204},{27389,1.052408},{27408,1.09578},{27409,1.544971},{27412,0.814002},{27417,2.053422},{27423,1.749074},{27427,0.993573},{27428,1.09578},{27442,1.402294},{27454,2.382463},{27477,1.286511},{27479,0.50214},{27494,1.276615},{27527,2.113912},{27535,1.402294},{27545,1.866082},{27547,2.05538},{27560,1.856561},{27562,1.068671},{27564,1.349304},{27601,1.052408},{27607,1.263053},{27613,2.382463},{27618,0.420739},{27637,0.908134},{27641,1.796064},{27657,1.704611},{27658,0.825288},{27669,2.263856},{27687,2.313626},{27699,0.51079},{27709,2.041018},{27734,0.569971},{27765,2.294204},{27783,1.547682},{27795,0.581894},{27877,0.5868},{27918,1.343355},{27938,0.221769},{27972,1.155432},{27991,0.825288},{28136,2.05538},{28141,2.294204},{28184,1.481154},{28341,0.519311},{28431,1.841047},{28567,1.946206},{28600,1.866082},{28602,1.481154},{28650,2.105637},{28674,0.704542},{29233,1.838262},{29319,1.052408},{29341,1.484633},{29370,1.150767},{29371,0.757662},{29569,0.91183},{29577,1.02504},{29785,2.041018},{29786,2.041018},{29828,1.863492},{29910,1.349304},{29921,1.824307},{30316,0.979101},{30380,2.105637},{30396,0.793137},{30458,1.6611},{30495,2.043764},{30496,2.043764},{30528,1.068671},{30550,2.05538},{30557,1.827531},{30559,2.513419},{30907,0.992954},{31101,1.853277},{31474,2.794547}}
@@ -3290,6 +3019,59 @@ def ENSP_2_UniProtID_without_translation(fn_in_list, protein_shorthands, ENSP_2_
                     if ENSP in ENSP_set:
                         fh_out.write(ENSP + "\n")
 
+def Secondary_2_Primary_ID_UPS_FIN(UniProt_sec_2_prim_AC, Taxid_UniProt_AC_2_ID, Taxid_UniProtID_2_ENSPs_2_KEGGs, fn_out_Secondary_2_Primary_ID_UPS_FIN, fn_out_UniProt_AC_2_ID_no_translation):
+    gen_AC_2_AC = _helper_yield_UniProt_sec_2_prim_AC(UniProt_sec_2_prim_AC)
+    gen_ENSP_2_ID = _helper_yield_Taxid_UniProtID_2_ENSPs_2_KEGGs(Taxid_UniProtID_2_ENSPs_2_KEGGs)
+    gen_AC_2_ID = _helper_yield_gen_AC_2_ID(Taxid_UniProt_AC_2_ID)
+    ac_2_id_dict = {}
+    ac_2_taxid_dict = {}
+    with open(fn_out_Secondary_2_Primary_ID_UPS_FIN, "w") as fh_out:
+        with open(fn_out_UniProt_AC_2_ID_no_translation, "w") as fh_out_no_translation:
+            for taxid, ENSP_list, UniProtID in gen_ENSP_2_ID:
+                for ENSP in ENSP_list:
+                    fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")  # UniProt ENSP 2 ID --> ENSP_2_ID
+
+            for taxid, ac, id_ in gen_AC_2_ID:
+                fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + ac + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
+                ac_2_id_dict[ac] = id_
+                ac_2_taxid_dict[ac] = taxid
+
+            for secondary, primary in gen_AC_2_AC:
+                try:
+                    id_ = ac_2_id_dict[primary]
+                    taxid = ac_2_taxid_dict[primary]
+                except KeyError:
+                    fh_out_no_translation.write(primary + "\n")
+                    continue
+                fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + secondary + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
+
+def _helper_yield_UniProt_sec_2_prim_AC(fn):
+    line_generator = tools.yield_line_uncompressed_or_gz_file(fn)
+    line = next(line_generator)
+    while not line.startswith("Secondary AC"):
+        line = next(line_generator)
+        continue
+    _ = next(line_generator)
+    for line in line_generator:
+        secondary, primary = line.strip().split()
+        yield secondary, primary
+
+
+def _helper_yield_Taxid_UniProtID_2_ENSPs_2_KEGGs(fn):
+    with open(fn, "r") as fh:
+        for line in fh:
+            taxid, UniProtID, ENSPs, KEGGs = line.split("\t")
+            ENSP_list = ENSPs.split(";")
+            if ENSP_list[0]:  # test for empty string
+                yield taxid, ENSP_list, UniProtID
+
+def _helper_yield_gen_AC_2_ID(fn):
+    with open(fn, "r") as fh:
+        for line in fh:
+            taxid, UniProtAC, UniProtID = line.split("\t")
+            yield taxid, UniProtAC, UniProtID.strip()
+
+
 
 if __name__ == "__main__":
     # create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM()
@@ -3312,8 +3094,6 @@ if __name__ == "__main__":
     # fn_in_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
     # fn_out_Protein_2_Function_table_UPK = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPK.txt")
     # create_Protein_2_Function_table_UniProtKeyword(Functions_table_UPK, fn_in_obo, fn_in_uniprot_SwissProt_dat, fn_in_uniprot_TrEMBL_dat, fn_in_uniprot_2_string, fn_out_Protein_2_Function_table_UPK, number_of_processes=1, verbose=True)
-
-
 
     # Protein_2_Function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
     # Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")

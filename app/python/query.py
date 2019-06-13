@@ -1162,11 +1162,11 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
         return sorted(result[0][0])
     else:
         if fn_Taxid_2_Proteins_table_STRING is None:
-            # fn_Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
             fn_Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table"]
         with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
             for line in fh:
-                taxid_line, prot_arr, background_count = line.split("\t")
+                # taxid_line, prot_arr, background_count = line.split("\t") # STRING_v11
+                taxid_line, background_count, prot_arr = line.split("\t") # UniProt
                 if taxid_line == str(taxid):
                     prot_arr = prot_arr[1:-1].replace("'", "").replace('"', "").split(",")
                     return sorted(prot_arr)
@@ -1180,36 +1180,16 @@ def get_TaxID_2_proteome_count_dict(read_from_flat_files=False, fn=None): #, sea
     """
     if fn is None:
         fn = variables.tables_dict["Taxid_2_Proteins_table"]
-    # if searchspace is not None:
-    #     return get_TaxID_2_proteome_count_dict_by_searchspace(read_from_flat_files, fn, searchspace)
     taxid_2_proteome_count_dict = {}
     if read_from_flat_files:
-        result = get_results_of_statement_from_flat_file(fn, columns=[0, 2])
+        # result = get_results_of_statement_from_flat_file(fn, columns=[0, 2])
+        result = get_results_of_statement_from_flat_file(fn, columns=[0, 1])
     else:
         result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count FROM taxid_2_protein;")
     for res in result:
         taxid, count = res
         taxid_2_proteome_count_dict[int(taxid)] = int(count)
     return taxid_2_proteome_count_dict
-
-# def get_TaxID_2_proteome_count_dict_by_searchspace(read_from_flat_files, fn, searchspace): # deprecated
-#     taxid_2_proteome_count_dict = {}
-#     try:
-#         etype_2_be = variables.searchspace_2_entityType_dict[searchspace]
-#         etype_2_be = str(etype_2_be)
-#     except KeyError:
-#         print("variables.searchspace_2_entityType_dict doesn't have key '{}'".format(searchspace))
-#         return taxid_2_proteome_count_dict
-#     if read_from_flat_files:
-#         result = get_results_of_statement_from_flat_file(fn, columns=[0, 2, 3])
-#     else:
-#         result = get_results_of_statement("SELECT taxid_2_protein.taxid, taxid_2_protein.count, taxid_2_protein.searchspace FROM taxid_2_protein;")
-#
-#     for res in result:
-#         taxid, count, etype = res
-#         if etype == etype_2_be:
-#             taxid_2_proteome_count_dict[int(taxid)] = int(count)
-#     return taxid_2_proteome_count_dict
 
 def get_association_2_count_ANs_background_split_by_entity(taxid):
     result = get_results_of_statement("SELECT * FROM function_2_ensp WHERE function_2_ensp.taxid={}".format(taxid))

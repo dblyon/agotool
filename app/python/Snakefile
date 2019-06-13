@@ -38,6 +38,10 @@ SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 URL_TrEMBL_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz"
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_ref_prots")
+URL_UniProt_sec_2_prim_AC = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
+UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
+Secondary_2_Primary_ID_UPS_FIN = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_FIN.txt")
+Secondary_2_Primary_ID_UPS_FIN_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_FIN_no_translation.txt")
 ### Jensenlab
 URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
 URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
@@ -207,6 +211,14 @@ rule download_TrEMBL_dump:
     run:
         drs.download_gzip_file(params.URL_TrEMBL_dump, output.TrEMBL_dump, params.verbose)
 
+rule download_UniProt_sec_2_prim:
+    output:
+        UniProt_sec_2_prim_AC = UniProt_sec_2_prim_AC
+    params:
+        URL_UniProt_sec_2_prim_AC = URL_UniProt_sec_2_prim_AC
+    run:
+        drs.download_gzip_file(params.URL_UniProt_sec_2_prim_AC, output.UniProt_sec_2_prim_AC)
+
 rule download_ontology_Interpro:
     output:
         interpro_parent_2_child_tree = interpro_parent_2_child_tree
@@ -266,11 +278,10 @@ rule download_WikiPathways:
         DOWNLOADS_DIR = DOWNLOADS_DIR
     params:
         URL_WikiPathways_GMT = URL_WikiPathways_GMT,
-        verbose = verbose
     output:
         WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
     run:
-        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, output.WikiPathways_not_a_gmt_file, params.verbose)
+        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, output.WikiPathways_not_a_gmt_file)
 
 rule download_UniProt_ID_mapping:
     output:
@@ -390,10 +401,9 @@ rule Functions_table_DOID_BTO_GOCC: # these are not being filtered to relevant o
         cst.Functions_table_DOID_BTO_GOCC(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.GO_obo_Jensenlab, input.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO_GOCC, params.GO_CC_textmining_additional_etype, threads, params.verbose)
 
 rule Functions_table_all:
-    input:
+    input: # Functions_table_SMART, # not supported in aGOtool version UniProt but in STRING_v11
         fn_list_str = [Functions_table_InterPro,
                        Functions_table_KEGG,
-                       # Functions_table_SMART, # not supported in aGOtool but in STRING_v11
                        Functions_table_PFAM,
                        Functions_table_GO,
                        Functions_table_UPK,
@@ -611,14 +621,19 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
     run:
         cst.Taxid_2_funcEnum_2_scores_table_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
 
+rule Secondary_2_Primary_ID_UPS_FIN:
+    input:
+        UniProt_sec_2_prim_AC = UniProt_sec_2_prim_AC,
+        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
+    output:
+        Secondary_2_Primary_ID_UPS_FIN = Secondary_2_Primary_ID_UPS_FIN,
+        Secondary_2_Primary_ID_UPS_FIN_no_translation = Secondary_2_Primary_ID_UPS_FIN_no_translation
+    run:
+        cst.Secondary_2_Primary_ID_UPS_FIN(input.UniProt_sec_2_prim_AC, input.Taxid_UniProt_AC_2_ID, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Secondary_2_Primary_ID_UPS_FIN, output.Secondary_2_Primary_ID_UPS_FIN_no_translation)
 
 # TODO
-# - rule Function_2_Protein_table_UPS: sorting slow and not parallel. change all tables putting taxid to first column, change sorting to be numerical --> not sure sorting needs to be fixed
-# - Function_2_Proteins_table --> Function_2_Protein_table
-
-
 # why are there so few PMID -56 in Functions_table_UPS_FIN.txt ?
-
 # $ cut -f 2 Functions_table_STRING.txt | sort | uniq -c
 #   17251 -21
 #    2413 -22
@@ -658,6 +673,3 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
 #   15799 -55
 #   87195 -56
 #    1273 -58
-
-# ToDo rerun
-#
