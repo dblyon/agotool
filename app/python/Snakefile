@@ -44,6 +44,7 @@ URL_UniProt_sec_2_prim_AC = r"ftp://ftp.expasy.org/databases/uniprot/current_rel
 UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
 Secondary_2_Primary_ID_UPS_FIN = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_FIN.txt")
 Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
+Secondary_2_Primary_ID_UPS_different_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_different_translation.txt")
 ### Jensenlab
 URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
 URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
@@ -93,8 +94,8 @@ Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_remo
 
 #!!! TODO check if deprecated due to idmapping, if so switch to larger mapping file instead of maintaining two versions
 #  ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
-URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz" # monthly download? #!!!
-UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping_selected.tab.gz")
+URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz" # monthly download? #!!!
+UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
 
 WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
 WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gmt_file.txt")
@@ -121,6 +122,7 @@ Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_tabl
 
 Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
 Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
+ENSP_2_UniProt_all = os.path.join(TABLES_DIR, "ENSP_2_UniProt_all.txt")
 Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
 Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
@@ -643,12 +645,12 @@ rule ENSP_2_UniProt_all:
     input:
         damian_uniprot_2_string = damian_uniprot_2_string,
         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
-        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
+        UniProt_ID_mapping = UniProt_ID_mapping
     output:
         ENSP_2_UniProt_all = ENSP_2_UniProt_all
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.ENSP_2_UniProt_all(input.damian_uniprot_2_string, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Taxid_UniProt_AC_2_ID, output.ENSP_2_UniProt_all, threads)
+        cst.ENSP_2_UniProt_all(input.damian_uniprot_2_string, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.UniProt_ID_mapping, output.ENSP_2_UniProt_all, threads)
 
 
 
