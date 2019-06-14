@@ -1,6 +1,6 @@
 CREATE DATABASE agotool;
 CREATE DATABASE agotool_test;
-CREATE DATABASE gostring;
-CREATE DATABASE gostring_test;
+--CREATE DATABASE gostring;
+--CREATE DATABASE gostring_test;
 --DROP DATABASE stringy;
 --DROP DATABASE stringy_test;

@@ -108,7 +108,7 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 
 ### functions [Functions_table_UPS_FIN.txt] # ToDo check RCTM terms
 | enum | etype | an | description | year | level |
-|:---:|:---:|:---:|:---:|:---:|:--:|
+|:---:|:---:|:---:|:---:|:---:|:---:|
 | 0 | -21 | GO:0000001 | mitochondrion inheritance | -1 | 5 |
 | 1 | -21 | GO:0000002 | mitochondrial genome maintenance | -1 | 5 |
 | 2 | -21 | GO:0000003 | reproduction | -1 | 1 |
@@ -153,7 +153,6 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 1160091 | A0A1Y2T2E3_9BIFI | {"IPR000362","IPR008948","IPR013539","IPR020557","IPR022761","IPR024083"} | -54 |
 | 1813946 | A0A165J5C1_9BURK | {"KW-0181","KW-9990"} | -51 |
 | 2039283 | A0A397FNG6_9MOLU | {"GO:0005575","GO:0005622","GO:0005623","GO:0005737","GO:0044424","GO:0044464"} | -22 |
-
 
 
 ### Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS [Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt]

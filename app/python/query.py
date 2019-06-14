@@ -449,11 +449,11 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("#"*80)
             print("initializing PQO")
             print("getting taxid_2_proteome_count")
-        self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
+        self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
 
         if variables.VERBOSE:
-            print("getting KEGG TaxID 2 TaxName acronym translation")
-        self.kegg_taxid_2_acronym_dict = get_KEGG_TaxID_2_acronym_dict(read_from_flat_files)
+            print("getting KEGG Taxid 2 TaxName acronym translation")
+        self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files)
 
         if variables.VERBOSE:
             print("getting lookup arrays")
@@ -753,20 +753,20 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
         ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
     return ENSP_2_tuple_funcEnum_score_dict
 
-def get_KEGG_TaxID_2_acronym_dict(read_from_flat_files=True):
-    KEGG_TaxID_2_acronym_dict = {}
+def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True):
+    KEGG_Taxid_2_acronym_dict = {}
     if read_from_flat_files:
-        # fn = os.path.join(variables.TABLES_DIR, "KEGG_TaxID_2_acronym_table.txt")
+        # fn = os.path.join(variables.TABLES_DIR, "KEGG_Taxid_2_acronym_table.txt")
         fn = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
         results = get_results_of_statement_from_flat_file(fn)
     else:
         raise NotImplementedError # result = get_results_of_statement()
     for res in results:
-        # taxid, taxname = res
-        taxname, taxid = res
+        taxid, taxname = res
+        # taxname, taxid = res
         taxname = taxname.strip()
-        KEGG_TaxID_2_acronym_dict[int(taxid)] = taxname
-    return KEGG_TaxID_2_acronym_dict
+        KEGG_Taxid_2_acronym_dict[int(taxid)] = taxname
+    return KEGG_Taxid_2_acronym_dict
 
 def get_results_of_statement_from_flat_file(file_name, columns=[]):
     with open(file_name, "r") as fh_in:
@@ -964,7 +964,8 @@ def get_ENSP_2_functionEnumArray_dict(read_from_flat_files=False):
         fn = variables.tables_dict["Protein_2_FunctionEnum_table"]
         result = get_results_of_statement_from_flat_file(fn)
         for res in result:
-            ENSP, funcEnumArray = res
+            # ENSP, funcEnumArray = res # STRING_v11
+            taxid, ENSP, funcEnumArray = res # UniProt
             funcEnumArray = funcEnumArray[1:-1].split(",")
             if len(funcEnumArray[0]) > 0: # debug # remove when tables fixed
                 funcEnumArray = [int(ele) for ele in funcEnumArray]
@@ -1061,7 +1062,7 @@ def get_background_count_array(taxid):
     np.array (of 32bit integer, fixed length and immutable, sparse matrix with 0 as default, otherwise counts of functional associations at index positions corresponding to functionalterm_arr)
     new version:
     list of tuples (index_position, count)
-    :param taxid: Integer (NCBI TaxID)
+    :param taxid: Integer (NCBI Taxid)
     :return: List of tuples of Integers (index_position, count)
     """
     return get_results_of_statement("SELECT taxid_2_functioncountarray.background_count_array FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
@@ -1140,7 +1141,7 @@ def parse_result_child_parent(result):
 
 def get_taxids(read_from_flat_files=False, fn=None):
     """
-    return all TaxIDs from taxid_2_proteins as sorted List of Integers
+    return all Taxids from taxid_2_proteins as sorted List of Integers
     :return: List of Integers
     """
     if read_from_flat_files:
@@ -1171,7 +1172,7 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
                     prot_arr = prot_arr[1:-1].replace("'", "").replace('"', "").split(",")
                     return sorted(prot_arr)
 
-def get_TaxID_2_proteome_count_dict(read_from_flat_files=False, fn=None): #, searchspace=None):
+def get_Taxid_2_proteome_count_dict(read_from_flat_files=False, fn=None): #, searchspace=None):
     """
     :param read_from_flat_files: Bool flag
     :param fn: None or String (file to read or default)
@@ -1342,7 +1343,7 @@ if __name__ == "__main__":
     #     # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
     #     # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
     #     # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
-    #     self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
+    #     self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict()
     #
     #     ### lineage_dict: key: functional_association_term_name val: set of parent terms
     #     ### functional term 2 hierarchical level dict

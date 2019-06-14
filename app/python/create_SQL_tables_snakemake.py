@@ -855,35 +855,35 @@ def yield_split_line_from_file(fn_in, line_numbers=False, split_on="\t"):
             line_split[-1] = line_split[-1].strip()
             yield line_split
 
-def Taxid_2_Proteins_table_STS(fn_in_protein_shorthands, fn_out_TaxID_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
+def Taxid_2_Proteins_table_STS(fn_in_protein_shorthands, fn_out_Taxid_2_Proteins_table_STRING, number_of_processes=1, verbose=True):
     if verbose:
-        print("Creating TaxID_2_Proteins_table_STRING.txt")
+        print("Creating Taxid_2_Proteins_table_STRING.txt")
         print("protein_shorthands needs sorting, doing it now")
     tools.sort_file(fn_in_protein_shorthands, fn_in_protein_shorthands, columns="1", number_of_processes=number_of_processes, verbose=verbose)
     if verbose:
         print("parsing protein_shorthands")
     # now parse and transform into wide format
     with open(fn_in_protein_shorthands, "r") as fh_in:
-        with open(fn_out_TaxID_2_Proteins_table_STRING, "w") as fh_out:
+        with open(fn_out_Taxid_2_Proteins_table_STRING, "w") as fh_out:
             ENSP_list = []
             did_first = False
             for line in fh_in:
                 # 287.DR97_1012   6412
                 # 287.DR97_1013   6413
                 ENSP, *rest = line.strip().split()
-                TaxID = ENSP[:ENSP.index(".")]
+                Taxid = ENSP[:ENSP.index(".")]
                 if not did_first:
-                    TaxID_previous = TaxID
+                    Taxid_previous = Taxid
                     did_first = True
-                if TaxID == TaxID_previous:
+                if Taxid == Taxid_previous:
                     ENSP_list.append(ENSP)
                 else:
                     ENSPs_2_write = sorted(set(ENSP_list))
-                    fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
+                    fh_out.write(Taxid_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
                     ENSP_list = [ENSP]
-                    TaxID_previous = TaxID
+                    Taxid_previous = Taxid
             ENSPs_2_write = sorted(set(ENSP_list))
-            fh_out.write(TaxID_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
+            fh_out.write(Taxid_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
 def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins_table_UniProt):
     """
@@ -921,14 +921,14 @@ def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_
                 fh_out.write(line.strip() + "\t{}\n".format(etype))
     tools.sort_file(fn_out_Taxid_2_Proteins_table_FIN, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes=number_of_processes, verbose=verbose)
 
-def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, TaxID_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
+def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Functions_table_STRING, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
     # - sort Protein_2_FunctionEnum_table_STRING.txt
     # - create array of zeros of function_enumeration_length
     # - for line in Protein_2_FunctionEnum_table_STRING
     #     add counts to array until taxid_new != taxid_previous
     print("creating Taxid_2_FunctionCountArray_table_FIN")
     tools.sort_file(Protein_2_FunctionEnum_table_STRING, Protein_2_FunctionEnum_table_STRING, number_of_processes=number_of_processes, verbose=verbose)
-    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
+    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(Taxid_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
     print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_FIN))
     with open(fn_out_Taxid_2_FunctionCountArray_table_FIN, "w") as fh_out:
@@ -1034,7 +1034,7 @@ def helper_format_funcEnum(funcEnum_count_background):
         string_2_write += "{{{0},{1}}},".format(ele[0], int(round(ele[1])))
     return "{" + string_2_write[:-1] + "}" # index_backgroundCount_array_string
 
-def Protein_2_Function_table_KEGG_STS(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_TaxID_2_acronym_table, number_of_processes=1):
+def Protein_2_Function_table_KEGG_STS(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_Taxid_2_acronym_table, number_of_processes=1):
     fn_out_temp = fn_out_Protein_2_Function_table_KEGG + "_temp"
     # create long format of ENSP 2 KEGG table
     taxid_2_acronym_dict = {}
@@ -1042,7 +1042,7 @@ def Protein_2_Function_table_KEGG_STS(fn_in_kegg_benchmarking, fn_out_Protein_2_
         with open(fn_out_temp, "w") as fh_out:
             for line in fh_in:
                 # 292     bced03020       4       DM42_1447 DM42_1480 DM42_1481 DM42_836
-                TaxID, KEGG, num_ENSPs, *ENSPs = line.split()
+                Taxid, KEGG, num_ENSPs, *ENSPs = line.split()
                 if KEGG.startswith("CONN_"):
                     continue
                 else: # e.g. bced00190 or rhi00290
@@ -1050,13 +1050,13 @@ def Protein_2_Function_table_KEGG_STS(fn_in_kegg_benchmarking, fn_out_Protein_2_
                     if match:
                         index_ = match.start()
                         acro = KEGG[:index_]
-                        taxid_2_acronym_dict[TaxID] = acro
+                        taxid_2_acronym_dict[Taxid] = acro
                     KEGG = KEGG[-5:]
-                # add TaxID to complete the ENSP
-                ENSPs = [TaxID + "." + ENSP for ENSP in ENSPs]
+                # add Taxid to complete the ENSP
+                ENSPs = [Taxid + "." + ENSP for ENSP in ENSPs]
                 for ENSP in ENSPs:
                     fh_out.write(ENSP + "\t" + "map" + KEGG + "\n")
-    with open(fn_out_KEGG_TaxID_2_acronym_table, "w") as fh_acro:
+    with open(fn_out_KEGG_Taxid_2_acronym_table, "w") as fh_acro:
         for taxid, acronym in taxid_2_acronym_dict.items():
             fh_acro.write(taxid + "\t" + acronym + "\n")
 
@@ -1241,10 +1241,10 @@ def parse_string_go_yield_entry(fn_in):
     GOterm_list = []
     did_first = False
     for line in tools.yield_line_uncompressed_or_gz_file(fn_in):
-        TaxID, ENSP_without_TaxID, EntityType, GOterm, *rest = line.split()
+        Taxid, ENSP_without_Taxid, EntityType, GOterm, *rest = line.split()
         if not GOterm.startswith("GO:"):
             continue
-        ENSP = TaxID + "." + ENSP_without_TaxID
+        ENSP = Taxid + "." + ENSP_without_Taxid
         if not did_first:
             ENSP_previous = ENSP
             did_first = True
@@ -1584,10 +1584,10 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
             elif line_code == "DR":
                 Functions_other_list.append(rest)
             elif line_code == "OX":
-                # OX   NCBI_TaxID=654924;
-                # OX   NCBI_TaxID=418404 {ECO:0000313|EMBL:QAB05112.1};
-                if rest.startswith("NCBI_TaxID="):
-                    NCBI_Taxid = rest.replace("NCBI_TaxID=", "").split(";")[0].split()[0]
+                # OX   NCBI_Taxid=654924;
+                # OX   NCBI_Taxid=418404 {ECO:0000313|EMBL:QAB05112.1};
+                if rest.startswith("NCBI_Taxid="):
+                    NCBI_Taxid = rest.replace("NCBI_Taxid=", "").split(";")[0].split()[0]
 
         # UniProtAC_list = sorted(set(UniProtAC_list))Taxid_2_funcEnum_2_scores_table_FIN
         Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
@@ -1686,7 +1686,7 @@ def KEGG_Taxid_2_acronym_table_FIN(KEGG_Taxid_2_acronym_table_STRING, KEGG_Taxid
                 else:
                     acronym_first = taxid_2_acronym_dict[taxid]
                     if acronym != acronym_first:
-                        # print("ambiguity in KEGG TaxID to acronym translation. {} {} {}".format(taxid, acronym_first, acronym))
+                        # print("ambiguity in KEGG Taxid to acronym translation. {} {} {}".format(taxid, acronym_first, acronym))
                         if taxid not in taxid_2_acronym_ambiguous_dict:
                             taxid_2_acronym_ambiguous_dict[taxid] = [acronym_first, acronym]
                         else:
@@ -1803,7 +1803,7 @@ def yield_entry_UniProt_dat_dump(fn_in):
     # OS   / KCTC 12865 / 04OKA010-24).
     # OC   Bacteria; Verrucomicrobia; Opitutae; Puniceicoccales;
     # OC   Puniceicoccaceae; Coraliomargarita.
-    # OX   NCBI_TaxID=583355 {ECO:0000313|EMBL:ADE54679.1, ECO:0000313|Proteomes:UP000000925};
+    # OX   NCBI_Taxid=583355 {ECO:0000313|EMBL:ADE54679.1, ECO:0000313|Proteomes:UP000000925};
     # RN   [1] {ECO:0000313|EMBL:ADE54679.1, ECO:0000313|Proteomes:UP000000925}
     # RP   NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA].
     # RC   STRAIN=DSM 45221 / IAM 15411 / JCM 23193 / KCTC 12865
@@ -1909,14 +1909,14 @@ def parse_textmining_string_matches(fn):
     df = pd.read_csv(fn, sep="\t", names=names)
     return df
 
-def get_all_ENSPs(TaxID_2_Proteins_table_STRING):
+def get_all_ENSPs(Taxid_2_Proteins_table_STRING):
     ENSP_set = set()
-    with open(TaxID_2_Proteins_table_STRING, "r") as fh:
+    with open(Taxid_2_Proteins_table_STRING, "r") as fh:
         for line in fh:
             ENSP_set |= literal_eval(line.split("\t")[1])
     return ENSP_set
 
-def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_matches, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
+def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_matches, fn_in_Taxid_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_PMID): # fn_in_Functions_table_PMID_temp, fn_out_Functions_table_PMID
     """
     textmining_id = entity_id
     """
@@ -1931,14 +1931,14 @@ def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_mat
     # --> simpler by filtering based on positive integers in species_id column ?
 
     # get all ENSPs
-    ENSP_set = get_all_ENSPs(fn_in_TaxID_2_Proteins_table_STRING)
+    ENSP_set = get_all_ENSPs(fn_in_Taxid_2_Proteins_table_STRING)
     # reduce DF to ENSPs in DB
     cond = df_txtID["ENSP"].isin(ENSP_set)
     print("reducing df_txtID from {} to {} rows".format(len(cond), sum(cond)))
     df_txtID = df_txtID[cond]
     # sanity check
     assert len(df_txtID["textmining_id"].unique()) == len(df_txtID["ENSP"].unique())
-    # filter by ENSPs in DB --> TaxID_2_Protein_table_STRING.txt
+    # filter by ENSPs in DB --> Taxid_2_Protein_table_STRING.txt
     # textminingID_2_ENSP_dict
     entity_id_2_ENSP_dict = pd.Series(df_txtID["ENSP"].values, index=df_txtID["textmining_id"]).to_dict()
 
@@ -1991,7 +1991,7 @@ def Protein_2_Function_table_PMID_fulltexts(fn_in_all_entities, fn_in_string_mat
                 # else:
                 #     PMID_not_relevant.append(PMID_including_prefix)
 
-def Protein_2_Function_table(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
+def Protein_2_Function_table(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
     ### concatenate files
     fn_out_Protein_2_Function_table_STRING_temp = fn_out_Protein_2_Function_table_STRING + "_temp"
@@ -2001,7 +2001,7 @@ def Protein_2_Function_table(fn_list, fn_in_TaxID_2_Proteins_table_STRING, fn_ou
     tools.sort_file(fn_out_Protein_2_Function_table_STRING_temp, fn_out_Protein_2_Function_table_STRING_temp, number_of_processes=number_of_processes)
     reduce_Protein_2_Function_table_2_STRING_proteins(
         fn_in_protein_2_function_temp=fn_out_Protein_2_Function_table_STRING_temp,
-        fn_in_TaxID_2_Proteins_table_STRING=fn_in_TaxID_2_Proteins_table_STRING,
+        fn_in_Taxid_2_Proteins_table_STRING=fn_in_Taxid_2_Proteins_table_STRING,
         fn_out_protein_2_function_reduced=fn_out_Protein_2_Function_table_STRING,
         fn_out_protein_2_function_rest=fn_out_Protein_2_Function_table_STRING_rest,
         number_of_processes=number_of_processes)
@@ -2013,13 +2013,13 @@ def Protein_2_Function_table_UPS(fn_list, fn_out_Protein_2_Function_table, numbe
     ### sort
     tools.sort_file(fn_out_Protein_2_Function_table, fn_out_Protein_2_Function_table, number_of_processes=number_of_processes)
 
-def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_TaxID_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
+def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_Taxid_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
     """
-    - reduce Protein_2_Function_table_2_STRING to relevant ENSPs (those that are in fn_in_TaxID_2_Proteins_table_STRING)
+    - reduce Protein_2_Function_table_2_STRING to relevant ENSPs (those that are in fn_in_Taxid_2_Proteins_table_STRING)
     - and remove duplicates
     second reduction step is done elsewhere (minimum number of functional associations per taxon)
     """
-    ENSP_set = parse_taxid_2_proteins_get_all_ENSPs(fn_in_TaxID_2_Proteins_table_STRING)
+    ENSP_set = parse_taxid_2_proteins_get_all_ENSPs(fn_in_Taxid_2_Proteins_table_STRING)
     print('producing new file {}'.format(fn_out_protein_2_function_reduced))
     print('producing new file {}'.format(fn_out_protein_2_function_rest))
     with open(fn_in_protein_2_function_temp, "r") as fh_in:
@@ -2039,21 +2039,21 @@ def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_t
     tools.sort_file(fn_out_protein_2_function_reduced, fn_out_protein_2_function_reduced, number_of_processes=number_of_processes)
     print("finished with reduce_Protein_2_Function_table_2_STRING_proteins")
 
-def parse_taxid_2_proteins_get_all_ENSPs(fn_TaxID_2_Proteins_table_STRING):
+def parse_taxid_2_proteins_get_all_ENSPs(fn_Taxid_2_Proteins_table_STRING):
     ENSP_set = set()
-    with open(fn_TaxID_2_Proteins_table_STRING, "r") as fh:
+    with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
         for line in fh:
             ENSP_set |= literal_eval(line.split("\t")[1])  # reduce DF to ENSPs in DB
     return ENSP_set
 
-def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_TaxID_2_Proteins_table, fn_in_Functions_table, fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_removed, min_count=1, verbose=True):
+def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins_table, fn_in_Functions_table, fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_removed, min_count=1, verbose=True):
     """
-    min_count: for each function minimum number of ENSPs per TaxID, e.g. 1 otherwise removed, also from Protein_2_Function_table_STRING
+    min_count: for each function minimum number of ENSPs per Taxid, e.g. 1 otherwise removed, also from Protein_2_Function_table_STRING
     """
     if verbose:
         print("creating Function_2_ENSP_table this will take a while")
     function_2_ENSPs_dict = defaultdict(list)
-    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table)
+    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table)
     _, function_2_etype_dict = _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Functions_table) # funcenum not correct at this stage since some functions will be removed
     with open(fn_in_Protein_2_Function_table, "r") as fh_in:
         taxid_ENSP, taxid_last, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(fh_in.readline())
@@ -2189,9 +2189,9 @@ def _helper_parse_line_prot_2_func_UPS(line):
     function_name_set = set(func_array[1:-1].replace('"', "").split(","))
     return taxid, uniprotid, etype.strip(), function_name_set
 
-def _helper_get_taxid_2_total_protein_count_dict(fn_in_TaxID_2_Proteins_table_STRING):
+def _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table_STRING):
     taxid_2_total_protein_count_dict = defaultdict(lambda: "-1")
-    with open(fn_in_TaxID_2_Proteins_table_STRING, "r") as fh_in:
+    with open(fn_in_Taxid_2_Proteins_table_STRING, "r") as fh_in:
         for line in fh_in:
             taxid, count, __ENSP_arr_str= line.split("\t")
             taxid_2_total_protein_count_dict[taxid] = count
@@ -2273,7 +2273,7 @@ def Protein_2_Function_table_reduced(fn_in_protein_2_function, fn_in_function_2_
                             fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
     print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
 
-def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_out_AFC_KS_DIR, verbose=True):
+def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_Taxid_2_acronym_table, fn_out_AFC_KS_DIR, verbose=True):
     print("AFC_KS_enrichment_terms_flat_files start")
     ENSP_2_internalID_dict = {}
     with open(fn_in_Protein_shorthands, "r") as fh:
@@ -2289,7 +2289,7 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
             association_2_description_dict[an] = description
 
     taxid_2_acronym_dict = {}
-    with open(KEGG_TaxID_2_acronym_table, "r") as fh:
+    with open(KEGG_Taxid_2_acronym_table, "r") as fh:
         for line in fh:
             taxid, acronym = line.split("\t")
             acronym = acronym.strip()
@@ -2319,7 +2319,7 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
                 try:
                     acronym = taxid_2_acronym_dict[taxid]
                 except KeyError:
-                    print("no KEGG acronym translation for TaxID: {}".format(taxid))
+                    print("no KEGG acronym translation for Taxid: {}".format(taxid))
                     acronym = "map"
                 association = association.replace("map", acronym)
             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
@@ -2364,11 +2364,11 @@ def Functions_table_PMID(Function_2_Description_PMID, Functions_table_PMID_temp,
             description = year_prefix + " ".join(description_2_clean.split())  # replace multiple spaces with single space
             fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
 
-def Protein_2_Function_table_PMID_STS(TaxID_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
+def Protein_2_Function_table_PMID_STS(Taxid_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
     """
     concatenate files, sort and create set of union of functional associations
-    filter PMID associations that are not STRING ENSPs. use TaxID_2_Proteins_table_STRING
-    :param TaxID_2_Proteins_table_STRING: string
+    filter PMID associations that are not STRING ENSPs. use Taxid_2_Proteins_table_STRING
+    :param Taxid_2_Proteins_table_STRING: string
     :param Protein_2_Function_table_PMID_abstracts: string
         1000565.METUNv1_03313   {"PMID:29179769"}       -56
         1000565.METUNv1_03481   {"PMID:27682085"}       -56
@@ -2389,7 +2389,7 @@ def Protein_2_Function_table_PMID_STS(TaxID_2_Proteins_table_STRING, Protein_2_F
     tools.sort_file(Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID_combi, number_of_processes=number_of_processes, verbose=verbose)
     # merge lines with duplicate ENSPs
 
-    ENSP_set = get_all_ENSPs(TaxID_2_Proteins_table_STRING)
+    ENSP_set = get_all_ENSPs(Taxid_2_Proteins_table_STRING)
 
     with open(Protein_2_Function_table_PMID_combi, "r") as fh_in:
         ls = fh_in.readline().split("\t")
@@ -2715,14 +2715,14 @@ def helper_grep_funcNames(funcName_2_score_arr_str):
         funcName_2_score_list = [funcName_2_score_arr_str[0][1:].split(",")[0]] + [ele.split(",")[0] for ele in funcName_2_score_arr_str[1:-1]] + [funcName_2_score_arr_str[-1][:-2].split(",")[0]]
     return funcName_2_score_list
 
-def Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC(TaxID_2_Proteins_table, Functions_table_STRING, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC, number_of_processes=1, verbose=True):
+def Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC(Taxid_2_Proteins_table, Functions_table_STRING, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC, number_of_processes=1, verbose=True):
     """
     Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC.txt
     10116.ENSRNOP00000049139  {{{0,2.927737},{3,2.403304},{4,3},{666,3}, ... ,{3000000,0.375}}
     ENSP to functionEnumeration and its respective score
     scores >= 3 --> presence
     scores < 3 --> absence
-    multiple ENSPs per taxid --> scores get summed up per TaxID
+    multiple ENSPs per taxid --> scores get summed up per Taxid
 
     Taxid_2_FunctionCountArray_table_BTO_DOID.txt
     9606  19566  {{{0,3},{3,2},{4,3},{666,3}, ... ,{3000000,1}}
@@ -2730,13 +2730,13 @@ def Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC(TaxID_2_Proteins_table, Funct
     """
     if verbose:
         print("creating Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC")
-    # sort table to get group ENSPs of same TaxID
+    # sort table to get group ENSPs of same Taxid
     tools.sort_file(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, number_of_processes=number_of_processes, verbose=verbose)
     # get dict
-    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(TaxID_2_Proteins_table)
+    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(Taxid_2_Proteins_table)
     num_lines = tools.line_numbers(Functions_table_STRING)
     # reduce to relevant ENSPs
-    ENSP_set = get_all_ENSPs(TaxID_2_Proteins_table)
+    ENSP_set = get_all_ENSPs(Taxid_2_Proteins_table)
 
     with open(Protein_2_FuncEnum_and_Score_DOID_BTO_GOCC, "r") as fh_in:
         with open(Taxid_2_FunctionCountArray_table_BTO_DOID_GOCC, "w") as fh_out:
@@ -2816,7 +2816,7 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
         print("creating Functions_table_WikiPathways and Protein_2_Function_table_WikiPathways")
     df_wiki_meta = pd.read_csv(fn_in_WikiPathways_organisms_metadata, sep="\t")
     df_wiki_meta["Genus species"] = df_wiki_meta["Genus species"].apply(lambda s: "_".join(s.split(" ")))
-    TaxName_2_TaxID_dict = pd.Series(df_wiki_meta["TaxID"].values, index=df_wiki_meta["Genus species"]).to_dict()
+    TaxName_2_Taxid_dict = pd.Series(df_wiki_meta["Taxid"].values, index=df_wiki_meta["Genus species"]).to_dict()
 
     # if verbose:
     #     print("getting all ENSPs to reduce input")
@@ -2843,7 +2843,7 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
                 #     print("processing {}".format(fn_wiki))
                 taxname = fn_wiki.split("-gmt-")[-1].replace(".gmt", "")
                 try:
-                    taxid = TaxName_2_TaxID_dict[taxname]  # taxid is an integer
+                    taxid = TaxName_2_Taxid_dict[taxname]  # taxid is an integer
                 except KeyError:
                     print("WikiPathways, couldn't translate TaxName from file: {}".format(fn_wiki))
                     continue
@@ -2920,7 +2920,7 @@ def get_EntrezGeneID_2_ENSPsList_dict(fn):
     103484309	3656.XP_008439546.1
     """
     # fn = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz"
-    df_entrez_2_string = pd.read_csv(fn, sep="\t", names=["TaxID", "EntrezGeneID", "ENSP"], skiprows=1)
+    df_entrez_2_string = pd.read_csv(fn, sep="\t", names=["Taxid", "EntrezGeneID", "ENSP"], skiprows=1)
     EntrezGeneID_2_ENSPsList_dict = {}
     for row in df_entrez_2_string.itertuples():
         _, _, EntrezGeneIDs, ENSP = row
@@ -3019,31 +3019,115 @@ def ENSP_2_UniProtID_without_translation(fn_in_list, protein_shorthands, ENSP_2_
                     if ENSP in ENSP_set:
                         fh_out.write(ENSP + "\n")
 
-def Secondary_2_Primary_ID_UPS_FIN(UniProt_sec_2_prim_AC, Taxid_UniProt_AC_2_ID, Taxid_UniProtID_2_ENSPs_2_KEGGs, fn_out_Secondary_2_Primary_ID_UPS_FIN, fn_out_UniProt_AC_2_ID_no_translation):
+def ENSP_2_UniProt_all(damian_uniprot_2_string, Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID, fn_out_ENSP_2_UniProt_all, number_of_processes=1):
+    ac_2_id_dict = {}
+    for taxid, ac, id_ in _helper_yield_gen_AC_2_ID(Taxid_UniProt_AC_2_ID):
+        ac_2_id_dict[ac] = id_
+    gen_ENSP_2_ID = _helper_yield_Taxid_UniProtID_2_ENSPs_2_KEGGs(Taxid_UniProtID_2_ENSPs_2_KEGGs)
+    with open(fn_out_ENSP_2_UniProt_all, "w") as fh_out_ENSP_2_UniProtID_all:
+        source = "STRING"
+        with open(damian_uniprot_2_string, "r") as fh_in:
+            _header = fh_in.readline()
+            for line in fh_in:
+                taxid, UniProtAC_UniProtID, ENSP, identity, bit_score = line.split("\t")
+                UniProtAC, UniProtID = UniProtAC_UniProtID.split("|")
+                fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
+        source = "UniProt"
+        for taxid, ENSP_list, UniProtID in gen_ENSP_2_ID: # source is UniProt
+            try:
+                UniProtAC = ac_2_id_dict[UniProtID]
+            except KeyError:
+                UniProtAC = "-1"
+            for ENSP in ENSP_list:
+                fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
+
+    # sort on ENSP and UniProtAC
+    tools.sort_file(fn_out_ENSP_2_UniProt_all, fn_out_ENSP_2_UniProt_all, number_of_processes=number_of_processes)
+
+    # create file for Damian of discrepancies
+    # - ENSPs not in STRING_v11 any more (need be removed or updated in UniProt)
+    # - if ENSP mapps to different AC (not ID since these change)
+    
+
+    # create file for aGOtool UniProt version
+    # - restrict to ENSP in STRING_v11
+    # - restrict to UniProtID with annotations
+    # - in case of ENSP mapping to multiple UniProt AC or discrepancy between Damian and Uniprot choose Damian mapping (since 1 to 1 mapping)
+
+
+
+
+def Secondary_2_Primary_ID_UPS_FIN(UniProt_sec_2_prim_AC, Taxid_UniProt_AC_2_ID, Taxid_UniProtID_2_ENSPs_2_KEGGs, damian_uniprot_2_string, Taxid_2_Proteins_table_STS, Protein_2_FunctionEnum_table_UPS_FIN, fn_out_Secondary_2_Primary_ID_UPS_FIN, fn_out_UniProt_AC_2_ID_no_translation, fn_out_Secondary_2_Primary_ID_UPS_different_translation):
+    """
+    restrict Secondary_2_Primary_IDs_UPS_FIN
+      - by ENSPs occurring in STRING_v11 (if querying from STRING space)
+      - by UniProtIDs occurring in Protein_2_FunctionEnum_table_UPS_FIN (no annotation otherwise)
+    """
     gen_AC_2_AC = _helper_yield_UniProt_sec_2_prim_AC(UniProt_sec_2_prim_AC)
     gen_ENSP_2_ID = _helper_yield_Taxid_UniProtID_2_ENSPs_2_KEGGs(Taxid_UniProtID_2_ENSPs_2_KEGGs)
     gen_AC_2_ID = _helper_yield_gen_AC_2_ID(Taxid_UniProt_AC_2_ID)
     ac_2_id_dict = {}
     ac_2_taxid_dict = {}
+
+    ENSP_STRING_v11 = set()
+    with open(Taxid_2_Proteins_table_STS, "r") as fh_in:
+        for line in fh_in:
+            _taxid, ENSP_arr, _count = line.split("\t")
+            ENSP_STRING_v11 |= set(ENSP_arr[1:-1].replace('"', "").split(","))
+
+    ENSP_2_UniProtID_dict = {}
+    with open(damian_uniprot_2_string, "r") as fh_in:
+        _header = fh_in.readline()
+        for line in fh_in:
+            taxid, UniProtAC_UniProtID, ENSP, identity, bit_score = line.split("\t")
+            ENSP_2_UniProtID_dict[ENSP] = UniProtAC_UniProtID.split("|")[1]
+
+    UniProtID_with_annotations = []
+    with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
+        for line in fh_in:
+            _, UniProtID, _ = line.split("\t")
+            UniProtID_with_annotations.append(UniProtID)
+    UniProtID_with_annotations = set(UniProtID_with_annotations)
+
+    ENSPs_already_mapped = set()
     with open(fn_out_Secondary_2_Primary_ID_UPS_FIN, "w") as fh_out:
         with open(fn_out_UniProt_AC_2_ID_no_translation, "w") as fh_out_no_translation:
-            for taxid, ENSP_list, UniProtID in gen_ENSP_2_ID:
-                for ENSP in ENSP_list:
-                    fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")  # UniProt ENSP 2 ID --> ENSP_2_ID
+            with open(Secondary_2_Primary_ID_UPS_different_translation, "w") as fh_diff_trans:
+                for taxid, ENSP_list, UniProtID in gen_ENSP_2_ID:
+                    for ENSP in set(ENSP_list).intersection(ENSP_STRING_v11): # restrict to STRING_v11 ENSPs
+                        if UniProtID in UniProtID_with_annotations:
+                            # does Damian and UniProt mapping concurr? if not write to fh_diff_trans
+                            try:
+                                UniProtID_Damian = ENSP_2_UniProtID_dict[ENSP]
+                            except KeyError:
+                                UniProtID_Damian = False
 
-            for taxid, ac, id_ in gen_AC_2_ID:
-                fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + ac + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
-                ac_2_id_dict[ac] = id_
-                ac_2_taxid_dict[ac] = taxid
+                            if not UniProtID_Damian:
+                                fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")
+                            else:
+                                if UniProtID_Damian == UniProtID:
+                                    fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")
+                                else:
+                                    fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")
+                                    fh_diff_trans.write(ENSP + "\t" + UniProtID + "\t" + UniProtID_Damian + "\n")
+                            ENSPs_already_mapped |= set([ENSP])
 
-            for secondary, primary in gen_AC_2_AC:
-                try:
-                    id_ = ac_2_id_dict[primary]
-                    taxid = ac_2_taxid_dict[primary]
-                except KeyError:
-                    fh_out_no_translation.write(primary + "\n")
-                    continue
-                fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + secondary + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
+
+                for taxid, ac, id_ in gen_AC_2_ID:
+                    if id_ in UniProtID_with_annotations:
+                        fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + ac + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
+                    ac_2_id_dict[ac] = id_
+                    ac_2_taxid_dict[ac] = taxid
+
+                for secondary, primary in gen_AC_2_AC:
+                    try:
+                        id_ = ac_2_id_dict[primary]
+                        taxid = ac_2_taxid_dict[primary]
+                    except KeyError:
+                        fh_out_no_translation.write(primary + "\n")
+                        continue
+                    if id_ in UniProtID_with_annotations:
+                        fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + secondary + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
 
 def _helper_yield_UniProt_sec_2_prim_AC(fn):
     line_generator = tools.yield_line_uncompressed_or_gz_file(fn)
