@@ -1,50 +1,11 @@
---DROP TABLE IF EXISTS functions_temp, go_2_slim_temp, ogs_temp, og_2_function_temp, ontologies_temp, protein_2_function_temp, protein_secondary_2_primary_an_temp, protein_2_og_temp;
-DROP TABLE IF EXISTS functions_temp, go_2_slim_temp, ontologies_temp, protein_2_function_temp;
+--CREATE DATABASE agotool;
 
-CREATE TABLE protein_secondary_2_primary_an (
-
-
---CREATE TABLE functions_temp (
---    type text,
---    name text,
---    an text,
---    definition text);
---CREATE TABLE go_2_slim_temp (
---    an text,
---    slim boolean);
---CREATE TABLE ontologies_temp (
---    child text,
---    parent text,
---    direct boolean,
---    type integer);
---CREATE TABLE protein_2_function_temp (
---    an text,
---    function text ARRAY);
---CREATE TABLE protein_secondary_2_primary_an_temp (
+--CREATE TABLE protein_secondary_2_primary_an (
+--    taxid integer,
 --    sec text,
---    pri text);
---CREATE TABLE protein_2_og_temp (
---    an text,
---    og text);
---CREATE TABLE ogs_temp (
---    og text,
---    description text);
---CREATE TABLE og_2_function_temp (
---    og text,
---    function text);
+--    prim text);
 
-\copy functions_temp FROM '/agotool_data/data/PostgreSQL/tables/Functions_table.txt';
-\copy go_2_slim_temp FROM '/agotool_data/data/PostgreSQL/tables/GO_2_Slim_table.txt';
-\copy ontologies_temp FROM '/agotool_data/data/PostgreSQL/tables/Ontologies_table.txt';
-\copy protein_2_function_temp FROM '/agotool_data/data/PostgreSQL/tables/Protein_2_Function_table.txt';
---\copy ogs_temp FROM '/agotool_data/data/PostgreSQL/static/OG_2_Function_table_static.txt';
---\copy og_2_function_temp FROM '/agotool_data/data/PostgreSQL/static/OGs_table_static.txt';
---\copy protein_secondary_2_primary_an_temp FROM '/agotool_data/data/PostgreSQL/static/Protein_2_OG_table_static.txt';
---\copy protein_2_og_temp FROM '/agotool_data/data/PostgreSQL/tables/Protein_Secondary_2_Primary_AN_table.txt';
-
-CREATE INDEX protein_2_function_an_etype_idx_temp ON protein_2_function_temp (an, etype);
-CLUSTER protein_2_function_temp USING protein_2_function_an_etype_idx_temp;
-
---CREATE INDEX ogs_og_idx_temp ON ogs_temp(og);
---CREATE INDEX og_2_function_og_idx_temp ON og_2_function_temp(og);
---CREATE INDEX protein_2_og_an_idx_temp ON protein_2_og_temp(an);
+\copy protein_secondary_2_primary_an FROM 'data/PostgreSQL/tables/Secondary_2_Primary_IDs_UPS_FIN_for_DB_sorted.txt';
+CREATE INDEX protein_secondary_2_primary_an_sec_idx ON protein_secondary_2_primary_an (sec);
+CREATE INDEX protein_secondary_2_primary_an_taxid_idx ON protein_secondary_2_primary_an (taxid);
+CLUSTER protein_secondary_2_primary_an USING protein_secondary_2_primary_an_taxid_idx;

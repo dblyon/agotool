@@ -3029,14 +3029,13 @@ def ENSP_2_UniProtID_without_translation(fn_in_list, protein_shorthands, ENSP_2_
                     if ENSP in ENSP_set:
                         fh_out.write(ENSP + "\n")
 
-def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID, number_of_processes=1): # Taxid_UniProtID_2_ENSPs_2_KEGGs
+def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID, number_of_processes=1):
     """
     output:
     999630.TUZN_2237        F2L675  F2L675_THEU7    STRING
     999630.TUZN_2237        F2L675  F2L675_THEU7    UniProtIDmapping
     999630.TUZN_2237        nm      F2L675_THEU7    UniProtDump
     """
-    # gen_ENSP_2_ID = _helper_yield_Taxid_UniProtID_2_ENSPs_2_KEGGs(Taxid_UniProtID_2_ENSPs_2_KEGGs)
     with open(Taxid_UniProt_AC_2_ID, "w") as fh_out_Taxid_UniProt_AC_2_ID:
         with open(fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, "w") as fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs:
             with open(fn_out_ENSP_2_UniProt_all, "w") as fh_out_ENSP_2_UniProtID_all:
@@ -3047,18 +3046,13 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
                     fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs.write("{}\t{}\t{}\t{}".format(taxid, UniProtID, ";".join(ENSP_list), ";".join(KEGG_list)))
                     fh_out_Taxid_UniProt_AC_2_ID.write(taxid + "\t" + UniProtAC + "\t" + UniProtID + "\n")
 
-        source = "STRING"
-        with open(damian_uniprot_2_string, "r") as fh_in:
-            _header = fh_in.readline()
-            for line in fh_in:
-                taxid, UniProtAC_UniProtID, ENSP, identity, bit_score = line.split("\t")
-                UniProtAC, UniProtID = UniProtAC_UniProtID.split("|")
-                fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
-
-        # source = "UniProtDump"
-        # for taxid, ENSP_list, UniProtID in gen_ENSP_2_ID: # source is UniProt DB dump
-        #     for ENSP in ENSP_list:
-        #         fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + "nm" + "\t" + UniProtID + "\t" + source + "\n")
+                source = "STRING"
+                with open(damian_uniprot_2_string, "r") as fh_in:
+                    _header = fh_in.readline()
+                    for line in fh_in:
+                        taxid, UniProtAC_UniProtID, ENSP, identity, bit_score = line.split("\t")
+                        UniProtAC, UniProtID = UniProtAC_UniProtID.split("|")
+                        fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
 
     # sort on ENSP and UniProtAC
     tools.sort_file(fn_out_ENSP_2_UniProt_all, fn_out_ENSP_2_UniProt_all, number_of_processes=number_of_processes)
@@ -3084,7 +3078,7 @@ def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
 
 def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping):
     EntrezGeneID_2_UniProtID_dict = {}
-    for entry in _helper_yield_entry_UniProtIDmapping(fn_in_UniProt_ID_mapping):
+    for entry in _helper_yield_UniProtIDmapping_entry(fn_in_UniProt_ID_mapping):
         UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list = entry
         for geneid in EntrezGeneID_list:
             if geneid in EntrezGeneID_2_UniProtID_dict:
@@ -3140,6 +3134,13 @@ def STRING_2_UniProt_mapping_discrepancies(ENSP_2_UniProt_all, Taxid_2_Proteins_
     is_equal = df.groupby("ENSP").apply(_helper_compare_mapping_is_equal)
     ENSPs_unequal = is_equal[~is_equal].reset_index()["ENSP"].tolist() # select those that are unequal, grep ENSPs
     df_ENSPs_unequal = df[df["ENSP"].isin(ENSPs_unequal)]
+    # add a column to mark ENSPs that have a one to one mapping from Damian,
+    # if that mapping also exists within UniProt
+    is_one_2_one = df_ENSPs_unequal.groupby("ENSP").apply(_helper_is_one_2_one_Damian)
+    ENSPs_with_one_2_one_mapping = is_one_2_one[is_one_2_one].reset_index()["ENSP"].tolist()
+    cond = df_ENSPs_unequal["ENSP"].isin(ENSPs_with_one_2_one_mapping)
+    df_ENSPs_unequal["1_to_1"] = False
+    df_ENSPs_unequal.loc[cond, "1_to_1"] = True
     df_ENSPs_unequal.to_csv(fn_out_ENSP_2_UniProt_discrepancy, sep="\t", header=True, index=False)
 
     cond_ENSPs_of_STRING_v11 = df["ENSP"].isin(ENSPs_of_STRING_v11)
@@ -3153,6 +3154,18 @@ def STRING_2_UniProt_mapping_discrepancies(ENSP_2_UniProt_all, Taxid_2_Proteins_
     df_ENSP_2_UniProt_2_use_part2 = df[cond_ENSP_2_UniProt_2_use_part2_damian]
     dfm = df.concat([df_ENSP_2_UniProt_2_use_part1, df_ENSP_2_UniProt_2_use_part2])
     dfm.to_csv(fn_out_ENSP_2_UniProt_2_use, sep="\t", header=True, index=False)
+
+def _helper_is_one_2_one_Damian(group):
+    UniProtAC_Damian = group.loc[group["source"] == "STRING", "UniProtAC"].values
+    if UniProtAC_Damian.size == 0:
+        return False
+    else:
+        UniProtAC_Damian = UniProtAC_Damian[0]  # should only ever be one, if any at all
+    UniProtAC_UP_arr = group.loc[group["source"] == "UniProtIDmapping", "UniProtAC"].values
+    if len(UniProtAC_UP_arr) > 1 and UniProtAC_Damian in UniProtAC_UP_arr:
+        return True
+    else:
+        return False
 
 def _helper_compare_mapping_is_equal(group):
     # if UniProt Accessions are equal return True

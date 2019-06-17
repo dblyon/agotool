@@ -489,7 +489,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
 
         if variables.VERBOSE:
-            print("getting ENSP_2_Score_dict careful since this uses offset indices for BTO and DOID")
+            print("getting ENSP_2_tuple_funcEnum_score_dict")
         self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
 
         # set all versions of preloaded_objects_per_analysis
@@ -690,7 +690,7 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
     val = tuple(arr of function Enumeration, arr of scores)
     for BTO, DOID, and GO-CC terms
 
-    e.g. {'3702.AT1G01010.1': (array([ 213,  254,  255,  261,  325,  356,  360,  365,  375,  397,  417,
+    exampe of return value {'3702.AT1G01010.1': (array([ 213,  254,  255,  261,  325,  356,  360,  365,  375,  397,  417,
                   615,  643,  747,  748, 1080, 1812, 1899, 1900, 1902, 1904, 1995,
                  2051, 2052, 2070, 2088], dtype=uint32),
           array([4.2     , 4.166357, 4.195121, 3.257143, 1.234689, 0.428571,
@@ -705,6 +705,7 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
 
     Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt
     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}} 10090
+    3702    NAC1_ARATH      {{211,4.2},{252,4.166357},{253,4.195121},{259,3.257143},{323,1.234689},{354,0.428571},{358,0.535714},{363,0.214286},{373,0.642857},{395,1.189679},{415,0.740363},{613,0.214286},{641,0.214286},{745,3.0},{746,3.0},{1077,3.0}, ...}
     :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
     """
     ENSP_2_tuple_funcEnum_score_dict = {}

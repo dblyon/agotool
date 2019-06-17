@@ -522,16 +522,13 @@ rule Protein_2_Function_table_KEGG_UPS:
 rule Protein_2_Function__and__Functions_table_WikiPathways:
     input:
         WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
-        # UniProt_ID_mapping = UniProt_ID_mapping, EntrezGeneID_2_UniProtID_dict
-        EntrezGeneID_2_UniProtID = EntrezGeneID_2_UniProtID,
-        # STRING_EntrezGeneID_2_STRING = STRING_EntrezGeneID_2_STRING,
-        # Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
+        UniProt_ID_mapping = UniProt_ID_mapping,
         WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
     output:
         Functions_table_WikiPathways = Functions_table_WikiPathways,
         Protein_2_Function_table_WikiPathways_UPS = Protein_2_Function_table_WikiPathways_UPS
     run:
-        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.EntrezGeneID_2_UniProtID, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
 
 rule Protein_2_Function_table_PMID_UPS:
     input:

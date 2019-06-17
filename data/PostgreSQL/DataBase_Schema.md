@@ -5,15 +5,7 @@
 | GO:0000003 | 1 |
 
 
-## protein_secondary_2_primary_an [Protein_Secondary_2_Primary_AN_table.txt] merge with ### uniprot_ac_2_id [UniProt_AC_2_ID.txt] # accession to entry name
-##### Secondary (Text); Prim(Text) ("Primary" is a reserved PostgreSQL word)
-| sec | pri |
-|:---:|:---:|
-| A0A021WW06 | P40417 | --> replace with translation of AC_old to UniProtID
-| ENSPsomethingsomething | UniProtID |
-| Q6GZX4 | 001R_FRG3G |
-| Q6GZX3 | 002L_FRG3G |
-| Q197F8 | 002R_IIV3 |
+
 
 to map Jensenlab Score data to UniProt
  ENSP 2 UniProtID mapping needed
@@ -67,10 +59,10 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 
 
 ### secondary_2_primary_id [Secondary_2_Primary_ID_UPS_FIN.txt]
-| taxid | type | sec | uniprotid |
-|:---:|:---:|:---:|:---:|
-| 1028729 | ENSP_2_ID | 101028.EKJ70075 | K3VY58_FUSPC |
-| 2026739 | AC_2_ID | A0A2E5VZF0 | A0A2E5VZF0_9EURY |
+| taxid | sec | uniprotid |
+|:---:|:---:|:---:|
+| 1028729 | 101028.EKJ70075 | K3VY58_FUSPC |
+| 2026739 | A0A2E5VZF0 | A0A2E5VZF0_9EURY |
 
 
 
