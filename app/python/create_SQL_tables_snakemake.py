@@ -2834,10 +2834,12 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
     year, level = "-1", "-1"
     etype = str(variables.functionType_2_entityType_dict["WikiPathways"])
 
-    col_names = ['UniProtKB-AC', 'UniProtKB-ID', 'GeneID (EntrezGene)', 'RefSeq', 'GI', 'PDB', 'GO', 'UniRef100', 'UniRef90', 'UniRef50', 'UniParc', 'PIR', 'NCBI-taxon', 'MIM', 'UniGene', 'PubMed', 'EMBL', 'EMBL-CDS', 'Ensembl', 'Ensembl_TRS', 'Ensembl_PRO', 'Additional PubMed']
+    # col_names = ['UniProtKB-AC', 'UniProtKB-ID', 'GeneID (EntrezGene)', 'RefSeq', 'GI', 'PDB', 'GO', 'UniRef100', 'UniRef90', 'UniRef50', 'UniParc', 'PIR', 'NCBI-taxon', 'MIM', 'UniGene', 'PubMed', 'EMBL', 'EMBL-CDS', 'Ensembl', 'Ensembl_TRS', 'Ensembl_PRO', 'Additional PubMed']
     # if verbose:
     #     print("parsing {}".format(fn_in_UniProt_ID_mapping))
-    df_UniProt_ID_mapping = pd.read_csv(fn_in_UniProt_ID_mapping, sep="\t", names=col_names, usecols=["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)", "NCBI-taxon"])
+    # df_UniProt_ID_mapping = pd.read_csv(fn_in_UniProt_ID_mapping, sep="\t", names=col_names, usecols=["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)", "NCBI-taxon"])
+    EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping)
+
     # if verbose:
     #     print("parsing {}".format(fn_in_STRING_EntrezGeneID_2_STRING))
     # EntrezGeneID_2_ENSPsList_dict = get_EntrezGeneID_2_ENSPsList_dict(fn_in_STRING_EntrezGeneID_2_STRING)
@@ -2855,7 +2857,7 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
                 except KeyError:
                     print("WikiPathways, couldn't translate TaxName from file: {}".format(fn_wiki))
                     continue
-                EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict(df_UniProt_ID_mapping, taxid)
+                # EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict(df_UniProt_ID_mapping, taxid)
                 with open(fn_wiki, "r") as fh_in:
                     # remember pathway to proteins mapping --> then translate to ENSP to func_array
                     WikiPathwayID_2_EntrezGeneIDList_dict = {}
@@ -2899,22 +2901,22 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
                         func_array = format_list_of_string_2_postgres_array(list(set(wiki_list)))
                         fh_out_protein_2_function.write(str(taxid) + "\t" + ID + "\t" + func_array + "\t" + etype + "\n")
 
-def get_EntrezGeneID_2_UniProtID_dict(df_UniProt_ID_mapping, taxid):
-    taxid = int(taxid)
-    cond = df_UniProt_ID_mapping["NCBI-taxon"] == taxid
-    EntrezGeneID_2_UniProtID_dict = {}
-    for row in df_UniProt_ID_mapping.loc[cond, ["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)"]].itertuples():
-        _, uniprot_an, uniprot_id, geneIDs_list = row
-        try:
-            geneIDs_list = geneIDs_list.split("; ")
-        except AttributeError: # for np.nan
-            continue
-        for geneID in geneIDs_list:
-            if geneID not in EntrezGeneID_2_UniProtID_dict:
-                EntrezGeneID_2_UniProtID_dict[geneID] = [uniprot_id]
-            else:
-                EntrezGeneID_2_UniProtID_dict[geneID] += [uniprot_id]
-    return EntrezGeneID_2_UniProtID_dict
+# def get_EntrezGeneID_2_UniProtID_dict(df_UniProt_ID_mapping, taxid):
+#     taxid = int(taxid)
+#     cond = df_UniProt_ID_mapping["NCBI-taxon"] == taxid
+#     EntrezGeneID_2_UniProtID_dict = {}
+#     for row in df_UniProt_ID_mapping.loc[cond, ["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)"]].itertuples():
+#         _, uniprot_an, uniprot_id, geneIDs_list = row
+#         try:
+#             geneIDs_list = geneIDs_list.split("; ")
+#         except AttributeError: # for np.nan
+#             continue
+#         for geneID in geneIDs_list:
+#             if geneID not in EntrezGeneID_2_UniProtID_dict:
+#                 EntrezGeneID_2_UniProtID_dict[geneID] = [uniprot_id]
+#             else:
+#                 EntrezGeneID_2_UniProtID_dict[geneID] += [uniprot_id]
+#     return EntrezGeneID_2_UniProtID_dict
 
 def get_EntrezGeneID_2_ENSPsList_dict(fn):
     """
@@ -3039,7 +3041,7 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
         with open(fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, "w") as fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs:
             with open(fn_out_ENSP_2_UniProt_all, "w") as fh_out_ENSP_2_UniProtID_all:
                 source = "UniProtIDmapping"
-                for UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list in _helper_yield_UniProtIDmapping_entry(UniProt_ID_mapping): # source is UniProt ID mapping
+                for UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, _ in _helper_yield_UniProtIDmapping_entry(UniProt_ID_mapping): # source is UniProt ID mapping
                     for ENSP in ENSP_list:
                         fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
                     fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs.write("{}\t{}\t{}\t{}".format(taxid, UniProtID, ";".join(ENSP_list), ";".join(KEGG_list)))
@@ -3063,7 +3065,7 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
 
 def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
     for entry in _helper_yield_entry_UniProtIDmapping(UniProt_IDmapping):
-        UniProtAC, UniProtID, taxid, ENSP_list, KEGG_list = "-1", "-1", "-1", [], []
+        UniProtAC, UniProtID, taxid, ENSP_list, KEGG_list, EntrezGeneID_list = "-1", "-1", "-1", [], [], []
         for line in entry: # all mappings for one UniProtAC
             UniProtAC, type_, mapping = line.split("\t")
             UniProtAC = UniProtAC.split("-")[0]
@@ -3076,8 +3078,20 @@ def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
                 ENSP_list.append(mapping)
             elif type_ == "KEGG":
                 KEGG_list.append(mapping)
-        yield UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list
-        ENSP_list, KEGG_list = [], []
+            elif type_ == "GeneID":
+                EntrezGeneID_list.append(mapping)
+        yield UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list
+
+def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping):
+    EntrezGeneID_2_UniProtID_dict = {}
+    for entry in _helper_yield_entry_UniProtIDmapping(fn_in_UniProt_ID_mapping):
+        UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list = entry
+        for geneid in EntrezGeneID_list:
+            if geneid in EntrezGeneID_2_UniProtID_dict:
+                EntrezGeneID_2_UniProtID_dict[geneid].append(UniProtID)
+            else:
+                EntrezGeneID_2_UniProtID_dict[geneid] = [UniProtID]
+    return EntrezGeneID_2_UniProtID_dict
 
 def _helper_yield_entry_UniProtIDmapping(UniProt_IDmapping):
     lines_2_return = []
@@ -3122,6 +3136,7 @@ def STRING_2_UniProt_mapping_discrepancies(ENSP_2_UniProt_all, Taxid_2_Proteins_
     df_ENSPs_of_UniProtIDmapping_not_in_STRINGv11 = df[df["ENSP"].isin(ENSPs_of_UniProtIDmapping_not_in_STRINGv11)]
     df_ENSPs_of_UniProtIDmapping_not_in_STRINGv11.to_csv(fn_out_ENSPs_of_UniProtIDmapping_not_in_STRINGv11, sep="\t", header=True, index=False)
 
+    # most cases due to one to many mapping of ENSP UniprotAC. ?check if Damian mapping among them?
     is_equal = df.groupby("ENSP").apply(_helper_compare_mapping_is_equal)
     ENSPs_unequal = is_equal[~is_equal].reset_index()["ENSP"].tolist() # select those that are unequal, grep ENSPs
     df_ENSPs_unequal = df[df["ENSP"].isin(ENSPs_unequal)]
@@ -3145,90 +3160,6 @@ def _helper_compare_mapping_is_equal(group):
         return False
     else:
         return True
-
-# def _helper_yield_entry_ENSP_2_UniProt_all(ENSP_2_UniProt_all):
-#     with open(ENSP_2_UniProt_all, "r") as fh_in:
-#         ENSP_last, UniProtAC, UniProtID, source = fh_in.readline().split("\t")
-#         source = source.strip()
-#         source_2_id_dict = {source}
-#
-#         for line in fh_in:
-#             ENSP, UniProtAC, UniProtID, source = line.split("\t")
-#             source = source.strip()
-#             if ENSP != ENSP_last:
-#                 yield ENSP, source_2_id_dict
-#
-# def Secondary_2_Primary_ID_UPS_FIN_old_deprecated(UniProt_sec_2_prim_AC, Taxid_UniProt_AC_2_ID, Taxid_UniProtID_2_ENSPs_2_KEGGs, damian_uniprot_2_string, Taxid_2_Proteins_table_STS, Protein_2_FunctionEnum_table_UPS_FIN, fn_out_Secondary_2_Primary_ID_UPS_FIN, fn_out_UniProt_AC_2_ID_no_translation, fn_out_Secondary_2_Primary_ID_UPS_different_translation):
-#     """
-#     restrict Secondary_2_Primary_IDs_UPS_FIN
-#       - by ENSPs occurring in STRING_v11 (if querying from STRING space)
-#       - by UniProtIDs occurring in Protein_2_FunctionEnum_table_UPS_FIN (no annotation otherwise)
-#     """
-#     gen_AC_2_AC = _helper_yield_UniProt_sec_2_prim_AC(UniProt_sec_2_prim_AC)
-#     gen_ENSP_2_ID = _helper_yield_Taxid_UniProtID_2_ENSPs_2_KEGGs(Taxid_UniProtID_2_ENSPs_2_KEGGs)
-#     gen_AC_2_ID = _helper_yield_gen_AC_2_ID(Taxid_UniProt_AC_2_ID)
-#     ac_2_id_dict = {}
-#     ac_2_taxid_dict = {}
-#
-#     ENSP_STRING_v11 = set()
-#     with open(Taxid_2_Proteins_table_STS, "r") as fh_in:
-#         for line in fh_in:
-#             _taxid, ENSP_arr, _count = line.split("\t")
-#             ENSP_STRING_v11 |= set(ENSP_arr[1:-1].replace('"', "").split(","))
-#
-#     ENSP_2_UniProtID_dict = {}
-#     with open(damian_uniprot_2_string, "r") as fh_in:
-#         _header = fh_in.readline()
-#         for line in fh_in:
-#             taxid, UniProtAC_UniProtID, ENSP, identity, bit_score = line.split("\t")
-#             ENSP_2_UniProtID_dict[ENSP] = UniProtAC_UniProtID.split("|")[1]
-#
-#     UniProtID_with_annotations = []
-#     with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
-#         for line in fh_in:
-#             _, UniProtID, _ = line.split("\t")
-#             UniProtID_with_annotations.append(UniProtID)
-#     UniProtID_with_annotations = set(UniProtID_with_annotations)
-#
-#     ENSPs_already_mapped = set()
-#     with open(fn_out_Secondary_2_Primary_ID_UPS_FIN, "w") as fh_out:
-#         with open(fn_out_UniProt_AC_2_ID_no_translation, "w") as fh_out_no_translation:
-#             with open(fn_out_Secondary_2_Primary_ID_UPS_different_translation, "w") as fh_diff_trans:
-#                 for taxid, ENSP_list, UniProtID in gen_ENSP_2_ID:
-#                     for ENSP in set(ENSP_list).intersection(ENSP_STRING_v11): # restrict to STRING_v11 ENSPs
-#                         if UniProtID in UniProtID_with_annotations:
-#                             # does Damian and UniProt mapping concurr? if not write to fh_diff_trans
-#                             try:
-#                                 UniProtID_Damian = ENSP_2_UniProtID_dict[ENSP]
-#                             except KeyError:
-#                                 UniProtID_Damian = False
-#
-#                             if not UniProtID_Damian:
-#                                 fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")
-#                             else:
-#                                 if UniProtID_Damian == UniProtID:
-#                                     fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")
-#                                 else:
-#                                     fh_out.write(taxid + "\t" + "ENSP_2_ID" + "\t" + ENSP + "\t" + UniProtID + "\n")
-#                                     fh_diff_trans.write(ENSP + "\t" + UniProtID + "\t" + UniProtID_Damian + "\n")
-#                             ENSPs_already_mapped |= set([ENSP])
-#
-#
-#                 for taxid, ac, id_ in gen_AC_2_ID:
-#                     if id_ in UniProtID_with_annotations:
-#                         fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + ac + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
-#                     ac_2_id_dict[ac] = id_
-#                     ac_2_taxid_dict[ac] = taxid
-#
-#                 for secondary, primary in gen_AC_2_AC:
-#                     try:
-#                         id_ = ac_2_id_dict[primary]
-#                         taxid = ac_2_taxid_dict[primary]
-#                     except KeyError:
-#                         fh_out_no_translation.write(primary + "\n")
-#                         continue
-#                     if id_ in UniProtID_with_annotations:
-#                         fh_out.write(taxid + "\t" + "AC_2_ID" + "\t" + secondary + "\t" + id_ + "\n")  # UniProt AC 2 ID --> AC_2_ID
 
 def Secondary_2_Primary_ID_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, UniProt_sec_2_prim_AC, ENSP_2_UniProt_2_use, Taxid_UniProt_AC_2_ID, fn_out_Secondary_2_Primary_ID_UPS_FIN, fn_out_Secondary_2_Primary_ID_UPS_no_translation):
     """
