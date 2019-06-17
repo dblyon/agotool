@@ -43,19 +43,19 @@ query using:
 
 URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz"
 
-### secondary_2_primary_id [Secondary_2_Primary_ID_UPS_FIN.txt]
-| taxid | type | sec | uniprotid |
-|:---:|:---:|:---:|:---:|
-| 1028729 | ENSP_2_ID | 101028.EKJ70075 | K3VY58_FUSPC |
-| 2026739 | AC_2_ID | A0A2E5VZF0 | A0A2E5VZF0_9EURY |
 
 
-### taxid_uniprot_ac_2_id [Taxid_UniProt_AC_2_ID.txt]
-| taxid | uniprotan | uniprotid |
+### taxid_uniprot_ac_2_id [Taxid_UniProt_AC_2_ID.txt] (more comprehensive than ENSP_2_UniProtID_2_use)
+| taxid | uniprotac | uniprotid |
 |:---:|:---:|:---:|
 | 654924 | Q6GZX4 | 001R_FRG3G |
 | 654924 | Q6GZX3 | 002L_FRG3G |
 | 345201 | Q197F8 | 002R_IIV3 |
+
+
+### ENSP_2_UniProtID_all [ENSP_2_UniProtID_2_use.txt] (reduced set from ENSP_2_UniProtID_all.txt)
+| ENSP | uniprotac | uniprotid | source |
+|:---:|:---:|:---:|:---:|
 
 
 ### taxid_uniprotid_2_ensps_2_keggs [Taxid_UniProtID_2_ENSPs_2_KEGGs.txt]
@@ -64,6 +64,16 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 176652 | 127L_IIV6 |  | vg:1733363 |
 | 272626 | 12OLP_LISIN | 272626.lin1839 | lin:lin1839 |
 | 83332 | 35KD_MYCTU | 83332.Rv2744c;83332.ABC123   mtu:Rv2744c;mtv:RVBD_2744c |
+
+
+### secondary_2_primary_id [Secondary_2_Primary_ID_UPS_FIN.txt]
+| taxid | type | sec | uniprotid |
+|:---:|:---:|:---:|:---:|
+| 1028729 | ENSP_2_ID | 101028.EKJ70075 | K3VY58_FUSPC |
+| 2026739 | AC_2_ID | A0A2E5VZF0 | A0A2E5VZF0_9EURY |
+
+
+
 
 
 ### entity_types [Entity_types_table_FIN.txt]

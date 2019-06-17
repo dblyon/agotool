@@ -150,6 +150,9 @@ ENSP_2_UniProtID_without_translation_1 = os.path.join(TABLES_DIR, "ENSP_2_UniPro
 ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
 ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
 protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
+ENSP_2_UniProt_2_use = os.path.join(TABLES_DIR, "ENSP_2_UniProt_2_use.txt")
+ENSP_of_UniProtIDmapping_not_in_STRINGv11 = os.path.join(TABLES_DIR, "ENSP_of_UniProtIDmapping_not_in_STRINGv11.txt")
+ENSP_2_UniProt_discrepancy = os.path.join(TABLES_DIR, "ENSP_2_UniProt_discrepancy.txt")
 ###################################################################################################
 ### download resources
 rule download_descriptions_PMID:
@@ -481,12 +484,12 @@ rule Protein_2_Function_table_UniProtDump_UPS:
         RCTM_hierarchy = RCTM_hierarchy
     output:
         Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, Pfam
-        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
-        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
+        # Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs, # from UniProtIDmapping from now on
+        # Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
     params:
         verbose = verbose
     run:
-        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Taxid_UniProt_AC_2_ID, params.verbose)
+        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, params.verbose)
 
 # rule Protein_2_Function_table_UniProtDump_UPS_parallel: # doens't work properly, regex parsing
 #     input:
@@ -626,37 +629,48 @@ rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference prot
     run:
         cst.Taxid_2_funcEnum_2_scores_table_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
 
-rule Secondary_2_Primary_ID_UPS_FIN:
-    input:
-        UniProt_sec_2_prim_AC = UniProt_sec_2_prim_AC,
-        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID,
-        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
-        damian_uniprot_2_string = damian_uniprot_2_string,
-        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
-        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN
-    output:
-        Secondary_2_Primary_ID_UPS_FIN = Secondary_2_Primary_ID_UPS_FIN,
-        Secondary_2_Primary_ID_UPS_no_translation = Secondary_2_Primary_ID_UPS_no_translation,
-        Secondary_2_Primary_ID_UPS_different_translation = Secondary_2_Primary_ID_UPS_different_translation
-    run:
-        cst.Secondary_2_Primary_ID_UPS_FIN(input.UniProt_sec_2_prim_AC, input.Taxid_UniProt_AC_2_ID, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.damian_uniprot_2_string, input.Taxid_2_Proteins_table_STS, input.Protein_2_FunctionEnum_table_UPS_FIN, output.Secondary_2_Primary_ID_UPS_FIN, output.Secondary_2_Primary_ID_UPS_no_translation, output.Secondary_2_Primary_ID_UPS_different_translation)
-
 rule ENSP_2_UniProt_all:
     input:
         damian_uniprot_2_string = damian_uniprot_2_string,
-        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         UniProt_ID_mapping = UniProt_ID_mapping
     output:
-        ENSP_2_UniProt_all = ENSP_2_UniProt_all
+        ENSP_2_UniProt_all = ENSP_2_UniProt_all,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
+        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.ENSP_2_UniProt_all(input.damian_uniprot_2_string, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.UniProt_ID_mapping, output.ENSP_2_UniProt_all, threads)
+        cst.ENSP_2_UniProt_all(input.damian_uniprot_2_string, input.UniProt_ID_mapping, output.ENSP_2_UniProt_all, output.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Taxid_UniProt_AC_2_ID, threads)
 
+rule STRING_2_UniProt_mapping_discrepancies:
+    input:
+        ENSP_2_UniProt_all = ENSP_2_UniProt_all,
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
+        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN
+    output:
+        ENSP_2_UniProt_2_use = ENSP_2_UniProt_2_use,
+        ENSP_of_UniProtIDmapping_not_in_STRINGv11 = ENSP_of_UniProtIDmapping_not_in_STRINGv11,
+        ENSP_2_UniProt_discrepancy = ENSP_2_UniProt_discrepancy
+    run:
+        cst.STRING_2_UniProt_mapping_discrepancies(input.ENSP_2_UniProt_all, input.Taxid_2_Proteins_table_STS, input.Protein_2_FunctionEnum_table_UPS_FIN, output.ENSP_2_UniProt_2_use, ouput.ENSP_of_UniProtIDmapping_not_in_STRINGv11, output.ENSP_2_UniProt_discrepancy)
+
+rule Secondary_2_Primary_ID_UPS_FIN:
+    input:
+        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN, # to restrict Taxid_UniProt_AC_2_ID
+        UniProt_sec_2_prim_AC = UniProt_sec_2_prim_AC, # secondary AC to ID
+        ENSP_2_UniProt_2_use = ENSP_2_UniProt_2_use, # ENSP to UniProtID
+        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID # primary AC to ID
+    output:
+        Secondary_2_Primary_ID_UPS_FIN = Secondary_2_Primary_ID_UPS_FIN,
+        Secondary_2_Primary_ID_UPS_no_translation = Secondary_2_Primary_ID_UPS_no_translation
+    run:
+        cst.Secondary_2_Primary_ID_UPS_FIN(input.Protein_2_FunctionEnum_table_UPS_FIN, input.UniProt_sec_2_prim_AC, input.ENSP_2_UniProt_2_use, input.Taxid_UniProt_AC_2_ID, output.Secondary_2_Primary_ID_UPS_FIN, output.Secondary_2_Primary_ID_UPS_no_translation)
 
 
 # TODO
 # - checkout RCTM
 # - produce KEGG_TaxID_2_acronym_dict
+# - check ENSP_2_UniProt_all: one to many mappings?
+# - check ENSP_2_UniProt_all: KEGG mapping ? replace UniProtDump?
 
 # - Damian mapping of ENSP to UniProtAC --> Secondary_2_Primary_ID_UPS_FIN to make one to one mapping of ENSP to UniProtIDs
 # - add Protein_2_FunctionEnum_table_UPS_FIN.txt to DB and connect via pqo --> preload background proteome for most common taxa
