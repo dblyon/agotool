@@ -982,6 +982,16 @@ def get_ENSP_2_functionEnumArray_dict(read_from_flat_files=False):
                 ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
     return ENSP_2_functionEnumArray_dict
 
+def get_UniProtID_2_functionEnumArray_dict(UniProtID_list):
+    """
+    """
+    UniProtID_2_functionEnumArray_dict = {} # key: String (ENSP), val: np.array(uint32) of function enumerations
+    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum;")
+    for res in result:
+        UniProtID, funcEnumArray = res
+        UniProtID_2_functionEnumArray_dict [UniProtID] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
+    return UniProtID_2_functionEnumArray_dict
+
 def get_ENSP_2_functionEnumArray_dict_old():
     """
     debug : ORDER BY bubu LIMIT 100 OFFSET 50;

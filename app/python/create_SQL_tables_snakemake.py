@@ -1510,8 +1510,10 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
                         print("parsing {}".format(uniprot_dump_fn))
                     # for UniProtAC_and_ID_list, functions_2_return, NCBI_Taxid in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
                     # todo slight optimization remove KEGG and STRING parsing since done elsewhere (UniprotIDmapping)
-                    for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
-                        Keywords_list, GOterm_list, InterPro, Pfam, KEGG, Reactome, STRING, *Proteomes = functions_2_return
+                    # for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
+                    # for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
+                    #     Keywords_list, GOterm_list, InterPro, Pfam, KEGG, Reactome, STRING, *Proteomes = functions_2_return
+                    for UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
                         # ['Complete proteome', 'Reference proteome', 'Transcription', 'Activator', 'Transcription regulation', ['GO:0046782'], ['IPR007031'], ['PF04947'], ['vg:2947773'], [], [], ['UP000008770']]
                         # for UniProtAN in UniProtAC_and_ID_list:
                         if len(Keywords_list) > 0:
@@ -1592,13 +1594,13 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
 
         # UniProtAC_list = sorted(set(UniProtAC_list))Taxid_2_funcEnum_2_scores_table_FIN
         Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
-        other_functions = helper_parse_UniProt_dump_other_functions(Functions_other_list)
+        # other_functions = helper_parse_UniProt_dump_other_functions(Functions_other_list)
+        GOterm_list, InterPro, Pfam, Reactome = helper_parse_UniProt_dump_other_functions(Functions_other_list)
         # GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
-        functions_2_return.append(Keywords_list)
-        functions_2_return += other_functions
-        # Keywords_list, GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
-        #                GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
-        yield UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return
+        # functions_2_return.append(Keywords_list)
+        # functions_2_return += other_functions # GO, InterPro, Pfam, Reactome
+        # yield UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return
+        yield UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome
 
 def helper_parse_UniProt_dump_other_functions(list_of_string):
     """
@@ -1615,7 +1617,8 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
      ['Pfam; PF04947; Pox_VLTF3; 1.']]
      EnsemblPlants; AT3G09880.1; AT3G09880.1; AT3G09880.
     """
-    GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes = [], [], [], [], [], [], []
+    # GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes = [], [], [], [], [], [], []
+    GO, InterPro, Pfam, Reactome = [], [], [], []
     for row in list_of_string:
         row_split = row.split(";")
         func_type = row_split[0]
@@ -1623,9 +1626,9 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
             annotation = row_split[1].strip()
         except IndexError:
             continue
-        if func_type == "KEGG":
-            KEGG.append(annotation)
-        elif func_type == "GO":
+        # if func_type == "KEGG":
+        #     KEGG.append(annotation)
+        if func_type == "GO":
             GO.append(annotation)
         elif func_type == "InterPro":
             InterPro.append(annotation)
@@ -1635,21 +1638,22 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
             if annotation.startswith("R-"):  # R-DME-6799198 --> DME-6799198
                 annotation = annotation[2:]
             Reactome.append(annotation)
-        elif func_type == "STRING":
-            funcs_2_return = []
-            try:
-                for func in [func.strip() for func in row_split[1:]]:
-                    if func.endswith("."):
-                        func = func[:-1]
-                    if func == "-":
-                        continue
-                    funcs_2_return.append(func)
-            except IndexError:
-                continue
-            STRING += funcs_2_return
-        elif func_type == "Proteomes":
-            Proteomes.append(annotation)
-    return [GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes]
+        # elif func_type == "STRING":
+        #     funcs_2_return = []
+        #     try:
+        #         for func in [func.strip() for func in row_split[1:]]:
+        #             if func.endswith("."):
+        #                 func = func[:-1]
+        #             if func == "-":
+        #                 continue
+        #             funcs_2_return.append(func)
+        #     except IndexError:
+        #         continue
+        #     STRING += funcs_2_return
+        # elif func_type == "Proteomes":
+        #     Proteomes.append(annotation)
+    # return [GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes]
+    return GO, InterPro, Pfam, Reactome
 
 def KEGG_Taxid_2_acronym_table_UPS(fn_in_KEGG_taxonomic_rank_file, fn_out_KEGG_Taxid_2_acronym_table_UP):
     """
@@ -3043,7 +3047,7 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
                 for UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, _ in _helper_yield_UniProtIDmapping_entry(UniProt_ID_mapping): # source is UniProt ID mapping
                     for ENSP in ENSP_list:
                         fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
-                    fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs.write("{}\t{}\t{}\t{}".format(taxid, UniProtID, ";".join(ENSP_list), ";".join(KEGG_list)))
+                    fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, ";".join(ENSP_list), ";".join(KEGG_list)))
                     fh_out_Taxid_UniProt_AC_2_ID.write(taxid + "\t" + UniProtAC + "\t" + UniProtID + "\n")
 
                 source = "STRING"

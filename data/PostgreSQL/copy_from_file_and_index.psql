@@ -1,11 +1,32 @@
 --CREATE DATABASE agotool;
 
+--DROP TABLE IF EXISTS protein_secondary_2_primary_an;
 --CREATE TABLE protein_secondary_2_primary_an (
 --    taxid integer,
 --    sec text,
 --    prim text);
 
-\copy protein_secondary_2_primary_an FROM 'data/PostgreSQL/tables/Secondary_2_Primary_IDs_UPS_FIN_for_DB_sorted.txt';
-CREATE INDEX protein_secondary_2_primary_an_sec_idx ON protein_secondary_2_primary_an (sec);
-CREATE INDEX protein_secondary_2_primary_an_taxid_idx ON protein_secondary_2_primary_an (taxid);
-CLUSTER protein_secondary_2_primary_an USING protein_secondary_2_primary_an_taxid_idx;
+
+--\copy protein_secondary_2_primary_an FROM 'data/PostgreSQL/tables/Secondary_2_Primary_IDs_UPS_FIN_for_DB_sorted.txt';
+
+--DROP INDEX IF EXISTS protein_secondary_2_primary_an_sec_idx, protein_secondary_2_primary_an_taxid_idx;
+--CREATE INDEX protein_secondary_2_primary_an_sec_idx ON protein_secondary_2_primary_an (sec);
+--CREATE INDEX protein_secondary_2_primary_an_taxid_idx ON protein_secondary_2_primary_an (taxid);
+--CLUSTER protein_secondary_2_primary_an USING protein_secondary_2_primary_an_taxid_idx;
+
+
+
+DROP TABLE IF EXISTS protein_2_functionenum;
+CREATE TABLE protein_2_functionenum (
+    taxid integer,
+    uniprotid text,
+    functionenum integer ARRAY);
+
+
+\copy protein_2_functionenum FROM 'data/PostgreSQL/tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
+
+DROP INDEX IF EXISTS protein_2_functionenum_taxid_idx, protein_2_functionenum_uniprotid_idx;
+CREATE INDEX protein_2_functionenum_taxid_idx ON protein_2_functionenum (taxid);
+CREATE INDEX protein_2_functionenum_uniprotid_idx ON protein_2_functionenum (uniprotid);
+CLUSTER protein_2_functionenum USING protein_2_functionenum_taxid_idx;
+
