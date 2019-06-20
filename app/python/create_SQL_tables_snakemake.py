@@ -1484,7 +1484,6 @@ def parse_uniprot_dat_dump_yield_entry(fn_in):
 def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, verbose=True): # fn_out_UniProt_AC_2_ID_2_Taxid,fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping
     if verbose:
         print("\nparsing UniProt dumps: creating output file \n{}".format(fn_out_Protein_2_Function_table_UniProt_dump))
-
     etype_UniProtKeywords = variables.id_2_entityTypeNumber_dict["UniProtKeywords"]
     etype_GOMF = variables.id_2_entityTypeNumber_dict['GO:0003674']
     etype_GOCC = variables.id_2_entityTypeNumber_dict['GO:0005575']
@@ -1492,9 +1491,7 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
     etype_interpro = variables.id_2_entityTypeNumber_dict['INTERPRO']
     etype_pfam = variables.id_2_entityTypeNumber_dict['PFAM']
     etype_reactome = variables.id_2_entityTypeNumber_dict['Reactome']
-
     GO_dag = obo_parser.GODag(obo_file=fn_in_obo_GO, upk=False)
-
     UPK_dag = obo_parser.GODag(obo_file=fn_in_obo_UPK, upk=True)
     UPK_Name_2_AN_dict = get_keyword_2_upkan_dict(fn_in_Functions_table_UPK)
     UPKs_not_in_obo_list, GOterms_not_in_obo_temp = [], []
@@ -1508,11 +1505,6 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
                 for uniprot_dump_fn in fn_in_list_uniprot_dumps:
                     if verbose:
                         print("parsing {}".format(uniprot_dump_fn))
-                    # for UniProtAC_and_ID_list, functions_2_return, NCBI_Taxid in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
-                    # todo slight optimization remove KEGG and STRING parsing since done elsewhere (UniprotIDmapping)
-                    # for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
-                    # for UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
-                    #     Keywords_list, GOterm_list, InterPro, Pfam, KEGG, Reactome, STRING, *Proteomes = functions_2_return
                     for UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
                         # ['Complete proteome', 'Reference proteome', 'Transcription', 'Activator', 'Transcription regulation', ['GO:0046782'], ['IPR007031'], ['PF04947'], ['vg:2947773'], [], [], ['UP000008770']]
                         # for UniProtAN in UniProtAC_and_ID_list:
@@ -2829,32 +2821,17 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
     df_wiki_meta = pd.read_csv(fn_in_WikiPathways_organisms_metadata, sep="\t")
     df_wiki_meta["Genus species"] = df_wiki_meta["Genus species"].apply(lambda s: "_".join(s.split(" ")))
     TaxName_2_Taxid_dict = pd.Series(df_wiki_meta["Taxid"].values, index=df_wiki_meta["Genus species"]).to_dict()
-
-    # if verbose:
-    #     print("getting all ENSPs to reduce input")
-    # ENSP_set = get_all_ENSPs(fn_in_Taxid_2_Proteins_table_STS)
-
-    # | enum | etype | an | description | year | level |
     year, level = "-1", "-1"
     etype = str(variables.functionType_2_entityType_dict["WikiPathways"])
-
     # col_names = ['UniProtKB-AC', 'UniProtKB-ID', 'GeneID (EntrezGene)', 'RefSeq', 'GI', 'PDB', 'GO', 'UniRef100', 'UniRef90', 'UniRef50', 'UniParc', 'PIR', 'NCBI-taxon', 'MIM', 'UniGene', 'PubMed', 'EMBL', 'EMBL-CDS', 'Ensembl', 'Ensembl_TRS', 'Ensembl_PRO', 'Additional PubMed']
-    # if verbose:
-    #     print("parsing {}".format(fn_in_UniProt_ID_mapping))
     # df_UniProt_ID_mapping = pd.read_csv(fn_in_UniProt_ID_mapping, sep="\t", names=col_names, usecols=["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)", "NCBI-taxon"])
     EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping)
-
-    # if verbose:
-    #     print("parsing {}".format(fn_in_STRING_EntrezGeneID_2_STRING))
-    # EntrezGeneID_2_ENSPsList_dict = get_EntrezGeneID_2_ENSPsList_dict(fn_in_STRING_EntrezGeneID_2_STRING)
-
     WikiPathways_dir = os.path.dirname(fn_in_WikiPathways_not_a_gmt_file)
     fn_list = [os.path.join(WikiPathways_dir, fn) for fn in os.listdir(WikiPathways_dir) if fn.endswith(".gmt")]
+    already_written = []
     with open(fn_out_Functions_table_WikiPathways, "w") as fh_out_functions:  # etype | an | description | year | level
         with open(fn_out_Protein_2_Function_table_WikiPathways, "w") as fh_out_protein_2_function:  # an | func_array | etype
             for fn_wiki in fn_list:
-                # if verbose:
-                #     print("processing {}".format(fn_wiki))
                 taxname = fn_wiki.split("-gmt-")[-1].replace(".gmt", "")
                 try:
                     taxid = TaxName_2_Taxid_dict[taxname]  # taxid is an integer
@@ -2862,16 +2839,19 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
                     print("WikiPathways, couldn't translate TaxName from file: {}".format(fn_wiki))
                     continue
                 # EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict(df_UniProt_ID_mapping, taxid)
-                with open(fn_wiki, "r") as fh_in:
+                with open(fn_wiki, "r") as fh_in: # remove dupliates
                     # remember pathway to proteins mapping --> then translate to ENSP to func_array
                     WikiPathwayID_2_EntrezGeneIDList_dict = {}
-                    for line in fh_in:  # DNA Replication%WikiPathways_20190310%WP1223%Anopheles gambiae	http://www.wikipathways.org/instance/WP1223_r68760	1275918	1275917	1282031	3290537	1276035	1280711	1281887	1279642	1274553	1279643	1276738	1275769	1274119	1274537	1270475	1275768	1271764	1276999	1273769	1269746	1278028	1279877	1275573	1270041	1276468	1281755	1280005	1270681	1277651	1274882	1274822	1272643	1281195	3291042
+                    for line in fh_in:  # DNA Replication%WikiPathways_20190310%WP1223%Anopheles gambiae	http://www.wikipathways.org/instance/WP1223_r68760	1275918	1275917	1282031	3290537	1276035	1280711	1281887
                         pathwayName_version_pathwayID_TaxName, url_, *entrez_ids = line.strip().split("\t")  # 'DNA Replication', 'WikiPathways_20190310', 'WP1223', 'Anopheles gambiae', ['1275918', ... ]
                         pathwayName, version, pathwayID, TaxName = pathwayName_version_pathwayID_TaxName.split("%")
                         description = pathwayName
                         an = pathwayID
                         WikiPathwayID_2_EntrezGeneIDList_dict[pathwayID] = entrez_ids
-                        fh_out_functions.write(etype + "\t" + an + "\t" + description + "\t" + year + "\t" + level + "\n")  # check for uniqueness of names/ IDs later
+                        line_2_write = etype + "\t" + an + "\t" + description + "\t" + year + "\t" + level + "\n"
+                        if line_2_write not in already_written:
+                            fh_out_functions.write(line_2_write) # check for uniqueness of names/ IDs later
+                            already_written.append(line_2_write)
 
                     # map to UniProt and to STRING, single pathway to multiple entrez_ids translate to ENSP/UniProtAN to multiple pathways
                     # ENSP_2_wiki_dict, UniProt_2_wiki_dict = {}, {}
