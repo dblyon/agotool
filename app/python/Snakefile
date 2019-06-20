@@ -36,11 +36,12 @@ GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 URL_SwissProt_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz"
-SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 URL_TrEMBL_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz"
+URL_UniProt_sec_2_prim_AC = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
+URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz" # monthly
+SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_ref_prots")
-URL_UniProt_sec_2_prim_AC = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
 UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
 Secondary_2_Primary_ID_UPS_FIN = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_FIN.txt")
 Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
@@ -91,13 +92,7 @@ Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
 Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
 Functions_table_UPS_FIN = variables.tables_dict["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
 Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_removed.txt")
-
-#!!! TODO check if deprecated due to idmapping, if so switch to larger mapping file instead of maintaining two versions
-#  ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
-URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz" # monthly download? #!!!
 UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
-UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
-
 WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
 WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gmt_file.txt")
 # STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz") # https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
@@ -649,7 +644,7 @@ rule STRING_2_UniProt_mapping_discrepancies:
         ENSP_of_UniProtIDmapping_not_in_STRINGv11 = ENSP_of_UniProtIDmapping_not_in_STRINGv11,
         ENSP_2_UniProt_discrepancy = ENSP_2_UniProt_discrepancy
     run:
-        cst.STRING_2_UniProt_mapping_discrepancies(input.ENSP_2_UniProt_all, input.Taxid_2_Proteins_table_STS, input.Protein_2_FunctionEnum_table_UPS_FIN, output.ENSP_2_UniProt_2_use, ouput.ENSP_of_UniProtIDmapping_not_in_STRINGv11, output.ENSP_2_UniProt_discrepancy)
+        cst.STRING_2_UniProt_mapping_discrepancies(input.ENSP_2_UniProt_all, input.Taxid_2_Proteins_table_STS, input.Protein_2_FunctionEnum_table_UPS_FIN, output.ENSP_2_UniProt_2_use, output.ENSP_of_UniProtIDmapping_not_in_STRINGv11, output.ENSP_2_UniProt_discrepancy)
 
 rule Secondary_2_Primary_ID_UPS_FIN:
     input:
@@ -664,53 +659,16 @@ rule Secondary_2_Primary_ID_UPS_FIN:
         cst.Secondary_2_Primary_ID_UPS_FIN(input.Protein_2_FunctionEnum_table_UPS_FIN, input.UniProt_sec_2_prim_AC, input.ENSP_2_UniProt_2_use, input.Taxid_UniProt_AC_2_ID, output.Secondary_2_Primary_ID_UPS_FIN, output.Secondary_2_Primary_ID_UPS_no_translation)
 
 
-# TODO
-# - checkout RCTM
-# - produce KEGG_TaxID_2_acronym_dict
-# - check ENSP_2_UniProt_all: one to many mappings?
-# - check ENSP_2_UniProt_all: KEGG mapping ? replace UniProtDump?
+
+# background proteomes
+# E. coli is 562 but UniProt ref prot is 83333
+# 511145 Escherichia coli str. K-12 substr. MG1655
+# 83333 Escherichia coli (strain K12)
+
 
 # - Damian mapping of ENSP to UniProtAC --> Secondary_2_Primary_ID_UPS_FIN to make one to one mapping of ENSP to UniProtIDs
 # - add Protein_2_FunctionEnum_table_UPS_FIN.txt to DB and connect via pqo --> preload background proteome for most common taxa
 
 
-# why are there so few PMID -56 in Functions_table_UPS_FIN.txt ?
-# $ cut -f 2 Functions_table_STRING.txt | sort | uniq -c
-#   17251 -21
-#    2413 -22
-#    5038 -23
-#     921 -51
-#     437 -52
-#    1268 -53
-#   26965 -54
-#   13938 -55
-# 3592745 -56
-#   19955 -57
-
-# $ cut -f 1 Functions_table_all.txt | sort | uniq -c
-#    3934 -20
-#   29614 -21
-#    4193 -22
-#   11138 -23
-#    4964 -25
-#   11618 -26
-#    1199 -51
-#     524 -52
-#   36713 -54
-#   16712 -55
-# 29678010 -56
-#   23437 -57
-#    1590 -58
-
-#  $ cut -f2 Functions_table_UPS_FIN.txt|sort | uniq -c
-#    3934 -20
-#   16355 -21
-#    3381 -22
-#    6398 -23
-#    3978 -25
-#    6663 -26
-#     917 -51
-#   35399 -54
-#   15799 -55
-#   87195 -56
-#    1273 -58
+# ToDo
+# - translate primary ids back to secondary ? (Secondary_2_Primary_IDs_dict)

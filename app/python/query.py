@@ -60,7 +60,7 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'KEGG': "-52"}
 
 
-def get_cursor(env_dict=None, DB_DOCKER=None):
+def get_cursor(env_dict=None): # , DB_DOCKER=None
     platform_ = sys.platform
     if env_dict is not None:
         USER = env_dict['POSTGRES_USER']
@@ -71,12 +71,12 @@ def get_cursor(env_dict=None, DB_DOCKER=None):
         PORT = '5432'
         HOST = 'db'
         return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
-    if not variables.DB_DOCKER: # or not DB_DOCKER:
-        ### use dockerized Postgres directly from native OS
-        PORT = '5913'
-        HOST = 'localhost'
-        param_2_val_dict = variables.param_2_val_dict
-        return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
+    # if not variables.DB_DOCKER: # or not DB_DOCKER:
+    #     ### use dockerized Postgres directly from native OS
+    #     PORT = '5913'
+    #     HOST = 'localhost'
+    #     param_2_val_dict = variables.param_2_val_dict
+    #     return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
 
     if platform_ == "linux":
         try:
@@ -95,8 +95,10 @@ def get_cursor(env_dict=None, DB_DOCKER=None):
     elif platform_ == "darwin":
         if not variables.DB_DOCKER:
             ### use local Postgres
+            # print("using local Postgres")
             return get_cursor_ody()
         else: # connect to docker Postgres container
+            ### use dockerized Postgres directly from native OS
             PORT = '5432'
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
@@ -244,7 +246,7 @@ class PersistentQueryObject:
     @staticmethod
     def get_secondary_2_primary_an_dict():
         secondary_2_primary_dict = {}
-        result = get_results_of_statement("SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an;")
+        result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.pri FROM secondary_2_primary_id;")
         for res in result:
             secondary = res[0]
             primary = res[1]
@@ -451,6 +453,15 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
 
+        if not low_memory:
+            if variables.VERBOSE:
+                print("getting Secondary_2_Primary_IDs_dict")
+            self.Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict(read_from_flat_files=read_from_flat_files)
+
+        if variables.VERBOSE:
+            print("getting Taxid_2_FunctionEnum_2_Scores_table")
+        self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files)
+
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
         self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files)
@@ -480,17 +491,18 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         if variables.VERBOSE:
             print("getting get_ENSP_2_functionEnumArray_dict")
         if not low_memory:
-            #foreground
+            # foreground
             self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict(read_from_flat_files)
 
         if variables.VERBOSE:
             print("getting taxid_2_tuple_funcEnum_index_2_associations_counts")
-        #background
+        # background
         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
 
         if variables.VERBOSE:
             print("getting ENSP_2_tuple_funcEnum_score_dict")
         self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
+
 
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
@@ -501,7 +513,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("finished with PQO init")
-            print("GO go go and fly like the wind")
+            print("go go GO and fly like the wind")
             print("#" * 80)
 
     @contextmanager
@@ -546,7 +558,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict, self.Taxid_2_FunctionEnum_2_Scores_dict)
         else:
             # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
             # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict
@@ -554,7 +566,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict, self.Taxid_2_FunctionEnum_2_Scores_dict)
         return static_preloaded_objects
 
     def get_blacklisted_terms_bool_arr(self):
@@ -684,6 +696,20 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
+def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False):
+    Taxid_2_FunctionEnum_2_Scores_dict = {} #defaultdict(lambda: False)
+    results = get_results_of_statement_from_flat_file(variables.tables_dict["Taxid_2_FunctionEnum_2_Scores_table"])
+    for res in results:
+        taxid, functionEnumeration, scores_arr = res
+        taxid = int(taxid)
+        functionEnumeration = int(functionEnumeration)
+        scores_arr = np.array([float(score) for score in scores_arr[1:-1].split(",")], dtype=np.dtype("float32")) # float16 would probably be sufficient
+        if taxid not in Taxid_2_FunctionEnum_2_Scores_dict:
+            Taxid_2_FunctionEnum_2_Scores_dict[taxid] = {functionEnumeration: scores_arr}
+        else:
+            Taxid_2_FunctionEnum_2_Scores_dict[taxid][functionEnumeration] = scores_arr
+    return Taxid_2_FunctionEnum_2_Scores_dict
+
 def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
     """
     key = ENSP
@@ -730,7 +756,7 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
             continue
         funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
         number_of_functions = len(funcEnum_score_arr)
-        score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32"))
+        score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32")) # float16 would probably be sufficient
         funcEnum_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("uint32"))
         if len(funcEnum_score_arr) == 1:
             fs = funcEnum_score_arr[0][1:-2].split(",")
@@ -781,6 +807,8 @@ def get_results_of_statement_from_flat_file(file_name, columns=[]):
 
 def get_function_description_from_funcEnum(funcEnum_list):
     funcEnum_2_description_dict = {}
+    if len(funcEnum_list) == 0:
+        return funcEnum_2_description_dict
     funcEnum_list = str(funcEnum_list)[1:-1]
     result = get_results_of_statement("SELECT functions.enum, functions.description FROM functions WHERE functions.enum IN({});".format(funcEnum_list))
     for res in result:
@@ -937,7 +965,8 @@ def get_functionEnumArray_from_proteins(protein_ans_list, dict_2_array=False):
     :param dict_2_array: Bool (flag to get a dict of ENSPs with func enum arr as values, otherwise nested list of tuples (ENSP, list of func enums))
     :return: List of Tuple( String(ENSP), List of Integers(function enumeration) )
     """
-    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.an IN({});".format(str(protein_ans_list)[1:-1]))
+    # result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.an IN({});".format(str(protein_ans_list)[1:-1]))
+    result = get_results_of_statement("SELECT protein_2_functionenum.id, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.id IN({});".format(str(protein_ans_list)[1:-1]))
     if not dict_2_array:
         return result
     else:
@@ -976,17 +1005,17 @@ def get_ENSP_2_functionEnumArray_dict(read_from_flat_files=False):
         for offset_ in range(0, 21839547, limit): # 21.500.000 # 21839547
             if variables.VERBOSE:
                 print(".", end="")
-            result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum ORDER BY protein_2_functionenum.an LIMIT {} OFFSET {};".format(limit, offset_))
+            result = get_results_of_statement("SELECT protein_2_functionenum.id, protein_2_functionenum.functionenum FROM protein_2_functionenum ORDER BY protein_2_functionenum.id LIMIT {} OFFSET {};".format(limit, offset_))
             for res in result:
                 ENSP, funcEnumArray = res
                 ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
     return ENSP_2_functionEnumArray_dict
 
-def get_UniProtID_2_functionEnumArray_dict(UniProtID_list):
+def get_UniProtID_2_functionEnumArray_dict(UniProtID_list): # rename to state not all UniProtIDs are retrieved
     """
     """
     UniProtID_2_functionEnumArray_dict = {} # key: String (ENSP), val: np.array(uint32) of function enumerations
-    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum;")
+    result = get_results_of_statement("SELECT protein_2_functionenum.id, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.id IN({});".format(str(UniProtID_list)[1:-1]))
     for res in result:
         UniProtID, funcEnumArray = res
         UniProtID_2_functionEnumArray_dict [UniProtID] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
@@ -1005,7 +1034,7 @@ def get_ENSP_2_functionEnumArray_dict_old():
     :return: List of Tuple( String(ENSP), List of Integers(function enumeration) )
     """
     ENSP_2_functionEnumArray_dict = {} # key: String (ENSP), val: np.array(uint32) of function enumerations
-    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum;")
+    result = get_results_of_statement("SELECT protein_2_functionenum.id, protein_2_functionenum.functionenum FROM protein_2_functionenum;")
     for res in result:
         ENSP, funcEnumArray = res
         ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
@@ -1078,25 +1107,25 @@ def get_background_count_array(taxid):
     """
     return get_results_of_statement("SELECT taxid_2_functioncountarray.background_count_array FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
 
-def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
-    association_dict = {}
-    # print(protein_ans_list)
-    protein_ans_list = str(protein_ans_list)[1:-1]
-    # print(protein_ans_list)
-    result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE (protein_2_function.an IN({}) AND protein_2_function.etype ={});".format(protein_ans_list, etype))
-    for res in result:
-        an, associations_list = res
-        association_dict[an] = set(associations_list)
-    return association_dict
+# def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
+#     association_dict = {}
+#     # print(protein_ans_list)
+#     protein_ans_list = str(protein_ans_list)[1:-1]
+#     # print(protein_ans_list)
+#     result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE (protein_2_function.an IN({}) AND protein_2_function.etype ={});".format(protein_ans_list, etype))
+#     for res in result:
+#         an, associations_list = res
+#         association_dict[an] = set(associations_list)
+#     return association_dict
 
-def get_association_dict_from_proteins_list_v2(protein_ans_list):
-    association_dict = {}
-    protein_ans_list = str(protein_ans_list)[1:-1]
-    result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.an IN({});".format(protein_ans_list))
-    for res in result:
-        an, associations_list = res
-        association_dict[an] = set(associations_list)
-    return association_dict
+# def get_association_dict_from_proteins_list_v2(protein_ans_list):
+#     association_dict = {}
+#     protein_ans_list = str(protein_ans_list)[1:-1]
+#     result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.an IN({});".format(protein_ans_list))
+#     for res in result:
+#         an, associations_list = res
+#         association_dict[an] = set(associations_list)
+#     return association_dict
 
 def get_function_an_2_name__an_2_description_dict():
     result = get_results_of_statement("SELECT functions.an, functions.name, functions.description FROM functions; ")
@@ -1167,6 +1196,47 @@ def get_taxids(read_from_flat_files=False, fn=None):
     else:
         result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein;")
         return sorted([rec[0] for rec in result])
+
+def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None):
+    if Secondary_2_Primary_IDs_dict is None:
+        if variables.READ_FROM_FLAT_FILES: # don't read this from flat files (very slow)
+            # if there is a DB and low_memory then use DB
+            # if low_memory is False then Secondary_2_Primary_IDs_dict will exist and there is no issue
+            print("overwriting variables.READ_FROM_FLAT_FILES set to True for query.get_Secondary_2_Primary_IDs_dict_from_sec") # ToDo remove at some point
+        Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict_from_sec(ids_2_map, False)
+    Secondary_2_Primary_IDs_dict_userquery = {}
+    for id_ in ids_2_map:
+        try:
+            prim = Secondary_2_Primary_IDs_dict[id_]
+        except KeyError:
+            prim = False
+        if prim:
+            Secondary_2_Primary_IDs_dict_userquery[id_] = prim
+    return Secondary_2_Primary_IDs_dict_userquery
+
+def get_Secondary_2_Primary_IDs_dict(read_from_flat_files=False):
+    Secondary_2_Primary_IDs_dict = {}
+    if read_from_flat_files:
+        result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_IDs_table"], columns=[1, 2])
+    else:
+        result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.prim FROM secondary_2_primary_id;")
+    for sec, prim in result:
+        Secondary_2_Primary_IDs_dict[sec] = prim
+    return Secondary_2_Primary_IDs_dict
+
+def get_Secondary_2_Primary_IDs_dict_from_sec(ids_2_map, read_from_flat_files=False):
+    Secondary_2_Primary_IDs_dict = {}
+    if read_from_flat_files:
+        ids_2_map = set(ids_2_map)
+        result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_IDs_table"], columns=[1, 2])
+        for sec, prim in result:
+            if sec in ids_2_map:
+                Secondary_2_Primary_IDs_dict[sec] = prim
+    else:
+        result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.prim FROM secondary_2_primary_id WHERE secondary_2_primary_id.sec IN ({});".format(str(ids_2_map)[1:-1]))
+        for sec, prim in result:
+            Secondary_2_Primary_IDs_dict[sec] = prim
+    return Secondary_2_Primary_IDs_dict
 
 def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins_table_STRING=None):
     if not read_from_flat_files:

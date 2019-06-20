@@ -157,10 +157,10 @@ def Functions_table_Reactome_combispeed(fn_in_desciptions, fn_out_Functions_tabl
                     fh_out.write(entity_type + "\t" + term + "\t" + description + "\t" + year + "\t" + str(level) + "\n")
     return sorted(set(terms_with_hierarchy)), sorted(set(terms_without_hierarchy))
 
-def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_table_RCTM, all_terms=None):
+def Functions_table_RCTM(fn_in_descriptions, fn_in_hierarchy, fn_out_Functions_table_RCTM, all_terms=None):
     """
     entity_type = "-57"
-    :param fn_in_desciptions: String (RCTM_descriptions.tsv)
+    :param fn_in_descriptions: String (RCTM_descriptions.tsv)
     :param fn_in_hierarchy: String
     :param fn_out_Functions_table_RCTM: String (Function_table_RCTM.txt)
     :param all_terms: Set of String (with all RCTM terms that have any association with the given ENSPs)
@@ -175,10 +175,10 @@ def Functions_table_RCTM(fn_in_desciptions, fn_in_hierarchy, fn_out_Functions_ta
     entity_type = variables.id_2_entityTypeNumber_dict["Reactome"]
     year = "-1"
     terms_with_hierarchy, terms_without_hierarchy = [], []
-    with open(fn_in_desciptions, "r") as fh_in:
+    with open(fn_in_descriptions, "r") as fh_in:
         with open(fn_out_Functions_table_RCTM, "w") as fh_out:
             for line in fh_in:
-                term, url_, description = line.split("\t")
+                term, description, taxname = line.split("\t")
                 if term.startswith("R-"):  # R-ATH-109581 --> ATH-109581
                     term = term[2:]
                 description = description.strip()
@@ -1589,8 +1589,8 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
             elif line_code == "OX":
                 # OX   NCBI_Taxid=654924;
                 # OX   NCBI_Taxid=418404 {ECO:0000313|EMBL:QAB05112.1};
-                if rest.startswith("NCBI_Taxid="):
-                    NCBI_Taxid = rest.replace("NCBI_Taxid=", "").split(";")[0].split()[0]
+                if rest.startswith("NCBI_TaxID="):
+                    NCBI_Taxid = rest.replace("NCBI_TaxID=", "").split(";")[0].split()[0]
 
         # UniProtAC_list = sorted(set(UniProtAC_list))Taxid_2_funcEnum_2_scores_table_FIN
         Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
@@ -2962,7 +2962,7 @@ def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_t
             background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
             funcEnum_2_scores_dict_bg = run_cythonized.collect_scores_per_term_v0(background_ENSPs, ENSP_2_tuple_funcEnum_score_dict)
             for funcEnum in sorted(funcEnum_2_scores_dict_bg.keys()):
-                scores = funcEnum_2_scores_dict_bg[funcEnum]
+                scores = sorted(funcEnum_2_scores_dict_bg[funcEnum])
                 fh_out.write(str(taxid) + "\t" + str(funcEnum) + "\t{" + ",".join([str(ele) for ele in scores]) + "}\n")
 
 def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Functions_table_UPS_FIN, Functions_table_UPS_removed):

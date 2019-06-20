@@ -266,8 +266,12 @@ def get_preloaded_objects_for_single_analysis(blacklisted_terms_bool_arr, functi
         cond_filter = np.ones(function_enumeration_len, dtype=bool)
         cond_PMIDs = np.zeros(function_enumeration_len, dtype=bool)
         cond_terms_reduced_with_ontology = np.zeros(function_enumeration_len, dtype=bool)
+        effectSizes = np.empty(function_enumeration_len, dtype=np.dtype("float64"))
+        effectSizes.fill(np.nan)
         # 11
-        return funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs
+        # return funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs, effectSizes
+        return blacklisted_terms_bool_arr_temp, cond_PMIDs, cond_filter, cond_multitest, cond_terms_reduced_with_ontology, effectSizes, foreground_ids_arr_of_string, funcEnum_count_background, funcEnum_count_foreground, p_values, p_values_corrected
+
     elif method == "characterize_foreground":
         # 2
         return funcEnum_count_foreground, foreground_ids_arr_of_string
@@ -283,8 +287,9 @@ def get_preloaded_objects_for_single_analysis(blacklisted_terms_bool_arr, functi
         background_ids_arr_of_string = np.empty(shape=(function_enumeration_len,), dtype=object)
         effectSizes = np.empty(function_enumeration_len, dtype=np.dtype("float64"))
         effectSizes.fill(np.nan)
-        # 12 --> 13
-        return foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes
+        # 12
+        # return foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes
+        return background_ids_arr_of_string, blacklisted_terms_bool_arr_temp, cond_PMIDs, cond_filter, cond_multitest, cond_terms_reduced_with_ontology, effectSizes, foreground_ids_arr_of_string, funcEnum_count_background, funcEnum_count_foreground, p_values, p_values_corrected
     else:
         raise NotImplementedError
 

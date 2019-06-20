@@ -11,7 +11,7 @@ DOCKER = False # app and data directory, within image or shared with local host,
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
-LOW_MEMORY = False # load function_an_2_description_dict or query DB
+LOW_MEMORY = True # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = False # for flask and some internals for printing, set to False in production
@@ -22,8 +22,8 @@ VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the program
 temp_dont_run_analysis = False
-if READ_FROM_FLAT_FILES and LOW_MEMORY:
-    raise NotImplementedError
+# if READ_FROM_FLAT_FILES and LOW_MEMORY:
+#     raise NotImplementedError
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # ToDo SMART is missing in UniProt version
 alpha = 0.05
@@ -213,6 +213,7 @@ tables_dict = {
     "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
     "Secondary_2_Primary_IDs_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_IDs_{}.txt".format(appendix)),
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
+    "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
     "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
 }
 
@@ -257,3 +258,7 @@ jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] 
 # 6239
 # 7227
 # 9606
+
+
+# create args_dict for testing
+# filter p_value

@@ -59,7 +59,7 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 
 
 ### secondary_2_primary_id [Secondary_2_Primary_ID_UPS_FIN.txt]
-| taxid | sec | uniprotid |
+| taxid | sec | prim |
 |:---:|:---:|:---:|
 | 1028729 | 101028.EKJ70075 | K3VY58_FUSPC |
 | 2026739 | A0A2E5VZF0 | A0A2E5VZF0_9EURY |

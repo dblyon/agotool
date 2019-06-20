@@ -765,3 +765,11 @@ cd agotool/app/python
 cd ./agotool/app
 nohup /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python runserver.py  &>/dev/null &
 ################################################################################
+#### 20190618
+#### building working DB for UniProt aGOtool version
+# create DBs
+docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL/create_DBs.psql
+docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL/copy_from_file_and_index.psql
+                                                        /agotool_data/PostgreSQL/copy_from_file_and_index.psql
+
+docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
