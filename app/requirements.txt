@@ -12,3 +12,4 @@ pytest-cov==2.5.1
 markdown==2.6.11
 flask-markdown==0.3
 requests
+tqdm

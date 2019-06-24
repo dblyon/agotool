@@ -3,7 +3,7 @@ services:
 
   db: # name
     container_name: postgres
-    image: "postgres:10"
+    image: "postgres:11"
     shm_size: 1g
     volumes:
       - "dbdata:/var/lib/postgresql/data"

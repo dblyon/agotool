@@ -2098,7 +2098,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
 def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_in_Taxid_2_Proteins_table_UPS_FIN, fn_in_Functions_table_all, fn_out_Function_2_Protein_table_UPS, fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_removed, number_of_threads, min_count=1):
-    """ # ToDo duplicate UniProtIDs --> remove and investigate source
+    """
     merge fn_in_Protein_2_Function_table_UPS and fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_UPS
     then sort based on Taxid and UniProtID
     then iterate over merged table
@@ -3013,14 +3013,14 @@ def ENSP_2_UniProtID_without_translation(fn_in_list, protein_shorthands, ENSP_2_
                     if ENSP in ENSP_set:
                         fh_out.write(ENSP + "\n")
 
-def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID, number_of_processes=1):
+def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, fn_out_Taxid_UniProt_AC_2_ID, number_of_processes=1):
     """
     output:
     999630.TUZN_2237        F2L675  F2L675_THEU7    STRING
     999630.TUZN_2237        F2L675  F2L675_THEU7    UniProtIDmapping
     999630.TUZN_2237        nm      F2L675_THEU7    UniProtDump
     """
-    with open(Taxid_UniProt_AC_2_ID, "w") as fh_out_Taxid_UniProt_AC_2_ID:
+    with open(fn_out_Taxid_UniProt_AC_2_ID, "w") as fh_out_Taxid_UniProt_AC_2_ID:
         with open(fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, "w") as fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs:
             with open(fn_out_ENSP_2_UniProt_all, "w") as fh_out_ENSP_2_UniProtID_all:
                 source = "UniProtIDmapping"
@@ -3042,14 +3042,52 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
     tools.sort_file(fn_out_ENSP_2_UniProt_all, fn_out_ENSP_2_UniProt_all, number_of_processes=number_of_processes)
 
 def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
+    """
+    P70403  UniProtKB-ID    CASP_MOUSE
+    P70403  Gene_Name       Cux1
+    P70403  Gene_Synonym    Cutl1
+    P70403  GI      32484289
+    P70403  GI      1546825
+    P70403  GI      85720588
+    P70403  GI      81861638
+    P70403  GI      15679964
+    P70403  UniRef100       UniRef100_P70403
+    P70403  UniRef90        UniRef90_P70403
+    P70403  UniRef50        UniRef50_P70403
+    P53564-3        UniParc UPI00005B2E7C
+    P53564-1        UniParc UPI00005B2E22
+    P53564-5        UniParc UPI000016D0E8
+    P53564-2        UniParc UPI00005B2E7B
+    P53564-4        UniParc UPI00005B2E7D
+    P70403-1        UniParc UPI000066880C
+    P70403  UniParc UPI000066880C
+    P70403  EMBL    U68542
+    P70403  EMBL    BC014289
+    P70403  EMBL    BC054370
+    P70403  EMBL-CDS        AAB08430.1
+    P70403  EMBL-CDS        AAH14289.1
+    P70403  EMBL-CDS        AAH54370.1
+    P70403  NCBI_TaxID      10090
+    P70403-1        CCDS    CCDS71685.1
+    P70403  STRING  10090.ENSMUSP00000004097
+    P70403  MGI     MGI:88568
+    P70403  eggNOG  KOG0963
+    P70403  eggNOG  KOG2252
+    P70403  eggNOG  ENOG410XPRP
+    P70403  ChiTaRS Cux1
+    P70403  CRC64   C04905EE48CC2D37
+    """
+    AC_2_ID_dict = defaultdict(lambda: "-1")
     for entry in _helper_yield_entry_UniProtIDmapping(UniProt_IDmapping):
-        UniProtAC, UniProtID, taxid, ENSP_list, KEGG_list, EntrezGeneID_list = "-1", "-1", "-1", [], [], []
+        UniProtAC, taxid, ENSP_list, KEGG_list, EntrezGeneID_list = "-1", "-1", [], [], [] # UniProtID,
         for line in entry: # all mappings for one UniProtAC
             UniProtAC, type_, mapping = line.split("\t")
             UniProtAC = UniProtAC.split("-")[0]
             mapping = mapping.strip()
             if type_ == "UniProtKB-ID":
                 UniProtID = mapping
+                if UniProtAC not in AC_2_ID_dict:
+                    AC_2_ID_dict[UniProtAC] = UniProtID
             elif type_ == "NCBI_TaxID":
                 taxid = mapping
             elif type_ == "STRING":
@@ -3058,7 +3096,7 @@ def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
                 KEGG_list.append(mapping)
             elif type_ == "GeneID":
                 EntrezGeneID_list.append(mapping)
-        yield UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list
+        yield UniProtAC, AC_2_ID_dict[UniProtAC], ENSP_list, taxid, KEGG_list, EntrezGeneID_list
 
 def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping):
     EntrezGeneID_2_UniProtID_dict = {}
@@ -3101,6 +3139,40 @@ def STRING_2_UniProt_mapping_discrepancies(ENSP_2_UniProt_all, Taxid_2_Proteins_
     999630.TUZN_2237        F2L675  F2L675_THEU7    UniProtIDmapping
     999630.TUZN_2237        nm      F2L675_THEU7    UniProtDump
     """
+    # ENSPs_of_STRING_v11 = set()
+    # with open(Taxid_2_Proteins_table_STS, "r") as fh_in:
+    #     for line in fh_in:
+    #         _taxid, ENSP_arr, _count = line.split("\t")
+    #         ENSPs_of_STRING_v11 |= set(ENSP_arr[1:-1].replace('"', "").split(","))
+    # df = pd.read_csv(ENSP_2_UniProt_all, sep="\t", names=["ENSP", "UniProtAC", "UniProtID", "source"])
+    # cond_UPID = df["source"] == "UniProtIDmapping"
+    # ENSP_UPIDmapping = set(df.loc[cond_UPID, "ENSP"].unique())
+    # ENSPs_of_UniProtIDmapping_not_in_STRINGv11 = ENSP_UPIDmapping - ENSPs_of_STRING_v11
+    # df_ENSPs_of_UniProtIDmapping_not_in_STRINGv11 = df[df["ENSP"].isin(ENSPs_of_UniProtIDmapping_not_in_STRINGv11)]
+    # df_ENSPs_of_UniProtIDmapping_not_in_STRINGv11.to_csv(fn_out_ENSPs_of_UniProtIDmapping_not_in_STRINGv11, sep="\t", header=False, index=False)
+    # # most cases due to one to many mapping of ENSP UniprotAC. ?check if Damian mapping among them?
+    # is_equal = df.groupby("ENSP").apply(_helper_compare_mapping_is_equal)
+    # ENSPs_unequal = is_equal[~is_equal].reset_index()["ENSP"].tolist() # select those that are unequal, grep ENSPs
+    # df_ENSPs_unequal = df[df["ENSP"].isin(ENSPs_unequal)]
+    # # add a column to mark ENSPs that have a one to one mapping from Damian,
+    # # if that mapping also exists within UniProt
+    # is_one_2_one = df_ENSPs_unequal.groupby("ENSP").apply(_helper_is_one_2_one_Damian)
+    # ENSPs_with_one_2_one_mapping = is_one_2_one[is_one_2_one].reset_index()["ENSP"].tolist()
+    # cond = df_ENSPs_unequal["ENSP"].isin(ENSPs_with_one_2_one_mapping)
+    # df_ENSPs_unequal["1_to_1"] = False
+    # df_ENSPs_unequal.loc[cond, "1_to_1"] = True
+    # df_ENSPs_unequal.to_csv(fn_out_ENSP_2_UniProt_discrepancy, sep="\t", header=False, index=False)
+    # cond_ENSPs_of_STRING_v11 = df["ENSP"].isin(ENSPs_of_STRING_v11)
+    # UniProtID_with_annotation = get_all_UniProtIDs_with_annotations(Protein_2_FunctionEnum_table_UPS_FIN)
+    # cond_UniProtID_with_annotation = df["UniProtID"].isin(UniProtID_with_annotation)
+    # # part1 are equal mappings, reduce redundancy and mark equal
+    # df_ENSP_2_UniProt_2_use_part1 = df.loc[(cond_ENSPs_of_STRING_v11 & cond_UniProtID_with_annotation & is_equal), ["ENSP", "UniProtAC", "UniProtID"]].drop_duplicates()
+    # df_ENSP_2_UniProt_2_use_part1["source"] = "equal"
+    # # part2 chose Damian mapping
+    # cond_ENSP_2_UniProt_2_use_part2_damian = cond_ENSPs_of_STRING_v11 & cond_UniProtID_with_annotation & ~is_equal
+    # df_ENSP_2_UniProt_2_use_part2 = df[cond_ENSP_2_UniProt_2_use_part2_damian]
+    # dfm = pd.concat([df_ENSP_2_UniProt_2_use_part1, df_ENSP_2_UniProt_2_use_part2], ignore_index=True)
+    # dfm.to_csv(fn_out_ENSP_2_UniProt_2_use, sep="\t", header=False, index=False)
     ENSPs_of_STRING_v11 = set()
     with open(Taxid_2_Proteins_table_STS, "r") as fh_in:
         for line in fh_in:
@@ -3112,11 +3184,10 @@ def STRING_2_UniProt_mapping_discrepancies(ENSP_2_UniProt_all, Taxid_2_Proteins_
     ENSP_UPIDmapping = set(df.loc[cond_UPID, "ENSP"].unique())
     ENSPs_of_UniProtIDmapping_not_in_STRINGv11 = ENSP_UPIDmapping - ENSPs_of_STRING_v11
     df_ENSPs_of_UniProtIDmapping_not_in_STRINGv11 = df[df["ENSP"].isin(ENSPs_of_UniProtIDmapping_not_in_STRINGv11)]
-    df_ENSPs_of_UniProtIDmapping_not_in_STRINGv11.to_csv(fn_out_ENSPs_of_UniProtIDmapping_not_in_STRINGv11, sep="\t", header=True, index=False)
-
-    # most cases due to one to many mapping of ENSP UniprotAC. ?check if Damian mapping among them?
+    df_ENSPs_of_UniProtIDmapping_not_in_STRINGv11.to_csv(fn_out_ENSPs_of_UniProtIDmapping_not_in_STRINGv11, sep="\t", header=False, index=False)
+    # true for most cases due to one to many mapping of ENSP UniprotAC.
     is_equal = df.groupby("ENSP").apply(_helper_compare_mapping_is_equal)
-    ENSPs_unequal = is_equal[~is_equal].reset_index()["ENSP"].tolist() # select those that are unequal, grep ENSPs
+    ENSPs_unequal = is_equal[~is_equal].reset_index()["ENSP"].tolist()  # select those that are unequal, grep ENSPs
     df_ENSPs_unequal = df[df["ENSP"].isin(ENSPs_unequal)]
     # add a column to mark ENSPs that have a one to one mapping from Damian,
     # if that mapping also exists within UniProt
@@ -3125,19 +3196,30 @@ def STRING_2_UniProt_mapping_discrepancies(ENSP_2_UniProt_all, Taxid_2_Proteins_
     cond = df_ENSPs_unequal["ENSP"].isin(ENSPs_with_one_2_one_mapping)
     df_ENSPs_unequal["1_to_1"] = False
     df_ENSPs_unequal.loc[cond, "1_to_1"] = True
-    df_ENSPs_unequal.to_csv(fn_out_ENSP_2_UniProt_discrepancy, sep="\t", header=True, index=False)
-
+    df_ENSPs_unequal.to_csv(fn_out_ENSP_2_UniProt_discrepancy, sep="\t", header=False, index=False)
     cond_ENSPs_of_STRING_v11 = df["ENSP"].isin(ENSPs_of_STRING_v11)
     UniProtID_with_annotation = get_all_UniProtIDs_with_annotations(Protein_2_FunctionEnum_table_UPS_FIN)
     cond_UniProtID_with_annotation = df["UniProtID"].isin(UniProtID_with_annotation)
-    # part2 are equal mappings, reduce redundancy and mark equal
-    df_ENSP_2_UniProt_2_use_part1 = df.loc[(cond_ENSPs_of_STRING_v11 & cond_UniProtID_with_annotation & is_equal), ["ENSP", "UniProtAC", "UniProtID"]].drop_duplicates()
+    # part1 are equal mappings, reduce redundancy and mark equal, select if
+    # - ENSPs in STRING v11
+    # - UniProtID with functional annnotation
+    # - UniProtAC to ENSP mapping identical between STRING and UniProt mappings
+    ENSPs_equal = is_equal[is_equal].reset_index()["ENSP"].tolist()  # select those that are equal, grep ENSPs
+    cond_ENSPs_equal = df["ENSP"].isin(ENSPs_equal)
+    df_ENSP_2_UniProt_2_use_part1 = df.loc[(cond_ENSPs_of_STRING_v11 & cond_UniProtID_with_annotation & cond_ENSPs_equal), ["ENSP", "UniProtAC", "UniProtID"]].drop_duplicates()
     df_ENSP_2_UniProt_2_use_part1["source"] = "equal"
-    # part2 chose Damian mapping
-    cond_ENSP_2_UniProt_2_use_part2_damian = cond_ENSPs_of_STRING_v11 & cond_UniProtID_with_annotation & ~is_equal
-    df_ENSP_2_UniProt_2_use_part2 = df[cond_ENSP_2_UniProt_2_use_part2_damian]
-    dfm = df.concat([df_ENSP_2_UniProt_2_use_part1, df_ENSP_2_UniProt_2_use_part2])
-    dfm.to_csv(fn_out_ENSP_2_UniProt_2_use, sep="\t", header=True, index=False)
+    # part2 chose Damian mapping if exists otherwise chose UniProt mapping
+    # only select one mapping per ENSP to UniProtAC
+    dfx = df[cond_ENSPs_of_STRING_v11 & cond_UniProtID_with_annotation & ~cond_ENSPs_equal]
+    indices_2_keep = []
+    for name, group in dfx.groupby("ENSP"):
+        try:  # try if there is a STRING mapping (only 1 to 1 mappings from STRING)
+            index_ = group[group["source"] == "STRING"].index.values[0]
+        except IndexError:  # or pick the first UniProt mapping
+            index_ = group.index.values[0]
+        indices_2_keep.append(index_)
+    dfm = pd.concat([df_ENSP_2_UniProt_2_use_part1, df.loc[indices_2_keep]])
+    dfm.to_csv(fn_out_ENSP_2_UniProt_2_use, sep="\t", header=False, index=False)
 
 def _helper_is_one_2_one_Damian(group):
     UniProtAC_Damian = group.loc[group["source"] == "STRING", "UniProtAC"].values

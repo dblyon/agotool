@@ -136,6 +136,8 @@ if PRELOAD:
         pqo = query.PersistentQueryObject()
     elif variables.VERSION_ == "STRING":
         pqo = query.PersistentQueryObject_STRING()
+    elif variables.VERSION_ == "UniProt":
+        pqo = query.PersistentQueryObject_STRING()
     else:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError

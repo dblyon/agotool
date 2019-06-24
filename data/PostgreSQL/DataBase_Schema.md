@@ -58,7 +58,7 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 83332 | 35KD_MYCTU | 83332.Rv2744c;83332.ABC123   mtu:Rv2744c;mtv:RVBD_2744c |
 
 
-### secondary_2_primary_id [Secondary_2_Primary_ID_UPS_FIN.txt]
+### secondary_2_primary_id [Secondary_2_Primary_IDs_UPS_FIN.txt]
 | taxid | sec | prim |
 |:---:|:---:|:---:|
 | 1028729 | 101028.EKJ70075 | K3VY58_FUSPC |
