@@ -43,7 +43,7 @@ SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_ref_prots")
 UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
-Secondary_2_Primary_ID_UPS_FIN = variables.tables_dict["Secondary_2_Primary_ID_UPS_FIN"]
+Secondary_2_Primary_ID_UPS_FIN = variables.tables_dict["Secondary_2_Primary_ID_table"]
 Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
 Secondary_2_Primary_ID_UPS_different_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_different_translation.txt")
 ### Jensenlab
@@ -186,6 +186,15 @@ rule download_GO_obo:
         verbose = verbose
     run:
         drs.download_requests(params.URL_GO_obo, output.GO_obo, params.verbose)
+
+rule download_GO_slim_obo:
+    output:
+        GO_slim_obo = GO_slim_obo
+    params:
+        URL_GO_slim_obo = URL_GO_slim_obo,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_GO_slim_obo, ouput.GO_slim_obo, params.verbose)
 
 rule download_UPK_obo:
     output:
@@ -559,12 +568,15 @@ rule Protein_2_FunctionEnum_table_UPS_FIN: # TODO add JensenlabScore data for fo
 
 rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
     input:
+        GO_obo_Jensenlab = GO_obo_Jensenlab,
+        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+        BTO_obo_Jensenlab = BTO_obo_Jensenlab,
         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
     output:
         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
     run:
-        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS)
+        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS)
 
 rule Functions_table_UPS_FIN:
     input:
@@ -579,6 +591,9 @@ rule Functions_table_UPS_FIN:
 
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
+        GO_obo_Jensenlab = GO_obo_Jensenlab,
+        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+        BTO_obo_Jensenlab = BTO_obo_Jensenlab,
         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
         Functions_table_UPS_FIN = Functions_table_UPS_FIN # restricts output for Protein_2_FunctionEnum_and_Score_table_UPS_FIN
@@ -589,7 +604,7 @@ rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, params.GO_CC_textmining_additional_etype)
+        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, params.GO_CC_textmining_additional_etype)
 
 rule ENSP_2_UniProtID_without_translation:
     input:
@@ -657,55 +672,25 @@ rule Secondary_2_Primary_ID_UPS_FIN:
     run:
         cst.Secondary_2_Primary_ID_UPS_FIN(input.Protein_2_FunctionEnum_table_UPS_FIN, input.UniProt_sec_2_prim_AC, input.ENSP_2_UniProt_2_use, input.Taxid_UniProt_AC_2_ID, output.Secondary_2_Primary_ID_UPS_FIN, output.Secondary_2_Primary_ID_UPS_no_translation)
 
-
-
 # background proteomes
 # E. coli is 562 but UniProt ref prot is 83333
 # 511145 Escherichia coli str. K-12 substr. MG1655
 # 83333 Escherichia coli (strain K12)
 
-
 # - Damian mapping of ENSP to UniProtAC --> Secondary_2_Primary_ID_UPS_FIN to make one to one mapping of ENSP to UniProtIDs
 # - add Protein_2_FunctionEnum_table_UPS_FIN.txt to DB and connect via pqo --> preload background proteome for most common taxa
 
-
-# ToDo
-# - translate primary ids back to secondary ? (Secondary_2_Primary_IDs_dict)
-# - backgtracking for JensenlabScores?
-
 ##### plant annotation for human genes???
 # map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
-
-#$ grep "BRCA1_HUMAN" Taxid_UniProtID_2_ENSPs_2_KEGGs.txt
-# 9606    BRCA1_HUMAN     9606.ENSP00000418960    hsa:672
-
-# import os
-# KEGG_dir = r"/mnt/mnemo5/dblyon/STRING_freeze_v11/kegg/pathway/organisms"
-# fn_list_KEGG_tar_gz = sorted([os.path.join(KEGG_dir, fn) for fn in os.listdir(KEGG_dir) if fn.endswith(".tar.gz")])
-# KEGG_Protein_2_pathwayNames_list_dict = cst.get_KEGG_Protein_2_pathwayName_dict(fn_list_KEGG_tar_gz)
-# ['map01524', 'map03440', 'map03460', 'map04120', 'map04151', 'map05206', 'map05224']
-# --> map04016 missing
-
-# $ grep "BRCA1_HUMAN" Protein_2_FunctionEnum_table_UPS_FIN.txt
-# 9606    BRCA1_HUMAN     {23201,23202,23213,23279,23280,23281,23286,23312,23313,23386,23425,23426,23430,23440,23473,23499,23559,23592,23614,23697,23883,23895,24301,24386,24391,24494,24968,24969,24970,24971,24973,24974,24975,25141,25143,25146,25147,25149,25162,25164,25168,25172,25180,25434,25497,25668,26137,26254,26417,26590,44334,44339,44342,44354,44355,44372,44450,44476,44499,44538,44540,44545,44546,44550,44579,44580,44731,44732,44764,44817,44866,44884,44938,45045,45046,45049,45072,45073,45098,45099,45137,45157,45197,45251,45376,45458,45459,45460,45461,45462,45463,45465,45466,45467,45645,45670,45672,45699,45713,45872,45887,47024,47421,55642,57018,60960,61816,67869,72059,76788,82395,82807,94093,2648191,2648281,2648308,2648380,2648757,2648867,2648881,2648882,2648958,2649054,2649409,2649504,2649506,2649510,2649517,2649519,2649520,2649521,2649523,2649524,2649525,2649526,2649527,2649528,2649529,2649530,2649531,2649539,2649573,2649596,2649659,2649661,2649671,2649731,2649738,2649748,2649933,2650064,2658372,2658372,2658433,2658433,2658505,2658505,2658510,2658510,2658580,2658580,2658645,2658645,2659033,2659033,2659037,2659037,2659150,2659150,2659174,2659174,2659207,2659207,2659247,2659247,2659527,2659527}
-
-# pqo = query.PersistentQueryObject_STRING(read_from_flat_files=True, low_memory=True)
-# for funcEnum in funcEnums:
-#     print(pqo.functionalterm_arr[funcEnum])#, pqo.description_arr[funcEnum])
-# --> map01524
-# map03440
-# map03460
-# map04120
-# map04151
-# map05206
-# map05224
-
 # ToDo foreground_input = ['9606.ENSP00000418960', '9606.ENSP00000369497', '9606.ENSP00000391669', '9606.ENSP00000439689', '9606.ENSP00000359264', '9606.ENSP00000354432', '9606.ENSP00000364209', '9606.ENSP00000261520', '9606.ENSP00000453153', '9606.ENSP00000265036', '9606.ENSP00000291527', '9606.ENSP00000302578', '9606.ENSP00000308606', '9606.ENSP00000396052', '9606.ENSP00000216807', '9606.ENSP00000354718', '9606.ENSP00000436773', '9606.ENSP00000347924', '9606.ENSP00000237612']
 # reanalyze and check for map04016 to disappear
 # map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
 
-# # TODO:
-# Secondary_2_Primary_ID_UPS_FIN
-# $ grep "P70403" ENSP_2_UniProt_all.txt
-# 10090.ENSMUSP00000004097        P70403  -1      UniProtIDmapping --> WHY???
-# 10090.ENSMUSP00000004097        P70403  CASP_MOUSE      STRING
+### TODO:
+# - translate primary ids back to secondary ? (Secondary_2_Primary_IDs_dict)
+# - abundance correction
+# - go_slim
+# - rerun whole pipeline
+# - CRON job
+# - create DB --> temp tables and drop_and_rename
+# - Damian and Christian email about ENSPs in UniProt which are not in STRING v11

@@ -7,12 +7,12 @@ PRELOAD = True # set True in production
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
-DB_DOCKER = True # connect via local port vs via docker, in query.py
+DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = False # for flask and some internals for printing, set to False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
@@ -211,7 +211,7 @@ tables_dict = {
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
     "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)),
     "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
-    "Secondary_2_Primary_IDs_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_IDs_{}.txt".format(appendix)),
+    "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)),
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
     "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))

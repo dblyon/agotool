@@ -28,5 +28,5 @@ ks.test(x, y)
 # Ks_2sampResult(statistic=0.6666666666666666, pvalue=0.0011406975408981323) 
 # D = 0.66667, p-value = 0.002545
 df <- data.frame(x=x, y=y)
-ggplot(df) + stat_ecdf(aes(x), geom = "step", colour="red") + 
-  stat_ecdf(aes(y), geom = "step", colour="blue")
+ggplot(df) + stat_ecdf(aes(x, size=2), geom = "step", colour="red") + 
+  stat_ecdf(aes(y, size=2), geom = "step", colour="blue")

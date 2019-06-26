@@ -283,22 +283,22 @@ class PersistentQueryObject:
             functions_set.update([res[0]])
         return functions_set
 
-    def map_secondary_2_primary_ANs(self, ans_list):
-        """
-        def map_secondary_2_primary_ANs_v1_slow(self, ans_list):
-            secondary_ans_2_replace = set(self.secondary_2_primary_an_dict.keys()).intersection(set(ans_list))
-            return dict((secondary_an, self.secondary_2_primary_an_dict[secondary_an]) for secondary_an in secondary_ans_2_replace)
-
-        :param ans_list: List of String
-        :return: secondary_2_primary_dict (key: String(Secondary AN), val: String(Primary AN))
-        """
-        secondary_2_primary_dict_temp = {}
-        for secondary in ans_list:
-            try:
-                secondary_2_primary_dict_temp[secondary] = self.secondary_2_primary_an_dict[secondary]
-            except KeyError:
-                continue
-        return secondary_2_primary_dict_temp
+    # def map_secondary_2_primary_ANs(self, ans_list):
+    #     """
+    #     def map_secondary_2_primary_ANs_v1_slow(self, ans_list):
+    #         secondary_ans_2_replace = set(self.secondary_2_primary_an_dict.keys()).intersection(set(ans_list))
+    #         return dict((secondary_an, self.secondary_2_primary_an_dict[secondary_an]) for secondary_an in secondary_ans_2_replace)
+    #
+    #     :param ans_list: List of String
+    #     :return: secondary_2_primary_dict (key: String(Secondary AN), val: String(Primary AN))
+    #     """
+    #     secondary_2_primary_dict_temp = {}
+    #     for secondary in ans_list:
+    #         try:
+    #             secondary_2_primary_dict_temp[secondary] = self.secondary_2_primary_an_dict[secondary]
+    #         except KeyError:
+    #             continue
+    #     return secondary_2_primary_dict_temp
 
     def get_ontology_set_of_type(self, function_type, go_slim_or_basic):
         """
@@ -1351,6 +1351,13 @@ def get_functionAN_2_etype_dict():
         an, etype = res
         an_2_etype_dict[an] = etype
     return an_2_etype_dict
+
+# foreground_2_analyze = list(set(foreground_input) - set(Secondary_2_Primary_IDs_dict_userquery_fg.keys())) + list(Secondary_2_Primary_IDs_dict_userquery_fg.values()) # ToDo REMEMBER
+# background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
+# background_n = len(background_input)
+# Secondary_2_Primary_IDs_dict_userquery_bg = query.map_secondary_2_primary_ANs(background_input)
+# background_2_analyze = list(set(background_input) - set(Secondary_2_Primary_IDs_dict_userquery_bg.keys())) + list(Secondary_2_Primary_IDs_dict_userquery_bg.values())
+
 
 if __name__ == "__main__":
     pqo = PersistentQueryObject_STRING(low_memory=True)

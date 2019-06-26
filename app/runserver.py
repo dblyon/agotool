@@ -946,15 +946,12 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     return file_name, fn_results_absolute, fn_results_relative
 
 if __name__ == "__main__":
-    # ToDo potential speedup
-    # sklearn.metrics.pairwise.pairwise_distances(X, Y=None, metric='euclidean', n_jobs=1, **kwds)
-    # --> use From scipy.spatial.distance: jaccard --> profile code cluster_filter
-    # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_distances.html
     ################################################################################
     # app.run(host='0.0.0.0', DEBUG=True, processes=8)
     # processes should be "1", otherwise nginx throws 502 errors with large files
     ### SAN port 10110
-    ### PISCES port 10110 IP 127.0.0.1
+    ### PISCES IP 127.0.0.1 port 10110
+    ### ATLAS IP 0.0.0.0 port 5911
     print("#" * 80)
     print("running aGOtool on IP {} port {}".format(IP, port))
     app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)

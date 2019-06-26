@@ -386,16 +386,18 @@ class Userinput:
         for group_fg, group_bg in zip(groups_fg, groups_bg):
             proteinGroups_foreground = group_fg[1]["foreground"]
             proteinGroups_background = group_bg[1]["background"]
-            len_proteinGroups_foreground = len(proteinGroups_foreground) * 1.0
-            len_proteinGroups_background = len(proteinGroups_background) * 1.0
+            len_proteinGroups_foreground = len(proteinGroups_foreground) # * 1.0 # python3
+            if len_proteinGroups_foreground == 0:
+                continue
+            len_proteinGroups_background = len(proteinGroups_background) # * 1.0 # python3
             try:
                 correction_factor = len_proteinGroups_foreground / len_proteinGroups_background
             except ZeroDivisionError:
                 # since the foreground is assumed to be a proper subset of the background, anything in the foreground must also be in the background
+                # therefore any foreground protein that can't be mapped to a background-intensity will still be counted and get a default correction
+                # factor of 1
                 correction_factor = 1
                 proteinGroups_background = proteinGroups_foreground
-            if len_proteinGroups_foreground == 0:
-                continue
             yield proteinGroups_background.tolist(), correction_factor
 
     def iter_bins_cy(self):
