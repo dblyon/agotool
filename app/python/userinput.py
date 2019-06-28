@@ -300,11 +300,12 @@ class Userinput:
     @staticmethod
     def remove_spliceVariant(string_):
         """
+        remove UniProt Isoform appendix, but prevent removing part of ENSP
         removes appendix for splice variants from accession numbers and sorts protein groups
         :param string_: String
         :return: String
         """
-        return ";".join(sorted([ele.split("-")[0] for ele in string_.split(";")]))
+        return ";".join(sorted([ele.split("-")[0] for ele in string_.split(";") if "." not in ele]))
 
     @staticmethod
     def map_intensities_2_foreground(foreground_series, an_2_intensity_dict):

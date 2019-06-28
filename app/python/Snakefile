@@ -127,6 +127,7 @@ Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_ST
 Lineage_table_UPS_FIN = variables.tables_dict["Lineage_table"]
 Lineage_table_UPS_no_translation = os.path.join(TABLES_DIR, "Lineage_table_UPS_no_translation.txt")
 Lineage_table_UPS_hr = os.path.join(TABLES_DIR, "Lineage_table_UPS_hr.txt") # Human Readable
+DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_lineage.txt")
 
 KEGG_Taxid_2_acronym_table_UPS_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
 Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
@@ -574,9 +575,10 @@ rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
     output:
-        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+        DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
     run:
-        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS)
+        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage)
 
 rule Functions_table_UPS_FIN:
     input:
@@ -687,10 +689,21 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
 
 ### TODO:
-# - translate primary ids back to secondary ? (Secondary_2_Primary_IDs_dict)
 # - abundance correction
 # - go_slim
 # - rerun whole pipeline
 # - CRON job
 # - create DB --> temp tables and drop_and_rename
 # - Damian and Christian email about ENSPs in UniProt which are not in STRING v11
+
+Functions_table_DOID_BTO_GOCC
+Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
+Protein_2_FunctionEnum_and_Score_table_UPS_FIN
+ENSP_2_UniProtID_without_translation
+Secondary_2_Primary_ID_UPS_FIN
+STRING_2_UniProt_mapping_discrepancies
+Protein_2_FunctionEnum_table_UPS_FIN
+Taxid_2_FunctionCountArray_table_UPS_FIN
+Functions_table_UPS_FIN
+Function_2_Protein_table_UPS
+Functions_table_all

@@ -868,3 +868,31 @@ def add_noise_2_scores(scores_fg, scores_bg, len_foreground_ENSPs, len_backgroun
     else:
         scores_bg_v2 = scores_bg_noisy
     return scores_fg_v2, scores_bg_v2
+
+
+
+#     if low_memory:
+#         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans_fg + protein_ans_bg, dict_2_array=True)  # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
+#     ## count foreground
+#     # for ENSP in (ENSP for ENSP in protein_ans_fg if ENSP in ENSP_2_functionEnumArray_dict):
+#     #     funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
+#     #     count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
+#     count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg, funcEnum_count_foreground)
+#     ## count background
+#     # for ENSP in (ENSP for ENSP in protein_ans_bg if ENSP in ENSP_2_functionEnumArray_dict):
+#     #     funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
+#     #     count_terms_cy(funcEnumAssociations, funcEnum_count_background)
+#     count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_bg, funcEnum_count_background)
+#
+#
+#     ## count foreground
+#     if low_memory:
+#         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(protein_ans_fg, dict_2_array=True) # previously ENSP_2_funcEnumAssociations now ENSP_2_functionEnumArray_dict
+#     for ENSP in (ENSP for ENSP in protein_ans_fg if ENSP in ENSP_2_functionEnumArray_dict):
+#         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
+#         count_terms_cy(funcEnumAssociations, funcEnum_count_foreground)
+#
+# def count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans, funcEnum_count):
+#     for ENSP in (ENSP for ENSP in protein_ans if ENSP in ENSP_2_functionEnumArray_dict):
+#         funcEnumAssociations = ENSP_2_functionEnumArray_dict[ENSP]
+#         count_terms_cy(funcEnumAssociations, funcEnum_count)

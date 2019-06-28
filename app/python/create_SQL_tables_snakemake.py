@@ -763,7 +763,7 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
 def get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)
-    # key=GO-term, val=set of GO-terms (parents)
+    ### key=GO-term, val=set of GO-terms (parents)
     for go_term_name in go_dag:
         GOTerm_instance = go_dag[go_term_name]
         lineage_dict[go_term_name] = GOTerm_instance.get_all_parents()
@@ -2681,9 +2681,10 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
             funcName_2_score_list_backtracked.append([parent, score])
     return funcName_2_score_list_backtracked
 
-def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS):
+def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fh_out_without_lineage):
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid)
     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
+    terms_without_lineage = set()
     with open(fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "w") as fh_out_Prot_2_func:
         for line in tools.yield_line_uncompressed_or_gz_file(fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
@@ -2698,9 +2699,12 @@ def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOI
                 try:
                     funcName_list_backtracked += list(lineage_dict[funcName])
                 except KeyError:
-                    print("{} without a lineage".format(funcName))
+                    # print("{} without a lineage".format(funcName))
+                    terms_without_lineage |= set([funcName])
             for UniProtID in UniProtID_list:
                 fh_out_Prot_2_func.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list_backtracked) + "\t" + etype + "\n")
+    for term in sorted(terms_without_lineage):
+        fh_out_without_lineage.write(term + "\n")
 
 def get_ENSP_2_UniProtID_dict(UniprotID_2_ENSPs_2_KEGGs):
     """
