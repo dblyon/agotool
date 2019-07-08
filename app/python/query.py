@@ -8,7 +8,7 @@ from contextlib import contextmanager
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import variables #, obo_parser
+import variables, obo_parser
 # print(os.getcwd())
 # print(sorted(os.listdir()))
 # print(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -469,9 +469,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         if variables.VERBOSE:
             print("getting lookup arrays")
         if not low_memory: # override variables if "low_memory" passed to query initialization
-            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory, read_from_flat_files)
+            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = get_lookup_arrays(low_memory, read_from_flat_files)
         else:
-            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = self.get_lookup_arrays(low_memory, read_from_flat_files)
+            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = get_lookup_arrays(low_memory, read_from_flat_files)
         self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
         if variables.VERBOSE:
@@ -480,6 +480,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
         self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
         self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
+        self.goslimtype_2_cond_dict = get_goslimtype_2_cond_dict()
 
         if variables.VERBOSE:
             print("getting lineage dict")
@@ -516,28 +517,26 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("go go GO and fly like the wind")
             print("#" * 80)
 
-    @contextmanager
-    def get_preloaded_objects_per_analysis_contextmanager(self, method="genome"):
-        if method == "genome":
-            yield self.preloaded_objects_per_analysis_genome
-        elif method == "characterize_foreground":
-            yield self.preloaded_objects_per_analysis_characterize_foreground
-        elif method == "compare_samples":
-            yield self.preloaded_objects_per_analysis_compare_samples
-        else:
-            raise NotImplementedError
-        ### regenerate arrays
-        self.reset_preloaded_objects_per_analysis(method)
+    # @contextmanager
+    # def get_preloaded_objects_per_analysis_contextmanager(self, method="genome"):
+    #     if method == "genome":
+    #         yield self.preloaded_objects_per_analysis_genome
+    #     elif method == "characterize_foreground":
+    #         yield self.preloaded_objects_per_analysis_characterize_foreground
+    #     elif method == "compare_samples":
+    #         yield self.preloaded_objects_per_analysis_compare_samples
+    #     else:
+    #         raise NotImplementedError
+    #     ### regenerate arrays
+    #     self.reset_preloaded_objects_per_analysis(method)
 
     def get_preloaded_objects_per_analysis(self, method="genome"):
         self.reset_preloaded_objects_per_analysis(method)
         if method == "genome":
-            # funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest,
-            # blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs
             return self.preloaded_objects_per_analysis_genome
         elif method == "characterize_foreground":
             return self.preloaded_objects_per_analysis_characterize_foreground
-        elif method == "compare_samples":
+        elif method == "compare_samples" or method == "abundance_correction":
             return self.preloaded_objects_per_analysis_compare_samples
         else:
             return NotImplementedError
@@ -547,26 +546,27 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             self.preloaded_objects_per_analysis_genome = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="genome")
         elif method == "characterize_foreground":
             self.preloaded_objects_per_analysis_characterize_foreground = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="characterize_foreground")
-        elif method == "compare_samples":
+        elif method == "compare_samples" or method == "abundance_correction":
             self.preloaded_objects_per_analysis_compare_samples = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="compare_samples")
         else:
+            print(method, "not available")
             raise NotImplementedError
 
     def get_static_preloaded_objects(self, low_memory=False):
-        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict
+        if not low_memory:
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict, self.Taxid_2_FunctionEnum_2_Scores_dict)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict,
+                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict)
         else:
-            # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
-            # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict, self.Taxid_2_FunctionEnum_2_Scores_dict)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict,
+                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict)
         return static_preloaded_objects
 
     def get_blacklisted_terms_bool_arr(self):
@@ -596,67 +596,67 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(upk_dag))
         return functerm_2_level_dict
 
-    @staticmethod
-    def get_lookup_arrays(low_memory, read_from_flat_files=False):
-        """
-        funcEnum_2_hierarchical_level
-        simple numpy array of hierarchical levels
-        if -1 in DB --> convert to np.nan since these are missing values
-        # - funcEnum_2_year
-        # - funcEnum_2_hierarchical_level
-        # - funcEnum_2_etype
-        # - funcEnum_2_description
-        # - funcEnum_2_term
-        :param low_memory: Bool flag to return description_array
-        :param read_from_flat_files: Bool flag to get data from DB or flat files
-        :return: immutable numpy array of int
-        """
-        if read_from_flat_files:
-            # fn = os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt")
-            fn = variables.tables_dict["Functions_table"]
-            result = get_results_of_statement_from_flat_file(fn)
-            result = list(result)
-        else:
-            result = get_results_of_statement("SELECT * FROM functions")
-        shape_ = len(result)
-        year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
-        entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
-        if not low_memory:
-            description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
-            # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
-            category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
-        functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
-        hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
-        indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
-        indices_arr.flags.writeable = False
-
-        for i, res in enumerate(result):
-            func_enum, etype, term, description, year, hierlevel = res
-            func_enum = int(func_enum)
-            etype = int(etype)
-            try:
-                year = int(year)
-            except ValueError: # e.g. "...."
-                year = -1
-            hierlevel = int(hierlevel)
-            entitytype_arr[func_enum] = etype
-            functionalterm_arr[func_enum] = term
-            year_arr[func_enum] = year
-            hierlevel_arr[func_enum] = hierlevel
-            if not low_memory:
-                description_arr[func_enum] = description
-                category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
-
-        year_arr.flags.writeable = False # make it immutable
-        hierlevel_arr.flags.writeable = False
-        entitytype_arr.flags.writeable = False
-        functionalterm_arr.flags.writeable = False
-        if not low_memory:
-            description_arr.flags.writeable = False
-            category_arr.flags.writeable = False
-            return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
-        else:
-            return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
+    # @staticmethod
+    # def get_lookup_arrays(low_memory, read_from_flat_files=False):
+    #     """
+    #     funcEnum_2_hierarchical_level
+    #     simple numpy array of hierarchical levels
+    #     if -1 in DB --> convert to np.nan since these are missing values
+    #     # - funcEnum_2_year
+    #     # - funcEnum_2_hierarchical_level
+    #     # - funcEnum_2_etype
+    #     # - funcEnum_2_description
+    #     # - funcEnum_2_term
+    #     :param low_memory: Bool flag to return description_array
+    #     :param read_from_flat_files: Bool flag to get data from DB or flat files
+    #     :return: immutable numpy array of int
+    #     """
+    #     if read_from_flat_files:
+    #         # fn = os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt")
+    #         fn = variables.tables_dict["Functions_table"]
+    #         result = get_results_of_statement_from_flat_file(fn)
+    #         result = list(result)
+    #     else:
+    #         result = get_results_of_statement("SELECT * FROM functions")
+    #     shape_ = len(result)
+    #     year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
+    #     entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
+    #     if not low_memory:
+    #         description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
+    #         # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
+    #         category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+    #     functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
+    #     hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
+    #     indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
+    #     indices_arr.flags.writeable = False
+    #
+    #     for i, res in enumerate(result):
+    #         func_enum, etype, term, description, year, hierlevel = res
+    #         func_enum = int(func_enum)
+    #         etype = int(etype)
+    #         try:
+    #             year = int(year)
+    #         except ValueError: # e.g. "...."
+    #             year = -1
+    #         hierlevel = int(hierlevel)
+    #         entitytype_arr[func_enum] = etype
+    #         functionalterm_arr[func_enum] = term
+    #         year_arr[func_enum] = year
+    #         hierlevel_arr[func_enum] = hierlevel
+    #         if not low_memory:
+    #             description_arr[func_enum] = description
+    #             category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
+    #
+    #     year_arr.flags.writeable = False # make it immutable
+    #     hierlevel_arr.flags.writeable = False
+    #     entitytype_arr.flags.writeable = False
+    #     functionalterm_arr.flags.writeable = False
+    #     if not low_memory:
+    #         description_arr.flags.writeable = False
+    #         category_arr.flags.writeable = False
+    #         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
+    #     else:
+    #         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
 
     @staticmethod
     def get_functional_term_2_level_dict_from_dag(dag):
@@ -695,6 +695,68 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             an, associations_list, etype = res
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
+
+
+def get_lookup_arrays(low_memory, read_from_flat_files=False):
+    """
+    funcEnum_2_hierarchical_level
+    simple numpy array of hierarchical levels
+    if -1 in DB --> convert to np.nan since these are missing values
+    # - funcEnum_2_year
+    # - funcEnum_2_hierarchical_level
+    # - funcEnum_2_etype
+    # - funcEnum_2_description
+    # - funcEnum_2_term
+    :param low_memory: Bool flag to return description_array
+    :param read_from_flat_files: Bool flag to get data from DB or flat files
+    :return: immutable numpy array of int
+    """
+    if read_from_flat_files:
+        # fn = os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt")
+        fn = variables.tables_dict["Functions_table"]
+        result = get_results_of_statement_from_flat_file(fn)
+        result = list(result)
+    else:
+        result = get_results_of_statement("SELECT * FROM functions")
+    shape_ = len(result)
+    year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
+    entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
+    if not low_memory:
+        description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
+        # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
+        category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+    functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
+    hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
+    indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
+    indices_arr.flags.writeable = False
+
+    for i, res in enumerate(result):
+        func_enum, etype, term, description, year, hierlevel = res
+        func_enum = int(func_enum)
+        etype = int(etype)
+        try:
+            year = int(year)
+        except ValueError: # e.g. "...."
+            year = -1
+        hierlevel = int(hierlevel)
+        entitytype_arr[func_enum] = etype
+        functionalterm_arr[func_enum] = term
+        year_arr[func_enum] = year
+        hierlevel_arr[func_enum] = hierlevel
+        if not low_memory:
+            description_arr[func_enum] = description
+            category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
+
+    year_arr.flags.writeable = False # make it immutable
+    hierlevel_arr.flags.writeable = False
+    entitytype_arr.flags.writeable = False
+    functionalterm_arr.flags.writeable = False
+    if not low_memory:
+        description_arr.flags.writeable = False
+        category_arr.flags.writeable = False
+        return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
+    else:
+        return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
 
 def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False):
     Taxid_2_FunctionEnum_2_Scores_dict = {} #defaultdict(lambda: False)
@@ -1352,11 +1414,19 @@ def get_functionAN_2_etype_dict():
         an_2_etype_dict[an] = etype
     return an_2_etype_dict
 
-# foreground_2_analyze = list(set(foreground_input) - set(Secondary_2_Primary_IDs_dict_userquery_fg.keys())) + list(Secondary_2_Primary_IDs_dict_userquery_fg.values()) # ToDo REMEMBER
-# background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
-# background_n = len(background_input)
-# Secondary_2_Primary_IDs_dict_userquery_bg = query.map_secondary_2_primary_ANs(background_input)
-# background_2_analyze = list(set(background_input) - set(Secondary_2_Primary_IDs_dict_userquery_bg.keys())) + list(Secondary_2_Primary_IDs_dict_userquery_bg.values())
+def get_goslimtype_2_cond_dict():
+    """
+    read obo files
+    parse all terms and add to dict (key: obo file name, val: list of GO terms)
+    translate GOterm function names to bool array
+    """
+    GOslimType_2_cond_dict = {}
+    GO_slim_subsets_file = variables.tables_dict["GO_slim_subsets_file"]
+    with open(GO_slim_subsets_file, "r") as fh_in:
+        for line in fh_in:
+            fn_basename = line.strip()
+            GOslimType_2_cond_dict[fn_basename.replace(".obo", "").replace("goslim_", "")] = np.load(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")))
+    return GOslimType_2_cond_dict
 
 
 if __name__ == "__main__":

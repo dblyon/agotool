@@ -31,8 +31,10 @@ damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan
 ################################################## URLs & Downloads
 URL_GO_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
 GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
-URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
-GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
+# URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
+# GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
+URL_GO_slim_subsets = r"http://purl.obolibrary.org/obo/go/subsets"
+GO_slim_subsets_file = variables.tables_dict["GO_slim_subsets_file"] # os.path.join(DOWNLOADS_DIR, "GO_slim_subsets_file.txt")
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 URL_SwissProt_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz"
@@ -188,14 +190,38 @@ rule download_GO_obo:
     run:
         drs.download_requests(params.URL_GO_obo, output.GO_obo, params.verbose)
 
-rule download_GO_slim_obo:
-    output:
-        GO_slim_obo = GO_slim_obo
+# rule download_GO_slim_obo:
+#     output:
+#         GO_slim_obo = GO_slim_obo
+#     params:
+#         URL_GO_slim_obo = URL_GO_slim_obo,
+#         verbose = verbose
+#     run:
+#         drs.download_requests(params.URL_GO_slim_obo, output.GO_slim_obo, params.verbose)
+
+# http://current.geneontology.org/ontology/subsets/goslim_agr.obo # GO slim AGR (Alliance of Genomes Resources) subset
+# http://current.geneontology.org/ontology/subsets/goslim_generic.obo # Generic GO subset
+# http://current.geneontology.org/ontology/subsets/goslim_aspergillus.obo # Aspergillus subset
+# http://current.geneontology.org/ontology/subsets/goslim_candida.obo # Candida albicans subset
+# http://current.geneontology.org/ontology/subsets/goslim_chembl.obo # Chembl Drug Target subset
+# http://current.geneontology.org/ontology/subsets/goslim_metagenomics.obo # Metagenomics subset
+# http://current.geneontology.org/ontology/subsets/goslim_mouse.obo # Mouse GO slim
+# http://current.geneontology.org/ontology/subsets/goslim_plant.obo # Plant subset
+# http://current.geneontology.org/ontology/subsets/goslim_pir.obo # Protein Information Resource subset
+# http://current.geneontology.org/ontology/subsets/goslim_pombe.obo # Schizosaccharomyces pombe subset
+# http://current.geneontology.org/ontology/subsets/goslim_yeast.obo # Yeast subset
+# # FlyBase Drosophila GO ribbon slim
+# # "synapse GO slim"
+
+rule download_GO_slim_subsets:
+    input:
+        DOWNLOADS_DIR = DOWNLOADS_DIR
     params:
-        URL_GO_slim_obo = URL_GO_slim_obo,
-        verbose = verbose
+        URL_GO_slim_subsets = URL_GO_slim_subsets,
+    output:
+        GO_slim_subsets_file = GO_slim_subsets_file
     run:
-        drs.download_requests(params.URL_GO_slim_obo, ouput.GO_slim_obo, params.verbose)
+        drs.download_GO_slim_subsets(params.URL_GO_slim_subsets, input.DOWNLOADS_DIR, output.GO_slim_subsets_file)
 
 rule download_UPK_obo:
     output:
@@ -591,6 +617,12 @@ rule Functions_table_UPS_FIN:
     run:
         cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
+rule Create_goslimtype_2_cond_arrays:
+    input:
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN
+    run:
+        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN)
+
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
@@ -689,21 +721,50 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
 
 ### TODO:
-# - abundance correction
-# - go_slim
+# PMID hunt, what happened?
+# - why are some HIS4_YEAST attributed to Taxid 4932 and some to 559292?
+# - Why don't any PMIDs show up in yeast enrichment?
+# e.g. "PMID:8375386"
+# $ grep "PMID:8375386" Functions_table_UPS_FIN.txt
+# 2468723 -56     PMID:8375386    (1993) Probing the membrane topology of Candida tropicalis cytochrome P450.     1993    -1
+
+# $ grep "P40545" Taxid_UniProt_AC_2_ID.txt
+# 559292  P40545  HIS4_YEAST
+# $ grep "HIS4_YEAST" Taxid_UniProtID_2_ENSPs_2_KEGGs.txt
+# 559292  HIS4_YEAST      4932.YIL020C    sce:YIL020C
+#  grep "4932.YIL020C" Protein_2_Function_table_PMID_abstracts.txt
+
+# $ grep "HIS4_YEAST" Protein_2_Function_table_UPS.txt
+# 4932    HIS4_YEAST      {"PMID:8375386","PMID:7050665","PMID:25367168","PMID:24998777","PMID:24150815","PMID:17524547","PMID:15789348","PMID:10545451","PMID:9822821","PMID:9747713","PMID:9332345","PMID:8619311","PMID:7543843","PMID:3510080","PMID:3013722","PMID:2653960","PMID:1318786"}  -56
+# 4932    HIS4_YEAST      {"WP416","WP514"}       -58
+# 4932    HIS4_YEAST      {"WP416","WP514"}       -58
+# 559292  HIS4_YEAST      {"GO:0000105","GO:0000162","GO:0006082","GO:0006520","GO:0006547","GO:0006568","GO:0006576","GO:0006586","GO:0006725","GO:0006807","GO:0008150","GO:0008152","GO:0008652","GO:0009058","GO:0009072","GO:0009073","GO:0009308","GO:0009309","GO:0009987","GO:0016053","GO:0018130","GO:0019438","GO:0019752","GO:0034641","GO:0042401","GO:0042430","GO:0042435","GO:0043436","GO:0044106","GO:0044237","GO:0044238","GO:0044249","GO:0044271","GO:0044281","GO:0044283","GO:0046219","GO:0046394","GO:0046483","GO:0052803","GO:0071704","GO:1901360","GO:1901362","GO:1901564","GO:1901566","GO:1901576","GO:1901605","GO:1901607"}    -21
+# 559292  HIS4_YEAST      {"GO:0003674","GO:0003824","GO:0003949","GO:0016853","GO:0016860","GO:0016861"} -23
+# 559292  HIS4_YEAST      {"GO:0005575","GO:0005622","GO:0005623","GO:0005634","GO:0005737","GO:0043226","GO:0043227","GO:0043229","GO:0043231","GO:0044424","GO:0044464"}       -22
+# 559292  HIS4_YEAST      {"IPR006062","IPR011060","IPR011858","IPR013785"}       -54
+# 559292  HIS4_YEAST      {"KW-0002","KW-0028","KW-0181","KW-0368","KW-0413","KW-0963","KW-1185","KW-9990","KW-9992","KW-9998","KW-9999"} -51
+# 559292  HIS4_YEAST      {"PF00977"}     -55
+# 559292  HIS4_YEAST      {"map00340","map01100","map01110","map01230"}   -52
+#
+# $ grep stuff Functions_table_UPS_FIN.txt
+# 2468723 -56     PMID:8375386    (1993) Probing the membrane topology of Candida tropicalis cytochrome P450.     1993    -1
+# 2370268 -56     PMID:7050665    (1982) Isolation and genetic analysis of Saccharomyces cerevisiae mutants supersensitive to G1 arrest by a factor and alpha factor pheromones. 1982     -1
+# 3971    -21     GO:0000105      histidine biosynthetic process  -1      10
+# 2662541 -58     WP416   Superpathway of Histidine, Purine, and Pyrimidine       -1      -1
+# 2662753 -58     WP514   Histidine Biosynthesis  -1      -1
+
+
+# $ grep "HIS4_YEAST" Protein_2_FunctionEnum_table_UPS_FIN.txt
+# 4932    HIS4_YEAST      {2662541,2662541,2662753,2662753}
+# 559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,6554,6565,6579,6580,6777,6778,7094,8191,8431,8720,8858,10958,12148,12167,12169,12617,12845,12876,12877,12883,12893,12899,12901,13692,13778,13834,15579,17581,19923,19925,20004,20006,20012,20022,20024,23386,23425,23426,23430,23499,24968,24969,24971,24973,25143,25180,26876,26920,27016,29410,29416,29417,44345,44369,44510,44675,44712,45208,45387,45469,45471,45477,45478,45519,45641,45642,45649,51054,55424,56045,57639,83237}
+
+
+# - effect size check
 # - rerun whole pipeline
 # - CRON job
 # - create DB --> temp tables and drop_and_rename
 # - Damian and Christian email about ENSPs in UniProt which are not in STRING v11
+# - preload most commong model organisms even for low memory
 
-Functions_table_DOID_BTO_GOCC
-Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
-Protein_2_FunctionEnum_and_Score_table_UPS_FIN
-ENSP_2_UniProtID_without_translation
-Secondary_2_Primary_ID_UPS_FIN
-STRING_2_UniProt_mapping_discrepancies
-Protein_2_FunctionEnum_table_UPS_FIN
-Taxid_2_FunctionCountArray_table_UPS_FIN
-Functions_table_UPS_FIN
-Function_2_Protein_table_UPS
-Functions_table_all
+# examples for Lars for missing PMID descriptions
+# https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822

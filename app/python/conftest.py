@@ -20,7 +20,7 @@ def pqo_STRING():
     """
     get pqo (Persistent Query Object)
     """
-    return query.PersistentQueryObject_STRING(low_memory=False, read_from_flat_files=True)
+    return query.PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
 
 @pytest.fixture(scope='session')
 def get_something():

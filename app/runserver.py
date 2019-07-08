@@ -49,25 +49,20 @@ if args.verbose == "verbose" or args.verbose == "v":
     variables.VERBOSE = True
 ###############################################################################
 
-# ToDo 2018
+# ToDo
+# - enable overrepresented/underrepresented/both options
+# - userinput from 3 sources
+     # - file
+     # - copy and paste
+     # - REST API
 # - buy goliath domain?
-# - use cProfile on compiled cython --> done but not that great to inspect
-# - replace bool array with uint8 array and casting to bool & using prange with nogil
 # - Memory leak
-# - sort results based on S-values (volcano plot style), something like effect-size
 # - report userinput 2 mapped ID and make available as download
-
-# - go_slim_or_basic --> filter for slim terms
-# check out DF sorting before returning results, year and FDR not sorted correctly
-# - consistency with single and double quotes
 # - return unused identifiers
-# - adapt functions_table_STRING.txt:
-#      GO name from OBO as definition
 # - multiple entity type results to be displayed
 # - debug copy&paste fields
 # - debug file upload field
 # - replace example file
-# - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
 # - update "info_check_input.html" with REST API usage infos
 # - offer option to omit testing GO-terms with few associations (e.g. 10)
 # - offer to user Pax-DB background proteomes
@@ -76,7 +71,6 @@ if args.verbose == "verbose" or args.verbose == "v":
 # - update bootstrap version
 # - update documentation specifically about foreground and background
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
-# ? - protein-groups: is there different functional information for isoforms
 ###############################################################################
 ###############################################################################
 def getitem(obj, item, default):
@@ -90,7 +84,8 @@ app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
 Markdown(app)
 
 if PROFILING:
-    from werkzeug.contrib.profiler import ProfilerMiddleware
+    # from werkzeug.contrib.profiler import ProfilerMiddleware
+    from werkzeug.middleware.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
     # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[50]) # to view profiled code in shell
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=variables.DATA_DIR) # use qcachegrind to visualize
@@ -132,9 +127,9 @@ def log_activity(string2log):
 # pre-load objects
 ################################################################################
 if PRELOAD:
-    if variables.VERSION_ == "aGOtool":
-        pqo = query.PersistentQueryObject()
-    elif variables.VERSION_ == "STRING":
+    # if variables.VERSION_ == "aGOtool":
+    #     pqo = query.PersistentQueryObject()
+    if variables.VERSION_ == "STRING":
         pqo = query.PersistentQueryObject_STRING()
     elif variables.VERSION_ == "UniProt":
         pqo = query.PersistentQueryObject_STRING()
@@ -148,15 +143,6 @@ if PRELOAD:
 ### API
 api = Api(app)
 parser = reqparse.RequestParser()
-
-################################################################################
-# celery = tasks.celery
-# print("no async", tasks.add_together(1111, 8))
-# res = tasks.add_together.delay(2222, 8)
-# print("async", res.get())
-
-################################################################################
-
 ################################################################################
 ### STRING arguments/parameters
 parser.add_argument("taxid", type=int,
@@ -183,7 +169,7 @@ parser.add_argument("filter_foreground_count_one", type=str,
     help="Keep only those terms with foreground_count > 1",
     default="True")
 
-parser.add_argument("LOW_MEMORY", type=str, default="True")
+# parser.add_argument("LOW_MEMORY", type=str, default="True")
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p-value and recent publication date.")
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
@@ -254,10 +240,16 @@ parser.add_argument("background_n", type=int,
     help="Background_n is an integer, defines the number of sample of the background.",
     default=10)
 
-parser.add_argument("go_slim_or_basic", type=str,
-    help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
+# parser.add_argument("go_slim_or_basic", type=str,
+#     help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
+#     default="basic")
+
+parser.add_argument("go_slim_subset", type=str,
+    help="GO basic or a slim subset {basic, generic, agr, aspergillus, candida, chembl, flybase_ribbon, generic, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)",
     default="basic")
 
+
+# ToDo remove as option
 parser.add_argument("indent", type=str,
     help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
     default="False") # should be boolean, but this works better
@@ -321,7 +313,7 @@ class API_STRING(Resource):
         args_dict["privileged"] = string_2_bool(args_dict["privileged"])
         args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
         args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
-        args_dict["LOW_MEMORY"] = string_2_bool(args_dict["LOW_MEMORY"])
+        # args_dict["LOW_MEMORY"] = string_2_bool(args_dict["LOW_MEMORY"])
         FDR_cutoff = args_dict["FDR_cutoff"]
         args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
         filter_PMID_top_n = args_dict["filter_PMID_top_n"]
@@ -329,6 +321,9 @@ class API_STRING(Resource):
             args_dict["FDR_cutoff"] = None
         if filter_PMID_top_n == 0:
             args_dict["filter_PMID_top_n"] = None
+        if args_dict["go_slim_subset"] == "basic":
+            args_dict["go_slim_subset"] = None
+
         if variables.VERBOSE:
             print("-"*80)
             for key, val in sorted(args_dict.items()):
@@ -433,7 +428,7 @@ class API_STRING_HELP(Resource):
     get enrichment for all available functional associations not 'just' one category
     """
 
-    def get(self, output_format="json"):
+    def get(self): # output_format="json"
         args_dict = defaultdict(lambda: None)
         args_dict.update(parser.parse_args())
         args_dict = parser.parse_args()
@@ -529,12 +524,6 @@ def example():
         # content_entity_types = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
         content_entity_types = format_markdown(content)
         # print(content_entity_types)
-    with open(variables.FN_HELP_PARAMETERS, "r") as fh:
-        content = fh.read()
-        # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
-        # content_parameters = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
-        content_parameters = format_markdown(content)
-        # print(content_parameters)
     return render_template('example.html', **locals())
 
 @app.route('/example/<path:filename>', methods=['GET', 'POST'])

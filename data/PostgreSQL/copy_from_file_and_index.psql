@@ -10,49 +10,49 @@ CREATE INDEX secondary_2_primary_id_taxid_idx ON secondary_2_primary_id (taxid);
 CLUSTER secondary_2_primary_id USING secondary_2_primary_id_taxid_idx;
 
 
--- DROP TABLE IF EXISTS protein_2_functionenum;
--- DROP INDEX IF EXISTS protein_2_functionenum_taxid_idx, protein_2_functionenum_id_idx;
--- CREATE TABLE protein_2_functionenum (
---     taxid integer,
---     id text,
---     functionenum integer ARRAY);
--- \copy protein_2_functionenum FROM 'data/PostgreSQL/tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
--- CREATE INDEX protein_2_functionenum_taxid_idx ON protein_2_functionenum (taxid);
--- CREATE INDEX protein_2_functionenum_id_idx ON protein_2_functionenum (id);
--- CLUSTER protein_2_functionenum USING protein_2_functionenum_taxid_idx;
---
---
--- DROP TABLE IF EXISTS taxid_2_functioncountarray;
--- DROP INDEX IF EXISTS taxid_2_functioncountarray_taxid_idx;
--- CREATE TABLE taxid_2_functioncountarray (
---     taxid integer,
---     background_n integer,
---     background_count_array integer ARRAY);
--- \copy taxid_2_functioncountarray FROM 'data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
--- CREATE INDEX taxid_2_functioncountarray_taxid_idx  ON taxid_2_functioncountarray (taxid);
---
---
--- DROP TABLE IF EXISTS functions;
--- DROP INDEX IF EXISTS functions_enum_idx, functions_an_idx, functions_etype_an_idx;
--- CREATE TABLE functions (
---     enum integer,
---     etype integer,
---     an text,
---     description text,
---     year text,
---     level integer);
--- \copy functions FROM 'data/PostgreSQL/tables/Functions_table_UPS_FIN.txt';
--- CREATE INDEX functions_enum_idx ON functions (enum);
--- CREATE INDEX functions_an_idx ON functions (an);
--- CREATE INDEX functions_etype_an_idx ON functions (etype, an);
--- CLUSTER functions USING functions_etype_an_idx;
---
---
--- DROP TABLE IF EXISTS taxid_2_protein;
--- DROP INDEX IF EXISTS taxid_2_protein_taxid_idx;
--- CREATE TABLE taxid_2_protein (
---     taxid integer,
---     count integer,
---     an_array text ARRAY);
--- \copy taxid_2_protein FROM 'data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
--- CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
+DROP TABLE IF EXISTS protein_2_functionenum;
+DROP INDEX IF EXISTS protein_2_functionenum_taxid_idx, protein_2_functionenum_id_idx;
+CREATE TABLE protein_2_functionenum (
+    taxid integer,
+    id text,
+    functionenum integer ARRAY);
+\copy protein_2_functionenum FROM 'data/PostgreSQL/tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
+CREATE INDEX protein_2_functionenum_taxid_idx ON protein_2_functionenum (taxid);
+CREATE INDEX protein_2_functionenum_id_idx ON protein_2_functionenum (id);
+CLUSTER protein_2_functionenum USING protein_2_functionenum_taxid_idx;
+
+
+DROP TABLE IF EXISTS taxid_2_functioncountarray;
+DROP INDEX IF EXISTS taxid_2_functioncountarray_taxid_idx;
+CREATE TABLE taxid_2_functioncountarray (
+    taxid integer,
+    background_n integer,
+    background_count_array integer ARRAY);
+\copy taxid_2_functioncountarray FROM 'data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
+CREATE INDEX taxid_2_functioncountarray_taxid_idx  ON taxid_2_functioncountarray (taxid);
+
+
+DROP TABLE IF EXISTS functions;
+DROP INDEX IF EXISTS functions_enum_idx, functions_an_idx, functions_etype_an_idx;
+CREATE TABLE functions (
+    enum integer,
+    etype integer,
+    an text,
+    description text,
+    year text,
+    level integer);
+\copy functions FROM 'data/PostgreSQL/tables/Functions_table_UPS_FIN.txt';
+CREATE INDEX functions_enum_idx ON functions (enum);
+CREATE INDEX functions_an_idx ON functions (an);
+CREATE INDEX functions_etype_an_idx ON functions (etype, an);
+CLUSTER functions USING functions_etype_an_idx;
+
+
+DROP TABLE IF EXISTS taxid_2_protein;
+DROP INDEX IF EXISTS taxid_2_protein_taxid_idx;
+CREATE TABLE taxid_2_protein (
+    taxid integer,
+    count integer,
+    an_array text ARRAY);
+\copy taxid_2_protein FROM 'data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
+CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);

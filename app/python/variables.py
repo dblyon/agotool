@@ -35,6 +35,8 @@ entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontolo
 entity_types_with_scores = {-20, -25, -26} # GO-CC,  BTO, DOID
 # searchspace_2_entityType_dict = {"STRING": -60,
 #                                  "UniProt": -61}
+enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome"}
+
 
 functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
                                   "Gene Ontology biological process": -21,
@@ -206,6 +208,7 @@ else:
 
 tables_dict = {
     "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
+    "GO_slim_subsets_file": os.path.join(DOWNLOADS_DIR, "GO_slim_subsets_file.txt"),
     "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced

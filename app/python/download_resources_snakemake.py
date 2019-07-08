@@ -64,6 +64,18 @@ def download_gzip_file(url, file_name, verbose=True):
     if verbose:
         print("finished download")
 
+def download_GO_slim_subsets(url, download_dir, GO_slim_subsets_file):
+    # url = r"http://purl.obolibrary.org/obo/go/subsets"
+    # get URLs to download
+    files_2_download = [fn for fn in sorted(set(get_list_of_files_2_download_from_http(url, ext="obo", go_subset=True))) if not os.path.basename(fn).startswith("gocheck")]
+    with open(GO_slim_subsets_file, "w") as fh_out:
+        for url in tqdm(files_2_download):
+            # check if needed, rename?
+            basename = os.path.basename(url)
+            file_name = os.path.join(download_dir, basename)
+            download_requests(url, file_name, verbose=False)
+            fh_out.write("{}\n".format(basename))
+
 def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file):
     """
     download flat files in GMT format
@@ -83,10 +95,13 @@ def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file):
     with open(WikiPathways_not_a_gmt_file, "w") as fh_out:
         fh_out.write("downloaded {} number of gmt files".format(len(files_2_download)))
 
-def get_list_of_files_2_download_from_http(url, ext=''):
+def get_list_of_files_2_download_from_http(url, ext='', go_subset=False):
     page = requests.get(url).text
     soup = BeautifulSoup(page, 'html.parser')
-    return [url + '/' + node.get('href')[2:] for node in soup.find_all('a') if node.get('href').endswith(ext)]
+    if go_subset:
+        return [node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)]
+    else:
+        return [url + '/' + node.get('href')[2:] for node in soup.find_all('a') if node.get('href').endswith(ext)]
 
 def download_UniProt_reference_proteomes(download_dir, verbose=True):
     # UniProt_reference_proteomes_partial_link = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/reference_proteomes"

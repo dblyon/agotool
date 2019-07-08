@@ -6,7 +6,7 @@ from io import StringIO # from StringIO import StringIO
 from itertools import zip_longest # from itertools import izip_longest
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 
-import tools, variables #, query
+import tools, variables, query
 
 if variables.PD_WARNING_OFF:
     pd.options.mode.chained_assignment = None
@@ -37,9 +37,7 @@ class Userinput:
         self.decimal = decimal
         self.num_bins = num_bins
         self.col_foreground = "foreground"
-        # self.col_foreground_intensity = "foreground_intensity"
         self.col_background = "background"
-        # self.col_background_intensity: = "background_intensity"
         self.col_intensity = "intensity"
         self.enrichment_method = enrichment_method
         self.foreground_n = foreground_n
@@ -54,6 +52,9 @@ class Userinput:
             self.check = True
 
     def parse_input(self):
+        if self.enrichment_method not in variables.enrichment_methods:
+            print(self.enrichment_method, "problem since this is in not in in {}".format(variables.enrichment_methods))
+            return False, False, False
         if self.fn is None: # use copy & paste field
             self.fn = StringIO()
             self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), self.col_foreground)
@@ -67,7 +68,7 @@ class Userinput:
                     return False, False, False
             elif self.enrichment_method in {"compare_samples", "compare_groups"}:
                 header = '{}\t{}\n'.format(self.col_foreground, self.col_background)
-            elif self.enrichment_method == "characterize_foreground":
+            elif self.enrichment_method in {"characterize_foreground", "genome"}:
                 header = '{}\n'.format(self.col_foreground)
             else:
                 return False, False, False
@@ -108,7 +109,6 @@ class Userinput:
             pass
 
         ### check if background is empty
-        # if self.enrichment_method != "characterize_foreground":
         if self.enrichment_method not in {"characterize_foreground", "genome"}:
             if self.background.shape[0] == 0:
                 return self.foreground, self.background, False
@@ -121,7 +121,6 @@ class Userinput:
         if self.enrichment_method != "compare_groups": # abundance_correction
             self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
-        # if self.enrichment_method != "characterize_foreground": # abundance_correction
         if self.enrichment_method not in {"characterize_foreground", "genome"}:
             try:
                 self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
@@ -129,19 +128,26 @@ class Userinput:
                 return self.foreground, self.background, False
             self.background = self.background.drop_duplicates(subset=col_background)
 
-        ### map abundance from background to foreground, set default missing value for NaNs
         if self.enrichment_method == "abundance_correction":
+            ### map abundance from protein groups to all individual proteins, if individual protein not with standalone abundance
+            self.background = self.map_proteinGroup_abundance_2_individual_protein(self.background)
+            ### map abundance from background to foreground, set default missing value for NaNs
             cond = pd.isnull(self.background[col_intensity])
             self.background.loc[cond, col_intensity] = DEFAULT_MISSING_BIN
             an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]))
             self.foreground["intensity"] = self.map_intensities_2_foreground(self.foreground[col_foreground], an_2_intensity_dict)
 
         ### map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
-        if variables.VERSION_ == "aGOtool":
-            secondary_2_primary_dict = self.pqo.map_secondary_2_primary_ANs(self.get_all_unique_ANs())
-            self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
-            if self.enrichment_method != "characterize_foreground":
-                self.background[col_background] = self.background[col_background].copy().apply(self.replace_secondary_with_primary_ANs, args=(secondary_2_primary_dict,))
+        if variables.VERSION_ == "UniProt":
+            if variables.LOW_MEMORY:
+                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN())
+            else:
+                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN(), self.pqo.Secondary_2_Primary_IDs_dict)
+            self.Secondary_2_Primary_IDs_dict_fg = query.map_secondary_2_primary_ANs(self.get_foreground_an_set(), self.Secondary_2_Primary_IDs_dict_user)
+            self.foreground[col_foreground] = self.foreground[col_foreground].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, False))
+            if self.enrichment_method not in {"characterize_foreground", "genome"}:
+                self.Secondary_2_Primary_IDs_dict_bg = query.map_secondary_2_primary_ANs(self.get_background_an_set(), self.Secondary_2_Primary_IDs_dict_user)
+                self.background[col_background] = self.background[col_background].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, False))
 
         ### sort values for iter bins
         if self.enrichment_method == "abundance_correction":
@@ -151,6 +157,25 @@ class Userinput:
             self.foreground = self.foreground.sort_values(["intensity", "foreground"])
             self.background = self.background.sort_values(["intensity", "background"])
         return self.foreground, self.background, check_cleanup
+
+    def map_proteinGroup_abundance_2_individual_protein(self, background):
+        background_set = self.get_background_an_set()
+        proteins_2_add, abundances_2_add = [], []
+        for arr in background[[self.col_background, self.col_intensity]].values:
+            protein_split = arr[0].split(";")
+            if len(protein_split) > 1:
+                for protein in protein_split:
+                    if protein not in background_set:
+                        proteins_2_add.append(protein)
+                        abundances_2_add.append(arr[1])
+        return background.append(pd.DataFrame.from_dict({self.col_background: proteins_2_add, self.col_intensity: abundances_2_add}), ignore_index=True)
+
+    def translate_primary_back_to_secondary(self, df):
+        if len(self.Secondary_2_Primary_IDs_dict_fg) > 0:
+            df["foreground_ids"] = df["foreground_ids"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, True))
+        if self.enrichment_method == "compare_samples" and len(self.Secondary_2_Primary_IDs_dict_bg) > 0:
+            df["background_ids"] = df["background_ids"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
+        return df
 
     def cleanupforanalysis_rank_enrichment(self, df, col_population, col_abundance_ratio):
         ### remove rows consisting of only NaNs
@@ -244,9 +269,6 @@ class Userinput:
         :param df: Pandas DataFrame
         :return: Pandas DataFrame
         """
-        # cols = sorted(df.columns.tolist())
-        # cols = [colname.lower() for colname in cols]
-        # colnames_2_lower_colnames = {colname: colname.lower() for colname in df.columns.tolist()}
         df = df.rename(columns={colname: colname.lower() for colname in df.columns.tolist()})
         potential_colnames_2_rename = {"population": "background",
                                        "population_an": "background",
@@ -254,30 +276,17 @@ class Userinput:
                                        "population_intensity": "background_intensity",
                                        "sample": "foreground",
                                        "sample_an": "foreground"}
-        df = df.rename(columns=potential_colnames_2_rename)
-        # if "population" in cols:
-        #     df = df.rename(columns={"population": "background"})
-        # if "population_an" in cols:
-        #     df = df.rename(columns={"population_an": "background"})
-        # if "population_int" in cols:
-        #     df = df.rename(columns={"population_int": "background_intensity"})
-        # if "population_intensity" in cols:
-        #     df = df.rename(columns={"population_intensity": "background_intensity"})
-        # if "sample" in cols:
-        #     df = df.rename(columns={"sample": "foreground"})
-        # if "sample_an" in cols:
-        #     df = df.rename(columns={"sample_an": "foreground"})
-        return df
+        return df.rename(columns=potential_colnames_2_rename)
 
-    @staticmethod
-    def replace_secondary_with_primary_ANs(ans_string, secondary_2_primary_dict):
-        ans_2_return = []
-        for an in ans_string.split(";"): # if proteinGroup
-            if an in secondary_2_primary_dict:
-                ans_2_return.append(secondary_2_primary_dict[an])
-            else:
-                ans_2_return.append(an)
-        return ";".join(ans_2_return)
+    # @staticmethod
+    # def replace_secondary_with_primary_ANs(ans_string, secondary_2_primary_dict):
+    #     ans_2_return = []
+    #     for an in ans_string.split(";"): # if proteinGroup
+    #         if an in secondary_2_primary_dict:
+    #             ans_2_return.append(secondary_2_primary_dict[an])
+    #         else:
+    #             ans_2_return.append(an)
+    #     return ";".join(ans_2_return)
 
     @staticmethod
     def create_an_2_intensity_dict(list_of_tuples):
@@ -300,12 +309,18 @@ class Userinput:
     @staticmethod
     def remove_spliceVariant(string_):
         """
-        remove UniProt Isoform appendix, but prevent removing part of ENSP
+        remove UniProt isoform appendix, but prevent removing part of ENSP
         removes appendix for splice variants from accession numbers and sorts protein groups
         :param string_: String
         :return: String
         """
-        return ";".join(sorted([ele.split("-")[0] for ele in string_.split(";") if "." not in ele]))
+        list_2_return = []
+        for ele in string_.split(";"):
+            if not "." in ele: # to remove isoform appendix for UniProt
+                list_2_return.append(ele.split("-")[0])
+            else: # for STRING identifiers / ENSPs
+                list_2_return.append(ele)
+        return ";".join(list_2_return)
 
     @staticmethod
     def map_intensities_2_foreground(foreground_series, an_2_intensity_dict):
@@ -322,10 +337,21 @@ class Userinput:
         return pd.Series(intensity_foreground, name="intensity")
 
     def get_foreground_an_set(self):
-        return set(self.foreground[self.col_foreground].tolist())
+        """
+        get_foreground_an_set --> proteinGroups and individual proteins
+        get_all_individual_foreground_ANs --> only individual proteins (proteinGroups split into individual proteins)
+        get_an_redundant_foreground --> everything but NaNs, even redundant proteins
+        """
+        return set(self.foreground[self.col_foreground].values)
+
+    def get_all_individual_foreground_ANs(self):
+        return tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
+
+    def get_all_individual_background_ANs(self):
+        return tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
 
     def get_background_an_set(self):
-        return set(self.background[self.col_background].tolist())
+        return set(self.background[self.col_background].values)
 
     def get_an_redundant_foreground(self):
         return self.foreground[self.col_foreground].tolist()
@@ -333,19 +359,39 @@ class Userinput:
     def get_an_redundant_background(self):
         return self.background[self.col_background].tolist()
 
+    def get_all_individual_AN(self):
+        """
+        return all unique AccessionNumber provided by the user
+        :return: ListOfString
+        """
+        if self.enrichment_method == "rank_enrichment":
+            ans = tools.commaSepCol2uniqueFlatList(self.population_df, self.col_population, sep=";", unique=True)
+        else:
+            ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
+        if self.enrichment_method not in {"characterize_foreground", "genome", "rank_enrichment"}:
+            ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
+        return list(set(ans))
+
+    def get_all_unique_proteinGroups(self):
+        proteinGroup_list = []
+        proteinGroup_list += self.foreground[self.col_foreground].tolist()
+        if self.enrichment_method not in {"characterize_foreground", "genome"}:
+            proteinGroup_list += self.background[self.col_background].tolist()
+        return list(set(proteinGroup_list))
+
     def get_foreground_n(self):
         """
         "abundance_correction", "compare_samples", "enrichment_method", "characterize_foreground"
         :return: Int
         """
-        if self.enrichment_method == "abundance_correction":
+        if self.enrichment_method in {"abundance_correction", "compare_samples", "characterize_foreground", "genome"}:
             return len(self.foreground)
-        elif self.enrichment_method == "compare_samples": # no abundance correction
-            return len(self.foreground)
+        # elif self.enrichment_method == "compare_samples": # no abundance correction
+        #     return len(self.foreground)
         elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user
             return self.foreground_n
-        elif self.enrichment_method == "characterize_foreground":
-            return len(self.foreground)
+        # elif self.enrichment_method == "characterize_foreground":
+        #     return len(self.foreground)
         else:
             raise StopIteration # DEBUG, case should not happen
 
@@ -354,7 +400,9 @@ class Userinput:
         "abundance_correction", "compare_samples", "compare_groups", "characterize_foreground"
         :return: Int
         """
-        if self.enrichment_method == "abundance_correction": # same as foreground
+        if self.enrichment_method == "genome":
+            return None # information stored in pqo.taxid_2_proteome_count
+        elif self.enrichment_method == "abundance_correction": # same as foreground
             return len(self.foreground)
         elif self.enrichment_method == "compare_samples": # simply background to compare to
             return len(self.background)
@@ -399,31 +447,10 @@ class Userinput:
                 # factor of 1
                 correction_factor = 1
                 proteinGroups_background = proteinGroups_foreground
+            correction_factor = min(correction_factor, 1)
             yield proteinGroups_background.tolist(), correction_factor
 
-    def iter_bins_cy(self):
 
-        pass
-
-    def get_all_unique_ANs(self):
-        """
-        return all unique AccessionNumber provided by the user
-        :return: ListOfString
-        """
-        if self.enrichment_method == "rank_enrichment":
-            ans = tools.commaSepCol2uniqueFlatList(self.population_df, self.col_population, sep=";", unique=True)
-        else:
-            ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
-        if self.enrichment_method not in {"characterize_foreground", "genome", "rank_enrichment"}:
-            ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
-        return list(set(ans))
-
-    def get_all_unique_proteinGroups(self):
-        proteinGroup_list = []
-        proteinGroup_list += self.foreground[self.col_foreground].tolist()
-        if self.enrichment_method != "characterize_foreground":
-            proteinGroup_list += self.background[self.col_background].tolist()
-        return list(set(proteinGroup_list))
 
 
 class REST_API_input(Userinput):
@@ -587,6 +614,27 @@ class REST_API_input(Userinput):
         except AttributeError: # None
             return None
 
+def replace_secondary_and_primary_IDs(ans_string, secondary_2_primary_dict, invert_dict=False):
+    if invert_dict:
+        dict_2_use = {v: k for k, v in secondary_2_primary_dict.items()}
+    else:
+        dict_2_use = secondary_2_primary_dict
+    ids_2_return = []
+    for id_ in ans_string.split(";"):  # if proteinGroup
+        if id_ in dict_2_use:
+            ids_2_return.append(dict_2_use[id_])
+        else:
+            ids_2_return.append(id_)
+    return ";".join(ids_2_return)
+
+def stringify_for_Userinput(list_of_proteins, list_of_abundances=None):
+    if list_of_abundances is None:
+        return "\n".join(list_of_proteins)
+    else:
+        string_2_return = ""
+        for an, inte in zip(list_of_proteins, list_of_abundances):
+            string_2_return += an + "\t" + str(inte) + "\n"
+        return string_2_return.strip()
 
 if __name__ == "__main__":
     # # fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'

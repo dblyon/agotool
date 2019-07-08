@@ -662,12 +662,27 @@ def Protein_2_FunctionEnum_table_STS(fn_Functions_table_STRING, fn_in_Protein_2_
                 fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")  # etype is removed
 
 def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, number_of_processes=1):
+    """
+    go from multiple lines per protein (one row per etype) to single line of functionEnumeration
+    input
+    4932    HIS4_YEAST      {"PMID:8375386","PMID:7050665","PMID:25367168","PMID:24998777","PMID:24150815",...}  -56
+    4932    HIS4_YEAST      {"WP416","WP514"}       -58
+    4932    HIS4_YEAST      {"WP416","WP514"}       -58
+    559292  HIS4_YEAST      {"GO:0005575","GO:0005622","GO:0005623","GO:0005634","GO:0005737","GO:0043226","GO:0043227","GO:0043229","GO:0043231","GO:0044424","GO:0044464"}       -22
+    559292  HIS4_YEAST      {"IPR006062","IPR011060","IPR011858","IPR013785"}       -54
+
+    output
+    4932    HIS4_YEAST      {2662541,2662541,2662753,2662753}
+    559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,...}
+    """
     function_2_enum_dict, enum_2_function_dict = get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING)
     tools.sort_file(fn_in_Protein_2_function_table, fn_in_Protein_2_function_table, number_of_processes=number_of_processes)
     with open(fn_in_Protein_2_function_table, "r") as fh_in:
         with open(fn_out_Protein_2_functionEnum_table_FIN, "w") as fh_out:
             taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
             functionEnum_list = _helper_format_array(function_arr_str[1:-1].replace('"', "").split(","), function_2_enum_dict)
+            # remove duplicates
+            functionEnum_list = list(set(functionEnum_list))
             for line in fh_in:
                 taxid, UniProtID, function_arr_str, etype = line.split("\t")
                 function_list = function_arr_str[1:-1].replace('"', "").split(",")
@@ -1531,6 +1546,11 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
                     for UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
                         # ['Complete proteome', 'Reference proteome', 'Transcription', 'Activator', 'Transcription regulation', ['GO:0046782'], ['IPR007031'], ['PF04947'], ['vg:2947773'], [], [], ['UP000008770']]
                         # for UniProtAN in UniProtAC_and_ID_list:
+                        if taxid in {"559292", "284812"}:
+                            if taxid == "559292":
+                                taxid = "4932"
+                            elif taxid == "284812":
+                                taxid = "4896"
                         if len(Keywords_list) > 0:
                             UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, Keywords_list)
                             UPKs_not_in_obo_list += UPKs_not_in_obo_temp
@@ -2681,7 +2701,7 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
             funcName_2_score_list_backtracked.append([parent, score])
     return funcName_2_score_list_backtracked
 
-def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fh_out_without_lineage):
+def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_out_without_lineage):
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid)
     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
     terms_without_lineage = set()
@@ -2703,8 +2723,9 @@ def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOI
                     terms_without_lineage |= set([funcName])
             for UniProtID in UniProtID_list:
                 fh_out_Prot_2_func.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list_backtracked) + "\t" + etype + "\n")
-    for term in sorted(terms_without_lineage):
-        fh_out_without_lineage.write(term + "\n")
+    with open(fn_out_without_lineage, "w") as fh_out_without_lineage:
+        for term in sorted(terms_without_lineage):
+            fh_out_without_lineage.write(term + "\n")
 
 def get_ENSP_2_UniProtID_dict(UniprotID_2_ENSPs_2_KEGGs):
     """
@@ -3072,6 +3093,23 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
     999630.TUZN_2237        F2L675  F2L675_THEU7    STRING
     999630.TUZN_2237        F2L675  F2L675_THEU7    UniProtIDmapping
     999630.TUZN_2237        nm      F2L675_THEU7    UniProtDump
+
+    jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
+    4932 Saccharomyces cerevisiae, Jensenlab
+    559292 Saccharomyces cerevisiae S288C, UniProt Reference Proteome
+    4932 --> 559292
+    4896 Schizosaccharomyces pombe, Jensenlab
+    284812 Schizosaccharomyces pombe 972h-, UniProt Reference Proteome
+    4896 --> 284812
+    force 559292 to be 4932
+    and 284812 to be 4896
+    in order to merge annotation data from Jensenlab with UniProt data and make everything accessible/searchable on tax-rank of species
+
+    $ grep "HIS4_YEAST" Taxid_UniProt_AC_2_ID.txt
+    559292  P40545  HIS4_YEAST
+
+    $ grep "HIS4_YEAST" Taxid_UniProtID_2_ENSPs_2_KEGGs.txt
+    559292  HIS4_YEAST      4932.YIL020C    sce:YIL020C
     """
     with open(fn_out_Taxid_UniProt_AC_2_ID, "w") as fh_out_Taxid_UniProt_AC_2_ID:
         with open(fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, "w") as fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs:
@@ -3080,6 +3118,11 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
                 for UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, _ in _helper_yield_UniProtIDmapping_entry(UniProt_ID_mapping): # source is UniProt ID mapping
                     for ENSP in ENSP_list:
                         fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
+                    if taxid in {"559292", "284812"}:
+                        if taxid == "559292":
+                            taxid = "4932"
+                        elif taxid == "284812":
+                            taxid = "4896"
                     fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, ";".join(ENSP_list), ";".join(KEGG_list)))
                     if taxid == "-1" or UniProtID == "-1":
                         pass
@@ -3154,7 +3197,6 @@ def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
                 KEGG_list.append(mapping)
             elif type_ == "GeneID":
                 EntrezGeneID_list.append(mapping)
-
             try:
                 UniProtID = AC_2_ID_dict[UniProtAC]
             except KeyError:
@@ -3162,7 +3204,7 @@ def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
             try:
                 taxid = AC_2_taxid_dict[UniProtAC]
             except KeyError:
-                taixd = "-1"
+                taxid = "-1"
         yield UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list
 
 def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping):
@@ -3368,6 +3410,22 @@ def _helper_yield_gen_AC_2_ID(fn):
             taxid, UniProtAC, UniProtID = line.split("\t")
             yield taxid, UniProtAC, UniProtID.strip()
 
+def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_order):
+    """
+    read obo files
+    parse all terms and add to dict (key: obo file name, val: list of GO terms)
+    translate GOterm function names to bool array
+    """
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=True, read_from_flat_files=False)
+    GO_slim_subsets_file = variables.tables_dict["GO_slim_subsets_file"]
+    with open(GO_slim_subsets_file, "r") as fh_in:
+        for line in tqdm(fh_in):
+            fn_basename = line.strip()
+            fn_absolute = os.path.join(variables.DOWNLOADS_DIR, fn_basename)
+            go_dag = obo_parser.GODag(obo_file=fn_absolute)
+            list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
+            np.save(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
+
 if __name__ == "__main__":
     # create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM()
 
@@ -3421,36 +3479,31 @@ if __name__ == "__main__":
     # fn_out_ENSP_2_UniProt_all = r"/home/dblyon/agotool/data/PostgreSQL/tables/ENSP_2_UniProt_all.txt"
     # ENSP_2_UniProt_all(damian_uniprot_2_string, Taxid_UniProtID_2_ENSPs_2_KEGGs, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, number_of_processes=10)
 
-    DOWNLOADS_DIR = r'/home/dblyon/agotool/data/PostgreSQL/downloads'
-    TABLES_DIR = r"/home/dblyon/agotool/data/PostgreSQL/tables"
-    import os, variables
+    # DOWNLOADS_DIR = r'/home/dblyon/agotool/data/PostgreSQL/downloads'
+    # TABLES_DIR = r"/home/dblyon/agotool/data/PostgreSQL/tables"
+    # import os, variables
+    #
+    # damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
+    # UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
+    # Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
+    #
+    # fn_out_ENSP_2_UniProt_all = os.path.join(TABLES_DIR, "ENSP_2_UniProt_all.txt")
+    # Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+    # Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
+    # ENSP_2_UniProt_2_use = os.path.join(TABLES_DIR, "ENSP_2_UniProt_2_use.txt")
+    # ENSP_of_UniProtIDmapping_not_in_STRINGv11 = os.path.join(TABLES_DIR, "ENSP_of_UniProtIDmapping_not_in_STRINGv11.txt")
+    # ENSP_2_UniProt_discrepancy = os.path.join(TABLES_DIR, "ENSP_2_UniProt_discrepancy.txt")
+    #
+    # UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
+    # Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
+    # fn_out_Secondary_2_Primary_ID_UPS_FIN = variables.tables_dict["Secondary_2_Primary_ID_table"]
+    # Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
+    #
+    #
+    # ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID, 10)
+    #
+    # STRING_2_UniProt_mapping_discrepancies(fn_out_ENSP_2_UniProt_all, Taxid_2_Proteins_table_STS, Protein_2_FunctionEnum_table_UPS_FIN, ENSP_2_UniProt_2_use, ENSP_of_UniProtIDmapping_not_in_STRINGv11, ENSP_2_UniProt_discrepancy)
+    #
+    # Secondary_2_Primary_ID_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, UniProt_sec_2_prim_AC, ENSP_2_UniProt_2_use, Taxid_UniProt_AC_2_ID, fn_out_Secondary_2_Primary_ID_UPS_FIN, Secondary_2_Primary_ID_UPS_no_translation)
 
-    damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
-    UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
-    Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
-
-    fn_out_ENSP_2_UniProt_all = os.path.join(TABLES_DIR, "ENSP_2_UniProt_all.txt")
-    Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
-    Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
-    ENSP_2_UniProt_2_use = os.path.join(TABLES_DIR, "ENSP_2_UniProt_2_use.txt")
-    ENSP_of_UniProtIDmapping_not_in_STRINGv11 = os.path.join(TABLES_DIR, "ENSP_of_UniProtIDmapping_not_in_STRINGv11.txt")
-    ENSP_2_UniProt_discrepancy = os.path.join(TABLES_DIR, "ENSP_2_UniProt_discrepancy.txt")
-
-    UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
-    Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
-    fn_out_Secondary_2_Primary_ID_UPS_FIN = variables.tables_dict["Secondary_2_Primary_ID_table"]
-    Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
-
-
-    ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID, 10)
-
-    STRING_2_UniProt_mapping_discrepancies(fn_out_ENSP_2_UniProt_all, Taxid_2_Proteins_table_STS, Protein_2_FunctionEnum_table_UPS_FIN, ENSP_2_UniProt_2_use, ENSP_of_UniProtIDmapping_not_in_STRINGv11, ENSP_2_UniProt_discrepancy)
-
-    Secondary_2_Primary_ID_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, UniProt_sec_2_prim_AC, ENSP_2_UniProt_2_use, Taxid_UniProt_AC_2_ID, fn_out_Secondary_2_Primary_ID_UPS_FIN, Secondary_2_Primary_ID_UPS_no_translation)
-
-
-# Secondary_2_Primary_ID_UPS_FIN.txt
-# -1      Q9Y3L3  3BP1_HUMAN
-# -1      Q6ZT62  -1
-# -1      Q9Y3L3  3BP1_HUMAN
-# -1      Q6ZT62  -1
+    create_goslimtype_2_cond_arrays("Bubu")

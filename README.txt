@@ -204,9 +204,10 @@ docker push dblyon/agotool_flaskapp
 # - set branch docker to master --> done
 # - create webhooks a la Lars (see below)
         git commit and push
-        --> github/bitbucket notifies Dockerhug
+        --> github/bitbucket notifies Dockerhub
         --> Dockerhub builds image
         --> missing piece: server pulls image and starts it up
+# Drone IO (Milan is using on this)
 
 # Lars automatic updates/webhooks
 bitbucket/github

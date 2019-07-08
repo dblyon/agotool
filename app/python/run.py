@@ -35,9 +35,9 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         df_2_return = run_cythonized.run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
 
     ### for STRING internally disabled, otherwise this makes sense to use DONT DELETE
-    # if df_2_return.shape[0] == 0:
-    #     args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
-    #     return False
+    if df_2_return.shape[0] == 0:
+        args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+        return False
 
     output_format = args_dict["output_format"]
     return format_results(df_2_return, output_format, args_dict)
@@ -49,7 +49,7 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
         args_dict["ERROR_taxid"] = "Please provide a TaxID (a taxonomic identifier e.g. 9606 for Homo sapiens)"
         return False
 
-    protein_ans = ui.get_all_unique_ANs() # proteins_ans is a list
+    protein_ans = ui.get_all_individual_AN() # proteins_ans is a list
     if variables.VERSION_ != "STRING":
         if not check_all_ENSPs_of_given_taxid(protein_ans, taxid):
             taxid_string = str(taxid)
