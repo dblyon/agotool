@@ -681,8 +681,6 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
         with open(fn_out_Protein_2_functionEnum_table_FIN, "w") as fh_out:
             taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
             functionEnum_list = _helper_format_array(function_arr_str[1:-1].replace('"', "").split(","), function_2_enum_dict)
-            # remove duplicates
-            functionEnum_list = list(set(functionEnum_list))
             for line in fh_in:
                 taxid, UniProtID, function_arr_str, etype = line.split("\t")
                 function_list = function_arr_str[1:-1].replace('"', "").split(",")
@@ -690,10 +688,14 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
                     functionEnum_list += _helper_format_array(function_list, function_2_enum_dict)
                 else:
                     if len(functionEnum_list) > 0:
+                        # remove duplicates
+                        functionEnum_list = list(set(functionEnum_list))
                         fh_out.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
                     functionEnum_list = _helper_format_array(function_list, function_2_enum_dict)
                 UniProtID_last = UniProtID
                 taxid_last = taxid
+            # remove duplicates
+            functionEnum_list = list(set(functionEnum_list))
             fh_out.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
 
 def _helper_format_array(function_arr, function_2_enum_dict):
@@ -1546,11 +1548,11 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
                     for UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
                         # ['Complete proteome', 'Reference proteome', 'Transcription', 'Activator', 'Transcription regulation', ['GO:0046782'], ['IPR007031'], ['PF04947'], ['vg:2947773'], [], [], ['UP000008770']]
                         # for UniProtAN in UniProtAC_and_ID_list:
-                        if taxid in {"559292", "284812"}:
-                            if taxid == "559292":
-                                taxid = "4932"
-                            elif taxid == "284812":
-                                taxid = "4896"
+                        if NCBI_Taxid in {"559292", "284812"}:
+                            if NCBI_Taxid == "559292":
+                                NCBI_Taxid = "4932"
+                            elif NCBI_Taxid == "284812":
+                                NCBI_Taxid = "4896"
                         if len(Keywords_list) > 0:
                             UPK_ANs, UPKs_not_in_obo_temp = map_keyword_name_2_AN(UPK_Name_2_AN_dict, Keywords_list)
                             UPKs_not_in_obo_list += UPKs_not_in_obo_temp
@@ -2611,7 +2613,7 @@ def Protein_2_FunctionEnum_and_Score_table_STS(Protein_2_Function_and_Score_DOID
     with open(fn_an_without_translation, "w") as fh_an_without_translation:
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
 
-def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, GO_CC_textmining_additional_etype=False):
+def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=False):
     """
     differences to STS version:
      - no need to filter to analog of ENSPs in proteome (we want all annotations even for UniProtAC/IDs that are not in reference proteome/background proteome), filter later on
@@ -2624,7 +2626,7 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
     funcEnum_2_score = []
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_UPS, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
-    an_without_translation, ENSP_without_translation = [], []
+    an_without_translation, ENSP_without_translation, without_lineage = [], [], set()
     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
 
     with open(fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, "w") as fh_out:
@@ -2652,7 +2654,8 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
             # parse current and add to funcEnum_2_score
             funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
             # backtracking
-            funcName_2_score_list = helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict)
+            funcName_2_score_list, without_lineage_temp = helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict)
+            without_lineage |= without_lineage_temp
             for an_score in funcName_2_score_list:
                 an, score = an_score
                 if GO_CC_textmining_additional_etype: # works only if GOCC textmining etype 20 is included in Functions_table_all and then not excluded in Functions_table_FIN
@@ -2686,20 +2689,24 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
         fh_an_without_translation.write("\n".join(sorted(set(an_without_translation))))
     with open(fn_out_ENSP_2_UniProtID_without_translation, "w") as fh_ENSP_2_UniProtID_without_translation:
         fh_ENSP_2_UniProtID_without_translation.write("\n".join(sorted(set(ENSP_without_translation))))
+    with open(fn_out_DOID_GO_BTO_an_without_lineage, "w") as fh_without_lineage:
+        for funcName in sorted(without_lineage):
+            fh_without_lineage.write(funcName + "\n")
 
 def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
-    funcName_2_score_list_backtracked = []
+    funcName_2_score_list_backtracked, without_lineage = [], []
     for funcName_2_score in funcName_2_score_list:
         funcName_2_score_list_backtracked.append(funcName_2_score)
         funcName, score = funcName_2_score
         try:
             all_parents = lineage_dict[funcName]
         except KeyError:
-            print("{} without lineage".format(funcName))
+            # print("{} without lineage".format(funcName))
+            without_lineage.append(funcName)
             all_parents = []
         for parent in all_parents:
             funcName_2_score_list_backtracked.append([parent, score])
-    return funcName_2_score_list_backtracked
+    return funcName_2_score_list_backtracked, set(without_lineage)
 
 def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_out_without_lineage):
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid)

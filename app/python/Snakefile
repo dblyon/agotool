@@ -106,6 +106,7 @@ URL_RCTM_hierarchy = r"https://reactome.org/download/current/ReactomePathwaysRel
 RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv") # https://reactome.org/download/current/ReactomePathwaysRelation.txt
 
 DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")
+DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage.txt")
 
 URL_RCTM_descriptions = r"https://reactome.org/download/current/ReactomePathways.txt"
 RCTM_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv")
@@ -138,7 +139,6 @@ Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_Function
 URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
 interpro_AN_2_name = os.path.join(DOWNLOADS_DIR, "interpro_AN_2_name.txt") # InterPro_name_2_AN
 
-WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gmt_file.txt")
 Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
 Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
 Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS_ENSP_benchmark.txt")
@@ -634,11 +634,12 @@ rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     output:
         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN,
         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation,
-        ENSP_2_UniProtID_without_translation_2 = ENSP_2_UniProtID_without_translation_2
+        ENSP_2_UniProtID_without_translation_2 = ENSP_2_UniProtID_without_translation_2,
+        DOID_GO_BTO_an_without_lineage = DOID_GO_BTO_an_without_lineage
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, params.GO_CC_textmining_additional_etype)
+        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, output.DOID_GO_BTO_an_without_lineage, params.GO_CC_textmining_additional_etype)
 
 rule ENSP_2_UniProtID_without_translation:
     input:
@@ -721,6 +722,7 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
 
 ### TODO:
+# - characterize foreground method
 # PMID hunt, what happened?
 # - why are some HIS4_YEAST attributed to Taxid 4932 and some to 559292?
 # - Why don't any PMIDs show up in yeast enrichment?
@@ -765,6 +767,8 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - create DB --> temp tables and drop_and_rename
 # - Damian and Christian email about ENSPs in UniProt which are not in STRING v11
 # - preload most commong model organisms even for low memory
-
 # examples for Lars for missing PMID descriptions
 # https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
+
+
+# snakemake -n -j 24 -R ENSP_2_UniProt_all Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark Protein_2_Function_table_UPS Function_2_Protein_table_UPS Functions_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN STRING_2_UniProt_mapping_discrepancies Secondary_2_Primary_ID_UPS_FIN Protein_2_FunctionEnum_and_Score_table_UPS_FIN ENSP_2_UniProtID_without_translation Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN Lineage_table_UPS_FIN Functions_table_all
