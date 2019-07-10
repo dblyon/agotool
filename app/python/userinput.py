@@ -29,7 +29,7 @@ class Userinput:
      - characterize_foreground: Foreground only
     """
     def __init__(self, pqo, fn=None, foreground_string=None, background_string=None,
-            num_bins=NUM_BINS, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None):
+            num_bins=NUM_BINS, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None, args_dict=None):
         self.pqo = pqo
         self.fn = fn
         self.foreground_string = foreground_string
@@ -42,6 +42,7 @@ class Userinput:
         self.enrichment_method = enrichment_method
         self.foreground_n = foreground_n
         self.background_n = background_n
+        self.args_dict = args_dict
         self.check = False
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
@@ -79,6 +80,11 @@ class Userinput:
             else:
                 self.fn.write(self.foreground_string)
             self.fn.seek(0)
+        # check if user provided Taxid is available as Reference Proteome
+        if self.enrichment_method == "genome":
+            if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count:
+                self.args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
+                return False, False, False
         try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
         except FileNotFoundError:

@@ -220,6 +220,17 @@ tables_dict = {
     "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
 }
 
+### deprecated
+# def get_taxids_of_reference_proteomes(fn_Taxid_2_Proteins_table=None):
+#     if fn_Taxid_2_Proteins_table is None:
+#         fn_Taxid_2_Proteins_table = tables_dict["Taxid_2_Proteins_table"]
+#     taxids_with_reference_proteome = []
+#     with open(fn_Taxid_2_Proteins_table, "r") as fh_in:
+#         for line in fh_in:
+#             taxids_with_reference_proteome.append(int(line.split("\t")[0]))
+#     assert len(taxids_with_reference_proteome) == len(set(taxids_with_reference_proteome))
+#     return taxids_with_reference_proteome
+
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
     "| enum | etype | an | description | year | level |"
     blacklisted_enum_terms = []

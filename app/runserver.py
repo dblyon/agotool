@@ -345,7 +345,7 @@ class API_STRING(Resource):
         elif args_dict["enrichment_method"] == "rank_enrichment":
             print("returning help page")
             # results_all_function_types = run.run_rank_enrichment(pqo, ui, args_dict)
-            args_dict["ERROR_NotImplementedError"] = "This method is not yet implented (again)"
+            args_dict["ERROR_NotImplementedError"] = "This method is not yet implemented (again)"
             return help_page(args_dict)
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)

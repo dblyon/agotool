@@ -504,7 +504,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting ENSP_2_tuple_funcEnum_score_dict")
         self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
 
-
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
             print("getting preloaded objects per analysis")

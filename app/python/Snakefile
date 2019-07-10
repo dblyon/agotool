@@ -73,7 +73,7 @@ if hostname == "ody":
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
     KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, "taxonomic_rank")
     KEGG_pathway = os.path.join(KEGG_dir, "pathway.list")
-elif hostname == "atlas":
+elif hostname in {"atlas", "gaia"}:
     # string_matches = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_matches.tsv"
     KEGG_dir = r"/mnt/mnemo5/dblyon/STRING_freeze_v11/kegg"
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms")
@@ -619,9 +619,10 @@ rule Functions_table_UPS_FIN:
 
 rule Create_goslimtype_2_cond_arrays:
     input:
-        Functions_table_UPS_FIN = Functions_table_UPS_FIN
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN,
+        download_GO_slim_subsets = download_GO_slim_subsets
     run:
-        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN)
+        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN, input.download_GO_slim_subsets)
 
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
@@ -723,6 +724,20 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 
 ### TODO:
 # - characterize foreground method
+# - overrepresented / underrepresented / both option
+# - rerun whole pipeline
+# - CRON job
+# - create DB --> temp tables and drop_and_rename
+# - Damian and Christian email about ENSPs in UniProt which are not in STRING v11
+# - preload most commong model organisms even for low memory
+# examples for Lars for missing PMID descriptions
+# https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
+# Metaanalysis of true user data inputs
+#  - compare GO with GOCC: intersection and complement of terms in numbers, correlation of p-value and effect size
+# ? What to report for abundance_correction of KS test? ratio_in_foreground	ratio_in_background	foreground_count	foreground_n	background_count	background_n
+
+
+
 # PMID hunt, what happened?
 # - why are some HIS4_YEAST attributed to Taxid 4932 and some to 559292?
 # - Why don't any PMIDs show up in yeast enrichment?
@@ -755,20 +770,10 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # 2662541 -58     WP416   Superpathway of Histidine, Purine, and Pyrimidine       -1      -1
 # 2662753 -58     WP514   Histidine Biosynthesis  -1      -1
 
-
 # $ grep "HIS4_YEAST" Protein_2_FunctionEnum_table_UPS_FIN.txt
 # 4932    HIS4_YEAST      {2662541,2662541,2662753,2662753}
 # 559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,6554,6565,6579,6580,6777,6778,7094,8191,8431,8720,8858,10958,12148,12167,12169,12617,12845,12876,12877,12883,12893,12899,12901,13692,13778,13834,15579,17581,19923,19925,20004,20006,20012,20022,20024,23386,23425,23426,23430,23499,24968,24969,24971,24973,25143,25180,26876,26920,27016,29410,29416,29417,44345,44369,44510,44675,44712,45208,45387,45469,45471,45477,45478,45519,45641,45642,45649,51054,55424,56045,57639,83237}
 
 
-# - effect size check
-# - rerun whole pipeline
-# - CRON job
-# - create DB --> temp tables and drop_and_rename
-# - Damian and Christian email about ENSPs in UniProt which are not in STRING v11
-# - preload most commong model organisms even for low memory
-# examples for Lars for missing PMID descriptions
-# https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
 
-
-# snakemake -n -j 24 -R ENSP_2_UniProt_all Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark Protein_2_Function_table_UPS Function_2_Protein_table_UPS Functions_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN STRING_2_UniProt_mapping_discrepancies Secondary_2_Primary_ID_UPS_FIN Protein_2_FunctionEnum_and_Score_table_UPS_FIN ENSP_2_UniProtID_without_translation Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN Lineage_table_UPS_FIN Functions_table_all
+# snakemake -n -j 24 -R ENSP_2_UniProt_all Protein_2_Function_table_KEGG_UPS Protein_2_Function_table_UPS Function_2_Protein_table_UPS Functions_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN STRING_2_UniProt_mapping_discrepancies Secondary_2_Primary_ID_UPS_FIN Protein_2_FunctionEnum_and_Score_table_UPS_FIN ENSP_2_UniProtID_without_translation Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN Lineage_table_UPS_FIN Functions_table_all
