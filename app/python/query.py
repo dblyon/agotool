@@ -489,10 +489,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting blacklisted terms")
         self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr()
 
-        if variables.VERBOSE:
-            print("getting get_ENSP_2_functionEnumArray_dict")
         if not low_memory:
             # foreground
+            if variables.VERBOSE:
+                print("getting get_ENSP_2_functionEnumArray_dict")
             self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict(read_from_flat_files)
 
         if variables.VERBOSE:
@@ -771,7 +771,7 @@ def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False):
             Taxid_2_FunctionEnum_2_Scores_dict[taxid][functionEnumeration] = scores_arr
     return Taxid_2_FunctionEnum_2_Scores_dict
 
-def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None):
+def get_proteinAN_2_tuple_funcEnum_score_dict_old(read_from_flat_files=True, fn=None): # SLOW ~ 26% of startup time
     """
     key = ENSP
     val = tuple(arr of function Enumeration, arr of scores)
@@ -840,6 +840,73 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
         funcEnum_arr.flags.writeable = False
         ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
     return ENSP_2_tuple_funcEnum_score_dict
+
+def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None): # SLOW ~ 26% of startup time
+    """
+    key = ENSP
+    val = tuple(arr of function Enumeration, arr of scores)
+    for BTO, DOID, and GO-CC terms
+
+    exampe of return value {'3702.AT1G01010.1': (array([ 213,  254,  255], dtype=uint32),
+          array([4.2     , 4.166357, 4.195121], dtype=float32)), ...
+                 }
+
+    Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt
+    | 3702 | NAC1_ARATH | {211,252,253, ... } | {4.2,4.166357,4.195121, ... } |
+    :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
+    """
+    ENSP_2_tuple_funcEnum_score_dict = {}
+    if read_from_flat_files:
+        if fn is None:
+            fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+        results = get_results_of_statement_from_flat_file(fn)
+    else:
+        raise NotImplementedError
+
+    for res in results:
+        index_ = 0
+        if variables.VERSION_ == "UniProt":
+            # taxid, protein_AN, funcEnum_score_arr_orig = res
+            taxid, protein_AN, funcEnum_arr_orig, score_arr_orig = res
+        elif variables.VERSION_ == "STRING":
+            protein_AN, funcEnum_score_arr_orig = res
+        else:
+            print("Not implemented version {}".format(variables.VERSION_))
+            raise StopIteration
+        # funcEnum_score_arr_orig = funcEnum_score_arr_orig.strip()
+        score_arr_orig = score_arr_orig.strip()
+        if score_arr_orig == "{}":
+            continue
+        # funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
+        funcEnum_list = funcEnum_arr_orig[1:-1].split(",")
+        score_list = score_arr_orig[1:-1].split(",")
+        # number_of_functions = len(funcEnum_score_arr)
+        number_of_functions = len(funcEnum_arr)
+        score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32")) # float16 would probably be sufficient
+        funcEnum_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("uint32"))
+        # if len(funcEnum_score_arr) == 1:
+        if len(funcEnum_list) == 1:
+            # fs = funcEnum_score_arr[0][1:-2].split(",")
+            try:
+                funcEnum, score = int(funcEnum_list[0]), float(score_list[1])
+            except:
+                print(funcEnum_arr_orig)
+                print(score_arr_orig)
+                raise StopIteration
+            score_arr[index_] = score
+            funcEnum_arr[index_] = funcEnum
+        else:
+            # funcName_2_score_list_temp = [funcEnum_score_arr[0][1:].split(",")] + [ele.split(",") for ele in funcEnum_score_arr[1:-1]] + [funcEnum_score_arr[-1][:-2].split(",")]
+            for sublist in zip(funcEnum_list, score_list):
+                funcEnum, score = int(sublist[0]), float(sublist[1])
+                score_arr[index_] = score
+                funcEnum_arr[index_] = funcEnum
+                index_ += 1
+        score_arr.flags.writeable = False
+        funcEnum_arr.flags.writeable = False
+        ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
+    return ENSP_2_tuple_funcEnum_score_dict
+
 
 def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True):
     KEGG_Taxid_2_acronym_dict = {}
@@ -1101,18 +1168,18 @@ def get_ENSP_2_functionEnumArray_dict_old():
         ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
     return ENSP_2_functionEnumArray_dict
 
-def get_background_taxid_2_funcEnum_index_2_associations_old():
-    taxid_2_funcEnum_index_2_associations = {} # for background preloaded
-    for taxid in get_taxids():
-        background_counts_list = get_background_count_array(taxid)
-        # need be uint32 not uint16 since funcEnum is 0 to 7mio
-        # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
-        funcEnum_index_2_associations = np.asarray(background_counts_list, dtype=np.dtype("uint32"))
-        funcEnum_index_2_associations.flags.writeable = False
-        taxid_2_funcEnum_index_2_associations[taxid] = funcEnum_index_2_associations
-    return taxid_2_funcEnum_index_2_associations
+# def get_background_taxid_2_funcEnum_index_2_associations_old():
+#     taxid_2_funcEnum_index_2_associations = {} # for background preloaded
+#     for taxid in get_taxids():
+#         background_counts_list = get_background_count_array(taxid)
+#         # need be uint32 not uint16 since funcEnum is 0 to 7mio
+#         # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
+#         funcEnum_index_2_associations = np.asarray(background_counts_list, dtype=np.dtype("uint32"))
+#         funcEnum_index_2_associations.flags.writeable = False
+#         taxid_2_funcEnum_index_2_associations[taxid] = funcEnum_index_2_associations
+#     return taxid_2_funcEnum_index_2_associations
 
-def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False):
+def get_background_taxid_2_funcEnum_index_2_associations_old_v0(read_from_flat_files=False): # SLOW ~60% of startup time
     taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
     if not read_from_flat_files:
         for taxid in get_taxids():
@@ -1155,6 +1222,71 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
     return taxid_2_tuple_funcEnum_index_2_associations_counts
 
+def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False): # SLOW ~60% of startup time
+    """
+    SLOW ~60% of startup time
+    --> reformatted flat file
+    output format changed from
+    1000565 3919    {{3936,9},{3945,1},{3949,7}, ... }
+    to
+    1000565 3919 {3936,3945,3949, ... } {9,1,7, ... }
+    taxid, background_n, background_index_positions_arr, background_counts_arr
+    """
+    taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
+    if not read_from_flat_files:
+        for taxid in get_taxids():
+            background_index_positions_list, background_counts_arr_list = get_background_count_array(taxid)
+            # need be uint32 not uint16 since funcEnum is 0 to 7mio
+            # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
+            assert len(background_index_positions_list) == len(background_counts_arr_list)
+            shape_ = len(background_index_positions_list)
+            index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
+            index_positions_arr[:] = np.nan
+            counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
+            counts_arr[:] = np.nan
+            for enum, index_count in zip(background_index_positions_list, background_counts_arr_list):
+                index_, count = index_count
+                index_positions_arr[enum] = index_
+                counts_arr[enum] = count
+            index_positions_arr.flags.writeable = False
+            counts_arr.flags.writeable = False
+            taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
+    else:
+        fn = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
+        results = get_results_of_statement_from_flat_file(fn)
+        for res in results:
+            taxid, background_count, background_index_positions_arr_str, background_counts_arr_str = res
+            taxid = int(taxid)
+            background_index_positions_list = [int(ele) for ele in background_index_positions_arr_str[1:-1].split(",")]
+            background_counts_arr_list = [int(ele) for ele in background_counts_arr_str.strip()[1:-1].split(",")]
+            assert len(background_index_positions_list) == len(background_counts_arr_list)
+            shape_ = len(background_index_positions_list)
+            index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
+            index_positions_arr[:] = np.nan
+            counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
+            counts_arr[:] = np.nan
+            for enum, index_count in zip(background_index_positions_list, background_counts_arr_list):
+                index_, count = index_count
+                index_positions_arr[enum] = index_
+                counts_arr[enum] = count
+            index_positions_arr.flags.writeable = False
+            counts_arr.flags.writeable = False
+            taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
+    return taxid_2_tuple_funcEnum_index_2_associations_counts
+
+# def get_background_count_array_old(taxid):
+#     """
+#     # max_background_count: 58324 (from function_enumeration 47403 "47403   -51     KW-0181 Complete proteome       -1      1")
+#     # (irrelevant but just for reference max_background_n: 98897)
+#     old version:
+#     np.array (of 32bit integer, fixed length and immutable, sparse matrix with 0 as default, otherwise counts of functional associations at index positions corresponding to functionalterm_arr)
+#     new version:
+#     list of tuples (index_position, count)
+#     :param taxid: Integer (NCBI Taxid)
+#     :return: List of tuples of Integers (index_position, count)
+#     """
+#     return get_results_of_statement("SELECT taxid_2_functioncountarray.background_count_array FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
+
 def get_background_count_array(taxid):
     """
     # max_background_count: 58324 (from function_enumeration 47403 "47403   -51     KW-0181 Complete proteome       -1      1")
@@ -1165,8 +1297,10 @@ def get_background_count_array(taxid):
     list of tuples (index_position, count)
     :param taxid: Integer (NCBI Taxid)
     :return: List of tuples of Integers (index_position, count)
+
+    taxid | background_n | background_index_positions_arr | background_counts_arr |
     """
-    return get_results_of_statement("SELECT taxid_2_functioncountarray.background_count_array FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
+    return get_results_of_statement("SELECT taxid_2_functioncountarray.background_index_positions_arr, taxid_2_functioncountarray.background_counts_arr FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
 
 # def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
 #     association_dict = {}
@@ -1429,7 +1563,8 @@ def get_goslimtype_2_cond_dict():
 
 
 if __name__ == "__main__":
-    pqo = PersistentQueryObject_STRING(low_memory=True)
+    pqo = PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
+
 
 
     # import os

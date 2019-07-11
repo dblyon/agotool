@@ -172,11 +172,17 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 1978231 | A0A2V2RNV7_9BACT | {55397,57018,58330,89447} |
 
 
-### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt] ? reduce to primary UniProtIDs ?
+### protein_2_functionenum_and_score_old [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
 | taxid | uniprotid | funcenum_score_arr |
 |:---:|:---:|:---:|
 | 3702 | NAC1_ARATH | {{211,4.2},{252,4.166357},{253,4.195121},{259,3.257143},{323,1.234689}, ...} |
 | 3702 | NGA3_ARATH | {{211,4.2},{212,0.214286},{252,4.2},{253,4.2}, ...} |
+
+### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
+| taxid | uniprotid | funcenum_arr | score_arr |
+|:---:|:---:|:---:|:---:|
+| 3702 | NAC1_ARATH | {211,252,253, ... } | {4.2,4.166357,4.195121, ... } |
+
 
 
 ### taxid_2_proteins [Taxid_2_Proteins_table_UPS_FIN.txt]
@@ -186,15 +192,20 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 10090 | 22287 | {"1433B_MOUSE","1433E_MOUSE","1433F_MOUSE", ...} |
 
 
-### taxid_2_functioncountarray [Taxid_2_FunctionCountArray_table_UPS_FIN.txt]
+### taxid_2_functioncountarray_old [Taxid_2_FunctionCountArray_table_UPS_FIN_old.txt]
 | taxid | background_n | background_count_array |
 |:---:|:---:|:---:|
 | 9606 | 19566 | {{1,22},{100,10},{1000001,2},{1000002,4},{100001,8},{1000011,2}, ... |
 | 100901 | 647 | {{3328085,2},{3635192,6},{4454829,2},{47234,4}, ... |
 | 7230 | 14594 | {{100001,2},{1000164,6},{100046,2},{100058,9}, ... |
 
+### taxid_2_functioncountarray [Taxid_2_FunctionCountArray_table_UPS_FIN.txt]
+| taxid | background_n | background_index_positions_arr | background_counts_arr |
+|:---:|:---:|:---:|:---:|
+| 1000565 | 3919 | {3936,3945,3949, ... } | {9,1,7, ... } |
 
-### taxid_2_functionenum_2_scores [Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt]
+
+### taxid_2_functionenum_2_scores_old [Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt]
 | taxid | func_enum | score_array |
 |:---:|:---:|:---:|
 | 9606 | 0 | {0.611452,1.67871,1.21, ...} |

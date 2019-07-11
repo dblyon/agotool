@@ -993,6 +993,34 @@ def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Fu
             background_n = taxid_2_total_protein_count_dict[taxid]
             fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
 
+# def Taxid_2_FunctionCountArray_table_UPS_old(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
+#     """
+#     # - sort Protein_2_FunctionEnum_table_UPS_FIN.txt on Taxid and UniProtID
+#     # - create array of zeros of function_enumeration_length
+#     # - for line in Protein_2_FunctionEnum_table_UPS_FIN
+#     #     add counts to array until taxid_new != taxid_previous
+#     # only use Taxids that exist in Taxid_2_Proteins_table, since these are UniProt Reference Proteome proteins (no ref prot for other taxids)
+#     """
+#     print("creating Taxid_2_FunctionCountArray_table_FIN")
+#     tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, number_of_processes=number_of_processes, verbose=verbose)  # sort on Taxid and UniProtID
+#     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(Taxid_2_Proteins_table)
+#     taxid_whiteset = set(taxid_2_total_protein_count_dict.keys())
+#     num_lines = tools.line_numbers(Functions_table_UPS_FIN)
+#     print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_FIN))
+#     with open(fn_out_Taxid_2_FunctionCountArray_table_FIN, "w") as fh_out:
+#         for entry in yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN, taxid_whiteset):
+#             taxid, UniProtID_list, funcEnumList_list = entry
+#             if taxid_2_total_protein_count_dict[taxid] != "-1":  # restrict to Reference Proteomes
+#                 UniProtID_set = set(query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+#                 funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
+#                 for index_, UniProtID in enumerate(UniProtID_list):
+#                     if UniProtID in UniProtID_set:
+#                         funcEnum_list = funcEnumList_list[index_]
+#                         funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_list)
+#                 background_n = taxid_2_total_protein_count_dict[taxid]
+#                 index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
+#                 fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+
 def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
     """
     # - sort Protein_2_FunctionEnum_table_UPS_FIN.txt on Taxid and UniProtID
@@ -1000,6 +1028,10 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
     # - for line in Protein_2_FunctionEnum_table_UPS_FIN
     #     add counts to array until taxid_new != taxid_previous
     # only use Taxids that exist in Taxid_2_Proteins_table, since these are UniProt Reference Proteome proteins (no ref prot for other taxids)
+    output format changed from
+    1000565 3919    {{3936,9},{3945,1},{3949,7}, ... }
+    to
+    1000565 3919 {3936,3945,3949, ... } {9,1,7, ... }
     """
     print("creating Taxid_2_FunctionCountArray_table_FIN")
     tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, number_of_processes=number_of_processes, verbose=verbose)  # sort on Taxid and UniProtID
@@ -1018,8 +1050,12 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
                         funcEnum_list = funcEnumList_list[index_]
                         funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_list)
                 background_n = taxid_2_total_protein_count_dict[taxid]
-                index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
-                fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
+                # funcEnum_count_background: array of zeros, if non-zero then count of gene associations
+                # --> create 2 array:
+                # first funcEnum positions --> index_positions_arr
+                # second funcCounts --> counts_arr
+                index_positions_arr_counts_arr_str = helper_format_funcEnum_reformatted(funcEnum_count_background)
+                fh_out.write(taxid + "\t" + background_n + "\t" + index_positions_arr_counts_arr_str + "\n")
 
 def yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN, taxid_whiteset):
     with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
@@ -1053,11 +1089,11 @@ def helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_a
     #assert len(set(funcEnum_list)) == len(funcEnum_list)
     return funcEnum_count_arr_last
 
-# def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
-#     ENSP, funcEnum_set = line.split("\t")
-#     funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())} # replace literal_eval with your own parser
-#     taxid = ENSP.split(".")[0]
-#     return taxid, ENSP, funcEnum_set
+def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
+    ENSP, funcEnum_set = line.split("\t")
+    funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())} # replace literal_eval with your own parser
+    taxid = ENSP.split(".")[0]
+    return taxid, ENSP, funcEnum_set
 
 def helper_count_funcEnum(funcEnum_count, funcEnum_set):
     for funcEnum in funcEnum_set:
@@ -1074,6 +1110,23 @@ def helper_format_funcEnum(funcEnum_count_background):
     for ele in zip(enumeration_arr, funcEnum_count_background):
         string_2_write += "{{{0},{1}}},".format(ele[0], int(round(ele[1])))
     return "{" + string_2_write[:-1] + "}" # index_backgroundCount_array_string
+
+def helper_format_funcEnum_reformatted(funcEnum_count_background):
+    """
+    funcEnum_count_background: array of zeros, if non-zero then count of gene associations
+    --> create 2 array:
+    first funcEnum positions --> index_positions_arr
+    second funcCounts --> counts_arr
+    """
+    enumeration_arr = np.arange(0, funcEnum_count_background.shape[0])
+    cond = funcEnum_count_background > 0
+    funcEnum_count_background = funcEnum_count_background[cond]
+    enumeration_arr = enumeration_arr[cond]
+    index_positions_list, counts_list = [], []
+    for ele in zip(enumeration_arr, funcEnum_count_background):
+        index_positions_list.append(ele[0])
+        counts_list.append(int(round(ele[1])))
+    return "{" + ",".join([str(ele) for ele in index_positions_list]) + "}\t" + "{" + ",".join([str(ele) for ele in counts_list]) + "}"
 
 def Protein_2_Function_table_KEGG_STS(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_Taxid_2_acronym_table, number_of_processes=1):
     fn_out_temp = fn_out_Protein_2_Function_table_KEGG + "_temp"
@@ -2642,12 +2695,14 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
             if ENSP != ENSP_last: # write old results and parse new
                 if len(funcEnum_2_score) > 0: # don't add empty results due to blacklisting or GO-CC terms
                     funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
-                    funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
-                    funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
+                    # funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
+                    # funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
+                    funcEnum_arr_and_score_arr_str = helper_reformat_funcEnum_2_score(funcEnum_2_score)
                     UniProtID_list = ENSP_2_UniProtID_dict[ENSP_last]
                     if len(UniProtID_list) >= 1:
                         for UniProtID in UniProtID_list:
-                            fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_2_score + "\n")
+                            # fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_2_score + "\n")
+                            fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_arr_and_score_arr_str + "\n")
                     else:
                         ENSP_without_translation.append(ENSP_last)
                 funcEnum_2_score = []
@@ -2670,8 +2725,9 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
 
         if len(funcEnum_2_score) > 0:  # don't add empty results due to blacklisting or GO-CC terms
             funcEnum_2_score.sort(key=lambda sublist: sublist[0])  # sort anEnum in ascending order
-            funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
-            funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
+            # funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
+            # funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
+            funcEnum_arr_and_score_arr_str = helper_reformat_funcEnum_2_score(funcEnum_2_score)
             # try:
             #     UniProtID = ENSP_2_UniProtID_dict[ENSP_last]
             # except KeyError:
@@ -2682,7 +2738,8 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
             UniProtID_list = ENSP_2_UniProtID_dict[ENSP_last]
             if len(UniProtID_list) >= 1:
                 for UniProtID in UniProtID_list:
-                    fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_2_score + "\n")
+                    # fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_2_score + "\n")
+                    fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_arr_and_score_arr_str + "\n")
             else:
                 ENSP_without_translation.append(ENSP_last)
 
@@ -2693,6 +2750,13 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
     with open(fn_out_DOID_GO_BTO_an_without_lineage, "w") as fh_without_lineage:
         for funcName in sorted(without_lineage):
             fh_without_lineage.write(funcName + "\n")
+
+def helper_reformat_funcEnum_2_score(funcEnum_2_score):
+    funcEnum_list, score_list = [], []
+    for funcEnum, score in funcEnum_2_score:
+        funcEnum_list.append(str(funcEnum))
+        score_list.append(str(score))
+    return "{" + ",".join(funcEnum_list) + "}\t" + ",".join(score_list) + "}"
 
 def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
     funcName_2_score_list_backtracked, without_lineage = [], []
@@ -3524,4 +3588,9 @@ if __name__ == "__main__":
     #
     # Secondary_2_Primary_ID_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, UniProt_sec_2_prim_AC, ENSP_2_UniProt_2_use, Taxid_UniProt_AC_2_ID, fn_out_Secondary_2_Primary_ID_UPS_FIN, Secondary_2_Primary_ID_UPS_no_translation)
 
-    create_goslimtype_2_cond_arrays("Bubu")
+
+    Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
+    Functions_table_UPS_FIN = variables.tables_dict["Functions_table"]
+    Taxid_2_Proteins_table = variables.tables_dict["Taxid_2_Proteins_table"]
+    fn_out_Taxid_2_FunctionCountArray_table_FIN = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN_v2.txt"
+    Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=4, verbose=True)
