@@ -34,7 +34,7 @@ GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
 # URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
 # GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
 URL_GO_slim_subsets = r"http://purl.obolibrary.org/obo/go/subsets"
-GO_slim_subsets_file = variables.tables_dict["GO_slim_subsets_file"] # os.path.join(DOWNLOADS_DIR, "GO_slim_subsets_file.txt")
+goslim_subsets_file = variables.tables_dict["goslim_subsets_file"] # os.path.join(DOWNLOADS_DIR, "goslim_subsets_file.txt")
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 URL_SwissProt_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz"
@@ -122,6 +122,7 @@ Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_tabl
 Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
 Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
 ENSP_2_UniProt_all = os.path.join(TABLES_DIR, "ENSP_2_UniProt_all.txt")
+EntrezGeneID_2_UniProtID = os.path.join(TABLES_DIR, "EntrezGeneID_2_UniProtID.txt")
 Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
 Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
@@ -219,9 +220,9 @@ rule download_GO_slim_subsets:
     params:
         URL_GO_slim_subsets = URL_GO_slim_subsets,
     output:
-        GO_slim_subsets_file = GO_slim_subsets_file
+        goslim_subsets_file = goslim_subsets_file
     run:
-        drs.download_GO_slim_subsets(params.URL_GO_slim_subsets, input.DOWNLOADS_DIR, output.GO_slim_subsets_file)
+        drs.download_GO_slim_subsets(params.URL_GO_slim_subsets, input.DOWNLOADS_DIR, output.goslim_subsets_file)
 
 rule download_UPK_obo:
     output:
@@ -553,13 +554,13 @@ rule Protein_2_Function_table_KEGG_UPS:
 rule Protein_2_Function__and__Functions_table_WikiPathways:
     input:
         WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
-        UniProt_ID_mapping = UniProt_ID_mapping,
+        EntrezGeneID_2_UniProtID = EntrezGeneID_2_UniProtID, # previously UniProt_ID_mapping
         WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
     output:
         Functions_table_WikiPathways = Functions_table_WikiPathways,
         Protein_2_Function_table_WikiPathways_UPS = Protein_2_Function_table_WikiPathways_UPS
     run:
-        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.UniProt_ID_mapping, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.EntrezGeneID_2_UniProtID, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
 
 rule Protein_2_Function_table_PMID_UPS:
     input:
@@ -620,9 +621,9 @@ rule Functions_table_UPS_FIN:
 rule Create_goslimtype_2_cond_arrays:
     input:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
-        download_GO_slim_subsets = download_GO_slim_subsets
+        goslim_subsets_file = goslim_subsets_file
     run:
-        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN, input.download_GO_slim_subsets)
+        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN, input.goslim_subsets_file)
 
 rule Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
     input:
@@ -679,10 +680,11 @@ rule ENSP_2_UniProt_all:
     output:
         ENSP_2_UniProt_all = ENSP_2_UniProt_all,
         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
-        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
+        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID,
+        EntrezGeneID_2_UniProtID = EntrezGeneID_2_UniProtID
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.ENSP_2_UniProt_all(input.damian_uniprot_2_string, input.UniProt_ID_mapping, output.ENSP_2_UniProt_all, output.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Taxid_UniProt_AC_2_ID, threads)
+        cst.ENSP_2_UniProt_all(input.damian_uniprot_2_string, input.UniProt_ID_mapping, output.ENSP_2_UniProt_all, output.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Taxid_UniProt_AC_2_ID, output.EntrezGeneID_2_UniProtID, threads)
 
 rule STRING_2_UniProt_mapping_discrepancies:
     input:
@@ -723,7 +725,6 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
 
 ### TODO:
-# - characterize foreground method
 # - overrepresented / underrepresented / both option
 # - rerun whole pipeline
 # - CRON job
@@ -737,43 +738,6 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # ? What to report for abundance_correction of KS test? ratio_in_foreground	ratio_in_background	foreground_count	foreground_n	background_count	background_n
 
 
-
-# PMID hunt, what happened?
-# - why are some HIS4_YEAST attributed to Taxid 4932 and some to 559292?
-# - Why don't any PMIDs show up in yeast enrichment?
-# e.g. "PMID:8375386"
-# $ grep "PMID:8375386" Functions_table_UPS_FIN.txt
-# 2468723 -56     PMID:8375386    (1993) Probing the membrane topology of Candida tropicalis cytochrome P450.     1993    -1
-
-# $ grep "P40545" Taxid_UniProt_AC_2_ID.txt
-# 559292  P40545  HIS4_YEAST
-# $ grep "HIS4_YEAST" Taxid_UniProtID_2_ENSPs_2_KEGGs.txt
-# 559292  HIS4_YEAST      4932.YIL020C    sce:YIL020C
-#  grep "4932.YIL020C" Protein_2_Function_table_PMID_abstracts.txt
-
-# $ grep "HIS4_YEAST" Protein_2_Function_table_UPS.txt
-# 4932    HIS4_YEAST      {"PMID:8375386","PMID:7050665","PMID:25367168","PMID:24998777","PMID:24150815","PMID:17524547","PMID:15789348","PMID:10545451","PMID:9822821","PMID:9747713","PMID:9332345","PMID:8619311","PMID:7543843","PMID:3510080","PMID:3013722","PMID:2653960","PMID:1318786"}  -56
-# 4932    HIS4_YEAST      {"WP416","WP514"}       -58
-# 4932    HIS4_YEAST      {"WP416","WP514"}       -58
-# 559292  HIS4_YEAST      {"GO:0000105","GO:0000162","GO:0006082","GO:0006520","GO:0006547","GO:0006568","GO:0006576","GO:0006586","GO:0006725","GO:0006807","GO:0008150","GO:0008152","GO:0008652","GO:0009058","GO:0009072","GO:0009073","GO:0009308","GO:0009309","GO:0009987","GO:0016053","GO:0018130","GO:0019438","GO:0019752","GO:0034641","GO:0042401","GO:0042430","GO:0042435","GO:0043436","GO:0044106","GO:0044237","GO:0044238","GO:0044249","GO:0044271","GO:0044281","GO:0044283","GO:0046219","GO:0046394","GO:0046483","GO:0052803","GO:0071704","GO:1901360","GO:1901362","GO:1901564","GO:1901566","GO:1901576","GO:1901605","GO:1901607"}    -21
-# 559292  HIS4_YEAST      {"GO:0003674","GO:0003824","GO:0003949","GO:0016853","GO:0016860","GO:0016861"} -23
-# 559292  HIS4_YEAST      {"GO:0005575","GO:0005622","GO:0005623","GO:0005634","GO:0005737","GO:0043226","GO:0043227","GO:0043229","GO:0043231","GO:0044424","GO:0044464"}       -22
-# 559292  HIS4_YEAST      {"IPR006062","IPR011060","IPR011858","IPR013785"}       -54
-# 559292  HIS4_YEAST      {"KW-0002","KW-0028","KW-0181","KW-0368","KW-0413","KW-0963","KW-1185","KW-9990","KW-9992","KW-9998","KW-9999"} -51
-# 559292  HIS4_YEAST      {"PF00977"}     -55
-# 559292  HIS4_YEAST      {"map00340","map01100","map01110","map01230"}   -52
-#
-# $ grep stuff Functions_table_UPS_FIN.txt
-# 2468723 -56     PMID:8375386    (1993) Probing the membrane topology of Candida tropicalis cytochrome P450.     1993    -1
-# 2370268 -56     PMID:7050665    (1982) Isolation and genetic analysis of Saccharomyces cerevisiae mutants supersensitive to G1 arrest by a factor and alpha factor pheromones. 1982     -1
-# 3971    -21     GO:0000105      histidine biosynthetic process  -1      10
-# 2662541 -58     WP416   Superpathway of Histidine, Purine, and Pyrimidine       -1      -1
-# 2662753 -58     WP514   Histidine Biosynthesis  -1      -1
-
-# $ grep "HIS4_YEAST" Protein_2_FunctionEnum_table_UPS_FIN.txt
-# 4932    HIS4_YEAST      {2662541,2662541,2662753,2662753}
-# 559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,6554,6565,6579,6580,6777,6778,7094,8191,8431,8720,8858,10958,12148,12167,12169,12617,12845,12876,12877,12883,12893,12899,12901,13692,13778,13834,15579,17581,19923,19925,20004,20006,20012,20022,20024,23386,23425,23426,23430,23499,24968,24969,24971,24973,25143,25180,26876,26920,27016,29410,29416,29417,44345,44369,44510,44675,44712,45208,45387,45469,45471,45477,45478,45519,45641,45642,45649,51054,55424,56045,57639,83237}
-
-
-
 # snakemake -n -j 24 -R ENSP_2_UniProt_all Protein_2_Function_table_KEGG_UPS Protein_2_Function_table_UPS Function_2_Protein_table_UPS Functions_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN STRING_2_UniProt_mapping_discrepancies Secondary_2_Primary_ID_UPS_FIN Protein_2_FunctionEnum_and_Score_table_UPS_FIN ENSP_2_UniProtID_without_translation Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN Lineage_table_UPS_FIN Functions_table_all
+
+# Create_goslimtype_2_cond_arrays Protein_2_FunctionEnum_and_Score_table_UPS_FIN Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN Secondary_2_Primary_ID_UPS_FIN STRING_2_UniProt_mapping_discrepancies

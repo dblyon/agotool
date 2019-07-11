@@ -18,21 +18,30 @@ var enrichment_page = (function() {
     });
     $("#gocat_upk").change(); // fire event to hide stuff
 
-// hide 'alpha' parameter if BH selected
-    $('#multitest_method').change(function() {
-        var multitest_method = $('#multitest_method').val();
-        var choice = multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni";
-        toggle_if(choice, ".alpha", ".alpha_placeholder");
-    });
-    $("#multitest_method").change();
+// // hide 'alpha' parameter if BH selected
+//     $('#multitest_method').change(function() {
+//         var multitest_method = $('#multitest_method').val();
+//         var choice = multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni";
+//         toggle_if(choice, ".alpha", ".alpha_placeholder");
+//     });
+//     $("#multitest_method").change();
 
-// show 'foreground_n and background_n boxes' if "compare_groups" selected
+// // show 'foreground_n and background_n boxes' if "compare_groups" selected
+//     $('#enrichment_method').change(function() {
+//         var enrichment_method = $('#enrichment_method').val();
+//         var choice = enrichment_method != "compare_groups";
+//         toggle_if(choice, ".foreground_n_background_n", "");
+//     });
+//     $("#enrichment_method").change();
+
+// hide NCBI TaxID if "genome" deselected
     $('#enrichment_method').change(function() {
         var enrichment_method = $('#enrichment_method').val();
-        var choice = enrichment_method != "compare_groups";
-        toggle_if(choice, ".foreground_n_background_n", "");
+        var choice = enrichment_method != "genome";
+        toggle_if(choice, ".taxid", "");
     });
     $("#enrichment_method").change();
+
 
 // // hide 'GO basic or slim' and 'Backtracking parents GO-terms' parameter if 'UniProt keywords' are selected
 //     $('#gocat_upk').change(function() {
@@ -50,6 +59,9 @@ var enrichment_page = (function() {
     });
     $("#abcorr").change();
 });
+
+
+
 
 // show or hide selectors/tags depending on choice
 var toggle_if = function(choice, tag){
@@ -101,7 +113,7 @@ var submit_form = (function(form_id, action) {
 //var function_name = (function () {
 //
 //});
-        //// hide organimss
+        //// hide organims
         //if (choice) { // UPK selected
         //    $('.go_term').hide();
         //    $('.up_keyword').show();

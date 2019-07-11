@@ -14,7 +14,7 @@ DOCKER = False # app and data directory, within image or shared with local host,
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
-DEBUG = False # for flask and some internals for printing, set to False in production
+DEBUG = True # for flask and some internals for printing, set to False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
@@ -93,6 +93,22 @@ id_2_entityTypeNumber_dict = {'GOCC:0005575': "-20",  # 'Cellular Component TEXT
                               "PMID": "-56", # Pubmed identifiers
                               "Reactome": "-57", # Reactome
                               "WikiPathways": "-58"}  # WikiPathways
+
+goslims_subsets_dict = { # key: abbreviation val: description
+    "agr": "GO Consortium for the Alliance of Genomes Resources",
+    "aspergillus": "Aspergillus subset Aspergillus Genome Data",
+    "candida": "Candida albicans by Candida Genome Database",
+    "chembl": "Chembl Drug Target",
+    "flybase_ribbon": "FlyBase",
+    "generic": "Generic GO slim by GO Consortium",
+    "metagenomics": "EBI Metagenomics group",
+    "mouse": "Mouse Genome Informatics",
+    "pir": "Protein Information Resource",
+    "plant": "The Arabidopsis Information Resource",
+    "pombe": "Schizosaccharomyces pombe subset PomBase",
+    "synapse": "Synapse GO slim SynGO",
+    "yeast": "Yeast subset Saccharomyces Genome Database"
+}
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
@@ -208,7 +224,7 @@ else:
 
 tables_dict = {
     "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
-    "GO_slim_subsets_file": os.path.join(DOWNLOADS_DIR, "GO_slim_subsets_file.txt"),
+    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file.txt"),
     "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
@@ -220,16 +236,6 @@ tables_dict = {
     "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
 }
 
-### deprecated
-# def get_taxids_of_reference_proteomes(fn_Taxid_2_Proteins_table=None):
-#     if fn_Taxid_2_Proteins_table is None:
-#         fn_Taxid_2_Proteins_table = tables_dict["Taxid_2_Proteins_table"]
-#     taxids_with_reference_proteome = []
-#     with open(fn_Taxid_2_Proteins_table, "r") as fh_in:
-#         for line in fh_in:
-#             taxids_with_reference_proteome.append(int(line.split("\t")[0]))
-#     assert len(taxids_with_reference_proteome) == len(set(taxids_with_reference_proteome))
-#     return taxids_with_reference_proteome
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
     "| enum | etype | an | description | year | level |"

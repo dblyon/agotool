@@ -37,8 +37,8 @@ def error_(parser):
     sys.exit(2)
 
 argparse_parser = argparse.ArgumentParser()
-argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1")
-argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110")
+argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1", nargs='?')
+argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110", nargs='?')
 argparse_parser.add_argument("verbose", help="add 'verbose' as an argument to print more information", type=str, default="False", nargs="?")
 args = argparse_parser.parse_args()
 for arg in sorted(vars(args)):
@@ -136,8 +136,9 @@ if PRELOAD:
     else:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
-
     #filter_ = cluster_filter.Filter(pqo.go_dag, pqo.upk_dag)
+else:
+    pqo = None # just for mocking
 
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API
@@ -185,7 +186,7 @@ parser.add_argument("FDR_cutoff", type=float,
 
 parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
-    default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57;-58")
+    default="-20;-21;-22;-23;-51;-52;-53;-54;-55;-56;-57;-58")
 
 parser.add_argument("privileged", type=str,
     default="False")
@@ -223,12 +224,12 @@ parser.add_argument("compare_2_ratios_only", type=str,
     help="If true: compare to the user provided abundance ratios only. Else: compare to all functional associations.",
     default="True")
 
+# 'compare_groups': Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set;
 parser.add_argument("enrichment_method", type=str,
     help="""'genome': provided foreground vs genome;
     'compare_samples': Foreground vs Background (no abundance correction); 
     'characterize_foreground': list all functional annotations for provided foreground;
-    'abundance_correction': Foreground vs Background abundance corrected;
-    'compare_groups': Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set; 
+    'abundance_correction': Foreground vs Background abundance corrected;     
     'rank_enrichment': Fold change, log fold change, ratio, or something similar reflecting abundance or intensity changes between 2 conditions. Values for all proteins identifiers.""",
     default="characterize_foreground")
 
@@ -244,23 +245,23 @@ parser.add_argument("background_n", type=int,
 #     help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
 #     default="basic")
 
-parser.add_argument("go_slim_subset", type=str,
-    help="GO basic or a slim subset {basic, generic, agr, aspergillus, candida, chembl, flybase_ribbon, generic, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)",
+parser.add_argument("goslim", type=str,
+    help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)",
     default="basic")
 
 
-# ToDo remove as option
-parser.add_argument("indent", type=str,
-    help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
-    default="False") # should be boolean, but this works better
+# # ToDo remove as option
+# parser.add_argument("indent", type=str,
+#     help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
+#     default="False") # should be boolean, but this works better
 
-parser.add_argument("multitest_method", type=str,
-    help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
-    default="benjamini_hochberg")
+# parser.add_argument("multitest_method", type=str,
+#     help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
+#     default="benjamini_hochberg")
 
-parser.add_argument("alpha", type=float,
-    help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
-    default=0.05)
+# parser.add_argument("alpha", type=float,
+#     help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
+#     default=0.05)
 
 parser.add_argument("o_or_u_or_both", type=str,
     help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.",
@@ -629,74 +630,73 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
 
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
-    limit_2_entity_type = fields.SelectField("GO terms, UniProt keywords, or KEGG pathways",
-                                   choices = (("-51", "UniProt keywords"),
+    limit_2_entity_type = fields.SelectField("Category of functional associations", # # ("-53", "SMART domains"), # not available in UniProt version
+                                   choices = (("-21;-22;-23;-51;-52;-54;-55;-56;-57;-58", "all available"),
                                               ("-21;-22;-23", "all GO categories"),
+                                              ("-51", "UniProt keywords"),
+                                              ("-57", "Reactome"),
+                                              ("-52", "KEGG pathways"),
+                                              ("-58", "Wiki pathways"),
                                               ("-21", "GO Biological Process"),
                                               ("-22", "GO Celluar Compartment"),
+                                              ("-22", "GOCC from Textmining"),
                                               ("-23", "GO Molecular Function"),
-                                              ("-52", "KEGG pathways"),
-                                              ("-53", "SMART domains"),
+                                              ("-25", "Brenda Tissue Ontology (BTO)"),
+                                              ("-26", "Disease Ontology IDs (DOID)"),
+                                              ("-56", "PMID (PubMed IDs)"),
                                               ("-54", "InterPro domains"),
-                                              ("-55", "PFAM domains"),
-                                              ("-56", "PMID (PubMed IDs"),
-                                              ("-57", "Reactome"),
-                                              ("-21;-22;-23;-51;-52;-53;-54;-55;-56;-57", "All available")),
+                                              ("-55", "PFAM domains")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
-    enrichment_method = fields.SelectField("Select one of the following methods",
-                                   choices = (("genome", "genome"),
+    enrichment_method = fields.SelectField("Enrichment method",
+                                   choices = (("compare_samples", "compare_samples"),
+                                              ("genome", "genome"),
                                               ("abundance_correction", "abundance_correction"),
-                                              ("compare_samples", "compare_samples"),
-                                              ("compare_groups", "compare_groups"),
                                               ("characterize_foreground", "characterize_foreground")),
                                    description="""abundance_correction: Foreground vs Background abundance corrected
 compare_samples: Foreground vs Background (no abundance correction)
-compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
-characterize_foreground: Foreground only""")
-    foreground_n = fields.IntegerField("Foreground_n", [validate_integer], default=10, description="""Foreground_n is an integer, defines the number of sample of the foreground.""")
-    background_n = fields.IntegerField("Background_n", [validate_integer], default=10, description="""Background_n is an integer, defines the number of sample of the background.""")
-    abcorr = fields.BooleanField("Abundance correction",
-                                 default = "checked",
-                                 description="""Apply the abundance correction as described in the background. A column named "background_intensity" (background intensity)
-that corresponds to the column "population_an" (background accession number) needs to be provided, when selecting this option.
-If "Abundance correction" is deselected "background_intensity" can be omitted.""")
-    go_slim_or_basic = fields.SelectField("GO basic or slim",
-                                          choices = (("basic", "basic"), ("slim", "slim")),
+characterize_foreground: Foreground only""") # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
+    # foreground_n = fields.IntegerField("Foreground_n", [validate_integer], default=10, description="""Foreground_n is an integer, defines the number of sample of the foreground.""")
+    # background_n = fields.IntegerField("Background_n", [validate_integer], default=10, description="""Background_n is an integer, defines the number of sample of the background.""")
+#     abcorr = fields.BooleanField("Abundance correction",
+#                                  default = "checked",
+#                                  description="""Apply the abundance correction as described in the background. A column named "background_intensity" (background intensity)
+# that corresponds to the column "population_an" (background accession number) needs to be provided, when selecting this option.
+# If "Abundance correction" is deselected "background_intensity" can be omitted.""")
+    go_slim_or_basic = fields.SelectField("GO basic or a slim subset",
+                                          choices = (("basic", "no subset"),
+                                                     ("generic", "Generic GO slim by GO Consortium"),
+                                                     ("agr", "Alliance of Genomes Resources (AGR)"),
+                                                     ("aspergillus", "Aspergillus Genome Data"),
+                                                     ("candida", "Candida (albicans) Genome Database"),
+                                                     ("chembl", "ChEMBL Drug Target"),
+                                                     ("flybase_ribbon", "FlyBase"),
+                                                     ("metagenomics", "EBI Metagenomics group"),
+                                                     ("mouse", "Mouse Genome Informatics"),
+                                                     ("pir", "Protein Information Resource"),
+                                                     ("plant", "Plant subset by The Arabidopsis Information Resource (TAIR)"),
+                                                     ("pombe", "Schizosaccharomyces pombe subset PomBase"),
+                                                     ("synapse", "Synapse GO slim SynGO"),
+                                                     ("yeast", "Yeast subset Saccharomyces Genome Database")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
-    indent = fields.BooleanField("prepend level of hierarchy by dots",
-                                 default="checked",
-                                 description="Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204'")
-    multitest_method = fields.SelectField(
-        "Method for correction of multiple testing",
-        choices = (("benjamini_hochberg", "Benjamini Hochberg"),
-                   ("sidak", "Sidak"), ("holm", "Holm"),
-                   ("bonferroni", "Bonferroni")),
-        description="""Select a method for multiple testing correction.""")
-    alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-                              default = 0.05, description="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""")
-    o_or_u_or_both = fields.SelectField("over- or under-represented or both",
-                                        choices = (("overrepresented", "overrepresented"),
-                                                   ("underrepresented", "underrepresented"),
-                                                   ("both", "both")),
-                                        description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
-    num_bins = fields.IntegerField("Number of bins",
-                                   [validate_integer],
-                                   default = 100,
-                                   description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
-    fold_enrichment_for2background = fields.FloatField(
-        "fold enrichment foreground/background",
-        [validate_number], default = 0,
-        description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
-    p_value_uncorrected =  fields.FloatField(
-        "p-value uncorrected",
-        [validate_float_between_zero_and_one],
-        default = 0,
-        description="""Maximum threshold value of "p_uncorrected".""")
-    FDR_cutoff =  fields.FloatField(
-        "FDR-cutoff (multiple testing corrected p-values)",
-        [validate_float_between_zero_and_one],
-        default = 0,
-        description="""Maximum FDR (for Benjamini-Hochberg) or p-values-corrected threshold value (default=0 meaning no cutoff)""")
+    # indent = fields.BooleanField("prepend level of hierarchy by dots",
+    #                              default="checked",
+    #                              description="Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204'")
+    # multitest_method = fields.SelectField(
+    #     "Method for correction of multiple testing",
+    #     choices = (("benjamini_hochberg", "Benjamini Hochberg"),
+    #                ("sidak", "Sidak"), ("holm", "Holm"),
+    #                ("bonferroni", "Bonferroni")),
+    #     description="""Select a method for multiple testing correction.""")
+    # alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
+    #                           default = 0.05, description="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""")
+    o_or_u_or_both = fields.SelectField("over- or under-represented or both", choices = (("overrepresented", "overrepresented"), ("underrepresented", "underrepresented"), ("both", "both")), description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
+    num_bins = fields.IntegerField("Number of bins", [validate_integer], default = 100, description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
+    fold_enrichment_for2background = fields.FloatField("fold enrichment foreground/background", [validate_number], default = 0, description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
+    p_value_uncorrected = fields.FloatField("p-value threshold", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum threshold value of uncorrected p-value".""")
+    FDR_cutoff = fields.FloatField("FDR_cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p-values) threshold value (0 meaning no cutoff)""")
+    filter_foreground_count_one = fields.BooleanField("Filter foreground count one", default="checked", description="Remove all functional terms if they have only a single protein association in the foreground (default=checked)")
+    filter_parents = fields.BooleanField("Filter redundant parent terms", default="checked", description="Retain the most specific (deepest hierarchical level) and remove all parent terms if they share the exact same foreground proteins (default=checked)")
+    taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
 
 @app.route('/')
 def enrichment():
@@ -727,30 +727,41 @@ def results():
             input_fs = None
 
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
-            num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data,
-            foreground_n=form.foreground_n.data, background_n=form.background_n.data)
+            num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data) # foreground_n=form.foreground_n.data, background_n=form.background_n.data
 
         if ui.check:
             # if limit_2_entity_type is not None:
             # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\nindent: {}\nmultitest_method: {}\nalpha: {}\n\
-o_or_u_or_both: {}\nabcorr: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\n\
+            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}n\
+o_or_u_or_both: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\n\
 p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
-                form.go_slim_or_basic.data, form.indent.data,
-                form.multitest_method.data, form.alpha.data,
-                form.o_or_u_or_both.data, form.abcorr.data, form.num_bins.data,
+                form.limit_2_entity_type.data,
+                form.go_slim_or_basic.data,
+                form.o_or_u_or_both.data,
+                form.num_bins.data,
                 form.fold_enrichment_for2background.data,
                 form.p_value_uncorrected.data,
                 form.FDR_cutoff.data,
-                form.enrichment_method.data,
-                form.foreground_n.data, form.background_n.data)
+                form.enrichment_method.data)
 
             if not app.debug: # temp  remove line and
                 log_activity(string2log) # remove indentation
 
-            if variables.VERSION_ == "STRING":
+            if variables.VERSION_ == "UniProt":
+                args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data,
+                             "go_slim_subset": form.go_slim_or_basic.data,
+                             "p_value_uncorrected": form.p_value_uncorrected.data,
+                             "FDR_cutoff": form.FDR_cutoff.data,
+                             "o_or_u_or_both": form.o_or_u_or_both.data,
+                             "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
+                             "filter_PMID_top_n": 100,
+                             "filter_foreground_count_one": form.filter_foreground_count_one.data,
+                             "filter_parents": form.filter_parents.data,
+                             "taxid": form.taxid.data}
+                results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict)
+            elif variables.VERSION_ == "STRING":
                 output_format = "tsv"
                 results_all_function_types = run.run_STRING_enrichment(pqo, ui,
                     enrichment_method=form.enrichment_method.data,
@@ -764,10 +775,6 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
                     p_value_uncorrected=form.p_value_uncorrected.data,
                     FDR_cutoff=form.FDR_cutoff.data,
                     output_format=output_format)
-            elif variables.VERSION_ == "aGOtool":
-                header, results = run.run(pqo, ui, form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.indent.data,
-                                    form.multitest_method.data, form.alpha.data, form.o_or_u_or_both.data,
-                                    form.fold_enrichment_for2background.data, form.p_value_uncorrected.data, form.FDR_cutoff.data)
             else:
                 raise NotImplementedError
 

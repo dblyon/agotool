@@ -655,7 +655,9 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
 
     ### concatenate filtered results
     if args_dict["filter_foreground_count_one"]:
-        cond_2_return = funcEnum_count_foreground > 0
+        cond_2_return = funcEnum_count_foreground > 1
+    else:
+        cond_2_return = funcEnum_count_foreground >= 1
     try:
         privileged = args_dict["privileged"]
     except KeyError:
@@ -695,106 +697,3 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     df_2_return["foreground_n"] = foreground_n
     #     df_2_return = df_2_return[variables.cols_sort_order_compare_samples + ["effectSize"]]
     return df_2_return[cols_2_return_sort_order]
-
-# def cles(lessers, greaters):
-#     """
-#     proportion of favorable pairs (McGraw and Wong (1992))
-
-#     # code from https://github.com/ajschumacher/cles
-#     # explanation from https://janhove.github.io/reporting/2016/11/16/common-language-effect-sizes
-#     the probability that a score sampled at random from one distribution will be greater than a score
-#     sampled from some other distribution.
-
-#     https://stats.stackexchange.com/questions/124501/mann-whitney-u-test-confidence-interval-for-effect-size
-#     this is the proportion of sample pairs that supports a stated hypothesis
-
-#     Common-Language Effect Size
-#     Probability that a random draw from `greater` is in fact greater
-#     than a random draw from `lesser`.
-#     Args:
-#       lesser, greater: Iterables of comparables.
-#     """
-#     if len(lessers) == 0 and len(greaters) == 0:
-#         raise ValueError('At least one argument must be non-empty')
-#     # These values are a bit arbitrary, but make some sense.
-#     # (It might be appropriate to warn for these cases.)
-#     if len(lessers) == 0:
-#         return 1
-#     if len(greaters) == 0:
-#         return 0
-#     numerator = 0
-#     lessers, greaters = sorted(lessers), sorted(greaters)
-#     lesser_index = 0
-#     for greater in greaters:
-#         while lesser_index < len(lessers) and lessers[lesser_index] < greater:
-#             lesser_index += 1
-#         numerator += lesser_index  # the count less than the greater
-#     denominator = len(lessers) * len(greaters)
-#     # return float(numerator) / denominator # python 2
-#     return numerator / denominator # python 3
-
-# @boundscheck(False)
-# @wraparound(False)
-# cpdef cles_cy(double[::1] lessers, double[::1] greaters):
-#     cdef int len_lessers, len_greaters
-#     len_lessers = len(lessers)
-#     len_greaters = len(greaters)
-#     if len_lessers == 0 and len_greaters == 0:
-#         raise ValueError('At least one argument must be non-empty')
-#     # These values are a bit arbitrary, but make some sense.
-#     # (It might be appropriate to warn for these cases.)
-#     if len_lessers == 0:
-#         return 1
-#     if len_greaters == 0:
-#         return 0
-
-#     cdef int numerator = 0
-#     cdef int denominator
-#     cdef int greater_index = 0
-#     cdef int lesser_index = 0
-#     cdef double greater
-#     lessers = np.sort(lessers)
-#     greaters = np.sort(greaters)
-
-#     for greater_index in range(len_greaters):
-#         greater = greaters[greater_index]
-#         while lesser_index < len_lessers and lessers[lesser_index] < greater:
-#             lesser_index += 1
-#         numerator += lesser_index  # the count less than the greater
-#     denominator = len_lessers * len_greaters
-#     return numerator / denominator # python 3
-# def MannWhitneyU_v2(foreground_ENSPs, background_ENSPs, ENSP_2_tuple_funcEnum_score_dict, etype_cond_dict, p_values, cond_multitest, effectSizes, low=-0.002, high=0.002, fill_zeros_background=False):
-#     funcEnum_2_scores_dict_fg = collect_scores_per_term_v0(foreground_ENSPs, ENSP_2_tuple_funcEnum_score_dict)
-#     funcEnum_2_scores_dict_bg = collect_scores_per_term_v0(background_ENSPs, ENSP_2_tuple_funcEnum_score_dict) #!!! replace precomputed
-
-#     ### one sided test --> overrepresented
-#     for funcEnum, scores_fg in funcEnum_2_scores_dict_fg.items():
-#         scores_bg = funcEnum_2_scores_dict_bg[funcEnum]
-#         scores_fg, scores_bg = add_noise_2_scores(scores_fg, scores_bg, len(foreground_ENSPs), len(background_ENSPs), low, high, fill_zeros_background)
-#         U, pval = stats.mannwhitneyu(scores_fg, scores_bg, use_continuity=True, alternative="greater")
-#         p_values[funcEnum] = pval
-#         cond_multitest[funcEnum] = True
-#         effectSize = cles(scores_bg, scores_fg)
-#         effectSizes[funcEnum] = effectSize
-
-# def add_noise_2_scores(scores_fg, scores_bg, len_foreground_ENSPs, len_background_ENSPs, low=-0.002, high=0.002, fill_zeros_background=False):
-#     len_scores_fg = len(scores_fg)
-#     len_scores_bg = len(scores_bg)
-#     scores_fg_noisy = np.array(scores_fg) + np.random.uniform(low, high, len_scores_fg)
-#     number_of_zeros_2_fill = len_foreground_ENSPs - len_scores_fg
-#     if number_of_zeros_2_fill > 0:
-#         zeros_fg_noisy = np.random.uniform(low, high, number_of_zeros_2_fill)
-#         scores_fg_v2 = np.concatenate((scores_fg_noisy, zeros_fg_noisy))
-#     else:
-#         scores_fg_v2 = scores_fg_noisy
-#     scores_bg_noisy = np.array(scores_bg) + np.random.uniform(low, high, len_scores_bg)
-#     if fill_zeros_background: # background as large as number of genes in genome
-#         number_of_zeros_2_fill = len_background_ENSPs - len_scores_bg # too large
-#     else: # background roughly as large as foreground
-#         number_of_zeros_2_fill = len_foreground_ENSPs - len_scores_bg
-#     if number_of_zeros_2_fill > 0:
-#         zeros_bg_noisy = np.random.uniform(low, high, number_of_zeros_2_fill)
-#         scores_bg_v2 = np.concatenate((scores_bg_noisy, zeros_bg_noisy))
-#     else:
-#         scores_bg_v2 = scores_bg_noisy
-#     return scores_fg_v2, scores_bg_v2

@@ -8,18 +8,28 @@ import run_cythonized
 import tools, variables
 # from profilehooks import profile
 
-# df_2_return = run_cythonized.run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per_analysis, static_preloaded_objects, ENSP_2_functionEnumArray_dict, etype_cond_dict, args_dict, low_memory=False)
-# df_2_return = run_cythonized.run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, ENSP_2_functionEnumArray_dict, args_dict, low_memory)
+def run_UniProt_enrichment(pqo, ui, args_dict):
+    # print("bubu was here")
+    # print("@ run.py module Userinput comlete\n")
+    # print(ui.df_orig.head())
+    # print(ui.foreground.head())
+
+    static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
+    preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis(method=ui.enrichment_method)
+    df_2_return = run_cythonized.run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=variables.LOW_MEMORY)
+    if df_2_return.shape[0] == 0:
+        args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+        return False
+    output_format = args_dict["output_format"]
+    return format_results(df_2_return, output_format, args_dict)
+
+
 
 def run_STRING_enrichment(pqo, ui, args_dict):
     enrichment_method = args_dict["enrichment_method"]
     if enrichment_method not in {"characterize_foreground", "compare_samples", "compare_groups"}:
         args_dict["ERROR_enrichment_method"] = "ERROR: enrichment_method {} is not implemented. Please check the input parameters and examples.".format(enrichment_method)
         return False
-
-    ### ToDo
-    # go_slim_or_basic = args_dict["go_slim_or_basic"]
-    # indent = args_dict["indent"]
 
     enrichment_method = args_dict["enrichment_method"]
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)

@@ -1,6 +1,7 @@
 import os, sys, re
 import gzip
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import numpy as np
 from collections import defaultdict
 from collections import deque
@@ -1052,11 +1053,11 @@ def helper_merge_funcEnum_count_arrays(funcEnum_count_arr_last, funcEnum_count_a
     #assert len(set(funcEnum_list)) == len(funcEnum_list)
     return funcEnum_count_arr_last
 
-def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
-    ENSP, funcEnum_set = line.split("\t")
-    funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())}
-    taxid = ENSP.split(".")[0]
-    return taxid, ENSP, funcEnum_set
+# def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
+#     ENSP, funcEnum_set = line.split("\t")
+#     funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())} # replace literal_eval with your own parser
+#     taxid = ENSP.split(".")[0]
+#     return taxid, ENSP, funcEnum_set
 
 def helper_count_funcEnum(funcEnum_count, funcEnum_set):
     for funcEnum in funcEnum_set:
@@ -1189,39 +1190,39 @@ def sort_PFAM_and_SMART(list_of_domain_names):
             SMART_list.append(domain)
     return sorted(PFAM_list), sorted(SMART_list)
 
-def map_Name_2_AN(fn_in, fn_out, fn_dict, fn_no_mapping):
-    """
-    SMART and PFAM Protein_2_Function_table(s) contain names from parsing the
-    orig source, convert names to accessions
-    :param fn_in: String (Protein_2_Function_table_temp_SMART.txt)
-    :param fn_out: String (Protein_2_Function_table_SMART.txt)
-    :param fn_dict: String (Functions_table_SMART.txt
-    :param fn_no_mapping: String (missing mapping)
-    :return: NONE
-    """
-    print("map_Name_2_AN for {}".format(fn_in))
-    df = pd.read_csv(fn_dict, sep="\t", names=["name", "an"]) # names=["etype", "name", "an", "definition"])
-    name_2_an_dict = pd.Series(df["an"].values, index=df["name"]).to_dict()
-    df["name_v2"] = df["name"].apply(lambda x: x.replace("-", "_").lower())
-    name_2_an_dict_v2 = pd.Series(df["an"].values, index=df["name_v2"]).to_dict()
-    name_2_an_dict.update(name_2_an_dict_v2)
-    name_no_mapping_list = []
-    with open(fn_in, "r") as fh_in:
-        with open(fn_out, "w") as fh_out:
-            for line in fh_in:
-                ENSP, name_array, etype_newline = line.split("\t")
-                name_set = literal_eval(name_array)
-                an_list = []
-                for name in name_set:
-                    try:
-                        an_list.append(name_2_an_dict[name])
-                    except KeyError:
-                        # not in the lookup, therefore should be skipped since most likely obsolete in current version
-                        name_no_mapping_list.append(name)
-                if an_list: # not empty
-                    fh_out.write(ENSP + "\t{" + str(sorted(an_list))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype_newline)
-    with open(fn_no_mapping, "w") as fh_no_mapping:
-        fh_no_mapping.write("\n".join(sorted(set(name_no_mapping_list))))
+# def map_Name_2_AN(fn_in, fn_out, fn_dict, fn_no_mapping):
+#     """
+#     SMART and PFAM Protein_2_Function_table(s) contain names from parsing the
+#     orig source, convert names to accessions
+#     :param fn_in: String (Protein_2_Function_table_temp_SMART.txt)
+#     :param fn_out: String (Protein_2_Function_table_SMART.txt)
+#     :param fn_dict: String (Functions_table_SMART.txt
+#     :param fn_no_mapping: String (missing mapping)
+#     :return: NONE
+#     """
+#     print("map_Name_2_AN for {}".format(fn_in))
+#     df = pd.read_csv(fn_dict, sep="\t", names=["name", "an"]) # names=["etype", "name", "an", "definition"])
+#     name_2_an_dict = pd.Series(df["an"].values, index=df["name"]).to_dict()
+#     df["name_v2"] = df["name"].apply(lambda x: x.replace("-", "_").lower())
+#     name_2_an_dict_v2 = pd.Series(df["an"].values, index=df["name_v2"]).to_dict()
+#     name_2_an_dict.update(name_2_an_dict_v2)
+#     name_no_mapping_list = []
+#     with open(fn_in, "r") as fh_in:
+#         with open(fn_out, "w") as fh_out:
+#             for line in fh_in:
+#                 ENSP, name_array, etype_newline = line.split("\t")
+#                 name_set = literal_eval(name_array) # replace literal_eval with your own parser
+#                 an_list = []
+#                 for name in name_set:
+#                     try:
+#                         an_list.append(name_2_an_dict[name])
+#                     except KeyError:
+#                         # not in the lookup, therefore should be skipped since most likely obsolete in current version
+#                         name_no_mapping_list.append(name)
+#                 if an_list: # not empty
+#                     fh_out.write(ENSP + "\t{" + str(sorted(an_list))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype_newline)
+#     with open(fn_no_mapping, "w") as fh_no_mapping:
+#         fh_no_mapping.write("\n".join(sorted(set(name_no_mapping_list))))
 
 def Protein_2_Function_table_GO_STS(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_2_Function_table_GO, number_of_processes=1, verbose=True):
     """
@@ -1955,7 +1956,7 @@ def get_all_ENSPs(Taxid_2_Proteins_table_STRING):
     ENSP_set = set()
     with open(Taxid_2_Proteins_table_STRING, "r") as fh:
         for line in fh:
-            ENSP_set |= literal_eval(line.split("\t")[1])
+            ENSP_set |= literal_eval(line.split("\t")[1]) # ToDo replace with own version
     return ENSP_set
 
 def get_all_UniProtIDs_with_annotations(Protein_2_FunctionEnum_table_UPS_FIN):
@@ -2878,7 +2879,7 @@ def helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_lis
         funcEnum_count_background[funcEnum] += count
     return funcEnum_count_background
 
-def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_organisms_metadata, fn_in_UniProt_ID_mapping, fn_in_WikiPathways_not_a_gmt_file, fn_out_Functions_table_WikiPathways, fn_out_Protein_2_Function_table_WikiPathways, verbose=True): # fn_in_STRING_EntrezGeneID_2_STRING, fn_in_Taxid_2_Proteins_table_STS
+def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_organisms_metadata, fn_in_EntrezGeneID_2_UniProtID, fn_in_WikiPathways_not_a_gmt_file, fn_out_Functions_table_WikiPathways, fn_out_Protein_2_Function_table_WikiPathways, verbose=True): # fn_in_STRING_EntrezGeneID_2_STRING, fn_in_Taxid_2_Proteins_table_STS
     """
     changed to output only UniProtID not AC (AN)
     removed/commented out ENSP output
@@ -2886,16 +2887,6 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
     link http://data.wikipathways.org
     use gmt = Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
     map Entrez Gene IDs to UniProt using ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz
-
-    :param fn_in_WikiPathways_not_a_gmt_file: String
-    :param fn_in_WikiPathways_organisms_metadata: String
-    :param fn_in_UniProt_ID_mapping: String
-    # :param fn_in_STRING_EntrezGeneID_2_STRING: String
-    # :param fn_in_Taxid_2_Proteins_table_STS: String
-    :param fn_out_Functions_table_WikiPathways: String
-    :param fn_out_Protein_2_Function_table_WikiPathways: String
-    :param verbose: Bool
-    :return: None
     """
     if verbose:
         print("creating Functions_table_WikiPathways and Protein_2_Function_table_WikiPathways")
@@ -2904,9 +2895,7 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
     TaxName_2_Taxid_dict = pd.Series(df_wiki_meta["Taxid"].values, index=df_wiki_meta["Genus species"]).to_dict()
     year, level = "-1", "-1"
     etype = str(variables.functionType_2_entityType_dict["WikiPathways"])
-    # col_names = ['UniProtKB-AC', 'UniProtKB-ID', 'GeneID (EntrezGene)', 'RefSeq', 'GI', 'PDB', 'GO', 'UniRef100', 'UniRef90', 'UniRef50', 'UniParc', 'PIR', 'NCBI-taxon', 'MIM', 'UniGene', 'PubMed', 'EMBL', 'EMBL-CDS', 'Ensembl', 'Ensembl_TRS', 'Ensembl_PRO', 'Additional PubMed']
-    # df_UniProt_ID_mapping = pd.read_csv(fn_in_UniProt_ID_mapping, sep="\t", names=col_names, usecols=["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)", "NCBI-taxon"])
-    EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping)
+    EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_EntrezGeneID_2_UniProtID) # previously fn_in_UniProt_ID_mapping
     WikiPathways_dir = os.path.dirname(fn_in_WikiPathways_not_a_gmt_file)
     fn_list = [os.path.join(WikiPathways_dir, fn) for fn in os.listdir(WikiPathways_dir) if fn.endswith(".gmt")]
     already_written = []
@@ -3094,7 +3083,7 @@ def ENSP_2_UniProtID_without_translation(fn_in_list, protein_shorthands, ENSP_2_
                     if ENSP in ENSP_set:
                         fh_out.write(ENSP + "\n")
 
-def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, fn_out_Taxid_UniProt_AC_2_ID, number_of_processes=1):
+def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_2_UniProt_all, fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, fn_out_Taxid_UniProt_AC_2_ID, fn_out_EntrezGeneID_2_UniProtID, number_of_processes=1):
     """
     output:
     999630.TUZN_2237        F2L675  F2L675_THEU7    STRING
@@ -3118,11 +3107,19 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
     $ grep "HIS4_YEAST" Taxid_UniProtID_2_ENSPs_2_KEGGs.txt
     559292  HIS4_YEAST      4932.YIL020C    sce:YIL020C
     """
+    # EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping)
+    EntrezGeneID_2_UniProtID_dict = {}
     with open(fn_out_Taxid_UniProt_AC_2_ID, "w") as fh_out_Taxid_UniProt_AC_2_ID:
         with open(fn_out_Taxid_UniProtID_2_ENSPs_2_KEGGs, "w") as fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs:
             with open(fn_out_ENSP_2_UniProt_all, "w") as fh_out_ENSP_2_UniProtID_all:
                 source = "UniProtIDmapping"
-                for UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, _ in _helper_yield_UniProtIDmapping_entry(UniProt_ID_mapping): # source is UniProt ID mapping
+                for UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list in _helper_yield_UniProtIDmapping_entry(UniProt_ID_mapping): # source is UniProt ID mapping
+                    for geneid in EntrezGeneID_list:
+                        if geneid in EntrezGeneID_2_UniProtID_dict:
+                            EntrezGeneID_2_UniProtID_dict[geneid].append(UniProtID)
+                        else:
+                            EntrezGeneID_2_UniProtID_dict[geneid] = [UniProtID]
+
                     for ENSP in ENSP_list:
                         fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
                     if taxid in {"559292", "284812"}:
@@ -3146,6 +3143,12 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
 
     # sort on ENSP and UniProtAC
     tools.sort_file(fn_out_ENSP_2_UniProt_all, fn_out_ENSP_2_UniProt_all, number_of_processes=number_of_processes)
+
+    # write EntrezGeneID_2_UniProtID_dict as flat file
+    with open(fn_out_EntrezGeneID_2_UniProtID, "w") as fh_out:
+        for EntrezGeneID in sorted(EntrezGeneID_2_UniProtID_dict.keys()):
+            UniProtID_list = EntrezGeneID_2_UniProtID_dict[EntrezGeneID]
+            fh_out.write(EntrezGeneID + "\t" + ";".join(sorted(set(UniProtID_list))) + "\n")
 
 def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
     """
@@ -3214,7 +3217,7 @@ def _helper_yield_UniProtIDmapping_entry(UniProt_IDmapping):
                 taxid = "-1"
         yield UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list
 
-def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_mapping):
+def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping_old(fn_in_UniProt_ID_mapping):
     EntrezGeneID_2_UniProtID_dict = {}
     for entry in _helper_yield_UniProtIDmapping_entry(fn_in_UniProt_ID_mapping):
         UniProtAC, UniProtID, ENSP_list, taxid, KEGG_list, EntrezGeneID_list = entry
@@ -3223,6 +3226,14 @@ def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_UniProt_ID_map
                 EntrezGeneID_2_UniProtID_dict[geneid].append(UniProtID)
             else:
                 EntrezGeneID_2_UniProtID_dict[geneid] = [UniProtID]
+    return EntrezGeneID_2_UniProtID_dict
+
+def get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(EntrezGeneID_2_UniProtID):
+    EntrezGeneID_2_UniProtID_dict = {}
+    with open(EntrezGeneID_2_UniProtID, "r") as fh:
+        for line in fh:
+            EntrezGeneID, UniProtID_list = line.split("\t")
+            EntrezGeneID_2_UniProtID_dict[EntrezGeneID] = UniProtID_list.strip().split(";")
     return EntrezGeneID_2_UniProtID_dict
 
 def _helper_yield_entry_UniProtIDmapping(UniProt_IDmapping):

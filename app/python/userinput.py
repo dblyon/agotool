@@ -44,6 +44,7 @@ class Userinput:
         self.background_n = background_n
         self.args_dict = args_dict
         self.check = False
+        print("@" * 80)
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
             self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
@@ -51,13 +52,26 @@ class Userinput:
             self.check_cleanup = False
         if self.check_parse and self.check_cleanup:
             self.check = True
+        try:
+            print(self.df_orig.head())
+            print(self.foreground.head())
+        except:
+            pass
+        print("@" * 80)
 
     def parse_input(self):
         if self.enrichment_method not in variables.enrichment_methods:
             print(self.enrichment_method, "problem since this is in not in in {}".format(variables.enrichment_methods))
             return False, False, False
-        if self.fn is None: # use copy & paste field
+        # if not variables.DEBUG:  # ToDo remove this exact line and dedent code block below
+        if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
+            if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count:
+                self.args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
+                return False, False, False
+
+        if len(self.foreground_string) > 0: # use copy & paste field
             self.fn = StringIO()
+            print(">" * 12 + "  using copy&paste field")
             self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), self.col_foreground)
             if self.enrichment_method != "characterize_foreground":
                 self.background_string = self.remove_header_if_present(self.background_string.replace("\r\n", "\n"), self.col_background)
@@ -80,14 +94,11 @@ class Userinput:
             else:
                 self.fn.write(self.foreground_string)
             self.fn.seek(0)
-        # check if user provided Taxid is available as Reference Proteome
-        if self.enrichment_method == "genome":
-            if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count:
-                self.args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
-                return False, False, False
+        else: # use file
+            print(">" * 12 + "  using file")
         try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
-        except FileNotFoundError:
+        except:
             return False, False, False
         return df_orig, decimal, check_parse
 

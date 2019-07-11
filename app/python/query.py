@@ -1284,7 +1284,7 @@ def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None):
 def get_Secondary_2_Primary_IDs_dict(read_from_flat_files=False):
     Secondary_2_Primary_IDs_dict = {}
     if read_from_flat_files:
-        result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_IDs_table"], columns=[1, 2])
+        result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_ID_table"], columns=[1, 2])
     else:
         result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.prim FROM secondary_2_primary_id;")
     for sec, prim in result:
@@ -1295,7 +1295,7 @@ def get_Secondary_2_Primary_IDs_dict_from_sec(ids_2_map, read_from_flat_files=Fa
     Secondary_2_Primary_IDs_dict = {}
     if read_from_flat_files:
         ids_2_map = set(ids_2_map)
-        result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_IDs_table"], columns=[1, 2])
+        result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_ID_table"], columns=[1, 2])
         for sec, prim in result:
             if sec in ids_2_map:
                 Secondary_2_Primary_IDs_dict[sec] = prim
@@ -1420,7 +1420,7 @@ def get_goslimtype_2_cond_dict():
     translate GOterm function names to bool array
     """
     GOslimType_2_cond_dict = {}
-    GO_slim_subsets_file = variables.tables_dict["GO_slim_subsets_file"]
+    GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
     with open(GO_slim_subsets_file, "r") as fh_in:
         for line in fh_in:
             fn_basename = line.strip()
