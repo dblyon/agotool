@@ -278,7 +278,4 @@ jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] 
 # 6239
 # 7227
 # 9606
-
-
-# create args_dict for testing
-# filter p_value
+# ToDo: if user enters 284812 or 559292 --> inform and show proper yeast background proteome

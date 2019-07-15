@@ -942,11 +942,12 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
             assert num_ans == len(set(uniprot_ans))
             # | 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 | -60 | --> add etype when merging with STRING ENSP space
             an_arr = format_list_of_string_2_postgres_array(sorted(set(uniprot_ans)))
-            fh_out.write("{}\t{}\t{}\n".format(taxid, num_ans, an_arr))
-            if taxid == "559292": # duplicate entry for Yeast reference proteome on taxonomic rank species (instead of strain level)
+            if taxid == "559292": # replace entry for Yeast reference proteome on taxonomic rank species (instead of strain level)
                 fh_out.write("{}\t{}\t{}\n".format("4932", num_ans, an_arr))
             elif taxid == "284812":
                 fh_out.write("{}\t{}\t{}\n".format("4896", num_ans, an_arr))
+            else:
+                fh_out.write("{}\t{}\t{}\n".format(taxid, num_ans, an_arr))
 
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):
     # concatenate STRING ENSPs and UniProt AC
@@ -2756,7 +2757,7 @@ def helper_reformat_funcEnum_2_score(funcEnum_2_score):
     for funcEnum, score in funcEnum_2_score:
         funcEnum_list.append(str(funcEnum))
         score_list.append(str(score))
-    return "{" + ",".join(funcEnum_list) + "}\t" + ",".join(score_list) + "}"
+    return "{" + ",".join(funcEnum_list) + "}\t{" + ",".join(score_list) + "}"
 
 def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
     funcName_2_score_list_backtracked, without_lineage = [], []
@@ -3589,8 +3590,26 @@ if __name__ == "__main__":
     # Secondary_2_Primary_ID_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, UniProt_sec_2_prim_AC, ENSP_2_UniProt_2_use, Taxid_UniProt_AC_2_ID, fn_out_Secondary_2_Primary_ID_UPS_FIN, Secondary_2_Primary_ID_UPS_no_translation)
 
 
-    Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
-    Functions_table_UPS_FIN = variables.tables_dict["Functions_table"]
-    Taxid_2_Proteins_table = variables.tables_dict["Taxid_2_Proteins_table"]
-    fn_out_Taxid_2_FunctionCountArray_table_FIN = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN_v2.txt"
-    Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=4, verbose=True)
+    # Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
+    # Functions_table_UPS_FIN = variables.tables_dict["Functions_table"]
+    # Taxid_2_Proteins_table = variables.tables_dict["Taxid_2_Proteins_table"]
+    # fn_out_Taxid_2_FunctionCountArray_table_FIN = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN_v2.txt"
+    # Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=4, verbose=True)
+
+
+
+
+    # Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
+    # fn_in_DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
+    # fn_go_basic_obo = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
+    # fn_in_BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo")  # static file
+    # fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
+    # Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
+    # Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
+    # Functions_table_UPS = variables.tables_dict["Functions_table"]
+    # Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+    # fn_out_DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")
+    # fn_out_DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage.txt")
+    # fn_out_ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
+    # fn_out_Protein_2_FunctionEnum_and_Score_table_UPS = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+    # Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=False)

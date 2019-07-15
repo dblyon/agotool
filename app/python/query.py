@@ -453,6 +453,11 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
 
+        if variables.VERBOSE:
+            print("getting ENSP_2_tuple_funcEnum_score_dict")
+        self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
+
+
         if not low_memory:
             if variables.VERBOSE:
                 print("getting Secondary_2_Primary_IDs_dict")
@@ -464,7 +469,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
-        self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files)
+        self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True) # small file doesn't make sense to keep in DB for now
 
         if variables.VERBOSE:
             print("getting lookup arrays")
@@ -500,9 +505,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         # background
         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
 
-        if variables.VERBOSE:
-            print("getting ENSP_2_tuple_funcEnum_score_dict")
-        self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
+
 
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
@@ -771,75 +774,75 @@ def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False):
             Taxid_2_FunctionEnum_2_Scores_dict[taxid][functionEnumeration] = scores_arr
     return Taxid_2_FunctionEnum_2_Scores_dict
 
-def get_proteinAN_2_tuple_funcEnum_score_dict_old(read_from_flat_files=True, fn=None): # SLOW ~ 26% of startup time
-    """
-    key = ENSP
-    val = tuple(arr of function Enumeration, arr of scores)
-    for BTO, DOID, and GO-CC terms
-
-    exampe of return value {'3702.AT1G01010.1': (array([ 213,  254,  255,  261,  325,  356,  360,  365,  375,  397,  417,
-                  615,  643,  747,  748, 1080, 1812, 1899, 1900, 1902, 1904, 1995,
-                 2051, 2052, 2070, 2088], dtype=uint32),
-          array([4.2     , 4.166357, 4.195121, 3.257143, 1.234689, 0.428571,
-                 0.535714, 0.214286, 0.642857, 1.189679, 0.739057, 0.214286,
-                 0.214286, 3.      , 3.      , 3.      , 0.535714, 3.257143,
-                 3.257143, 3.257143, 3.257143, 0.641885, 4.166357, 3.      ,
-                 1.234689, 4.195121], dtype=float32)), ...
-                 }
-
-    Protein_2_FunctionEnum_and_Score_table_STRING.txt
-    10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}}
-
-    Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt
-    10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}} 10090
-    3702    NAC1_ARATH      {{211,4.2},{252,4.166357},{253,4.195121},{259,3.257143},{323,1.234689},{354,0.428571},{358,0.535714},{363,0.214286},{373,0.642857},{395,1.189679},{415,0.740363},{613,0.214286},{641,0.214286},{745,3.0},{746,3.0},{1077,3.0}, ...}
-    :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
-    """
-    ENSP_2_tuple_funcEnum_score_dict = {}
-    if read_from_flat_files:
-        if fn is None:
-            fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
-        results = get_results_of_statement_from_flat_file(fn)
-    else:
-        raise NotImplementedError
-
-    for res in results:
-        index_ = 0
-        if variables.VERSION_ == "UniProt":
-            taxid, protein_AN, funcEnum_score_arr_orig = res
-        elif variables.VERSION_ == "STRING":
-            protein_AN, funcEnum_score_arr_orig = res
-        else:
-            print("Not implemented version {}".format(variables.VERSION_))
-            raise StopIteration
-        funcEnum_score_arr_orig = funcEnum_score_arr_orig.strip()
-        if funcEnum_score_arr_orig == "{}":
-            continue
-        funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
-        number_of_functions = len(funcEnum_score_arr)
-        score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32")) # float16 would probably be sufficient
-        funcEnum_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("uint32"))
-        if len(funcEnum_score_arr) == 1:
-            fs = funcEnum_score_arr[0][1:-2].split(",")
-            try:
-                funcEnum, score = int(fs[0]), float(fs[1])
-            except:
-                print(funcEnum_score_arr_orig)
-                print(funcEnum_score_arr)
-                raise StopIteration
-            score_arr[index_] = score
-            funcEnum_arr[index_] = funcEnum
-        else:
-            funcName_2_score_list_temp = [funcEnum_score_arr[0][1:].split(",")] + [ele.split(",") for ele in funcEnum_score_arr[1:-1]] + [funcEnum_score_arr[-1][:-2].split(",")]
-            for sublist in funcName_2_score_list_temp:
-                funcEnum, score = int(sublist[0]), float(sublist[1])
-                score_arr[index_] = score
-                funcEnum_arr[index_] = funcEnum
-                index_ += 1
-        score_arr.flags.writeable = False
-        funcEnum_arr.flags.writeable = False
-        ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
-    return ENSP_2_tuple_funcEnum_score_dict
+# def get_proteinAN_2_tuple_funcEnum_score_dict_old(read_from_flat_files=True, fn=None): # SLOW ~ 26% of startup time
+#     """
+#     key = ENSP
+#     val = tuple(arr of function Enumeration, arr of scores)
+#     for BTO, DOID, and GO-CC terms
+#
+#     exampe of return value {'3702.AT1G01010.1': (array([ 213,  254,  255,  261,  325,  356,  360,  365,  375,  397,  417,
+#                   615,  643,  747,  748, 1080, 1812, 1899, 1900, 1902, 1904, 1995,
+#                  2051, 2052, 2070, 2088], dtype=uint32),
+#           array([4.2     , 4.166357, 4.195121, 3.257143, 1.234689, 0.428571,
+#                  0.535714, 0.214286, 0.642857, 1.189679, 0.739057, 0.214286,
+#                  0.214286, 3.      , 3.      , 3.      , 0.535714, 3.257143,
+#                  3.257143, 3.257143, 3.257143, 0.641885, 4.166357, 3.      ,
+#                  1.234689, 4.195121], dtype=float32)), ...
+#                  }
+#
+#     Protein_2_FunctionEnum_and_Score_table_STRING.txt
+#     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}}
+#
+#     Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt
+#     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}} 10090
+#     3702    NAC1_ARATH      {{211,4.2},{252,4.166357},{253,4.195121},{259,3.257143},{323,1.234689},{354,0.428571},{358,0.535714},{363,0.214286},{373,0.642857},{395,1.189679},{415,0.740363},{613,0.214286},{641,0.214286},{745,3.0},{746,3.0},{1077,3.0}, ...}
+#     :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
+#     """
+#     ENSP_2_tuple_funcEnum_score_dict = {}
+#     if read_from_flat_files:
+#         if fn is None:
+#             fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+#         results = get_results_of_statement_from_flat_file(fn)
+#     else:
+#         raise NotImplementedError
+#
+#     for res in results:
+#         index_ = 0
+#         if variables.VERSION_ == "UniProt":
+#             taxid, protein_AN, funcEnum_score_arr_orig = res
+#         elif variables.VERSION_ == "STRING":
+#             protein_AN, funcEnum_score_arr_orig = res
+#         else:
+#             print("Not implemented version {}".format(variables.VERSION_))
+#             raise StopIteration
+#         funcEnum_score_arr_orig = funcEnum_score_arr_orig.strip()
+#         if funcEnum_score_arr_orig == "{}":
+#             continue
+#         funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
+#         number_of_functions = len(funcEnum_score_arr)
+#         score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32")) # float16 would probably be sufficient
+#         funcEnum_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("uint32"))
+#         if len(funcEnum_score_arr) == 1:
+#             fs = funcEnum_score_arr[0][1:-2].split(",")
+#             try:
+#                 funcEnum, score = int(fs[0]), float(fs[1])
+#             except:
+#                 print(funcEnum_score_arr_orig)
+#                 print(funcEnum_score_arr)
+#                 raise StopIteration
+#             score_arr[index_] = score
+#             funcEnum_arr[index_] = funcEnum
+#         else:
+#             funcName_2_score_list_temp = [funcEnum_score_arr[0][1:].split(",")] + [ele.split(",") for ele in funcEnum_score_arr[1:-1]] + [funcEnum_score_arr[-1][:-2].split(",")]
+#             for sublist in funcName_2_score_list_temp:
+#                 funcEnum, score = int(sublist[0]), float(sublist[1])
+#                 score_arr[index_] = score
+#                 funcEnum_arr[index_] = funcEnum
+#                 index_ += 1
+#         score_arr.flags.writeable = False
+#         funcEnum_arr.flags.writeable = False
+#         ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
+#     return ENSP_2_tuple_funcEnum_score_dict
 
 def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None): # SLOW ~ 26% of startup time
     """
@@ -855,58 +858,35 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
     | 3702 | NAC1_ARATH | {211,252,253, ... } | {4.2,4.166357,4.195121, ... } |
     :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
     """
+    if variables.VERSION_ != "UniProt":
+        print("Not implemented version {}".format(variables.VERSION_))
+        raise StopIteration
+
     ENSP_2_tuple_funcEnum_score_dict = {}
     if read_from_flat_files:
         if fn is None:
             fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
         results = get_results_of_statement_from_flat_file(fn)
     else:
-        raise NotImplementedError
+        results = get_results_of_statement("SELECT * FROM protein_2_functionenum_and_score;")
 
     for res in results:
-        index_ = 0
-        if variables.VERSION_ == "UniProt":
-            # taxid, protein_AN, funcEnum_score_arr_orig = res
+        if read_from_flat_files:
             taxid, protein_AN, funcEnum_arr_orig, score_arr_orig = res
-        elif variables.VERSION_ == "STRING":
-            protein_AN, funcEnum_score_arr_orig = res
+            score_arr_orig = score_arr_orig.strip()
+            if score_arr_orig == "{}":
+                continue
+            funcEnum_list = funcEnum_arr_orig[1:-1].split(",")
+            score_list = score_arr_orig[1:-1].split(",")
         else:
-            print("Not implemented version {}".format(variables.VERSION_))
-            raise StopIteration
-        # funcEnum_score_arr_orig = funcEnum_score_arr_orig.strip()
-        score_arr_orig = score_arr_orig.strip()
-        if score_arr_orig == "{}":
-            continue
-        # funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
-        funcEnum_list = funcEnum_arr_orig[1:-1].split(",")
-        score_list = score_arr_orig[1:-1].split(",")
-        # number_of_functions = len(funcEnum_score_arr)
-        number_of_functions = len(funcEnum_arr)
-        score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32")) # float16 would probably be sufficient
-        funcEnum_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("uint32"))
-        # if len(funcEnum_score_arr) == 1:
-        if len(funcEnum_list) == 1:
-            # fs = funcEnum_score_arr[0][1:-2].split(",")
-            try:
-                funcEnum, score = int(funcEnum_list[0]), float(score_list[1])
-            except:
-                print(funcEnum_arr_orig)
-                print(score_arr_orig)
-                raise StopIteration
-            score_arr[index_] = score
-            funcEnum_arr[index_] = funcEnum
-        else:
-            # funcName_2_score_list_temp = [funcEnum_score_arr[0][1:].split(",")] + [ele.split(",") for ele in funcEnum_score_arr[1:-1]] + [funcEnum_score_arr[-1][:-2].split(",")]
-            for sublist in zip(funcEnum_list, score_list):
-                funcEnum, score = int(sublist[0]), float(sublist[1])
-                score_arr[index_] = score
-                funcEnum_arr[index_] = funcEnum
-                index_ += 1
+            taxid, protein_AN, funcEnum_list, score_list = res
+        assert len(funcEnum_list) == len(score_list)
+        funcEnum_arr = np.array(funcEnum_list, dtype=np.dtype("uint32"))
+        score_arr = np.array(score_list, dtype=np.dtype("float32"))  # float16 would probably be sufficient
         score_arr.flags.writeable = False
         funcEnum_arr.flags.writeable = False
         ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
     return ENSP_2_tuple_funcEnum_score_dict
-
 
 def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True):
     KEGG_Taxid_2_acronym_dict = {}
@@ -1040,7 +1020,7 @@ def get_lineage_dict_enum(as_array=False, read_from_flat_files=False, cast_2_int
                 else:
                     lineage_dict[term] = set(lineage)
     else:
-        results = get_results_of_statement("SELECT * FROM funcenum_2_lineage;")
+        results = get_results_of_statement("SELECT * FROM lineage;")
         for res in results:
             term, lineage = res
             if as_array:
@@ -1179,48 +1159,48 @@ def get_ENSP_2_functionEnumArray_dict_old():
 #         taxid_2_funcEnum_index_2_associations[taxid] = funcEnum_index_2_associations
 #     return taxid_2_funcEnum_index_2_associations
 
-def get_background_taxid_2_funcEnum_index_2_associations_old_v0(read_from_flat_files=False): # SLOW ~60% of startup time
-    taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
-    if not read_from_flat_files:
-        for taxid in get_taxids():
-            background_counts_list = get_background_count_array(taxid)
-            # need be uint32 not uint16 since funcEnum is 0 to 7mio
-            # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
-            shape_ = len(background_counts_list)
-            index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            index_positions_arr[:] = np.nan
-            counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            counts_arr[:] = np.nan
-            for enum, index_count in enumerate(background_counts_list):
-                index_, count = index_count
-                index_positions_arr[enum] = index_
-                counts_arr[enum] = count
-            index_positions_arr.flags.writeable = False
-            counts_arr.flags.writeable = False
-            taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
-    else:
-        # fn = os.path.join(variables.TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
-        fn = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
-        results = get_results_of_statement_from_flat_file(fn)
-        for res in results:
-            taxid, background_count, background_count_array = res
-            taxid = int(taxid)
-            background_counts_list = []
-            for sublist in background_count_array[2:-2].split("},{"):
-                background_counts_list.append([int(ele) for ele in sublist.split(",")])
-            shape_ = len(background_counts_list)
-            index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            index_positions_arr[:] = np.nan
-            counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            counts_arr[:] = np.nan
-            for enum, index_count in enumerate(background_counts_list):
-                index_, count = index_count
-                index_positions_arr[enum] = index_
-                counts_arr[enum] = count
-            index_positions_arr.flags.writeable = False
-            counts_arr.flags.writeable = False
-            taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
-    return taxid_2_tuple_funcEnum_index_2_associations_counts
+# def get_background_taxid_2_funcEnum_index_2_associations_old_v0(read_from_flat_files=False): # SLOW ~60% of startup time
+#     taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
+#     if not read_from_flat_files:
+#         for taxid in get_taxids():
+#             background_counts_list = get_background_count_array(taxid)
+#             # need be uint32 not uint16 since funcEnum is 0 to 7mio
+#             # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
+#             shape_ = len(background_counts_list)
+#             index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
+#             index_positions_arr[:] = np.nan
+#             counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
+#             counts_arr[:] = np.nan
+#             for enum, index_count in enumerate(background_counts_list):
+#                 index_, count = index_count
+#                 index_positions_arr[enum] = index_
+#                 counts_arr[enum] = count
+#             index_positions_arr.flags.writeable = False
+#             counts_arr.flags.writeable = False
+#             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
+#     else:
+#         # fn = os.path.join(variables.TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
+#         fn = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
+#         results = get_results_of_statement_from_flat_file(fn)
+#         for res in results:
+#             taxid, background_count, background_count_array = res
+#             taxid = int(taxid)
+#             background_counts_list = []
+#             for sublist in background_count_array[2:-2].split("},{"):
+#                 background_counts_list.append([int(ele) for ele in sublist.split(",")])
+#             shape_ = len(background_counts_list)
+#             index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
+#             index_positions_arr[:] = np.nan
+#             counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
+#             counts_arr[:] = np.nan
+#             for enum, index_count in enumerate(background_counts_list):
+#                 index_, count = index_count
+#                 index_positions_arr[enum] = index_
+#                 counts_arr[enum] = count
+#             index_positions_arr.flags.writeable = False
+#             counts_arr.flags.writeable = False
+#             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
+#     return taxid_2_tuple_funcEnum_index_2_associations_counts
 
 def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False): # SLOW ~60% of startup time
     """
@@ -1239,15 +1219,17 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
             # need be uint32 not uint16 since funcEnum is 0 to 7mio
             # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
             assert len(background_index_positions_list) == len(background_counts_arr_list)
-            shape_ = len(background_index_positions_list)
-            index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            index_positions_arr[:] = np.nan
-            counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            counts_arr[:] = np.nan
-            for enum, index_count in zip(background_index_positions_list, background_counts_arr_list):
-                index_, count = index_count
-                index_positions_arr[enum] = index_
-                counts_arr[enum] = count
+            # shape_ = len(background_index_positions_list)
+            # index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
+            # index_positions_arr[:] = np.nan
+            # counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
+            # counts_arr[:] = np.nan
+            # for enum, index_count in enumerate(zip(background_index_positions_list, background_counts_arr_list)):
+            #     index_, count = index_count
+            #     index_positions_arr[enum] = index_
+            #     counts_arr[enum] = count
+            index_positions_arr = np.array(background_index_positions_list, dtype=np.dtype("uint32"))
+            counts_arr = np.array(background_counts_arr_list, dtype=np.dtype("uint16"))
             index_positions_arr.flags.writeable = False
             counts_arr.flags.writeable = False
             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
@@ -1257,18 +1239,22 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
         for res in results:
             taxid, background_count, background_index_positions_arr_str, background_counts_arr_str = res
             taxid = int(taxid)
-            background_index_positions_list = [int(ele) for ele in background_index_positions_arr_str[1:-1].split(",")]
-            background_counts_arr_list = [int(ele) for ele in background_counts_arr_str.strip()[1:-1].split(",")]
+            # background_index_positions_list = [int(ele) for ele in background_index_positions_arr_str[1:-1].split(",")]
+            background_index_positions_list = background_index_positions_arr_str[1:-1].split(",")
+            # background_counts_arr_list = [int(ele) for ele in background_counts_arr_str.strip()[1:-1].split(",")]
+            background_counts_arr_list = background_counts_arr_str.strip()[1:-1].split(",")
             assert len(background_index_positions_list) == len(background_counts_arr_list)
-            shape_ = len(background_index_positions_list)
-            index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            index_positions_arr[:] = np.nan
-            counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            counts_arr[:] = np.nan
-            for enum, index_count in zip(background_index_positions_list, background_counts_arr_list):
-                index_, count = index_count
-                index_positions_arr[enum] = index_
-                counts_arr[enum] = count
+            # shape_ = len(background_index_positions_list)
+            # index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
+            # index_positions_arr[:] = np.nan
+            # counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
+            # counts_arr[:] = np.nan
+            # for enum, index_count in enumerate(zip(background_index_positions_list, background_counts_arr_list)):
+            #     index_, count = index_count
+            #     index_positions_arr[enum] = index_
+            #     counts_arr[enum] = count
+            index_positions_arr = np.array(background_index_positions_list, dtype=np.dtype("uint32"))
+            counts_arr = np.array(background_counts_arr_list, dtype=np.dtype("uint16"))
             index_positions_arr.flags.writeable = False
             counts_arr.flags.writeable = False
             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
@@ -1300,7 +1286,7 @@ def get_background_count_array(taxid):
 
     taxid | background_n | background_index_positions_arr | background_counts_arr |
     """
-    return get_results_of_statement("SELECT taxid_2_functioncountarray.background_index_positions_arr, taxid_2_functioncountarray.background_counts_arr FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
+    return get_results_of_statement("SELECT taxid_2_functioncountarray.background_index_positions_arr, taxid_2_functioncountarray.background_count_arr FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0]#[0]
 
 # def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
 #     association_dict = {}
@@ -1564,7 +1550,8 @@ def get_goslimtype_2_cond_dict():
 
 if __name__ == "__main__":
     pqo = PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
-
+    # get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False)
+    # get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None)
 
 
     # import os
