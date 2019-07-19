@@ -8,60 +8,145 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon_sund.ico') }}">
-
     <title>a GO tool</title>
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
-
+    <!-- Latest compiled and minified JavaScript -->
+{#    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">#}
+{#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>#}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <!-- jQuery -->
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+{#    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>#}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.15.0/popper.min.js" crossorigin="anonymous"></script>
 
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
-{#    <link type="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">#}
-
-<!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
-    <script src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"></script>
+    {#    <script src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"></script>#}
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-filestyle/2.1.0/bootstrap-filestyle.js" ></script>
     <script src="{{ url_for('static', filename='js/utilities.js') }}"></script>
     {% block head %}
     {% endblock head %}
 </head>
 
 
-
 <body role="document">
-    <div class="navbar navbar-default">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="{{ url_for('index') }}">a GO tool</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('enrichment') }}">enrichment</a></li>
-                    <li><a href="{{ url_for('parameters') }}">parameters</a></li>
-                    <li><a href="{{ url_for('example') }}">example</a></li>
-                    <li><a href="{{ url_for('FAQ') }}">FAQ</a></li>
-                    <li><a href="{{ url_for('about') }}">about</a></li>
-                    <li><a href="{{ url_for('db_schema') }}">DB_schema</a></li>
-                </ul>
-{#                <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/cpr_logo.png"></a></span>#}
-            </div>
-        </div>
 
-    </div>
+
+
+<!--Navbar-->
+<nav class="navbar navbar-expand-lg navbar-dark primary-color">
+
+  <!-- Navbar brand -->
+{#  <a class="navbar-brand" href="#">Navbar</a>#}
+    <a class="navbar-brand" href="{{ url_for('index') }}">a GO tool</a>
+
+  <!-- Collapse button -->
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+      <ul class="nav navbar-nav">
+          <li><a href="{{ url_for('enrichment') }}">enrichment</a></li>
+          <li><a href="{{ url_for('parameters') }}">parameters</a></li>
+          <li><a href="{{ url_for('example') }}">example</a></li>
+          <li><a href="{{ url_for('FAQ') }}">FAQ</a></li>
+          <li><a href="{{ url_for('about') }}">about</a></li>
+          <li><a href="{{ url_for('db_schema') }}">DB_schema</a></li>
+      </ul>
+  </button>
+
+  <!-- Collapsible content -->
+  <div class="collapse navbar-collapse" id="basicExampleNav">
+    <ul class="nav navbar-nav">
+          <li><a href="{{ url_for('enrichment') }}">enrichment</a></li>
+          <li><a href="{{ url_for('parameters') }}">parameters</a></li>
+          <li><a href="{{ url_for('example') }}">example</a></li>
+          <li><a href="{{ url_for('FAQ') }}">FAQ</a></li>
+          <li><a href="{{ url_for('about') }}">about</a></li>
+          <li><a href="{{ url_for('db_schema') }}">DB_schema</a></li>
+      </ul>
+    <!-- Links -->
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment
+          <span class="sr-only">(current)</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('parameters') }}">parameters</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('example') }}">example</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('about') }}">about</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('db_schema') }}">DB_schema</a>
+      </li>
+
+
+{#      <!-- Dropdown -->#}
+{#      <li class="nav-item dropdown">#}
+{#        <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown"#}
+{#          aria-haspopup="true" aria-expanded="false">Dropdown</a>#}
+{#        <div class="dropdown-menu dropdown-primary" aria-labelledby="navbarDropdownMenuLink">#}
+{#          <a class="dropdown-item" href="#">Action</a>#}
+{#          <a class="dropdown-item" href="#">Another action</a>#}
+{#          <a class="dropdown-item" href="#">Something else here</a>#}
+{#        </div>#}
+{#      </li>#}
+
+    </ul>
+    <!-- Links -->
+
+    <form class="form-inline">
+      <div class="md-form my-0">
+        <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+      </div>
+    </form>
+  </div>
+  <!-- Collapsible content -->
+
+</nav>
+<!--/.Navbar-->
+
+
+
+
+
+{#    <div class="navbar navbar-default">#}
+{#        <div class="container">#}
+{#            <div class="navbar-header">#}
+{#                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">#}
+{#                    <span class="sr-only">Toggle navigation</span>#}
+{#                    <span class="icon-bar"></span>#}
+{#                    <span class="icon-bar"></span>#}
+{#                    <span class="icon-bar"></span>#}
+{#                </button>#}
+{#                <a class="navbar-brand" href="{{ url_for('index') }}">a GO tool</a>#}
+{#            </div>#}
+{#            <div class="navbar-collapse collapse">#}
+{#                <ul class="nav navbar-nav">#}
+{#                    <li><a href="{{ url_for('enrichment') }}">enrichment</a></li>#}
+{#                    <li><a href="{{ url_for('parameters') }}">parameters</a></li>#}
+{#                    <li><a href="{{ url_for('example') }}">example</a></li>#}
+{#                    <li><a href="{{ url_for('FAQ') }}">FAQ</a></li>#}
+{#                    <li><a href="{{ url_for('about') }}">about</a></li>#}
+{#                    <li><a href="{{ url_for('db_schema') }}">DB_schema</a></li>#}
+{#                </ul>#}
+{#                <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="./static/cpr_logo.png"></a></span>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+
+
 
     <div class="tab-content container">
     {% block content %}

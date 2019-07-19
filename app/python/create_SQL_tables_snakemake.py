@@ -677,12 +677,14 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
     559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,...}
     """
     function_2_enum_dict, enum_2_function_dict = get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING)
-    tools.sort_file(fn_in_Protein_2_function_table, fn_in_Protein_2_function_table, number_of_processes=number_of_processes)
+    ### tools.sort_file(fn_in_Protein_2_function_table, fn_in_Protein_2_function_table, number_of_processes=number_of_processes) # already sorted at creation
+    print("creating Protein_2_functionEnum_table_FIN")
     with open(fn_in_Protein_2_function_table, "r") as fh_in:
         with open(fn_out_Protein_2_functionEnum_table_FIN, "w") as fh_out:
             with open(fn_out_Protein_2_FunctionEnum_table_UPS_removed, "w") as fh_out_removed:
                 taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
                 functionEnum_list = _helper_format_array(function_arr_str[1:-1].replace('"', "").split(","), function_2_enum_dict)
+                # for index_, line in enumerate(fh_in):
                 for line in fh_in:
                     taxid, UniProtID, function_arr_str, etype = line.split("\t")
                     function_list = function_arr_str[1:-1].replace('"', "").split(",")
@@ -2127,7 +2129,7 @@ def Protein_2_Function_table_UPS(fn_list, fn_out_Protein_2_Function_table, numbe
     ### concatenate files
     tools.concatenate_files(fn_list, fn_out_Protein_2_Function_table)
     ### sort
-    tools.sort_file(fn_out_Protein_2_Function_table, fn_out_Protein_2_Function_table, number_of_processes=number_of_processes)
+    tools.sort_file(fn_out_Protein_2_Function_table, fn_out_Protein_2_Function_table, number_of_processes=number_of_processes, verbose=True)
 
 def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_Taxid_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
     """
@@ -3533,11 +3535,25 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     import variables
 
-    fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
-    fn_in_Protein_2_function_table = Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed_v2.txt") #variables.tables_dict["Protein_2_FunctionEnum_table"]
-    fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
-    Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
+    Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
+    Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
+    Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
+    Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt")
+    fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
+                   Protein_2_Function_table_KEGG_UPS,
+                   Protein_2_Function_table_WikiPathways_UPS,
+                   Protein_2_Function_table_PMID_UPS]
+    fn_out_Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    Protein_2_Function_table_UPS(fn_list_str, fn_out_Protein_2_Function_table_UPS, number_of_processes=10)
+
+    # fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
+    # fn_in_Protein_2_function_table = Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    # fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_v2.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
+    # fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
+    # Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
+
+
+
 
     # pass
     # create_goslimtype_2_cond_arrays("bubu", "abc")

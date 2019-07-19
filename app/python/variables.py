@@ -24,7 +24,7 @@ VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the pro
 temp_dont_run_analysis = False
 # if READ_FROM_FLAT_FILES and LOW_MEMORY:
 #     raise NotImplementedError
-fn_example = ""
+
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # ToDo SMART is missing in UniProt version
 alpha = 0.05
@@ -131,6 +131,9 @@ else: # relative path on host
 EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata")
 SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
+
+# temp
+fn_example = os.path.join(EXAMPLE_FOLDER, "Test_yeast_compare_samples.txt")
 
 # FLASK_DATA = APP_DIR
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(APP_DIR, 'static/templates')

@@ -64,10 +64,7 @@ class Userinput:
         if self.enrichment_method not in variables.enrichment_methods:
             print(self.enrichment_method, "problem since this is in not in in {}".format(variables.enrichment_methods))
             return False, False, False
-        # if not variables.DEBUG:  # ToDo remove this exact line and dedent code block below
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
-            # if self.args_dict["taxid"] is None:
-            #     return False, False, False
             if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count:
                 self.args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
                 return False, False, False
@@ -91,14 +88,14 @@ class Userinput:
             else:
                 return False, False, False
             self.fn.write(header)
-            if self.enrichment_method != "characterize_foreground":
+            if self.enrichment_method not in {"characterize_foreground", "genome"}:
                 for a, b in zip_longest(self.foreground_string.split("\n"), self.background_string.split("\n"), fillvalue="\t"):
                     self.fn.write(a.strip() + "\t" + b.strip() + "\n")
             else:
                 self.fn.write(self.foreground_string)
             self.fn.seek(0)
-        # else: # use file
-            # print(">" * 12 + "  using file")
+        # else:
+        #     print(">" * 12 + "  using file")
         try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
         except:
@@ -430,7 +427,8 @@ class Userinput:
         :return: Int
         """
         if self.enrichment_method == "genome":
-            return None # information stored in pqo.taxid_2_proteome_count
+            # return None # information stored in pqo.taxid_2_proteome_count
+            return self.pqo.taxid_2_proteome_count[self.args_dict["taxid"]]
         elif self.enrichment_method == "abundance_correction": # same as foreground
             return len(self.foreground)
         elif self.enrichment_method == "compare_samples": # simply background to compare to
@@ -706,6 +704,12 @@ def zero_one_or_None_to_1(FDR_cutoff):
         return 1
     else:
         return FDR_cutoff
+
+# def translate_NoneStr_2_None(args_dict):
+#     for key, val in args_dict.items():
+#         if val == "None":
+#             args_dict[key] = None
+#     return args_dict
 
 def string_2_properType(string_):
     string_ = string_.strip().lower()

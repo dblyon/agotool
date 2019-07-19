@@ -83,11 +83,11 @@
             <div class="col-md-10">
 {#                <h4>Filter results</h4>#}
                 <table>
-                <tr title="{{ form.fold_enrichment_for2background.description }}"><td class="somename">{{ form.fold_enrichment_for2background.label }}: </td><td>{{ form.fold_enrichment_for2background() }}</td>
-                    {% if form.fold_enrichment_for2background.errors %}
-                    <tr><td colspan="2"><ul class="errors"> {% for error in form.fold_enrichment_for2background.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
-                    {% endif %}
-                </tr>
+{#                <tr title="{{ form.fold_enrichment_for2background.description }}"><td class="somename">{{ form.fold_enrichment_for2background.label }}: </td><td>{{ form.fold_enrichment_for2background() }}</td>#}
+{#                    {% if form.fold_enrichment_for2background.errors %}#}
+{#                    <tr><td colspan="2"><ul class="errors"> {% for error in form.fold_enrichment_for2background.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>#}
+{#                    {% endif %}#}
+{#                </tr>#}
                 <tr  title="{{ form.p_value_cutoff.description }}"><td class="somename">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
                     {% if form.p_value_cutoff.errors %}
                     <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>

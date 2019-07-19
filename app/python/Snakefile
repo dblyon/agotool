@@ -580,7 +580,7 @@ rule Protein_2_Function_table_UPS:
                        Protein_2_Function_table_WikiPathways_UPS,
                        Protein_2_Function_table_PMID_UPS]
     output:
-        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS
+        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # sorted at the end
     threads: NUMBER_OF_PROCESSES_sorting
     run:
         cst.Protein_2_Function_table_UPS(input.fn_list_str, output.Protein_2_Function_table_UPS, threads)
@@ -732,6 +732,7 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - preload most commong model organisms even for low memory
 # - profile code
 # - use Christian's C code for KS test
+# - add Jensenlab Scores data to "characterize_foreground" method --> these 3 etypes don't show up yet
 # examples for Lars for missing PMID descriptions
 # https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
 # Metaanalysis of true user data inputs
@@ -741,3 +742,5 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # bugfix:
 # - why does it make a difference if I use the same foreground and background and all filters off. compare_samples vs. genome???
 # - why can't i see PMIDs even if filter_fg_count_one is off
+# - check compare_samples vs genome --> background_counts are off
+# - update prism

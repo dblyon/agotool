@@ -586,11 +586,6 @@ def ellipsis_dbl(stringli, max_len=20):
     else:
         return stringli
 
-def translate_NoneStr_2_None(args_dict):
-    for key, val in args_dict.items():
-        if val == "None":
-            args_dict[key] = None
-    return args_dict
 ################################################################################
 # enrichment.html
 ################################################################################
@@ -688,22 +683,22 @@ def results():
         except:
             input_fs = None
 
-        args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "fold_enrichment_for2background": form.fold_enrichment_for2background.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "tsv", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data}
-        args_dict = translate_NoneStr_2_None(args_dict)
-        args_dict = clean_args_dict(args_dict)
-        print("#" * 25)
-        print(args_dict)
-        print("#" * 25)
+        args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "tsv", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
-            num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data
+            decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data num_bins=form.num_bins.data,
+        ui.check = True
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\no_or_u_or_both: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\np_value_cutoff: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.o_or_u_or_both.data, form.num_bins.data, form.fold_enrichment_for2background.data, form.p_value_cutoff.data, form.FDR_cutoff.data, form.enrichment_method.data)
+            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\no_or_u_or_both: {}\np_value_cutoff: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.o_or_u_or_both.data, form.p_value_cutoff.data, form.FDR_cutoff.data, form.enrichment_method.data) # \nnum_bins: {} # form.num_bins.data form.fold_enrichment_for2background.data, \nfold_enrichment_foreground_2_background: {}
             if not app.debug:
                 log_activity(string2log)
+            ### DEBUG start
             # results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
-            results_all_function_types = pd.read_csv(variables.fn_example)
+            df = pd.read_csv(variables.fn_example, sep="\t")
+            print(df.head())
+            results_all_function_types = run.format_results(df, ui.args_dict["output_format"], args_dict)
+            ### DEBUG stop
         else:
             print("#" * 25)
             print(args_dict)
@@ -837,12 +832,12 @@ def results_clustered():
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
     if not form.validate():
-        return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form)
+        return generate_result_page(header, results, limit_2_entity_type, session_id, form=form) # indent
     try:
         mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
         cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
     except cluster_filter.TimeOutException:
-        return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)])
+        return generate_result_page(header, results, limit_2_entity_type, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)]) # indent
 
     num_clusters = len(cluster_list)
     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
@@ -861,11 +856,11 @@ def results_clustered():
     ellipsis_indices = elipsis(header)
     ip = request.environ['REMOTE_ADDR']
     string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
-    string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, indent, num_clusters, inflation_factor)
+    string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, num_clusters, inflation_factor) # indent,
     log_activity(string2log)
     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
                            file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
-                           ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id,
+                           ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, session_id=session_id, # indent=indent,
                            num_clusters=num_clusters, inflation_factor=inflation_factor)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
