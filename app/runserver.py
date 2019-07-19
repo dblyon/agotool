@@ -1,6 +1,7 @@
 import os, sys, logging, time, argparse
 from collections import defaultdict
 import numpy as np
+import pandas as pd
 from lxml import etree
 import flask
 from flask import render_template, request, send_from_directory, jsonify
@@ -130,9 +131,9 @@ if PRELOAD:
     # if variables.VERSION_ == "aGOtool":
     #     pqo = query.PersistentQueryObject()
     if variables.VERSION_ == "STRING":
-        pqo = query.PersistentQueryObject_STRING()
+        pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
     elif variables.VERSION_ == "UniProt":
-        pqo = query.PersistentQueryObject_STRING()
+        pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
     else:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
@@ -145,7 +146,7 @@ else:
 api = Api(app)
 parser = reqparse.RequestParser()
 ################################################################################
-### STRING arguments/parameters
+### API arguments/parameters
 parser.add_argument("taxid", type=int,
     help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
     default=None)
@@ -166,33 +167,22 @@ parser.add_argument("filter_parents", type=str,
     help="Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground.",
     default="True")
 
-parser.add_argument("filter_foreground_count_one", type=str,
-    help="Keep only those terms with foreground_count > 1",
-    default="True")
+parser.add_argument("filter_foreground_count_one", type=str, help="Keep only those terms with foreground_count > 1", default="True")
 
-# parser.add_argument("LOW_MEMORY", type=str, default="True")
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p-value and recent publication date.")
-parser.add_argument("caller_identity", type=str,
-    help="Your identifier for us e.g. www.my_awesome_app.com",
-    default=None) # ? do I need default value ?
+
+parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
 
 parser.add_argument("FDR_cutoff", type=float,
     help="False Discovery Rate cutoff (threshold for multiple testing corrected p-values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.",
     default=0.05)
 
-# parser.add_argument("filter_PMID", type=float,
-#     help="Filter the top n PMID (PubMed IDs) sorted by lowest FDR and newest publication date; e.g. 100, default=100.",
-#     default=100)
-
 parser.add_argument("limit_2_entity_type", type=str,
-    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
-    default="-20;-21;-22;-23;-51;-52;-53;-54;-55;-56;-57;-58")
+    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).",
+    default="-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58") # -53 missing for UniProt version
 
-parser.add_argument("privileged", type=str,
-    default="False")
+parser.add_argument("privileged", type=str, default="False")
 
-################################################################################
-### aGOtool arguments/parameters
 parser.add_argument("foreground", type=str,
     help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
@@ -209,59 +199,16 @@ parser.add_argument("background_intensity", type=str,
          "e.g. '12.3%0d3.4' ",
     default=None)
 
-parser.add_argument("population", type=str,
-    help="ENSP identifiers for all proteins detected in both conditions."
-         "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
-    default=None)
-
-parser.add_argument("abundance_ratio", type=str,
-    help="Fold change, log fold change, ratio, or something similar reflecting abundance or intensity changes between 2 conditions. Values for all proteins identifiers"
-         "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'foreground'"
-         "e.g. '-1.2%0d4.3%0d1.2' ",
-    default=None)
-
-parser.add_argument("compare_2_ratios_only", type=str,
-    help="If true: compare to the user provided abundance ratios only. Else: compare to all functional associations.",
-    default="True")
-
-# 'compare_groups': Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set;
 parser.add_argument("enrichment_method", type=str,
     help="""'genome': provided foreground vs genome;
     'compare_samples': Foreground vs Background (no abundance correction); 
     'characterize_foreground': list all functional annotations for provided foreground;
-    'abundance_correction': Foreground vs Background abundance corrected;     
-    'rank_enrichment': Fold change, log fold change, ratio, or something similar reflecting abundance or intensity changes between 2 conditions. Values for all proteins identifiers.""",
+    'abundance_correction': Foreground vs Background abundance corrected""",
     default="characterize_foreground")
-
-parser.add_argument("foreground_n", type=int,
-    help="Foreground_n is an integer, defines the number of sample of the foreground.",
-    default=10)
-
-parser.add_argument("background_n", type=int,
-    help="Background_n is an integer, defines the number of sample of the background.",
-    default=10)
-
-# parser.add_argument("go_slim_or_basic", type=str,
-#     help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
-#     default="basic")
 
 parser.add_argument("goslim", type=str,
     help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)",
     default="basic")
-
-
-# # ToDo remove as option
-# parser.add_argument("indent", type=str,
-#     help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
-#     default="False") # should be boolean, but this works better
-
-# parser.add_argument("multitest_method", type=str,
-#     help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
-#     default="benjamini_hochberg")
-
-# parser.add_argument("alpha", type=float,
-#     help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
-#     default=0.05)
 
 parser.add_argument("o_or_u_or_both", type=str,
     help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.",
@@ -275,9 +222,54 @@ parser.add_argument("fold_enrichment_for2background", type=float,
     help="Apply a filter for the minimum threshold value of fold enrichment foreground/background.",
     default=0)
 
-parser.add_argument("p_value_uncorrected", type=float,
-    help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
-    default=0)
+parser.add_argument("p_value_cutoff", type=float,
+    help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).",
+    default=1)
+
+parser.add_argument("multiple_testing_per_etype", type=bool, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default=True)
+
+# parser.add_argument("filter_PMID", type=float,
+#     help="Filter the top n PMID (PubMed IDs) sorted by lowest FDR and newest publication date; e.g. 100, default=100.",
+#     default=100)
+# parser.add_argument("population", type=str,
+#     help="ENSP identifiers for all proteins detected in both conditions."
+#          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
+#     default=None)
+
+# parser.add_argument("abundance_ratio", type=str,
+#     help="Fold change, log fold change, ratio, or something similar reflecting abundance or intensity changes between 2 conditions. Values for all proteins identifiers"
+#          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'foreground'"
+#          "e.g. '-1.2%0d4.3%0d1.2' ",
+#     default=None)
+
+# parser.add_argument("compare_2_ratios_only", type=str,
+#     help="If true: compare to the user provided abundance ratios only. Else: compare to all functional associations.",
+#     default="True")
+
+# 'compare_groups': Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set;
+# parser.add_argument("foreground_n", type=int,
+#     help="Foreground_n is an integer, defines the number of sample of the foreground.",
+#     default=10)
+#
+# parser.add_argument("background_n", type=int,
+#     help="Background_n is an integer, defines the number of sample of the background.",
+#     default=10)
+
+# parser.add_argument("go_slim_or_basic", type=str,
+#     help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
+#     default="basic")
+
+# parser.add_argument("indent", type=str,
+#     help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
+#     default="False") # should be boolean, but this works better
+
+# parser.add_argument("multitest_method", type=str,
+#     help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
+#     default="benjamini_hochberg")
+
+# parser.add_argument("alpha", type=float,
+#     help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
+#     default=0.05)
 
 
 from gc import get_objects
@@ -310,26 +302,12 @@ class API_STRING(Resource):
         args_dict["enrichment_method"] = request.form.get("enrichment_method")
         args_dict["taxid"] = request.form.get("taxid")
         args_dict.update(parser.parse_args())
-        args_dict["indent"] = string_2_bool(args_dict["indent"])
-        args_dict["privileged"] = string_2_bool(args_dict["privileged"])
-        args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
-        args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
-        # args_dict["LOW_MEMORY"] = string_2_bool(args_dict["LOW_MEMORY"])
-        FDR_cutoff = args_dict["FDR_cutoff"]
-        args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
-        filter_PMID_top_n = args_dict["filter_PMID_top_n"]
-        if FDR_cutoff == 0 or FDR_cutoff >= 1:
-            args_dict["FDR_cutoff"] = None
-        if filter_PMID_top_n == 0:
-            args_dict["filter_PMID_top_n"] = None
-        if args_dict["go_slim_subset"] == "basic":
-            args_dict["go_slim_subset"] = None
 
         if variables.VERBOSE:
-            print("-"*80)
+            print("-" * 80)
             for key, val in sorted(args_dict.items()):
                 print(key, val)
-            print("-"*80)
+            print("-" * 80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -343,11 +321,10 @@ class API_STRING(Resource):
             ### results are tsv or json
             results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
 
-        elif args_dict["enrichment_method"] == "rank_enrichment":
-            print("returning help page")
-            # results_all_function_types = run.run_rank_enrichment(pqo, ui, args_dict)
-            args_dict["ERROR_NotImplementedError"] = "This method is not yet implemented (again)"
-            return help_page(args_dict)
+        # elif args_dict["enrichment_method"] == "rank_enrichment":
+        #     print("returning help page")
+        #     args_dict["ERROR_NotImplementedError"] = "This method is not yet implemented (again)"
+        #     return help_page(args_dict)
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
 
@@ -443,15 +420,6 @@ class API_STRING_HELP(Resource):
 
 api.add_resource(API_STRING_HELP, "/api_help", "/api_string_help")
 
-
-def string_2_bool(string_):
-    string_ = string_.strip().lower()
-    if string_.lower() == "true" or string_ == "1":
-        return True
-    elif string_.lower() == "false" or string_ == "0":
-        return False
-    else:
-        raise NotImplementedError
 
 def help_page(args_dict):
     try:
@@ -601,9 +569,9 @@ def read_results_file(fn):
 
 def elipsis(header):
     try:
-        ans_index = header.index("ANs_foreground")
+        ans_index = header.index("FG_IDs")#"ANs_foreground")
     except ValueError:
-        ans_index = header.index("ANs_background")
+        ans_index = header.index("BG_IDs")#"ANs_background")
         # let flask throw an internal server error
     try:
         description_index = header.index("description")
@@ -612,6 +580,17 @@ def elipsis(header):
         ellipsis_indices = (ans_index,)
     return ellipsis_indices
 
+def ellipsis_dbl(stringli, max_len=20):
+    if len(stringli) > max_len:
+        return stringli[:max_len] + "..."
+    else:
+        return stringli
+
+def translate_NoneStr_2_None(args_dict):
+    for key, val in args_dict.items():
+        if val == "None":
+            args_dict[key] = None
+    return args_dict
 ################################################################################
 # enrichment.html
 ################################################################################
@@ -631,16 +610,16 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
     limit_2_entity_type = fields.SelectField("Category of functional associations", # # ("-53", "SMART domains"), # not available in UniProt version
-                                   choices = (("-21;-22;-23;-51;-52;-54;-55;-56;-57;-58", "all available"),
+                                   choices = ((None, "all available"),
                                               ("-21;-22;-23", "all GO categories"),
                                               ("-51", "UniProt keywords"),
                                               ("-57", "Reactome"),
                                               ("-52", "KEGG pathways"),
                                               ("-58", "Wiki pathways"),
                                               ("-21", "GO Biological Process"),
-                                              ("-22", "GO Celluar Compartment"),
-                                              ("-22", "GOCC from Textmining"),
                                               ("-23", "GO Molecular Function"),
+                                              ("-22", "GO Celluar Compartment"),
+                                              ("-20", "GOCC from Textmining"),
                                               ("-25", "Brenda Tissue Ontology (BTO)"),
                                               ("-26", "Disease Ontology IDs (DOID)"),
                                               ("-56", "PMID (PubMed IDs)"),
@@ -654,16 +633,9 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
                                               ("characterize_foreground", "characterize_foreground")),
                                    description="""abundance_correction: Foreground vs Background abundance corrected
 compare_samples: Foreground vs Background (no abundance correction)
-characterize_foreground: Foreground only""") # compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
-    # foreground_n = fields.IntegerField("Foreground_n", [validate_integer], default=10, description="""Foreground_n is an integer, defines the number of sample of the foreground.""")
-    # background_n = fields.IntegerField("Background_n", [validate_integer], default=10, description="""Background_n is an integer, defines the number of sample of the background.""")
-#     abcorr = fields.BooleanField("Abundance correction",
-#                                  default = "checked",
-#                                  description="""Apply the abundance correction as described in the background. A column named "background_intensity" (background intensity)
-# that corresponds to the column "population_an" (background accession number) needs to be provided, when selecting this option.
-# If "Abundance correction" is deselected "background_intensity" can be omitted.""")
+characterize_foreground: Foreground only""")
     go_slim_or_basic = fields.SelectField("GO basic or a slim subset",
-                                          choices = (("basic", "no subset"),
+                                          choices = ((None, "no subset"),
                                                      ("generic", "Generic GO slim by GO Consortium"),
                                                      ("agr", "Alliance of Genomes Resources (AGR)"),
                                                      ("aspergillus", "Aspergillus Genome Data"),
@@ -678,25 +650,16 @@ characterize_foreground: Foreground only""") # compare_groups: Foreground(replic
                                                      ("synapse", "Synapse GO slim SynGO"),
                                                      ("yeast", "Yeast subset Saccharomyces Genome Database")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
-    # indent = fields.BooleanField("prepend level of hierarchy by dots",
-    #                              default="checked",
-    #                              description="Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204'")
-    # multitest_method = fields.SelectField(
-    #     "Method for correction of multiple testing",
-    #     choices = (("benjamini_hochberg", "Benjamini Hochberg"),
-    #                ("sidak", "Sidak"), ("holm", "Holm"),
-    #                ("bonferroni", "Bonferroni")),
-    #     description="""Select a method for multiple testing correction.""")
-    # alpha = fields.FloatField("Alpha", [validate_float_larger_zero_smaller_one],
-    #                           default = 0.05, description="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""")
-    o_or_u_or_both = fields.SelectField("over- or under-represented or both", choices = (("overrepresented", "overrepresented"), ("underrepresented", "underrepresented"), ("both", "both")), description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
-    num_bins = fields.IntegerField("Number of bins", [validate_integer], default = 100, description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
-    fold_enrichment_for2background = fields.FloatField("fold enrichment foreground/background", [validate_number], default = 0, description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
-    p_value_uncorrected = fields.FloatField("p-value threshold", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum threshold value of uncorrected p-value".""")
+    o_or_u_or_both = fields.SelectField("Over-, under-represented or both", choices = (("overrepresented", "overrepresented"), ("underrepresented", "underrepresented"), ("both", "both")), description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
+    # num_bins = fields.IntegerField("Number of bins", [validate_integer], default = 100, description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
+    # fold_enrichment_for2background = fields.FloatField("fold enrichment foreground/background", [validate_number], default = 0, description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
+    p_value_cutoff = fields.FloatField("p-value threshold", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum threshold value of uncorrected p-value".""")
     FDR_cutoff = fields.FloatField("FDR_cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p-values) threshold value (0 meaning no cutoff)""")
     filter_foreground_count_one = fields.BooleanField("Filter foreground count one", default="checked", description="Remove all functional terms if they have only a single protein association in the foreground (default=checked)")
     filter_parents = fields.BooleanField("Filter redundant parent terms", default="checked", description="Retain the most specific (deepest hierarchical level) and remove all parent terms if they share the exact same foreground proteins (default=checked)")
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
+    multiple_testing_per_etype = fields.BooleanField("Multiple testing per entity type", default=True, description="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results (default=True).")
+
 
 @app.route('/')
 def enrichment():
@@ -706,8 +669,7 @@ def enrichment():
 # results.html
 ################################################################################
 class Results_Form(wtforms.Form):
-    inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor],
-                                         default = 2.0, description="""Enter a number higher than 1.
+    inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor], default = 2.0, description="""Enter a number higher than 1.
 Usually a number between 1.1 and 10 is chosen.
 Increasing the value will increase cluster granularity (produce more clusters).
 Certain combinations of data and inflation factor can take very long to process. Please be patient.""")
@@ -720,90 +682,62 @@ def results():
     results_filtered: reduced version of results
     """
     form = Enrichment_Form(request.form)
-    if request.method == 'POST': # ToDo uncomment and debug  # and form.validate():
+    if request.method == 'POST':
         try:
             input_fs = request.files['userinput_file']
         except:
             input_fs = None
 
+        args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "fold_enrichment_for2background": form.fold_enrichment_for2background.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "tsv", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data}
+        args_dict = translate_NoneStr_2_None(args_dict)
+        args_dict = clean_args_dict(args_dict)
+        print("#" * 25)
+        print(args_dict)
+        print("#" * 25)
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
-            num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data) # foreground_n=form.foreground_n.data, background_n=form.background_n.data
-
+            num_bins=form.num_bins.data, decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data
         if ui.check:
-            # if limit_2_entity_type is not None:
-            # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}n\
-o_or_u_or_both: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\n\
-p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
-                form.limit_2_entity_type.data,
-                form.go_slim_or_basic.data,
-                form.o_or_u_or_both.data,
-                form.num_bins.data,
-                form.fold_enrichment_for2background.data,
-                form.p_value_uncorrected.data,
-                form.FDR_cutoff.data,
-                form.enrichment_method.data)
-
-            if not app.debug: # temp  remove line and
-                log_activity(string2log) # remove indentation
-
-            if variables.VERSION_ == "UniProt":
-                args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data,
-                             "go_slim_subset": form.go_slim_or_basic.data,
-                             "p_value_uncorrected": form.p_value_uncorrected.data,
-                             "FDR_cutoff": form.FDR_cutoff.data,
-                             "o_or_u_or_both": form.o_or_u_or_both.data,
-                             "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
-                             "filter_PMID_top_n": 100,
-                             "filter_foreground_count_one": form.filter_foreground_count_one.data,
-                             "filter_parents": form.filter_parents.data,
-                             "taxid": form.taxid.data}
-                results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict)
-            elif variables.VERSION_ == "STRING":
-                output_format = "tsv"
-                results_all_function_types = run.run_STRING_enrichment(pqo, ui,
-                    enrichment_method=form.enrichment_method.data,
-                    limit_2_entity_type=form.limit_2_entity_type.data,
-                    go_slim_or_basic=form.go_slim_or_basic.data,
-                    indent=form.indent.data,
-                    multitest_method=form.multitest_method.data,
-                    alpha=form.alpha.data,
-                    o_or_u_or_both=form.o_or_u_or_both.data,
-                    fold_enrichment_for2background=form.fold_enrichment_for2background.data,
-                    p_value_uncorrected=form.p_value_uncorrected.data,
-                    FDR_cutoff=form.FDR_cutoff.data,
-                    output_format=output_format)
-            else:
-                raise NotImplementedError
-
+            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\no_or_u_or_both: {}\nnum_bins: {}\nfold_enrichment_foreground_2_background: {}\np_value_cutoff: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.o_or_u_or_both.data, form.num_bins.data, form.fold_enrichment_for2background.data, form.p_value_cutoff.data, form.FDR_cutoff.data, form.enrichment_method.data)
+            if not app.debug:
+                log_activity(string2log)
+            # results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
+            results_all_function_types = pd.read_csv(variables.fn_example)
         else:
-            return render_template('info_check_input.html')
-        # print("_"*50)
-        # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
-        # print("form.limit_2_entity_type.data", type(limit_2_entity_type), limit_2_entity_type)
-        # print("#%$^")
-        # print(form.values)
-        # print("_"*50)
-        if len(results_all_function_types) == 0:
+            print("#" * 25)
+            print(args_dict)
+            print("#" * 25)
+            return render_template('info_check_input.html', args_dict=args_dict)
+        if type(results_all_function_types) == bool:
+            print("#" * 25)
+            print(args_dict)
+            print("#" * 25)
+            return render_template('info_check_input.html', args_dict=args_dict)
+        elif len(results_all_function_types) == 0:
+            print("#" * 25)
+            print(args_dict)
+            print("#" * 25)
             return render_template('results_zero.html')
-        elif len(results_all_function_types.keys()) == 1:
+        else:
             # entity_type = next(iter(limit_2_entity_type)) # single element in set
-            return generate_result_page(results_all_function_types[entity_type], limit_2_entity_type,
-                form.indent.data, generate_session_id(), form=Results_Form())
-        elif len(results_all_function_types.keys()) > 1:
+            # return generate_result_page(results_all_function_types[entity_type], limit_2_entity_type, form.indent.data, generate_session_id(), form=Results_Form())
+            print("#" * 25)
+            print(args_dict)
+            print("#" * 25)
+            return generate_result_page(results_all_function_types, args_dict["limit_2_entity_type"], generate_session_id(), form=Results_Form())
+        # elif len(results_all_function_types.keys()) > 1:
             # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
             # print("form.limit_2_entity_type.data", type(form.limit_2_entity_type.data), form.limit_2_entity_type.data)
             # ToDo create multiple results display method a la clustered results
-            entity_type = int(form.limit_2_entity_type.data.split(";")[0]) # REPLACE WITH PROPER METHOD later, picked first entry as placeholder
-            return generate_result_page(results_all_function_types[entity_type], entity_type,
-                form.indent.data, generate_session_id(), form=Results_Form())
-        else:
-            raise NotImplementedError
+            # entity_type = int(form.limit_2_entity_type.data.split(";")[0]) # REPLACE WITH PROPER METHOD later, picked first entry as placeholder
+            # return generate_result_page(results_all_function_types[entity_type], entity_type,
+            #     form.indent.data, generate_session_id(), form=Results_Form())
+        # else:
+        #     raise NotImplementedError
     return render_template('enrichment.html', form=form)
 
-def generate_result_page(tsv, entity_type, indent, session_id, form, errors=()):
+def generate_result_page(tsv, entity_type, session_id, form, errors=()): # indent
     # header = header.rstrip().split("\t")
     # if len(results_all_function_types) == 1:
     #     df = results_all_function_types
@@ -831,8 +765,7 @@ def generate_result_page(tsv, entity_type, indent, session_id, form, errors=()):
         fh.write(tsv)
     return render_template('results.html', header=header, results=results_2_display, errors=errors,
                            file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
-                           limit_2_entity_type=str(entity_type), indent=indent,
-                           session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
+                           limit_2_entity_type=str(entity_type), session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
 
 ################################################################################
 # results_back.html
@@ -900,7 +833,7 @@ def results_clustered():
     session_id = request.form['session_id']
     limit_2_entity_type = request.form['limit_2_entity_type']
     # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
-    indent = request.form['indent']
+    # indent = request.form['indent']
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
     if not form.validate():

@@ -1549,7 +1549,8 @@ def get_goslimtype_2_cond_dict():
 
 
 if __name__ == "__main__":
-    pqo = PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
+    pass
+    # pqo = PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
     # get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False)
     # get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None)
 

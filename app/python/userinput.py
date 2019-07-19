@@ -42,9 +42,10 @@ class Userinput:
         self.enrichment_method = enrichment_method
         self.foreground_n = foreground_n
         self.background_n = background_n
-        self.args_dict = args_dict
+        self.args_dict = clean_args_dict(args_dict)
+        self.args_dict = o_or_u_or_both_to_number(self.args_dict)
         self.check = False
-        print("@" * 80)
+        # print("@" * 80)
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
             self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
@@ -52,12 +53,12 @@ class Userinput:
             self.check_cleanup = False
         if self.check_parse and self.check_cleanup:
             self.check = True
-        try:
-            print(self.df_orig.head())
-            print(self.foreground.head())
-        except:
-            pass
-        print("@" * 80)
+        # try:
+        #     print(self.df_orig.head())
+        #     print(self.foreground.head())
+        # except:
+        #     pass
+        # print("@" * 80)
 
     def parse_input(self):
         if self.enrichment_method not in variables.enrichment_methods:
@@ -65,13 +66,15 @@ class Userinput:
             return False, False, False
         # if not variables.DEBUG:  # ToDo remove this exact line and dedent code block below
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
+            # if self.args_dict["taxid"] is None:
+            #     return False, False, False
             if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count:
                 self.args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
                 return False, False, False
-
-        if len(self.foreground_string) > 0: # use copy & paste field
+        is_copypaste = self.check_if_copy_and_paste()
+        if is_copypaste: # copy&paste field
             self.fn = StringIO()
-            print(">" * 12 + "  using copy&paste field")
+            # print(">" * 12 + "  using copy&paste field")
             self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), self.col_foreground)
             if self.enrichment_method != "characterize_foreground":
                 self.background_string = self.remove_header_if_present(self.background_string.replace("\r\n", "\n"), self.col_background)
@@ -94,13 +97,22 @@ class Userinput:
             else:
                 self.fn.write(self.foreground_string)
             self.fn.seek(0)
-        else: # use file
-            print(">" * 12 + "  using file")
+        # else: # use file
+            # print(">" * 12 + "  using file")
         try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
         except:
             return False, False, False
         return df_orig, decimal, check_parse
+
+    def check_if_copy_and_paste(self):
+        try:
+            if len(self.foreground_string) > 0:  # use copy & paste field
+                return True
+            else:
+                return False
+        except TypeError: # NoneType (not None)
+            return False
 
     def cleanupforanalysis(self, df, col_foreground, col_background, col_intensity):
         check_cleanup = True
@@ -189,9 +201,9 @@ class Userinput:
 
     def translate_primary_back_to_secondary(self, df):
         if len(self.Secondary_2_Primary_IDs_dict_fg) > 0:
-            df["foreground_ids"] = df["foreground_ids"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, True))
+            df["FG_IDs"] = df["FG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, True))
         if self.enrichment_method == "compare_samples" and len(self.Secondary_2_Primary_IDs_dict_bg) > 0:
-            df["background_ids"] = df["background_ids"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
+            df["BG_IDs"] = df["BG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
         return df
 
     def cleanupforanalysis_rank_enrichment(self, df, col_population, col_abundance_ratio):
@@ -652,6 +664,60 @@ def stringify_for_Userinput(list_of_proteins, list_of_abundances=None):
         for an, inte in zip(list_of_proteins, list_of_abundances):
             string_2_return += an + "\t" + str(inte) + "\n"
         return string_2_return.strip()
+
+def o_or_u_or_both_to_number(args_dict):
+    if args_dict["o_or_u_or_both"] == "overrepresented":
+        o_or_u_or_both = 1
+    elif args_dict["o_or_u_or_both"] == "both":
+        o_or_u_or_both = 0
+    elif args_dict["o_or_u_or_both"] == "underrepresented":
+        o_or_u_or_both = 2
+    else:
+        args_dict["ERROR o_or_u_or_both"] = "You've provided '{}' which is not a valid option. Please use 'overrepreseted', 'underrepresented', or 'both'.".format(args_dict["o_or_u_or_both"])
+        o_or_u_or_both = -1
+    args_dict["o_or_u_or_both_encoding"] = o_or_u_or_both
+    return args_dict
+
+def clean_args_dict(args_dict):
+    dict_2_return = defaultdict(lambda: None)
+
+    # # args_dict["privileged"] = string_2_bool(args_dict["privileged"])
+    #         # args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
+    #         # args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
+    #         # args_dict = clean_args_dict(args_dict)
+
+    for key, val in args_dict.items():
+        if type(val) == str:
+            dict_2_return[key] = string_2_properType(val)
+        else:
+            dict_2_return[key] = val
+    dict_2_return["FDR_cutoff"] = zero_one_or_None_to_1(dict_2_return["FDR_cutoff"])
+    dict_2_return["p_value_cutoff"] = zero_one_or_None_to_1(dict_2_return["p_value_cutoff"])
+    if args_dict["filter_PMID_top_n"] == 0:
+        dict_2_return["filter_PMID_top_n"] = None
+    if args_dict["go_slim_subset"] == "basic":
+        dict_2_return["go_slim_subset"] = None
+    return dict_2_return
+
+def zero_one_or_None_to_1(FDR_cutoff):
+    if FDR_cutoff is None:
+        return 1
+    elif FDR_cutoff == 0 or FDR_cutoff >= 1:
+        return 1
+    else:
+        return FDR_cutoff
+
+def string_2_properType(string_):
+    string_ = string_.strip().lower()
+    if string_.lower() == "true" or string_ == "1":
+        return True
+    elif string_.lower() == "false" or string_ == "0":
+        return False
+    elif string_.lower() == "none":
+        return None
+    else:
+        return string_
+
 
 if __name__ == "__main__":
     # # fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'

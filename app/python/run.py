@@ -9,21 +9,34 @@ import tools, variables
 # from profilehooks import profile
 
 def run_UniProt_enrichment(pqo, ui, args_dict):
-    # print("bubu was here")
-    # print("@ run.py module Userinput comlete\n")
-    # print(ui.df_orig.head())
-    # print(ui.foreground.head())
-
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
     preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis(method=ui.enrichment_method)
-    df_2_return = run_cythonized.run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=variables.LOW_MEMORY)
-    if df_2_return.shape[0] == 0:
-        args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+    print("#"*10 + "run_UniProt_enrichment")
+    print(args_dict)
+    if args_dict["enrichment_method"] == "characterize_foreground":
+        df_2_return = run_cythonized.run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=variables.LOW_MEMORY)
+    else:
+        df_2_return = run_cythonized.run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=variables.LOW_MEMORY)
+    # print("run.py " * 5)
+    # print(type(df_2_return), df_2_return)
+    # print("run.py " * 5)
+    print("#" * 10)
+    if type(df_2_return) == dict: # args_dict returned since
+        # e.g. enrichment_method "genome" using different taxon for foreground than background
+        return False # display "info_check_input.html"
+    elif type(df_2_return) == pd.core.frame.DataFrame:
+        if df_2_return.shape[0] == 0:
+            args_dict["ERROR empty results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
+            return df_2_return
+        else:
+            output_format = args_dict["output_format"]
+            return format_results(df_2_return, output_format, args_dict)
+    else:
+        print("run.py " * 5)
+        print("NO IDEA WHY THIS HAPPENED")
+        print(type(df_2_return), df_2_return)
+        print("run.py " * 5)
         return False
-    output_format = args_dict["output_format"]
-    return format_results(df_2_return, output_format, args_dict)
-
-
 
 def run_STRING_enrichment(pqo, ui, args_dict):
     enrichment_method = args_dict["enrichment_method"]
@@ -78,10 +91,6 @@ def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
             args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
             return False
     return format_results(df_2_return, args_dict["output_format"], args_dict)
-
-def run_abundance_correction(pqo, ui, args_dict):
-    pass
-
 
 def filter_and_sort_PMID(df, PMID_top_100=True):
     ### remove blacklisted terms --> duplicate to cluster_filter.filter_parents_if_same_foreground_v2

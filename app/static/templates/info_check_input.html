@@ -22,6 +22,12 @@
     Look at the <a href="{{ url_for('example') }}">example</a> data/page for comparison.
     <br>
     <h3>Please try again!</h3>
+    <br><br>
+    <h2>Parameters and ERROR MESSAGES</h2>
+    <h4>The parameters include default parameters. Please have a look at the error messages, which hopefully indicate what needs to be changed to successfully run the analysis.</h4>
+    {% for key, value in args_dict.items() %}
+        <li>{{ key }}: {{ value }}</li>
+    {% endfor %}
 
 </div>
 	

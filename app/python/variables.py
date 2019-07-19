@@ -2,7 +2,7 @@ import os, multiprocessing, sys
 import numpy as np
 ############################
 ### settings
-PRELOAD = True # set True in production
+PRELOAD = False # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
@@ -24,6 +24,7 @@ VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the pro
 temp_dont_run_analysis = False
 # if READ_FROM_FLAT_FILES and LOW_MEMORY:
 #     raise NotImplementedError
+fn_example = ""
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # ToDo SMART is missing in UniProt version
 alpha = 0.05

@@ -1,15 +1,22 @@
-DROP TABLE IF EXISTS functions, go_2_slim, ogs, og_2_function, ontologies, protein_2_function, protein_secondary_2_primary_an, protein_2_og;
+DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum, taxid_2_functioncountarray, functions, taxid_2_protein, protein_2_functionenum_and_score, lineage;
 
+
+ALTER TABLE secondary_2_primary_id_temp RENAME TO secondary_2_primary_id;
+ALTER TABLE protein_2_functionenum_temp RENAME TO protein_2_functionenum;
+ALTER TABLE taxid_2_functioncountarray_temp RENAME TO taxid_2_functioncountarray;
 ALTER TABLE functions_temp RENAME TO functions;
-ALTER TABLE go_2_slim_temp RENAME TO go_2_slim;
-ALTER TABLE ogs_temp RENAME TO ogs;
-ALTER TABLE og_2_function_temp RENAME TO og_2_function;
-ALTER TABLE ontologies_temp RENAME TO ontologies;
-ALTER TABLE protein_2_function_temp RENAME TO protein_2_function;
-ALTER TABLE protein_secondary_2_primary_an_temp RENAME TO protein_secondary_2_primary_an;
-ALTER TABLE protein_2_og_temp RENAME TO protein_2_og;
+ALTER TABLE taxid_2_protein_temp RENAME TO taxid_2_protein;
+ALTER TABLE protein_2_functionenum_and_score_temp RENAME TO protein_2_functionenum_and_score;
+ALTER TABLE lineage_temp RENAME TO lineage;
 
-ALTER INDEX ogs_og_idx_temp RENAME TO ogs_og_idx;
-ALTER INDEX og_2_function_og_idx_temp RENAME TO og_2_function_og_idx;
-ALTER INDEX protein_2_function_an_idx_temp RENAME TO protein_2_function_an_idx;
-ALTER INDEX protein_2_og_an_idx_temp RENAME TO protein_2_og_an_idx;
+ALTER INDEX secondary_2_primary_id_sec_idx_temp RENAME TO secondary_2_primary_id_sec_idx;
+ALTER INDEX secondary_2_primary_id_taxid_idx_temp RENAME TO secondary_2_primary_id_taxid_idx;
+ALTER INDEX protein_2_functionenum_taxid_idx_temp RENAME TO protein_2_functionenum_taxid_idx;
+ALTER INDEX protein_2_functionenum_id_idx_temp RENAME TO protein_2_functionenum_id_idx;
+ALTER INDEX taxid_2_functioncountarray_taxid_idx_temp RENAME TO taxid_2_functioncountarray_taxid_idx;
+ALTER INDEX functions_enum_idx_temp RENAME TO functions_enum_idx;
+ALTER INDEX functions_an_idx_temp RENAME TO functions_an_idx;
+ALTER INDEX functions_etype_an_idx_temp RENAME TO functions_etype_an_idx;
+ALTER INDEX taxid_2_protein_taxid_idx_temp RENAME TO taxid_2_protein_taxid_idx;
+ALTER INDEX protein_2_functionenum_and_score_taxid_idx_temp RENAME TO protein_2_functionenum_and_score_taxid_idx;
+ALTER INDEX protein_2_functionenum_and_score_uniprotid_idx_temp RENAME TO protein_2_functionenum_and_score_uniprotid_idx;

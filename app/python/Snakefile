@@ -136,6 +136,7 @@ DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_
 KEGG_Taxid_2_acronym_table_UPS_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
 Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
 Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
+Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
 
 URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
 interpro_AN_2_name = os.path.join(DOWNLOADS_DIR, "interpro_AN_2_name.txt") # InterPro_name_2_AN
@@ -584,15 +585,16 @@ rule Protein_2_Function_table_UPS:
     run:
         cst.Protein_2_Function_table_UPS(input.fn_list_str, output.Protein_2_Function_table_UPS, threads)
 
-rule Protein_2_FunctionEnum_table_UPS_FIN: # TODO add JensenlabScore data for foreground_
+rule Protein_2_FunctionEnum_table_UPS_FIN:
     input:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS
     output:
-        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN
+        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN,
+        Protein_2_FunctionEnum_table_UPS_removed = Protein_2_FunctionEnum_table_UPS_removed
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_FunctionEnum_table_UPS_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, threads)
+        cst.Protein_2_FunctionEnum_table_UPS_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, output.Protein_2_FunctionEnum_table_UPS_removed, threads)
 
 rule Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
     input:
@@ -618,7 +620,7 @@ rule Functions_table_UPS_FIN:
     run:
         cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
-rule Create_goslimtype_2_cond_arrays:
+rule Create_goslimtype_2_cond_arrays: # ToDo make sure executed to be executed AFTER Functions_table_UPS_FIN
     input:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         goslim_subsets_file = goslim_subsets_file
@@ -718,31 +720,24 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - Damian mapping of ENSP to UniProtAC --> Secondary_2_Primary_ID_UPS_FIN to make one to one mapping of ENSP to UniProtIDs
 # - add Protein_2_FunctionEnum_table_UPS_FIN.txt to DB and connect via pqo --> preload background proteome for most common taxa
 
-##### plant annotation for human genes???
-# map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
-# ToDo foreground_input = ['9606.ENSP00000418960', '9606.ENSP00000369497', '9606.ENSP00000391669', '9606.ENSP00000439689', '9606.ENSP00000359264', '9606.ENSP00000354432', '9606.ENSP00000364209', '9606.ENSP00000261520', '9606.ENSP00000453153', '9606.ENSP00000265036', '9606.ENSP00000291527', '9606.ENSP00000302578', '9606.ENSP00000308606', '9606.ENSP00000396052', '9606.ENSP00000216807', '9606.ENSP00000354718', '9606.ENSP00000436773', '9606.ENSP00000347924', '9606.ENSP00000237612']
-# reanalyze and check for map04016 to disappear
-# map04016	-1	1.082258e-03	1.717505e-02	KEGG (Kyoto Encyclopedia of Genes and Genomes)	-52	MAPK signaling pathway - plant	2	52	BRCA1_HUMAN;BRCA2_HUMAN	-1	0.102781	-0.161834	1.0
-
 ### TODO:
-# - overrepresented / underrepresented / both option
+# - check filter options all work properly
+# - UI multiple tables
 # - rerun whole pipeline
+# - offer to BH correct all categories together
+# - ToDo fix API and adapt to Damian STRING API
 # - CRON job
 # - create DB --> temp tables and drop_and_rename
 # - Damian and Christian email about ENSPs in UniProt which are not in STRING v11
 # - preload most commong model organisms even for low memory
+# - profile code
+# - use Christian's C code for KS test
 # examples for Lars for missing PMID descriptions
 # https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
 # Metaanalysis of true user data inputs
 #  - compare GO with GOCC: intersection and complement of terms in numbers, correlation of p-value and effect size
 # ? What to report for abundance_correction of KS test? ratio_in_foreground	ratio_in_background	foreground_count	foreground_n	background_count	background_n
 
-
-# snakemake -n -j 24 -R ENSP_2_UniProt_all Protein_2_Function_table_KEGG_UPS Protein_2_Function_table_UPS Function_2_Protein_table_UPS Functions_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN STRING_2_UniProt_mapping_discrepancies Secondary_2_Primary_ID_UPS_FIN Protein_2_FunctionEnum_and_Score_table_UPS_FIN ENSP_2_UniProtID_without_translation Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN Lineage_table_UPS_FIN Functions_table_all
-
-# Create_goslimtype_2_cond_arrays Protein_2_FunctionEnum_and_Score_table_UPS_FIN Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN Secondary_2_Primary_ID_UPS_FIN STRING_2_UniProt_mapping_discrepancies
-
-# Finish running pycharm
-# - run Protein_2_FunctionEnum_and_Score_table_UPS_FIN
-# - populate DB
-# - profile code for startup times
+# bugfix:
+# - why does it make a difference if I use the same foreground and background and all filters off. compare_samples vs. genome???
+# - why can't i see PMIDs even if filter_fg_count_one is off

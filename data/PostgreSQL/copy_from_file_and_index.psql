@@ -1,90 +1,69 @@
--- DROP TABLE IF EXISTS secondary_2_primary_id;
--- DROP INDEX IF EXISTS secondary_2_primary_id_sec_idx, secondary_2_primary_id_taxid_idx;
--- CREATE TABLE secondary_2_primary_id (
---    taxid integer,
---    sec text,
---    prim text);
--- \copy secondary_2_primary_id FROM 'data/PostgreSQL/tables/Secondary_2_Primary_ID_UPS_FIN.txt';
--- CREATE INDEX secondary_2_primary_id_sec_idx ON secondary_2_primary_id (sec);
--- CREATE INDEX secondary_2_primary_id_taxid_idx ON secondary_2_primary_id (taxid);
--- CLUSTER secondary_2_primary_id USING secondary_2_primary_id_taxid_idx;
---
---
--- DROP TABLE IF EXISTS protein_2_functionenum;
--- DROP INDEX IF EXISTS protein_2_functionenum_taxid_idx, protein_2_functionenum_id_idx;
--- CREATE TABLE protein_2_functionenum (
---     taxid integer,
---     id text,
---     functionenum integer ARRAY);
--- \copy protein_2_functionenum FROM 'data/PostgreSQL/tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
--- CREATE INDEX protein_2_functionenum_taxid_idx ON protein_2_functionenum (taxid);
--- CREATE INDEX protein_2_functionenum_id_idx ON protein_2_functionenum (id);
--- CLUSTER protein_2_functionenum USING protein_2_functionenum_taxid_idx;
+DROP TABLE IF EXISTS secondary_2_primary_id_temp, protein_2_functionenum_temp, taxid_2_functioncountarray_temp, functions_temp, taxid_2_protein_temp, protein_2_functionenum_and_score_temp, lineage_temp;
 
 
--- DROP TABLE IF EXISTS taxid_2_functioncountarray;
--- DROP INDEX IF EXISTS taxid_2_functioncountarray_taxid_idx;
--- CREATE TABLE taxid_2_functioncountarray (
---     taxid integer,
---     background_n integer,
---     background_index_positions_arr integer ARRAY,
---     background_count_arr integer ARRAY);
--- \copy taxid_2_functioncountarray FROM 'data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
--- CREATE INDEX taxid_2_functioncountarray_taxid_idx  ON taxid_2_functioncountarray (taxid);
+CREATE TABLE secondary_2_primary_id_temp (
+   taxid integer,
+   sec text,
+   prim text);
+\copy secondary_2_primary_id_temp FROM 'data/PostgreSQL/tables/Secondary_2_Primary_ID_UPS_FIN.txt';
+CREATE INDEX secondary_2_primary_id_sec_idx_temp ON secondary_2_primary_id_temp (sec);
+CREATE INDEX secondary_2_primary_id_taxid_idx_temp ON secondary_2_primary_id_temp (taxid);
+CLUSTER secondary_2_primary_id_temp USING secondary_2_primary_id_taxid_idx_temp;
 
 
--- DROP TABLE IF EXISTS functions;
--- DROP INDEX IF EXISTS functions_enum_idx, functions_an_idx, functions_etype_an_idx;
--- CREATE TABLE functions (
---     enum integer,
---     etype integer,
---     an text,
---     description text,
---     year text,
---     level integer);
--- \copy functions FROM 'data/PostgreSQL/tables/Functions_table_UPS_FIN.txt';
--- CREATE INDEX functions_enum_idx ON functions (enum);
--- CREATE INDEX functions_an_idx ON functions (an);
--- CREATE INDEX functions_etype_an_idx ON functions (etype, an);
--- CLUSTER functions USING functions_etype_an_idx;
+CREATE TABLE protein_2_functionenum_temp (
+    taxid integer,
+    id text,
+    functionenum integer ARRAY);
+\copy protein_2_functionenum_temp FROM 'data/PostgreSQL/tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
+CREATE INDEX protein_2_functionenum_taxid_idx_temp ON protein_2_functionenum_temp (taxid);
+CREATE INDEX protein_2_functionenum_id_idx_temp ON protein_2_functionenum_temp (id);
+CLUSTER protein_2_functionenum_temp USING protein_2_functionenum_taxid_idx_temp;
 
 
--- DROP TABLE IF EXISTS taxid_2_protein;
--- DROP INDEX IF EXISTS taxid_2_protein_taxid_idx;
--- CREATE TABLE taxid_2_protein (
---     taxid integer,
---     count integer,
---     an_array text ARRAY);
--- \copy taxid_2_protein FROM 'data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
--- CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
+CREATE TABLE taxid_2_functioncountarray_temp (
+    taxid integer,
+    background_n integer,
+    background_index_positions_arr integer ARRAY,
+    background_count_arr integer ARRAY);
+\copy taxid_2_functioncountarray_temp FROM 'data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
+CREATE INDEX taxid_2_functioncountarray_taxid_idx_temp ON taxid_2_functioncountarray_temp (taxid);
 
 
-
--- DROP TABLE IF EXISTS taxid_2_functioncountarray;
--- CREATE TABLE taxid_2_functioncountarray (
---     taxid integer,
---     background_n integer,
---     background_index_positions_arr integer ARRAY,
---     background_counts_arr integer ARRAY);
--- \copy taxid_2_functioncountarray FROM 'data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
--- CREATE INDEX taxid_2_functioncountarray_taxid_idx ON taxid_2_functioncountarray (taxid);
-
-
--- DROP TABLE IF EXISTS protein_2_functionenum_and_score;
--- CREATE TABLE protein_2_functionenum_and_score (
---     taxid integer,
---     uniprotid text,
---     funcenum_arr integer ARRAY,
---     score_arr float(32) ARRAY);
--- \copy protein_2_functionenum_and_score FROM 'data/PostgreSQL/tables/Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt';
--- CREATE INDEX protein_2_functionenum_and_score_taxid_idx ON protein_2_functionenum_and_score (taxid);
--- CREATE INDEX protein_2_functionenum_and_score_uniprotid_idx ON protein_2_functionenum_and_score (uniprotid);
--- CLUSTER protein_2_functionenum_and_score USING protein_2_functionenum_and_score_taxid_idx;
+CREATE TABLE functions_temp (
+    enum integer,
+    etype integer,
+    an text,
+    description text,
+    year text,
+    level integer);
+\copy functions FROM 'data/PostgreSQL/tables/Functions_table_UPS_FIN.txt';
+CREATE INDEX functions_enum_idx_temp ON functions_temp (enum);
+CREATE INDEX functions_an_idx_temp ON functions_temp (an);
+CREATE INDEX functions_etype_an_idx_temp ON functions_temp (etype, an);
+CLUSTER functions_temp USING functions_etype_an_idx_temp;
 
 
--- DROP TABLE IF EXISTS lineage;
--- CREATE TABLE lineage (
---     func_enum integer,
---     func_enum_array integer ARRAY);
--- \copy lineage FROM 'data/PostgreSQL/tables/Lineage_table_UPS_FIN.txt';
+CREATE TABLE taxid_2_protein_temp (
+    taxid integer,
+    count integer,
+    an_array text ARRAY);
+\copy taxid_2_protein_temp FROM 'data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
+CREATE INDEX taxid_2_protein_taxid_idx_temp ON taxid_2_protein_temp (taxid);
 
+
+CREATE TABLE protein_2_functionenum_and_score_temp (
+    taxid integer,
+    uniprotid text,
+    funcenum_arr integer ARRAY,
+    score_arr float(32) ARRAY);
+\copy protein_2_functionenum_and_score_temp FROM 'data/PostgreSQL/tables/Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt';
+CREATE INDEX protein_2_functionenum_and_score_taxid_idx_temp ON protein_2_functionenum_and_score_temp (taxid);
+CREATE INDEX protein_2_functionenum_and_score_uniprotid_idx_temp ON protein_2_functionenum_and_score_temp (uniprotid);
+CLUSTER protein_2_functionenum_and_score_temp USING protein_2_functionenum_and_score_taxid_idx_temp;
+
+
+CREATE TABLE lineage_temp (
+    func_enum integer,
+    func_enum_array integer ARRAY);
+\copy lineage_temp FROM 'data/PostgreSQL/tables/Lineage_table_UPS_FIN.txt';

@@ -662,7 +662,7 @@ def Protein_2_FunctionEnum_table_STS(fn_Functions_table_STRING, fn_in_Protein_2_
                 ENSP_last = ENSP
                 fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")  # etype is removed
 
-def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, number_of_processes=1):
+def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=1):
     """
     go from multiple lines per protein (one row per etype) to single line of functionEnumeration
     input
@@ -680,24 +680,36 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
     tools.sort_file(fn_in_Protein_2_function_table, fn_in_Protein_2_function_table, number_of_processes=number_of_processes)
     with open(fn_in_Protein_2_function_table, "r") as fh_in:
         with open(fn_out_Protein_2_functionEnum_table_FIN, "w") as fh_out:
-            taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
-            functionEnum_list = _helper_format_array(function_arr_str[1:-1].replace('"', "").split(","), function_2_enum_dict)
-            for line in fh_in:
-                taxid, UniProtID, function_arr_str, etype = line.split("\t")
-                function_list = function_arr_str[1:-1].replace('"', "").split(",")
-                if UniProtID == UniProtID_last:
-                    functionEnum_list += _helper_format_array(function_list, function_2_enum_dict)
+            with open(fn_out_Protein_2_FunctionEnum_table_UPS_removed, "w") as fh_out_removed:
+                taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
+                functionEnum_list = _helper_format_array(function_arr_str[1:-1].replace('"', "").split(","), function_2_enum_dict)
+                for line in fh_in:
+                    taxid, UniProtID, function_arr_str, etype = line.split("\t")
+                    function_list = function_arr_str[1:-1].replace('"', "").split(",")
+                    if UniProtID == UniProtID_last:
+                        functionEnum_list += _helper_format_array(function_list, function_2_enum_dict)
+                    else:
+                        if len(functionEnum_list) > 0:
+                            # remove duplicates
+                            functionEnum_list = list(set(functionEnum_list))
+                            fh_out.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
+                        else:
+                            functionEnum_list = list(set(functionEnum_list))
+                            fh_out_removed.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
+                        functionEnum_list = _helper_format_array(function_list, function_2_enum_dict)
+                    UniProtID_last = UniProtID
+                    taxid_last = taxid
+                # remove duplicates
+                # functionEnum_list = list(set(functionEnum_list))
+                # fh_out.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
+                if len(functionEnum_list) > 0:
+                    # remove duplicates
+                    functionEnum_list = list(set(functionEnum_list))
+                    fh_out.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
                 else:
-                    if len(functionEnum_list) > 0:
-                        # remove duplicates
-                        functionEnum_list = list(set(functionEnum_list))
-                        fh_out.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
-                    functionEnum_list = _helper_format_array(function_list, function_2_enum_dict)
-                UniProtID_last = UniProtID
-                taxid_last = taxid
-            # remove duplicates
-            functionEnum_list = list(set(functionEnum_list))
-            fh_out.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
+                    functionEnum_list = list(set(functionEnum_list))
+                    fh_out_removed.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
+
 
 def _helper_format_array(function_arr, function_2_enum_dict):
     functionEnum_list = []
@@ -3500,16 +3512,35 @@ def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_or
     translate GOterm function names to bool array
     """
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
-    GO_slim_subsets_file = variables.tables_dict["GO_slim_subsets_file"]
+    GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
+    files = []
     with open(GO_slim_subsets_file, "r") as fh_in:
-        for line in tqdm(fh_in):
+        for line in fh_in:
             fn_basename = line.strip()
             fn_absolute = os.path.join(variables.DOWNLOADS_DIR, fn_basename)
-            go_dag = obo_parser.GODag(obo_file=fn_absolute)
-            list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
-            np.save(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
+            files.append([fn_basename, fn_absolute])
+            # go_dag = obo_parser.GODag(obo_file=fn_absolute)
+            # list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
+            # np.save(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
+    for file_base_absolute in tqdm(files):
+        fn_basename, fn_absolute = file_base_absolute
+        go_dag = obo_parser.GODag(obo_file=fn_absolute)
+        list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
+        np.save(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
 
 if __name__ == "__main__":
+    import os, sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+    import variables
+
+    fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
+    fn_in_Protein_2_function_table = Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed_v2.txt") #variables.tables_dict["Protein_2_FunctionEnum_table"]
+    fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
+    Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
+
+    # pass
+    # create_goslimtype_2_cond_arrays("bubu", "abc")
     # create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM()
 
     ### dubugging start
