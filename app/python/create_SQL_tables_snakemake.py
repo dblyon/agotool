@@ -662,7 +662,7 @@ def Protein_2_FunctionEnum_table_STS(fn_Functions_table_STRING, fn_in_Protein_2_
                 ENSP_last = ENSP
                 fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")  # etype is removed
 
-def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=1):
+def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_Function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=1):
     """
     go from multiple lines per protein (one row per etype) to single line of functionEnumeration
     input
@@ -677,9 +677,9 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
     559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,...}
     """
     function_2_enum_dict, enum_2_function_dict = get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING)
-    ### tools.sort_file(fn_in_Protein_2_function_table, fn_in_Protein_2_function_table, number_of_processes=number_of_processes) # already sorted at creation
+    ### tools.sort_file(fn_in_Protein_2_Function_table, fn_in_Protein_2_Function_table, number_of_processes=number_of_processes) # already sorted at creation
     print("creating Protein_2_functionEnum_table_FIN")
-    with open(fn_in_Protein_2_function_table, "r") as fh_in:
+    with open(fn_in_Protein_2_Function_table, "r") as fh_in:
         with open(fn_out_Protein_2_functionEnum_table_FIN, "w") as fh_out:
             with open(fn_out_Protein_2_FunctionEnum_table_UPS_removed, "w") as fh_out_removed:
                 taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
@@ -718,9 +718,8 @@ def _helper_format_array(function_arr, function_2_enum_dict):
     for ele in function_arr:
         try:
             functionEnum_list.append(function_2_enum_dict[ele])
-        except KeyError: # e.g. blacklisted terms
-            # print("no translation for: {}".format(ele))
-            return []
+        except KeyError: # e.g. blacklisted terms, terms removed due to single occurrence per genome
+            pass
     return [int(ele) for ele in functionEnum_list]
 
 def Lineage_table_FIN(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_lineage_table_no_translation, fn_out_lineage_table_hr, GO_CC_textmining_additional_etype=False):
@@ -3535,22 +3534,22 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     import variables
 
-    Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
-    Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
-    Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
-    Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt")
-    fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
-                   Protein_2_Function_table_KEGG_UPS,
-                   Protein_2_Function_table_WikiPathways_UPS,
-                   Protein_2_Function_table_PMID_UPS]
-    fn_out_Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-    Protein_2_Function_table_UPS(fn_list_str, fn_out_Protein_2_Function_table_UPS, number_of_processes=10)
+    # Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
+    # Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
+    # Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
+    # Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt")
+    # fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
+    #                Protein_2_Function_table_KEGG_UPS,
+    #                Protein_2_Function_table_WikiPathways_UPS,
+    #                Protein_2_Function_table_PMID_UPS]
+    # fn_out_Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    # Protein_2_Function_table_UPS(fn_list_str, fn_out_Protein_2_Function_table_UPS, number_of_processes=10)
 
-    # fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
-    # fn_in_Protein_2_function_table = Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-    # fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_v2.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
-    # fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
-    # Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
+    fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
+    fn_in_Protein_2_function_table = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
+    fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
+    Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
 
 
 
