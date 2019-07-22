@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
+
 {% block head %}
 {% endblock head %}
+<br><br>
+{% block nav_DB_schema %}<br><br> <li class="nav-item active"> <a class="nav-link" href="{{ url_for('db_schema') }}">DB_schema<span class="sr-only">(current)</span></a></li> {% endblock %}
 
 {% block content %}
 {#<div class="container-fluid">#}

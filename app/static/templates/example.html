@@ -4,11 +4,14 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">
 {% endblock head %}
 
+{% block nav_Example %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('example') }}">Example<span class="sr-only">(current)</span></a></li> {% endblock %}
+
 {% block content %}
-    <script src="{{ url_for('static', filename='js/prism.js') }}"></script>
-<div class="container-fluid">
-    <h3>Example data</h3>
+    <div class="container-fluid">
+    <br><br>
+    <h2 class="row">Example data</h2>
     <br>
+    <script src="{{ url_for('static', filename='js/prism.js') }}"></script>
     Look at the
     <td><a href="{{ url_for('download_example_data', filename='ExampleData.txt') }}">example data</a> for comparison.</td>
     <p>please right click the download link to 'save link as'</p>

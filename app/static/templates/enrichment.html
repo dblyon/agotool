@@ -8,18 +8,32 @@
       </script>
 {% endblock head %}
 
+{% block nav_Enrichment %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment<span class="sr-only">(current)</span></a></li> {% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <form id="main_form" method="Post" action="results" enctype="multipart/form-data">
+    <br><br>
     <h2 class="row">ENRICHMENT</h2>
-
         <div class="row">
             <h3>Upload a file or copy & paste below</h3>
             <div class="col-md-10">
-                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
-                    {% if form.userinput_file.errors %}
-                    <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
-                    {% endif %}
+
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+                  </div>
+                  <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+                    <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+                  </div>
+                </div>
+
+{#                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>#}
+{#                    {% if form.userinput_file.errors %}#}
+{#                    <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>#}
+{#                    {% endif %}#}
+
                 <span>Expects a tab-delimited text-file (".txt" or ".tsv") with the following <b>3 column-headers:</b></span>
                     <li class="bulletpoints_li"><b>foreground</b>: UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>
                     <li class="bulletpoints_li"><b>background</b>: UniProt Accession Numbers (such as "P00359") for all proteins</li>
@@ -54,7 +68,7 @@
                   </div>
           </div>
         </div>
-        </div>
+{#        </div>#}
 
         <div class="row">
             <h3>Analysis options</h3>

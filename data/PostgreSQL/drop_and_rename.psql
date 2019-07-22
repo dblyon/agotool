@@ -1,22 +1,28 @@
-DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum, taxid_2_functioncountarray, functions, taxid_2_protein, protein_2_functionenum_and_score, lineage;
+-- DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum, taxid_2_functioncountarray, functions, taxid_2_protein, protein_2_functionenum_and_score, lineage;
+
+-- ALTER TABLE secondary_2_primary_id_temp RENAME TO secondary_2_primary_id;
+-- ALTER TABLE protein_2_functionenum_temp RENAME TO protein_2_functionenum;
+-- ALTER TABLE taxid_2_functioncountarray_temp RENAME TO taxid_2_functioncountarray;
+-- ALTER TABLE functions_temp RENAME TO functions;
+-- ALTER TABLE taxid_2_protein_temp RENAME TO taxid_2_protein;
+-- ALTER TABLE protein_2_functionenum_and_score_temp RENAME TO protein_2_functionenum_and_score;
+-- ALTER TABLE lineage_temp RENAME TO lineage;
+--
+-- ALTER INDEX secondary_2_primary_id_sec_idx_temp RENAME TO secondary_2_primary_id_sec_idx;
+-- ALTER INDEX secondary_2_primary_id_taxid_idx_temp RENAME TO secondary_2_primary_id_taxid_idx;
+-- ALTER INDEX protein_2_functionenum_taxid_idx_temp RENAME TO protein_2_functionenum_taxid_idx;
+-- ALTER INDEX protein_2_functionenum_id_idx_temp RENAME TO protein_2_functionenum_id_idx;
+-- ALTER INDEX taxid_2_functioncountarray_taxid_idx_temp RENAME TO taxid_2_functioncountarray_taxid_idx;
+-- ALTER INDEX functions_enum_idx_temp RENAME TO functions_enum_idx;
+-- ALTER INDEX functions_an_idx_temp RENAME TO functions_an_idx;
+-- ALTER INDEX functions_etype_an_idx_temp RENAME TO functions_etype_an_idx;
+-- ALTER INDEX taxid_2_protein_taxid_idx_temp RENAME TO taxid_2_protein_taxid_idx;
+-- ALTER INDEX protein_2_functionenum_and_score_taxid_idx_temp RENAME TO protein_2_functionenum_and_score_taxid_idx;
+-- ALTER INDEX protein_2_functionenum_and_score_uniprotid_idx_temp RENAME TO protein_2_functionenum_and_score_uniprotid_idx;
 
 
-ALTER TABLE secondary_2_primary_id_temp RENAME TO secondary_2_primary_id;
-ALTER TABLE protein_2_functionenum_temp RENAME TO protein_2_functionenum;
-ALTER TABLE taxid_2_functioncountarray_temp RENAME TO taxid_2_functioncountarray;
-ALTER TABLE functions_temp RENAME TO functions;
-ALTER TABLE taxid_2_protein_temp RENAME TO taxid_2_protein;
-ALTER TABLE protein_2_functionenum_and_score_temp RENAME TO protein_2_functionenum_and_score;
-ALTER TABLE lineage_temp RENAME TO lineage;
-
-ALTER INDEX secondary_2_primary_id_sec_idx_temp RENAME TO secondary_2_primary_id_sec_idx;
-ALTER INDEX secondary_2_primary_id_taxid_idx_temp RENAME TO secondary_2_primary_id_taxid_idx;
-ALTER INDEX protein_2_functionenum_taxid_idx_temp RENAME TO protein_2_functionenum_taxid_idx;
-ALTER INDEX protein_2_functionenum_id_idx_temp RENAME TO protein_2_functionenum_id_idx;
-ALTER INDEX taxid_2_functioncountarray_taxid_idx_temp RENAME TO taxid_2_functioncountarray_taxid_idx;
-ALTER INDEX functions_enum_idx_temp RENAME TO functions_enum_idx;
-ALTER INDEX functions_an_idx_temp RENAME TO functions_an_idx;
-ALTER INDEX functions_etype_an_idx_temp RENAME TO functions_etype_an_idx;
-ALTER INDEX taxid_2_protein_taxid_idx_temp RENAME TO taxid_2_protein_taxid_idx;
-ALTER INDEX protein_2_functionenum_and_score_taxid_idx_temp RENAME TO protein_2_functionenum_and_score_taxid_idx;
-ALTER INDEX protein_2_functionenum_and_score_uniprotid_idx_temp RENAME TO protein_2_functionenum_and_score_uniprotid_idx;
+-- DROP TABLE IF EXISTS functions;
+-- ALTER TABLE functions_temp RENAME TO functions;
+-- ALTER INDEX functions_enum_idx_temp RENAME TO functions_enum_idx;
+-- ALTER INDEX functions_an_idx_temp RENAME TO functions_an_idx;
+-- ALTER INDEX functions_etype_an_idx_temp RENAME TO functions_etype_an_idx;

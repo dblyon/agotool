@@ -30,12 +30,10 @@ entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57,
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
 entity_types_with_ontology = {-20, -21, -22, -23, -25, -26, -51, -57} # Interpro has ontology, but omitted here to turn off filter_parents functionality
-PMID = {-57}
+PMID = {-56}
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
-entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology
-entity_types_with_scores = {-20, -25, -26} # GO-CC,  BTO, DOID
-# searchspace_2_entityType_dict = {"STRING": -60,
-#                                  "UniProt": -61}
+entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # {-52, -53, -54, -55, -56, -58}
+entity_types_with_scores = {-20, -25, -26}  # GO-CC, BTO, DOID
 enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome"}
 
 

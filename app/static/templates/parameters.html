@@ -8,10 +8,12 @@
       </script>
 {% endblock head %}
 
+{% block nav_Parameters %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters<span class="sr-only">(current)</span></a></li> {% endblock %}
+
 {% block content %}
 
 <div class="container-fluid">
-
+<br><br>
 <h2 class="row">PARAMETERS</h2>
 <div class="row">
     <h3>Upload file</h3>

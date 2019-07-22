@@ -18,14 +18,6 @@ var enrichment_page = (function() {
     });
     $("#gocat_upk").change(); // fire event to hide stuff
 
-// // hide 'alpha' parameter if BH selected
-//     $('#multitest_method').change(function() {
-//         var multitest_method = $('#multitest_method').val();
-//         var choice = multitest_method == "benjamini_hochberg" || multitest_method == "bonferroni";
-//         toggle_if(choice, ".alpha", ".alpha_placeholder");
-//     });
-//     $("#multitest_method").change();
-
 // // show 'foreground_n and background_n boxes' if "compare_groups" selected
 //     $('#enrichment_method').change(function() {
 //         var enrichment_method = $('#enrichment_method').val();
@@ -42,26 +34,12 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
-
-// // hide 'GO basic or slim' and 'Backtracking parents GO-terms' parameter if 'UniProt keywords' are selected
-//     $('#gocat_upk').change(function() {
-//         var gocat_upk = $('#gocat_upk').val();
-//         var choice = gocat_upk == "UPK" || gocat_upk == "KEGG";
-//         toggle_if(choice, ".GO_basic_slim_backtracking", "");
-//     });
-//     $("#gocat_upk").change();
-
-// hide decimal delimiter and number of bins if abcorr deselected
-    $("#abcorr").change(function() {
-        var abcorr = $("#abcorr:checked").val();
-        var choice = abcorr != "y";
-        toggle_if(choice, ".number", ".number_placeholder");
+    $('.nav-item li').click(function(){
+        $('.nav-item li').removeClass('active');
+        $(this).addClass('active');
     });
-    $("#abcorr").change();
+
 });
-
-
-
 
 // show or hide selectors/tags depending on choice
 var toggle_if = function(choice, tag){
@@ -93,7 +71,6 @@ var results_page = (function () {
         function () {
             $(this).children().css("background-color", "");
         }
-
     );
 });
 
@@ -107,22 +84,3 @@ var submit_form = (function(form_id, action) {
     form.attr("action", action);
     form.submit();
 });
-
-
-
-//var function_name = (function () {
-//
-//});
-        //// hide organims
-        //if (choice) { // UPK selected
-        //    $('.go_term').hide();
-        //    $('.up_keyword').show();
-        //} else {
-        //    var selected = $('#organism').val();
-        //    var selected_cass = $('#organism option[value="' + selected + '"]').prop('class');
-        //    if (selected_cass == "up_keyword") {
-        //         $('#organism').val('');
-        //    }
-        //    $('.up_keyword').hide();
-        //    $('.go_term').show();
-        //}

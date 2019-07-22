@@ -510,9 +510,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
             print("getting preloaded objects per analysis")
-        self.reset_preloaded_objects_per_analysis(method="genome")
-        self.reset_preloaded_objects_per_analysis(method="characterize_foreground")
-        self.reset_preloaded_objects_per_analysis(method="compare_samples")
+        # self.reset_preloaded_objects_per_analysis(method="genome")
+        # self.reset_preloaded_objects_per_analysis(method="characterize_foreground")
+        # self.reset_preloaded_objects_per_analysis(method="compare_samples")
+        self.reset_preloaded_objects_per_analysis()
 
         if variables.VERBOSE:
             print("finished with PQO init")
@@ -532,27 +533,29 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     #     ### regenerate arrays
     #     self.reset_preloaded_objects_per_analysis(method)
 
-    def get_preloaded_objects_per_analysis(self, method="genome"):
-        self.reset_preloaded_objects_per_analysis(method)
-        if method == "genome":
-            return self.preloaded_objects_per_analysis_genome
-        elif method == "characterize_foreground":
-            return self.preloaded_objects_per_analysis_characterize_foreground
-        elif method == "compare_samples" or method == "abundance_correction":
-            return self.preloaded_objects_per_analysis_compare_samples
-        else:
-            return NotImplementedError
+    def get_preloaded_objects_per_analysis(self):
+        self.reset_preloaded_objects_per_analysis()
+        # if method == "genome":
+        #     return self.preloaded_objects_per_analysis_genome
+        # elif method == "characterize_foreground":
+        #     return self.preloaded_objects_per_analysis_characterize_foreground
+        # elif method == "compare_samples" or method == "abundance_correction":
+        #     return self.preloaded_objects_per_analysis_compare_samples
+        # else:
+        #     return NotImplementedError
+        return self.preloaded_objects_per_analysis
 
-    def reset_preloaded_objects_per_analysis(self, method="genome"):
-        if method == "genome":
-            self.preloaded_objects_per_analysis_genome = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="genome")
-        elif method == "characterize_foreground":
-            self.preloaded_objects_per_analysis_characterize_foreground = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="characterize_foreground")
-        elif method == "compare_samples" or method == "abundance_correction":
-            self.preloaded_objects_per_analysis_compare_samples = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="compare_samples")
-        else:
-            print(method, "not available")
-            raise NotImplementedError
+    def reset_preloaded_objects_per_analysis(self):
+        # if method == "genome":
+        #     self.preloaded_objects_per_analysis_genome = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="genome")
+        # elif method == "characterize_foreground":
+        #     self.preloaded_objects_per_analysis_characterize_foreground = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="characterize_foreground")
+        # elif method == "compare_samples" or method == "abundance_correction":
+        #     self.preloaded_objects_per_analysis_compare_samples = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="compare_samples")
+        # else:
+        #     print(method, "not available")
+        #     raise NotImplementedError
+        self.preloaded_objects_per_analysis = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len)
 
     def get_static_preloaded_objects(self, low_memory=False):
         if not low_memory:

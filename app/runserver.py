@@ -660,6 +660,11 @@ characterize_foreground: Foreground only""")
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form())
 
+@app.route('/temp')
+def temp():
+    return render_template('temp.html', form=Enrichment_Form())
+
+
 ################################################################################
 # results.html
 ################################################################################
@@ -682,11 +687,14 @@ def results():
             input_fs = request.files['userinput_file']
         except:
             input_fs = None
-
+        print("*" * 80)
+        print("input_fs {} {}".format(input_fs, type(input_fs)))
+        print("*" * 80)
         args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "tsv", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
         ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data num_bins=form.num_bins.data,
         ui.check = True
+        print(ui.df_orig)
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -696,7 +704,7 @@ def results():
             ### DEBUG start
             # results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
             df = pd.read_csv(variables.fn_example, sep="\t")
-            print(df.head())
+            # print(df.head())
             results_all_function_types = run.format_results(df, ui.args_dict["output_format"], args_dict)
             ### DEBUG stop
         else:
