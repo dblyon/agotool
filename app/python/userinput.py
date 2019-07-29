@@ -48,7 +48,11 @@ class Userinput:
         # print("@" * 80)
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
-            self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+            try:
+                self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+            except KeyError:
+                self.args_dict["ERROR Input"] = "Please check if your column headers are correct ('foreground', 'background', and optionally 'intensity')"
+                self.check_cleanup = False
         else:
             self.check_cleanup = False
         if self.check_parse and self.check_cleanup:

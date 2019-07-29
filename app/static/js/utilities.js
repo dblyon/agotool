@@ -8,8 +8,13 @@ var enrichment_page = (function() {
     $("#clear_button").click(function (event) {
         $('#foreground_textarea').val('');
         $('#background_textarea').val('');
-        $("#userinput_file").filestyle('clear');
+        // $("#userinput_file").filestyle('clear');
+        // $("#p_value_cutoff").value("0.01");
+        // $("#p_value_cutoff").val("0.01");
     });
+        // $("#enrichment_method").val("compare_samples");
+        // SelectElement("enrichment_method", "compare_samples");
+
 
     $('#gocat_upk').change(function() {
         var gocat_upk = $('#gocat_upk').val();
@@ -34,12 +39,16 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
-    $('.nav-item li').click(function(){
-        $('.nav-item li').removeClass('active');
-        $(this).addClass('active');
-    });
+    // $('.nav-item li').click(function(){
+    //     $('.nav-item li').removeClass('active');
+    //     $(this).addClass('active');
+    // });
+
+    // $(":file").filestyle({dragdrop: true});
 
 });
+
+
 
 // show or hide selectors/tags depending on choice
 var toggle_if = function(choice, tag){
@@ -52,35 +61,149 @@ var toggle_if = function(choice, tag){
 
 // RESTULS PAGE
 var results_page = (function () {
-// hide Filter button if "UPK" == "GOT"
-    var gocat_upk = $('input[name=gocat_upk]').val();
-    if (gocat_upk == "UPK" || gocat_upk == "KEGG") {
-        $('#submit_filter').parents(".row").hide();
+    // Hide table if number of number of rows == 0
+    var tables = document.getElementsByClassName('div_table_etype');
+    for (i=0; i< tables.length; i++) {
+        var table = tables[i];
+        var attr = table.getAttribute('data-value');
+        if (attr == 0) {
+            table.style.display = 'none';
+        }
     }
 
-    $('#table_id').DataTable({
-        paging: true
-    });
+    // $.fn.dataTable.render.ellipsis = function ( cutoff ) {
+    //     return function ( data, type, row ) {
+    //         return type === 'display' && data.length > cutoff ?
+    //             data.substr( 0, cutoff ) +'…' :
+    //             data;
+    //     }
+    // };
 
-    $("tbody > tr").hover(
-        // hover over
-        function () {
-            $(this).children().css("background-color", "#FFA500");
-        },
-        // hover out
-        function () {
-            $(this).children().css("background-color", "");
+    jQuery.fn.dataTable.render.ellipsis = function ( cutoff, wordbreak, escapeHtml ) {
+    var esc = function ( t ) {
+        return t
+            .replace( /&/g, '&amp;' )
+            .replace( /</g, '&lt;' )
+            .replace( />/g, '&gt;' )
+            .replace( /"/g, '&quot;' );
+    };
+
+    return function ( d, type, row ) {
+        // Order, search and type get the original data
+        if ( type !== 'display' ) {
+            return d;
         }
-    );
+
+        if ( typeof d !== 'number' && typeof d !== 'string' ) {
+            return d;
+        }
+
+        d = d.toString(); // cast numbers
+
+        if ( d.length <= cutoff ) {
+            return d;
+        }
+
+        var shortened = d.substr(0, cutoff-1);
+
+        // Find the last white space character in the string
+        if ( wordbreak ) {
+            shortened = shortened.replace(/\s([^\s]*)$/, '');
+        }
+
+        // Protect against uncontrolled HTML input
+        if ( escapeHtml ) {
+            shortened = esc( shortened );
+        }
+
+        return '<span class="ellipsis" title="'+esc(d)+'">'+shortened+'&#8230;</span>';
+    };
+};
+
+
+
+    // add classes to specific columns
+    $(document).ready(function() {
+        $('table.display').DataTable({
+            "columnDefs": [
+                { className: "dt-nowrap", "targets": [ 0 ] },
+                { className: "dt-noellipsis", "targets": [ 1 ] },
+                // { targets: [ 1 ] ,
+                //     render: function ( data, type, row ) {
+                //     data = $.fn.dataTable.render.ellipsis( 100 )( data, type, row );
+                //     return data;} },
+
+                // { targets: [ 0 ], "width": "10%"},
+                // { targets: [ 1 ], "width": "50%"},
+                // { targets: [ 2 ], "width": "10%"},
+                // { targets: [ 3 ], "width": "10%"},
+                // { targets: [ 4 ], "width": "10%"},
+                // { targets: [ 5 ], "width": "10%"},
+                // { targets: [ 5 ] ,
+                //     render: function ( data, type, row ) {
+                //     data = $.fn.dataTable.render.ellipsis( 40 )( data, type, row );
+                //     return data;} },
+                { targets: 1, render: $.fn.dataTable.render.ellipsis( 100, true ) },
+                { targets: 5, render: $.fn.dataTable.render.ellipsis( 40, false ) }],
+// https://datatables.net/plug-ins/dataRender/ellipsis
+            "autoWidth": false,
+            "columns": [
+                null,
+                { "width": "400px" },
+                // { "width": "10%" },
+                // { "width": "10%" },
+                // { "width": "10%" },
+                // { "width": "10%" }
+                null,
+                null,
+                null,
+                null
+          ]
+
+      } );
+    } );
+
+
+
+    // $('#table_etype').dataTable( {
+    //   "columnDefs": [
+    //     { "width": "80%", "targets": 0 }
+    //   ]
+    // } );
+//     var table = $('#display').DataTable({
+//     autoWidth: false,
+//     columns : [
+//         { width : '50px' },
+//         { width : '50px' },
+//         { width : '50px' },
+//         { width : '50px' },
+//         { width : '50px' },
+//         { width : '50px' }
+//     ]
+// });
+
+
+
 });
 
-var toggle_ellipsis = (function(element) {
-        $(element).toggleClass("ellipsis")
-});
 
+// var toggle_ellipsis = (function(element) {
+//         $(element).toggleClass("ellipsis")
+// });
 
 var submit_form = (function(form_id, action) {
     var form = $("#" + form_id);
     form.attr("action", action);
     form.submit();
 });
+
+//
+// function SelectElement(id, valueToSelect)
+// {
+//     var element = document.getElementById(id);
+//     element.value = valueToSelect;
+// }
+
+//// for debug purposes to see stuff in "console" when inspecting in browser
+// alert('WOW!');
+// console.log(tables);

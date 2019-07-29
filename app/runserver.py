@@ -7,6 +7,7 @@ import flask
 from flask import render_template, request, send_from_directory, jsonify
 from flask_restful import reqparse, Api, Resource
 from werkzeug.wrappers import Response
+from werkzeug.utils import secure_filename
 import wtforms
 from wtforms import fields
 import markdown
@@ -569,13 +570,13 @@ def read_results_file(fn):
 
 def elipsis(header):
     try:
-        ans_index = header.index("FG_IDs")#"ANs_foreground")
+        ans_index = header.index("FG_IDs") #"ANs_foreground")
     except ValueError:
-        ans_index = header.index("BG_IDs")#"ANs_background")
+        ans_index = header.index("BG_IDs") #"ANs_background")
         # let flask throw an internal server error
     try:
         description_index = header.index("description")
-        ellipsis_indices=(description_index, ans_index)
+        ellipsis_indices = (description_index, ans_index)
     except ValueError:
         ellipsis_indices = (ans_index,)
     return ellipsis_indices
@@ -590,7 +591,7 @@ def ellipsis_dbl(stringli, max_len=20):
 # enrichment.html
 ################################################################################
 class Enrichment_Form(wtforms.Form):
-    userinput_file = fields.FileField("Choose File",
+    userinput_file = fields.FileField('Drag & drop a file or click on "Choose File"',
                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
 
 'background': STRING identifiers (such as '511145.b1260') for all proteins
@@ -669,10 +670,11 @@ def temp():
 # results.html
 ################################################################################
 class Results_Form(wtforms.Form):
-    inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor], default = 2.0, description="""Enter a number higher than 1.
-Usually a number between 1.1 and 10 is chosen.
-Increasing the value will increase cluster granularity (produce more clusters).
-Certain combinations of data and inflation factor can take very long to process. Please be patient.""")
+#     inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor], default = 2.0, description="""Enter a number higher than 1.
+# Usually a number between 1.1 and 10 is chosen.
+# Increasing the value will increase cluster granularity (produce more clusters).
+# Certain combinations of data and inflation factor can take very long to process. Please be patient.""")
+    pass
 
 @app.route('/results', methods=["GET", "POST"])
 def results():
@@ -683,18 +685,22 @@ def results():
     """
     form = Enrichment_Form(request.form)
     if request.method == 'POST':
-        try:
-            input_fs = request.files['userinput_file']
-        except:
-            input_fs = None
-        print("*" * 80)
-        print("input_fs {} {}".format(input_fs, type(input_fs)))
-        print("*" * 80)
+        # try:
+        fileobject = request.files['userinput_file']
+        # except:
+        #     fileobject = None
+        # filename = secure_filename(fileobject.filename) # necessary if saving the file to disk
+        # print("*" * 80)
+        # print("fileobject{} {}".format(fileobject, type(fileobject)))
+        # filename = secure_filename(fileobject.filename)
+        # print("filename {} {}".format(filename, type(filename)))
+        # print("*" * 80)
         args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "tsv", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
-        ui = userinput.Userinput(pqo, fn=input_fs, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+        ui = userinput.Userinput(pqo, fn=fileobject, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data num_bins=form.num_bins.data,
+        # print(ui.df_orig.head())
+
         ui.check = True
-        print(ui.df_orig)
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -703,21 +709,22 @@ def results():
                 log_activity(string2log)
             ### DEBUG start
             # results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
-            df = pd.read_csv(variables.fn_example, sep="\t")
-            # print(df.head())
-            results_all_function_types = run.format_results(df, ui.args_dict["output_format"], args_dict)
+            df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            # df_all_etypes = df_all_etypes[df_all_etypes["FDR"] <= 0.05]
+            # print(df_all_etypes.head())
+            # df_all_etypes = run.format_results(df, ui.args_dict["output_format"], args_dict)
             ### DEBUG stop
         else:
             print("#" * 25)
             print(args_dict)
             print("#" * 25)
             return render_template('info_check_input.html', args_dict=args_dict)
-        if type(results_all_function_types) == bool:
+        if type(df_all_etypes) == bool:
             print("#" * 25)
             print(args_dict)
             print("#" * 25)
             return render_template('info_check_input.html', args_dict=args_dict)
-        elif len(results_all_function_types) == 0:
+        elif len(df_all_etypes) == 0:
             print("#" * 25)
             print(args_dict)
             print("#" * 25)
@@ -728,7 +735,8 @@ def results():
             print("#" * 25)
             print(args_dict)
             print("#" * 25)
-            return generate_result_page(results_all_function_types, args_dict["limit_2_entity_type"], generate_session_id(), form=Results_Form())
+            # return generate_result_page(results_all_function_types, args_dict["limit_2_entity_type"], generate_session_id(), form=Results_Form())
+            return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
         # elif len(results_all_function_types.keys()) > 1:
             # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
             # print("form.limit_2_entity_type.data", type(form.limit_2_entity_type.data), form.limit_2_entity_type.data)
@@ -740,7 +748,83 @@ def results():
         #     raise NotImplementedError
     return render_template('enrichment.html', form=form)
 
-def generate_result_page(tsv, entity_type, session_id, form, errors=()): # indent
+def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=()):
+    file_name = "results_orig" + session_id + ".tsv"
+    fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
+    # with open(fn_results_orig_absolute, 'w') as fh:
+    #     fh.write(tsv)
+    df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
+    df_all_etypes = df_all_etypes.sort_values(["etype", "rank"])
+
+    # etype_2_rowsCount_dict = df_all_etypes.groupby("etype")["term"].count().to_dict()
+    etype_2_rowsCount_dict, etype_2_df_as_html_dict = {}, {}
+    df_all_etypes = df_all_etypes.groupby("etype").head(25)
+    # args_dict["o_or_u_or_both"] = "both"
+    # print(args_dict["o_or_u_or_both"])
+    df_all_etypes = df_all_etypes[df_all_etypes["etype"] != -21]
+    print(df_all_etypes.groupby("etype")["term"].count())
+
+    ### add compact column "FG_count/FG_n BG_count/BG_n" in order to remove ["ratio_in_FG", "ratio_in_BG", "FG_count", "FG_n", "BG_count", "BG_n"] from display
+    if args_dict["enrichment_method"] in {"genome", "compare_samples", "abundance_correction"}:
+        df_all_etypes["FG_count/FG_n BG_count/BG_n"] = df_all_etypes[["FG_count", "FG_n", "BG_count", "BG_n"]].apply(compact_count_2_n_cols, axis=1)
+        cols = df_all_etypes.columns.to_list()[:-1]
+        df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n BG_count/BG_n"] + cols[cols.index("effectSize") + 1:]]
+    elif args_dict["enrichment_method"] == "characterize_foreground":
+        df_all_etypes["FG_count/FG_n"] = df_all_etypes[["FG_count", "FG_n"]].apply(compact_count_2_n_cols_FG, axis=1)
+        cols = df_all_etypes.columns.to_list()[:-1]
+        df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n"] + cols[cols.index("effectSize") + 1:]]
+    else:
+        pass
+
+    cols_2_hide = ["funcEnum", "etype", "rank", "category", "ratio_in_FG", "ratio_in_BG", "FG_count", "FG_n", "BG_count", "BG_n", "s_value", "BG_IDs", "p_value", "level", "year"]
+    cols_2_hide_additionally = []
+    if args_dict["o_or_u_or_both"] == "both": # don't hide "over under"
+        pass
+    else:
+        cols_2_hide_additionally.append("over under")
+
+
+        ### compact results
+    for etype, group in df_all_etypes.rename(columns={"over_under": "over under", "hierarchical_level": "level", "FDR": "p_value corrected", "effectSize": "effect size"}).groupby("etype"):
+        num_rows = group.shape[0]
+        if num_rows > 0:
+            etype_2_rowsCount_dict[etype] = num_rows
+            # if etype in variables.PMID: # -56 is the only one with a "year" column set_caption("Hover to highlight.")
+            #     etype_2_df_as_html_dict[etype] = group.rename(columns={"description": "(year) title"}).style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().hide_columns(cols_2_hide + cols_2_hide_additionally).set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
+
+            # .set_table_styles([dict(selector="td",props=[('text-overflow', 'ellipsis'),('overflow', 'hidden'), ('white-space','nowrap'), ('height', '20px')])])
+            # .set_table_styles([{"selector": "td", "props": [('text-overflow', 'ellipsis'), ('overflow', 'hidden'), ('white-space', 'nowrap'), ('height', '20px')])])
+            # .set_properties(**{'max-width': '300px', 'font-size': '13px'}).render()
+
+            # elif etype in variables.entity_types_with_ontology: # {-20, -21, -22, -23, -25, -26, -51, -57} # ? should interpro be taken out?
+            #     etype_2_df_as_html_dict[etype] = group.style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().hide_columns(cols_2_hide + cols_2_hide_additionally).set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
+            #
+            #
+            # elif etype in variables.entity_types_with_scores: # ? What to report for abundance_correction of KS test? ratio_in_foreground	ratio_in_background	foreground_count	foreground_n	background_count	background_n
+            #     etype_2_df_as_html_dict[etype] = group.style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).format(ellipsis_dbl, subset=["FG_IDs"]).hide_index().hide_columns(cols_2_hide + cols_2_hide_additionally).set_properties(**{'font-size': '13px'}).render()
+            if etype == -51:
+                etype_2_df_as_html_dict[-551] = group[["term", "description", "p_value corrected", "effect size", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effect size"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
+
+            etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effect size", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), "p_value corrected": lambda x: "{:.2E}".format(x)})
+            # else:
+                # etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effectSize", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).set_table_styles([{"selector": "td", "props": [('text-overflow', 'ellipsis'), ('overflow', 'hidden'), ('white-space', 'nowrap'), ('height', '20px')]}]).render() # .hide_columns(cols_2_hide + cols_2_hide_additionally)
+
+                # etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effectSize", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
+                # etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effectSize", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{  'selector': 'tr:hover', 'props': [('background-color', 'gold')]  }]).set_properties(**{'font-size': '13px'}).render()
+
+
+
+
+    ### comprehensive results
+
+
+
+    return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, # header=header, results=results_2_display,
+                           file_path=file_name, #ellipsis_indices=ellipsis_indices,
+                           session_id=session_id, form=form) #, #maximum_time=MAX_TIMEOUT)
+
+
+def generate_result_page_old(tsv, entity_type, session_id, form, errors=()): # indent
     # header = header.rstrip().split("\t")
     # if len(results_all_function_types) == 1:
     #     df = results_all_function_types
@@ -876,6 +960,14 @@ def fn_suffix2abs_rel_path(suffix, session_id):
     fn_results_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     fn_results_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
     return file_name, fn_results_absolute, fn_results_relative
+
+
+def compact_count_2_n_cols(row):
+    return "{}/{}  {}/{}".format(row["FG_count"], row["FG_n"], row["BG_count"], row["BG_n"])
+
+def compact_count_2_n_cols_FG(row):
+    return "{}/{}".format(row["FG_count"], row["FG_n"])
+
 
 if __name__ == "__main__":
     ################################################################################

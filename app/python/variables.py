@@ -131,7 +131,7 @@ SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
 
 # temp
-fn_example = os.path.join(EXAMPLE_FOLDER, "Test_yeast_compare_samples.txt")
+fn_example = os.path.join(EXAMPLE_FOLDER, "Test_human_genome.txt") #"Test_yeast_compare_samples_small.txt") #"Test_yeast_compare_samples.txt")
 
 # FLASK_DATA = APP_DIR
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(APP_DIR, 'static/templates')

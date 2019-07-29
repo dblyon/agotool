@@ -8,31 +8,23 @@
       </script>
 {% endblock head %}
 
-{% block nav_Enrichment %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment<span class="sr-only">(current)</span></a></li> {% endblock %}
+{% block nav_Enrichment %}
+    <li class="nav-item active"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment<span class="sr-only">(current)</span></a></li>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <form id="main_form" method="Post" action="results" enctype="multipart/form-data">
     <br><br>
-    <h2 class="row">ENRICHMENT</h2>
+    <h1 class="row text-center">ENRICHMENT</h1>
+    <br>
         <div class="row">
-            <h3>Upload a file or copy & paste below</h3>
+            <h3>Drag & drop or upload a file or alternatively use copy & paste fields below</h3>
             <div class="col-md-10">
-
-                <div class="input-group">
-                  <div class="input-group-prepend">
-                    <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
-                  </div>
-                  <div class="custom-file">
-                    <input type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-                    <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
-                  </div>
-                </div>
-
-{#                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>#}
-{#                    {% if form.userinput_file.errors %}#}
-{#                    <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>#}
-{#                    {% endif %}#}
+                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
+                    {% if form.userinput_file.errors %}
+                    <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                    {% endif %}
 
                 <span>Expects a tab-delimited text-file (".txt" or ".tsv") with the following <b>3 column-headers:</b></span>
                     <li class="bulletpoints_li"><b>foreground</b>: UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>
@@ -55,21 +47,19 @@
             <br>
             </div>
                   <div class="col-md-10">
-                  <span title="{{ form.enrichment_method.description }}"> {{ form.enrichment_method.label }}: {{ form.enrichment_method() }} <br> </span>
-                  <div class="row">
-                      <div class="taxid">
-                          <div class="col-md-5">
-                          <span title="{{ form.taxid.description }}"> {{ form.taxid.label }}: {{ form.taxid}} <br> </span>
-                            {% if form.taxid.errors %}
-                            <ul class="errors"> {% for error in form.taxid.errors %} <b> {{ error }} </b> {% endfor %} </ul>
-                            {% endif %}
+                      <span title="{{ form.enrichment_method.description }}"> {{ form.enrichment_method.label }}: {{ form.enrichment_method() }} <br> </span>
+                      <div class="row">
+                          <div class="taxid">
+                              <div class="col-md-5">
+                              <span title="{{ form.taxid.description }}"> {{ form.taxid.label }}: {{ form.taxid}} <br> </span>
+                                {% if form.taxid.errors %}
+                                <ul class="errors"> {% for error in form.taxid.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                                {% endif %}
+                              </div>
                           </div>
                       </div>
                   </div>
-          </div>
-        </div>
-{#        </div>#}
-
+            </div>
         <div class="row">
             <h3>Analysis options</h3>
             <div class="col-md-10">
@@ -78,43 +68,26 @@
                 <span title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}</span><br>
                 <span title="{{ form.multiple_testing_per_etype.description }}"> {{ form.multiple_testing_per_etype.label }}: {{ form.multiple_testing_per_etype() }}</span><br>
             </div>
-
         </div>
-
         <div class="row">
             <h3>Report options</h3>
-{#            <div class="col-md-5">#}
-{#                <span title="{{ form.o_or_u_or_both.description }}"> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }}</span><br>#}
-{#                <span class="ONTOLOGY" title="{{ form.indent.description }}"> {{ form.indent.label }}: {{ form.indent() }}</span><br>#}
-
-{#                <h4>Multiple testing</h4>#}
-{#                <span title="{{ form.multitest_method.description }}"> {{ form.multitest_method.label }}: {{ form.multitest_method() }} <br> </span>#}
-{#                <span class="alpha" title="{{ form.alpha.description }}"> {{ form.alpha.label }}: {{ form.alpha }} <br> </span>#}
-{#                    {% if form.alpha.errors %}#}
-{#                    <ul class="errors"> {% for error in form.alpha.errors %} <b> {{ error }} </b> {% endfor %} </ul>#}
-{#                    {% endif %}#}
-{#            </div>#}
             <div class="col-md-10">
-{#                <h4>Filter results</h4>#}
+            <br>
                 <table>
-{#                <tr title="{{ form.fold_enrichment_for2background.description }}"><td class="somename">{{ form.fold_enrichment_for2background.label }}: </td><td>{{ form.fold_enrichment_for2background() }}</td>#}
-{#                    {% if form.fold_enrichment_for2background.errors %}#}
-{#                    <tr><td colspan="2"><ul class="errors"> {% for error in form.fold_enrichment_for2background.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>#}
-{#                    {% endif %}#}
-{#                </tr>#}
-                <tr  title="{{ form.p_value_cutoff.description }}"><td class="somename">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
-                    {% if form.p_value_cutoff.errors %}
-                    <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
-                    {% endif %}
-                </tr>
-                <tr title="{{ form.FDR_cutoff.description }}"><td class="somename">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
-                    {% if form.FDR_cutoff.errors %}
-                <tr>
-                    <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
-                    {% endif %}
-                </tr>
-                    <tr title="{{ form.filter_foreground_count_one.description }}"><td class="somename">{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
-                    <tr title="{{ form.filter_parents.description }}"><td class="somename">{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
+{#                style="float:left"#}
+                    <tr title="{{ form.p_value_cutoff.description }}"><td class="somename">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
+                        {% if form.p_value_cutoff.errors %}
+                        <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                        {% endif %}
+                    </tr>
+                    <tr title="{{ form.FDR_cutoff.description }}"><td class="somename">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
+                        {% if form.FDR_cutoff.errors %}
+                    <tr>
+                        <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                        {% endif %}
+                    </tr>
+                        <tr title="{{ form.filter_foreground_count_one.description }}"><td class="somename">{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
+                        <tr title="{{ form.filter_parents.description }}"><td class="somename">{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
                 </table>
             </div>
         </div>

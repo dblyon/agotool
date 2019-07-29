@@ -137,7 +137,7 @@ def format_results(df, output_format, args_dict):
             dict_2_return[etype] = xml_string.decode()
         return dict_2_return
     else:
-        args_dict["ERROR_output_format"] = "output_format {} is unknown, please check your parameters".format(output_format)
+        args_dict["ERROR output format"] = "output_format {} is unknown, please check your parameters".format(output_format)
         return False
 
 def create_xml_tree(header, rows):

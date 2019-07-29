@@ -722,7 +722,7 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 
 ### TODO:
 # - check filter options all work properly
-# - UI multiple tables
+# - UI multiple tables --> Done
 # - rerun whole pipeline
 # - offer to BH correct all categories together
 # - ToDo fix API and adapt to Damian STRING API
@@ -732,7 +732,10 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - preload most commong model organisms even for low memory
 # - profile code
 # - use Christian's C code for KS test
-# - add Jensenlab Scores data to "characterize_foreground" method --> these 3 etypes don't show up yet
+# - add Jensenlab Scores data to "characterize_foreground" method --> these 3 etypes don't show up yet --> using user defined cutoff
+# - alignment of table in enrichment
+# - add compare_groups method
+
 # examples for Lars for missing PMID descriptions
 # https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
 # Metaanalysis of true user data inputs
@@ -744,3 +747,10 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - why can't i see PMIDs even if filter_fg_count_one is off
 # - check compare_samples vs genome --> background_counts are off
 # - update prism
+
+# hide over under unless "both" selected
+# ratio_in_FG	ratio_in_BG	FG_count	FG_n	BG_count	BG_n --> into single column with FG_count/FG_n BG_count/BG_n --> somehow done
+# less space between alert box and table of results. so that alert box appears as title box --> DONE
+# make results sortable --> DONE
+# expand table on demand --> pagination --> DONE
+# Button with "show results in long format" in navbar, displaying all columns and having a sortable table, add fixed first column from DataTables JQuery framework

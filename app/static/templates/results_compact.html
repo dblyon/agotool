@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+
+{% block head %}
+      <script type="text/javascript">
+          $(document).ready( function() {
+              results_page();
+          });
+      </script>
+
+{% endblock head %}
+
+{% block navbar %}
+       <nav class="navbar navbar-custom navbar-expand-lg navbar-dark primary-color">
+          <a class="navbar-brand" href="{{ url_for('enrichment') }}">a GO tool</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="navbar-toggler-icon"></span> </button>
+          <div class="collapse navbar-collapse" id="basicExampleNav">
+            <ul class="navbar-nav mr-auto">
+              {% block nav_Enrichment %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment</a></li>{% endblock %}
+              {% block nav_Parameters %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters</a></li>{% endblock %}
+              {% block nav_Example %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('example') }}">Example</a></li>{% endblock %}
+              {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock %}
+              {% block nav_DB_schema %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('db_schema') }}">DB_schema</a></li>{% endblock %}
+              {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock %}
+              {% block nav_Results_compact %}<li class="nav-item active"> <a class="nav-link" name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}">Results compact<span class="sr-only">(current)</span></a></li>{% endblock %}
+              {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link" name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}">Results comprehensive</a></li>{% endblock %}
+            </ul>
+              <span class="cpr_logo"><a href="http://www.cpr.ku.dk/"> <img height="40" width="92" src="{{ url_for('static', filename='cpr_logo.png') }}"></a></span>
+          </div>
+        </nav>
+{% endblock navbar %}
+
+{% block content %}
+    <form id="form" method="Post" action="unset" enctype="multipart/form-data">
+        <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">
+    </form>
+    <div class="row">
+        <a name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}" class="btn btn-primary">Download results as tab separated file</a>
+    </div>
+{% endblock content %}
+
+{% block table %}
+    <br>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-51] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">UniProt keywords</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-51] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-21] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Gene Ontology biological process</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-21] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-23] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Gene Ontology molecular function</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-23] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-22] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Gene Ontology cellular component</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-22] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-20] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Gene Ontology cellular component TEXTMINING</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-20] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-25] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Brenda Tissue Ontology</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-25] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-26] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Disease Ontology</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-26] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-52] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">KEGG</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-52] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-54] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">InterPro</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-54] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-55] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">PFAM (Protein FAMilies)</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-55] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-56] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">PMID (PubMed IDentifiers)</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-56] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-57] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Reactome</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-57] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-58] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">WikiPathways</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-58] | safe }} </div>
+    </div>
+
+{#    pandas styling #}
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-51] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">UniProt keywords 2</div>
+        <div id="table_id" class="table_etype table table-striped hover text-overflow: ellipsis"> {{ etype_2_df_as_html_dict[-551] | safe }} </div>
+    </div>
+        <br><br><br><br><br>
+
+{% endblock table %}
