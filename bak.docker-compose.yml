@@ -15,6 +15,7 @@ services:
 
   flaskapp:
     image: "agotool"
+    restart: unless-stopped
     build: . # uncomment to build from Dockerfile, else pull from dockerhub
     volumes:
       - ./app/:/opt/services/flaskapp/src
