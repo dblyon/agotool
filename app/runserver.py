@@ -12,6 +12,7 @@ import wtforms
 from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
+from ast import literal_eval
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, variables, cluster_filter # todo remove cluster_filter
 # from profilehooks import profile
@@ -462,6 +463,10 @@ def index():
 def about():
     return render_template('about.html')
 
+@app.route('/doro')
+def doro():
+    return render_template('doro.html')
+
 ################################################################################
 # parameters.html
 ################################################################################
@@ -695,12 +700,13 @@ def results():
         # filename = secure_filename(fileobject.filename)
         # print("filename {} {}".format(filename, type(filename)))
         # print("*" * 80)
-        args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "tsv", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
+        print("1")
+        args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "dataframe", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
         ui = userinput.Userinput(pqo, fn=fileobject, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data num_bins=form.num_bins.data,
         # print(ui.df_orig.head())
-
-        ui.check = True
+        print("2")
+        # ui.check = True
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -708,8 +714,8 @@ def results():
             if not app.debug:
                 log_activity(string2log)
             ### DEBUG start
-            # results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
-            df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
+            # df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
             # df_all_etypes = df_all_etypes[df_all_etypes["FDR"] <= 0.05]
             # print(df_all_etypes.head())
             # df_all_etypes = run.format_results(df, ui.args_dict["output_format"], args_dict)
@@ -748,80 +754,115 @@ def results():
         #     raise NotImplementedError
     return render_template('enrichment.html', form=form)
 
-def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=()):
+def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), compact_or_comprehensive="compact"):
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
-    # with open(fn_results_orig_absolute, 'w') as fh:
-    #     fh.write(tsv)
     df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
     df_all_etypes = df_all_etypes.sort_values(["etype", "rank"])
-
-    # etype_2_rowsCount_dict = df_all_etypes.groupby("etype")["term"].count().to_dict()
     etype_2_rowsCount_dict, etype_2_df_as_html_dict = {}, {}
-    df_all_etypes = df_all_etypes.groupby("etype").head(25)
-    # args_dict["o_or_u_or_both"] = "both"
-    # print(args_dict["o_or_u_or_both"])
-    df_all_etypes = df_all_etypes[df_all_etypes["etype"] != -21]
-    print(df_all_etypes.groupby("etype")["term"].count())
+    # df_all_etypes = df_all_etypes.groupby("etype").head(25)
+    # df_all_etypes = df_all_etypes[df_all_etypes["etype"] != -21]
+    # print(df_all_etypes.groupby("etype")["term"].count())
 
     ### add compact column "FG_count/FG_n BG_count/BG_n" in order to remove ["ratio_in_FG", "ratio_in_BG", "FG_count", "FG_n", "BG_count", "BG_n"] from display
-    if args_dict["enrichment_method"] in {"genome", "compare_samples", "abundance_correction"}:
-        df_all_etypes["FG_count/FG_n BG_count/BG_n"] = df_all_etypes[["FG_count", "FG_n", "BG_count", "BG_n"]].apply(compact_count_2_n_cols, axis=1)
-        cols = df_all_etypes.columns.to_list()[:-1]
-        df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n BG_count/BG_n"] + cols[cols.index("effectSize") + 1:]]
-    elif args_dict["enrichment_method"] == "characterize_foreground":
-        df_all_etypes["FG_count/FG_n"] = df_all_etypes[["FG_count", "FG_n"]].apply(compact_count_2_n_cols_FG, axis=1)
-        cols = df_all_etypes.columns.to_list()[:-1]
-        df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n"] + cols[cols.index("effectSize") + 1:]]
-    else:
-        pass
-
-    cols_2_hide = ["funcEnum", "etype", "rank", "category", "ratio_in_FG", "ratio_in_BG", "FG_count", "FG_n", "BG_count", "BG_n", "s_value", "BG_IDs", "p_value", "level", "year"]
-    cols_2_hide_additionally = []
-    if args_dict["o_or_u_or_both"] == "both": # don't hide "over under"
-        pass
-    else:
-        cols_2_hide_additionally.append("over under")
-
-
-        ### compact results
-    for etype, group in df_all_etypes.rename(columns={"over_under": "over under", "hierarchical_level": "level", "FDR": "p_value corrected", "effectSize": "effect size"}).groupby("etype"):
-        num_rows = group.shape[0]
-        if num_rows > 0:
-            etype_2_rowsCount_dict[etype] = num_rows
-            # if etype in variables.PMID: # -56 is the only one with a "year" column set_caption("Hover to highlight.")
-            #     etype_2_df_as_html_dict[etype] = group.rename(columns={"description": "(year) title"}).style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().hide_columns(cols_2_hide + cols_2_hide_additionally).set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
-
-            # .set_table_styles([dict(selector="td",props=[('text-overflow', 'ellipsis'),('overflow', 'hidden'), ('white-space','nowrap'), ('height', '20px')])])
-            # .set_table_styles([{"selector": "td", "props": [('text-overflow', 'ellipsis'), ('overflow', 'hidden'), ('white-space', 'nowrap'), ('height', '20px')])])
-            # .set_properties(**{'max-width': '300px', 'font-size': '13px'}).render()
-
-            # elif etype in variables.entity_types_with_ontology: # {-20, -21, -22, -23, -25, -26, -51, -57} # ? should interpro be taken out?
-            #     etype_2_df_as_html_dict[etype] = group.style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().hide_columns(cols_2_hide + cols_2_hide_additionally).set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
-            #
-            #
-            # elif etype in variables.entity_types_with_scores: # ? What to report for abundance_correction of KS test? ratio_in_foreground	ratio_in_background	foreground_count	foreground_n	background_count	background_n
-            #     etype_2_df_as_html_dict[etype] = group.style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).format(ellipsis_dbl, subset=["FG_IDs"]).hide_index().hide_columns(cols_2_hide + cols_2_hide_additionally).set_properties(**{'font-size': '13px'}).render()
-            if etype == -51:
-                etype_2_df_as_html_dict[-551] = group[["term", "description", "p_value corrected", "effect size", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effect size"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
-
-            etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effect size", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), "p_value corrected": lambda x: "{:.2E}".format(x)})
-            # else:
-                # etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effectSize", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).set_table_styles([{"selector": "td", "props": [('text-overflow', 'ellipsis'), ('overflow', 'hidden'), ('white-space', 'nowrap'), ('height', '20px')]}]).render() # .hide_columns(cols_2_hide + cols_2_hide_additionally)
-
-                # etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effectSize", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{'selector': 'tr:hover', 'props': [('background-color', 'gold')]}]).set_properties(**{'font-size': '13px'}).render()
-                # etype_2_df_as_html_dict[etype] = group[["term", "description", "p_value corrected", "effectSize", "FG_count/FG_n BG_count/BG_n", "FG_IDs"]].style.format({"effectSize": "{:.2f}", "p_value corrected": "{:.2E}"}).bar(subset=["effectSize"], align='mid', color=['#d65f5f', '#5fba7d']).hide_index().set_table_styles([{  'selector': 'tr:hover', 'props': [('background-color', 'gold')]  }]).set_properties(**{'font-size': '13px'}).render()
-
-
+    # if args_dict["enrichment_method"] in {"genome", "compare_samples", "abundance_correction"}:
+    #     df_all_etypes["FG_count/FG_n BG_count/BG_n"] = df_all_etypes[["FG_count", "FG_n", "BG_count", "BG_n"]].apply(compact_count_2_n_cols, axis=1)
+    #     cols = df_all_etypes.columns.to_list()[:-1]
+    #     df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n BG_count/BG_n"] + cols[cols.index("effectSize") + 1:]]
+    # elif args_dict["enrichment_method"] == "characterize_foreground":
+    #     df_all_etypes["FG_count/FG_n"] = df_all_etypes[["FG_count", "FG_n"]].apply(compact_count_2_n_cols_FG, axis=1)
+    #     cols = df_all_etypes.columns.to_list()[:-1]
+    #     df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n"] + cols[cols.index("effectSize") + 1:]]
+    # else:
+    #     pass
+    p_value = "p value"
+    FDR = "p value corrected"
+    effect_size = "effect size"
+    over_under = "over under"
+    hierarchical_level = "level"
+    s_value = "s value"
+    ratio_in_FG = "ratio in FG"
+    ratio_in_BG = "ratio in BG"
+    FG_IDs = "FG_IDs"
+    BG_IDs = "BG IDs"
+    FG_count = "FG count"
+    BG_count = "BG count"
+    FG_n = "FG n"
+    BG_n = "BG n"
+    df_all_etypes = df_all_etypes.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effect_size, "s_value": s_value,
+                                                  "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
+    ### compact results
+    if compact_or_comprehensive == "compact":
+        for etype, group in df_all_etypes.groupby("etype"):
+            num_rows = group.shape[0]
+            if num_rows > 0:
+                etype_2_rowsCount_dict[etype] = num_rows
+                etype_2_df_as_html_dict[etype] = group[["rank", "term", "description", FDR, effect_size]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+        return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict, df_all_etypes=df_all_etypes)
 
 
     ### comprehensive results
+    elif compact_or_comprehensive == "comprehensive":
+        # show year, not hierarchy
+        cols_sort_order_PMID = ['rank', 'term', 'description', 'year', over_under, p_value, FDR, effect_size, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs, s_value]
+        # entity_types_with_scores
+        cols_sort_order_entity_types_with_scores = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value]
+        # show hierarchy, not year
+        cols_sort_order_hierarchy = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
+        # not hiearachy, not year
+        cols_sort_order_rest = ['rank', 'term', 'description', over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
+
+        def helper_format_to_html(df):
+            return df.to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left",
+                formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x), p_value: lambda x: "{:.2E}".format(x), s_value: lambda x: "{:.2f}".format(x),
+                            ratio_in_FG: lambda x: "{:.2f}".format(x), ratio_in_BG: lambda x: "{:.2f}".format(x)})
+
+        if args_dict["o_or_u_or_both"] != "both": # don't hide "over under"
+            cols_sort_order_PMID.remove(over_under)
+            cols_sort_order_entity_types_with_scores.remove(over_under)
+            cols_sort_order_hierarchy.remove(over_under)
+            cols_sort_order_rest.remove(over_under)
+        if args_dict["enrichment_method"] not in {"compare_samples", "compare_groups"}:
+            cols_sort_order_PMID.remove(BG_IDs)
+            cols_sort_order_entity_types_with_scores.remove(BG_IDs)
+            cols_sort_order_hierarchy.remove(BG_IDs)
+            cols_sort_order_rest.remove(BG_IDs)
+
+        print(df_all_etypes.columns.tolist())
+        for etype, group in df_all_etypes.groupby("etype"):
+            num_rows = group.shape[0]
+            if num_rows > 0:
+                etype_2_rowsCount_dict[etype] = num_rows
+                if etype in variables.PMID: # -56 is the only one with a "year" column set_caption("Hover to highlight.")
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_PMID])
+                elif etype in variables.entity_types_with_scores:
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_entity_types_with_scores]) #.to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                elif etype in variables.entity_types_with_ontology:
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy]) #.to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                else:
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_rest]) #.to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x), p_value: lambda x: "{:.2E}".format(x), s_value: lambda x: "{:.2E}".format(x)})
+
+
+        return render_template('results_comprehensive.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict)
+    else:
+        print("compact_or_comprehensive is '{}' {}, which is not understood".format(compact_or_comprehensive, type(compact_or_comprehensive)))
 
 
 
-    return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, # header=header, results=results_2_display,
-                           file_path=file_name, #ellipsis_indices=ellipsis_indices,
-                           session_id=session_id, form=form) #, #maximum_time=MAX_TIMEOUT)
+
+@app.route('/results_comprehensive', methods=["GET", "POST"])
+def results_comprehensive():
+    file_path = request.form['file_path']
+    # print("@"*80)
+    # print("file_path, {}".format(file_path))
+    df_all_etypes = pd.read_csv(os.path.join(SESSION_FOLDER_ABSOLUTE, file_path), sep='\t')
+    args_dict = request.form['args_dict']
+    args_dict = literal_eval(args_dict)
+    print(args_dict, type(args_dict))
+    session_id = request.form['session_id']
+    compact_or_comprehensive = request.form['compact_or_comprehensive']
+    # print("@" * 80)
+    return generate_result_page(df_all_etypes, args_dict, session_id, Results_Form(), errors=(), compact_or_comprehensive=compact_or_comprehensive)
 
 
 def generate_result_page_old(tsv, entity_type, session_id, form, errors=()): # indent

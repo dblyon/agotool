@@ -57,11 +57,15 @@ tr:hover {background-color: gold !important;}
 .table_etype {
     font-size: 13px;
     /*padding: 0.5rem;*/
-    margin-top: -12px;
+    margin-top: 4px;
     margin-bottom: 1px !important;
     border-top: none;}
 
-
+.full-width-div {
+    position: absolute;
+    width: 100%;
+    left: 0;
+}
 
 
 /*.table td, .table th {*/

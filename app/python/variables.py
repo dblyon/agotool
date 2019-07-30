@@ -2,7 +2,7 @@ import os, multiprocessing, sys
 import numpy as np
 ############################
 ### settings
-PRELOAD = False # set True in production
+PRELOAD = True # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
@@ -131,7 +131,7 @@ SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
 
 # temp
-fn_example = os.path.join(EXAMPLE_FOLDER, "Test_human_genome.txt") #"Test_yeast_compare_samples_small.txt") #"Test_yeast_compare_samples.txt")
+fn_example = os.path.join(EXAMPLE_FOLDER, "Test_human_compare_samples.txt") #"Test_yeast_compare_samples_small.txt") #"Test_yeast_compare_samples.txt")
 
 # FLASK_DATA = APP_DIR
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(APP_DIR, 'static/templates')

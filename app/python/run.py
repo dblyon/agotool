@@ -10,13 +10,13 @@ import tools, variables
 
 def run_UniProt_enrichment(pqo, ui, args_dict):
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
-    preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis(method=ui.enrichment_method)
+    preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis()
     print("#"*10 + "run_UniProt_enrichment")
     print(args_dict)
     if args_dict["enrichment_method"] == "characterize_foreground":
-        df_2_return = run_cythonized.run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=variables.LOW_MEMORY)
+        df_2_return = run_cythonized.run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=variables.LOW_MEMORY)
     else:
-        df_2_return = run_cythonized.run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=variables.LOW_MEMORY)
+        df_2_return = run_cythonized.run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects,  low_memory=variables.LOW_MEMORY)
     # print("run.py " * 5)
     # print(type(df_2_return), df_2_return)
     # print("run.py " * 5)
@@ -119,9 +119,11 @@ def PMID_description_to_year(string_):
         return np.nan
 
 def format_results(df, output_format, args_dict):
-    if output_format == "tsv":
+    if output_format == "dataframe":
+        return df
+    elif output_format == "tsv":
         return df.to_csv(sep="\t", header=True, index=False)
-    if output_format == "tsv-no-header" or output_format == "tsv_no_header":
+    elif output_format == "tsv-no-header" or output_format == "tsv_no_header":
         return df.to_csv(sep="\t", header=False, index=False)
     elif output_format == "json":
         etype_2_resultsjson_dict = {}

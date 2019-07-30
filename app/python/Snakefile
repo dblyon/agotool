@@ -735,6 +735,7 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - add Jensenlab Scores data to "characterize_foreground" method --> these 3 etypes don't show up yet --> using user defined cutoff
 # - alignment of table in enrichment
 # - add compare_groups method
+# - create link outs
 
 # examples for Lars for missing PMID descriptions
 # https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
@@ -754,3 +755,10 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # make results sortable --> DONE
 # expand table on demand --> pagination --> DONE
 # Button with "show results in long format" in navbar, displaying all columns and having a sortable table, add fixed first column from DataTables JQuery framework
+# downloadable file: remove 'ratio_in_FG', 'ratio_in_BG', 'FG_count', 'FG_n', 'BG_count', 'BG_n', 'FG_IDs', 'BG_IDs' for etypes_with_scores?
+
+
+# CSS Gregor questions
+# - Navbar shifts when results displayed due to form submission
+# - ellipsis disable for 50 chars and apply own ellipsis with hover functionality
+# - Bootstrap vs Jquery styles
