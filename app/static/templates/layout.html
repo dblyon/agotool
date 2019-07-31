@@ -22,8 +22,14 @@
 {#    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">#}
 {#    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>#}
 {#    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.4.1.min.js') }}"></script>#}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+{# Column visibility #}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.3.1.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.buttons.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.colVis.min.js') }}"></script>
+
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/agotool.js') }}"></script>
     {# Column reorder #}
@@ -32,11 +38,7 @@
 {#    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.bootstrap4.min.js') }}"></script>#}
 {#    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.colReorder.min.js') }}"></script>#}
 
-    {# Column visibility #}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.3.1.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.buttons.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.colVis.min.js') }}"></script>
+
 
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css.map')}}">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">

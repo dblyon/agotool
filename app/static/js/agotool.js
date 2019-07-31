@@ -113,34 +113,14 @@ var results_page_compact = (function () {
     // add classes to specific columns
     $(document).ready(function() {
         $('table.display').DataTable({
-            "columnDefs": [
-                { className: "dt-nowrap", "targets": [ 1 ] }],
-            //     { className: "dt-noellipsis", "targets": [ 2 ] },
-                // { targets: [ 1 ] ,
-                //     render: function ( data, type, row ) {
-                //     data = $.fn.dataTable.render.ellipsis( 100 )( data, type, row );
-                //     return data;} },
-
-                // { targets: [ 0 ], "width": "10%"},
-                // { targets: [ 1 ], "width": "50%"},
-                // { targets: [ 2 ], "width": "10%"},
-                // { targets: [ 3 ], "width": "10%"},
-                // { targets: [ 4 ], "width": "10%"},
-                // { targets: [ 5 ], "width": "10%"},
-                // { targets: [ 5 ] ,
-                //     render: function ( data, type, row ) {
-                //     data = $.fn.dataTable.render.ellipsis( 40 )( data, type, row );
-                //     return data;} },
-                // { targets: 2, render: $.fn.dataTable.render.ellipsis( 100, true ) }],
-                // { targets: 5, render: $.fn.dataTable.render.ellipsis( 40, false ) }],
-// https://datatables.net/plug-ins/dataRender/ellipsis
+            "columnDefs": [{ className: "dt-nowrap", "targets": [ 1 ] }],
             "autoWidth": false,
             "columns": [
-                { "width": "3%" },
+                { "width": "5%" },
                 { "width": "10%" },
-                { "width": "75%" },
-                { "width": "6%" },
-                { "width": "6%" }
+                { "width": "65%" },
+                { "width": "10%" },
+                { "width": "10%" }
           ]
       } );
     } );
@@ -153,12 +133,11 @@ var results_page_comprehensive = (function () {
     // add classes to specific columns
     $(document).ready(function() {
         $('table.display').DataTable({
-            // "columnDefs": [
-                // { className: "dt-nowrap", "targets": [ 1 ] }],
-            // "autoWidth": true,
+            "autoWidth": true,
             dom: 'Bfrtip',
-            buttons: ['colvis']
-            // colReorder: true
+            buttons: ['colvis'],
+            "columnDefs": [
+                { targets: '_all', render: $.fn.dataTable.render.ellipsis( 30, true ) }]
       } );
     } );
 });

@@ -2,6 +2,7 @@ import os, sys, logging, time, argparse
 from collections import defaultdict
 import numpy as np
 import pandas as pd
+pd.set_option('display.max_colwidth', -1) # in order to prevent 50 character cutoff of to_html export / ellipsis
 from lxml import etree
 import flask
 from flask import render_template, request, send_from_directory, jsonify
@@ -700,13 +701,11 @@ def results():
         # filename = secure_filename(fileobject.filename)
         # print("filename {} {}".format(filename, type(filename)))
         # print("*" * 80)
-        print("1")
         args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "dataframe", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
         ui = userinput.Userinput(pqo, fn=fileobject, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data num_bins=form.num_bins.data,
         # print(ui.df_orig.head())
-        print("2")
-        # ui.check = True
+        ui.check = True
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -714,8 +713,10 @@ def results():
             if not app.debug:
                 log_activity(string2log)
             ### DEBUG start
-            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
-            # df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            # df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
+            df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            # print(df_all_etypes.head())
+            print(df_all_etypes.loc[df_all_etypes["term"] == "GO:0043185", "description"].values)
             # df_all_etypes = df_all_etypes[df_all_etypes["FDR"] <= 0.05]
             # print(df_all_etypes.head())
             # df_all_etypes = run.format_results(df, ui.args_dict["output_format"], args_dict)
@@ -791,20 +792,21 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
     BG_n = "BG n"
     df_all_etypes = df_all_etypes.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effect_size, "s_value": s_value,
                                                   "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
+    pd.set_option('colheader_justify', 'center')
     ### compact results
     if compact_or_comprehensive == "compact":
         for etype, group in df_all_etypes.groupby("etype"):
             num_rows = group.shape[0]
             if num_rows > 0:
                 etype_2_rowsCount_dict[etype] = num_rows
-                etype_2_df_as_html_dict[etype] = group[["rank", "term", "description", FDR, effect_size]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                etype_2_df_as_html_dict[etype] = group[["rank", "term", "description", FDR, effect_size]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="center", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
         return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict, df_all_etypes=df_all_etypes)
 
 
     ### comprehensive results
     elif compact_or_comprehensive == "comprehensive":
         # show year, not hierarchy
-        cols_sort_order_PMID = ['rank', 'term', 'description', 'year', over_under, p_value, FDR, effect_size, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs, s_value]
+        cols_sort_order_PMID = ['rank', 'term', 'description', 'year', over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
         # entity_types_with_scores
         cols_sort_order_entity_types_with_scores = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value]
         # show hierarchy, not year
@@ -828,7 +830,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
             cols_sort_order_hierarchy.remove(BG_IDs)
             cols_sort_order_rest.remove(BG_IDs)
 
-        print(df_all_etypes.columns.tolist())
+        # print(df_all_etypes.columns.tolist())
         for etype, group in df_all_etypes.groupby("etype"):
             num_rows = group.shape[0]
             if num_rows > 0:

@@ -25,8 +25,8 @@
               {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock %}
               {% block nav_Results_compact %}<li class="nav-item active"> <a class="nav-link" name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}">Results compact<span class="sr-only">(current)</span></a></li>{% endblock %}
 
+          {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link" name="file_path" onclick="submit_form('form', 'results_comprehensive')">Results comprehensive</a></li>{% endblock %}
             <form id="form" method="Post" action="results_comprehensive" enctype="multipart/form-data">
-              {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link" name="file_path" onclick="submit_form('form', 'results_comprehensive')">Results comprehensive</a></li>{% endblock %}
                 <input type="hidden" style="display: none;" name="file_path" value="{{ file_path }}">
                 <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">
                 <input type="hidden" style="display: none;" name="args_dict" value="{{ args_dict }}">
@@ -56,9 +56,34 @@
 {% block table %}
     <br>
 
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-56] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">PMID (PubMed IDentifiers)</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-56] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-25] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Brenda Tissue Ontology</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-25] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-26] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Disease Ontology</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-26] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-57] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">Reactome</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-57] | safe }} </div>
+    </div>
+
     <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-51] }}>
         <div class="alert alert-info col-md-12 text-center" role="alert">UniProt keywords</div>
         <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-51] | safe }} </div>
+    </div>
+
+    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-52] }}>
+        <div class="alert alert-info col-md-12 text-center" role="alert">KEGG</div>
+        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-52] | safe }} </div>
     </div>
 
     <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-21] }}>
@@ -81,21 +106,6 @@
         <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-20] | safe }} </div>
     </div>
 
-    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-25] }}>
-        <div class="alert alert-info col-md-12 text-center" role="alert">Brenda Tissue Ontology</div>
-        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-25] | safe }} </div>
-    </div>
-
-    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-26] }}>
-        <div class="alert alert-info col-md-12 text-center" role="alert">Disease Ontology</div>
-        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-26] | safe }} </div>
-    </div>
-
-    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-52] }}>
-        <div class="alert alert-info col-md-12 text-center" role="alert">KEGG</div>
-        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-52] | safe }} </div>
-    </div>
-
     <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-54] }}>
         <div class="alert alert-info col-md-12 text-center" role="alert">InterPro</div>
         <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-54] | safe }} </div>
@@ -106,26 +116,10 @@
         <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-55] | safe }} </div>
     </div>
 
-    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-56] }}>
-        <div class="alert alert-info col-md-12 text-center" role="alert">PMID (PubMed IDentifiers)</div>
-        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-56] | safe }} </div>
-    </div>
-
-    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-57] }}>
-        <div class="alert alert-info col-md-12 text-center" role="alert">Reactome</div>
-        <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-57] | safe }} </div>
-    </div>
-
     <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-58] }}>
         <div class="alert alert-info col-md-12 text-center" role="alert">WikiPathways</div>
         <div id="table_id" class="table_etype table table-striped"> {{ etype_2_df_as_html_dict[-58] | safe }} </div>
     </div>
 
-{#    pandas styling #}
-{#    <div class="row div_table_etype" data-value={{ etype_2_rowsCount_dict[-51] }}>#}
-{#        <div class="alert alert-info col-md-12 text-center" role="alert">UniProt keywords 2</div>#}
-{#        <div id="table_id" class="table_etype table table-striped hover text-overflow: ellipsis"> {{ etype_2_df_as_html_dict[-551] | safe }} </div>#}
-{#    </div>#}
-        <br><br><br><br><br>
-
+<br><br><br><br><br>
 {% endblock table %}
