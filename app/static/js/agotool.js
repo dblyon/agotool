@@ -39,6 +39,25 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
+// show foreground_replicates and background_n only when "compare_groups" is selected
+    $('#enrichment_method').change(function() {
+        var enrichment_method = $('#enrichment_method').val();
+        var choice = enrichment_method != "compare_groups";
+        toggle_if(choice, ".foreground_replicates", "");
+    });
+    $("#enrichment_method").change();
+
+// show score_cutoff only when "characterize_foreground" is selected
+    $('#enrichment_method').change(function() {
+        var enrichment_method = $('#enrichment_method').val();
+        var choice = enrichment_method != "characterize_foreground";
+        toggle_if(choice, ".characterize_foreground", "");
+    });
+    $("#enrichment_method").change();
+
+
+
+
     // $('.nav-item li').click(function(){
     //     $('.nav-item li').removeClass('active');
     //     $(this).addClass('active');

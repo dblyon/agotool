@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 pd.set_option('display.max_colwidth', -1) # in order to prevent 50 character cutoff of to_html export / ellipsis
 from lxml import etree
+from gc import get_objects
 import flask
 from flask import render_template, request, send_from_directory, jsonify
 from flask_restful import reqparse, Api, Resource
@@ -15,7 +16,7 @@ import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-import query, userinput, run, variables, cluster_filter # todo remove cluster_filter
+import query, userinput, run, variables #, cluster_filter # todo remove cluster_filter
 # from profilehooks import profile
 ###############################################################################
 variables.makedirs_()
@@ -153,140 +154,59 @@ parser = reqparse.RequestParser()
 parser.add_argument("taxid", type=int,
     help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
     default=None)
-
 parser.add_argument("species", type=int,
     help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
     default=None)
-
 parser.add_argument("organism", type=int,
     help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
     default=None)
-
 parser.add_argument("output_format", type=str,
     help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}",
     default="tsv")
-
 parser.add_argument("filter_parents", type=str,
     help="Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground.",
     default="True")
-
 parser.add_argument("filter_foreground_count_one", type=str, help="Keep only those terms with foreground_count > 1", default="True")
-
-parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p-value and recent publication date.")
-
+parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date.")
 parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
-
-parser.add_argument("FDR_cutoff", type=float,
-    help="False Discovery Rate cutoff (threshold for multiple testing corrected p-values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.",
-    default=0.05)
-
-parser.add_argument("limit_2_entity_type", type=str,
-    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).",
-    default="-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58") # -53 missing for UniProt version
-
+parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)
+parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default="-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58") # -53 missing for UniProt version
 parser.add_argument("privileged", type=str, default="False")
-
-parser.add_argument("foreground", type=str,
-    help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
+parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
-
 parser.add_argument("background", type=str,
     help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "
          "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
-
 parser.add_argument("background_intensity", type=str,
     help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "
          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
          "e.g. '12.3%0d3.4' ",
     default=None)
-
 parser.add_argument("enrichment_method", type=str,
     help="""'genome': provided foreground vs genome;
     'compare_samples': Foreground vs Background (no abundance correction); 
     'characterize_foreground': list all functional annotations for provided foreground;
     'abundance_correction': Foreground vs Background abundance corrected""",
     default="characterize_foreground")
-
-parser.add_argument("goslim", type=str,
-    help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)",
-    default="basic")
-
-parser.add_argument("o_or_u_or_both", type=str,
-    help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.",
-    default="overrepresented")
-
-parser.add_argument("num_bins", type=int,
-    help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.",
-    default=100)
-
-parser.add_argument("fold_enrichment_for2background", type=float,
-    help="Apply a filter for the minimum threshold value of fold enrichment foreground/background.",
-    default=0)
-
-parser.add_argument("p_value_cutoff", type=float,
-    help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).",
-    default=1)
-
+parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)", default="basic")
+parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="overrepresented")
+parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
+parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
+parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 parser.add_argument("multiple_testing_per_etype", type=bool, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default=True)
+parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
+parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
+parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
 
-# parser.add_argument("filter_PMID", type=float,
-#     help="Filter the top n PMID (PubMed IDs) sorted by lowest FDR and newest publication date; e.g. 100, default=100.",
-#     default=100)
-# parser.add_argument("population", type=str,
-#     help="ENSP identifiers for all proteins detected in both conditions."
-#          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
-#     default=None)
-
-# parser.add_argument("abundance_ratio", type=str,
-#     help="Fold change, log fold change, ratio, or something similar reflecting abundance or intensity changes between 2 conditions. Values for all proteins identifiers"
-#          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'foreground'"
-#          "e.g. '-1.2%0d4.3%0d1.2' ",
-#     default=None)
-
-# parser.add_argument("compare_2_ratios_only", type=str,
-#     help="If true: compare to the user provided abundance ratios only. Else: compare to all functional associations.",
-#     default="True")
-
-# 'compare_groups': Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set;
-# parser.add_argument("foreground_n", type=int,
-#     help="Foreground_n is an integer, defines the number of sample of the foreground.",
-#     default=10)
-#
-# parser.add_argument("background_n", type=int,
-#     help="Background_n is an integer, defines the number of sample of the background.",
-#     default=10)
-
-# parser.add_argument("go_slim_or_basic", type=str,
-#     help="GO basic or slim {basic, slim}. Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.",
-#     default="basic")
-
-# parser.add_argument("indent", type=str,
-#     help="Prepend level of hierarchy by dots. Add dots to GO-terms to indicate the level in the parental hierarchy (e.g. '...GO:0051204' vs 'GO:0051204')",
-#     default="False") # should be boolean, but this works better
-
-# parser.add_argument("multitest_method", type=str,
-#     help="Method for correction of multiple testing one of {benjamini_hochberg, sidak, holm, bonferroni}. Select a method for multiple testing correction.",
-#     default="benjamini_hochberg")
-
-# parser.add_argument("alpha", type=float,
-#     help="""Variable used for "Holm" or "Sidak" method for multiple testing correction of p-values.""",
-#     default=0.05)
-
-
-from gc import get_objects
 
 class API_STRING(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
     """
-
     def get(self): #, output_format="json"):
         return self.post() #output_format)
-
-    def post(self):
-        return self.post()
 
     # @profile
     def post(self): #, output_format="json"):
@@ -371,45 +291,41 @@ def check_all_ENSPs_of_given_taxid(protein_ans_list, taxid):
     return True
 
 def check_taxids(args_dict):
-    taxid = args_dict["taxid"]
-    if taxid is not None:
-        return taxid
-    taxid = args_dict["species"]
-    if taxid is not None:
+    if args_dict["taxid"] is not None:
+        return args_dict["taxid"]
+    if args_dict["species"] is not None:
         args_dict["ERROR_species"] = "ERROR_species: argument 'species' is deprecated, please use 'taxid' instead. You've provided is '{}'.".format(args_dict["species"])
         return False
-    taxid = args_dict["organism"]
-    if taxid is not None:
+    if args_dict["organism"] is not None:
         args_dict["ERROR_organism"] = "ERROR_organism: argument 'organism' is deprecated, please use 'taxid' instead. You've provided is '{}'.".format(args_dict["organism"])
         return False
 
-def get_function_type__and__limit_2_parent(gocat_upk):
-    """
-    # choices = (("all_GO", "all GO categories"),
-    #            ("BP", "GO Biological Process"),
-    #            ("CP", "GO Celluar Compartment"),
-    #            ("MF", "GO Molecular Function"),
-    #            ("UPK", "UniProt keywords"),
-    #            ("KEGG", "KEGG pathways")),
-    :param gocat_upk: String
-    :return: Tuple(String, Bool)
-    """
-    if gocat_upk in {"BP", "CP", "MF", "all_GO"}:
-        return "GO" #, gocat_upk
-    else:
-        return gocat_upk #, None
+# def get_function_type__and__limit_2_parent(gocat_upk):
+#     """
+#     # choices = (("all_GO", "all GO categories"),
+#     #            ("BP", "GO Biological Process"),
+#     #            ("CP", "GO Celluar Compartment"),
+#     #            ("MF", "GO Molecular Function"),
+#     #            ("UPK", "UniProt keywords"),
+#     #            ("KEGG", "KEGG pathways")),
+#     :param gocat_upk: String
+#     :return: Tuple(String, Bool)
+#     """
+#     if gocat_upk in {"BP", "CP", "MF", "all_GO"}:
+#         return "GO" #, gocat_upk
+#     else:
+#         return gocat_upk #, None
 
 def write2file(fn, tsv):
     with open(fn, 'w') as f:
         f.write(tsv)
 
-
 class API_STRING_HELP(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
     """
-
-    def get(self): # output_format="json"
+    @staticmethod
+    def get(): # output_format="json"
         args_dict = defaultdict(lambda: None)
         args_dict.update(parser.parse_args())
         args_dict = parser.parse_args()
@@ -418,8 +334,8 @@ class API_STRING_HELP(Resource):
         args_dict["3_INFO_limit_2_entity_type"] = "comma separate desired entity_types e.g. '-21;-51;-52' (for GO biological process; UniProt keyword; SMART), default get all available."
         return help_page(args_dict)
 
-    def post(self, output_format="json"):
-        return self.get(output_format)
+    def post(self):
+        return self.get()
 
 api.add_resource(API_STRING_HELP, "/api_help", "/api_string_help")
 
@@ -547,7 +463,14 @@ def validate_float_larger_zero_smaller_one(form, field):
 
 def validate_float_between_zero_and_one(form, field):
     if not 0 <= field.data <= 1:
+        print("validation failed what's next?")
         raise wtforms.ValidationError(" number must be: 0 <= number <= 1")
+    else:
+        print('bubu')
+
+def validate_float_between_zero_and_five(form, field):
+    if not 0 <= field.data <= 5:
+        raise wtforms.ValidationError(" number must be: 0 <= number <= 5")
 
 def validate_integer(form, field):
     if not isinstance(field.data, int):
@@ -574,30 +497,30 @@ def read_results_file(fn):
         lines_split = [ele.strip() for ele in fh.readlines()]
     return lines_split[0], lines_split[1:]
 
-def elipsis(header):
-    try:
-        ans_index = header.index("FG_IDs") #"ANs_foreground")
-    except ValueError:
-        ans_index = header.index("BG_IDs") #"ANs_background")
-        # let flask throw an internal server error
-    try:
-        description_index = header.index("description")
-        ellipsis_indices = (description_index, ans_index)
-    except ValueError:
-        ellipsis_indices = (ans_index,)
-    return ellipsis_indices
+# def elipsis(header):
+#     try:
+#         ans_index = header.index("FG_IDs") #"ANs_foreground")
+#     except ValueError:
+#         ans_index = header.index("BG_IDs") #"ANs_background")
+#         # let flask throw an internal server error
+#     try:
+#         description_index = header.index("description")
+#         ellipsis_indices = (description_index, ans_index)
+#     except ValueError:
+#         ellipsis_indices = (ans_index,)
+#     return ellipsis_indices
 
-def ellipsis_dbl(stringli, max_len=20):
-    if len(stringli) > max_len:
-        return stringli[:max_len] + "..."
-    else:
-        return stringli
+# def ellipsis_dbl(stringli, max_len=20):
+#     if len(stringli) > max_len:
+#         return stringli[:max_len] + "..."
+#     else:
+#         return stringli
 
 ################################################################################
 # enrichment.html
 ################################################################################
 class Enrichment_Form(wtforms.Form):
-    userinput_file = fields.FileField('Drag & drop a file or click on "Choose File"',
+    userinput_file = fields.FileField('Expects a tab-delimited text-file (".txt" or ".tsv") with multiple columns',
                                       description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
 
 'background': STRING identifiers (such as '511145.b1260') for all proteins
@@ -608,7 +531,7 @@ class Enrichment_Form(wtforms.Form):
 these identifiers should also be present in the 'background_an' as the test group is a subset of the background)
 
 If "Abundance correction" is deselected "background_int" can be omitted.""")
-
+#     userinput_file = fields.FileField(label=None, description=None)
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
     limit_2_entity_type = fields.SelectField("Category of functional associations", # # ("-53", "SMART domains"), # not available in UniProt version
@@ -623,15 +546,16 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
                                               ("-22", "GO Celluar Compartment"),
                                               ("-20", "GOCC from Textmining"),
                                               ("-25", "Brenda Tissue Ontology (BTO)"),
-                                              ("-26", "Disease Ontology IDs (DOID)"),
+                                              ("-26", "Disease Ontology IDs (DOIDs)"),
                                               ("-56", "PMID (PubMed IDs)"),
                                               ("-54", "InterPro domains"),
                                               ("-55", "PFAM domains")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
     enrichment_method = fields.SelectField("Enrichment method",
                                    choices = (("compare_samples", "compare_samples"),
-                                              ("genome", "genome"),
                                               ("abundance_correction", "abundance_correction"),
+                                              ("genome", "genome"),
+                                              ("compare_groups", "compare_groups"),
                                               ("characterize_foreground", "characterize_foreground")),
                                    description="""abundance_correction: Foreground vs Background abundance corrected
 compare_samples: Foreground vs Background (no abundance correction)
@@ -654,13 +578,16 @@ characterize_foreground: Foreground only""")
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
     o_or_u_or_both = fields.SelectField("Over-, under-represented or both", choices = (("overrepresented", "overrepresented"), ("underrepresented", "underrepresented"), ("both", "both")), description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
     # num_bins = fields.IntegerField("Number of bins", [validate_integer], default = 100, description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
-    # fold_enrichment_for2background = fields.FloatField("fold enrichment foreground/background", [validate_number], default = 0, description="""Minimum threshold value of "fold_enrichment_foreground_2_background".""")
-    p_value_cutoff = fields.FloatField("p-value threshold", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum threshold value of uncorrected p-value".""")
-    FDR_cutoff = fields.FloatField("FDR_cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p-values) threshold value (0 meaning no cutoff)""")
+    # fold_enrichment_for2background = fields.FloatField("fold enrichment foreground/background", [validate_number], default = 0, description="""Minimum cutoff value of "fold_enrichment_foreground_2_background".""")
+    p_value_cutoff = fields.FloatField("p_value_cutoff", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum cutoff value of uncorrected p value".""")
+    FDR_cutoff = fields.FloatField("p value corrected (FDR) cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p values) cutoff value (1 meaning no cutoff)""")
     filter_foreground_count_one = fields.BooleanField("Filter foreground count one", default="checked", description="Remove all functional terms if they have only a single protein association in the foreground (default=checked)")
     filter_parents = fields.BooleanField("Filter redundant parent terms", default="checked", description="Retain the most specific (deepest hierarchical level) and remove all parent terms if they share the exact same foreground proteins (default=checked)")
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
     multiple_testing_per_etype = fields.BooleanField("Multiple testing per entity type", default=True, description="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results (default=True).")
+    score_cutoff = fields.FloatField("Text mining score cutoff", [validate_float_between_zero_and_five], default = 3.0, description="""Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.""")
+    foreground_replicates = fields.IntegerField("foreground replicates", [validate_integer], default=10, description="'Foreground replicates' is an integer, defines the number of samples (replicates) of the foreground. default=10.")
+    background_replicates = fields.IntegerField("background replicates", [validate_integer], default=10, description="'Background replicates' is an integer, defines the number of samples (replicates) of the background. default=10.")
 
 
 @app.route('/')
@@ -696,15 +623,24 @@ def results():
         # except:
         #     fileobject = None
         # filename = secure_filename(fileobject.filename) # necessary if saving the file to disk
-        # print("*" * 80)
-        # print("fileobject{} {}".format(fileobject, type(fileobject)))
-        # filename = secure_filename(fileobject.filename)
-        # print("filename {} {}".format(filename, type(filename)))
-        # print("*" * 80)
-        args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data, "go_slim_subset": form.go_slim_or_basic.data, "p_value_cutoff": form.p_value_cutoff.data, "FDR_cutoff": form.FDR_cutoff.data, "o_or_u_or_both": form.o_or_u_or_both.data, "filter_PMID_top_n": 100, "filter_foreground_count_one": form.filter_foreground_count_one.data, "filter_parents": form.filter_parents.data, "taxid": form.taxid.data, "output_format": "dataframe", "enrichment_method": form.enrichment_method.data, "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
+        args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data,
+                     "go_slim_subset": form.go_slim_or_basic.data,
+                     "p_value_cutoff": form.p_value_cutoff.data,
+                     "FDR_cutoff": form.FDR_cutoff.data,
+                     "o_or_u_or_both": form.o_or_u_or_both.data,
+                     "filter_PMID_top_n": 100,
+                     "filter_foreground_count_one": form.filter_foreground_count_one.data,
+                     "filter_parents": form.filter_parents.data,
+                     "taxid": form.taxid.data,
+                     "output_format": "dataframe",
+                     "enrichment_method": form.enrichment_method.data,
+                     "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
         ui = userinput.Userinput(pqo, fn=fileobject, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
-            decimal='.', enrichment_method=form.enrichment_method.data, args_dict=args_dict) # foreground_n=form.foreground_n.data, background_n=form.background_n.data num_bins=form.num_bins.data,
-        # print(ui.df_orig.head())
+            decimal='.', args_dict=args_dict)#, foreground_n=form.foreground_n.data, background_n=form.background_n.data, score_cutoff=form.score_cutoff.data)
+        print(80*"#")
+        print(args_dict)
+        print(args_dict["p_value_cutoff"])
+        print(80 * "#")
         ui.check = True
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
@@ -715,44 +651,15 @@ def results():
             ### DEBUG start
             # df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
             df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-            # print(df_all_etypes.head())
-            print(df_all_etypes.loc[df_all_etypes["term"] == "GO:0043185", "description"].values)
-            # df_all_etypes = df_all_etypes[df_all_etypes["FDR"] <= 0.05]
-            # print(df_all_etypes.head())
-            # df_all_etypes = run.format_results(df, ui.args_dict["output_format"], args_dict)
             ### DEBUG stop
         else:
-            print("#" * 25)
-            print(args_dict)
-            print("#" * 25)
             return render_template('info_check_input.html', args_dict=args_dict)
         if type(df_all_etypes) == bool:
-            print("#" * 25)
-            print(args_dict)
-            print("#" * 25)
             return render_template('info_check_input.html', args_dict=args_dict)
         elif len(df_all_etypes) == 0:
-            print("#" * 25)
-            print(args_dict)
-            print("#" * 25)
             return render_template('results_zero.html')
         else:
-            # entity_type = next(iter(limit_2_entity_type)) # single element in set
-            # return generate_result_page(results_all_function_types[entity_type], limit_2_entity_type, form.indent.data, generate_session_id(), form=Results_Form())
-            print("#" * 25)
-            print(args_dict)
-            print("#" * 25)
-            # return generate_result_page(results_all_function_types, args_dict["limit_2_entity_type"], generate_session_id(), form=Results_Form())
             return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
-        # elif len(results_all_function_types.keys()) > 1:
-            # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
-            # print("form.limit_2_entity_type.data", type(form.limit_2_entity_type.data), form.limit_2_entity_type.data)
-            # ToDo create multiple results display method a la clustered results
-            # entity_type = int(form.limit_2_entity_type.data.split(";")[0]) # REPLACE WITH PROPER METHOD later, picked first entry as placeholder
-            # return generate_result_page(results_all_function_types[entity_type], entity_type,
-            #     form.indent.data, generate_session_id(), form=Results_Form())
-        # else:
-        #     raise NotImplementedError
     return render_template('enrichment.html', form=form)
 
 def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), compact_or_comprehensive="compact"):
@@ -761,10 +668,6 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
     df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
     df_all_etypes = df_all_etypes.sort_values(["etype", "rank"])
     etype_2_rowsCount_dict, etype_2_df_as_html_dict = {}, {}
-    # df_all_etypes = df_all_etypes.groupby("etype").head(25)
-    # df_all_etypes = df_all_etypes[df_all_etypes["etype"] != -21]
-    # print(df_all_etypes.groupby("etype")["term"].count())
-
     ### add compact column "FG_count/FG_n BG_count/BG_n" in order to remove ["ratio_in_FG", "ratio_in_BG", "FG_count", "FG_n", "BG_count", "BG_n"] from display
     # if args_dict["enrichment_method"] in {"genome", "compare_samples", "abundance_correction"}:
     #     df_all_etypes["FG_count/FG_n BG_count/BG_n"] = df_all_etypes[["FG_count", "FG_n", "BG_count", "BG_n"]].apply(compact_count_2_n_cols, axis=1)
@@ -793,15 +696,17 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
     df_all_etypes = df_all_etypes.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effect_size, "s_value": s_value,
                                                   "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
     pd.set_option('colheader_justify', 'center')
+    cols_compact = ["rank", "term", "description", FDR, effect_size]
     ### compact results
     if compact_or_comprehensive == "compact":
+        if args_dict["enrichment_method"] == "characterize_foreground":
+            cols_compact = [FG_count, "term", "description", ratio_in_FG, FG_n]
         for etype, group in df_all_etypes.groupby("etype"):
             num_rows = group.shape[0]
             if num_rows > 0:
                 etype_2_rowsCount_dict[etype] = num_rows
-                etype_2_df_as_html_dict[etype] = group[["rank", "term", "description", FDR, effect_size]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="center", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                etype_2_df_as_html_dict[etype] = group[cols_compact].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
         return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict, df_all_etypes=df_all_etypes)
-
 
     ### comprehensive results
     elif compact_or_comprehensive == "comprehensive":
@@ -824,32 +729,33 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
             cols_sort_order_entity_types_with_scores.remove(over_under)
             cols_sort_order_hierarchy.remove(over_under)
             cols_sort_order_rest.remove(over_under)
+
         if args_dict["enrichment_method"] not in {"compare_samples", "compare_groups"}:
             cols_sort_order_PMID.remove(BG_IDs)
-            cols_sort_order_entity_types_with_scores.remove(BG_IDs)
             cols_sort_order_hierarchy.remove(BG_IDs)
             cols_sort_order_rest.remove(BG_IDs)
+        elif args_dict["enrichment_method"] == "characterize_foreground":
+            cols_sort_order_PMID = [ele for ele in cols_sort_order_PMID if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
+            cols_sort_order_entity_types_with_scores = [ele for ele in cols_sort_order_entity_types_with_scores if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
+            cols_sort_order_hierarchy = [ele for ele in cols_sort_order_hierarchy if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
+            cols_sort_order_rest = [ele for ele in cols_sort_order_rest if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
 
-        # print(df_all_etypes.columns.tolist())
         for etype, group in df_all_etypes.groupby("etype"):
             num_rows = group.shape[0]
             if num_rows > 0:
                 etype_2_rowsCount_dict[etype] = num_rows
-                if etype in variables.PMID: # -56 is the only one with a "year" column set_caption("Hover to highlight.")
+                if etype in variables.PMID: # -56 is the only one with "year"
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_PMID])
                 elif etype in variables.entity_types_with_scores:
-                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_entity_types_with_scores]) #.to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_entity_types_with_scores])
                 elif etype in variables.entity_types_with_ontology:
-                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy]) #.to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
                 else:
-                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_rest]) #.to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x), p_value: lambda x: "{:.2E}".format(x), s_value: lambda x: "{:.2E}".format(x)})
-
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_rest])
 
         return render_template('results_comprehensive.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict)
     else:
         print("compact_or_comprehensive is '{}' {}, which is not understood".format(compact_or_comprehensive, type(compact_or_comprehensive)))
-
-
 
 
 @app.route('/results_comprehensive', methods=["GET", "POST"])
@@ -867,35 +773,35 @@ def results_comprehensive():
     return generate_result_page(df_all_etypes, args_dict, session_id, Results_Form(), errors=(), compact_or_comprehensive=compact_or_comprehensive)
 
 
-def generate_result_page_old(tsv, entity_type, session_id, form, errors=()): # indent
-    # header = header.rstrip().split("\t")
-    # if len(results_all_function_types) == 1:
-    #     df = results_all_function_types
-
-    # df = df.applymap(str)
-    # header = df.columns.tolist()
-    # results = df.values.tolist()
-    # results_2_display = ["\t".join(row) for row in results]
-    header, results = tsv.split("\n", 1)
-
-    # results_2_display = results.split("\n")
-    header = header.split("\t")
-    results_2_display = [res.split("\t") for res in results.split("\n")]
-
-    ellipsis_indices = elipsis(header)
-    # results2display = []
-    # for res in results:
-    #     results2display.append(res.split('\t'))
-    file_name = "results_orig" + session_id + ".tsv"
-    fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
-    # fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
-    # tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
-    # tsv = df.to_csv(sep="\t", header=True, index=False)
-    with open(fn_results_orig_absolute, 'w') as fh:
-        fh.write(tsv)
-    return render_template('results.html', header=header, results=results_2_display, errors=errors,
-                           file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
-                           limit_2_entity_type=str(entity_type), session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
+# def generate_result_page_old(tsv, entity_type, session_id, form, errors=()): # indent
+#     # header = header.rstrip().split("\t")
+#     # if len(results_all_function_types) == 1:
+#     #     df = results_all_function_types
+#
+#     # df = df.applymap(str)
+#     # header = df.columns.tolist()
+#     # results = df.values.tolist()
+#     # results_2_display = ["\t".join(row) for row in results]
+#     header, results = tsv.split("\n", 1)
+#
+#     # results_2_display = results.split("\n")
+#     header = header.split("\t")
+#     results_2_display = [res.split("\t") for res in results.split("\n")]
+#
+#     ellipsis_indices = elipsis(header)
+#     # results2display = []
+#     # for res in results:
+#     #     results2display.append(res.split('\t'))
+#     file_name = "results_orig" + session_id + ".tsv"
+#     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
+#     # fn_results_orig_relative = os.path.join(SESSION_FOLDER_RELATIVE, file_name)
+#     # tsv = (u'%s\n%s\n' % (u'\t'.join(header), u'\n'.join(results)))
+#     # tsv = df.to_csv(sep="\t", header=True, index=False)
+#     with open(fn_results_orig_absolute, 'w') as fh:
+#         fh.write(tsv)
+#     return render_template('results.html', header=header, results=results_2_display, errors=errors,
+#                            file_path=file_name, ellipsis_indices=ellipsis_indices, # was fn_results_orig_relative
+#                            limit_2_entity_type=str(entity_type), session_id=session_id, form=form, maximum_time=MAX_TIMEOUT)
 
 ################################################################################
 # results_back.html
@@ -956,47 +862,47 @@ def results_back():
 ################################################################################
 # results_clustered.html
 ################################################################################
-@app.route('/results_clustered', methods=["GET", "POST"])
-def results_clustered():
-    form = Results_Form(request.form)
-    inflation_factor = form.inflation_factor.data
-    session_id = request.form['session_id']
-    limit_2_entity_type = request.form['limit_2_entity_type']
-    # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
-    # indent = request.form['indent']
-    file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
-    header, results = read_results_file(fn_results_orig_absolute)
-    if not form.validate():
-        return generate_result_page(header, results, limit_2_entity_type, session_id, form=form) # indent
-    try:
-        mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
-        cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
-    except cluster_filter.TimeOutException:
-        return generate_result_page(header, results, limit_2_entity_type, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)]) # indent
-
-    num_clusters = len(cluster_list)
-    file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
-    results2display = []
-    with open(fn_results_clustered_absolute, 'w') as fh:
-        fh.write(header)
-        for cluster in cluster_list:
-            results_one_cluster = []
-            for res_index in cluster:
-                res = results[res_index]
-                fh.write(res + '\n')
-                results_one_cluster.append(res.split('\t'))
-            fh.write('#'*80)
-            results2display.append(results_one_cluster)
-    header = header.split("\t")
-    ellipsis_indices = elipsis(header)
-    ip = request.environ['REMOTE_ADDR']
-    string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
-    string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, num_clusters, inflation_factor) # indent,
-    log_activity(string2log)
-    return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
-                           file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
-                           ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, session_id=session_id, # indent=indent,
-                           num_clusters=num_clusters, inflation_factor=inflation_factor)
+# @app.route('/results_clustered', methods=["GET", "POST"])
+# def results_clustered():
+#     form = Results_Form(request.form)
+#     inflation_factor = form.inflation_factor.data
+#     session_id = request.form['session_id']
+#     limit_2_entity_type = request.form['limit_2_entity_type']
+#     # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
+#     # indent = request.form['indent']
+#     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
+#     header, results = read_results_file(fn_results_orig_absolute)
+#     if not form.validate():
+#         return generate_result_page(header, results, limit_2_entity_type, session_id, form=form) # indent
+#     try:
+#         mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
+#         cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
+#     except cluster_filter.TimeOutException:
+#         return generate_result_page(header, results, limit_2_entity_type, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)]) # indent
+#
+#     num_clusters = len(cluster_list)
+#     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
+#     results2display = []
+#     with open(fn_results_clustered_absolute, 'w') as fh:
+#         fh.write(header)
+#         for cluster in cluster_list:
+#             results_one_cluster = []
+#             for res_index in cluster:
+#                 res = results[res_index]
+#                 fh.write(res + '\n')
+#                 results_one_cluster.append(res.split('\t'))
+#             fh.write('#'*80)
+#             results2display.append(results_one_cluster)
+#     header = header.split("\t")
+#     ellipsis_indices = elipsis(header)
+#     ip = request.environ['REMOTE_ADDR']
+#     string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
+#     string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, num_clusters, inflation_factor) # indent,
+#     log_activity(string2log)
+#     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
+#                            file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
+#                            ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, session_id=session_id, # indent=indent,
+#                            num_clusters=num_clusters, inflation_factor=inflation_factor)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
     file_name = "results_" + suffix + session_id + ".tsv"

@@ -2242,7 +2242,7 @@ def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prote
                                 arr_of_UniProtIDs = ";".join(sorted(set(UniProtIDs)))
                                 etype = function_2_etype_dict[function_an]  # "-1" default values for blacklisted terms in variables.py
                                 fh_out.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_UniProtIDs) + "\t" + str(num_UniProtIDs_total_for_taxid) + "\t" + arr_of_UniProtIDs + "\n")
-                                if num_UniProtIDs > min_count:
+                                if num_UniProtIDs > min_count: # #!!! could also be reduced by blacklisted terms
                                     fh_out_reduced.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_UniProtIDs) + "\t" + str(num_UniProtIDs_total_for_taxid) + "\t" + arr_of_UniProtIDs + "\n")
                                 else:
                                     fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_UniProtIDs) + "\t" + str(num_UniProtIDs_total_for_taxid) + "\t" + arr_of_UniProtIDs + "\n")
@@ -2709,13 +2709,10 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
             if ENSP != ENSP_last: # write old results and parse new
                 if len(funcEnum_2_score) > 0: # don't add empty results due to blacklisting or GO-CC terms
                     funcEnum_2_score.sort(key=lambda sublist: sublist[0]) # sort anEnum in ascending order
-                    # funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
-                    # funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
                     funcEnum_arr_and_score_arr_str = helper_reformat_funcEnum_2_score(funcEnum_2_score)
                     UniProtID_list = ENSP_2_UniProtID_dict[ENSP_last]
                     if len(UniProtID_list) >= 1:
                         for UniProtID in UniProtID_list:
-                            # fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_2_score + "\n")
                             fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_arr_and_score_arr_str + "\n")
                     else:
                         ENSP_without_translation.append(ENSP_last)
@@ -2739,8 +2736,6 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
 
         if len(funcEnum_2_score) > 0:  # don't add empty results due to blacklisting or GO-CC terms
             funcEnum_2_score.sort(key=lambda sublist: sublist[0])  # sort anEnum in ascending order
-            # funcEnum_2_score = format_list_of_string_2_postgres_array(funcEnum_2_score)
-            # funcEnum_2_score = funcEnum_2_score.replace("[", "{").replace("]", "}")
             funcEnum_arr_and_score_arr_str = helper_reformat_funcEnum_2_score(funcEnum_2_score)
             # try:
             #     UniProtID = ENSP_2_UniProtID_dict[ENSP_last]
@@ -2752,7 +2747,6 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
             UniProtID_list = ENSP_2_UniProtID_dict[ENSP_last]
             if len(UniProtID_list) >= 1:
                 for UniProtID in UniProtID_list:
-                    # fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_2_score + "\n")
                     fh_out.write(taxid + "\t" + UniProtID + "\t" + funcEnum_arr_and_score_arr_str + "\n")
             else:
                 ENSP_without_translation.append(ENSP_last)
@@ -3534,6 +3528,19 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     import variables
 
+    fn_go_basic_obo = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
+    fn_in_DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
+    fn_in_BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo")  # static file
+    fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
+    Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
+    Functions_table_UPS = variables.tables_dict["Functions_table"]
+    fn_out_Protein_2_FunctionEnum_and_Score_table_UPS = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_UPS_temp.txt")
+    fn_out_DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation_temp.txt")
+    fn_out_ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_temp.txt")
+    fn_out_DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage_temp.txt")
+    Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=True)
+
+
     # Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
     # Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
     # Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
@@ -3545,11 +3552,11 @@ if __name__ == "__main__":
     # fn_out_Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
     # Protein_2_Function_table_UPS(fn_list_str, fn_out_Protein_2_Function_table_UPS, number_of_processes=10)
 
-    fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
-    fn_in_Protein_2_function_table = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
-    fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
-    Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
+    # fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
+    # fn_in_Protein_2_function_table = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    # fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
+    # fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
+    # Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
 
 
 

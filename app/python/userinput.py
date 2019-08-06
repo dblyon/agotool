@@ -29,7 +29,7 @@ class Userinput:
      - characterize_foreground: Foreground only
     """
     def __init__(self, pqo, fn=None, foreground_string=None, background_string=None,
-            num_bins=NUM_BINS, decimal='.', enrichment_method="abundance_correction", foreground_n=None, background_n=None, args_dict=None):
+            num_bins=NUM_BINS, decimal='.', args_dict=None): # foreground_n=None, background_n=None,
         self.pqo = pqo
         self.fn = fn
         self.foreground_string = foreground_string
@@ -39,13 +39,12 @@ class Userinput:
         self.col_foreground = "foreground"
         self.col_background = "background"
         self.col_intensity = "intensity"
-        self.enrichment_method = enrichment_method
-        self.foreground_n = foreground_n
-        self.background_n = background_n
+        self.enrichment_method = args_dict["enrichment_method"]
+        self.foreground_n = None
+        self.background_n = None
         self.args_dict = clean_args_dict(args_dict)
         self.args_dict = o_or_u_or_both_to_number(self.args_dict)
         self.check = False
-        # print("@" * 80)
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
             try:
@@ -57,12 +56,6 @@ class Userinput:
             self.check_cleanup = False
         if self.check_parse and self.check_cleanup:
             self.check = True
-        # try:
-        #     print(self.df_orig.head())
-        #     print(self.foreground.head())
-        # except:
-        #     pass
-        # print("@" * 80)
 
     def parse_input(self):
         if self.enrichment_method not in variables.enrichment_methods:
@@ -70,7 +63,7 @@ class Userinput:
             return False, False, False
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
             if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count:
-                self.args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
+                self.args_dict["ERROR taxid"] = "ERROR taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
                 return False, False, False
         is_copypaste = self.check_if_copy_and_paste()
         if is_copypaste: # copy&paste field
@@ -148,7 +141,7 @@ class Userinput:
             self.foreground[col_foreground] = self.foreground[col_foreground].apply(self.remove_spliceVariant)
         except AttributeError: # np.nan can't be split
             return self.foreground, self.background, False
-        if self.enrichment_method != "compare_groups": # abundance_correction
+        if self.enrichment_method != "compare_groups":
             self.foreground.drop_duplicates(subset=col_foreground, inplace=True)
         self.foreground.index = range(0, len(self.foreground))
         if self.enrichment_method not in {"characterize_foreground", "genome"}:
@@ -156,7 +149,8 @@ class Userinput:
                 self.background[col_background] = self.background[col_background].apply(self.remove_spliceVariant)
             except AttributeError:
                 return self.foreground, self.background, False
-            self.background = self.background.drop_duplicates(subset=col_background)
+            if self.enrichment_method != "compare_groups":
+                self.background = self.background.drop_duplicates(subset=col_background)
 
         if self.enrichment_method == "abundance_correction":
             ### map abundance from protein groups to all individual proteins, if individual protein not with standalone abundance
@@ -207,30 +201,30 @@ class Userinput:
             df["BG_IDs"] = df["BG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
         return df
 
-    def cleanupforanalysis_rank_enrichment(self, df, col_population, col_abundance_ratio):
-        ### remove rows consisting of only NaNs
-        df = df[-df.isnull().all(axis=1)]
-
-        ### remove NaNs from foreground-ANs and abundance_ratios
-        ### population is a DF with "foreground" and "abundance_ratio" as columns
-        population = df.loc[ : , [col_population, col_abundance_ratio]]
-        ### remove rows consisting of only NaNs
-        population = population[-population.isnull().all(axis=1)]
-        ### check if foreground empty or abundance_ratio empty
-        if population.shape[0] == 0:
-            self.args_dict["ERROR_foreground"] = "ERROR: 'foreground' is empty. Please check your input"
-            return population[col_population], population[col_abundance_ratio], False
-        if population.shape[1] == 0:
-            self.args_dict["ERROR_abundance_ratio"] = "ERROR: 'abundance_ratio' is empty. Please check your input"
-            return population, False
-        ### check if missing values in either column
-        cond = population.isnull().any(axis=1)
-        if sum(cond) > 0:
-            return population, False
-
-        population["rank"] = population[col_abundance_ratio].rank(method="first", ascending=False).astype(int)
-        population = population.sort_values("rank").reset_index(drop=True)
-        return population, True
+    # def cleanupforanalysis_rank_enrichment(self, df, col_population, col_abundance_ratio):
+    #     ### remove rows consisting of only NaNs
+    #     df = df[-df.isnull().all(axis=1)]
+    #
+    #     ### remove NaNs from foreground-ANs and abundance_ratios
+    #     ### population is a DF with "foreground" and "abundance_ratio" as columns
+    #     population = df.loc[ : , [col_population, col_abundance_ratio]]
+    #     ### remove rows consisting of only NaNs
+    #     population = population[-population.isnull().all(axis=1)]
+    #     ### check if foreground empty or abundance_ratio empty
+    #     if population.shape[0] == 0:
+    #         self.args_dict["ERROR foreground"] = "ERROR: 'foreground' is empty. Please check your input"
+    #         return population[col_population], population[col_abundance_ratio], False
+    #     if population.shape[1] == 0:
+    #         self.args_dict["ERROR abundance_ratio"] = "ERROR: 'abundance_ratio' is empty. Please check your input"
+    #         return population, False
+    #     ### check if missing values in either column
+    #     cond = population.isnull().any(axis=1)
+    #     if sum(cond) > 0:
+    #         return population, False
+    #
+    #     population["rank"] = population[col_abundance_ratio].rank(method="first", ascending=False).astype(int)
+    #     population = population.sort_values("rank").reset_index(drop=True)
+    #     return population, True
 
     def check_decimal(self, fn):
         """
@@ -375,6 +369,9 @@ class Userinput:
         return set(self.foreground[self.col_foreground].values)
 
     def get_all_individual_foreground_ANs(self):
+        """
+        split proteinGroups into individual proteins
+        """
         return tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
 
     def get_all_individual_background_ANs(self):
@@ -384,20 +381,22 @@ class Userinput:
         return set(self.background[self.col_background].values)
 
     def get_an_redundant_foreground(self):
-        return self.foreground[self.col_foreground].tolist()
+        # return self.foreground[self.col_foreground].tolist()
+        return self.foreground[self.col_foreground].values
 
     def get_an_redundant_background(self):
-        return self.background[self.col_background].tolist()
+        # return self.background[self.col_background].tolist()
+        return self.background[self.col_background].values
 
     def get_all_individual_AN(self):
         """
         return all unique AccessionNumber provided by the user
         :return: ListOfString
         """
-        if self.enrichment_method == "rank_enrichment":
-            ans = tools.commaSepCol2uniqueFlatList(self.population_df, self.col_population, sep=";", unique=True)
-        else:
-            ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
+        # if self.enrichment_method == "rank_enrichment":
+        #     ans = tools.commaSepCol2uniqueFlatList(self.population_df, self.col_population, sep=";", unique=True)
+        # else:
+        ans = tools.commaSepCol2uniqueFlatList(self.foreground, self.col_foreground, sep=";", unique=True)
         if self.enrichment_method not in {"characterize_foreground", "genome", "rank_enrichment"}:
             ans += tools.commaSepCol2uniqueFlatList(self.background, self.col_background, sep=";", unique=True)
         return list(set(ans))
@@ -416,12 +415,8 @@ class Userinput:
         """
         if self.enrichment_method in {"abundance_correction", "compare_samples", "characterize_foreground", "genome"}:
             return len(self.foreground)
-        # elif self.enrichment_method == "compare_samples": # no abundance correction
-        #     return len(self.foreground)
-        elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user
-            return self.foreground_n
-        # elif self.enrichment_method == "characterize_foreground":
-        #     return len(self.foreground)
+        elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user, but this only describes replicates
+            return self.args_dict["foreground_replicates"] # * len(self.get_foreground_an_set())
         else:
             raise StopIteration # DEBUG, case should not happen
 
@@ -431,14 +426,14 @@ class Userinput:
         :return: Int
         """
         if self.enrichment_method == "genome":
-            # return None # information stored in pqo.taxid_2_proteome_count
             return self.pqo.taxid_2_proteome_count[self.args_dict["taxid"]]
         elif self.enrichment_method == "abundance_correction": # same as foreground
             return len(self.foreground)
         elif self.enrichment_method == "compare_samples": # simply background to compare to
             return len(self.background)
         elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user
-            return self.background_n
+            # return self.background_n *  len(self.background)
+            return self.args_dict["background_replicates"] # * len(self.get_background_an_set())
         elif self.enrichment_method == "characterize_foreground": # only for foreground, not background
             return None
         else:
@@ -456,16 +451,16 @@ class Userinput:
         :return: Tuple(ListOfString(';' sep ANs), correction factor)
         """
         # take subset of foreground with proper abundance values and create bins
-        cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
-        bins = pd.cut(self.foreground.loc[cond, "intensity"], bins=self.num_bins, retbins=True)[1]
+        cond = self.foreground[self.col_intensity] > DEFAULT_MISSING_BIN
+        bins = pd.cut(self.foreground.loc[cond, self.col_intensity], bins=self.num_bins, retbins=True)[1]
         # add missing bin for the remainder of proteins
         bins = np.insert(bins, 0, DEFAULT_MISSING_BIN - 1)  # bins = [DEFAULT_MISSING_BIN - 1] + list(bins)
         # cut foreground and background into bins
-        groups_fg = self.foreground.groupby(pd.cut(self.foreground["intensity"], bins=bins))
-        groups_bg = self.background.groupby(pd.cut(self.background["intensity"], bins=bins))
+        groups_fg = self.foreground.groupby(pd.cut(self.foreground[self.col_intensity], bins=bins))
+        groups_bg = self.background.groupby(pd.cut(self.background[self.col_intensity], bins=bins))
         for group_fg, group_bg in zip(groups_fg, groups_bg):
-            proteinGroups_foreground = group_fg[1]["foreground"]
-            proteinGroups_background = group_bg[1]["background"]
+            proteinGroups_foreground = group_fg[1][self.col_foreground]
+            proteinGroups_background = group_bg[1][self.col_background]
             len_proteinGroups_foreground = len(proteinGroups_foreground) # * 1.0 # python3
             if len_proteinGroups_foreground == 0:
                 continue
@@ -510,11 +505,11 @@ class REST_API_input(Userinput):
         self.check_cleanup = False
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
-            if self.enrichment_method == "rank_enrichment":
-                # abundance_ratio goes in, rank comes out
-                self.population_df, self.check_cleanup = self.cleanupforanalysis_rank_enrichment(self.df_orig, self.col_population, self.col_abundance_ratio)
-            else:
-                self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
+            # if self.enrichment_method == "rank_enrichment":
+            #     # abundance_ratio goes in, rank comes out
+            #     self.population_df, self.check_cleanup = self.cleanupforanalysis_rank_enrichment(self.df_orig, self.col_population, self.col_abundance_ratio)
+            # else:
+            self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
         if self.check_parse and self.check_cleanup:
             self.check = True
 

@@ -25,7 +25,7 @@
               {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock %}
               {% block nav_Results_compact %}<li class="nav-item active"> <a class="nav-link" name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}">Results compact<span class="sr-only">(current)</span></a></li>{% endblock %}
 
-          {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link" name="file_path" onclick="submit_form('form', 'results_comprehensive')">Results comprehensive</a></li>{% endblock %}
+          {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link results" name="file_path" onclick="submit_form('form', 'results_comprehensive')">Results comprehensive</a></li>{% endblock %}
             <form id="form" method="Post" action="results_comprehensive" enctype="multipart/form-data">
                 <input type="hidden" style="display: none;" name="file_path" value="{{ file_path }}">
                 <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">

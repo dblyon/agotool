@@ -722,7 +722,7 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 
 ### TODO:
 # - check filter options all work properly
-# - UI multiple tables --> Done
+
 # - rerun whole pipeline
 # - offer to BH correct all categories together
 # - ToDo fix API and adapt to Damian STRING API
@@ -736,12 +736,26 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - alignment of table in enrichment
 # - add compare_groups method
 # - create link outs
+# - fix form validation of wtforms or flask-wtf
 
 # examples for Lars for missing PMID descriptions
 # https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
 # Metaanalysis of true user data inputs
 #  - compare GO with GOCC: intersection and complement of terms in numbers, correlation of p-value and effect size
 # ? What to report for abundance_correction of KS test? ratio_in_foreground	ratio_in_background	foreground_count	foreground_n	background_count	background_n
+# - ?abundance_correction with KS?
+# - ?compare_groups with KS?
+# Function_2_Description_DOID_BTO_GO.
+# e.g. of term without description:
+# DOID:3805, (BTO:0003099 blacklisted)
+# Function_2_Proteins_table:
+# 9606    -1      DOID:3805       62      20960   ARPC3_HUMAN;ASCL4_HUMAN;AT2C1_HUMAN;BLMH_HUMAN;CAMP_HUMAN;CASPE_HUMAN;CBPE_HUMAN;CENPR_HUMAN;CHSTB_HUMAN;CLC4K_HUMAN;CML1_H
+# nothing in Functions table or blacklisted_terms_Jensenlab
+# but appears in Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz
+# When backtracking GOCC terms --> multiple scores for same GOterm
+# - which implications for KS?
+# - which implications for characterize_foreground
+
 
 # bugfix:
 # - why does it make a difference if I use the same foreground and background and all filters off. compare_samples vs. genome???
@@ -754,3 +768,18 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - Bootstrap vs Jquery styles
 # - create link outs
 # - change GOCC to GO
+
+
+# compare_groups method
+# documentation
+# examples
+# REST API
+
+# Pipeline
+# - different CRON jobs / executing various parts of the pipeline
+# - sanity check that similar amount of data going into DB
+# - sanity check that methods work
+# - sanity check on some results
+
+
+# fix / sanity check Protein_2_FunctionEnum_and_Score_table_UPS

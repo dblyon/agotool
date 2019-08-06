@@ -18,22 +18,25 @@
     <br><br>
     <h1 class="row text-center">ENRICHMENT</h1>
     <br>
-        <div class="row">
-            <h3>Drag & drop or upload a file or alternatively use copy & paste fields below</h3>
+        <div class="row"><h3>Drag & drop or click to upload a file</h3></div>
+        <div class="col-md-10">Please see the <a href="{{ url_for('example') }}">Example</a> page for concrete examples.</div>
+
+{#        <div class="row">#}
             <div class="col-md-10">
                 <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
                     {% if form.userinput_file.errors %}
                     <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
 
-                <span>Expects a tab-delimited text-file (".txt" or ".tsv") with the following <b>3 column-headers:</b></span>
-                    <li class="bulletpoints_li"><b>foreground</b>: UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>
-                    <li class="bulletpoints_li"><b>background</b>: UniProt Accession Numbers (such as "P00359") for all proteins</li>
-                    <li class="bulletpoints_li"><b>intensity</b>: Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)</li>
-                Isoforms and comma separated <b>protein-groups</b> e.g. ("O60462-5;A0A024R412;O60462-4") are accepted as well.<br>
+{#                    <li class="bulletpoints_li"><b>foreground</b>: UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>#}
+{#                    <li class="bulletpoints_li"><b>background</b>: UniProt Accession Numbers (such as "P00359") for all proteins</li>#}
+{#                    <li class="bulletpoints_li"><b>intensity</b>: Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)</li>#}
+{#                Isoforms and comma separated <b>protein-groups</b> e.g. ("O60462-5;A0A024R412;O60462-4") are accepted as well.<br>#}
+{#            <br>#}
             <br>
+            <div class="row"> <h4>or alternatively use copy & paste fields</h4></div>
             <div class="row" id="copy_paste_field">
-                 From - e.g. MS-Excel - select 1 column for the "Foreground" and either 1 or 2 columns for "Background & Intensity", copy, and paste into the field below. For "abundance_correction" you need a "Background" and "Intensity" values (therfore 2 columns); alternatively you can use only a "Background" without the "Intensity" values, but then please select "compare_samples" from the methods below the copy and paste field.
+{#                 From - e.g. MS-Excel - select 1 column for the "Foreground" and either 1 or 2 columns for "Background & Intensity", copy, and paste into the field below. For "abundance_correction" you need a "Background" and "Intensity" values (therfore 2 columns); alternatively you can use only a "Background" without the "Intensity" values, but then please select "compare_samples" from the methods below the copy and paste field.#}
 
                 <div class="col-md-5">
                     {{ form.foreground_textarea.label }}:
@@ -46,20 +49,32 @@
             </div>
             <br>
             </div>
-                  <div class="col-md-10">
+                  <div class="row col-md-10">
                       <span title="{{ form.enrichment_method.description }}"> {{ form.enrichment_method.label }}: {{ form.enrichment_method() }} <br> </span>
-                      <div class="row">
-                          <div class="taxid">
-                              <div class="col-md-5">
-                              <span title="{{ form.taxid.description }}"> {{ form.taxid.label }}: {{ form.taxid}} <br> </span>
-                                {% if form.taxid.errors %}
-                                <ul class="errors"> {% for error in form.taxid.errors %} <b> {{ error }} </b> {% endfor %} </ul>
-                                {% endif %}
-                              </div>
-                          </div>
-                      </div>
+{#                      <div class="row">#}
                   </div>
-            </div>
+                  <div class="row col-md-10 taxid">
+{#                              <div class="col-md-5">#}
+                      <span title="{{ form.taxid.description }}"> {{ form.taxid.label }}: {{ form.taxid}} <br> </span>
+                        {% if form.taxid.errors %}
+                        <ul class="errors"> {% for error in form.taxid.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                        {% endif %}
+                  </div>
+{#                      </div>#}
+
+                  <div class="row col-md-10 foreground_replicates">
+                      <span title="{{ form.foreground_replicates.description }}"> {{ form.foreground_replicates.label }}: {{ form.foreground_replicates}} <br> </span>
+                        {% if form.foreground_replicates.errors %}
+                        <ul class="errors"> {% for error in form.foreground_replicates.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                        {% endif %}
+                      <span title="{{ form.background_replicates.description }}"> {{ form.background_replicates.label }}: {{ form.background_replicates}} <br> </span>
+                        {% if form.background_replicates.errors %}
+                        <ul class="errors"> {% for error in form.background_replicates.errors %} <b> {{ error }} </b> {% endfor %} </ul>
+                        {% endif %}
+                  </div>
+
+{#        </div>#}
+
         <div class="row">
             <h3>Analysis options</h3>
             <div class="col-md-10">
@@ -71,29 +86,36 @@
         </div>
         <div class="row">
             <h3>Report options</h3>
-            <div class="col-md-10">
+            <div class="col-md-8">
             <br>
                 <table>
-{#                style="float:left"#}
                     <tr title="{{ form.p_value_cutoff.description }}"><td class="somename">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
                         {% if form.p_value_cutoff.errors %}
-                        <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                            <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                         {% endif %}
-                    </tr>
                     <tr title="{{ form.FDR_cutoff.description }}"><td class="somename">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
                         {% if form.FDR_cutoff.errors %}
                     <tr>
                         <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                         {% endif %}
-                    </tr>
-                        <tr title="{{ form.filter_foreground_count_one.description }}"><td class="somename">{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
-                        <tr title="{{ form.filter_parents.description }}"><td class="somename">{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
+                    <tr title="{{ form.filter_foreground_count_one.description }}"><td class="somename">{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
+                    <tr title="{{ form.filter_parents.description }}"><td class="somename">{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
+                    <tr class="characterize_foreground" title="{{ form.score_cutoff.description }}"><td class="somename">{{ form.score_cutoff.label }}: </td><td>{{ form.score_cutoff() }}</td>
+                        {% if form.score_cutoff.errors %}
+                        <tr><td colspan="2"><ul class="errors"> {% for error in form.score_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                        {% endif %}
                 </table>
+            <div class="col-md-4">
             </div>
         </div>
+        </div>
         <br>
-        <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
-        <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
+        <div class="row">
+            <div class="col-md-8">
+            <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
+            <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
+                </div>
+        </div>
 		<br><br><br><br>
 	</form>
 </div>

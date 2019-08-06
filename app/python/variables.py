@@ -34,7 +34,7 @@ PMID = {-56}
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # {-52, -53, -54, -55, -56, -58}
 entity_types_with_scores = {-20, -25, -26}  # GO-CC, BTO, DOID
-enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome"}
+enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}
 
 
 functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
@@ -210,7 +210,7 @@ param_2_val_dict = parse_env_file(fn)
 # 'KW-9995' 'Disease',
 # 'KW-9996' 'Developmental stage'
 # 'KW-9990' 'Technical term' and all its children
-blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
+blacklisted_terms = {'GO:0003674', 'GO:0008150', 'GO:0005575', "GOCC:0005575",
                      'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614',
                      'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999'}

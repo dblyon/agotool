@@ -67,6 +67,11 @@ tr:hover {background-color: gold !important;}
     left: 0;
 }
 
+.results{
+    /*color: white !important;*/
+    font-size: 1.1em !important;
+    }
+
 
 /*.table td, .table th {*/
 /*    padding: 0.5rem;*/
