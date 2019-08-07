@@ -84,6 +84,7 @@ URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on 
 PFAM_clans = os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv")
 map_name_2_an_PFAM = os.path.join(TABLES_DIR, "map_name_2_an_PFAM.txt")
 Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
+Functions_table_GO_Jensenlab = os.path.join(TABLES_DIR, "Functions_table_GO_Jensenlab.txt")
 Functions_table_GO = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
 Functions_table_RCTM = os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")
 Functions_table_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Functions_table_DOID_BTO_GOCC.txt")
@@ -360,15 +361,25 @@ rule download_UniProt_reference_proteomes:
         drs.download_UniProt_reference_proteomes(output.UniProt_background_proteomes_dir, params.verbose)
 ###################################################################################################
 ### create tables
-rule Functions_table_GO:
+rule Functions_table_GO_Jensenlab:
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab
+    output:
+        Functions_table_GO_Jensenlab = Functions_table_GO_Jensenlab
+    params:
+        is_upk = False
+    run:
+        cst.Functions_table_GO_or_UPK(input.GO_obo_Jensenlab, output.Functions_table_GO_Jensenlab, params.is_upk)
+
+rule Functions_table_GO:
+    input:
+        GO_obo = GO_obo
     output:
         Functions_table_GO = Functions_table_GO
     params:
         is_upk = False
     run:
-        cst.Functions_table_GO_or_UPK(input.GO_obo_Jensenlab, output.Functions_table_GO, params.is_upk)
+        cst.Functions_table_GO_or_UPK(input.GO_obo, output.Functions_table_GO, params.is_upk)
 
 rule Functions_table_UPK:
     input:
@@ -447,6 +458,7 @@ rule Functions_table_all:
                        Functions_table_KEGG,
                        Functions_table_PFAM,
                        Functions_table_GO,
+                       Functions_table_GO_Jensenlab,
                        Functions_table_UPK,
                        Functions_table_PMID,
                        Functions_table_RCTM,
@@ -480,9 +492,10 @@ rule Taxid_2_Proteins_table_UPS_FIN:
     run:
         cst.Taxid_2_Proteins_table_UPS(input.UniProt_background_proteomes_dir, output.Taxid_2_Proteins_table_UPS_FIN)
 
-rule Lineage_table_UPS_FIN: # remove comment
+rule Lineage_table_UPS_FIN:
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
+        GO_obo = GO_obo,
         UPK_obo = UPK_obo,
         RCTM_hierarchy = RCTM_hierarchy,
         interpro_parent_2_child_tree = interpro_parent_2_child_tree,
@@ -496,7 +509,7 @@ rule Lineage_table_UPS_FIN: # remove comment
     params:
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_UPS_FIN, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table_UPS_FIN, output.Lineage_table_UPS_no_translation, output.Lineage_table_UPS_hr, params.GO_CC_textmining_additional_etype)
+        cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.GO_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_UPS_FIN, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table_UPS_FIN, output.Lineage_table_UPS_no_translation, output.Lineage_table_UPS_hr, params.GO_CC_textmining_additional_etype)
 
 rule KEGG_Taxid_2_acronym_table_UPS_FIN:
     input:
@@ -770,7 +783,7 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - change GOCC to GO
 
 
-# compare_groups method
+# compare_groups method --> done
 # documentation
 # examples
 # REST API
@@ -781,5 +794,5 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - sanity check that methods work
 # - sanity check on some results
 
-
-# fix / sanity check Protein_2_FunctionEnum_and_Score_table_UPS
+# sanity check :grep "GO:0110149" Functions_table_UPS_FIN.txt
+# 

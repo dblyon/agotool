@@ -722,8 +722,14 @@ def _helper_format_array(function_arr, function_2_enum_dict):
             pass
     return [int(ele) for ele in functionEnum_list]
 
-def Lineage_table_FIN(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_lineage_table_no_translation, fn_out_lineage_table_hr, GO_CC_textmining_additional_etype=False):
-    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype)
+def Lineage_table_FIN(fn_in_GO_obo_Jensenlab, fn_in_GO_obo, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_lineage_table_no_translation, fn_out_lineage_table_hr, GO_CC_textmining_additional_etype=False):
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_GO_obo_Jensenlab, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype)
+    # Jensenlab obo first, up-to-date GO_obo after to overwrite/update entries
+    go_dag = obo_parser.GODag(obo_file=fn_in_GO_obo)
+    for go_term_name in go_dag:
+        GOTerm_instance = go_dag[go_term_name]
+        lineage_dict[go_term_name] = GOTerm_instance.get_all_parents()
+
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     lineage_dict_enum = {}
@@ -2572,6 +2578,7 @@ def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_o
             if etype != "-22":
                 blacklisted_ans.append(an.strip())
     blacklisted_ans = set(blacklisted_ans)
+    blacklisted_ans.update(variables.blacklisted_terms) # exclude top level terms, and manually curated
 
     year = "-1" # placeholder
     with open(Functions_table_DOID_BTO_GOCC, "w") as fh_out:
@@ -2696,7 +2703,6 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     an_without_translation, ENSP_without_translation, without_lineage = [], [], set()
     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
-
     with open(fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
             ENSP_last, funcName_2_score_arr_str_last, etype_last = line.split("\t")
@@ -2737,13 +2743,6 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
         if len(funcEnum_2_score) > 0:  # don't add empty results due to blacklisting or GO-CC terms
             funcEnum_2_score.sort(key=lambda sublist: sublist[0])  # sort anEnum in ascending order
             funcEnum_arr_and_score_arr_str = helper_reformat_funcEnum_2_score(funcEnum_2_score)
-            # try:
-            #     UniProtID = ENSP_2_UniProtID_dict[ENSP_last]
-            # except KeyError:
-            #     ENSP_without_translation.append(ENSP_last)
-            #     UniProtID = False
-            # if UniProtID:
-            #     fh_out.write(UniProtID + "\t" + funcEnum_2_score + "\t" + taxid + "\n")
             UniProtID_list = ENSP_2_UniProtID_dict[ENSP_last]
             if len(UniProtID_list) >= 1:
                 for UniProtID in UniProtID_list:
