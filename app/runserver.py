@@ -869,6 +869,7 @@ if __name__ == "__main__":
     ### SAN port 10110
     ### PISCES IP 127.0.0.1 port 10110
     ### ATLAS IP 0.0.0.0 port 5911
+    ### Aquarius port 5911 (via docker-compose)
     print("#" * 80)
     print("running aGOtool on IP {} port {}".format(IP, port))
     app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)

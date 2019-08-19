@@ -98,7 +98,7 @@ services:
   nginx:
     logging:
       driver: "json-file"
-    container_name: nginx
+    container_name: agotool-nginx
     image: "nginx:1.13.8"
     ports:
       #- "8080:80"

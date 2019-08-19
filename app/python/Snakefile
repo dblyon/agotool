@@ -796,3 +796,6 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - sanity check on some results
 
 # results_comprehensive and results_compact names in URL are not displayed correctly when switching back and forth
+
+
+# chmod o+r * recursively for all static files on aquarius in order for nginx to read them
