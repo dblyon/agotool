@@ -9,19 +9,19 @@ var enrichment_page = (function() {
         $('#foreground_textarea').val('');
         $('#background_textarea').val('');
         // $("#userinput_file").filestyle('clear');
-        // $("#p_value_cutoff").value("0.01");
+        // $("#p_value_cutoff").value("0.999");
         // $("#p_value_cutoff").val("0.01");
     });
         // $("#enrichment_method").val("compare_samples");
         // SelectElement("enrichment_method", "compare_samples");
 
 
-    $('#gocat_upk').change(function() {
-        var gocat_upk = $('#gocat_upk').val();
-        var choice = gocat_upk == "UPK";
-        toggle_if(choice, ".GOT", ".GOT_placeholder");
-    });
-    $("#gocat_upk").change(); // fire event to hide stuff
+    // $('#gocat_upk').change(function() {
+    //     var gocat_upk = $('#gocat_upk').val();
+    //     var choice = gocat_upk == "UPK";
+    //     toggle_if(choice, ".GOT", ".GOT_placeholder");
+    // });
+    // $("#gocat_upk").change(); // fire event to hide stuff
 
 // // show 'foreground_n and background_n boxes' if "compare_groups" selected
 //     $('#enrichment_method').change(function() {
@@ -56,7 +56,14 @@ var enrichment_page = (function() {
     $("#enrichment_method").change();
 
 
-
+// Hide example_description, show only when an example is selected
+    var example_status = document.getElementsByClassName('example_status')[0].getAttribute("value");
+    var hide_true = example_status == "example_None";
+    if (hide_true == true) {
+        document.getElementsByClassName('example_status')[0].setAttribute("style", "display: none;");
+    };
+//     document.getElementsByClassName('example_status').value="newValue_DBL"; --> where can I see this value in the HMTL ???
+//     document.getElementsByClassName('example_status').bubu="this doesn't make sense";
 
     // $('.nav-item li').click(function(){
     //     $('.nav-item li').removeClass('active');
@@ -128,7 +135,6 @@ var results_page = (function () {
 
 // RESTULS PAGE COMPACT
 var results_page_compact = (function () {
-
     // add classes to specific columns
     $(document).ready(function() {
         $('table.display').DataTable({
@@ -148,7 +154,6 @@ var results_page_compact = (function () {
 
 // RESTULS PAGE COMPREHENSIVE
 var results_page_comprehensive = (function () {
-
     // add classes to specific columns
     $(document).ready(function() {
         $('table.display').DataTable({
@@ -161,19 +166,16 @@ var results_page_comprehensive = (function () {
     } );
 });
 
-
-
-
-
-// var toggle_ellipsis = (function(element) {
-//         $(element).toggleClass("ellipsis")
-// });
-
 var submit_form = (function(form_id, action) {
     var form = $("#" + form_id);
     form.attr("action", action);
     form.submit();
 });
+
+
+// var toggle_ellipsis = (function(element) {
+//         $(element).toggleClass("ellipsis")
+// });
 
 //
 // function SelectElement(id, valueToSelect)
@@ -204,3 +206,8 @@ var submit_form = (function(form_id, action) {
 //     ]
 // });
 
+//example 1
+//"""HBA_HUMAN
+// HBB_HUMAN
+// HBD_HUMAN
+// HBE_HUMAN"""

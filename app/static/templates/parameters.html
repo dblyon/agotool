@@ -18,12 +18,20 @@
 <div class="row">
     <h3>Upload file</h3>
         <div class="col-md-12">
-            <b>Choose File:</b> Expects a tab-delimited text-file (".txt" or ".tsv") with the following 3 column-headers:<br>
+            <b>Drag & drop or click to upload a file:</b> Expects a tab-delimited text-file (".txt" or ".tsv") with 1, 2, or 3 columns depending on the "enrichment_method" used.<br>
+            "enrich
+            Which "enrichment_methods" expect which kind of input:
+
+            Additional or unnecessary columns will simply be ignored.
+
+            Protein identifiers can be provided as <a href="https://www.uniprot.org/help/difference_accession_entryname">UniProt</a> accessions (e.g. <a href="https://www.uniprot.org/uniprot/P31946">P31946</a>, UniProt entry names (formerly ID) (e.g. <a href="https://www.uniprot.org/uniprot/P31946">1433B_HUMAN</a>, or <a href="https://www.ensembl.org/info/genome/stable_ids/index.html">ENSPs</a> e.g. <a href="https://www.ensembl.org/info/genome/stable_ids/index.html"></a>
+
                 <span class="column_names">
                     <ul>
+                        <li class="bulletpoints_li">"foreground": UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>
                         <li class="bulletpoints_li">"background": UniProt accession numbers (such as "P00359") for all proteins</li>
                         <li class="bulletpoints_li">"intensity": Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)</li>
-                        <li class="bulletpoints_li">"foreground": UniProt accession numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>
+
                     </ul>
                 </span>
             <b>Select Organism:</b> Choose the species/organism the identifiers (accession numbers) correspond to. A slightly larger set of organisms is available for "UniProt-keywords" than for "GO-terms" (the drop-down-list changes when selecting "GO-terms" or "UniProt-keywords"). <br>

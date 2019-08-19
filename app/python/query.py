@@ -1440,7 +1440,7 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
                 # taxid_line, prot_arr, background_count = line.split("\t") # STRING_v11
                 taxid_line, background_count, prot_arr = line.split("\t") # UniProt
                 if taxid_line == str(taxid):
-                    prot_arr = prot_arr[1:-1].replace("'", "").replace('"', "").split(",")
+                    prot_arr = prot_arr.strip()[1:-1].replace("'", "").replace('"', "").split(",")
                     return sorted(prot_arr)
 
 def get_Taxid_2_proteome_count_dict(read_from_flat_files=False, fn=None): #, searchspace=None):

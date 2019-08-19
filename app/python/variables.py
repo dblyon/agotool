@@ -7,12 +7,12 @@ PRELOAD = False # set True in production
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
-DB_DOCKER = False # connect via local port vs via docker, in query.py
+DB_DOCKER = True # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = True # for flask and some internals for printing, set to False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
@@ -142,7 +142,7 @@ FN_GO_SLIM = os.path.join(DATA_DIR, "PostgreSQL/downloads/goslim_generic.obo")
 FN_GO_BASIC = os.path.join(DATA_DIR, "PostgreSQL/downloads/go-basic.obo")
 
 ##### Maximum Time for MCL clustering
-MAX_TIMEOUT = 5 # minutes
+# MAX_TIMEOUT = 5 # minutes
 
 # Flask app
 STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')

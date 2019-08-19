@@ -785,8 +785,9 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 
 # compare_groups method --> done
 # documentation
-# examples
+# examples --> temp fix
 # REST API
+# suggestions for TaxIDs and names
 
 # Pipeline
 # - different CRON jobs / executing various parts of the pipeline
@@ -794,5 +795,4 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - sanity check that methods work
 # - sanity check on some results
 
-# sanity check :grep "GO:0110149" Functions_table_UPS_FIN.txt
-# 
+# results_comprehensive and results_compact names in URL are not displayed correctly when switching back and forth

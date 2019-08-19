@@ -18,6 +18,21 @@ body {background-color:#fff;}
     padding-bottom: 10px;
     padding-top: 15px;}
 
+.example {
+    font-size: 12px;
+    color: grey;
+    text-decoration: underline;}
+
+.example_header {
+    font-size: 12px;
+    color: grey;}
+
+.NCBI_TaxID {
+    color: black;
+    text-decoration: underline;}
+
+
+
 
 /* TABLES*/
 
