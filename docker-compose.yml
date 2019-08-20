@@ -1,8 +1,5 @@
 version: '3'
-
-
 services:
-
   db: # name
     logging:
       driver: "json-file"
@@ -38,9 +35,12 @@ services:
 
       ####### Data bind mount
       ### Ody
-      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
+       - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
       #- /home/dblyon/agotool/data/:/agotool_data
+      ### Aquarius
+#      - /home/dblyon/agotool/data:/agotool_data
+#    command: bash -c "find /opt/services/flaskapp/src/static -type f -exec chmod 644 {} \;"
     env_file:
       - ./app/env_file
     networks:
@@ -48,6 +48,46 @@ services:
       - web_nw
     depends_on:
       - db
+
+
+  nginx:
+    logging:
+      driver: "json-file"
+    container_name: nginx_agotool
+    image: "nginx:1.13.8"
+    ports:
+      #- "8080:80"
+      - "5911:80"
+    volumes:
+      - ./app/conf.d:/etc/nginx/conf.d
+      - ./app/static:/var/www/static
+#    command: bash -c "find /var/www/static -type f -exec chmod 644 {} \;"
+    networks:
+      - web_nw
+    depends_on:
+      - flaskapp
+#      - flaskapp_1
+#      - flaskapp_2
+
+networks:
+  db_nw:
+    driver: bridge
+  web_nw:
+    driver: bridge
+
+volumes: # can be shared
+  dbdata: # purely Postgres
+  agotool_data: # version 1
+
+# volumes:
+# "named volume" persistent data container that is managed by docker.
+# e.g.
+# - "agotool_data:/agotool_data"
+# "bind mounted volume" from host, e.g. RW access from container. local changes are reflected in docker
+# e.g.
+# - ./app/:/opt/services/flaskapp/src
+
+
 
 #  flaskapp_1:
 #    container_name: flaskapp_1
@@ -93,40 +133,4 @@ services:
 #      - db_nw
 #      - web_nw
 #    depends_on:
-#      - db
-
-  nginx:
-    logging:
-      driver: "json-file"
-    container_name: agotool-nginx
-    image: "nginx:1.13.8"
-    ports:
-      #- "8080:80"
-      - "5911:80"
-    volumes:
-      - ./app/conf.d:/etc/nginx/conf.d
-      - ./app/static:/var/www/static
-    networks:
-      - web_nw
-    depends_on:
-      - flaskapp
-#      - flaskapp_1
-#      - flaskapp_2
-
-networks:
-  db_nw:
-    driver: bridge
-  web_nw:
-    driver: bridge
-
-volumes: # can be shared
-  dbdata: # purely Postgres
-  agotool_data: # version 1
-
-# volumes:
-# "named volume" persistent data container that is managed by docker.
-# e.g.
-# - "agotool_data:/agotool_data"
-# "bind mounted volume" from host, e.g. RW access from container. local changes are reflected in docker
-# e.g.
-# - ./app/:/opt/services/flaskapp/src
+#      - dbversion: '3'

@@ -67,6 +67,10 @@ RUN cd python && python setup.py build_ext --inplace -f
 COPY ./app/.bashrc /root/.bashrc
 #COPY . /opt/services/flaskapp/src
 #COPY ./data/PostgreSQL/downloads/*.obo /agotool_data/PostgreSQL/downloads/
+
+# change permissions for nginx, otherwise problems on Aquarius
+#RUN find /opt/services/flaskapp/src/static -type f -exec chmod 644 {} \;
+
 WORKDIR /opt/services/flaskapp/src
 EXPOSE 5912
 CMD ["python", "runserver.py", "0.0.0.0", "5912"]

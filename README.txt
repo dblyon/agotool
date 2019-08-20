@@ -681,3 +681,21 @@ docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL
                                                         /agotool_data/PostgreSQL/copy_from_file_and_index.psql
 
 docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
+
+
+# remove PostgreSQL data directory, since switching from v10 to v11 results in problems
+prune the system with "remove_volumes" in ""~/scripts/docker_volumes.sh "
+"""
+removecontainers() {
+    docker stop $(docker ps -aq)
+    docker rm $(docker ps -aq)
+}
+
+remove_volumes() {
+    removecontainers
+    docker network prune -f
+    docker rmi -f $(docker images --filter dangling=true -qa)
+    docker volume rm $(docker volume ls --filter dangling=true -q)
+    docker rmi -f $(docker images -qa)
+}
+"""
