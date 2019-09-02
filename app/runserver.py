@@ -691,9 +691,10 @@ def results():
                      "taxid": form.taxid.data,
                      "output_format": "dataframe",
                      "enrichment_method": form.enrichment_method.data,
-                     "multiple_testing_per_etype": form.multiple_testing_per_etype.data} # "fold_enrichment_for2background": form.fold_enrichment_for2background.data,
-        ui = userinput.Userinput(pqo, fn=fileobject, foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
-            decimal='.', args_dict=args_dict)#, foreground_n=form.foreground_n.data, background_n=form.background_n.data, score_cutoff=form.score_cutoff.data)
+                     "multiple_testing_per_etype": form.multiple_testing_per_etype.data}
+        ui = userinput.Userinput(pqo, fn=fileobject,
+            foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+            decimal='.', args_dict=args_dict)
         print(80*"#")
         print(args_dict)
         print(args_dict["p_value_cutoff"])
