@@ -1,17 +1,17 @@
 // ENRICHMENT PAGE
 var enrichment_page = (function() {
 // hide GO-term specific options if UniProt-keywords selected
-    $("#copy_paste_field textarea").keypress(function (event) {
-        $("#userinput_file").filestyle('clear');
-    });
-
-    $("#clear_button").click(function (event) {
-        $('#foreground_textarea').val('');
-        $('#background_textarea').val('');
+//     $("#copy_paste_field textarea").keypress(function (event) {
+//         $("#userinput_file").filestyle('clear');
+//     });
+//
+//     $("#clear_button").click(function (event) {
+//         $('#foreground_textarea').val('');
+//         $('#background_textarea').val('');
         // $("#userinput_file").filestyle('clear');
         // $("#p_value_cutoff").value("0.999");
         // $("#p_value_cutoff").val("0.01");
-    });
+    // });
         // $("#enrichment_method").val("compare_samples");
         // SelectElement("enrichment_method", "compare_samples");
 
@@ -55,6 +55,14 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
+// hide p_values if "characterize_foreground" selected
+    $('#enrichment_method').change(function() {
+        var enrichment_method = $('#enrichment_method').val();
+        var choice = enrichment_method == "characterize_foreground";
+        toggle_if(choice, ".p_value", "");
+    });
+    $("#enrichment_method").change();
+
 
 // Hide example_description, show only when an example is selected
     var example_status = document.getElementsByClassName('example_status')[0].getAttribute("value");
@@ -64,14 +72,6 @@ var enrichment_page = (function() {
     };
 //     document.getElementsByClassName('example_status').value="newValue_DBL"; --> where can I see this value in the HMTL ???
 //     document.getElementsByClassName('example_status').bubu="this doesn't make sense";
-
-    // $('.nav-item li').click(function(){
-    //     $('.nav-item li').removeClass('active');
-    //     $(this).addClass('active');
-    // });
-
-    // $(":file").filestyle({dragdrop: true});
-
 });
 
 
@@ -162,8 +162,8 @@ var results_page_comprehensive = (function () {
             buttons: ['colvis'],
             "columnDefs": [
                 { targets: '_all', render: $.fn.dataTable.render.ellipsis( 30, true ) }]
-      } );
-    } );
+      });
+    });
 });
 
 var submit_form = (function(form_id, action) {

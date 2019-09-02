@@ -1,12 +1,5 @@
 {% extends "layout.html" %}
 
-{% block head %}
-      <script type="text/javascript">
-          $(document).ready( function() {
-              enrichment_page();
-          });
-      </script>
-{% endblock head %}
 
 {% block nav_About %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('about') }}">About<span class="sr-only">(current)</span></a></li> {% endblock %}
 
@@ -14,11 +7,15 @@
     <br><br>
 
     <div class="row"><h3>Support, Questions & Praise</h3></div>
+    <div class="row"><h4>We appreciate your feedback!</h4></div>
     <div class="row">
         <div class="col-md-4">David Lyon</div>
     </div>
     <div class="row">
         <div class="col-md-4"><a href="mailto:david.lyon@uzh.ch" class="link"><span>david.lyon@uzh.ch</span></a></div>
+    </div>
+    <div class="row">
+        <div class="col-md-10"><a href="https://www.imls.uzh.ch/en/research/vonmering.html">Department for Systems Biology / Metagenomics, Institute for Molecular Life Sciences, University of Zurich</a></div>
     </div>
 
     <br><br>
@@ -33,11 +30,12 @@
         <div class="col-md-4"><a href="mailto:lars.juhl.jensen@cpr.ku.dk" class="link"><span>lars.juhl.jensen@cpr.ku.dk</span></a></div>
     </div>
 
+
     <br><br>
 
     <div class="row"><h3>Publication</h3></div>
     <div class="row"><div class="col-md-12">Please cite the following article when applying this method or using this service:<br>
-        <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=10.1038%2Fnmeth.3621">Avoiding abundance bias in the functional annotation of posttranslationally modified proteins.<br>Nature Methods 2015 Nov;12(11):1003–4.<br>doi:10.1038/nmeth.3621.</a>
+        <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=10.1038%2Fnmeth.3621">Avoiding abundance bias in the functional annotation of posttranslationally modified proteins.<br>Nature Methods, 2015<br>doi:10.1038/nmeth.3621</a>
     </div>
     </div>
 

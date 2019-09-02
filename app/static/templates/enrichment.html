@@ -10,7 +10,7 @@
 
 {% block nav_Enrichment %}
     <li class="nav-item active"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment<span class="sr-only">(current)</span></a></li>
-{% endblock %}
+{% endblock nav_Enrichment %}
 
 {% block content %}
 <div class="container-fluid">
@@ -21,41 +21,26 @@
         <div class="row"><h3>Drag & drop or click to upload a file</h3></div>
         <div class="col-md-10">Please see the <a href="{{ url_for('example') }}">Example</a> page or try one of the examples below.</div>
             <div class="col-md-8">
-                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }}: {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
+                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }} (see <a href="{{ url_for('parameters') }}">Parameters</a> for details): {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
                     {% if form.userinput_file.errors %}
                     <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
-{#                    <li class="bulletpoints_li"><b>foreground</b>: UniProt Accession Numbers for all proteins in the test group (the group you want to examine for GO term enrichment, these identifiers should also be present in the “background” as the test group is a subset of the background)</li>#}
-{#                    <li class="bulletpoints_li"><b>background</b>: UniProt Accession Numbers (such as "P00359") for all proteins</li>#}
-{#                    <li class="bulletpoints_li"><b>intensity</b>: Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)</li>#}
-{#                Isoforms and comma separated <b>protein-groups</b> e.g. ("O60462-5;A0A024R412;O60462-4") are accepted as well.<br>#}
             <br>
             <div class="row"> <h4>or alternatively use copy & paste fields</h4></div>
             <div class="row">
-                <div class="col-md-10 example_header">examples: <a class="example" href="{{ url_for('example_1') }}">#1</a>  <a class="example" href="{{ url_for('example_2') }}">#2</a> <a class="example" href="{{ url_for('example_3') }}">#3</a></div>
+                <div class="col-md-10 example_header">examples: <a class="example" href="{{ url_for('example_1') }}">#1</a>  <a class="example" href="{{ url_for('example_2') }}">#2</a> <a class="example" href="{{ url_for('example_3') }}">#3</a> <a class="example" href="{{ url_for('example_4') }}">#4</a></div>
 
                     <div class="row col-md-10 example_status" value="{{ example_status }}">
-                        <h5>Example description: {{ example_title }}</h5>
+                        <br>
+                        <em>
+                        <h5><b>Example description: {{ example_title }}</b></h5>
                         {{ example_description }}
+                        </em>
+                        <br>
                     </div>
             </div>
-{#                <span value="{{ example_status }}" > something </span>#}
-{#                </div>#}
-{#                , enrichment method 'abundance_correction' data taken from the original publication, please see <a href="{{ url_for('about') }}">about</a> #}
-{#                <div class="row col-md-10">#}
-{#                    <span title="{{ form.example_status.description }}"> {{ form.example_status.label }}: {{ form.example_status() }} <br> </span>#}
-{#                </div>#}
-
-{#                <div class="row col-md-10">Yeast acetylation, enrichment method 'abundance_correction' data taken from the original publication, please see <a href="{{ url_for('about') }}">about</a> for the reference.</div>#}
-{#style="display: none;"#}
-{#                type="hidden"#}
-
-
-
 
             <div class="row" id="copy_paste_field">
-{#                 From - e.g. MS-Excel - select 1 column for the "Foreground" and either 1 or 2 columns for "Background & Intensity", copy, and paste into the field below. For "abundance_correction" you need a "Background" and "Intensity" values (therfore 2 columns); alternatively you can use only a "Background" without the "Intensity" values, but then please select "compare_samples" from the methods below the copy and paste field.#}
-
                 <div class="col-md-5">
                     {{ form.foreground_textarea.label }}:
                     {{ form.foreground_textarea(rows="4", class="form-control") }}
@@ -91,10 +76,10 @@
         <div class="row">
             <h3>Analysis options</h3>
             <div class="col-md-10">
-                <span title="{{ form.limit_2_entity_type.description }}"> {{ form.limit_2_entity_type.label }}: {{ form.limit_2_entity_type() }} <br> </span>
-                <span title="{{ form.o_or_u_or_both.description }}"> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }}</span><br>
-                <span title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}</span><br>
-                <span title="{{ form.multiple_testing_per_etype.description }}"> {{ form.multiple_testing_per_etype.label }}: {{ form.multiple_testing_per_etype() }}</span><br>
+                <div title="{{ form.limit_2_entity_type.description }}"> {{ form.limit_2_entity_type.label }}: {{ form.limit_2_entity_type() }} <br> </div>
+                <div class="p_value" title="{{ form.o_or_u_or_both.description }}"> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }}</div>
+                <div title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}</div>
+                <div class="p_value" title="{{ form.multiple_testing_per_etype.description }}"> {{ form.multiple_testing_per_etype.label }}: {{ form.multiple_testing_per_etype() }}</div>
             </div>
         </div>
         <div class="row">
@@ -102,11 +87,11 @@
             <div class="col-md-8">
             <br>
                 <table>
-                    <tr title="{{ form.p_value_cutoff.description }}"><td class="somename">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
+                    <tr class="p_value" title="{{ form.p_value_cutoff.description }}"><td class="p_value">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
                         {% if form.p_value_cutoff.errors %}
                             <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
                         {% endif %}
-                    <tr title="{{ form.FDR_cutoff.description }}"><td class="somename">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
+                    <tr class="p_value" title="{{ form.FDR_cutoff.description }}"><td class="p_value">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
                         {% if form.FDR_cutoff.errors %}
                     <tr>
                         <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
@@ -120,18 +105,26 @@
                 </table>
             <div class="col-md-4">
             </div>
+            </div>
         </div>
-        </div>
+
         <br>
         <div class="row">
             <div class="col-md-8">
-            <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
-            <button id="clear_button" type="button" class="btn btn-primary">Clear</button>
-                </div>
+                <button id="submit_button" type="submit" class="btn btn-primary">Submit</button>
+                <a href="{{ url_for('enrichment') }}" class="btn btn-primary">Clear</a>
+            </div>
         </div>
-		<br><br><br><br>
+    <br><br><br>
 	</form>
+
 </div>
 {% endblock content %}
 
-
+{#{% block footer %}#}
+{#    <div class="footer_enrichment_page text-center py-3">#}
+{#          <span class="cpr_logo"><a href="https://www.cpr.ku.dk/"> <img src="./static/images/CPR_logo.png"></a></span>#}
+{#          <span class="cpr_logo"><a href="https://www.sib.swiss/"> <img src="./static/images/SIB_logo.png"></a></span>#}
+{#          <span class="cpr_logo"><a href="https://www.uzh.ch/en.html"> <img src="./static/images/UZH_logo.png"></a></span>#}
+{#      </div>#}
+{#{% endblock footer %}#}

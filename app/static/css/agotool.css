@@ -3,9 +3,15 @@
 body {background-color:#fff;}
 
 .navbar-default, .primary-color {
-    background-color:#d95f0e !important;;
+    background-color:#d95f0e !important;
     border-color:#d95f0e;
     border-radius: 0;}
+
+.page-footer {
+    background-color:#d95f0e !important;
+    border-color:#d95f0e;
+    border-radius: 0;}
+
 
 .navbar-header{
     padding: 10px;
@@ -14,9 +20,9 @@ body {background-color:#fff;}
 .navbar-nav{padding: 10px;}
 
 .cpr_logo {
-    float: right;
-    padding-bottom: 10px;
-    padding-top: 15px;}
+    /*float: right;*/
+    padding: 20px 35px;
+}
 
 .example {
     font-size: 12px;
@@ -31,6 +37,16 @@ body {background-color:#fff;}
     color: black;
     text-decoration: underline;}
 
+
+.footer_enrichment_page {
+    background-color:#d95f0e;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 100px;
+    width: 100%;
+    overflow: hidden;
+}
 
 
 

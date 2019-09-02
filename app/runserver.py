@@ -448,6 +448,11 @@ def db_schema():
 def FAQ():
     return render_template('FAQ.html')
 
+@app.route('/API_Help')
+def api_help():
+    return render_template('API_Help.html')
+
+
 ################################################################################
 # helper functions
 ################################################################################
@@ -497,41 +502,13 @@ def read_results_file(fn):
         lines_split = [ele.strip() for ele in fh.readlines()]
     return lines_split[0], lines_split[1:]
 
-# def elipsis(header):
-#     try:
-#         ans_index = header.index("FG_IDs") #"ANs_foreground")
-#     except ValueError:
-#         ans_index = header.index("BG_IDs") #"ANs_background")
-#         # let flask throw an internal server error
-#     try:
-#         description_index = header.index("description")
-#         ellipsis_indices = (description_index, ans_index)
-#     except ValueError:
-#         ellipsis_indices = (ans_index,)
-#     return ellipsis_indices
-
-# def ellipsis_dbl(stringli, max_len=20):
-#     if len(stringli) > max_len:
-#         return stringli[:max_len] + "..."
-#     else:
-#         return stringli
-
 ################################################################################
 # enrichment.html
 ################################################################################
 
 class Enrichment_Form(wtforms.Form):
-    userinput_file = fields.FileField('Expects a tab-delimited text-file (.txt or .tsv) with multiple columns',
-                                      description="""Expects a tab-delimited text-file ('.txt' or '.tsv') with the following 3 column-headers:
-
-'background': STRING identifiers (such as '511145.b1260') for all proteins
-
-'background_intensity': Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance)
-
-'foreground': STRING identifiers for all proteins in the test group (the group you want to examine for GO term enrichment,
-these identifiers should also be present in the 'background_an' as the test group is a subset of the background)
-
-If "Abundance correction" is deselected "background_int" can be omitted.""")
+    userinput_file = fields.FileField('Expects a tab-delimited text-file',
+                                      description="""see 'Parameters' page for details""")
 #     userinput_file = fields.FileField(label=None, description=None)
     foreground_textarea = fields.TextAreaField("Foreground")
     background_textarea = fields.TextAreaField("Background & Intensity")
@@ -551,13 +528,13 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
                                               ("-56", "PMID (PubMed IDs)"),
                                               ("-54", "InterPro domains"),
                                               ("-55", "PFAM domains")),
-                                   description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
+                                   description="""Select either a functional category, one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, KEGG pathways, etc.""")
     enrichment_method = fields.SelectField("Enrichment method",
-                                   choices = (("compare_samples", "compare_samples"),
-                                              ("abundance_correction", "abundance_correction"),
-                                              ("genome", "genome"),
+                                   choices = (("abundance_correction", "abundance_correction"),
+                                              ("characterize_foreground", "characterize_foreground"),
+                                              ("compare_samples", "compare_samples"),
                                               ("compare_groups", "compare_groups"),
-                                              ("characterize_foreground", "characterize_foreground")),
+                                              ("genome", "genome")),
                                    description="""abundance_correction: Foreground vs Background abundance corrected
 compare_samples: Foreground vs Background (no abundance correction)
 characterize_foreground: Foreground only""")
@@ -615,7 +592,7 @@ class Example_2(Enrichment_Form):
     """
     foreground_textarea = fields.TextAreaField("Foreground", default="""P69905\nP68871\nP02042\nP02100""")
     # foreground_textarea = fields.TextAreaField("Foreground", default="""HBA_HUMAN\nHBB_HUMAN\nHBD_HUMAN\nHBE_HUMAN""")
-    background_textarea = fields.TextAreaField("Background & Intensity", default="no data necessary since enrichment method 'genome' is being used, which uses pre-selected background reference proteome from UniProt")
+    background_textarea = fields.TextAreaField("Background & Intensity", default="no data necessary (in this field) since enrichment method 'genome' is being used, which uses pre-selected background reference proteome from UniProt")
     enrichment_method = fields.SelectField("Enrichment method", choices=(("genome", "genome"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("compare_groups", "compare_groups"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
     characterize_foreground: Foreground only""")
@@ -637,25 +614,46 @@ class Example_3(Enrichment_Form):
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606 for Homo sapiens)")
 
 
+class Example_4(Enrichment_Form):
+    """
+    example 4: Cation-dependent mannose-6-phosphate receptor, MPRD_HUMAN, Gene M6PR
+    characterize_foreground
+    """
+    foreground_textarea = fields.TextAreaField("Foreground", default="""MPRD_HUMAN""")
+    enrichment_method = fields.SelectField("Enrichment method", choices=(("characterize_foreground", "characterize_foreground"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome"), ("compare_groups", "compare_groups")), description="""abundance_correction: Foreground vs Background abundance corrected
+    compare_samples: Foreground vs Background (no abundance correction)
+    characterize_foreground: Foreground only""")
+
+
 @app.route('/example_1')
 def example_1():
-    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="Yeast acetylation", example_description="""Yeast (Saccharomyces cerevisiae) data taken from <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=10.1038%2Fnmeth.3621">the original publication</a>. Applying the enrichment method 'abundance_correction'.""")
+    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="Yeast acetylation", example_description="""comparing acetylated yeast (Saccharomyces cerevisiae) proteins to the experimentally observed proteome using the 'abundance_correction' method. Data was taken from the original publication (see 'About' page).""")
 
 @app.route('/example_2')
 def example_2():
-    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""a couple of human haemoglobin proteins comparing them to the UniProt reference genome. When using the 'genome' method a specific NCBI taxonomic identifier has to be provided (if you don't know the number of your organism please search at NCBI (link provided below and here).""")
+    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""comparing human haemoglobin proteins to the UniProt reference genome. When using the 'genome' method a specific NCBI taxonomic identifier (TaxID) has to be provided. In this case it is '9606' for Homo sapiens. In case don't know the TaxID of your organism of choice, please search at NCBI (link provided below).""")
 
 @app.route('/example_3')
 def example_3():
-    return render_template('enrichment.html', form=Example_3(), example_status="example_3", example_title="Mouse interferon", example_description="""a couple of mouse interferons comparing them to a reference proteome, thus applying the 'compare_samples' method.""")
+    return render_template('enrichment.html', form=Example_3(), example_status="example_3", example_title="Mouse interferon", example_description="""comparing a couple of mouse interferons to the reference proteome, applying the 'compare_samples' method.""")
+
+
+@app.route('/example_4')
+def example_4():
+    return render_template('enrichment.html', form=Example_4(), example_status="example_4", example_title="show functional annotations for the gene M6PR", example_description="""characterize the foreground. Cation-dependent mannose-6-phosphate receptor, MPRD_HUMAN, Gene M6PR.""")
 
 @app.route('/')
 def enrichment():
     return render_template('enrichment.html', form=Enrichment_Form(), example_status="example_None")
 
-# @app.route('/temp')
-# def temp():
-#     return render_template('temp.html', form=Enrichment_Form())
+@app.route('/temp')
+def temp():
+    return render_template('temp.html', form=Enrichment_Form())
+
+
+@app.route('/help')
+def help():
+    return render_template('help.html', form=Enrichment_Form())
 
 
 ################################################################################
@@ -700,7 +698,7 @@ def results():
         print(args_dict)
         print(args_dict["p_value_cutoff"])
         print(80 * "#")
-        ui.check = True
+        # ui.check = True # ToDo comment #!!! DEBUG
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -708,9 +706,9 @@ def results():
             if not app.debug:
                 log_activity(string2log)
             ### DEBUG start
-            # df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment
-            df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-            df_all_etypes = df_all_etypes.groupby("etype").head(20)
+            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment #!!!
+            # df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            # df_all_etypes = df_all_etypes.groupby("etype").head(20)
             ### DEBUG stop
         else:
             return render_template('info_check_input.html', args_dict=args_dict)
@@ -747,7 +745,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
     s_value = "s value"
     ratio_in_FG = "ratio in FG"
     ratio_in_BG = "ratio in BG"
-    FG_IDs = "FG_IDs"
+    FG_IDs = "FG IDs"
     BG_IDs = "BG IDs"
     FG_count = "FG count"
     BG_count = "BG count"

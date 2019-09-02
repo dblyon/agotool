@@ -500,12 +500,8 @@ def s_value(df, p_value_cutoff=0.05, KS_stat_cutoff=0.1, diff_proportions_cutoff
     df["s_value"] = 0.0
     cond_scores = df["etype"].isin([-20, -25, -26])
     p_value_cutoff = -1 * math.log10(p_value_cutoff) # test for values smaller than 0
-    #     df.loc[cond_scores, "s_value"] = (df.loc[cond_scores, "p_value_minlog"] - p_value_cutoff) * abs(df.loc[cond_scores, "effectSize"] - KS_stat_cutoff)
-    #     df.loc[~cond_scores, "s_value"] = (df.loc[~cond_scores, "p_value_minlog"] - p_value_cutoff) * abs(df.loc[~cond_scores, "effectSize"] - diff_proportions_cutoff)
     df["s_value"] = df["p_value_minlog"] * df["effectSize"]
-    # df["s_value"] = df["s_value"].apply(lambda x: abs(x))
     df = df.drop(columns=["p_value_minlog"])
-#     df["rank"] = df.groupby("etype")["s_value"].apply(lambda x: abs(x)).rank(ascending=False)
     return df
 
 def log_take_min_if_zero(val, min_pval):

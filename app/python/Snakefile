@@ -782,8 +782,6 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - create link outs
 # - change GOCC to GO
 
-
-# compare_groups method --> done
 # documentation
 # examples --> temp fix
 # REST API
@@ -795,7 +793,31 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - sanity check that methods work
 # - sanity check on some results
 
+### Docker changes
+# chmod o+r * recursively for all static files on aquarius in order for nginx to read them
+
+###
+# fix link for http://localhost:10110/example_1
+# add description and link to sources of slim terms
 # results_comprehensive and results_compact names in URL are not displayed correctly when switching back and forth
 
+# - linkouts
+# - enrichment page alignments
+# - enrichment page footer
 
-# chmod o+r * recursively for all static files on aquarius in order for nginx to read them
+
+
+# changes to the last version of aGOtool:
+# - MCL clustering is no longer supported
+# - simple changes to column names (fold_enrichment_foreground_2_background, population vs background)
+#
+
+# why are there no PMIDs for yeast example data?
+# 4932    P02994  EF1A_YEAST
+# 4932    EF1A_YEAST      4932.YPR080W    sce:YBR118W;sce:YPR080W
+
+#
+# copy number variation
+# driver gene
+# penetration test on aquarius
+# green.ch

@@ -120,6 +120,7 @@ class Userinput:
 
         ### check if foreground empty
         if self.foreground.shape[0] == 0:
+            self.args_dict["ERROR Foreground empty"] = "Please check the Foreground you've provided. It seems we can't find anything to parse."
             return self.foreground, self.background, False
 
         if self.enrichment_method == "abundance_correction": # abundance_correction
@@ -414,7 +415,10 @@ class Userinput:
         :return: Int
         """
         if self.enrichment_method in {"abundance_correction", "compare_samples", "characterize_foreground", "genome"}:
-            return len(self.foreground)
+            try:
+                return len(self.foreground)
+            except AttributeError:
+                return -1
         elif self.enrichment_method == "compare_groups": # redundancies within group, therefore n set by user, but this only describes replicates
             return self.args_dict["foreground_replicates"] # * len(self.get_foreground_an_set())
         else:
@@ -513,50 +517,50 @@ class REST_API_input(Userinput):
         if self.check_parse and self.check_cleanup:
             self.check = True
 
-    def parse_input_old(self):
-        check_parse = False
-        decimal = "."
-        df_orig = pd.DataFrame()
-
-        if self.enrichment_method != "genome": # ignore background if "genome"
-            if self.background_string is not None:
-                replaced = pd.Series(self._replace_and_split(self.background_string))
-                if replaced is not None:
-                    df_orig[self.col_background] = replaced
-                else:
-                    return df_orig, decimal, check_parse
-
-        if self.enrichment_method == "abundance_correction":
-            try:
-                if "." in self.background_intensity:
-                    pass
-                elif "," in self.background_intensity:
-                    decimal = ","
-                    # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
-                    self.background_intensity = self.background_intensity.replace(",", ".")
-            except TypeError: # self.background_intensity is None
-                self.args_dict["ERROR_abundance_correction"] = "ERROR: enrichment_method 'abundance_correction' selected but no 'background_intensity' provided"
-                return df_orig, decimal, check_parse
-            else: # other checks could be done, but is this really necessary?
-                pass
-            try:
-                replaced = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
-                if replaced is not None:
-                    df_orig[self.col_intensity] = replaced
-                else:
-                    return df_orig, decimal, check_parse
-            except ValueError:
-                return df_orig, decimal, check_parse
-        else:
-            df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
-        # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
-        replaced = pd.Series(self._replace_and_split(self.foreground_string))
-        if replaced is not None:
-            df_orig[self.col_foreground] = replaced
-        else:
-            return df_orig, decimal, check_parse
-        check_parse = True
-        return df_orig, decimal, check_parse
+    # def parse_input_old(self):
+    #     check_parse = False
+    #     decimal = "."
+    #     df_orig = pd.DataFrame()
+    #
+    #     if self.enrichment_method != "genome": # ignore background if "genome"
+    #         if self.background_string is not None:
+    #             replaced = pd.Series(self._replace_and_split(self.background_string))
+    #             if replaced is not None:
+    #                 df_orig[self.col_background] = replaced
+    #             else:
+    #                 return df_orig, decimal, check_parse
+    #
+    #     if self.enrichment_method == "abundance_correction":
+    #         try:
+    #             if "." in self.background_intensity:
+    #                 pass
+    #             elif "," in self.background_intensity:
+    #                 decimal = ","
+    #                 # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
+    #                 self.background_intensity = self.background_intensity.replace(",", ".")
+    #         except TypeError: # self.background_intensity is None
+    #             self.args_dict["ERROR_abundance_correction"] = "ERROR: enrichment_method 'abundance_correction' selected but no 'background_intensity' provided"
+    #             return df_orig, decimal, check_parse
+    #         else: # other checks could be done, but is this really necessary?
+    #             pass
+    #         try:
+    #             replaced = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
+    #             if replaced is not None:
+    #                 df_orig[self.col_intensity] = replaced
+    #             else:
+    #                 return df_orig, decimal, check_parse
+    #         except ValueError:
+    #             return df_orig, decimal, check_parse
+    #     else:
+    #         df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
+    #     # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
+    #     replaced = pd.Series(self._replace_and_split(self.foreground_string))
+    #     if replaced is not None:
+    #         df_orig[self.col_foreground] = replaced
+    #     else:
+    #         return df_orig, decimal, check_parse
+    #     check_parse = True
+    #     return df_orig, decimal, check_parse
 
     def parse_input(self):
         check_parse = False

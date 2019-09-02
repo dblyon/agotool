@@ -5,12 +5,23 @@
 
 {% block content %}
 
-<div class="container-fluid">	
-
-	<p class = "h2">Error 404: Page not found</p><br>
+<div class="container-fluid">
+    <br><br>
+    <h1>Error 404: Page not found</h1><br>
     <h3>What you were looking for is just not there.</h3>
-
+    <br><br>
 </div>
 
-{% endblock%}
+{% endblock content %}
 
+<div id="footer">
+{% block footer %}
+  <footer class="page-footer font-small">
+    <div class="text-center py-3">
+          <span class="cpr_logo"><a href="https://www.cpr.ku.dk/"> <img src="../../static/images/CPR_logo.png"></a></span>
+          <span class="cpr_logo"><a href="https://www.sib.swiss/"> <img src="../../static/images/SIB_logo.png"></a></span>
+          <span class="cpr_logo"><a href="https://www.uzh.ch/en.html"> <img src="../../static/images/UZH_logo.png"></a></span>
+      </div>
+  </footer>
+{% endblock footer %}
+</div>

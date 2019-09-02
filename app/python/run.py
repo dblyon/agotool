@@ -11,16 +11,12 @@ import tools, variables
 def run_UniProt_enrichment(pqo, ui, args_dict):
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
     preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis()
-    print("#"*10 + "run_UniProt_enrichment")
-    print(args_dict)
+
     if args_dict["enrichment_method"] == "characterize_foreground":
         df_2_return = run_cythonized.run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=variables.LOW_MEMORY)
     else:
         df_2_return = run_cythonized.run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects,  low_memory=variables.LOW_MEMORY)
-    # print("run.py " * 5)
-    # print(type(df_2_return), df_2_return)
-    # print("run.py " * 5)
-    print("#" * 10)
+
     if type(df_2_return) == dict: # args_dict returned since
         # e.g. enrichment_method "genome" using different taxon for foreground than background
         return False # display "info_check_input.html"
@@ -33,7 +29,7 @@ def run_UniProt_enrichment(pqo, ui, args_dict):
             return format_results(df_2_return, output_format, args_dict)
     else:
         print("run.py " * 5)
-        print("NO IDEA WHY THIS HAPPENED")
+        print("Upsi why did this happen?")
         print(type(df_2_return), df_2_return)
         print("run.py " * 5)
         return False
