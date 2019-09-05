@@ -47,21 +47,74 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
+
+
+
+// old code pertinent for "characterize_foreground
+// // show score_cutoff only when "characterize_foreground" is selected
+//     $('#enrichment_method').change(function() {
+//         var enrichment_method = $('#enrichment_method').val();
+//         var choice = enrichment_method !== "characterize_foreground";
+//         toggle_if(choice, ".score_cutoff", "");
+//     });
+//     $("#enrichment_method").change();
+//
+// // deselect "Filter foreground count one" when characterize foreground is selected
+//     var enrichment_method = $('#enrichment_method').val();
+//     var choice = enrichment_method === "characterize_foreground";
+//     if (choice === true) {
+//       document.getElementById("filter_foreground_count_one").checked = false;
+//     };
+//
+// // hide "Filter redundant parent terms" if characterize_foreground is selected
+//     $('#enrichment_method').change(function() {
+//         var enrichment_method = $('#enrichment_method').val();
+//         var choice = enrichment_method == "characterize_foreground";
+//         toggle_if(choice, ".filter_parents", "");
+//     });
+//     $("#enrichment_method").change();
+//
+//
+// // hide p_values if "characterize_foreground" selected
+//     $('#enrichment_method').change(function() {
+//         var enrichment_method = $('#enrichment_method').val();
+//         var choice = enrichment_method === "characterize_foreground";
+//         toggle_if(choice, ".p_value", "");
+//     });
+//     $("#enrichment_method").change();
+
+
+
 // show score_cutoff only when "characterize_foreground" is selected
     $('#enrichment_method').change(function() {
         var enrichment_method = $('#enrichment_method').val();
-        var choice = enrichment_method != "characterize_foreground";
-        toggle_if(choice, ".characterize_foreground", "");
+        var choice = enrichment_method !== "characterize_foreground";
+        toggle_if(choice, ".score_cutoff", "");
     });
     $("#enrichment_method").change();
 
+// deselect "Filter foreground count one" when characterize foreground is selected
+//     var enrichment_method = $('#enrichment_method').val();
+//     var choice = enrichment_method === "characterize_foreground";
+//     if (choice === true) {
+//       document.getElementById("filter_foreground_count_one").checked = false;
+//     };
+
+// hide "Filter redundant parent terms" if characterize_foreground is selected
 // hide p_values if "characterize_foreground" selected
     $('#enrichment_method').change(function() {
         var enrichment_method = $('#enrichment_method').val();
         var choice = enrichment_method == "characterize_foreground";
+        if (choice === true) {
+            document.getElementById("filter_foreground_count_one").checked = false;
+        };
+        toggle_if(choice, ".filter_parents", "");
         toggle_if(choice, ".p_value", "");
     });
     $("#enrichment_method").change();
+
+
+
 
 
 // Hide example_description, show only when an example is selected
@@ -78,7 +131,7 @@ var enrichment_page = (function() {
 
 // show or hide selectors/tags depending on choice
 var toggle_if = function(choice, tag){
-    if (choice == true) {
+    if (choice === true) {
         $(tag).hide();
     } else {
         $(tag).show();
@@ -171,43 +224,3 @@ var submit_form = (function(form_id, action) {
     form.attr("action", action);
     form.submit();
 });
-
-
-// var toggle_ellipsis = (function(element) {
-//         $(element).toggleClass("ellipsis")
-// });
-
-//
-// function SelectElement(id, valueToSelect)
-// {
-//     var element = document.getElementById(id);
-//     element.value = valueToSelect;
-// }
-
-//// for debug purposes to see stuff in "console" when inspecting in browser
-// alert('WOW!');
-// console.log(tables);
-
-
-    // $('#table_etype').dataTable( {
-    //   "columnDefs": [
-    //     { "width": "80%", "targets": 0 }
-    //   ]
-    // } );
-//     var table = $('#display').DataTable({
-//     autoWidth: false,
-//     columns : [
-//         { width : '50px' },
-//         { width : '50px' },
-//         { width : '50px' },
-//         { width : '50px' },
-//         { width : '50px' },
-//         { width : '50px' }
-//     ]
-// });
-
-//example 1
-//"""HBA_HUMAN
-// HBB_HUMAN
-// HBD_HUMAN
-// HBE_HUMAN"""

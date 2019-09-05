@@ -3,60 +3,77 @@
 {% block nav_Parameters %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters<span class="sr-only">(current)</span></a></li> {% endblock %}
 
 {% block content %}
-
 <div class="container-fluid">
-<br><br>
-<h2 class="row">PARAMETERS</h2>
+<br>
+<h1 class="row">PARAMETERS</h1>
 <br>
 <div class="row">
-<h3>Identifiers</h3>
-    <div class="col-md-12">
-        Protein identifiers can be provided as <a href="https://www.uniprot.org/help/difference_accession_entryname">UniProt accessions</a> (e.g. <a href="https://www.uniprot.org/uniprot/P31946">P31946</a>), UniProt entry names (formerly called UniProt ID) (e.g. <a href="https://www.uniprot.org/uniprot/P31946">1433B_HUMAN</a>), or <a href="https://string-db.org">STRING identifiers</a> (e.g. <a href="https://string-db.org/network/9606.ENSP00000361930">9606.ENSP00000361930</a>).<br><br>
+    <h2>Identifiers</h2>
+        <div class="col-md-12">
+            Protein identifiers can be provided as <a href="https://www.uniprot.org/help/difference_accession_entryname">UniProt accessions</a> (e.g. <a href="https://www.uniprot.org/uniprot/P31946">P31946</a>), UniProt entry names (formerly called UniProt ID) (e.g. <a href="https://www.uniprot.org/uniprot/P31946">1433B_HUMAN</a>), or <a href="https://string-db.org">STRING identifiers</a> (e.g. <a href="https://string-db.org/network/9606.ENSP00000361930">9606.ENSP00000361930</a>).
+        </div>
+</div>
+<br>
 
 <div class="row">
-    <h3>Upload data</h3>
+    <h2>Upload data</h2>
         <div class="col-md-12">
             <b>Drag & drop or click to upload a file:</b> Expects a tab-delimited text-file (".txt" or ".tsv") with 1, 2, or 3 columns depending on the "Enrichment method" used. Additional or unnecessary columns will simply be ignored. You can either drag and drop a file or click on the "Choose file" button to upload a file. Alternatively, you can use the <b>copy and paste</b> fields below.<br><br>
-            <b>Foreground</b> and <b>Background</b> consist of protein identifiers (or protein groups e.g. "P02407;P14127"). The Foreground is the test group, the proteins of interest you want to characterize in order to e.g. obtain overrepresented GO terms. To test for statistical significance the Foreground is compared to the Background. Typically, the Background consists of the entire genome (which is often not optimal for Proteomics data). Therefore we highly recommend using your own custom Background, since it will have the same biases the Foreground has (sample preparation, instrumentation, etc.). <b>Intensity</b> (i.e. Abundance) is coupled to the Background, and any kind of abundance measure can be used e.g. copy number, iBAQ, LFQ, spectral counts, etc. This means for each protein identifier (or protein group) in the Background there should be a corresponding numeric value in the Intensity column (proteins with missing abundance data will not be ignored, but placed together into a missing values group). No Intensity values have to be provided for the Foreground. Further details are described below and on the <a href="{{ url_for('FAQ') }}">FAQ</a> page.<br><br>
+            <b>Foreground</b> and <b>Background</b> consist of protein identifiers (or protein groups e.g. "P02407;P14127"). The Foreground is the test group, the proteins of interest you want to characterize in order to e.g. obtain overrepresented GO terms. To test for statistical significance the Foreground is compared to the Background. Typically, the Background consists of the entire genome (which is often not optimal for Proteomics data). Therefore we highly recommend using your own custom Background, since it will have the same biases the Foreground has (sample preparation, instrumentation, etc.). <b>Intensity</b> (i.e. Abundance) is coupled to the Background, and any kind of abundance measure can be used e.g. copy number, iBAQ, LFQ, spectral counts, etc. This means for each protein identifier (or protein group) in the Background there should be a corresponding numeric value in the Intensity column (proteins with missing abundance data will not be ignored, but placed together into a missing values group). No Intensity values have to be provided for the Foreground. Further details are described below and on the <a href="{{ url_for('FAQ') }}">FAQ</a> page. Unncessary data and parameters will be ignored.
+        </div>
+</div>
+<br>
 
-            <h4>Enrichment methods</h4>
-            <ul>
-                <li class="bulletpoints_li"><b><em>abundance_correction expects 3 columns: Foreground, Background, and Intensity.</em></b> This method was tailor-made to account for the inherent abundance bias is Mass Spectromtry based shotgun-proteomics data (since proteins can't be amplified, it will be more likely to detect highly abundant proteins compared to low abundant proteins). This bias can influence GO-term enrichment analysis by showing enriched terms for abundant rather than e.g. post-translationally-modified (PTM) proteins. Please see original <a href="{{ url_for('about') }}">Publication</a> and the <a href="{{ url_for('FAQ') }}">FAQ</a> pages on "How does the "abundance_correction" method work?". When should you use this method? If you have PTM data. When comparing PTM proteins to the genome (as the background) we've found abundance bias, simply because a PTM will in most cases not be present with 100% stoichiometry. Hence it is more likely to identify PTM proteins/peptides on abundant proteins (rather than low abundant proteins) and therefore enrichment analysis will show enrichment for abundant rather than modified proteins.
-                <li class="bulletpoints_li"><b><em>characterize_foreground expects 1 column: Foreground.</em></b> List existing functional annotations for your protein(s) of interest. No statistical test for enrichment is performed.
-                <li class="bulletpoints_li"><b><em>compare_samples expects 2 columns: Foreground and Background.</em></b> Provide your own Foreground and Background and compare them without abundance_correction. Instead of using the genome as the Background (since you probably will not detect every protein of the entire genome of your organism), you can provide your own custom Background, which you've measured in your lab, and therefore account for the biases you might have in your data (sample preparation, instrumentation, etc.).  When should you use this method? This is the most generic method and should be used if you are not using 'abundance_correction'. An example would be case (Foreground) vs. control (Background). So in general the Background should simply consist of the experimentally measured proteome of your model organism using control conditions.
-                <li class="bulletpoints_li"><b><em>compare_groups expects 2 columns: Foreground and Background.</em></b> The method is intended to compare two groups with a user defined number of replicates for each. This method is similar to compare_samples, but takes redundancies within the respective group into account. The idea is to count protein to functional associations multiple times per protein (e.g. 8 out of 10 replicates in the treatment group identified protein A vs. 4 out of 10 for the control group. Or 8 PTM sites on the protein were found vs. 4). In short, redundant proteins are not reduced to a set (in the mathematical sense) but are kept "as is" and all of them counted regardless of redundancy. The
-
-
-                When should you use this method? One example would be to account for multiple PTM sites of the same protein, counting the same protein multiple times once for each site, instead of once for the entire protein. If selecting subsets of proteins from one group is impeded/unfavourable.
-                Frequent terms will be favoured since the counts in Fisher's exact test will be higher.
-                <li class="bulletpoints_li"><b><em>genome expects 1 column: Foreground.</em></b> This method provides a Background from <a href="https://www.uniprot.org/proteomes">UniProt Reference Proteomes</a> for you, restricted to "one protein sequence per gene" (as provided by UniProt). In order to know which reference proteome to use as the background you're expected to provide the <a href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI taxonomic identifier</a> (e.g. 9606 for Homo sapiens).
-            </ul>
-<br><br>
 <div class="row">
-    <h3>Analysis options</h3>
+    <h2>Enrichment methods</h2>
+        <div class="col-md-12">
+            <ul>
+                <li class="bulletpoints_li"><b><em>abundance_correction expects 3 columns: Foreground, Background, and Intensity.</em></b> This method was tailor-made to account for the inherent abundance bias is Mass Spectromtry based shotgun-proteomics data (since proteins can't be amplified, it will be more likely to detect highly abundant proteins compared to low abundant proteins). This bias can influence GO-term enrichment analysis by showing enriched terms for abundant rather than e.g. post-translationally-modified (PTM) proteins. Please see the original <a href="{{ url_for('about') }}">Publication</a> and the <a href="{{ url_for('FAQ') }}">FAQ</a> pages on "How does the abundance_correction method work?". When should you use this method? If you have PTM data or data that suffers from a similar bias. When comparing PTM proteins to the genome (as the background) we've found abundance bias, simply because a PTM will in most cases not be present at a stoichiometry of 100%. Hence it is more likely to identify PTM proteins/peptides on abundant proteins (rather than low abundant proteins) and therefore enrichment analysis will show enrichment for abundant rather than modified proteins.
+                <li class="bulletpoints_li"><b><em>characterize_foreground expects 1 column: Foreground.</em></b> Display existing functional annotations for your protein(s) of interest. No statistical test for enrichment is performed.
+                <li class="bulletpoints_li"><b><em>compare_samples expects 2 columns: Foreground and Background.</em></b> Provide your own Foreground and Background and compare them without abundance_correction. Instead of using the genome as the Background (since you will probably not detect every protein of the entire genome of your organism), you can provide your own custom Background, which you've measured in your lab, and therefore account for the biases you might have in your data (sample preparation, instrumentation, etc.). When should you use this method? This is the most generic method and should be used if you are not using 'abundance_correction'. An example would be case (Foreground) vs. control (Background). So in general the Background should simply consist of the experimentally measured proteome of your model organism using control conditions.
+                <li class="bulletpoints_li"><b><em>compare_groups expects 2 columns: Foreground and Background.</em></b> The method is intended to compare two groups with user defined numbers of replicates for each respective group. This method is similar to compare_samples, but takes redundancies within the respective group into account. The idea is to count protein to functional associations multiple times per protein (e.g. 8 out of 10 replicates in the treatment group identified protein A vs. 4 out of 10 for the control group. Or 8 PTM sites on the protein were found vs. 4). In short, redundant proteins are not reduced to a set (in the mathematical sense) but are kept "as is" and all of them counted regardless of redundancy. When should you use this method? One example would be to account for multiple PTM sites of the same protein, counting the same protein multiple times, once for each site, instead of once for the entire protein. If selecting subsets of proteins from one group is impeded/unfavourable.
+                Frequent terms will be favoured since the counts in Fisher's exact test will be higher.
+                <li class="bulletpoints_li"><b><em>genome expects 1 column: Foreground.</em></b> This method provides a Background from <a href="https://www.uniprot.org/proteomes">UniProt Reference Proteomes</a> for you, restricted to "one protein sequence per gene" (as provided by UniProt). In order to know which organism's reference proteome to use as the background you're expected to provide the <a href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI taxon identifier</a> (e.g. 9606 for Homo sapiens).
+            </ul>
+        </div>
+</div>
+<br>
+
+<div class="row">
+    <h2>Analysis options</h2>
         <div class="col-md-12">
             These options enable you to restrict the enrichment analysis to specific categories, subsets, etc. which means that p values corrected by multiple testing will be penalized less. In contrast to the Report options below, which will simply not display certain terms according to the filtering criteria. There is a REST-API for easy programmatic access to this service, which enables more customized search criteria (see <a href="url_for('api_help')">API</a>).<br>
-            <b>Category of functional associations:</b> Select a specific functional category from the drop-down menu. E.g. one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, KEGG pathways, Pub Med Identifiers (PMIDs), Reactome, Wiki Pathways, Interpro domains, PFAM domains, Brenda Tissue Ontology (BTO), or Disaese Ontology IDs (DOID).<br>
+            <b>Category of functional associations:</b> Select a specific functional category from the drop-down menu. E.g. one or all three <a href="https://www.ebi.ac.uk/QuickGO">GO categories</a> (molecular function, biological process, cellular component), <a href="https://www.uniprot.org/help/keywords">UniProt keywords</a>, <a href="https://www.genome.jp/kegg/pathway.html">KEGG pathways</a>, <a href="https://www.ncbi.nlm.nih.gov/pubmed">PubMed IDentifiers (PMIDs)</a>, <a href="https://reactome.org">Reactome</a>, <a href="https://www.wikipathways.org">Wiki Pathways</a>, <a href="https://www.ebi.ac.uk/interpro">Interpro domains</a>, <a href="https://pfam.xfam.org">PFAM domains</a>, <a href="https://www.ebi.ac.uk/ols/ontologies/bto">Brenda Tissue Ontology (BTO)</a>, or <a href="http://disease-ontology.org">Disaese Ontology IDs (DOID)</a>.<br>
             <b>Over-, under-represented or both:</b> Choose to only test overrepresented or underrepresented GO-terms, or to report both of them.<br>
             <b>GO basic or a slim subset:</b>Choose between the full Gene Ontology or a <a href="http://geneontology.org/docs/download-ontology">GO slim subset</a>. These are curated subsets of GO terms that are less fine grained and tailored to a specific organism or domain.<br>
-            <b>Multiple testing per entity type:</b> Perform multiple testing separately for each functional category (i.e. entity type) or together for all functional terms (as in the original version of aGOtool).<br>
-<br><br>
+            <b>Multiple testing per entity type:</b> Perform multiple testing separately for each functional category (i.e. entity type) or together for all functional terms (as in the original version of aGOtool).
+        </div>
+</div>
+<br>
+
 <div class="row">
     <h3>Report options</h3>
         <div class="col-md-12">
-        These options serve to filter the results to only report relevant results. This means that most probably more results were generated, but since they are below the given cutoff they will not be shown.
-        <b>p value cutoff:</b> Maximum value (threshold) for uncorrected p values (e.g. 0.01 means 1%). "1" means no filter will be applied.<br>
-        <b>p value corrected (FDR) cutoff:</b> Maximum value (threshold) for FDR corrected p values (e.g. 0.01 means 1%). "1" means no filter will be applied.<br>
-        <b>Filter foreground count one:</b> Don't report any functional terms that are associated with only a single protein for the given Foreground.<br>
-        <b>Filter redundant parent terms:</b> The aim of this filter is to reduce the plethora of results to a more clear and concise subset thereof, without loosing essential information. It can be applied to functional terms with a hierachical structure (such as GO, Brenda Tissue Ontology, Disease Ontology, and Reactome) with “child” terms being more specialized than their “parent” terms (<a href="http://geneontology.org/">geneontology.org</a>). This filter retains the most specific terms and removes terms of a lower hierarchical level (closer to the root of the tree). The filter only applies if the same Foreground proteins are associated with the terms.
-<br><br><br>
+            These options serve to filter the results to only report relevant results. This means that most probably more results were generated, but since they are below the given cutoff they will not be shown.<br>
+            <b>p value cutoff:</b> Maximum value (threshold) for uncorrected p values (e.g. 0.01 means 1%). "1" means no filter will be applied.<br>
+            <b>p value corrected (FDR) cutoff:</b> Maximum value (threshold) for FDR corrected p values (e.g. 0.01 means 1%). "1" means no filter will be applied.<br>
+            <b>Filter foreground count one:</b> Don't report any functional terms that are associated with only a single protein for the given Foreground.<br>
+            <b>Filter redundant parent terms:</b> The aim of this filter is to reduce the plethora of results to a more clear and concise subset thereof, without loosing essential information. It can be applied to functional terms with a hierachical structure (such as GO, Brenda Tissue Ontology, Disease Ontology, and Reactome) with “child” terms being more specialized than their “parent” terms (<a href="http://geneontology.org/">geneontology.org</a>). This filter retains the most specific terms and removes terms of a lower hierarchical level (closer to the root of the tree). The filter only applies if the same Foreground proteins are associated with the terms.
+        </div>
 </div>
+<br><br>
 
-<h2>Results</h2>
-    <div class="col-md-12">
-        The results can be displayed in a <b>compact</b> and a <b>comprehensive</b> form, or downloaded as tab-delimited text files.
-    <br><br>
+<div class="row">
+    <h1>Results</h1>
+        <div class="col-md-12">
+            The results can be displayed in a <b>compact</b> and a <b>comprehensive</b> form, or downloaded as tab-delimited text files.
+        </div>
+</div>
+<br>
+
+<div class="row">
     <h3>Column definitions</h3>
+    <div class="col-md-12">
         <b>rank:</b> The rank is a combination of uncorrected p value and effect size (based on s value). It serves to highlight the most interesting results and tries to emphasize the importance of the effect size.<br>
         <b>term:</b> A unique identifier for a specific functional category.<br>
         <b>description:</b> A short description (or title) of a functional term.<br>
@@ -74,30 +91,15 @@
         <b>FG IDs:</b> ForeGround IDentifierS are semicolon separated protein identifers of the Forground that are associated with the given term.<br>
         <b>BG IDs:</b> BackGround IDentifierS are analogous to "FG IDs" for the Background.<br>
         <b>etype:</b> Short for "Entity type", numeric internal identifer for different functional categories.<br>
-{#        <b>over/under:</b>	overrepresented (o) or underrepresented (u)<br>#}
-{#        <b>perc_associated_foreground:</b> % associated with the term in the foreground group<br>#}
-{#        <b>perc_associated_pop:</b>	% associated with the term in the background group<br>#}
-{#        <b>fold_enrichment_foreground_2_background:</b> fold change foreground/background. This value is set to "-1" if either the numerator or the denominator is zero.<br>#}
-{#        <b>foreground_count:</b>	number of proteins associating with the GO term or UniProt Keyword in the foreground<br>#}
-{#        <b>foreground_n:</b>	number of proteins in the foreground group (total)<br>#}
-{#        <b>pop_count:</b> number of proteins associating with GO term or UniProt Keyword in the background<br>#}
-{#        <b>pop_n:</b> number of proteins in the background group (total)<br>#}
-{#        <b>description:</b>	description of the GO term (GO terms only)<br>#}
-{#        <b>p_uncorrected:</b> Fisher exact test p-value<br>#}
-{#        <b>FDR / p_multiple_testing_method:</b> Multiple testing correction. FDR (if Benjamini Hochberg) or corrected p-value (all other methods).<br>#}
-{#        <b>ANs_foreground:</b> Accession numbers in the foreground (UniProt IDs associating with the GO term/keyword)<br>#}
-{#        <b>ANs_pop: *</b> Accession numbers in the background (UniProt IDs associating with the GO term/keyword)<br>#}
-{#        (* "ANs_pop" column is only shown when "abundance correction" is deselected.)<br>#}
-<br><br><br>
+    </div>
 </div>
+<br>
+
+<h4>Entity types</h4>
+    <div class="col-md-5">
+        {{content_entity_types | safe}}
+    </div>
+
+<br><br>
 </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-{#</div>#}
-{#<br><br><br><br><br><br>#}
 {% endblock content %}

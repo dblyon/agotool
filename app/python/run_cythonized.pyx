@@ -128,6 +128,7 @@ def collect_scores_per_term_characterize_foreground(protein_AN_list, ENSP_2_tupl
             funcEnum = funcEnum_arr[index_]
             if funcEnum in funcEnums_2_include_set:
                 score = score_arr[index_]
+                #  print(score, type(score))
                 if score >= score_cutoff:
                     if funcEnum not in funcEnum_already_counted:
                         # in order to count a function only once per protein

@@ -2,74 +2,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <body role="document">
-{#    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">#}
-{#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>#}
-{#    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">#}
-{#    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>#}
-{#    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>#}
-{#    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>#}
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>#}
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.15.0/popper.min.js" crossorigin="anonymous"></script>#}
-{#    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>#}
-{#    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">#}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta http-equiv="x-ua-compatible" content="ie=edge">
 <meta name="description" content="protein centric functional enrichment with automactic updates">
 <meta name="author" content="David Lyon">
 <title>a GO tool</title>
-{#    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">#}
-{#    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">#}
-{#    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.4.1.min.js') }}"></script>#}
-{# Column visibility #}
+
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.3.1.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.buttons.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.colVis.min.js') }}"></script>
-
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/agotool.js') }}"></script>
-    {# Column reorder #}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.3.1.js') }}"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.bootstrap4.min.js') }}"></script>#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.colReorder.min.js') }}"></script>#}
-
-
 
     <link type="text" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css.map')}}">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
-{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}">#}
-    {# Column reorder #}
-{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css')}}">#}
-{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/dataTables.bootstrap4.min.css') }}">#}
-{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/colReorder.bootstrap4.min.css') }}">#}
-
-    {# Column visibility #}
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}">
 
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"> </script>
 
-
-{#    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">#}
-{#    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>#}
-{#    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">#}
-{# modify datatables to overwrite certain properties #}
-{#    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.18/datatables.min.css"/>#}
-{#    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.18/datatables.min.js"></script>#}
-{#    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/dataRender/ellipsis.js"></script>#}
-{# used but not necessary to load everywhere #}
-{#<script src="{{ url_for('static', filename='js/prism.js') }}"></script>#}
-{#<link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">#}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/mdb.min.js') }}"></script>#}
-{#    <link href="{{ url_for('static', filename='css/mdb.min.css') }}" rel="stylesheet">#}
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-filestyle/2.1.0/bootstrap-filestyle.js" ></script>#}
     {% block head %}
     {% endblock head %}
 

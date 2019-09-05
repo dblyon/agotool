@@ -12,7 +12,6 @@ body {background-color:#fff;}
     border-color:#d95f0e;
     border-radius: 0;}
 
-
 .navbar-header{
     padding: 10px;
     width: 140px;}
@@ -38,15 +37,29 @@ body {background-color:#fff;}
     text-decoration: underline;}
 
 
-.footer_enrichment_page {
-    background-color:#d95f0e;
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 100px;
-    width: 100%;
-    overflow: hidden;
+/*https://css-tricks.com/snippets/css/sticky-footer/*/
+* {
+  margin: 0;
 }
+html, body {
+  height: 100%;
+}
+.page-wrap {
+  min-height: 100%;
+  /* equal to footer height */
+  margin-bottom: -92px;
+}
+.page-wrap:after {
+  content: "";
+  display: block;
+}
+.site-footer, .page-wrap:after {
+  height: 92px;
+}
+
+
+
+
 
 
 

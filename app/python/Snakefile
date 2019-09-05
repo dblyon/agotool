@@ -810,14 +810,5 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # changes to the last version of aGOtool:
 # - MCL clustering is no longer supported
 # - simple changes to column names (fold_enrichment_foreground_2_background, population vs background)
-#
 
-# why are there no PMIDs for yeast example data?
-# 4932    P02994  EF1A_YEAST
-# 4932    EF1A_YEAST      4932.YPR080W    sce:YBR118W;sce:YPR080W
-
-#
-# copy number variation
-# driver gene
-# penetration test on aquarius
-# green.ch
+# add "score_cutoff" to enrichemnt.html and show only if characterize_foreground is selected

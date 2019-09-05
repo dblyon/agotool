@@ -1,106 +1,19 @@
 {% extends "layout.html" %}
 
 {% block head %}
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">
+{#        <link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">#}
 {% endblock head %}
 
 {% block nav_Example %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('example') }}">Example<span class="sr-only">(current)</span></a></li> {% endblock %}
 
 {% block content %}
-
-    <br><br>
-    <h2 class="row">Example data</h2>
-    <br>
-    <script src="{{ url_for('static', filename='js/prism.js') }}"></script>
-        Please try one of the examples (e.g. <a href="{{ url_for('example_1') }}">example #1</a>) from the enrichment page or have a look at the <a href="{{ url_for('download_example_data', filename='ExampleData.txt') }}">example data</a> for comparison. To download the file please right click the link and select 'save link as'. The example data (Yeast acetylation) can be submitted using the default settings. The example contains Yeast acetylation data ('foreground') as well as Yeast data for the observed proteome ('background' and 'intensity'). The results (using default settings) should look like this: <a href="{{ url_for('download_example_data', filename='ExampleData_results_orig.tsv') }}">results of all functional categories</a>.<br>
-
-    <h2>REST API</h2>
-
-
-    <h3>Parameters</h3>
-        {{content_parameters | safe}}
-
-    <h4>Entity types</h4>
-        {{content_entity_types | safe}}
-
-    <h3>Python3 examples</h3><br>
-        <pre><code class="language-python">
-import requests
-from io import StringIO
-import pandas as pd
-# call api_help for help and argument defaults
-response = requests.get(r"agotool.org/api_help")
-print(response.json())
-
-url_ = r"http://agotool.meringlab.org/api" # atlas
-        </code></pre>
-
-        <h4>Example #1 from STRING</h4>
-    <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
-            <pre><code class="language-python">
-ENSPs = ['511145.b1260', '511145.b1261', '511145.b1262', '511145.b1263', '511145.b1264', '511145.b1812',
-         '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
-fg = "%0d".join(ENSPs)
-result = requests.post(url_,
-                       params={"output_format": "json",
-                               "enrichment_method": "genome",
-                               "taxid": 511145},
-                       data={"foreground": fg})
-result_json = result.json()
-print("Enrichment results for the following entity types was calculated: \n", result_json.keys())
-                </code></pre><br>
-
-        <h4>Example #2 from STRING</h4>
-        Use iPython or Jupyter notebook or Jupyter lab to interactively view results as a pandas data frame.<br>
-            <p><b>Protein name: CDC15; Organism: Saccharomyces cerevisiae</b></p>
-            <pre><code class="language-python">
-ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W',
-         '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
-fg = "%0d".join(ENSPs)
-result = requests.post(url_,
-                       params={"output_format": "tsv",
-                               "enrichment_method": "genome",
-                               "taxid": 4932},
-                       data={"foreground": fg})
-result = result.text
-df = pd.read_csv(StringIO(result), sep='\t')
-df.head()
-            </code></pre><br>
-        <h4>Example #3 from STRING</h4>
-    <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
-            <pre><code class="language-python">
-ENSPs = ['10090.ENSMUSP00000001812', '10090.ENSMUSP00000002708', '10090.ENSMUSP00000021921',
-         '10090.ENSMUSP00000025791', '10090.ENSMUSP00000026474', '10090.ENSMUSP00000030443',
-         '10090.ENSMUSP00000054837', '10090.ENSMUSP00000084430', '10090.ENSMUSP00000099623',
-         '10090.ENSMUSP00000106137', '10090.ENSMUSP00000107498']
-fg = "%0d".join(ENSPs)
-result = requests.post(url_,
-                       params={"output_format": "json",
-                               "enrichment_method": "compare_samples",
-                               "limit_2_entity_type": "-21;-51;-52", # comma separate desired entity_types (e.g. GO biological process; UniProt keyword; SMART) , default get all available.
-                               "taxid": 10090},
-                       data={"foreground": fg,
-                             "background": fg})
-# since the foreground equals the background completely no significant enrichment will result from this analysis
-# it is meant to show how to show how to use the method call
-result_json = result.json()
-import ast
-ast.literal_eval(result_json["-51"])
-              </code></pre><br>
-
-        <h4>Example #4</h4>
-    <p><b>Characterize foreground, get functional information </b></p>
-            <pre><code class="language-python">
-ENSPs = ["9606.ENSP00000266970", "9606.ENSP00000278616"]
-fg = "%0d".join(ENSPs)
-result = requests.post(url_,
-                       params={"output_format": "tsv",
-                               "filter_parents": False,
-                               "enrichment_method": "characterize_foreground"},
-                       data={"foreground": fg})
-df = pd.read_csv(StringIO(result.text), sep='\t')
-df.head()
-              </code></pre><br>
-
-</div><br><br>
+<div class="container-fluid">
+<br>
+<h1 class="row">Example data</h1>
+<div class="col-md-12">
+{#    <script src="{{ url_for('static', filename='js/prism.js') }}"></script>#}
+    Please try one of the examples (e.g. <a href="{{ url_for('example_1') }}">example #1 </a>) from the <a href="{{ url_for('enrichment') }}">enrichment page</a> or have a look at the <a href="{{ url_for('download_example_data', filename='ExampleData.txt') }}">example data</a> for comparison. To download the file please right click the link and select "save link as". The example data can be submitted using the default settings. The Foreground consists of Yeast acetylation data, and the Background and Intensity of the observed proteome. The <b>results</b> (using default settings) should look like this: <a href="{{ url_for('download_example_data', filename='ExampleData_results_orig.tsv') }}">results of all functional categories</a>.
+</div>
+</div>
+<br><br>
 {% endblock content %}

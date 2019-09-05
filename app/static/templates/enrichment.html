@@ -12,8 +12,12 @@
     <li class="nav-item active"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment<span class="sr-only">(current)</span></a></li>
 {% endblock nav_Enrichment %}
 
+
 {% block content %}
-<div class="container-fluid">
+<div class="tab-content container page-wrap">
+
+{#{% block content %}#}
+{#<div class="container-fluid">#}
     <form id="main_form" method="Post" action="results" enctype="multipart/form-data">
     <br><br>
     <h1 class="row text-center">ENRICHMENT</h1>
@@ -84,29 +88,28 @@
         </div>
         <div class="row">
             <h3>Report options</h3>
-            <div class="col-md-8">
-            <br>
-                <table>
-                    <tr class="p_value" title="{{ form.p_value_cutoff.description }}"><td class="p_value">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
-                        {% if form.p_value_cutoff.errors %}
-                            <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
-                        {% endif %}
-                    <tr class="p_value" title="{{ form.FDR_cutoff.description }}"><td class="p_value">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
-                        {% if form.FDR_cutoff.errors %}
-                    <tr>
-                        <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
-                        {% endif %}
-                    <tr title="{{ form.filter_foreground_count_one.description }}"><td class="somename">{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
-                    <tr title="{{ form.filter_parents.description }}"><td class="somename">{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
-                    <tr class="characterize_foreground" title="{{ form.score_cutoff.description }}"><td class="somename">{{ form.score_cutoff.label }}: </td><td>{{ form.score_cutoff() }}</td>
-                        {% if form.score_cutoff.errors %}
-                        <tr><td colspan="2"><ul class="errors"> {% for error in form.score_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
-                        {% endif %}
-                </table>
-            <div class="col-md-4">
-            </div>
-            </div>
         </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <table>
+                        <tr class="p_value" title="{{ form.p_value_cutoff.description }}"><td class="p_value">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
+                            {% if form.p_value_cutoff.errors %}
+                                <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                            {% endif %}
+                        <tr class="p_value" title="{{ form.FDR_cutoff.description }}"><td class="p_value">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
+                            {% if form.FDR_cutoff.errors %}
+                        <tr>
+                            <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                            {% endif %}
+                        <tr title="{{ form.filter_foreground_count_one.description }}"><td>{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
+                        <tr class="filter_parents" title="{{ form.filter_parents.description }}"><td>{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
+                        <tr class="score_cutoff" title="{{ form.score_cutoff.description }}"><td>{{ form.score_cutoff.label }}: </td><td>{{ form.score_cutoff() }}</td>
+                            {% if form.score_cutoff.errors %}
+                            <tr><td colspan="2"><ul class="errors"> {% for error in form.score_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                            {% endif %}
+                    </table>
+                </div>
+            </div>
 
         <br>
         <div class="row">
@@ -115,16 +118,20 @@
                 <a href="{{ url_for('enrichment') }}" class="btn btn-primary">Clear</a>
             </div>
         </div>
-    <br><br><br>
+{#    <br><br>#}
 	</form>
 
 </div>
 {% endblock content %}
 
-{#{% block footer %}#}
-{#    <div class="footer_enrichment_page text-center py-3">#}
-{#          <span class="cpr_logo"><a href="https://www.cpr.ku.dk/"> <img src="./static/images/CPR_logo.png"></a></span>#}
-{#          <span class="cpr_logo"><a href="https://www.sib.swiss/"> <img src="./static/images/SIB_logo.png"></a></span>#}
-{#          <span class="cpr_logo"><a href="https://www.uzh.ch/en.html"> <img src="./static/images/UZH_logo.png"></a></span>#}
-{#      </div>#}
-{#{% endblock footer %}#}
+<div id="footer" class="site-footer">
+{% block footer %}
+  <footer class="page-footer font-small">
+    <div class="text-center py-3">
+          <span class="cpr_logo"><a href="https://www.cpr.ku.dk/"> <img src="./static/images/CPR_logo.png"></a></span>
+          <span class="cpr_logo"><a href="https://www.sib.swiss/"> <img src="./static/images/SIB_logo.png"></a></span>
+          <span class="cpr_logo"><a href="https://www.uzh.ch/en.html"> <img src="./static/images/UZH_logo.png"></a></span>
+      </div>
+  </footer>
+{% endblock footer %}
+</div>

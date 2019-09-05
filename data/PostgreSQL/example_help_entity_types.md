@@ -1,5 +1,6 @@
-| entity_type | description |
+| entity type | description |
 |:---:|:---:|
+| -20 | GO cellular component TEXTMINING |
 | -21 | GO biological process |
 | -22 | GO cellular component |
 | -23 | GO molecular function |
@@ -9,3 +10,5 @@
 | -54 | Interpro |
 | -55 | PFAM |
 | -56 | PMID |
+| -57 | Reactome |
+| -58 | WikiPathways |

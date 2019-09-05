@@ -201,6 +201,7 @@ parser.add_argument("foreground_replicates", type=int, help="'foreground_replica
 parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
 
 
+
 class API_STRING(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
@@ -243,19 +244,8 @@ class API_STRING(Resource):
                 return help_page(args_dict)
             ### results are tsv or json
             results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
-
-        # elif args_dict["enrichment_method"] == "rank_enrichment":
-        #     print("returning help page")
-        #     args_dict["ERROR_NotImplementedError"] = "This method is not yet implemented (again)"
-        #     return help_page(args_dict)
         else:
             results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
-
-        self.after = defaultdict(int)
-        for i in get_objects():
-            self.after[type(i)] += 1
-        print([(k, self.after[k] - self.before[k]) for k in self.after if self.after[k] - self.before[k]])
-        self.before = self.after.copy()
 
         if results_all_function_types is False:
             print("returning help page")
@@ -299,22 +289,6 @@ def check_taxids(args_dict):
     if args_dict["organism"] is not None:
         args_dict["ERROR_organism"] = "ERROR_organism: argument 'organism' is deprecated, please use 'taxid' instead. You've provided is '{}'.".format(args_dict["organism"])
         return False
-
-# def get_function_type__and__limit_2_parent(gocat_upk):
-#     """
-#     # choices = (("all_GO", "all GO categories"),
-#     #            ("BP", "GO Biological Process"),
-#     #            ("CP", "GO Celluar Compartment"),
-#     #            ("MF", "GO Molecular Function"),
-#     #            ("UPK", "UniProt keywords"),
-#     #            ("KEGG", "KEGG pathways")),
-#     :param gocat_upk: String
-#     :return: Tuple(String, Bool)
-#     """
-#     if gocat_upk in {"BP", "CP", "MF", "all_GO"}:
-#         return "GO" #, gocat_upk
-#     else:
-#         return gocat_upk #, None
 
 def write2file(fn, tsv):
     with open(fn, 'w') as f:
@@ -389,7 +363,10 @@ def doro():
 ################################################################################
 @app.route('/parameters')
 def parameters():
-    return render_template('parameters.html')
+    with open(variables.FN_HELP_ENTITY_TYPES, "r") as fh:
+        content = fh.read()
+        content_entity_types = format_markdown(content)
+    return render_template('parameters.html', **locals())
 
 ################################################################################
 # results_zero.html
@@ -410,12 +387,9 @@ def page_not_found(e):
 ################################################################################
 @app.route('/example')
 def example():
-    with open(variables.FN_HELP_ENTITY_TYPES, "r") as fh:
-        content = fh.read()
-        # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
-        # content_entity_types = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
-        content_entity_types = format_markdown(content)
-        # print(content_entity_types)
+    # with open(variables.FN_HELP_ENTITY_TYPES, "r") as fh:
+    #     content = fh.read()
+    #     content_entity_types = format_markdown(content)
     return render_template('example.html', **locals())
 
 @app.route('/example/<path:filename>', methods=['GET', 'POST'])
@@ -459,7 +433,8 @@ def api_help():
 def format_markdown(content):
     content = content.replace("{", "\{").replace("}", "\}")
     content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
-    return content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">')
+    # return content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">')
+    return content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover text-center">').replace("<thead>", '<thead class="table_header">')
 
 ##### validation of user inputs
 def validate_float_larger_zero_smaller_one(form, field):
@@ -566,6 +541,7 @@ characterize_foreground: Foreground only""")
     score_cutoff = fields.FloatField("Text mining score cutoff", [validate_float_between_zero_and_five], default = 3.0, description="""Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.""")
     foreground_replicates = fields.IntegerField("foreground replicates", [validate_integer], default=10, description="'Foreground replicates' is an integer, defines the number of samples (replicates) of the foreground. default=10.")
     background_replicates = fields.IntegerField("background replicates", [validate_integer], default=10, description="'Background replicates' is an integer, defines the number of samples (replicates) of the background. default=10.")
+
 
 
 class Example_1(Enrichment_Form):
@@ -675,10 +651,10 @@ def results():
     """
     form = Enrichment_Form(request.form)
     if request.method == 'POST':
-        # try:
-        fileobject = request.files['userinput_file']
-        # except:
-        #     fileobject = None
+        try:
+            fileobject = request.files['userinput_file']
+        except KeyError:
+            fileobject = None
         # filename = secure_filename(fileobject.filename) # necessary if saving the file to disk
         args_dict = {"limit_2_entity_type": form.limit_2_entity_type.data,
                      "go_slim_subset": form.go_slim_or_basic.data,
@@ -691,7 +667,8 @@ def results():
                      "taxid": form.taxid.data,
                      "output_format": "dataframe",
                      "enrichment_method": form.enrichment_method.data,
-                     "multiple_testing_per_etype": form.multiple_testing_per_etype.data}
+                     "multiple_testing_per_etype": form.multiple_testing_per_etype.data,
+                     "score_cutoff": form.score_cutoff.data}
         ui = userinput.Userinput(pqo, fn=fileobject,
             foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
@@ -699,7 +676,8 @@ def results():
         print(args_dict)
         print(args_dict["p_value_cutoff"])
         print(80 * "#")
-        # ui.check = True # ToDo comment #!!! DEBUG
+        if variables.DEBUG_HTML:
+            ui.check = True # ToDo comment #!!! DEBUG
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -707,9 +685,11 @@ def results():
             if not app.debug:
                 log_activity(string2log)
             ### DEBUG start
-            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict) # ToDo uncomment #!!!
-            # df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-            # df_all_etypes = df_all_etypes.groupby("etype").head(20)
+            if variables.DEBUG_HTML:
+                df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+                df_all_etypes = df_all_etypes.groupby("etype").head(20)
+            else:
+                df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)  # ToDo uncomment #!!! DEBUG
             ### DEBUG stop
         else:
             return render_template('info_check_input.html', args_dict=args_dict)
@@ -725,19 +705,9 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
-    df_all_etypes = df_all_etypes.sort_values(["etype", "rank"])
+    if args_dict["enrichment_method"] != "characterize_foreground":
+        df_all_etypes = df_all_etypes.sort_values(["etype", "rank"])
     etype_2_rowsCount_dict, etype_2_df_as_html_dict = {}, {}
-    ### add compact column "FG_count/FG_n BG_count/BG_n" in order to remove ["ratio_in_FG", "ratio_in_BG", "FG_count", "FG_n", "BG_count", "BG_n"] from display
-    # if args_dict["enrichment_method"] in {"genome", "compare_samples", "abundance_correction"}:
-    #     df_all_etypes["FG_count/FG_n BG_count/BG_n"] = df_all_etypes[["FG_count", "FG_n", "BG_count", "BG_n"]].apply(compact_count_2_n_cols, axis=1)
-    #     cols = df_all_etypes.columns.to_list()[:-1]
-    #     df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n BG_count/BG_n"] + cols[cols.index("effectSize") + 1:]]
-    # elif args_dict["enrichment_method"] == "characterize_foreground":
-    #     df_all_etypes["FG_count/FG_n"] = df_all_etypes[["FG_count", "FG_n"]].apply(compact_count_2_n_cols_FG, axis=1)
-    #     cols = df_all_etypes.columns.to_list()[:-1]
-    #     df_all_etypes = df_all_etypes[cols[:cols.index("effectSize") + 1] + ["FG_count/FG_n"] + cols[cols.index("effectSize") + 1:]]
-    # else:
-    #     pass
     p_value = "p value"
     FDR = "p value corrected"
     effect_size = "effect size"
@@ -766,7 +736,6 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
                 etype_2_rowsCount_dict[etype] = num_rows
                 etype_2_df_as_html_dict[etype] = group[cols_compact].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
         return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict, df_all_etypes=df_all_etypes)
-
 
     ### comprehensive results
     elif compact_or_comprehensive == "comprehensive":
@@ -827,26 +796,6 @@ def results_comprehensive():
     session_id = request.form['session_id']
     compact_or_comprehensive = request.form['compact_or_comprehensive']
     return generate_result_page(df_all_etypes, args_dict, session_id, Results_Form(), errors=(), compact_or_comprehensive=compact_or_comprehensive)
-
-
-################################################################################
-# results_back.html
-################################################################################
-# @app.route('/results_back', methods=["GET", "POST"])
-# def results_back():
-#     """
-#     renders original un-filtered / un-clustered results
-#     and remembers user options in order to perform clustering or filtering
-#     as initially
-#     """
-#     session_id = request.form['session_id']
-#     limit_2_entity_type = request.form['limit_2_entity_type']
-#     # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
-#
-#     indent = request.form['indent']
-#     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
-#     header, results = read_results_file(fn_results_orig_absolute)
-#     return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=Results_Form())
 
 def fn_suffix2abs_rel_path(suffix, session_id):
     file_name = "results_" + suffix + session_id + ".tsv"
