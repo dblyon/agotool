@@ -16,119 +16,134 @@
     <br>
 
     <h3>What is "aGOtool"?</h3>
-    <p>It is <b>a Gene Ontology enrichment tool</b>. This site can be used for functional annotation enrichment for proteomics data. It contains tools for abundance corrected GO-term, UniProt-keyword, and KEGG-pathway enrichment.</p>
+    <div class="col-md-12">
+        <p>It is <b>a Gene Ontology enrichment tool</b>. This site can be used for functional annotation enrichment for proteomics data. It contains various enrichment methods, one of them is called "abundance_correction", which is specifically catered towards Post Translationally Modified proteins. You can perform functional enrichment for <a href="https://www.ebi.ac.uk/QuickGO">GO</a> (molecular function, biological process, cellular component), <a href="https://www.uniprot.org/help/keywords">UniProt keywords</a>, <a href="https://www.genome.jp/kegg/pathway.html">KEGG pathways</a>, <a href="https://www.ncbi.nlm.nih.gov/pubmed">PubMed publications</a>, <a href="https://reactome.org">Reactome</a>, <a href="https://www.wikipathways.org">Wiki Pathways</a>, <a href="https://www.ebi.ac.uk/interpro">Interpro domains</a>, <a href="https://pfam.xfam.org">PFAM domains</a>, <a href="https://www.ebi.ac.uk/ols/ontologies/bto">Brenda Tissues</a>, and <a href="http://disease-ontology.org">Disaeses</a>.</p>
+    </div>
+    <br>
 
     <h3>What is enrichment analysis?</h3>
-    <p>Enrichment analysis is frequently used to examine "-omics" data sets for enriched functional terms in a subset of the data set, such as regulated genes or modified proteins. It involves a statistical test to find significant differences in the frequency of GO-terms associated with e.g. modified proteins relative to their frequency in the genome.</p>
+    <div class="col-md-12">
+        <p>Enrichment analysis is frequently used to examine "-omics" data sets for enriched functional terms in a subset of the data set, such as regulated genes or modified proteins. It involves a statistical test to find significant differences in the frequency of GO-terms associated with e.g. modified proteins relative to their frequency in the genome.</p>
+    </div>
+    <br>
 
     <h3>Why use aGOtool?</h3>
-    <p>There are many GO enrichment tools freely available, so why would I want to use aGOtool instead? aGOtool stands out,
-        because it was <b>specifically designed for the abundance bias in Mass Spectrometry (MS) based proteomics data</b>.
-        This bias exists, since proteins can't be amplified, and abundant proteins are more likely to be detected by MS.
-        This effect is even more pronounced when investigating post-translationally-modified (PTM) proteins, due to the fact
-        that site occupancy is usually not as high as 100%. Meaning, that not every single copy of a given protein will have the PTM of
-        interest at the same location. Therefore, it will be easier to detect PTMs on abundant proteins compared to low abundant proteins.</p>
-    <p>A GO-enrichment analyses comparing post-translationally modified proteins to unmodified proteins is likely to reveal enriched
-        GO-terms associated with abundant proteins, rather than modified proteins specifically. We have developed a method
-        to correct for this bias (see <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=10.1038%2Fnmeth.3621">publication</a> or explanation below)
-        and this freely accessible web-tool, which you are most welcome to use.</p>
-        This will result in
-    <ul>
-        <li>a comparison to an appropriate control group</li>
-        <li>increased specificity</li>
-        <li>fewer significantly enriched, but more accurate and biologically meaningful terms</li>
-    </ul>
+    <div class="col-md-12">
+        <p>There are many GO enrichment tools freely available, so why would I want to use aGOtool instead? aGOtool stands out,
+            because it was <b>specifically designed for the abundance bias in Mass Spectrometry (MS) based proteomics data</b>.
+            This bias exists, since proteins can't be amplified, and abundant proteins are more likely to be detected by MS.
+            This effect is even more pronounced when investigating post-translationally-modified (PTM) proteins, due to the fact
+            that site occupancy is usually not as high as 100%. Meaning, that not every single copy of a given protein will have the PTM of
+            interest at the same location. Therefore, it will be easier to detect PTMs on abundant proteins compared to low abundant proteins.</p>
+        <p>A GO-enrichment analyses comparing post-translationally modified proteins to unmodified proteins is likely to reveal enriched
+            GO-terms associated with abundant proteins, rather than modified proteins specifically. We have developed a method
+            to correct for this bias (see <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=10.1038%2Fnmeth.3621">publication</a> or explanation below)
+            and this freely accessible web-tool, which you are most welcome to use.</p>
+            This will result in
+        <ul>
+            <li>a comparison to an appropriate control group</li>
+            <li>increased specificity</li>
+            <li>fewer significantly enriched, but more accurate and biologically meaningful terms</li>
+        </ul>
+    </div>
+    <br>
 
     <h3>How can I use aGOtool?</h3>
-    You need to provide a list of UniProt protein accession numbers for the foreground (e.g. a list of proteins you've identified in an experiment having a certain PTM), and a list of accession numbers including their abundance values for the background (e.g. a reference proteome with "normal" conditions).
+        <div class="col-md-12">
+        You need to provide a list of UniProt protein accession numbers for the foreground (e.g. a list of proteins you've identified in an experiment having a certain PTM), and a list of accession numbers including their abundance values for the background (e.g. a reference proteome with "normal" conditions).
+        </div>
+    <br>
 
 
     <h3>What is the "foreground" and "background" proteome?</h3>
-    The foreground consists of proteins you are interested in, e.g. proteins with a specific PTM, or upregulated proteins due to a treatment. The foreground is characterized by comparing it to the background.
-    The background is what you compare against.
-
-
-    The foreground is a subset of the background, in terms of abundance values.
-    <br>
-    <h4>Upload a file</h4>
-
-    <br>
-    <h4>Copy & paste from a spreadsheet document (e.g. Excel or OpenOffice)</h4>
-
-    <br>
-    <h4>REST API</h4>
-
+        <div class="col-md-12">
+        The foreground consists of proteins you are interested in, e.g. proteins with a specific PTM, or upregulated proteins due to a treatment. The foreground is characterized by comparing it to the background.
+        The background is what you compare against.
+        The foreground is a subset of the background, in terms of abundance values.
+        </div>
     <br>
 
 
     <h3>How does the "abundance_correction" method work?</h3>
-    The user is asked to provide a foreground proteome (list of UniProt accession numbers) and a background
-    proteome (list of accessions) and their corresponding abundance values. Instead of comparing the foreground to the entire proteome, it is instead
-    compared to the (experimentally measured) background proteome. Furtheremore,  a correction for the abundance range is incorporated into the
-    analysis as follows.<br>
-    The abundance values of the foreground are assumed to be the same as the background. Based on the abundance
-    values of the foreground proteome 100 bins are created (background proteins outside of that range are disregarded). For
-    each bin a <b>correction factor</b> \(w_i\) is calculated by dividing the number of foreground proteins \(n_{fi}\) by the number of background proteins \(n_{bi}\) occurring
-    within that bin.
-    $$w_i = {n_{fi} \over n_{bi} } $$
-    <br>
-    For each GO-term a contingency table is constructed in order to calculate Fisher’s exact test. Where for a given GO-term
-    <ul>
-        <li>\(a\) is the number of all positively associated proteins (with that GO-term) of the foreground,</li>
-        <li>\(b\) is the number of all non-associated proteins of the foreground,</li>
-        <li>\(c\) is the number of all positively associated proteins of the background, and</li>
-        <li>\(d\) is the number of all non-associated proteins of the background.</li>
-    </ul>
-    <table style="width:30%">
-      <tr>
-        <th></th>
-        <th>foreground</th>
-        <th>background</th>
-      </tr>
-      <tr>
-        <td>+</td>
-        <td>\(a\)</td>
-        <td>\(c\)</td>
-      </tr>
-      <tr>
-        <td>-</td>
-        <td>\(b\)</td>
-        <td>\(d\)</td>
-      </tr>
-    </table>
-    <br>
-    Let \(hasGoTerm(p)\) be defined as
-    $$hasGOterm(p) = \begin{cases} 1, \text{if p has the GOterm of interest} \over 0, \text{otherwise} \end{cases}$$
-    and \(hasnotGOterm(p)\) be defined as
-    $$hasnotGOterm(p) = \begin{cases} 1, \text{if p has not the GOterm of interest} \over 0, \text{otherwise} \end{cases}$$
-    and \(prot_i\) be the set of proteins in the \(i^{th}\) bin.<p>
-    Thus the four values (\(a\), \(b\), \(c\), \(d\)) for the Fisher’s exact test are calculated as follows:
-    $$a = {\sum_{i=1}^{i=100} \sum_{p∈prot_i} hasGOterm(p)}$$
-    $$b = {\sum_{i=1}^{i=100} \sum_{p∈prot_i} hasnotGOterm(p)}$$
-    $$c = {\sum_{i=1}^{i=100} w_i \sum_{p∈prot_i} hasGOterm(p)}$$
-    $$d = {\sum_{i=1}^{i=100} w_i \sum_{p∈prot_i} hasnotGOterm(p)}$$
-    Notice that \(a\) and \(b\) are calculated in the conventional way, in contrast to \(c\) and \(d\), where \(w_i\) is introduced in order to match the distribution of the foreground.<p>
+        <div class="col-md-12">
+        The user is asked to provide a foreground proteome (list of UniProt accession numbers) and a background
+        proteome (list of accessions) and their corresponding abundance values. Instead of comparing the foreground to the entire proteome, it is instead
+        compared to the (experimentally measured) background proteome. Furtheremore,  a correction for the abundance range is incorporated into the
+        analysis as follows.<br>
+        The abundance values of the foreground are assumed to be the same as the background. Based on the abundance
+        values of the foreground proteome 100 bins are created (background proteins outside of that range are disregarded). For
+        each bin a <b>correction factor</b> \(w_i\) is calculated by dividing the number of foreground proteins \(n_{fi}\) by the number of background proteins \(n_{bi}\) occurring
+        within that bin.
+        $$w_i = {n_{fi} \over n_{bi} } $$
+        <br>
+        For each GO-term a contingency table is constructed in order to calculate Fisher’s exact test. Where for a given GO-term
+        <ul>
+            <li>\(a\) is the number of all positively associated proteins (with that GO-term) of the foreground,</li>
+            <li>\(b\) is the number of all non-associated proteins of the foreground,</li>
+            <li>\(c\) is the number of all positively associated proteins of the background, and</li>
+            <li>\(d\) is the number of all non-associated proteins of the background.</li>
+        </ul>
+        <table style="width:30%">
+          <tr>
+            <th></th>
+            <th>foreground</th>
+            <th>background</th>
+          </tr>
+          <tr>
+            <td>+</td>
+            <td>\(a\)</td>
+            <td>\(c\)</td>
+          </tr>
+          <tr>
+            <td>-</td>
+            <td>\(b\)</td>
+            <td>\(d\)</td>
+          </tr>
+        </table>
+        <br>
+        Let \(hasGoTerm(p)\) be defined as
+        $$hasGOterm(p) = \begin{cases} 1, \text{if p has the GOterm of interest} \over 0, \text{otherwise} \end{cases}$$
+        and \(hasnotGOterm(p)\) be defined as
+        $$hasnotGOterm(p) = \begin{cases} 1, \text{if p has not the GOterm of interest} \over 0, \text{otherwise} \end{cases}$$
+        and \(prot_i\) be the set of proteins in the \(i^{th}\) bin.<p>
+        Thus the four values (\(a\), \(b\), \(c\), \(d\)) for the Fisher’s exact test are calculated as follows:
+        $$a = {\sum_{i=1}^{i=100} \sum_{p∈prot_i} hasGOterm(p)}$$
+        $$b = {\sum_{i=1}^{i=100} \sum_{p∈prot_i} hasnotGOterm(p)}$$
+        $$c = {\sum_{i=1}^{i=100} w_i \sum_{p∈prot_i} hasGOterm(p)}$$
+        $$d = {\sum_{i=1}^{i=100} w_i \sum_{p∈prot_i} hasnotGOterm(p)}$$
+        Notice that \(a\) and \(b\) are calculated in the conventional way, in contrast to \(c\) and \(d\), where \(w_i\) is introduced in order to match the distribution of the foreground.<p>
 
-    In short, \(a\) and \(b\) are calculated by simply counting (summing) the associations for all the proteins in the foreground. While \(c\) and \(d\) are calculated by summing the appropriate correction-factors.</p>
-
-</br>
+        In short, \(a\) and \(b\) are calculated by simply counting (summing) the associations for all the proteins in the foreground. While \(c\) and \(d\) are calculated by summing the appropriate correction-factors.</p>
+    </div>
+<br>
 
     <h3>I only have a foreground proteome, can I still use aGOtool?</h3>
-    Yes, you have 2 options:
-    <ul>
-        <li>You can select a reference background proteome (and their corresponding abundance values) appropriate for your organism/cell-line.</li>
-        <li>You can compare your foreground to the entire proteome (of your organism/cell-line) and not apply abundance correction.</li>
-    </ul>
-    <h3>Why is "background n" equal to "foreground n", specially since I've uploaded more Accessions for the background than the foreground?</h3>
-    This is due to the abundance correction method, which aims to compare same sized groups. Therefore the associations (e.g. GO-terms) of the background downscaled to reflect the number of associations of the foreground (see correction-factor "How does aGOtool work?" above).
+        <div class="col-md-12">
+            <b>Yes!</b> You can select the "genome" method and thereby chose a reference background proteome appropriate for your organism.
+        </div>
     <br>
-    <h3>Why is "percent associated background" equal to Zero?</h3>
-    This can occur when the above described correction-factor is very small, and the summed correction-factors are between 0 and 1, and are subsequently rounded down to zero instead of up to one. e.g. a bin containing many background proteins, but only few foreground proteins will lead to a small correction-factor.
-    <br>
-    <h3>I still have questions...</h3>
-    Feel free to write me an email <a href="mailto:david.lyon@uzh.ch" class="link"><span>david.lyon@uzh.ch</span></a> </p>
-</br></br>
-</div>
+{#    <ul>#}
+{#        <li>You can select a reference background proteome (and their corresponding abundance values) appropriate for your organism/cell-line.</li>#}
+{#        <li>You can compare your foreground to the entire proteome (of your organism/cell-line) and not apply abundance correction.</li>#}
+{#    </ul>#}
 
+    <h3>Why is "background n" equal to "foreground n", specially since I've uploaded more Accessions for the background than the foreground?</h3>
+        <div class="col-md-12">
+            This is due to the abundance correction method, which aims to compare same sized groups. Therefore the associations (e.g. GO-terms) of the background downscaled to reflect the number of associations of the foreground (see correction-factor "How does aGOtool work?" above).
+        </div>
+    <br>
+
+    <h3>Why is "percent associated background" equal to Zero?</h3>
+    <div class="col-md-12">
+        This can occur when the above described correction-factor is very small, and the summed correction-factors are between 0 and 1, and are subsequently rounded down to zero instead of up to one. e.g. a bin containing many background proteins, but only few foreground proteins will lead to a small correction-factor.
+    </div>
+    <br>
+
+    <h3>I still have questions...</h3>
+        <div class="col-md-12">
+            Feel free to write me an email <a href="mailto:david.lyon@uzh.ch" class="link"><span>david.lyon@uzh.ch</span></a> </p>
+        </div>
+
+<br><br>
 {% endblock content %}
 

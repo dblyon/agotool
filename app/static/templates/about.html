@@ -1,9 +1,14 @@
 {% extends "layout.html" %}
 
-
 {% block nav_About %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('about') }}">About<span class="sr-only">(current)</span></a></li> {% endblock %}
 
 {% block content %}
+    <br><br>
+    <div class="row"><h3>What is aGOtool?</h3>
+        <div class="col-md-12">
+            We're so glad you asked! Well this is yet another Gene Ontology enrichment tool, BUT with some cool features you'll not find elsewhere. This tool is protein-centric and provides multiple enrichment methods in order to provide biologically meaningful results. We support all UniProt identifiers (SwissProt and TrEMBL) as well as STRING identifiers. You can enrich for <a href="https://www.ebi.ac.uk/QuickGO">GO</a> (molecular function, biological process, cellular component), <a href="https://www.uniprot.org/help/keywords">UniProt keywords</a>, <a href="https://www.genome.jp/kegg/pathway.html">KEGG pathways</a>, <a href="https://www.ncbi.nlm.nih.gov/pubmed">PubMed publications</a>, <a href="https://reactome.org">Reactome</a>, <a href="https://www.wikipathways.org">Wiki Pathways</a>, <a href="https://www.ebi.ac.uk/interpro">Interpro domains</a>, <a href="https://pfam.xfam.org">PFAM domains</a>, <a href="https://www.ebi.ac.uk/ols/ontologies/bto">Brenda Tissues</a>, and <a href="http://disease-ontology.org">Disaeses</a>. We're providing <b>regular updates (monthly for Uniprot and weekly for textmining)</b>. Speaking of which we're using textmining results which enables you to get enrichment for Diseases, Tissues and PubMed publications.
+        </div>
+    </div>
     <br><br>
 
     <div class="row"><h3>Support, Questions & Praise</h3></div>
@@ -17,7 +22,6 @@
     <div class="row">
         <div class="col-md-10"><a href="https://www.imls.uzh.ch/en/research/vonmering.html">Department for Systems Biology / Metagenomics, Institute for Molecular Life Sciences, University of Zurich</a></div>
     </div>
-
     <br><br>
 
     <div class="row"><h3>Complaints</h3></div>
@@ -29,76 +33,32 @@
         <div class="col-md-4"><a href="mailto:mering@imls.uzh.ch" class="link"><span>mering@imls.uzh.ch</span></a></div>
         <div class="col-md-4"><a href="mailto:lars.juhl.jensen@cpr.ku.dk" class="link"><span>lars.juhl.jensen@cpr.ku.dk</span></a></div>
     </div>
-
-
     <br><br>
 
     <div class="row"><h3>Publication</h3></div>
-    <div class="row"><div class="col-md-12">Please cite the following article when applying this method or using this service:<br>
-        <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=10.1038%2Fnmeth.3621">Avoiding abundance bias in the functional annotation of posttranslationally modified proteins.<br>Nature Methods, 2015<br>doi:10.1038/nmeth.3621</a>
-    </div>
-    </div>
-
+        <div class="row">
+            <div class="col-md-12">Please cite the following article when applying this method or using this service:<br>
+            <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=10.1038%2Fnmeth.3621">Avoiding abundance bias in the functional annotation of posttranslationally modified proteins.<br>Nature Methods, 2015<br>doi:10.1038/nmeth.3621</a>
+            </div>
+        </div>
     <br><br>
 
     <div class="row"><h3>Source Code</h3></div>
-    <div class="row"><div class="col-md-12">The software (published under <a href="http://opensource.org/licenses/BSD-2-Clause"> BSD</a>) is available at <a href="https://github.com/dblyon/agotool.git">https://github.com/dblyon/agotool.git</a>.<br>Feel free to contact <a href="mailto:david.lyon@uzh.ch" class="link"><span>david.lyon@uzh.ch</span></a> for support.</div>
-    </div>
+        <div class="row"><div class="col-md-12">The software (published under <a href="http://opensource.org/licenses/BSD-2-Clause"> BSD</a>) is available at <a href="https://github.com/dblyon/agotool.git">https://github.com/dblyon/agotool.git</a>.<br>Feel free to contact <a href="mailto:david.lyon@uzh.ch" class="link"><span>david.lyon@uzh.ch</span></a> for support.</div>
+        </div>
 
     <br><br>
 
+
     <div class="row"><h3>Resources</h3></div>
-    <div class="row"><div class="col-md-12"><b>The resources used for this web-service are automatically updated every month.</b><br>
-        GO (basic) and GO-slims are retrieved from http://purl.obolibrary.org/obo/go/.<br>
-        UniProt-keywords are retrieved from http://www.uniprot.org/.<br>
-        Since the information quality of GO assocations differs between taxa
-        (e.g. manually curated vs. Inferred from Electronic Annotation), a brief
-        overview of the GO-association-resources used for this web-tool follows.<br>
-
-        <a href="http://www.uniprot.org/">UniProt</a> provides<br>
-        <b>A.) Species specific filtered resources:</b><br>
-        "species-specific annotation sets using the UniProtKB Complete Proteome and Reference Proteome sets that have undergone an
-        additional electronic annotation filtering to remove redundancy."
-        These are retrieved from ftp://ftp.ebi.ac.uk/pub/databases/GO/goa.
-        This web-tool uses the gene_association.goa_"species" files.
-        "(based on UniProtKB complete proteome)
-        These files contains all GO annotations and information for a species subset of proteins in
-        the UniProt KnowledgeBase (UniProtKB) and for entities other than proteins,
-        e.g. macromolecular complexes (IntAct Complex Portal identifiers) or RNAs (RNAcentral identifiers).
-        These files may provide annotations to more than one protein per gene. The protein accessions
-        included in these files are all Swiss-Prot entries for that species plus any TrEMBL
-        entries that have an Ensembl DR line. The TrEMBL entries are likely to overlap with
-        the Swiss-Prot entries or their isoforms. If a particular entity is not annotated with
-        GO, then it will not appear in this file (www.uniprot.org)."
-        We are using "species specific filtered resources" for the following taxa:
-        <ul>
-            <li class="bulletpoints_li">Arabidopsis thaliana (Thale cress, TaxID: 3702)</li>
-            <li class="bulletpoints_li">Danio rerio (Zebrafish, TaxID: 7955)</li>
-            <li class="bulletpoints_li">Drosophila melanogaster (Fly, TaxID: 7227)</li>
-            <li class="bulletpoints_li">Gallus gallus (Chicken, TaxID: 9031)</li>
-            <li class="bulletpoints_li">Homo sapiens (Human, TaxID: 9606)</li>
-            <li class="bulletpoints_li">Mus musculus (Mouse, TaxID: 10090)</li>
-            <li class="bulletpoints_li">Rattus norvegicus (Rat, TaxID: 10116)</li>
-            <li class="bulletpoints_li">Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Yeast, TaxID: 559292 not 4932)</li>
-            <li class="bulletpoints_li">Sus scrofa (Pig, TaxID: 9823)</li>
-        </ul>
-
-        <b>B.) UniProt unfiltered resources:</b><br>
-        This is retrieved from: ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz
-        "This file contains all GO annotations and information for proteins in the UniProt KnowledgeBase (UniProtKB) and
-        for entities other than proteins, e.g. macromolecular complexes (IntAct Complex Portal identifiers) or
-        RNAs (RNAcentral identifiers). If a particular entity is not annotated with GO, then it will not appear in this file (www.uniprot.org)."
-        To the best of our knowledge, there are no species specific filtered (gene association) resources are available for:
-        <ul>
-            <li class="bulletpoints_li">Chlamydomonas reinhardtii ('Chlamy', TaxID: 3055)</li>
-            <li class="bulletpoints_li">Equus caballus (horse, TaxID: 9796)</li>
-            <li class="bulletpoints_li">Medicago truncatula (barrel medic, TaxID: 3880)</li>
-            <li class="bulletpoints_li">Oryza sativa subsp. japonica (rice, TaxID: 39947)</li>
-        </ul>
-        Therefore we are using "UniProt unfiltered resources" for these taxa.
+    <div class="row">
+        <div class="col-md-12">
+            <b>The resources used for this web-service are automatically updated, UniProt on a monthly basis and Jensenlab textmining resources on a weekly basis.</b><br>
+            Functional associations for the following categories are retrieved from <a href="https://www.uniprot.org">UniProt</a>: GO terms, UniProt Keywords, KEGG, Interpro, Pfam, and Reactome. Since these associations can simply be counted we apply a Fisher's exact test to find significantly enriched terms.
+            Diseases, Brenda Tissues, and PubMed identifiers stem from <a href="https://jensenlab.org">Jensenlab</a> textming results. Since these protein to function associations are not binary, but result in a score between 0 and 5, we apply a Kolmogorov Smirnov test.
+{#            GO basic and slims subsets are retrieved from <a href="http://purl.obolibrary.org">obolibrary</a>.<br>#}
         </div>
     </div>
 
-    <br><br><br><br><br>
-
+<br><br><br><br><br>
 {% endblock content %}

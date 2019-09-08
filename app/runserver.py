@@ -4,19 +4,19 @@ import numpy as np
 import pandas as pd
 pd.set_option('display.max_colwidth', -1) # in order to prevent 50 character cutoff of to_html export / ellipsis
 from lxml import etree
-from gc import get_objects
+# from gc import get_objects
 import flask
 from flask import render_template, request, send_from_directory, jsonify
 from flask_restful import reqparse, Api, Resource
 from werkzeug.wrappers import Response
-from werkzeug.utils import secure_filename
+# from werkzeug.utils import secure_filename
 import wtforms
 from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-import query, userinput, run, variables #, cluster_filter # todo remove cluster_filter
+import query, userinput, run, variables
 # from profilehooks import profile
 ###############################################################################
 variables.makedirs_()
@@ -193,13 +193,12 @@ parser.add_argument("enrichment_method", type=str,
 parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)", default="basic")
 parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="overrepresented")
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
-parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
+# parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 parser.add_argument("multiple_testing_per_etype", type=bool, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default=True)
 parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
 parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
 parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
-
 
 
 class API_STRING(Resource):
@@ -216,10 +215,6 @@ class API_STRING(Resource):
         - part of the path (url) is variable in resource
         - or parameters of form
         """
-        self.before = defaultdict(int)
-        for i in get_objects():
-            self.before[type(i)] += 1
-
         args_dict = defaultdict(lambda: None)
         args_dict["foreground"] = request.form.get("foreground")
         args_dict["output_format"] = request.form.get("output_format")
@@ -243,9 +238,10 @@ class API_STRING(Resource):
                 args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
                 return help_page(args_dict)
             ### results are tsv or json
-            results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
-        else:
-            results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
+            # results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
+        results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict)
+        # else:
+        #     results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
 
         if results_all_function_types is False:
             print("returning help page")
@@ -254,7 +250,8 @@ class API_STRING(Resource):
             return format_multiple_results(args_dict, results_all_function_types, pqo)
 
 
-api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
+# api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
+api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
 
 def PMID_description_to_year(string_):

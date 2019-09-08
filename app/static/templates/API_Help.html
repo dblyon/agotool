@@ -112,55 +112,32 @@ df.head()
 <h1 class="row"> API parameters</h1>
     <div class="row">
         <div class="col-md-12">
+            These parameters reflect the parameters of the graphical user interface of the web page, but some have slightly varying names. They are briefly described below, please see the <a href="{{ url_for('parameters') }}">parameters page</a> for more details.
             <ul>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>:<a href="https://www.ncbi.nlm.nih.gov/taxonomy"> NCBI taxon identifier</a> (e.g. "9606" for Homo sapiens), default=None (not set).
-                <li class="bulletpoints_li"><b><em>species</em></b>: deprecated, please use "taxid" instead.
-                <li class="bulletpoints_li"><b><em>organism</em></b>: deprecated, please use "taxid" instead.
-                <li class="bulletpoints_li"><b><em>output_format</em></b>: The desired format of the output, one of {tsv, tsv-no-header, json, xml}, default="tvs".
-                <li class="bulletpoints_li"><b><em>filter_parents</em></b>: Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground. For a more detailed description see Parameters --> Report options --> Filter redundant parent terms. Default=True.
-                <li class="bulletpoints_li"><b><em>filter_foreground_count_one</em></b>: Keep only those terms with foreground_count > 1. Default=True.
-                <li class="bulletpoints_li"><b><em>filter_PMID_top_n</em></b>: Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date. Default=100.
-                <li class="bulletpoints_li"><b><em>caller_identity</em></b>: Your identifier for us e.g. "www.my_awesome_app.com". Default=None (this parameter exists to comply with STRING).
-                <li class="bulletpoints_li"><b><em>FDR_cutoff</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
-                <li class="bulletpoints_li"><b><em>taxid</em></b>
+                <li class="bulletpoints_li"><b>taxid</b>:<a href="https://www.ncbi.nlm.nih.gov/taxonomy"> NCBI taxon identifier</a> (e.g. "9606" for Homo sapiens), default = None (not set).</li>
+                <li class="bulletpoints_li"><b>species</b>: deprecated, please use "taxid" instead.</li>
+                <li class="bulletpoints_li"><b>organism</b>: deprecated, please use "taxid" instead.</li>
+                <li class="bulletpoints_li"><b>output_format</b>: The desired format of the output, one of {tsv, tsv-no-header, json, xml}, default = "tvs".</li>
+                <li class="bulletpoints_li"><b>filter_parents</b>: Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground. For a more detailed description see Parameters --> Report options --> Filter redundant parent terms. Default=True.</li>
+                <li class="bulletpoints_li"><b>filter_foreground_count_one</b>: Keep only those terms with foreground_count > 1. Default = True.</li>
+                <li class="bulletpoints_li"><b>filter_PMID_top_n</b>: Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date. Default = 100.</li>
+                <li class="bulletpoints_li"><b>caller_identity</b>: Your identifier for us e.g. "www.my_awesome_app.com". Default=None (this parameter exists to comply with STRING).</li>
+                <li class="bulletpoints_li"><b>FDR_cutoff</b>: False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff. Default = 0.05</li>
+                <li class="bulletpoints_li"><b>limit_2_entity_type</b>: Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default  ="-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58" which means use all available categories. See <a href="url_for('parameters')">parameters page</a> for a translation of entity types.</li>
+                <li class="bulletpoints_li"><b>foreground</b>: Protein identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment), separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'. Default = None.</li>
+                <li class="bulletpoints_li"><b>background</b>: Protein identifiers for all proteins in the background (the population, the group you want to compare your foreground to) separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'. Default = None.</li>
+                <li class="bulletpoints_li"><b>background_intensity</b>: Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background' e.g. '12.3%0d3.4'. Default = None.</li>
+                <li class="bulletpoints_li"><b>enrichment_method</b>: There are 5 methods available: "abundance_correction", "compare_samples", "compare_groups", "characterize_foreground", "genome". Default = "characterize_foreground".</li>
+                <li class="bulletpoints_li"><b>goslim</b>: GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see <a href="http://geneontology.org/docs/go-subset-guide">GO subset guide</a>). Default = "basic".</li>
+                <li class="bulletpoints_li"><b>o_or_u_or_both</b>: over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them. Default = "overrepresented".</li>
+                <li class="bulletpoints_li"><b>num_bins</b>: The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected. Default = 100.</li>
+                <li class="bulletpoints_li"><b>p_value_cutoff</b>: Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction). Default = 1</li>
+                <li class="bulletpoints_li"><b>multiple_testing_per_etype</b>: If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results. Default = True</li>
+                <li class="bulletpoints_li"><b>score_cutoff</b>: Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.</li>
+                <li class="bulletpoints_li"><b>foreground_replicates</b>: Provide an integer, defines the number of samples (replicates) of the foreground. Default = 10</li>
+                <li class="bulletpoints_li"><b>background_replicates</b>: Analogous to foreground_replicates, defines the number of samples (replicates) of the background. Default = 10</li>
+            </ul>
 
-{#parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)#}
-{#parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default="-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58") # -53 missing for UniProt version#}
-{#parser.add_argument("privileged", type=str, default="False")#}
-{#parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "#}
-{#         "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",#}
-{#    default=None)#}
-{#parser.add_argument("background", type=str,#}
-{#    help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "#}
-{#         "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",#}
-{#    default=None)#}
-{#parser.add_argument("background_intensity", type=str,#}
-{#    help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "#}
-{#         "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"#}
-{#         "e.g. '12.3%0d3.4' ",#}
-{#    default=None)#}
-{#parser.add_argument("enrichment_method", type=str,#}
-{#    help="""'genome': provided foreground vs genome;#}
-{#    'compare_samples': Foreground vs Background (no abundance correction); #}
-{#    'characterize_foreground': list all functional annotations for provided foreground;#}
-{#    'abundance_correction': Foreground vs Background abundance corrected""",#}
-{#    default="characterize_foreground")#}
-{#parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)", default="basic")#}
-{#parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="overrepresented")#}
-{#parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)#}
-{#parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)#}
-{#parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)#}
-{#parser.add_argument("multiple_testing_per_etype", type=bool, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default=True)#}
-{#parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)#}
-{#parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)#}
-{#parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)    #}
 
 
         </div>

@@ -29,7 +29,7 @@ def run_UniProt_enrichment(pqo, ui, args_dict):
             return format_results(df_2_return, output_format, args_dict)
     else:
         print("run.py " * 5)
-        print("Upsi why did this happen?")
+        print("This shouldn't happen!!")
         print(type(df_2_return), df_2_return)
         print("run.py " * 5)
         return False

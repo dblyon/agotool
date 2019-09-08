@@ -1,19 +1,32 @@
 {% extends "layout.html" %}
 
 {% block head %}
-{#        <link rel="stylesheet" href="{{ url_for('static', filename='css/prism.css') }}">#}
 {% endblock head %}
 
 {% block nav_Example %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('example') }}">Example<span class="sr-only">(current)</span></a></li> {% endblock %}
 
+{#{% block content %}#}
+{#<div class="container-fluid wrap">#}
 {% block content %}
-<div class="container-fluid">
+<div class="tab-content container page-wrap">
 <br>
 <h1 class="row">Example data</h1>
-<div class="col-md-12">
-{#    <script src="{{ url_for('static', filename='js/prism.js') }}"></script>#}
-    Please try one of the examples (e.g. <a href="{{ url_for('example_1') }}">example #1 </a>) from the <a href="{{ url_for('enrichment') }}">enrichment page</a> or have a look at the <a href="{{ url_for('download_example_data', filename='ExampleData.txt') }}">example data</a> for comparison. To download the file please right click the link and select "save link as". The example data can be submitted using the default settings. The Foreground consists of Yeast acetylation data, and the Background and Intensity of the observed proteome. The <b>results</b> (using default settings) should look like this: <a href="{{ url_for('download_example_data', filename='ExampleData_results_orig.tsv') }}">results of all functional categories</a>.
-</div>
+    <div class="col-md-12">
+        Please try one of the examples (e.g. <a href="{{ url_for('example_1') }}">example #1 </a>) from the <a href="{{ url_for('enrichment') }}">enrichment page</a> or have a look at the <a href="{{ url_for('download_example_data', filename='ExampleData.txt') }}">example data</a> for comparison. To download the file please right click the link and select "save link as". The example data can be submitted using the default settings. The Foreground consists of Yeast acetylation data, and the Background and Intensity of the observed proteome (the data was taken from the original publication). The <b>results</b> (using default settings) should look like this, but can vary slightly due to novel functional associations being added to the resource: <a href="{{ url_for('download_example_data', filename='ExampleData_results_orig.tsv') }}">results of all functional categories</a>.
+    </div>
 </div>
 <br><br>
 {% endblock content %}
+
+
+<div id="footer" class="site-footer">
+{% block footer %}
+  <footer class="page-footer font-small">
+    <div class="text-center py-3">
+          <span class="cpr_logo"><a href="https://www.cpr.ku.dk/"> <img src="./static/images/CPR_logo.png"></a></span>
+          <span class="cpr_logo"><a href="https://www.sib.swiss/"> <img src="./static/images/SIB_logo.png"></a></span>
+          <span class="cpr_logo"><a href="https://www.uzh.ch/en.html"> <img src="./static/images/UZH_logo.png"></a></span>
+      </div>
+  </footer>
+{% endblock footer %}
+</div>
