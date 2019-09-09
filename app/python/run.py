@@ -11,6 +11,16 @@ import tools, variables
 def run_UniProt_enrichment(pqo, ui, args_dict):
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
     preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis()
+    if args_dict["o_or_u_or_both"] == "overrepresented":
+        encoding = 1
+    elif args_dict["o_or_u_or_both"] == "both":
+        encoding = 0
+    elif args_dict["o_or_u_or_both"] == "underrepresented":
+        encoding = 2
+    else:
+        args_dict["ERROR o_or_u_or_both"] = "Unknown option for o_or_u_or_both, does not understand: '{}'".format(args_dict["o_or_u_or_both"])
+        return False
+    args_dict["o_or_u_or_both_encoding"] = encoding
 
     if args_dict["enrichment_method"] == "characterize_foreground":
         df_2_return = run_cythonized.run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=variables.LOW_MEMORY)

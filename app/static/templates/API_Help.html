@@ -13,7 +13,7 @@
 <h1 class="row">Application Programming Interface</h1>
 <div class="row">
     <div class="col-md-12">
-        aGOtool has an application programming interface (API) which enables you to get the data without using the graphical user interface of the web page. The API is convenient if you need programmatic access. Please have a look at the examples.
+        aGOtool has an application programming interface (API) which enables you to get data without using the graphical user interface of the web page. The API is convenient if you need programmatic access. Please have a look at the examples.
     </div>
 </div>
 <br>
@@ -53,7 +53,7 @@ print("Enrichment results for the following entity types was calculated: \n", re
             </code></pre><br>
 
     <h4>Example #2 from STRING</h4>
-    Use iPython or Jupyter notebook or Jupyter lab to interactively view results as a pandas data frame.<br>
+    Use iPython or Jupyter notebook to interactively view results as a pandas data frame.<br>
         <p><b>Protein name: CDC15; Organism: Saccharomyces cerevisiae</b></p>
         <pre><code class="language-python">
 ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W',
@@ -114,7 +114,7 @@ df.head()
         <div class="col-md-12">
             These parameters reflect the parameters of the graphical user interface of the web page, but some have slightly varying names. They are briefly described below, please see the <a href="{{ url_for('parameters') }}">parameters page</a> for more details.
             <ul>
-                <li class="bulletpoints_li"><b>taxid</b>:<a href="https://www.ncbi.nlm.nih.gov/taxonomy"> NCBI taxon identifier</a> (e.g. "9606" for Homo sapiens), default = None (not set).</li>
+                <li class="bulletpoints_li"><b>taxid</b>:<a href="https://www.ncbi.nlm.nih.gov/taxonomy"> NCBI taxon identifier for rank of species</a> (e.g. "9606" for Homo sapiens), default = None (not set).</li>
                 <li class="bulletpoints_li"><b>species</b>: deprecated, please use "taxid" instead.</li>
                 <li class="bulletpoints_li"><b>organism</b>: deprecated, please use "taxid" instead.</li>
                 <li class="bulletpoints_li"><b>output_format</b>: The desired format of the output, one of {tsv, tsv-no-header, json, xml}, default = "tvs".</li>

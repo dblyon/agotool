@@ -1,15 +1,15 @@
-import os, sys, re
+import sys, re, os
 import gzip
 import pandas as pd
 pd.options.mode.chained_assignment = None
 import numpy as np
-from collections import defaultdict
-from collections import deque
-# sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+from collections import defaultdict, deque
+sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 from tqdm import tqdm
 import tarfile
 
+import taxonomy
 import obo_parser
 import tools, ratio, query
 import variables
@@ -945,11 +945,12 @@ def Taxid_2_Proteins_table_STS(fn_in_protein_shorthands, fn_out_Taxid_2_Proteins
             ENSPs_2_write = sorted(set(ENSP_list))
             fh_out.write(Taxid_previous + "\t" + format_list_of_string_2_postgres_array(ENSPs_2_write) + "\t" + str(len(ENSPs_2_write)) + "\n")
 
-def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins_table_UniProt):
+def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins_table_UniProt, Taxid_without_mapping_2_species_rank):
     """
     Taxid_2_Proteins_table_UniProt --> UniProt entry name (ID) not accession
-
     """
+    ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    taxid_no_proper_translation = []
     with open(Taxid_2_Proteins_table_UniProt, "w") as fh_out:
         for fn in [fn for fn in os.listdir(UniProt_reference_proteomes_dir) if fn.endswith(".fasta.gz")]:
             taxid, fasta, gz = os.path.basename(fn).split("_")[-1].split(".")
@@ -961,12 +962,13 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
             assert num_ans == len(set(uniprot_ans))
             # | 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 | -60 | --> add etype when merging with STRING ENSP space
             an_arr = format_list_of_string_2_postgres_array(sorted(set(uniprot_ans)))
-            if taxid == "559292": # replace entry for Yeast reference proteome on taxonomic rank species (instead of strain level)
-                fh_out.write("{}\t{}\t{}\n".format("4932", num_ans, an_arr))
-            elif taxid == "284812":
-                fh_out.write("{}\t{}\t{}\n".format("4896", num_ans, an_arr))
-            else:
-                fh_out.write("{}\t{}\t{}\n".format(taxid, num_ans, an_arr))
+            taxid_corrected = ncbi.get_genus_or_higher(taxid, "species")
+            if ncbi.get_rank(taxid_corrected) != "species":
+                taxid_no_proper_translation.append(taxid_corrected)
+            fh_out.write("{}\t{}\t{}\n".format(taxid_corrected, num_ans, an_arr))
+    with open(Taxid_without_mapping_2_species_rank, "w") as fh_out:
+        for taxid in taxid_no_proper_translation:
+            fh_out.write(taxid + "\n")
 
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):
     # concatenate STRING ENSPs and UniProt AC

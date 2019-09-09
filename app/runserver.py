@@ -16,7 +16,7 @@ import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
-import query, userinput, run, variables
+import query, userinput, run, variables, taxonomy
 # from profilehooks import profile
 ###############################################################################
 variables.makedirs_()
@@ -225,7 +225,7 @@ class API_STRING(Resource):
         if variables.VERBOSE:
             print("-" * 80)
             for key, val in sorted(args_dict.items()):
-                print(key, val)
+                print(key, val, type(val))
             print("-" * 80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
@@ -235,13 +235,24 @@ class API_STRING(Resource):
         if args_dict["enrichment_method"] == "genome":
             background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
             if not background_n:
-                args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
+                args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID, or change from strain level to species level) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
+                ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
+                taxid = args_dict["taxid"]
+                taxid_corrected = ncbi.get_genus_or_higher(taxid, "species")
+                if taxid_corrected == taxid and ncbi.get_rank(taxid_corrected) == "species":
+                    args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a valid species level TaxID, but we/UniProt doesn't have data to support this taxon."
+                elif ncbi.get_rank(taxid_corrected) == "species":
+                    args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a taxon that isn't on the rank of species. How about using this one '{}'? Please compare with NCBI.".format(taxid_corrected)
                 return help_page(args_dict)
             ### results are tsv or json
             # results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
-        results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict)
-        # else:
-        #     results_all_function_types = run.run_STRING_enrichment(pqo, ui, args_dict)
+
+        ### DEBUG start
+        if variables.DEBUG_HTML:
+            df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            results_all_function_types = df_all_etypes.groupby("etype").head(20)
+        else:
+            results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict)
 
         if results_all_function_types is False:
             print("returning help page")
@@ -324,15 +335,19 @@ def format_multiple_results(args_dict, results_all_entity_types, pqo):
         # print("format_multiple_results", type(results_all_entity_types))
         return Response(results_all_entity_types, mimetype='text')
     elif output_format == "json":
-        return jsonify(results_all_entity_types)
+        # return jsonify(results_all_entity_types)
+        # return results_all_entity_types.to_json(orient="records")
+        return results_all_entity_types
     elif output_format == "xml":
-        dict_2_return = {}
-        for etype, results in results_all_entity_types.items():
-            results = results.to_csv(sep="\t", header=True, index=False) # convert DatFrame to string
-            header, rows = results.split("\n", 1) # is df in tsv format
-            xml_string = create_xml_tree(header, rows.split("\n"))
-            dict_2_return[etype] = xml_string.decode()
-        return jsonify(dict_2_return)
+        # dict_2_return = {}
+        # for etype, results in results_all_entity_types.items():
+        # # for etype, df_of_etype in results_all_entity_types.groupby("etype"):
+        #     results = df_of_etype.to_csv(sep="\t", header=True, index=False) # convert DatFrame to string
+        #     header, rows = results.split("\n", 1) # is df in tsv format
+        #     xml_string = create_xml_tree(header, rows.split("\n"))
+        #     dict_2_return[etype] = xml_string.decode()
+        # return jsonify(dict_2_return)
+        return results_all_entity_types
     else:
         raise NotImplementedError
 
@@ -533,7 +548,7 @@ characterize_foreground: Foreground only""")
     FDR_cutoff = fields.FloatField("p value corrected (FDR) cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p values) cutoff value (1 meaning no cutoff)""")
     filter_foreground_count_one = fields.BooleanField("Filter foreground count one", default="checked", description="Remove all functional terms if they have only a single protein association in the foreground (default=checked)")
     filter_parents = fields.BooleanField("Filter redundant parent terms", default="checked", description="Retain the most specific (deepest hierarchical level) and remove all parent terms if they share the exact same foreground proteins (default=checked)")
-    taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
+    taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier, please use the taxonomic rank of species e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
     multiple_testing_per_etype = fields.BooleanField("Multiple testing per entity type", default="checked", description="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results (default=checked).")
     score_cutoff = fields.FloatField("Text mining score cutoff", [validate_float_between_zero_and_five], default = 3.0, description="""Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.""")
     foreground_replicates = fields.IntegerField("foreground replicates", [validate_integer], default=10, description="'Foreground replicates' is an integer, defines the number of samples (replicates) of the foreground. default=10.")
@@ -670,7 +685,9 @@ def results():
             foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
         print(80*"#")
-        print(args_dict)
+        for key, val in args_dict.items():
+            print(key, val, type(val))
+        # print(args_dict)
         print(args_dict["p_value_cutoff"])
         print(80 * "#")
         if variables.DEBUG_HTML:

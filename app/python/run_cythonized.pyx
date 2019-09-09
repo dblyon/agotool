@@ -128,7 +128,6 @@ def collect_scores_per_term_characterize_foreground(protein_AN_list, ENSP_2_tupl
             funcEnum = funcEnum_arr[index_]
             if funcEnum in funcEnums_2_include_set:
                 score = score_arr[index_]
-                #  print(score, type(score))
                 if score >= score_cutoff:
                     if funcEnum not in funcEnum_already_counted:
                         # in order to count a function only once per protein
@@ -540,7 +539,7 @@ def add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_t
         try: # sort is probably not necessary # potential speedup removing the sorting
             ENSP_2_functionEnumArray_dict[protein] = np.sort(np.concatenate((ENSP_2_tuple_funcEnum_score_dict[protein][0], ENSP_2_functionEnumArray_dict[protein])))
         except KeyError:
-            pass # print("protein {} not in ENSP_2_tuple_funcEnum_score_dict".format(protein)) # --> simply not annotated with anything from textmining
+            pass # simply not annotated with anything from textmining
 
 def replace_secondary_and_primary_IDs(ans_string, secondary_2_primary_dict, invert_dict=False):
     if invert_dict:
@@ -828,7 +827,7 @@ def run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objec
     elif o_or_u_or_both_encoding == 2: # underrepresented
         over_under_arr_of_string[over_under_int_arr == 2] = "u"
     else: # check already done above
-        pass
+        return args_dict
 
     ### multiple testing per entity type, save results preformed p_values_corrected
     if args_dict["multiple_testing_per_etype"]:
