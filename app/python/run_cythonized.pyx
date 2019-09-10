@@ -21,6 +21,7 @@ from scipy import stats
 ##################################################################
 ##################################################################
 ##################################################################
+
 @boundscheck(False)
 @wraparound(False)
 cdef create_funcEnum_count_background_v3(unsigned int[::1] funcEnum_count_background,
@@ -500,8 +501,12 @@ def s_value(df, p_value_cutoff=0.05, KS_stat_cutoff=0.1, diff_proportions_cutoff
     df["s_value"] = 0.0
     cond_scores = df["etype"].isin([-20, -25, -26])
     p_value_cutoff = -1 * math.log10(p_value_cutoff) # test for values smaller than 0
+    #     df.loc[cond_scores, "s_value"] = (df.loc[cond_scores, "p_value_minlog"] - p_value_cutoff) * abs(df.loc[cond_scores, "effectSize"] - KS_stat_cutoff)
+    #     df.loc[~cond_scores, "s_value"] = (df.loc[~cond_scores, "p_value_minlog"] - p_value_cutoff) * abs(df.loc[~cond_scores, "effectSize"] - diff_proportions_cutoff)
     df["s_value"] = df["p_value_minlog"] * df["effectSize"]
+    # df["s_value"] = df["s_value"].apply(lambda x: abs(x))
     df = df.drop(columns=["p_value_minlog"])
+#     df["rank"] = df.groupby("etype")["s_value"].apply(lambda x: abs(x)).rank(ascending=False)
     return df
 
 def log_take_min_if_zero(val, min_pval):
@@ -539,7 +544,7 @@ def add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_t
         try: # sort is probably not necessary # potential speedup removing the sorting
             ENSP_2_functionEnumArray_dict[protein] = np.sort(np.concatenate((ENSP_2_tuple_funcEnum_score_dict[protein][0], ENSP_2_functionEnumArray_dict[protein])))
         except KeyError:
-            pass # simply not annotated with anything from textmining
+            pass # print("protein {} not in ENSP_2_tuple_funcEnum_score_dict".format(protein)) # --> simply not annotated with anything from textmining
 
 def replace_secondary_and_primary_IDs(ans_string, secondary_2_primary_dict, invert_dict=False):
     if invert_dict:
@@ -814,7 +819,6 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
                 funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid_corrected]
             except KeyError:
                 funcEnum_2_scores_dict_bg = {}
-
     elif em == "compare_samples":
         funcEnum_2_scores_dict_bg = collect_scores_per_term_v0(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict)
     else: # compare_groups

@@ -969,6 +969,7 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
             # taxid_corrected = ncbi.get_genus_or_higher(taxid, "species")
             # if ncbi.get_rank(taxid_corrected) != "species":
             #     taxid_no_proper_translation.append(taxid_corrected)
+            if 
             fh_out.write("{}\t{}\t{}\n".format(taxid, num_ans, an_arr))
 
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):

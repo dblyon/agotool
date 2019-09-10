@@ -62,13 +62,12 @@ class Userinput:
             print(self.enrichment_method, "problem since this is in not in in {}".format(variables.enrichment_methods))
             return False, False, False
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
-            if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count:
+            if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count: # TaxIDs of UniProt
                 self.args_dict["ERROR taxid"] = "ERROR taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
                 return False, False, False
         is_copypaste = self.check_if_copy_and_paste()
         if is_copypaste: # copy&paste field
             self.fn = StringIO()
-            # print(">" * 12 + "  using copy&paste field")
             self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), self.col_foreground)
             if self.enrichment_method != "characterize_foreground":
                 self.background_string = self.remove_header_if_present(self.background_string.replace("\r\n", "\n"), self.col_background)
@@ -91,8 +90,6 @@ class Userinput:
             else:
                 self.fn.write(self.foreground_string)
             self.fn.seek(0)
-        # else:
-        #     print(">" * 12 + "  using file")
         try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
         except:
@@ -430,7 +427,10 @@ class Userinput:
         :return: Int
         """
         if self.enrichment_method == "genome":
-            return self.pqo.taxid_2_proteome_count[self.args_dict["taxid"]]
+            try:
+                return self.pqo.taxid_2_proteome_count[self.args_dict["taxid"]]
+            except KeyError:
+                self.args_dict["ERROR taxid"] = "taxid:".format(self.args_dict["taxid"])
         elif self.enrichment_method == "abundance_correction": # same as foreground
             return len(self.foreground)
         elif self.enrichment_method == "compare_samples": # simply background to compare to
@@ -659,7 +659,10 @@ def replace_secondary_and_primary_IDs(ans_string, secondary_2_primary_dict, inve
 
 def stringify_for_Userinput(list_of_proteins, list_of_abundances=None):
     if list_of_abundances is None:
-        return "\n".join(list_of_proteins)
+        if list_of_proteins is None:
+            return ""
+        else:
+            return "\n".join(list_of_proteins)
     else:
         string_2_return = ""
         for an, inte in zip(list_of_proteins, list_of_abundances):
