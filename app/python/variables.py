@@ -282,3 +282,10 @@ jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] 
 # 7227
 # 9606
 # ToDo: if user enters 284812 or 559292 --> inform and show proper yeast background proteome
+# 10090 species 10090 Mus musculus
+# 10116 species 10116 Rattus norvegicus
+# 3702 species 3702 Arabidopsis thaliana
+# 4896 species 4896 Schizosaccharomyces pombe
+# 4932 species 4932 Saccharomyces cerevisiae
+# 6239 species 6239 Caenorhabditis elegans
+# 7227 species 7227 Drosophila melanogaster

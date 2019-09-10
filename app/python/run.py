@@ -11,6 +11,7 @@ import tools, variables
 def run_UniProt_enrichment(pqo, ui, args_dict):
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
     preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis()
+    ncbi = pqo.ncbi
     if args_dict["o_or_u_or_both"] == "overrepresented":
         encoding = 1
     elif args_dict["o_or_u_or_both"] == "both":
@@ -25,7 +26,7 @@ def run_UniProt_enrichment(pqo, ui, args_dict):
     if args_dict["enrichment_method"] == "characterize_foreground":
         df_2_return = run_cythonized.run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=variables.LOW_MEMORY)
     else:
-        df_2_return = run_cythonized.run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects,  low_memory=variables.LOW_MEMORY)
+        df_2_return = run_cythonized.run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects,  low_memory=variables.LOW_MEMORY)
 
     if type(df_2_return) == dict: # args_dict returned since
         # e.g. enrichment_method "genome" using different taxon for foreground than background

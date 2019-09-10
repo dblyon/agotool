@@ -727,7 +727,7 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     #     df_2_return = df_2_return[variables.cols_sort_order_compare_samples + ["effectSize"]]
     return df_2_return[cols_2_return_sort_order]
 
-def run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
+def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
     if not low_memory:
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, ENSP_2_tuple_funcEnum_score_dict, Taxid_2_FunctionEnum_2_Scores_dict, goslimtype_2_cond_dict = static_preloaded_objects
     else:  # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
@@ -806,7 +806,15 @@ def run_enrichment_cy(ui, preloaded_objects_per_analysis, static_preloaded_objec
     if em == "abundance_correction":
         funcEnum_2_scores_dict_bg = collect_scores_per_term_abundance_corrected(ui, ENSP_2_tuple_funcEnum_score_dict)
     elif em == "genome":
-        funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
+        try:
+            funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
+        except KeyError: # no text mining information for this taxon, try to translate to species level and try again. e.g. user provides 559292 (Saccharomyces cerevisiae S288C, UniProt Reference Proteome), but Jensenlab Textmining supports 4932 (Saccharomyces cerevisiae, rank species)
+            taxid_corrected = ncbi.get_genus_or_higher(taxid, "species") # expects an integer
+            try:
+                funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid_corrected]
+            except KeyError:
+                funcEnum_2_scores_dict_bg = {}
+
     elif em == "compare_samples":
         funcEnum_2_scores_dict_bg = collect_scores_per_term_v0(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict)
     else: # compare_groups

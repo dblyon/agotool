@@ -8,7 +8,7 @@ from contextlib import contextmanager
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import variables, obo_parser
+import variables, obo_parser, taxonomy
 # print(os.getcwd())
 # print(sorted(os.listdir()))
 # print(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -453,6 +453,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
 
+        self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
+
         if variables.VERBOSE:
             print("getting ENSP_2_tuple_funcEnum_score_dict")
         self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
@@ -504,7 +506,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting taxid_2_tuple_funcEnum_index_2_associations_counts")
         # background
         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
-
 
 
         # set all versions of preloaded_objects_per_analysis

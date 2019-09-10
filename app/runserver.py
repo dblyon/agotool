@@ -166,12 +166,15 @@ parser.add_argument("output_format", type=str,
 parser.add_argument("filter_parents", type=str,
     help="Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground.",
     default="True")
-parser.add_argument("filter_foreground_count_one", type=str, help="Keep only those terms with foreground_count > 1", default="True")
+parser.add_argument("filter_foreground_count_one", type=bool, help="Keep only those terms with foreground_count > 1", default=True)
+parser.add_argument("privileged", type=str, default="False")
+parser.add_argument("multiple_testing_per_etype", type=bool, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default=True)
+
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date.")
 parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
 parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)
 parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default="-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58") # -53 missing for UniProt version
-parser.add_argument("privileged", type=str, default="False")
+
 parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
@@ -195,7 +198,6 @@ parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
 # parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
-parser.add_argument("multiple_testing_per_etype", type=bool, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default=True)
 parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
 parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
 parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
@@ -235,14 +237,15 @@ class API_STRING(Resource):
         if args_dict["enrichment_method"] == "genome":
             background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
             if not background_n:
-                args_dict["ERROR_taxid"] = "ERROR_taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID, or change from strain level to species level) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
-                ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
-                taxid = args_dict["taxid"]
-                taxid_corrected = ncbi.get_genus_or_higher(taxid, "species")
-                if taxid_corrected == taxid and ncbi.get_rank(taxid_corrected) == "species":
-                    args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a valid species level TaxID, but we/UniProt doesn't have data to support this taxon."
-                elif ncbi.get_rank(taxid_corrected) == "species":
-                    args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a taxon that isn't on the rank of species. How about using this one '{}'? Please compare with NCBI.".format(taxid_corrected)
+                args_dict["ERROR taxid"] = "taxid: '{}' does not exist in the data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) with 'Download one protein sequence per gene (FASTA)'."
+                                           # "change the species (TaxID, or change from strain level to species level) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
+                # ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
+                # taxid = args_dict["taxid"]
+                # taxid_corrected = ncbi.get_genus_or_higher(taxid, "species")
+                # if taxid_corrected == taxid and ncbi.get_rank(taxid_corrected) == "species":
+                #     args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a valid species level TaxID, but we/UniProt doesn't have data to support this taxon."
+                # elif ncbi.get_rank(taxid_corrected) == "species":
+                #     args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a taxon that isn't on the rank of species. How about using this one '{}'? Please compare with NCBI.".format(taxid_corrected)
                 return help_page(args_dict)
             ### results are tsv or json
             # results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)

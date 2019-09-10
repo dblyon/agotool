@@ -129,7 +129,7 @@ UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_backgrou
 Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
 Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 
-Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
+# Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
 
 Lineage_table_UPS_FIN = variables.tables_dict["Lineage_table"]
 Lineage_table_UPS_no_translation = os.path.join(TABLES_DIR, "Lineage_table_UPS_no_translation.txt")
@@ -490,10 +490,10 @@ rule Taxid_2_Proteins_table_UPS_FIN:
     input:
         UniProt_background_proteomes_dir = UniProt_background_proteomes_dir
     output:
-        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN,
-        Taxids_without_mapping_2_species_rank = Taxids_without_mapping_2_species_rank
+        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
+        # Taxid_without_mapping_2_species_rank = Taxid_without_mapping_2_species_rank
     run:
-        cst.Taxid_2_Proteins_table_UPS(input.UniProt_background_proteomes_dir, output.Taxid_2_Proteins_table_UPS_FIN, output.Taxids_without_mapping_2_species_rank)
+        cst.Taxid_2_Proteins_table_UPS(input.UniProt_background_proteomes_dir, output.Taxid_2_Proteins_table_UPS_FIN)
 
 rule Lineage_table_UPS_FIN:
     input:
