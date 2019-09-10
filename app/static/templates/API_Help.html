@@ -92,11 +92,11 @@ print(result_json.keys())
     <h4>Example #4</h4>
 <p><b>Characterize foreground, get functional information </b></p>
         <pre><code class="language-python">
-ENSPs = ["9606.ENSP00000266970", "9606.ENSP00000278616"]
+ENSPs = ["9606.ENSP00000266970"]
 fg = "%0d".join(ENSPs)
 result = requests.post(url_,
                    params={"output_format": "tsv",
-                           "filter_parents": False,
+                           "filter_foreground_count_one": False,
                            "enrichment_method": "characterize_foreground"},
                    data={"foreground": fg})
 df = pd.read_csv(StringIO(result.text), sep='\t')
