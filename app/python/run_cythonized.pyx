@@ -653,85 +653,6 @@ def filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_a
     foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
     return foreground_ids_arr_of_string, funcEnum_indices_for_IDs, cond_etypes_with_ontology_filtered, cond_etypes_rem_foreground_ids_filtered, cond_filter
 
-def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
-    if not low_memory:
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, ENSP_2_tuple_funcEnum_score_dict, Taxid_2_FunctionEnum_2_Scores_dict, goslimtype_2_cond_dict = static_preloaded_objects
-    else:  # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, ENSP_2_tuple_funcEnum_score_dict, Taxid_2_FunctionEnum_2_Scores_dict, goslimtype_2_cond_dict = static_preloaded_objects
-    foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes, over_under_int_arr, over_under_arr_of_string = preloaded_objects_per_analysis
-    em = ui.enrichment_method
-    foreground_n = ui.get_foreground_n()
-    args_dict = ui.args_dict
-
-    protein_ans_fg = ui.get_foreground_an_set()
-    if low_memory:
-        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(ui.get_all_individual_AN(), dict_2_array=True)
-    ### add protein groups to ENSP_2_functionEnumArray_dict
-    ENSP_2_functionEnumArray_dict = add_protein_groups_to_ENSP_2_functionEnumArray_dict(ENSP_2_functionEnumArray_dict, ui.get_all_unique_proteinGroups())
-
-    ## count foreground
-    count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg, funcEnum_count_foreground)
-
-    ## limit to given entity types
-    cond_limit_2_entity_type = limit_to_entity_types(args_dict["limit_2_entity_type"], function_enumeration_len, etype_cond_dict, funcEnum_count_foreground)
-    limit_to_go_subset(etype_cond_dict, args_dict["go_slim_subset"], goslimtype_2_cond_dict, funcEnum_count_foreground)
-
-    ### Jensenlab Scores KS test
-    cond_KS_etypes = etype_cond_dict["cond_25"] | etype_cond_dict["cond_26"] | etype_cond_dict["cond_20"]
-    funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
-    funcEnum_2_scores_dict_fg = collect_scores_per_term_characterize_foreground(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, score_cutoff=args_dict["score_cutoff"])
-    for funcEnum, scores_fg in funcEnum_2_scores_dict_fg.items():
-        funcEnum_count_foreground[funcEnum] = len(scores_fg)
-    add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict)
-
-    ### calc ratio in foreground, count foreground / len(protein_ans)
-    ratio_in_foreground = funcEnum_count_foreground / foreground_n
-
-    ### concatenate filtered results
-    if args_dict["filter_foreground_count_one"]:
-        cond_2_return = funcEnum_count_foreground > 1
-    else:
-        cond_2_return = funcEnum_count_foreground >= 1
-    try:
-        privileged = args_dict["privileged"]
-    except KeyError:
-        privileged = False
-    if not privileged:
-        # remove KEGG unless privileged
-        cond_kegg = etype_cond_dict["cond_52"]
-        cond_2_return = cond_2_return & ~cond_kegg
-
-    funcEnum_indices_for_IDs = indices_arr[cond_2_return]
-    foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
-    if not low_memory:
-        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                                    "category": category_arr[cond_2_return].view(),
-                                    "etype": entitytype_arr[cond_2_return].view(),
-                                    "description": description_arr[cond_2_return].view(),
-                                    "year": year_arr[cond_2_return].view(),
-                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                                    "FG_ids": foreground_ids_arr_of_string[cond_2_return].view(),
-                                    "FG_count": funcEnum_count_foreground[cond_2_return].view()})
-    else:
-        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                                    "etype": entitytype_arr[cond_2_return].view(),
-                                    "year": year_arr[cond_2_return].view(),
-                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                                    "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
-                                    "FG_count": funcEnum_count_foreground[cond_2_return].view(),
-                                    "funcEnum": indices_arr[cond_2_return].view()})
-        df_2_return["category"] = df_2_return["etype"].apply(lambda etype: variables.entityType_2_functionType_dict[etype])
-        funcEnum_2_description_dict = query.get_function_description_from_funcEnum(indices_arr[cond_2_return].tolist())
-        df_2_return["description"] = df_2_return["funcEnum"].apply(lambda funcEnum: funcEnum_2_description_dict[funcEnum])
-
-    cols_2_return_sort_order = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category']
-    df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
-    df_2_return["FG_n"] = foreground_n
-    #     df_2_return = df_2_return[variables.cols_sort_order_compare_samples + ["effectSize"]]
-    return df_2_return[cols_2_return_sort_order]
-
 def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
     if not low_memory:
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, ENSP_2_tuple_funcEnum_score_dict, Taxid_2_FunctionEnum_2_Scores_dict, goslimtype_2_cond_dict = static_preloaded_objects
@@ -919,4 +840,82 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     df_2_return["BG_n"] = background_n
     # for Jenslab Scores set counts to NaN since multiple counts per protein due to backtracking but also due to Jensenlab data having func annotation at various levels with different scores
     df_2_return.loc[df_2_return["etype"].isin([-20, -25, -26]), ["ratio_in_FG", "ratio_in_BG", "FG_count", "BG_count"]] = np.nan
+    return df_2_return[cols_2_return_sort_order]
+
+
+def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
+    if not low_memory:
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, ENSP_2_tuple_funcEnum_score_dict, Taxid_2_FunctionEnum_2_Scores_dict, goslimtype_2_cond_dict = static_preloaded_objects
+    else:  # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, ENSP_2_tuple_funcEnum_score_dict, Taxid_2_FunctionEnum_2_Scores_dict, goslimtype_2_cond_dict = static_preloaded_objects
+    foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes, over_under_int_arr, over_under_arr_of_string = preloaded_objects_per_analysis
+    em = ui.enrichment_method
+    foreground_n = ui.get_foreground_n()
+    args_dict = ui.args_dict
+
+    protein_ans_fg = ui.get_foreground_an_set()
+    if low_memory:
+        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(ui.get_all_individual_AN(), dict_2_array=True)
+    ### add protein groups to ENSP_2_functionEnumArray_dict
+    ENSP_2_functionEnumArray_dict = add_protein_groups_to_ENSP_2_functionEnumArray_dict(ENSP_2_functionEnumArray_dict, ui.get_all_unique_proteinGroups())
+
+    ## count foreground
+    count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg, funcEnum_count_foreground)
+
+    ## limit to given entity types
+    cond_limit_2_entity_type = limit_to_entity_types(args_dict["limit_2_entity_type"], function_enumeration_len, etype_cond_dict, funcEnum_count_foreground)
+    limit_to_go_subset(etype_cond_dict, args_dict["go_slim_subset"], goslimtype_2_cond_dict, funcEnum_count_foreground)
+
+    ### Jensenlab Scores KS test
+    cond_KS_etypes = etype_cond_dict["cond_25"] | etype_cond_dict["cond_26"] | etype_cond_dict["cond_20"]
+    funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
+    funcEnum_2_scores_dict_fg = collect_scores_per_term_characterize_foreground(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, score_cutoff=args_dict["score_cutoff"])
+    for funcEnum, scores_fg in funcEnum_2_scores_dict_fg.items():
+        funcEnum_count_foreground[funcEnum] = len(scores_fg)
+    add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict)
+
+    ### calc ratio in foreground, count foreground / len(protein_ans)
+    ratio_in_foreground = funcEnum_count_foreground / foreground_n
+
+    ### concatenate filtered results
+    if args_dict["filter_foreground_count_one"]:
+        cond_2_return = funcEnum_count_foreground > 1
+    else:
+        cond_2_return = funcEnum_count_foreground >= 1
+    try:
+        privileged = args_dict["privileged"]
+    except KeyError:
+        privileged = False
+    if not privileged:
+        # remove KEGG unless privileged
+        cond_kegg = etype_cond_dict["cond_52"]
+        cond_2_return = cond_2_return & ~cond_kegg
+    funcEnum_indices_for_IDs = indices_arr[cond_2_return]
+    foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
+    if not low_memory:
+        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
+                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
+                                    "category": category_arr[cond_2_return].view(),
+                                    "etype": entitytype_arr[cond_2_return].view(),
+                                    "description": description_arr[cond_2_return].view(),
+                                    "year": year_arr[cond_2_return].view(),
+                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
+                                    "FG_ids": foreground_ids_arr_of_string[cond_2_return].view(),
+                                    "FG_count": funcEnum_count_foreground[cond_2_return].view()})
+    else:
+        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
+                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
+                                    "etype": entitytype_arr[cond_2_return].view(),
+                                    "year": year_arr[cond_2_return].view(),
+                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
+                                    "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
+                                    "FG_count": funcEnum_count_foreground[cond_2_return].view(),
+                                    "funcEnum": indices_arr[cond_2_return].view()})
+        df_2_return["category"] = df_2_return["etype"].apply(lambda etype: variables.entityType_2_functionType_dict[etype])
+        funcEnum_2_description_dict = query.get_function_description_from_funcEnum(indices_arr[cond_2_return].tolist())
+        df_2_return["description"] = df_2_return["funcEnum"].apply(lambda funcEnum: funcEnum_2_description_dict[funcEnum])
+    cols_2_return_sort_order = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category']
+    df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
+    df_2_return["FG_n"] = foreground_n
+    #     df_2_return = df_2_return[variables.cols_sort_order_compare_samples + ["effectSize"]]
     return df_2_return[cols_2_return_sort_order]

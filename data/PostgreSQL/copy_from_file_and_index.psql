@@ -71,10 +71,19 @@
 --
 --
 -- TEMP BELOW #!!!
-DROP TABLE taxid_2_protein;
-CREATE TABLE taxid_2_protein (
+-- DROP TABLE taxid_2_protein;
+-- CREATE TABLE taxid_2_protein (
+--     taxid integer,
+--     count integer,
+--     an_array text ARRAY);
+-- \copy taxid_2_protein FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
+-- CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
+
+DROP TABLE taxid_2_functioncountarray;
+CREATE TABLE taxid_2_functioncountarray (
     taxid integer,
-    count integer,
-    an_array text ARRAY);
-\copy taxid_2_protein FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
-CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
+    background_n integer,
+    background_index_positions_arr integer ARRAY,
+    background_count_arr integer ARRAY);
+\copy taxid_2_functioncountarray FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
+CREATE INDEX taxid_2_functioncountarray_taxid_idx ON taxid_2_functioncountarray (taxid);

@@ -151,24 +151,18 @@ api = Api(app)
 parser = reqparse.RequestParser()
 ################################################################################
 ### API arguments/parameters
-parser.add_argument("taxid", type=int,
-    help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
-    default=None)
-parser.add_argument("species", type=int,
-    help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
-    default=None)
-parser.add_argument("organism", type=int,
-    help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",
-    default=None)
-parser.add_argument("output_format", type=str,
-    help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}",
-    default="tsv")
+parser.add_argument("taxid", type=int,help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
+parser.add_argument("species", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
+parser.add_argument("organism", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
+parser.add_argument("output_format", type=str, help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}", default="tsv")
+
+### Boolean arguments encoded as str on purpose
 parser.add_argument("filter_parents", type=str,
     help="Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground.",
     default="True")
-parser.add_argument("filter_foreground_count_one", type=bool, help="Keep only those terms with foreground_count > 1", default=True)
+parser.add_argument("filter_foreground_count_one", type=str, help="Keep only those terms with foreground_count > 1", default="True")
 parser.add_argument("privileged", type=str, default="False")
-parser.add_argument("multiple_testing_per_etype", type=bool, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default=True)
+parser.add_argument("multiple_testing_per_etype", type=str, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default="True")
 
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date.")
 parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
@@ -223,11 +217,11 @@ class API_STRING(Resource):
         args_dict["enrichment_method"] = request.form.get("enrichment_method")
         args_dict["taxid"] = request.form.get("taxid")
         args_dict.update(parser.parse_args())
-
+        args_dict = convert_string_2_bool(args_dict)
         if variables.VERBOSE:
             print("-" * 80)
             for key, val in sorted(args_dict.items()):
-                print(key, val, type(val))
+                print(key, val, type(val), isinstance(val, str))
             print("-" * 80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
@@ -238,24 +232,14 @@ class API_STRING(Resource):
             background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
             if not background_n:
                 args_dict["ERROR taxid"] = "taxid: '{}' does not exist in the data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) with 'Download one protein sequence per gene (FASTA)'."
-                                           # "change the species (TaxID, or change from strain level to species level) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(args_dict["taxid"])
-                # ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
-                # taxid = args_dict["taxid"]
-                # taxid_corrected = ncbi.get_genus_or_higher(taxid, "species")
-                # if taxid_corrected == taxid and ncbi.get_rank(taxid_corrected) == "species":
-                #     args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a valid species level TaxID, but we/UniProt doesn't have data to support this taxon."
-                # elif ncbi.get_rank(taxid_corrected) == "species":
-                #     args_dict["ERROR_taxid"] = args_dict["ERROR_taxid"] + " -->  It seems you've entered a taxon that isn't on the rank of species. How about using this one '{}'? Please compare with NCBI.".format(taxid_corrected)
                 return help_page(args_dict)
-            ### results are tsv or json
-            # results_all_function_types = run.run_STRING_enrichment_genome(pqo, ui, background_n, args_dict)
 
         ### DEBUG start
         if variables.DEBUG_HTML:
             df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
             results_all_function_types = df_all_etypes.groupby("etype").head(20)
         else:
-            results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict)
+            results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict, api_call=True)
 
         if results_all_function_types is False:
             print("returning help page")
@@ -300,6 +284,19 @@ def check_taxids(args_dict):
     if args_dict["organism"] is not None:
         args_dict["ERROR_organism"] = "ERROR_organism: argument 'organism' is deprecated, please use 'taxid' instead. You've provided is '{}'.".format(args_dict["organism"])
         return False
+
+def convert_string_2_bool(args_dict):
+    for key, val in args_dict.items():
+        if isinstance(val, str):
+            if val.lower() == "true":
+                args_dict[key] = True
+            elif val.lower() == "false":
+                args_dict[key] = False
+            else:
+                pass
+    return args_dict
+
+
 
 def write2file(fn, tsv):
     with open(fn, 'w') as f:

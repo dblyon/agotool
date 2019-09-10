@@ -8,7 +8,7 @@ import run_cythonized
 import tools, variables
 # from profilehooks import profile
 
-def run_UniProt_enrichment(pqo, ui, args_dict):
+def run_UniProt_enrichment(pqo, ui, args_dict, api_call=False):
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
     preloaded_objects_per_analysis = pqo.get_preloaded_objects_per_analysis()
     ncbi = pqo.ncbi
@@ -34,7 +34,11 @@ def run_UniProt_enrichment(pqo, ui, args_dict):
     elif type(df_2_return) == pd.core.frame.DataFrame:
         if df_2_return.shape[0] == 0:
             args_dict["ERROR empty results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
-            return df_2_return
+            if api_call:
+                output_format = args_dict["output_format"]
+                return format_results(df_2_return, output_format, args_dict)
+            else:
+                return False
         else:
             output_format = args_dict["output_format"]
             return format_results(df_2_return, output_format, args_dict)

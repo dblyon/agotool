@@ -46,10 +46,10 @@ fg = "%0d".join(ENSPs)
 result = requests.post(url_,
                    params={"output_format": "json",
                            "enrichment_method": "genome",
-                           "taxid": 511145},
+                           "taxid": 83333}, # UniProt reference proteomes uses "Escherichia coli (strain K12)" with Taxid 83333 as a pan proteome instead of 511145 (TaxID on taxonomic rank of species).
                    data={"foreground": fg})
 result_json = result.json()
-print("Enrichment results for the following entity types was calculated: \n", result_json.keys())
+print("Enrichment results for the following entity types was calculated: \n", result_json.keys()) # See the parameters page for more detais on entity types.
             </code></pre><br>
 
     <h4>Example #2 from STRING</h4>
@@ -62,11 +62,11 @@ fg = "%0d".join(ENSPs)
 result = requests.post(url_,
                    params={"output_format": "tsv",
                            "enrichment_method": "genome",
-                           "taxid": 4932},
+                           "taxid": 559292}, # UniProt reference proteomes uses "Saccharomyces cerevisiae S288C" with Taxid 559292 as a pan proteome instead of 4932 (TaxID on taxonomic rank of species).
                    data={"foreground": fg})
 result = result.text
 df = pd.read_csv(StringIO(result), sep='\t')
-df.head()
+print(df.head())
         </code></pre><br>
     <h4>Example #3 from STRING</h4>
 <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
@@ -79,15 +79,14 @@ fg = "%0d".join(ENSPs)
 result = requests.post(url_,
                    params={"output_format": "json",
                            "enrichment_method": "compare_samples",
-                           "limit_2_entity_type": "-21;-51;-52", # comma separate desired entity_types (e.g. GO biological process; UniProt keyword; SMART) , default get all available.
+                           "limit_2_entity_type": "-56;-51;-57", # comma separate desired entity_types (e.g. PMIDs, UniProt Keywords, and Reactome).
                            "taxid": 10090},
                    data={"foreground": fg,
                          "background": fg})
 # since the foreground equals the background completely no significant enrichment will result from this analysis
-# it is meant to show how to show how to use the method call
+# it is meant to show how to show how to use the method call, and to apply a sanity check in case you get no results (try using p value or FDR cutoff of 1)
 result_json = result.json()
-import ast
-ast.literal_eval(result_json["-51"])
+print(result_json.keys())
           </code></pre><br>
 
     <h4>Example #4</h4>
@@ -101,7 +100,7 @@ result = requests.post(url_,
                            "enrichment_method": "characterize_foreground"},
                    data={"foreground": fg})
 df = pd.read_csv(StringIO(result.text), sep='\t')
-df.head()
+print(df.head())
           </code></pre><br>
 
 </div>
@@ -114,7 +113,7 @@ df.head()
         <div class="col-md-12">
             These parameters reflect the parameters of the graphical user interface of the web page, but some have slightly varying names. They are briefly described below, please see the <a href="{{ url_for('parameters') }}">parameters page</a> for more details.
             <ul>
-                <li class="bulletpoints_li"><b>taxid</b>:<a href="https://www.ncbi.nlm.nih.gov/taxonomy"> NCBI taxon identifier for rank of species</a> (e.g. "9606" for Homo sapiens), default = None (not set).</li>
+                <li class="bulletpoints_li"><b>taxid</b>: In order to know which organism's reference proteome to use as the background you're expected to provide the NCBI taxon identifier (e.g. 9606 for Homo sapiens). Please make sure to use the exact TaxID UniProt provides, some cases are can be unexpected e.g. instead of Taxid '4932' for 'Saccharomyces cerevisiae', UniProt provides '559292' for 'Saccharomyces cerevisiae S288C'. We therefore support '559292'. Default = None (not set).</li>
                 <li class="bulletpoints_li"><b>species</b>: deprecated, please use "taxid" instead.</li>
                 <li class="bulletpoints_li"><b>organism</b>: deprecated, please use "taxid" instead.</li>
                 <li class="bulletpoints_li"><b>output_format</b>: The desired format of the output, one of {tsv, tsv-no-header, json, xml}, default = "tvs".</li>

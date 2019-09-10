@@ -43,7 +43,6 @@ URL_UniProt_sec_2_prim_AC = r"ftp://ftp.expasy.org/databases/uniprot/current_rel
 URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz" # monthly
 SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
-UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_ref_prots")
 UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
 Secondary_2_Primary_ID_UPS_FIN = variables.tables_dict["Secondary_2_Primary_ID_table"]
 Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
