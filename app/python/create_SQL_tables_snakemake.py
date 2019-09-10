@@ -9,7 +9,7 @@ from ast import literal_eval
 from tqdm import tqdm
 import tarfile
 
-# import taxonomy
+import taxonomy
 import obo_parser
 import tools, ratio, query
 import variables
@@ -676,6 +676,11 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
     4932    HIS4_YEAST      {2662541,2662541,2662753,2662753}
     559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,...}
     """
+    # # merge multiline
+    # ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    # with open(fn_in_Protein_2_Function_table, "r") as fh_in:
+    #     with open(fn_out_Protein_2_Function_table_taxids_merged, "w") as fh_out:
+    #         taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
     function_2_enum_dict, enum_2_function_dict = get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING)
     ### tools.sort_file(fn_in_Protein_2_Function_table, fn_in_Protein_2_Function_table, number_of_processes=number_of_processes) # already sorted at creation
     print("creating Protein_2_functionEnum_table_FIN")
@@ -2137,12 +2142,26 @@ def Protein_2_Function_table(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_ou
         fn_out_protein_2_function_rest=fn_out_Protein_2_Function_table_STRING_rest,
         number_of_processes=number_of_processes)
 
-def Protein_2_Function_table_UPS(fn_list, fn_out_Protein_2_Function_table, number_of_processes=1):
+def Protein_2_Function_table_UPS(fn_list, fn_out_Protein_2_Function_table_orig, fn_out_Protein_2_Function_table_taxids_merged, number_of_processes=1):
     # fn_list = fn_list_str.split(" ")
     ### concatenate files
-    tools.concatenate_files(fn_list, fn_out_Protein_2_Function_table)
+    tools.concatenate_files(fn_list, fn_out_Protein_2_Function_table_orig)
+
+    # merge multiline
+    ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    with open(fn_out_Protein_2_Function_table_orig, "r") as fh_in:
+        with open(fn_out_Protein_2_Function_table_taxids_merged, "w") as fh_out:
+            taxid, UniProtID, function_arr_str, etype = fh_in.readline().split("\t")
+            try:
+                taxid = int(taxid)
+            except:
+                pass
+            taxid = ncbi.get_genus_or_higher(taxid, "species")
+            fh_out.write(taxid + "\t" + UniProtID + "\t" + function_arr_str + "\t" + etype + "\n")
+
     ### sort
-    tools.sort_file(fn_out_Protein_2_Function_table, fn_out_Protein_2_Function_table, number_of_processes=number_of_processes, verbose=True)
+    tools.sort_file(fn_out_Protein_2_Function_table_orig, fn_out_Protein_2_Function_table_orig, number_of_processes=number_of_processes, verbose=True)
+    tools.sort_file(fn_out_Protein_2_Function_table_taxids_merged, fn_out_Protein_2_Function_table_taxids_merged, number_of_processes=number_of_processes, verbose=True)
 
 def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_Taxid_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
     """
@@ -3546,6 +3565,16 @@ if __name__ == "__main__":
     # fn_out_ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_temp.txt")
     # fn_out_DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage_temp.txt")
     # Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=True)
+
+    #     fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
+    #                    Protein_2_Function_table_KEGG_UPS,
+    #                    Protein_2_Function_table_WikiPathways_UPS,
+    #                    Protein_2_Function_table_PMID_UPS]
+    # output:
+    #     Protein_2_Function_table_UPS_orig = Protein_2_Function_table_UPS_orig, # sorted at the end
+    #     Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # taxids merged
+    #
+    # Protein_2_Function_table_UPS
 
     UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
     Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]

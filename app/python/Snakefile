@@ -117,7 +117,8 @@ Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_
 Function_2_Protein_table_UPS = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
 Function_2_Protein_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_reduced.txt")
 Function_2_Protein_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_removed.txt")
-Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+Protein_2_Function_table_UPS_orig = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt") # original unmodified version
+Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt") # taxids pushed to rank species
 
 Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
 Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
@@ -595,10 +596,11 @@ rule Protein_2_Function_table_UPS:
                        Protein_2_Function_table_WikiPathways_UPS,
                        Protein_2_Function_table_PMID_UPS]
     output:
-        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # sorted at the end
+        Protein_2_Function_table_UPS_orig = Protein_2_Function_table_UPS_orig, # sorted at the end
+        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # taxids merged
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_UPS(input.fn_list_str, output.Protein_2_Function_table_UPS, threads)
+        cst.Protein_2_Function_table_UPS(input.fn_list_str, output.Protein_2_Function_table_UPS_orig, output.Protein_2_Function_table_UPS, threads)
 
 rule Protein_2_FunctionEnum_table_UPS_FIN:
     input:

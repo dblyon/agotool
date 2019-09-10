@@ -452,8 +452,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("initializing PQO")
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
-
-        self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
+        try:
+            self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
+        except FileNotFoundError:
+            self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
 
         if variables.VERBOSE:
             print("getting ENSP_2_tuple_funcEnum_score_dict")

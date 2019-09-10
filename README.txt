@@ -699,3 +699,9 @@ remove_volumes() {
     docker rmi -f $(docker images -qa)
 }
 """
+
+
+# files for rsync transfer
+UPS_FIN and the one that isn't
+npy
+taxdump
