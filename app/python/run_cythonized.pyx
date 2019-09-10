@@ -687,6 +687,14 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     if em == "genome":
         taxid = args_dict["taxid"]
         if not low_memory:
+            # try:
+            #     funcEnum_index_2_associations = taxid_2_tuple_funcEnum_index_2_associations_counts[taxid]
+            # except KeyError:
+            #     taxid = ncbi.get_genus_or_higher(taxid, "species")
+            #     try:
+            #         funcEnum_index_2_associations = taxid_2_tuple_funcEnum_index_2_associations_counts[taxid]
+            #     except KeyError:
+            #         funcEnum_index_2_associations = ??? #!!!
             funcEnum_index_2_associations = taxid_2_tuple_funcEnum_index_2_associations_counts[taxid]
             funcEnum_index_positions_arr, counts_arr = funcEnum_index_2_associations
         else:

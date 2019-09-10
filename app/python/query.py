@@ -1154,60 +1154,6 @@ def get_ENSP_2_functionEnumArray_dict_old():
         ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
     return ENSP_2_functionEnumArray_dict
 
-# def get_background_taxid_2_funcEnum_index_2_associations_old():
-#     taxid_2_funcEnum_index_2_associations = {} # for background preloaded
-#     for taxid in get_taxids():
-#         background_counts_list = get_background_count_array(taxid)
-#         # need be uint32 not uint16 since funcEnum is 0 to 7mio
-#         # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
-#         funcEnum_index_2_associations = np.asarray(background_counts_list, dtype=np.dtype("uint32"))
-#         funcEnum_index_2_associations.flags.writeable = False
-#         taxid_2_funcEnum_index_2_associations[taxid] = funcEnum_index_2_associations
-#     return taxid_2_funcEnum_index_2_associations
-
-# def get_background_taxid_2_funcEnum_index_2_associations_old_v0(read_from_flat_files=False): # SLOW ~60% of startup time
-#     taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
-#     if not read_from_flat_files:
-#         for taxid in get_taxids():
-#             background_counts_list = get_background_count_array(taxid)
-#             # need be uint32 not uint16 since funcEnum is 0 to 7mio
-#             # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
-#             shape_ = len(background_counts_list)
-#             index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-#             index_positions_arr[:] = np.nan
-#             counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-#             counts_arr[:] = np.nan
-#             for enum, index_count in enumerate(background_counts_list):
-#                 index_, count = index_count
-#                 index_positions_arr[enum] = index_
-#                 counts_arr[enum] = count
-#             index_positions_arr.flags.writeable = False
-#             counts_arr.flags.writeable = False
-#             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
-#     else:
-#         # fn = os.path.join(variables.TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
-#         fn = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
-#         results = get_results_of_statement_from_flat_file(fn)
-#         for res in results:
-#             taxid, background_count, background_count_array = res
-#             taxid = int(taxid)
-#             background_counts_list = []
-#             for sublist in background_count_array[2:-2].split("},{"):
-#                 background_counts_list.append([int(ele) for ele in sublist.split(",")])
-#             shape_ = len(background_counts_list)
-#             index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-#             index_positions_arr[:] = np.nan
-#             counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-#             counts_arr[:] = np.nan
-#             for enum, index_count in enumerate(background_counts_list):
-#                 index_, count = index_count
-#                 index_positions_arr[enum] = index_
-#                 counts_arr[enum] = count
-#             index_positions_arr.flags.writeable = False
-#             counts_arr.flags.writeable = False
-#             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
-#     return taxid_2_tuple_funcEnum_index_2_associations_counts
-
 def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False): # SLOW ~60% of startup time
     """
     SLOW ~60% of startup time

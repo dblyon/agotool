@@ -139,6 +139,7 @@ DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_
 KEGG_Taxid_2_acronym_table_UPS_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
 Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
 Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
+Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
 Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
 
 URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
@@ -677,12 +678,13 @@ rule Taxid_2_FunctionCountArray_table_UPS_FIN: # restricted to UniProtIDs of ref
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
     output:
-        Taxid_2_FunctionCountArray_table_UPS_FIN = Taxid_2_FunctionCountArray_table_UPS_FIN
+        Taxid_2_FunctionCountArray_table_UPS_FIN = Taxid_2_FunctionCountArray_table_UPS_FIN,
+        Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_FunctionCountArray_table_UPS(input.Protein_2_FunctionEnum_table_UPS_FIN, input.Functions_table_UPS_FIN, input.Taxid_2_Proteins_table_UPS_FIN, output.Taxid_2_FunctionCountArray_table_UPS_FIN, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_UPS(input.Protein_2_FunctionEnum_table_UPS_FIN, input.Functions_table_UPS_FIN, input.Taxid_2_Proteins_table_UPS_FIN, output.Taxid_2_FunctionCountArray_table_UPS_FIN, ouput.Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, threads, params.verbose)
 
 rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference proteome via Taxid_2_Proteins_table_UPS_FIN.txt (get_proteins_of_taxid)
     input:

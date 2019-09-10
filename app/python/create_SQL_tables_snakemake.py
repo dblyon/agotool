@@ -11,7 +11,7 @@ import tarfile
 
 import taxonomy
 import obo_parser
-import tools, ratio, query
+import tools, query
 import variables
 import run_cythonized
 
@@ -1026,35 +1026,8 @@ def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Fu
             background_n = taxid_2_total_protein_count_dict[taxid]
             fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
 
-# def Taxid_2_FunctionCountArray_table_UPS_old(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
-#     """
-#     # - sort Protein_2_FunctionEnum_table_UPS_FIN.txt on Taxid and UniProtID
-#     # - create array of zeros of function_enumeration_length
-#     # - for line in Protein_2_FunctionEnum_table_UPS_FIN
-#     #     add counts to array until taxid_new != taxid_previous
-#     # only use Taxids that exist in Taxid_2_Proteins_table, since these are UniProt Reference Proteome proteins (no ref prot for other taxids)
-#     """
-#     print("creating Taxid_2_FunctionCountArray_table_FIN")
-#     tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, number_of_processes=number_of_processes, verbose=verbose)  # sort on Taxid and UniProtID
-#     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(Taxid_2_Proteins_table)
-#     taxid_whiteset = set(taxid_2_total_protein_count_dict.keys())
-#     num_lines = tools.line_numbers(Functions_table_UPS_FIN)
-#     print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_FIN))
-#     with open(fn_out_Taxid_2_FunctionCountArray_table_FIN, "w") as fh_out:
-#         for entry in yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN, taxid_whiteset):
-#             taxid, UniProtID_list, funcEnumList_list = entry
-#             if taxid_2_total_protein_count_dict[taxid] != "-1":  # restrict to Reference Proteomes
-#                 UniProtID_set = set(query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
-#                 funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
-#                 for index_, UniProtID in enumerate(UniProtID_list):
-#                     if UniProtID in UniProtID_set:
-#                         funcEnum_list = funcEnumList_list[index_]
-#                         funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_list)
-#                 background_n = taxid_2_total_protein_count_dict[taxid]
-#                 index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
-#                 fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
-
-def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
+# def Protein_2_FunctionEnum_table_for_Taxid_2_FunctionCountArray_table_UPS_FIN(Protein_2_FunctionEnum_table_UPS_FIN, Taxid_2_Proteins_table)
+def Taxid_2_FunctionCountArray_table_UPS_old(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, number_of_processes=1, verbose=True):
     """
     # - sort Protein_2_FunctionEnum_table_UPS_FIN.txt on Taxid and UniProtID
     # - create array of zeros of function_enumeration_length
@@ -1065,6 +1038,20 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
     1000565 3919    {{3936,9},{3945,1},{3949,7}, ... }
     to
     1000565 3919 {3936,3945,3949, ... } {9,1,7, ... }
+
+    # version 2:
+    grep UniProtIDs from Taxid_2_Proteins_table:
+
+    what I need is:
+    for every reference proteome
+        grep UniProtIDs
+            for UniProtID
+                count function enumeration
+
+    how to get that sort order?
+    filter Protein_2_FunctionEnum_table_UPS_FIN and modify taxid
+        UniProtID 2 Taxid dict from Taxid_2_Proteins_table
+
     """
     print("creating Taxid_2_FunctionCountArray_table_FIN")
     tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, number_of_processes=number_of_processes, verbose=verbose)  # sort on Taxid and UniProtID
@@ -1075,7 +1062,8 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
     with open(fn_out_Taxid_2_FunctionCountArray_table_FIN, "w") as fh_out:
         for entry in yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN, taxid_whiteset):
             taxid, UniProtID_list, funcEnumList_list = entry
-            if taxid_2_total_protein_count_dict[taxid] != "-1":  # restrict to Reference Proteomes
+            if taxid_2_total_protein_count_dict[taxid] != "-1":  # restrict to Reference Proteomes # with new file this breaks #!!! since
+                # UniProt ref prots are partially strain level, and Protein_2_FunctionEnum_table_UPS_FIN are species level
                 UniProtID_set = set(query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
                 funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
                 for index_, UniProtID in enumerate(UniProtID_list):
@@ -1089,6 +1077,77 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
                 # second funcCounts --> counts_arr
                 index_positions_arr_counts_arr_str = helper_format_funcEnum_reformatted(funcEnum_count_background)
                 fh_out.write(taxid + "\t" + background_n + "\t" + index_positions_arr_counts_arr_str + "\n")
+
+def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table, fn_out_Taxid_2_FunctionCountArray_table_FIN, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=1, verbose=True):
+    """
+    # - sort Protein_2_FunctionEnum_table_UPS_FIN.txt on Taxid and UniProtID
+    # - create array of zeros of function_enumeration_length
+    # - for line in Protein_2_FunctionEnum_table_UPS_FIN
+    #     add counts to array until taxid_new != taxid_previous
+    # only use Taxids that exist in Taxid_2_Proteins_table, since these are UniProt Reference Proteome proteins (no ref prot for other taxids)
+    output format changed from
+    1000565 3919    {{3936,9},{3945,1},{3949,7}, ... }
+    to
+    1000565 3919 {3936,3945,3949, ... } {9,1,7, ... }
+
+    # version 2:
+    grep UniProtIDs from Taxid_2_Proteins_table:
+
+    what I need is:
+    for every reference proteome
+        grep UniProtIDs
+            for UniProtID
+                count function enumeration
+
+    how to get that sort order?
+    filter Protein_2_FunctionEnum_table_UPS_FIN and modify taxid (change it from species level to strain level, since mapping exists from Taxid_2_Proteins_table )
+        UniProtID 2 Taxid dict from Taxid_2_Proteins_table
+
+    """
+    print("creating Taxid_2_FunctionCountArray_table_FIN")
+    tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN, number_of_processes=number_of_processes, verbose=verbose)  # sort on Taxid and UniProtID
+    taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(Taxid_2_Proteins_table)
+    taxid_whiteset = set(taxid_2_total_protein_count_dict.keys())
+    num_lines = tools.line_numbers(Functions_table_UPS_FIN)
+
+    # get the mapping from UniProtID 2 TaxID from UniProt reference proteomes, and the subset of UniProtIDs needed
+    uniprotid_2_taxid_dict = {}
+    with open(Taxid_2_Proteins_table, "r") as fh:
+        for line in fh:
+            taxid, background_count, prot_arr = line.split("\t")  # UniProt
+            prot_arr = prot_arr.strip()[1:-1].replace("'", "").replace('"', "").split(",")
+            for prot in prot_arr:
+                uniprotid_2_taxid_dict[prot] = taxid # taxid that it should be in the end
+
+    with open(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, "w") as fh_out_for_taxid_count:
+        with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
+            taxid_not_2_use, UniProtID, funcEnum_set = line.split("\t") # taxid on
+            if UniProtID in uniprotid_2_taxid_dict:  # filter for UniProtIDs that are in Reference Proteomes
+                taxid = uniprotid_2_taxid_dict[UniProtID]
+                fh_out_for_taxid_count.write(taxid + "\t" + UniProtID + "\t" + funcEnum_set + "\n")
+
+    # below is the previous code, above is filtering things and mapping to taxid of reference proteomes
+    tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=number_of_processes, verbose=verbose)
+    print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_FIN))
+    with open(fn_out_Taxid_2_FunctionCountArray_table_FIN, "w") as fh_out:
+        for entry in yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, taxid_whiteset):
+            taxid, UniProtID_list, funcEnumList_list = entry
+            if taxid_2_total_protein_count_dict[taxid] != "-1":  # restrict to Reference Proteomes # with new file this breaks #!!! since
+                # UniProt ref prots are partially strain level, and Protein_2_FunctionEnum_table_UPS_FIN are species level
+                UniProtID_set = set(query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES))
+                funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
+                for index_, UniProtID in enumerate(UniProtID_list):
+                    if UniProtID in UniProtID_set:
+                        funcEnum_list = funcEnumList_list[index_]
+                        funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_list)
+                background_n = taxid_2_total_protein_count_dict[taxid]
+                # funcEnum_count_background: array of zeros, if non-zero then count of gene associations
+                # --> create 2 array:
+                # first funcEnum positions --> index_positions_arr
+                # second funcCounts --> counts_arr
+                index_positions_arr_counts_arr_str = helper_format_funcEnum_reformatted(funcEnum_count_background)
+                fh_out.write(taxid + "\t" + background_n + "\t" + index_positions_arr_counts_arr_str + "\n")
+
 
 def yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN, taxid_whiteset):
     with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
@@ -2157,7 +2216,7 @@ def Protein_2_Function_table_UPS(fn_list, fn_out_Protein_2_Function_table_orig, 
             except:
                 pass
             taxid = ncbi.get_genus_or_higher(taxid, "species")
-            fh_out.write(taxid + "\t" + UniProtID + "\t" + function_arr_str + "\t" + etype + "\n")
+            fh_out.write(str(taxid) + "\t" + UniProtID + "\t" + function_arr_str + "\t" + etype + "\n")
 
     ### sort
     tools.sort_file(fn_out_Protein_2_Function_table_orig, fn_out_Protein_2_Function_table_orig, number_of_processes=number_of_processes, verbose=True)
