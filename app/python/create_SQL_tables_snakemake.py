@@ -1119,12 +1119,13 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
             for prot in prot_arr:
                 uniprotid_2_taxid_dict[prot] = taxid # taxid that it should be in the end
 
-    with open(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, "w") as fh_out_for_taxid_count:
-        with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
-            taxid_not_2_use, UniProtID, funcEnum_set = line.split("\t") # taxid on
-            if UniProtID in uniprotid_2_taxid_dict:  # filter for UniProtIDs that are in Reference Proteomes
-                taxid = uniprotid_2_taxid_dict[UniProtID]
-                fh_out_for_taxid_count.write(taxid + "\t" + UniProtID + "\t" + funcEnum_set)
+    with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
+        with open(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, "w") as fh_out_for_taxid_count:
+            for line in fh_in:
+                taxid_not_2_use, UniProtID, funcEnum_set = line.split("\t")  # taxid on
+                if UniProtID in uniprotid_2_taxid_dict:  # filter for UniProtIDs that are in Reference Proteomes
+                    taxid = uniprotid_2_taxid_dict[UniProtID]
+                    fh_out_for_taxid_count.write(taxid + "\t" + UniProtID + "\t" + funcEnum_set)
 
     # below is the previous code, above is filtering things and mapping to taxid of reference proteomes
     tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=number_of_processes, verbose=verbose)
@@ -3608,23 +3609,28 @@ def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_or
         list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
         np.save(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
 
+##### Taxonomy mapping explanation, for UniProt version
+# Taxid_2_Proteins_table_UPS_FIN remains as is, which is UniProt space and their TaxIDs (which are partially on strain level).
+# Protein_2_Function_table_UPS has mixed mapping from UniProt ID to Taxid. --> Protein_2_Function_table_UPS_orig.txt and Protein_2_Function_table_UPS.txt.
+# Protein_2_FunctionEnum_table_UPS_FIN is on species rank.
+# --> Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count: is filtered by UniProt ID subset from UniProt reference proteomes, and taxid changed to match UniProt reference proteomes (from species to strain level, since mapping exists from Taxid_2_Proteins_table_UPS_FIN).
+# Taxid_2_FunctionCountArray_table_UPS_FIN is on UniProt ref prot level, since only needed for enrichment_method "genome".
+
 if __name__ == "__main__":
     import os, sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     import variables
 
-    # fn_go_basic_obo = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
-    # fn_in_DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
-    # fn_in_BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo")  # static file
-    # fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
-    # Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
-    # Functions_table_UPS = variables.tables_dict["Functions_table"]
-    # fn_out_Protein_2_FunctionEnum_and_Score_table_UPS = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_UPS_temp.txt")
-    # fn_out_DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation_temp.txt")
-    # fn_out_ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_temp.txt")
-    # fn_out_DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage_temp.txt")
-    # Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=True)
-
+    Protein_2_Function_table_UPS_orig_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt")  # original unmodified version
+    Protein_2_Function_table_UPS_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")  # taxids pushed to rank species
+    Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
+    Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
+    Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
+    fn_Functions_table_UPS_FIN = variables.tables_dict["Functions_table"]  # Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
+    Function_2_Protein_table_UPS_fn = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
+    Function_2_Protein_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_reduced.txt")
+    Function_2_Protein_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_removed.txt")
+    Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_removed.txt")
     Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
     Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
     Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
@@ -3633,23 +3639,46 @@ if __name__ == "__main__":
                        Protein_2_Function_table_KEGG_UPS,
                        Protein_2_Function_table_WikiPathways_UPS,
                        Protein_2_Function_table_PMID_UPS]
-
-    Protein_2_Function_table_UPS_orig_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt")  # original unmodified version
-    Protein_2_Function_table_UPS_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")  # taxids pushed to rank species
-    print("Protein_2_Function_table_UPS")
-    Protein_2_Function_table_UPS(fn_list, Protein_2_Function_table_UPS_orig_fn, Protein_2_Function_table_UPS_fn, number_of_processes=12)
-
     UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
-    Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
-    print("Taxid_2_Proteins_table_UPS")
-    Taxid_2_Proteins_table_UPS(UniProt_background_proteomes_dir, Taxid_2_Proteins_table_UPS_FIN)
-
+    fn_Functions_table = variables.tables_dict["Functions_table"]
+    fn_in_Protein_2_function_table = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
+    fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
     Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
     Functions_table_UPS_FIN = variables.tables_dict["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
     Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
     Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
+
+
+    print("#" * 50)
+    print("Protein_2_Function_table_UPS")
+    Protein_2_Function_table_UPS(fn_list, Protein_2_Function_table_UPS_orig_fn, Protein_2_Function_table_UPS_fn, number_of_processes=12)
+
+    print("#" * 50)
+    print("Function_2_Protein_table_UPS")
+    Function_2_Protein_table_UPS(Protein_2_Function_table_UPS_fn, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Taxid_2_Proteins_table_UPS_FIN, Functions_table_all, Function_2_Protein_table_UPS_fn, Function_2_Protein_table_UPS_reduced, Function_2_Protein_table_UPS_removed, number_of_threads=12, min_count=1)
+
+    print("#" * 50)
+    print("Taxid_2_Proteins_table_UPS")
+    Taxid_2_Proteins_table_UPS(UniProt_background_proteomes_dir, Taxid_2_Proteins_table_UPS_FIN)
+
+    print("#" * 50)
+    print("Functions_table_UPS_FIN")
+    Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_Functions_table_UPS_FIN, Functions_table_UPS_removed)
+
+    print("#" * 50)
+    print("Protein_2_FunctionEnum_table_UPS_FIN")
+    Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=12)
+
+    print("#" * 50)
     print("Taxid_2_FunctionCountArray_table_UPS")
-    Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, Taxid_2_FunctionCountArray_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=1, verbose=True)
+    Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, Taxid_2_FunctionCountArray_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=12, verbose=True)
+
+
+    ####################################
+
+
+    # fn_go_basic_obo = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")  # fn_in_DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")  # fn_in_BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo")  # static file  # fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")  # Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")  # Functions_table_UPS = variables.tables_dict["Functions_table"]  # fn_out_Protein_2_FunctionEnum_and_Score_table_UPS = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_UPS_temp.txt")  # fn_out_DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation_temp.txt")  # fn_out_ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_temp.txt")  # fn_out_DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage_temp.txt")  # Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=True)
 
 
     # Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
@@ -3662,12 +3691,6 @@ if __name__ == "__main__":
     #                Protein_2_Function_table_PMID_UPS]
     # fn_out_Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
     # Protein_2_Function_table_UPS(fn_list_str, fn_out_Protein_2_Function_table_UPS, number_of_processes=10)
-
-    # fn_Functions_table_STRING = variables.tables_dict["Functions_table"]
-    # fn_in_Protein_2_function_table = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-    # fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
-    # fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
-    # Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=10)
 
 
 
@@ -3759,8 +3782,6 @@ if __name__ == "__main__":
     # Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
     # fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN_v2.txt"
     # Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, number_of_processes=4, verbose=True)
-
-
 
 
     # Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
