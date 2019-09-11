@@ -684,7 +684,7 @@ rule Taxid_2_FunctionCountArray_table_UPS_FIN: # restricted to UniProtIDs of ref
     params:
         verbose = verbose
     run:
-        cst.Taxid_2_FunctionCountArray_table_UPS(input.Protein_2_FunctionEnum_table_UPS_FIN, input.Functions_table_UPS_FIN, input.Taxid_2_Proteins_table_UPS_FIN, output.Taxid_2_FunctionCountArray_table_UPS_FIN, ouput.Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, threads, params.verbose)
+        cst.Taxid_2_FunctionCountArray_table_UPS(input.Protein_2_FunctionEnum_table_UPS_FIN, input.Functions_table_UPS_FIN, input.Taxid_2_Proteins_table_UPS_FIN, output.Taxid_2_FunctionCountArray_table_UPS_FIN, output.Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, threads, params.verbose)
 
 rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference proteome via Taxid_2_Proteins_table_UPS_FIN.txt (get_proteins_of_taxid)
     input:

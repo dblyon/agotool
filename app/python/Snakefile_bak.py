@@ -175,7 +175,7 @@ Protein_2_FunctionEnum_and_Score_table_FIN = os.path.join(TABLES_DIR, "Protein_2
 # Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STS.txt")
 Taxid_2_Proteins_table_UPS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_UPS.txt")
 # Taxid_2_Proteins_table_FIN = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_FIN.txt")
-# Taxid_2_Proteins_table_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
+# Taxid_2_Proteins_table_FIN = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
 Taxid_2_FunctionCountArray_table_temp = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_temp.txt")
 # Taxid_2_FunctionCountArray_table_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_FIN.txt")
 Taxid_2_FunctionCountArray_table_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
@@ -973,6 +973,6 @@ rule Protein_2_Function_table_UniProtDump_UPS: # Protein_2_Function_table_UniPro
 ### ToDo compare GO annotations from Lars to UniProt-retrieved
 
 # # TODO:
-# dtype warning Taxid_2_Proteins_table/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: numpy.dtype size changed, may indicate binary incompatibility
+# dtype warning Taxid_2_Proteins_table_UPS_FIN/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: numpy.dtype size changed, may indicate binary incompatibility
 #  Wikipathways extra download dir
 # wiki tqdm for all don't show individual files

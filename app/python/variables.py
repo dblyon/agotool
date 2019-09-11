@@ -236,7 +236,7 @@ tables_dict = {
     "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)),
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
-    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
+    "Taxid_2_Proteins_table_UPS_FIN": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
 }
 
 

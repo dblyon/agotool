@@ -1,4 +1,4 @@
-import os, multiprocessing
+import os, multiprocessing, sys
 import numpy as np
 ############################
 ### settings
@@ -243,6 +243,32 @@ blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
                      'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999'}
 # 'KW-9990' 'Technical term' and all its children
+##### final Tables / flat-files needed for flask app / PostgreSQL
+if VERSION_ == "UniProt":
+    appendix = "UPS_FIN"
+elif VERSION_ == "STRING":
+    appendix = "STS_FIN"
+else:
+    print("VERSION_ {} not know".format(VERSION_))
+    raise sys.exit(2)
+
+
+tables_dict = {
+    "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
+    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file.txt"),
+    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
+    "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
+    "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
+    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)),
+    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
+    "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)),
+    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
+    "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
+    "Taxid_2_Proteins_table_UPS_FIN": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
+}
+
+
+
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
     "| enum | etype | an | description | year | level |"
