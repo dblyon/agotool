@@ -113,10 +113,6 @@ var enrichment_page = (function() {
     });
     $("#enrichment_method").change();
 
-
-
-
-
 // Hide example_description, show only when an example is selected
     var example_status = document.getElementsByClassName('example_status')[0].getAttribute("value");
     var hide_true = example_status == "example_None";
@@ -126,8 +122,6 @@ var enrichment_page = (function() {
 //     document.getElementsByClassName('example_status').value="newValue_DBL"; --> where can I see this value in the HMTL ???
 //     document.getElementsByClassName('example_status').bubu="this doesn't make sense";
 });
-
-
 
 // show or hide selectors/tags depending on choice
 var toggle_if = function(choice, tag){
@@ -150,7 +144,6 @@ var results_page = (function () {
             table.style.display = 'none';
         }
     }
-
 
     jQuery.fn.dataTable.render.ellipsis = function ( cutoff, wordbreak, escapeHtml ) {
     var esc = function ( t ) {
@@ -198,12 +191,10 @@ var results_page_compact = (function () {
                 { "width": "10%" },
                 { "width": "65%" },
                 { "width": "10%" },
-                { "width": "10%" }
-          ]
+                { "width": "10%" }]
       } );
     } );
 });
-
 
 // RESTULS PAGE COMPREHENSIVE
 var results_page_comprehensive = (function () {
@@ -214,7 +205,7 @@ var results_page_comprehensive = (function () {
             dom: 'Bfrtip',
             buttons: ['colvis'],
             "columnDefs": [
-                { targets: '_all', render: $.fn.dataTable.render.ellipsis( 30, true ) }]
+                { targets: '_all', render: $.fn.dataTable.render.ellipsis( 60, true ) }]
       });
     });
 });

@@ -701,7 +701,11 @@ remove_volumes() {
 """
 
 
-# files for rsync transfer
-UPS_FIN and the one that isn't
-npy
-taxdump
+### files for rsync transfer from file list
+# from Atlas to Ody, on Ody
+rsync -avP --update --files-from=/Users/dblyon/modules/cpr/agotool/app/rsync_files_UniProtVersion.txt dblyon@imlslnx-atlas.uzh.ch:/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables .
+# from Atlas to Aquarius, on Atlas
+rsync -avP --update --files-from=/mnt/mnemo5/dblyon/agotool/app/rsync_files_UniProtVersion.txt . dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables
+
+# from Ody to Aquarius, on Ody
+rsync -avP --update --files-from=/Users/dblyon/modules/cpr/agotool/app/rsync_files_UniProtVersion.txt . dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables

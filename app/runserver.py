@@ -221,7 +221,7 @@ class API_STRING(Resource):
         if variables.VERBOSE:
             print("-" * 80)
             for key, val in sorted(args_dict.items()):
-                print(key, val, type(val), isinstance(val, str))
+                print(key, val, type(val))
             print("-" * 80)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
@@ -684,12 +684,10 @@ def results():
         ui = userinput.Userinput(pqo, fn=fileobject,
             foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
-        print(80*"#")
-        for key, val in args_dict.items():
+        print("-" * 80)
+        for key, val in sorted(args_dict.items()):
             print(key, val, type(val))
-        # print(args_dict)
-        print(args_dict["p_value_cutoff"])
-        print(80 * "#")
+        print("-" * 80)
         if variables.DEBUG_HTML:
             ui.check = True # ToDo comment #!!! DEBUG
         if ui.check:
@@ -736,19 +734,30 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
     BG_count = "BG count"
     FG_n = "FG n"
     BG_n = "BG n"
-    df_all_etypes = df_all_etypes.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effect_size, "s_value": s_value,
-                                                  "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
+    rank = "rank"
+    df_all_etypes = df_all_etypes.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effect_size, "s_value": s_value, "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
     pd.set_option('colheader_justify', 'center')
-    cols_compact = ["rank", "term", "description", FDR, effect_size]
     ### compact results
     if compact_or_comprehensive == "compact":
         if args_dict["enrichment_method"] == "characterize_foreground":
-            cols_compact = [FG_count, "term", "description", ratio_in_FG, FG_n]
-        for etype, group in df_all_etypes.groupby("etype"):
-            num_rows = group.shape[0]
-            if num_rows > 0:
-                etype_2_rowsCount_dict[etype] = num_rows
-                etype_2_df_as_html_dict[etype] = group[cols_compact].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+            cols_compact = [FG_count, "term", "description", ratio_in_FG]
+            for etype, group in df_all_etypes.groupby("etype"):
+                num_rows = group.shape[0]
+                if num_rows > 0:
+                    etype_2_rowsCount_dict[etype] = num_rows
+                    if etype in variables.PMID:
+                        etype_2_df_as_html_dict[etype] = group[cols_compact + ["year"]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                    elif etype in variables.entity_types_with_ontology:
+                        etype_2_df_as_html_dict[etype] = group[cols_compact + [hierarchical_level]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+                    else:
+                        etype_2_df_as_html_dict[etype] = group[cols_compact + [FG_n]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
+        else:
+            cols_compact = ["rank", "term", "description", FDR, effect_size]
+            for etype, group in df_all_etypes.groupby("etype"):
+                num_rows = group.shape[0]
+                if num_rows > 0:
+                    etype_2_rowsCount_dict[etype] = num_rows
+                    etype_2_df_as_html_dict[etype] = group[cols_compact].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
         return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict, df_all_etypes=df_all_etypes)
 
     ### comprehensive results
@@ -777,11 +786,13 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
             cols_sort_order_PMID.remove(BG_IDs)
             cols_sort_order_hierarchy.remove(BG_IDs)
             cols_sort_order_rest.remove(BG_IDs)
-        elif args_dict["enrichment_method"] == "characterize_foreground":
-            cols_sort_order_PMID = [ele for ele in cols_sort_order_PMID if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
-            cols_sort_order_entity_types_with_scores = [ele for ele in cols_sort_order_entity_types_with_scores if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
-            cols_sort_order_hierarchy = [ele for ele in cols_sort_order_hierarchy if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
-            cols_sort_order_rest = [ele for ele in cols_sort_order_rest if ele not in (BG_IDs, BG_n, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value)]
+
+        if args_dict["enrichment_method"] == "characterize_foreground":
+            cols_2_remove = (BG_IDs, BG_n, BG_count, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value, rank)
+            cols_sort_order_PMID = [ele for ele in cols_sort_order_PMID if ele not in cols_2_remove]
+            cols_sort_order_entity_types_with_scores = [ele for ele in cols_sort_order_entity_types_with_scores if ele not in cols_2_remove]
+            cols_sort_order_hierarchy = [ele for ele in cols_sort_order_hierarchy if ele not in cols_2_remove]
+            cols_sort_order_rest = [ele for ele in cols_sort_order_rest if ele not in cols_2_remove]
 
         for etype, group in df_all_etypes.groupby("etype"):
             num_rows = group.shape[0]

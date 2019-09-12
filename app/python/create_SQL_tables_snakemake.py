@@ -3624,7 +3624,7 @@ if __name__ == "__main__":
     Protein_2_Function_table_UPS_orig_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt")  # original unmodified version
     Protein_2_Function_table_UPS_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")  # taxids pushed to rank species
     Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
-    Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
+    Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
     Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
     fn_Functions_table_UPS_FIN = variables.tables_dict["Functions_table"]  # Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
     Function_2_Protein_table_UPS_fn = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
@@ -3674,6 +3674,18 @@ if __name__ == "__main__":
     print("Taxid_2_FunctionCountArray_table_UPS")
     Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, Taxid_2_FunctionCountArray_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=12, verbose=True)
 
+
+#### snakemake wants to run 9 jobs instead of 6.
+# snakemake -j 24 -R Taxid_2_Proteins_table_UPS_FIN Function_2_Protein_table_UPS Protein_2_Function_table_UPS Functions_table_UPS_FIN Taxid_2_FunctionCountArray_table_UPS_FIN Protein_2_FunctionEnum_table_UPS_FIN
+# Function_2_Protein_table_UPS
+# Functions_table_UPS_FIN
+# Functions_table_all --> ? necessary ?
+# Protein_2_FunctionEnum_table_UPS_FIN
+# Protein_2_Function__and__Functions_table_WikiPathways --> ! not needed !
+# Protein_2_Function_table_UPS
+# Taxid_2_FunctionCountArray_table_UPS_FIN
+# Taxid_2_Proteins_table_UPS_FIN
+# download_WikiPathways --> ! not needed !
 
     ####################################
 

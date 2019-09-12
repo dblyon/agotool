@@ -126,7 +126,7 @@ ENSP_2_UniProt_all = os.path.join(TABLES_DIR, "ENSP_2_UniProt_all.txt")
 EntrezGeneID_2_UniProtID = os.path.join(TABLES_DIR, "EntrezGeneID_2_UniProtID.txt")
 Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
-Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
+Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
 Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 
 # Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
@@ -818,3 +818,5 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - simple changes to column names (fold_enrichment_foreground_2_background, population vs background)
 
 # add "score_cutoff" to enrichemnt.html and show only if characterize_foreground is selected
+
+# example results for all 4 examples

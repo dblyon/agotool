@@ -1,44 +1,91 @@
-DROP TABLE IF EXISTS functions_temp, go_2_slim_temp, ogs_temp, og_2_function_temp, ontologies_temp, protein_2_function_temp, protein_secondary_2_primary_an_temp, protein_2_og_temp;
+DROP TABLE IF EXISTS secondary_2_primary_id_temp, protein_2_functionenum_temp, taxid_2_functioncountarray_temp, functions_temp, taxid_2_protein_temp, protein_2_functionenum_and_score_temp, lineage_temp;
+
+
+CREATE TABLE secondary_2_primary_id_temp (
+   taxid integer,
+   sec text,
+   prim text);
+\copy secondary_2_primary_id_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Secondary_2_Primary_ID_UPS_FIN.txt';
+CREATE INDEX secondary_2_primary_id_sec_idx_temp ON secondary_2_primary_id_temp (sec);
+CREATE INDEX secondary_2_primary_id_taxid_idx_temp ON secondary_2_primary_id_temp (taxid);
+CLUSTER secondary_2_primary_id_temp USING secondary_2_primary_id_taxid_idx_temp;
+
+
+CREATE TABLE protein_2_functionenum_temp (
+    taxid integer,
+    id text,
+    functionenum integer ARRAY);
+\copy protein_2_functionenum_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
+CREATE INDEX protein_2_functionenum_taxid_idx_temp ON protein_2_functionenum_temp (taxid);
+CREATE INDEX protein_2_functionenum_id_idx_temp ON protein_2_functionenum_temp (id);
+CLUSTER protein_2_functionenum_temp USING protein_2_functionenum_taxid_idx_temp;
+
+
+CREATE TABLE taxid_2_functioncountarray_temp (
+    taxid integer,
+    background_n integer,
+    background_index_positions_arr integer ARRAY,
+    background_count_arr integer ARRAY);
+\copy taxid_2_functioncountarray_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
+CREATE INDEX taxid_2_functioncountarray_taxid_idx_temp ON taxid_2_functioncountarray_temp (taxid);
+
+
 
 CREATE TABLE functions_temp (
-    type text,
-    name text,
+    enum integer,
+    etype integer,
     an text,
-    definition text);
-CREATE TABLE go_2_slim_temp (
-    an text,
-    slim boolean);
-CREATE TABLE ogs_temp (
-    og text,
-    description text);
-CREATE TABLE og_2_function_temp (
-    og text,
-    function text);
-CREATE TABLE ontologies_temp (
-    child text,
-    parent text,
-    direct boolean,
-    type integer);
-CREATE TABLE protein_2_function_temp (
-    an text,
-    function text ARRAY);
-CREATE TABLE protein_secondary_2_primary_an_temp (
-    sec text,
-    pri text);
-CREATE TABLE protein_2_og_temp (
-    an text,
-    og text);
+    description text,
+    year text,
+    level integer);
+\copy functions_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table_UPS_FIN.txt';
+CREATE INDEX functions_enum_idx_temp ON functions_temp (enum);
+CREATE INDEX functions_an_idx_temp ON functions_temp (an);
+CREATE INDEX functions_etype_an_idx_temp ON functions_temp (etype, an);
+CLUSTER functions_temp USING functions_etype_an_idx_temp;
 
-\copy functions_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Functions_table.txt';
-\copy go_2_slim_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/GO_2_Slim_table.txt';
-\copy ogs_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/static/OG_2_Function_table_static.txt';
-\copy og_2_function_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/static/OGs_table_static.txt';
-\copy ontologies_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Ontologies_table.txt';
-\copy protein_2_function_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Protein_2_Function_table.txt';
-\copy protein_secondary_2_primary_an_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/static/Protein_2_OG_table_static.txt';
-\copy protein_2_og_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Protein_Secondary_2_Primary_AN_table.txt';
 
-CREATE INDEX ogs_og_idx_temp ON ogs_temp(og);
-CREATE INDEX og_2_function_og_idx_temp ON og_2_function_temp(og);
-CREATE INDEX protein_2_function_an_idx_temp ON protein_2_function_temp(an);
-CREATE INDEX protein_2_og_an_idx_temp ON protein_2_og_temp(an);
+CREATE TABLE taxid_2_protein_temp (
+    taxid integer,
+    count integer,
+    an_array text ARRAY);
+\copy taxid_2_protein_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
+CREATE INDEX taxid_2_protein_taxid_idx_temp ON taxid_2_protein_temp (taxid);
+
+
+CREATE TABLE protein_2_functionenum_and_score_temp (
+    taxid integer,
+    uniprotid text,
+    funcenum_arr integer ARRAY,
+    score_arr float(32) ARRAY);
+\copy protein_2_functionenum_and_score_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt';
+CREATE INDEX protein_2_functionenum_and_score_taxid_idx_temp ON protein_2_functionenum_and_score_temp (taxid);
+CREATE INDEX protein_2_functionenum_and_score_uniprotid_idx_temp ON protein_2_functionenum_and_score_temp (uniprotid);
+CLUSTER protein_2_functionenum_and_score_temp USING protein_2_functionenum_and_score_taxid_idx_temp;
+
+
+CREATE TABLE lineage_temp (
+    func_enum integer,
+    func_enum_array integer ARRAY);
+\copy lineage_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Lineage_table_UPS_FIN.txt';
+
+
+-- TEMP BELOW #!!!
+-- DROP TABLE taxid_2_protein;
+-- CREATE TABLE taxid_2_protein (
+--     taxid integer,
+--     count integer,
+--     an_array text ARRAY);
+-- -- \copy taxid_2_protein FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
+-- \copy taxid_2_protein FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
+-- CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
+--
+-- DROP TABLE taxid_2_functioncountarray;
+-- CREATE TABLE taxid_2_functioncountarray (
+--     taxid integer,
+--     background_n integer,
+--     background_index_positions_arr integer ARRAY,
+--     background_count_arr integer ARRAY);
+-- -- \copy taxid_2_functioncountarray FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
+-- \copy taxid_2_functioncountarray FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
+-- CREATE INDEX taxid_2_functioncountarray_taxid_idx ON taxid_2_functioncountarray (taxid);

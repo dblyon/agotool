@@ -1321,7 +1321,7 @@ def get_taxids(read_from_flat_files=False, fn=None):
         taxids = []
         if fn is None:
             # Taxid_2_Proteins_table_STRING = os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
-            Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
+            Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table"]
         with open(Taxid_2_Proteins_table_STRING, "r") as fh:
             for line in fh:
                 taxids.append(line.split("\t")[0])
@@ -1383,7 +1383,7 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
         return sorted(result[0][0])
     else:
         if fn_Taxid_2_Proteins_table_STRING is None:
-            fn_Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
+            fn_Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table"]
         with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
             for line in fh:
                 # taxid_line, prot_arr, background_count = line.split("\t") # STRING_v11
@@ -1400,7 +1400,7 @@ def get_Taxid_2_proteome_count_dict(read_from_flat_files=False, fn=None): #, sea
     :return: dict
     """
     if fn is None:
-        fn = variables.tables_dict["Taxid_2_Proteins_table_UPS_FIN"]
+        fn = variables.tables_dict["Taxid_2_Proteins_table"]
     taxid_2_proteome_count_dict = {}
     if read_from_flat_files:
         # result = get_results_of_statement_from_flat_file(fn, columns=[0, 2])

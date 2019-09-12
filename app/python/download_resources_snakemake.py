@@ -11,7 +11,8 @@ from tqdm import tqdm
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.insert(0, PYTHON_DIR)
 # import tools
-import variables_snakemake as variables
+# import variables_snakemake as variables
+import variables
 
 DOWNLOADS_DIR = variables.DOWNLOADS_DIR
 DIRECTORIES_LIST = variables.DIRECTORIES_LIST
