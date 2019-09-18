@@ -820,3 +820,8 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # add "score_cutoff" to enrichemnt.html and show only if characterize_foreground is selected
 
 # example results for all 4 examples
+
+
+# add links to uniprot and string to map other identifiers
+# fix navbar to show API
+# add visualization

@@ -7,12 +7,12 @@ PRELOAD = True # set True in production
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
-DB_DOCKER = True # connect to local Postgres or dockerized-Postgres
+DB_DOCKER = False # connect to local Postgres or dockerized-Postgres
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = False # for flask and some internals for printing, set to False in production
 DEBUG_HTML = False # if True: always load example results on submit
