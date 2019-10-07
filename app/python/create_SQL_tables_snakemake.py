@@ -2558,10 +2558,16 @@ def Functions_table_PMID(Function_2_Description_PMID, Functions_table_PMID_temp,
     hierarchical_level = "-1"
     # with open(Function_2_Description_PMID, "r") as fh_in:
     #         for line in fh_in:
+    counter = -1
     with open(Functions_table_PMID_temp, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Function_2_Description_PMID):
             ls = line.split("\t")
-            etype, PMID, description, year = ls
+            counter += 1
+            try:
+                etype, PMID, description, year = ls
+            except ValueError: # not enough values to unpack
+                print("def Functions_table_PMID", counter, ls, "###", line)
+                continue
             # if PMID not in PMID_set:
             #     continue
             year = year.strip()
@@ -2573,6 +2579,7 @@ def Functions_table_PMID(Function_2_Description_PMID, Functions_table_PMID_temp,
             description_2_clean = cut_long_string_at_word(description_2_clean, max_len_description)
             description = year_prefix + " ".join(description_2_clean.split())  # replace multiple spaces with single space
             fh_out.write(etype + "\t" + PMID + "\t" + description + "\t" + year + "\t" + hierarchical_level + "\n")
+
 
 def Protein_2_Function_table_PMID_STS(Taxid_2_Proteins_table_STRING, Protein_2_Function_table_PMID_abstracts, Protein_2_Function_table_PMID_fulltexts, Protein_2_Function_table_PMID_combi, Protein_2_Function_table_PMID, number_of_processes=1, verbose=True):
     """
