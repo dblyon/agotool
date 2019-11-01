@@ -99,6 +99,8 @@ def collect_scores_per_term_v0(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict
     funcEnum_2_scores_dict: key: functionEnumeration, val: list of scores
     """
     funcEnum_2_scores_dict = defaultdict(lambda: [])
+    if protein_AN_list is None:
+        return funcEnum_2_scores_dict
     for protein_AN in protein_AN_list:
         try:
             funcEnum_score = ENSP_2_tuple_funcEnum_score_dict[protein_AN]

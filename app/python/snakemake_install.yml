@@ -1,0 +1,24 @@
+name: snake
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6
+  - snakemake=5.7.4
+  - numpy
+  - scipy
+  - pandas
+  - cython
+  - ipython
+  - tqdm
+  - requests
+  - setuptools
+  - retrying
+  - lxml
+  - zlib
+
+### Anaconda installation
+# conda remove --name snake --all
+# conda env create -n snake -f snakemake_install.yml
+# conda activate snake
