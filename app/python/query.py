@@ -566,14 +566,16 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict,
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
+                                        self.ENSP_2_tuple_funcEnum_score_dict,
                                         self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict)
         else:
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.taxid_2_proteome_count,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.ENSP_2_tuple_funcEnum_score_dict,
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
+                                        self.ENSP_2_tuple_funcEnum_score_dict,
                                         self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict)
         return static_preloaded_objects
 
@@ -766,14 +768,20 @@ def get_lookup_arrays(low_memory, read_from_flat_files=False):
     else:
         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
 
-def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False):
+def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_or_as_list="list"):
     Taxid_2_FunctionEnum_2_Scores_dict = {} #defaultdict(lambda: False)
     results = get_results_of_statement_from_flat_file(variables.tables_dict["Taxid_2_FunctionEnum_2_Scores_table"])
     for res in results:
         taxid, functionEnumeration, scores_arr = res
         taxid = int(taxid)
         functionEnumeration = int(functionEnumeration)
-        scores_arr = np.array([float(score) for score in scores_arr[1:-1].split(",")], dtype=np.dtype("float32")) # float16 would probably be sufficient
+        if as_array_or_as_list == "array":
+            scores_arr = np.array([float(score) for score in scores_arr[1:-1].split(",")], dtype=np.dtype("float32")) # float16 would probably be sufficient
+        elif as_array_or_as_list == "list":
+            scores_arr = [float(score) for score in scores_arr[1:-1].split(",")]
+        else:
+            print("as_array_or_as_list: '{}' not known, please provide proper args".format(as_array_or_as_list))
+            raise StopIteration
         if taxid not in Taxid_2_FunctionEnum_2_Scores_dict:
             Taxid_2_FunctionEnum_2_Scores_dict[taxid] = {functionEnumeration: scores_arr}
         else:
