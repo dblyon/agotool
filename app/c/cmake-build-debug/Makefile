@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named c
+# Target rules for targets named compute_global_enrichment_DBL
 
 # Build rule for target.
-c : cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 c
-.PHONY : c
+compute_global_enrichment_DBL: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 compute_global_enrichment_DBL
+.PHONY : compute_global_enrichment_DBL
 
 # fast build rule for target.
-c/fast:
-	$(MAKE) -f CMakeFiles/c.dir/build.make CMakeFiles/c.dir/build
-.PHONY : c/fast
+compute_global_enrichment_DBL/fast:
+	$(MAKE) -f CMakeFiles/compute_global_enrichment_DBL.dir/build.make CMakeFiles/compute_global_enrichment_DBL.dir/build
+.PHONY : compute_global_enrichment_DBL/fast
 
 compute_global_enrichment_DBL.o: compute_global_enrichment_DBL.c.o
 
@@ -129,7 +129,7 @@ compute_global_enrichment_DBL.o: compute_global_enrichment_DBL.c.o
 
 # target to build an object file
 compute_global_enrichment_DBL.c.o:
-	$(MAKE) -f CMakeFiles/c.dir/build.make CMakeFiles/c.dir/compute_global_enrichment_DBL.c.o
+	$(MAKE) -f CMakeFiles/compute_global_enrichment_DBL.dir/build.make CMakeFiles/compute_global_enrichment_DBL.dir/compute_global_enrichment_DBL.c.o
 .PHONY : compute_global_enrichment_DBL.c.o
 
 compute_global_enrichment_DBL.i: compute_global_enrichment_DBL.c.i
@@ -138,7 +138,7 @@ compute_global_enrichment_DBL.i: compute_global_enrichment_DBL.c.i
 
 # target to preprocess a source file
 compute_global_enrichment_DBL.c.i:
-	$(MAKE) -f CMakeFiles/c.dir/build.make CMakeFiles/c.dir/compute_global_enrichment_DBL.c.i
+	$(MAKE) -f CMakeFiles/compute_global_enrichment_DBL.dir/build.make CMakeFiles/compute_global_enrichment_DBL.dir/compute_global_enrichment_DBL.c.i
 .PHONY : compute_global_enrichment_DBL.c.i
 
 compute_global_enrichment_DBL.s: compute_global_enrichment_DBL.c.s
@@ -147,7 +147,7 @@ compute_global_enrichment_DBL.s: compute_global_enrichment_DBL.c.s
 
 # target to generate assembly for a file
 compute_global_enrichment_DBL.c.s:
-	$(MAKE) -f CMakeFiles/c.dir/build.make CMakeFiles/c.dir/compute_global_enrichment_DBL.c.s
+	$(MAKE) -f CMakeFiles/compute_global_enrichment_DBL.dir/build.make CMakeFiles/compute_global_enrichment_DBL.dir/compute_global_enrichment_DBL.c.s
 .PHONY : compute_global_enrichment_DBL.c.s
 
 # Help Target
@@ -158,7 +158,7 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... c"
+	@echo "... compute_global_enrichment_DBL"
 	@echo "... compute_global_enrichment_DBL.o"
 	@echo "... compute_global_enrichment_DBL.i"
 	@echo "... compute_global_enrichment_DBL.s"

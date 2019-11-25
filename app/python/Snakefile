@@ -740,10 +740,6 @@ rule Secondary_2_Primary_ID_UPS_FIN:
 # - add Protein_2_FunctionEnum_table_UPS_FIN.txt to DB and connect via pqo --> preload background proteome for most common taxa
 
 ### TODO:
-# - check filter options all work properly
-
-# - rerun whole pipeline
-# - offer to BH correct all categories together
 # - ToDo fix API and adapt to Damian STRING API
 # - CRON job
 # - create DB --> temp tables and drop_and_rename

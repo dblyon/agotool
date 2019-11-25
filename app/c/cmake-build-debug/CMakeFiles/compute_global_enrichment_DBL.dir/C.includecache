@@ -13,8 +13,6 @@ stdlib.h
 -
 unistd.h
 -
-string.h
--
 limits.h
 -
 float.h
@@ -23,8 +21,10 @@ math.h
 -
 ctype.h
 -
+time.h
+-
 ntsid.h
 -
-time.h
+string.h
 -
 
