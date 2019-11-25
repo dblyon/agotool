@@ -162,9 +162,9 @@ class Userinput:
         ### map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
         if variables.VERSION_ == "UniProt":
             if variables.LOW_MEMORY:
-                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN())
+                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN(), read_from_flat_files=variables.READ_FROM_FLAT_FILES)
             else:
-                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN(), self.pqo.Secondary_2_Primary_IDs_dict)
+                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN(), Secondary_2_Primary_IDs_dict=self.pqo.Secondary_2_Primary_IDs_dict, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
             self.Secondary_2_Primary_IDs_dict_fg = query.map_secondary_2_primary_ANs(self.get_foreground_an_set(), self.Secondary_2_Primary_IDs_dict_user)
             self.foreground[col_foreground] = self.foreground[col_foreground].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, False))
             if self.enrichment_method not in {"characterize_foreground", "genome"}:

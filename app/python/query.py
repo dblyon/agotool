@@ -1338,19 +1338,16 @@ def get_taxids(read_from_flat_files=False, fn=None):
         result = get_results_of_statement("SELECT taxid_2_protein.taxid FROM taxid_2_protein;")
         return sorted([rec[0] for rec in result])
 
-def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None):
+def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None, read_from_flat_files=False):
     """
     reading from flat file is super slow, DB makes a lot of sense here. Only relevant if low_memory is True
-    :param ids_2_map:
-    :param Secondary_2_Primary_IDs_dict:
-    :return:
     """
     if Secondary_2_Primary_IDs_dict is None:
         # if variables.READ_FROM_FLAT_FILES: # don't read this from flat files (very slow)
             # if there is a DB and low_memory then use DB
             # if low_memory is False then Secondary_2_Primary_IDs_dict will exist and there is no issue
             # print("overwriting variables.READ_FROM_FLAT_FILES set to True for query.get_Secondary_2_Primary_IDs_dict_from_sec") # ToDo remove at some point
-        Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict_from_sec(ids_2_map, False)
+        Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict_from_sec(ids_2_map, read_from_flat_files)
     Secondary_2_Primary_IDs_dict_userquery = {}
     for id_ in ids_2_map:
         try:
