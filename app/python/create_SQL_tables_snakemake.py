@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 from tqdm import tqdm
 import tarfile
+from statistics import median
 
 import taxonomy
 import obo_parser
@@ -2788,6 +2789,10 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
      - no need to filter to analog of ENSPs in proteome (we want all annotations even for UniProtAC/IDs that are not in reference proteome/background proteome), filter later on
      - translate to UniProtID on the fly using ENSP_2_UniProtID
     see other comments above
+
+    e.g. of 2 ENSPs with too many scores for single function
+        9606.ENSP00000396163;9606.ENSP00000265849
+        DOID:0050654 	9 	Baller-Gerold syndrome
     """
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs) # defaultdict
 
@@ -2799,7 +2804,7 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
     with open(fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
-            ENSP_last, funcName_2_score_arr_str_last, etype_last = line.split("\t")
+            ENSP_last, _, _ = line.split("\t")
             break
 
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
@@ -2820,7 +2825,7 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
                 ENSP_last = ENSP
             # parse current and add to funcEnum_2_score
             funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
-            # backtracking
+            # backtracking. funcName_2_score_list --> scores are now integer NOT floats
             funcName_2_score_list, without_lineage_temp = helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict)
             without_lineage |= without_lineage_temp
             for an_score in funcName_2_score_list:
@@ -2859,19 +2864,75 @@ def helper_reformat_funcEnum_2_score(funcEnum_2_score):
         score_list.append(str(score))
     return "{" + ",".join(funcEnum_list) + "}\t{" + ",".join(score_list) + "}"
 
+# def helper_backtrack_funcName_2_score_list_old(funcName_2_score_list, lineage_dict):
+#     funcName_2_score_list_backtracked, without_lineage = [], []
+#     for funcName_2_score in funcName_2_score_list:
+#         funcName_2_score_list_backtracked.append(funcName_2_score)
+#         funcName, score = funcName_2_score
+#         try:
+#             all_parents = lineage_dict[funcName]
+#         except KeyError:
+#             # print("{} without lineage".format(funcName))
+#             without_lineage.append(funcName)
+#             all_parents = []
+#         for parent in all_parents:
+#             funcName_2_score_list_backtracked.append([parent, score])
+#     return funcName_2_score_list_backtracked, set(without_lineage)
+
 def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
-    funcName_2_score_list_backtracked, without_lineage = [], []
+    """
+    backtrack functions to root and propagate scores
+        - only if there is no score for that term
+        - if different scores exist for various children then
+    convert scores from float to int (by scaling 1e6 and cutting)
+    funcName_2_score_list = [['DOID:11613', 0.686827], ['DOID:1923', 0.817843], ['DOID:4', 1.982001], ['DOID:7', 1.815976]]
+    lineage_dict["DOID:11613"] = {'DOID:11613', 'DOID:1923', 'DOID:2277', 'DOID:28', 'DOID:4', 'DOID:7'}
+    funcName_2_score_list_backtracked = [['DOID:11613', 686827], ['DOID:1923', 817843], ['DOID:2277', 686827], ['DOID:28', 686827], ['DOID:4', 1982001], ['DOID:7', 1815976]]
+    """
+    funcName_2_score_dict_backtracked, without_lineage = {}, []
+    # funcName_2_score_dict_backtracked: key=String, val=Float(if unique), List of Float(if averaged)
+    # fill dict with all given values, these should be unique (funcName has only single value)
     for funcName_2_score in funcName_2_score_list:
-        funcName_2_score_list_backtracked.append(funcName_2_score)
         funcName, score = funcName_2_score
+        if funcName not in funcName_2_score_dict_backtracked:
+            funcName_2_score_dict_backtracked[funcName] = score
+        else:
+            print("helper_backtrack_funcName_2_score_list", funcName, funcName_2_score_dict_backtracked[funcName], score, " duplicates")
+
+    # backtrack parent terms and fill with all available children
+    # if entry exists, don't change it (set as a float)
+    # if it doesn't exist, then collect all scores (append to list) and average/median in the end
+    for funcName in list(funcName_2_score_dict_backtracked.keys()):
         try:
             all_parents = lineage_dict[funcName]
         except KeyError:
-            # print("{} without lineage".format(funcName))
             without_lineage.append(funcName)
             all_parents = []
+        score = funcName_2_score_dict_backtracked[funcName]
         for parent in all_parents:
-            funcName_2_score_list_backtracked.append([parent, score])
+            # check if parent exists
+            # if it does not, add the entry
+            if parent not in funcName_2_score_dict_backtracked:
+                funcName_2_score_dict_backtracked[parent] = [score]
+            # if it does, check if it is a Float or a list of Float (which means append to it) or string
+            else:
+                if isinstance(funcName_2_score_dict_backtracked[parent], float):
+                    continue  # don't change the value, since it is the original value
+                elif isinstance(funcName_2_score_dict_backtracked[parent], list):  # add to it
+                    funcName_2_score_dict_backtracked[parent].append(score)
+                else:
+                    print("helper_backtrack_funcName_2_score_list", parent, funcName_2_score_dict_backtracked[parent], " type not known")
+                    raise StopIteration
+
+    # now calc median if multiple values exist
+    funcName_2_score_list_backtracked = []
+    for funcName in funcName_2_score_dict_backtracked:
+        val = funcName_2_score_dict_backtracked[funcName]
+        if isinstance(val, float):
+            funcName_2_score_list_backtracked.append([funcName, int(val * 1e6)])
+        else:
+            funcName_2_score_list_backtracked.append([funcName, int(median(val) * 1e6)])
+
     return funcName_2_score_list_backtracked, set(without_lineage)
 
 def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_out_without_lineage):
