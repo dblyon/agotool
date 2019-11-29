@@ -172,15 +172,20 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 | 1978231 | A0A2V2RNV7_9BACT | {55397,57018,58330,89447} |
 
 
-### protein_2_functionenum_and_score_old [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
+### protein_2_functionenum_and_score_old1 [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
 | taxid | uniprotid | funcenum_score_arr |
 |:---:|:---:|:---:|
 | 3702 | NAC1_ARATH | {{211,4.2},{252,4.166357},{253,4.195121},{259,3.257143},{323,1.234689}, ...} |
 | 3702 | NGA3_ARATH | {{211,4.2},{212,0.214286},{252,4.2},{253,4.2}, ...} |
-### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
+### protein_2_functionenum_and_score_old2 [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
 | taxid | uniprotid | funcenum_arr | score_arr |
 |:---:|:---:|:---:|:---:|
 | 3702 | NAC1_ARATH | {211,252,253, ... } | {4.2,4.166357,4.195121, ... } |
+### protein_2_functionenum_and_score [Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt]
+| taxid | uniprotid | funcenum_arr | score_arr |
+|:---:|:---:|:---:|:---:|
+| 3702 | NAC1_ARATH | {211,252,253, ... } | {4200000,4166357,4195121, ... } |
+
 
 
 
@@ -206,7 +211,7 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 ### taxid_2_functionenum_2_scores [Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt]
 | taxid | func_enum | score_array |
 |:---:|:---:|:---:|
-| 9606 | 0 | {0.611452,1.67871,1.21, ...} |
-| 9606 | 1 | {5.0,0.69, ...} |
-| 10090 | 0 | {1.45,0.5744,...} |
-| 10090 | 1 | {0.5,0.7477,...} |
+| 9606 | 0 | {611452,167871,1210000, ...} |
+| 9606 | 1 | {5000000,690000, ...} |
+| 10090 | 0 | {1450000,5744000,...} |
+| 10090 | 1 | {500000,7477000,...} |

@@ -161,11 +161,8 @@ class Userinput:
 
         ### map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
         if variables.VERSION_ == "UniProt":
-            if variables.LOW_MEMORY:
-                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN(), read_from_flat_files=variables.READ_FROM_FLAT_FILES)
-            else:
-                self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN(), Secondary_2_Primary_IDs_dict=self.pqo.Secondary_2_Primary_IDs_dict, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
-            self.Secondary_2_Primary_IDs_dict_fg = query.map_secondary_2_primary_ANs(self.get_foreground_an_set(), self.Secondary_2_Primary_IDs_dict_user)
+            self.Secondary_2_Primary_IDs_dict_user = query.map_secondary_2_primary_ANs(self.get_all_individual_AN(), Secondary_2_Primary_IDs_dict=None, read_from_flat_files=False) # don't read from flat file unless ABSOLUTELY necessary, VERY slow
+            self.Secondary_2_Primary_IDs_dict_fg = query.map_secondary_2_primary_ANs(self.get_foreground_an_set(), Secondary_2_Primary_IDs_dict=self.Secondary_2_Primary_IDs_dict_user, read_from_flat_files=False)
             self.foreground[col_foreground] = self.foreground[col_foreground].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, False))
             if self.enrichment_method not in {"characterize_foreground", "genome"}:
                 self.Secondary_2_Primary_IDs_dict_bg = query.map_secondary_2_primary_ANs(self.get_background_an_set(), self.Secondary_2_Primary_IDs_dict_user)
@@ -763,25 +760,56 @@ if __name__ == "__main__":
 
     ## testing UserInput
     # example1: foreground is proper subset of background, everything has an abundance value
-    df_test = pd.DataFrame()
-    df_test["background"] = pd.Series(['Q9UHI6', 'Q13075', 'A6NDB9', 'A6NFR9', 'O95359', 'D6RGG6', 'Q9BRQ0', 'P09629', 'Q9Y6G5', 'Q96KG9', 'Q8WXE0', 'Q6VB85', 'P13747', 'Q9UQ03', 'Q8N8S7'])
-    df_test["background_intensity"] = pd.Series([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] + [1] * 5, dtype=float)
-    df_test["foreground"] = pd.Series(['Q9UHI6', 'Q13075', 'A6NDB9', 'A6NFR9', 'O95359', 'D6RGG6', 'Q9BRQ0', 'P09629', 'Q9Y6G5', 'Q96KG9'])
-    df_test = df_test.sort_values(["intensity", "background"])
-
-    in_ = "%0d".join([str(ele) for ele in df_test.loc[df_test.intensity.notnull(), "intensity"].tolist()])
-    fg = "%0d".join(df_test.loc[df_test.foreground.notnull(), "foreground"].tolist())
-    bg = "%0d".join(df_test.loc[df_test.background.notnull(), "background"].tolist())
-    pqo = None
+    # df_test = pd.DataFrame()
+    # df_test["background"] = pd.Series(['Q9UHI6', 'Q13075', 'A6NDB9', 'A6NFR9', 'O95359', 'D6RGG6', 'Q9BRQ0', 'P09629', 'Q9Y6G5', 'Q96KG9', 'Q8WXE0', 'Q6VB85', 'P13747', 'Q9UQ03', 'Q8N8S7'])
+    # df_test["background_intensity"] = pd.Series([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] + [1] * 5, dtype=float)
+    # df_test["foreground"] = pd.Series(['Q9UHI6', 'Q13075', 'A6NDB9', 'A6NFR9', 'O95359', 'D6RGG6', 'Q9BRQ0', 'P09629', 'Q9Y6G5', 'Q96KG9'])
+    # df_test = df_test.sort_values(["intensity", "background"])
+    #
+    # in_ = "%0d".join([str(ele) for ele in df_test.loc[df_test.intensity.notnull(), "intensity"].tolist()])
+    # fg = "%0d".join(df_test.loc[df_test.foreground.notnull(), "foreground"].tolist())
+    # bg = "%0d".join(df_test.loc[df_test.background.notnull(), "background"].tolist())
+    # pqo = None
     # pqo = query.PersistentQueryObject()
-    ui = REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=10)
+    # ui = REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=10)
 
     # every AN from foreground present, nothing is downweighed, since same abundance
-    counter = 1
-    for ans, weight_fac in ui.iter_bins():
-        print(counter, ans, weight_fac)
-        counter += 1
+    # counter = 1
+    # for ans, weight_fac in ui.iter_bins():
+    #     print(counter, ans, weight_fac)
+    #     counter += 1
 
     # foreground_almost_empty = pd.Series(name="foreground", data={0: np.nan, 1: "Q9UHI6", 2: np.nan})
     # background_no_intensity = pd.DataFrame({'background': {0: 'P13747', 1: 'Q6VB85', 2: 'Q8N8S7', 3: 'Q8WXE0', 4: 'Q9UHI6', 5: 'Q9UQ03', 6: 'Q13075', 7: 'A6NDB9', 8: 'A6NFR9', 9: 'O95359', 10: 'D6RGG6', 11: 'Q9BRQ0', 12: 'P09629', 13: 'Q9Y6G5', 14: 'Q96KG9'}, 'intensity': {0: np.nan, 1: np.nan, 2: np.nan, 3: np.nan, 4: np.nan, 5: np.nan, 6: np.nan, 7: np.nan, 8: np.nan, 9: np.nan, 10: np.nan, 11: np.nan, 12: np.nan, 13: np.nan, 14: np.nan}})
     # "compare_samples"
+    foreground_input = ['9606.ENSP00000013070', '9606.ENSP00000222008', '9606.ENSP00000228887', '9606.ENSP00000229812', '9606.ENSP00000230461', '9606.ENSP00000238497', '9606.ENSP00000245046', '9606.ENSP00000256343', '9606.ENSP00000258390', '9606.ENSP00000261183', '9606.ENSP00000261434', '9606.ENSP00000261693', '9606.ENSP00000265849', '9606.ENSP00000270142', '9606.ENSP00000274606', '9606.ENSP00000275517', '9606.ENSP00000285420', '9606.ENSP00000291934', '9606.ENSP00000295896', '9606.ENSP00000300571', '9606.ENSP00000305494', '9606.ENSP00000306328', '9606.ENSP00000307164', '9606.ENSP00000307479', '9606.ENSP00000307706', '9606.ENSP00000307863', '9606.ENSP00000310305', '9606.ENSP00000310704', '9606.ENSP00000313881', '9606.ENSP00000318687', '9606.ENSP00000319281', '9606.ENSP00000321546', '9606.ENSP00000323302', '9606.ENSP00000328444', '9606.ENSP00000329452', '9606.ENSP00000333993', '9606.ENSP00000336800', '9606.ENSP00000338523', '9606.ENSP00000341083', '9606.ENSP00000342162',
+                        '9606.ENSP00000344411', '9606.ENSP00000350377', '9606.ENSP00000350869', '9606.ENSP00000351742', '9606.ENSP00000352676', '9606.ENSP00000354874', '9606.ENSP00000356694', '9606.ENSP00000357779', '9606.ENSP00000358107', '9606.ENSP00000359340', '9606.ENSP00000360824', '9606.ENSP00000361596', '9606.ENSP00000361993', '9606.ENSP00000362464', '9606.ENSP00000364412', '9606.ENSP00000364677', '9606.ENSP00000364976', '9606.ENSP00000365172', '9606.ENSP00000365407', '9606.ENSP00000366410', '9606.ENSP00000366582', '9606.ENSP00000366673', '9606.ENSP00000367219', '9606.ENSP00000367545', '9606.ENSP00000368737', '9606.ENSP00000369989', '9606.ENSP00000369996', '9606.ENSP00000370373', '9606.ENSP00000373648', '9606.ENSP00000375647', '9606.ENSP00000376010', '9606.ENSP00000378275', '9606.ENSP00000379110', '9606.ENSP00000380087', '9606.ENSP00000381089', '9606.ENSP00000381857', '9606.ENSP00000387426', '9606.ENSP00000389103', '9606.ENSP00000396163', '9606.ENSP00000404102',
+                        '9606.ENSP00000409000', '9606.ENSP00000409107', '9606.ENSP00000412361', '9606.ENSP00000415836', '9606.ENSP00000419712', '9606.ENSP00000421592', '9606.ENSP00000426159', '9606.ENSP00000433071', '9606.ENSP00000435010', '9606.ENSP00000439228', '9606.ENSP00000446688', '9606.ENSP00000457935', '9606.ENSP00000458130', '9606.ENSP00000461413', '9606.ENSP00000464619', '9606.ENSP00000468969', '9606.ENSP00000470239', '9606.ENSP00000471126', '9606.ENSP00000482063', '9606.ENSP00000485454']
+    ###
+    contiguous = False
+    foreground_n = 100
+    # foreground_input = sorted(get_random_human_ENSP(foreground_n, joined_for_web=False, contiguous=contiguous))
+    enrichment_method = "genome"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
+    # fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_3_Niu_PlasmaCirrhosis_compare_samples.txt" #compare_groups_v2.txt" # ExampleData_for_testing.txt" # Example_1_Yeast_acetylation_abundance_correction.txt
+    # fn_userinput = r"/Users/dblyon/Downloads/ExampleData.txt"
+    from_file = False  # read user input from file
+    args_dict = {}
+    args_dict["enrichment_method"] = enrichment_method
+    args_dict["taxid"] = 9606
+    args_dict["FDR_cutoff"] = 0.05
+    args_dict["p_value_cutoff"] = 0.01
+    args_dict["limit_2_entity_type"] = None  # "-20;-25;-26" #"-20;-25;-21" # "-20;-21;-22;-23;-25;-26" # None #"-21;-22;-23"
+    args_dict["filter_PMID_top_n"] = 100
+    args_dict["filter_foreground_count_one"] = True
+    args_dict["filter_parents"] = True
+    args_dict["go_slim_subset"] = None  # "generic"
+    args_dict["o_or_u_or_both"] = "overrepresented"  # "both" "underrepresented"
+    args_dict["multiple_testing_per_etype"] = True
+    args_dict["privileged"] = True
+    args_dict["score_cutoff"] = 0
+    args_dict["foreground_replicates"] = 10
+    args_dict["background_replicates"] = 10
+    taxid = args_dict["taxid"]
+    pqo = query.PersistentQueryObject_STRING(low_memory=True)
+    background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
+    ui = Userinput(pqo, fn=None, foreground_string=stringify_for_Userinput(foreground_input), background_string=stringify_for_Userinput(background_input), args_dict=args_dict)

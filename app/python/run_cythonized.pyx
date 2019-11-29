@@ -112,7 +112,7 @@ def collect_scores_per_term_v0(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict
             score = score_arr[index_]
             funcEnum_2_scores_dict[funcEnum_arr[index_]].append(score)
     if list_2_array:
-        return {funcEnum: np.asarray(scores, dtype=np.dtype("float64")) for funcEnum, scores in funcEnum_2_scores_dict.items()}
+        return {funcEnum: np.asarray(scores, dtype=np.dtype("uint32")) for funcEnum, scores in funcEnum_2_scores_dict.items()}
     # since concatenating np.arrays later on (for filling with zeros) produces 64 bit array anyway
     else:
         return funcEnum_2_scores_dict

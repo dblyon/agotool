@@ -76,6 +76,7 @@ if args.verbose == "verbose" or args.verbose == "v":
 # - update bootstrap version
 # - update documentation specifically about foreground and background
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
+# - version of tool/ dates of files downloaded
 ###############################################################################
 ###############################################################################
 def getitem(obj, item, default):

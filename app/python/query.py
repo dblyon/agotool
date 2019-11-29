@@ -776,9 +776,9 @@ def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_
         taxid = int(taxid)
         functionEnumeration = int(functionEnumeration)
         if as_array_or_as_list == "array":
-            scores_arr = np.array([float(score) for score in scores_arr[1:-1].split(",")], dtype=np.dtype("float32")) # float16 would probably be sufficient
+            scores_arr = np.array([int(float(score)) for score in scores_arr[1:-1].split(",")], dtype=np.dtype(variables.dtype_TM_score)) # previously ("float32")) # float16 would probably be sufficient
         elif as_array_or_as_list == "list":
-            scores_arr = [float(score) for score in scores_arr[1:-1].split(",")]
+            scores_arr = [int(float(score)) for score in scores_arr[1:-1].split(",")]
         else:
             print("as_array_or_as_list: '{}' not known, please provide proper args".format(as_array_or_as_list))
             raise StopIteration
@@ -895,8 +895,8 @@ def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None
         else:
             taxid, protein_AN, funcEnum_list, score_list = res
         assert len(funcEnum_list) == len(score_list)
-        funcEnum_arr = np.array(funcEnum_list, dtype=np.dtype("uint32"))
-        score_arr = np.array(score_list, dtype=np.dtype("float32"))  # float16 would probably be sufficient
+        funcEnum_arr = np.array(funcEnum_list, dtype=np.dtype(variables.dtype_functionEnumeration))
+        score_arr = np.array(score_list, dtype=np.dtype(variables.dtype_TM_score)) # previously from 0-5 as np.dtype("float32")), but now scaled by e6 and as integer
         score_arr.flags.writeable = False
         funcEnum_arr.flags.writeable = False
         ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
@@ -1507,6 +1507,7 @@ def get_goslimtype_2_cond_dict():
 
 if __name__ == "__main__":
     pass
+
     # pqo = PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
     # get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False)
     # get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None)

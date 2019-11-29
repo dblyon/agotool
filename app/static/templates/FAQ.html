@@ -59,17 +59,16 @@
         <div class="col-md-12">
         The foreground consists of proteins you are interested in, e.g. proteins with a specific PTM, or upregulated proteins due to a treatment. The foreground is characterized by comparing it to the background.
         The background is what you compare against.
-        The foreground is a subset of the background, in terms of abundance values.
+        The foreground is a subset of the background, in case you are using the abundance_correction method.
         </div>
     <br>
 
 
     <h3>How does the "abundance_correction" method work?</h3>
         <div class="col-md-12">
-        The user is asked to provide a foreground proteome (list of UniProt accession numbers) and a background
-        proteome (list of accessions) and their corresponding abundance values. Instead of comparing the foreground to the entire proteome, it is instead
-        compared to the (experimentally measured) background proteome. Furtheremore,  a correction for the abundance range is incorporated into the
-        analysis as follows.<br>
+        We assume that you have abundance values for the background proteome and that the foreground is a proper subset of the background. For the background proteome you're asked to provide a list of protein identifiers (such as a list of UniProt accession numbers, UniProt entry names or STRING identifiers) and corresponding abundance values. For the foreground only protein identifiers but no abundance values are used.
+
+        Instead of comparing the foreground to the entire proteome, it is instead compared to the (experimentally measured) background proteome. Furtheremore, a correction for the abundance range is incorporated into the analysis as follows.<br>
         The abundance values of the foreground are assumed to be the same as the background. Based on the abundance
         values of the foreground proteome 100 bins are created (background proteins outside of that range are disregarded). For
         each bin a <b>correction factor</b> \(w_i\) is calculated by dividing the number of foreground proteins \(n_{fi}\) by the number of background proteins \(n_{bi}\) occurring

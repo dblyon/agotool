@@ -57,7 +57,7 @@ CREATE TABLE protein_2_functionenum_and_score_temp (
     taxid integer,
     uniprotid text,
     funcenum_arr integer ARRAY,
-    score_arr float(32) ARRAY);
+    score_arr integer ARRAY);
 \copy protein_2_functionenum_and_score_temp FROM '/agotool_data/PostgreSQL/tables/Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt';
 CREATE INDEX protein_2_functionenum_and_score_taxid_idx_temp ON protein_2_functionenum_and_score_temp (taxid);
 CREATE INDEX protein_2_functionenum_and_score_uniprotid_idx_temp ON protein_2_functionenum_and_score_temp (uniprotid);
@@ -69,23 +69,3 @@ CREATE TABLE lineage_temp (
     func_enum_array integer ARRAY);
 \copy lineage_temp FROM '/agotool_data/PostgreSQL/tables/Lineage_table_UPS_FIN.txt';
 
-
--- TEMP BELOW #!!!
--- DROP TABLE taxid_2_protein;
--- CREATE TABLE taxid_2_protein (
---     taxid integer,
---     count integer,
---     an_array text ARRAY);
--- -- \copy taxid_2_protein FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
--- \copy taxid_2_protein FROM '/agotool_data/PostgreSQL/tables/Taxid_2_Proteins_table_UPS_FIN.txt';
--- CREATE INDEX taxid_2_protein_taxid_idx ON taxid_2_protein (taxid);
---
--- DROP TABLE taxid_2_functioncountarray;
--- CREATE TABLE taxid_2_functioncountarray (
---     taxid integer,
---     background_n integer,
---     background_index_positions_arr integer ARRAY,
---     background_count_arr integer ARRAY);
--- -- \copy taxid_2_functioncountarray FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
--- \copy taxid_2_functioncountarray FROM '/agotool_data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
--- CREATE INDEX taxid_2_functioncountarray_taxid_idx ON taxid_2_functioncountarray (taxid);
