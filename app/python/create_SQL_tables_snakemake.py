@@ -826,6 +826,14 @@ def get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, 
         lineage_dict[term_name ] = Term_instance.get_all_parents()
     return lineage_dict
 
+def get_alternative_2_current_ID_dict(fn_obo, upk=False):
+    alternative_2_current_ID_dict = {}
+    for rec in obo_parser.OBOReader(fn_obo, upk=upk):
+        rec_id = rec.id
+        for alternative in rec.alt_ids:
+            alternative_2_current_ID_dict[alternative] = rec_id
+    return alternative_2_current_ID_dict
+
 def get_lineage_from_child_2_direct_parent_dict(child_2_direct_parent_dict):
     lineage_dict = defaultdict(lambda: set())
     for child in child_2_direct_parent_dict:
@@ -2794,6 +2802,11 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
         9606.ENSP00000396163;9606.ENSP00000265849
         DOID:0050654 	9 	Baller-Gerold syndrome
     """
+    alternative_2_current_ID_dict = {}
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_go_basic_obo, upk=False))  # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_DOID_obo_Jensenlab, upk=True))
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_BTO_obo_Jensenlab, upk=True))
+
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs) # defaultdict
 
     ENSP_last, ENSP = "-1", "-1"
@@ -2830,6 +2843,11 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
             without_lineage |= without_lineage_temp
             for an_score in funcName_2_score_list:
                 an, score = an_score
+                try: # translate from alternative/alias to main name (synonym or obsolete funcName to current name)
+                    an = alternative_2_current_ID_dict[an]
+                except KeyError:
+                    an = an
+
                 if GO_CC_textmining_additional_etype: # works only if GOCC textmining etype 20 is included in Functions_table_all and then not excluded in Functions_table_FIN
                     if etype == "-22": # change etype to separate etype GO-CC (etype -22 --> -20)
                         an = an.replace("GO:", "GOCC:")
@@ -2936,8 +2954,26 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
     return funcName_2_score_list_backtracked, set(without_lineage)
 
 def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_out_without_lineage):
+    """
+
+    :param fn_go_basic_obo:
+    :param fn_in_DOID_obo_Jensenlab:
+    :param fn_in_BTO_obo_Jensenlab:
+    :param fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid:
+    :param fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS:
+    :param fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS: outputs normal GO not GOCC terms
+    :param fn_out_without_lineage:
+    :return:
+    """
+    alternative_2_current_ID_dict = {}
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_go_basic_obo, upk=False))  # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_DOID_obo_Jensenlab, upk=True))
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_BTO_obo_Jensenlab, upk=True))
+
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid)
+    # lineage_dict has GO as well as GOCC terms
     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
+
     terms_without_lineage = set()
     with open(fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "w") as fh_out_Prot_2_func:
         for line in tools.yield_line_uncompressed_or_gz_file(fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
@@ -2949,6 +2985,10 @@ def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOI
             # backtracking of functions
             funcName_list_backtracked = []
             for funcName in funcName_list:
+                try: # translate if possible
+                    funcName = alternative_2_current_ID_dict[funcName]
+                except KeyError:
+                    funcName = funcName
                 funcName_list_backtracked.append(funcName)
                 try:
                     funcName_list_backtracked += list(lineage_dict[funcName])
@@ -3717,30 +3757,34 @@ if __name__ == "__main__":
     Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
     Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
 
+    # run single rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
+    Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+    Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
+    Taxid_2_funcEnum_2_scores_table_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
 
-    print("#" * 50)
-    print("Protein_2_Function_table_UPS")
-    Protein_2_Function_table_UPS(fn_list, Protein_2_Function_table_UPS_orig_fn, Protein_2_Function_table_UPS_fn, number_of_processes=12)
-
-    print("#" * 50)
-    print("Function_2_Protein_table_UPS")
-    Function_2_Protein_table_UPS(Protein_2_Function_table_UPS_fn, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Taxid_2_Proteins_table_UPS_FIN, Functions_table_all, Function_2_Protein_table_UPS_fn, Function_2_Protein_table_UPS_reduced, Function_2_Protein_table_UPS_removed, number_of_threads=12, min_count=1)
-
-    print("#" * 50)
-    print("Taxid_2_Proteins_table_UPS")
-    Taxid_2_Proteins_table_UPS(UniProt_background_proteomes_dir, Taxid_2_Proteins_table_UPS_FIN)
-
-    print("#" * 50)
-    print("Functions_table_UPS_FIN")
-    Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_Functions_table_UPS_FIN, Functions_table_UPS_removed)
-
-    print("#" * 50)
-    print("Protein_2_FunctionEnum_table_UPS_FIN")
-    Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=12)
-
-    print("#" * 50)
-    print("Taxid_2_FunctionCountArray_table_UPS")
-    Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, Taxid_2_FunctionCountArray_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=12, verbose=True)
+    # print("#" * 50)
+    # print("Protein_2_Function_table_UPS")
+    # Protein_2_Function_table_UPS(fn_list, Protein_2_Function_table_UPS_orig_fn, Protein_2_Function_table_UPS_fn, number_of_processes=12)
+    #
+    # print("#" * 50)
+    # print("Function_2_Protein_table_UPS")
+    # Function_2_Protein_table_UPS(Protein_2_Function_table_UPS_fn, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Taxid_2_Proteins_table_UPS_FIN, Functions_table_all, Function_2_Protein_table_UPS_fn, Function_2_Protein_table_UPS_reduced, Function_2_Protein_table_UPS_removed, number_of_threads=12, min_count=1)
+    #
+    # print("#" * 50)
+    # print("Taxid_2_Proteins_table_UPS")
+    # Taxid_2_Proteins_table_UPS(UniProt_background_proteomes_dir, Taxid_2_Proteins_table_UPS_FIN)
+    #
+    # print("#" * 50)
+    # print("Functions_table_UPS_FIN")
+    # Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_Functions_table_UPS_FIN, Functions_table_UPS_removed)
+    #
+    # print("#" * 50)
+    # print("Protein_2_FunctionEnum_table_UPS_FIN")
+    # Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table, fn_in_Protein_2_function_table, fn_out_Protein_2_functionEnum_table_FIN, fn_out_Protein_2_FunctionEnum_table_UPS_removed, number_of_processes=12)
+    #
+    # print("#" * 50)
+    # print("Taxid_2_FunctionCountArray_table_UPS")
+    # Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, Taxid_2_FunctionCountArray_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=12, verbose=True)
 
 
 #### snakemake wants to run 9 jobs instead of 6.
@@ -3878,3 +3922,6 @@ if __name__ == "__main__":
     # fn_out_ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
     # fn_out_Protein_2_FunctionEnum_and_Score_table_UPS = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
     # Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=False)
+
+    # ToDo:
+    # from DOID:2627 to DOID:3070 --> convert Lars outdated DOIDs to up to date ids since they will be excluded otherwise
