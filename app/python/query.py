@@ -469,7 +469,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("getting Taxid_2_FunctionEnum_2_Scores_table")
-        self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files)
+        self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=self.taxid_2_proteome_count)
 
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
@@ -768,17 +768,28 @@ def get_lookup_arrays(low_memory, read_from_flat_files=False):
     else:
         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
 
-def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_or_as_list="list"):
+def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_or_as_list="list", taxid_2_proteome_count=None):
     Taxid_2_FunctionEnum_2_Scores_dict = {} #defaultdict(lambda: False)
     results = get_results_of_statement_from_flat_file(variables.tables_dict["Taxid_2_FunctionEnum_2_Scores_table"])
     for res in results:
         taxid, functionEnumeration, scores_arr = res
         taxid = int(taxid)
         functionEnumeration = int(functionEnumeration)
+        scores_list = [int(float(score)) for score in scores_arr[1:-1].split(",")]
+        if taxid_2_proteome_count is not None:
+            try:
+                zeros_2_add = taxid_2_proteome_count[taxid] - len(scores_list)
+                if zeros_2_add > 0:
+                    scores_list = sorted(zeros_2_add*[0] + scores_list)
+                else:
+                    scores_list = sorted(scores_list)
+            except KeyError:
+                print("get_Taxid_2_FunctionEnum_2_Scores_dict --> taxid_2_proteome_count taxid '{}' unknown".format(taxid))
+                scores_list = sorted(scores_list)
         if as_array_or_as_list == "array":
-            scores_arr = np.array([int(float(score)) for score in scores_arr[1:-1].split(",")], dtype=np.dtype(variables.dtype_TM_score)) # previously ("float32")) # float16 would probably be sufficient
+            scores_arr = np.array(scores_list, dtype=np.dtype(variables.dtype_TM_score))  # previously ("float32")) # float16 would probably be sufficient
         elif as_array_or_as_list == "list":
-            scores_arr = [int(float(score)) for score in scores_arr[1:-1].split(",")]
+            scores_arr = scores_list
         else:
             print("as_array_or_as_list: '{}' not known, please provide proper args".format(as_array_or_as_list))
             raise StopIteration
