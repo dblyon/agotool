@@ -59,47 +59,39 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'UPK:9999': "-51",  # 'Biological process'
                               'KEGG': "-52"}
 
-
-def get_cursor(env_dict=None): # , DB_DOCKER=None
+def get_cursor(env_dict=None):
     platform_ = sys.platform
     if env_dict is not None:
         USER = env_dict['POSTGRES_USER']
         PWD = env_dict['POSTGRES_PASSWORD']
         DBNAME = env_dict['POSTGRES_DB']
-        # HOST = env_dict['HOST']
-        # PORT = env_dict['PORT']
         PORT = '5432'
         HOST = 'db'
         return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
-    # if not variables.DB_DOCKER: # or not DB_DOCKER:
-    #     ### use dockerized Postgres directly from native OS
-    #     PORT = '5913'
-    #     HOST = 'localhost'
-    #     param_2_val_dict = variables.param_2_val_dict
-    #     return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
 
     if platform_ == "linux":
-        try:
-            # USER = os.environ['POSTGRES_USER']
-            USER = "postgres"
-            PWD = os.environ['POSTGRES_PASSWORD']
-            DBNAME = os.environ['POSTGRES_DB']
-            PORT = '5432'
-            HOST = 'db'
-        except KeyError:
-            print("query.py sais there is something wrong with the Postgres config")
-            raise StopIteration
-        return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+        if not variables.DB_DOCKER: # use local Postgres
+            try:
+                USER = "postgres"
+                PWD = os.environ['POSTGRES_PASSWORD']
+                DBNAME = os.environ['POSTGRES_DB']
+                PORT = '5432'
+                HOST = 'db'
+            except KeyError:
+                print("query.py sais there is something wrong with the Postgres config")
+                raise StopIteration
+            return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+        else: # use dockerized Postgres directly from native OS
+            PORT = '5913'
+            HOST = 'localhost'
+            param_2_val_dict = variables.param_2_val_dict
+            return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
 
-    # get_etype_cond_dict
     elif platform_ == "darwin":
-        if not variables.DB_DOCKER:
-            ### use local Postgres
-            # print("using local Postgres")
+        if not variables.DB_DOCKER: # use local Postgres
             return get_cursor_ody()
-        else: # connect to docker Postgres container
-            ### use dockerized Postgres directly from native OS
-            PORT = '5432'
+        else: # connect to docker Postgres container. use dockerized Postgres directly from native OS
+            PORT = '5432' # shouldn't this be 5913?
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
             return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
@@ -606,68 +598,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(upk_dag))
         return functerm_2_level_dict
 
-    # @staticmethod
-    # def get_lookup_arrays(low_memory, read_from_flat_files=False):
-    #     """
-    #     funcEnum_2_hierarchical_level
-    #     simple numpy array of hierarchical levels
-    #     if -1 in DB --> convert to np.nan since these are missing values
-    #     # - funcEnum_2_year
-    #     # - funcEnum_2_hierarchical_level
-    #     # - funcEnum_2_etype
-    #     # - funcEnum_2_description
-    #     # - funcEnum_2_term
-    #     :param low_memory: Bool flag to return description_array
-    #     :param read_from_flat_files: Bool flag to get data from DB or flat files
-    #     :return: immutable numpy array of int
-    #     """
-    #     if read_from_flat_files:
-    #         # fn = os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt")
-    #         fn = variables.tables_dict["Functions_table"]
-    #         result = get_results_of_statement_from_flat_file(fn)
-    #         result = list(result)
-    #     else:
-    #         result = get_results_of_statement("SELECT * FROM functions")
-    #     shape_ = len(result)
-    #     year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
-    #     entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
-    #     if not low_memory:
-    #         description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
-    #         # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
-    #         category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
-    #     functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
-    #     hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
-    #     indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
-    #     indices_arr.flags.writeable = False
-    #
-    #     for i, res in enumerate(result):
-    #         func_enum, etype, term, description, year, hierlevel = res
-    #         func_enum = int(func_enum)
-    #         etype = int(etype)
-    #         try:
-    #             year = int(year)
-    #         except ValueError: # e.g. "...."
-    #             year = -1
-    #         hierlevel = int(hierlevel)
-    #         entitytype_arr[func_enum] = etype
-    #         functionalterm_arr[func_enum] = term
-    #         year_arr[func_enum] = year
-    #         hierlevel_arr[func_enum] = hierlevel
-    #         if not low_memory:
-    #             description_arr[func_enum] = description
-    #             category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
-    #
-    #     year_arr.flags.writeable = False # make it immutable
-    #     hierlevel_arr.flags.writeable = False
-    #     entitytype_arr.flags.writeable = False
-    #     functionalterm_arr.flags.writeable = False
-    #     if not low_memory:
-    #         description_arr.flags.writeable = False
-    #         category_arr.flags.writeable = False
-    #         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
-    #     else:
-    #         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
-
     @staticmethod
     def get_functional_term_2_level_dict_from_dag(dag):
         functerm_2_level_dict = {}
@@ -770,7 +700,10 @@ def get_lookup_arrays(low_memory, read_from_flat_files=False):
 
 def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_or_as_list="list", taxid_2_proteome_count=None):
     Taxid_2_FunctionEnum_2_Scores_dict = {} #defaultdict(lambda: False)
-    results = get_results_of_statement_from_flat_file(variables.tables_dict["Taxid_2_FunctionEnum_2_Scores_table"])
+    if read_from_flat_files:
+        results = get_results_of_statement_from_flat_file(variables.tables_dict["Taxid_2_FunctionEnum_2_Scores_table"])
+    else:
+        raise NotImplementedError
     for res in results:
         taxid, functionEnumeration, scores_arr = res
         taxid = int(taxid)
@@ -798,76 +731,6 @@ def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_
         else:
             Taxid_2_FunctionEnum_2_Scores_dict[taxid][functionEnumeration] = scores_arr
     return Taxid_2_FunctionEnum_2_Scores_dict
-
-# def get_proteinAN_2_tuple_funcEnum_score_dict_old(read_from_flat_files=True, fn=None): # SLOW ~ 26% of startup time
-#     """
-#     key = ENSP
-#     val = tuple(arr of function Enumeration, arr of scores)
-#     for BTO, DOID, and GO-CC terms
-#
-#     exampe of return value {'3702.AT1G01010.1': (array([ 213,  254,  255,  261,  325,  356,  360,  365,  375,  397,  417,
-#                   615,  643,  747,  748, 1080, 1812, 1899, 1900, 1902, 1904, 1995,
-#                  2051, 2052, 2070, 2088], dtype=uint32),
-#           array([4.2     , 4.166357, 4.195121, 3.257143, 1.234689, 0.428571,
-#                  0.535714, 0.214286, 0.642857, 1.189679, 0.739057, 0.214286,
-#                  0.214286, 3.      , 3.      , 3.      , 0.535714, 3.257143,
-#                  3.257143, 3.257143, 3.257143, 0.641885, 4.166357, 3.      ,
-#                  1.234689, 4.195121], dtype=float32)), ...
-#                  }
-#
-#     Protein_2_FunctionEnum_and_Score_table_STRING.txt
-#     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}}
-#
-#     Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt
-#     10090.ENSMUSP00000000001        {{26719,1.484633},{26722,1.948048},{26744,1.866082}, ... ,{31474,2.794547}} 10090
-#     3702    NAC1_ARATH      {{211,4.2},{252,4.166357},{253,4.195121},{259,3.257143},{323,1.234689},{354,0.428571},{358,0.535714},{363,0.214286},{373,0.642857},{395,1.189679},{415,0.740363},{613,0.214286},{641,0.214286},{745,3.0},{746,3.0},{1077,3.0}, ...}
-#     :return: dict (key = ENSP, val = tuple(arr of function Enumeration, arr of scores))
-#     """
-#     ENSP_2_tuple_funcEnum_score_dict = {}
-#     if read_from_flat_files:
-#         if fn is None:
-#             fn = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
-#         results = get_results_of_statement_from_flat_file(fn)
-#     else:
-#         raise NotImplementedError
-#
-#     for res in results:
-#         index_ = 0
-#         if variables.VERSION_ == "UniProt":
-#             taxid, protein_AN, funcEnum_score_arr_orig = res
-#         elif variables.VERSION_ == "STRING":
-#             protein_AN, funcEnum_score_arr_orig = res
-#         else:
-#             print("Not implemented version {}".format(variables.VERSION_))
-#             raise StopIteration
-#         funcEnum_score_arr_orig = funcEnum_score_arr_orig.strip()
-#         if funcEnum_score_arr_orig == "{}":
-#             continue
-#         funcEnum_score_arr = [ele[1:] for ele in funcEnum_score_arr_orig.strip().split("},")]
-#         number_of_functions = len(funcEnum_score_arr)
-#         score_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("float32")) # float16 would probably be sufficient
-#         funcEnum_arr = np.zeros(shape=number_of_functions, dtype=np.dtype("uint32"))
-#         if len(funcEnum_score_arr) == 1:
-#             fs = funcEnum_score_arr[0][1:-2].split(",")
-#             try:
-#                 funcEnum, score = int(fs[0]), float(fs[1])
-#             except:
-#                 print(funcEnum_score_arr_orig)
-#                 print(funcEnum_score_arr)
-#                 raise StopIteration
-#             score_arr[index_] = score
-#             funcEnum_arr[index_] = funcEnum
-#         else:
-#             funcName_2_score_list_temp = [funcEnum_score_arr[0][1:].split(",")] + [ele.split(",") for ele in funcEnum_score_arr[1:-1]] + [funcEnum_score_arr[-1][:-2].split(",")]
-#             for sublist in funcName_2_score_list_temp:
-#                 funcEnum, score = int(sublist[0]), float(sublist[1])
-#                 score_arr[index_] = score
-#                 funcEnum_arr[index_] = funcEnum
-#                 index_ += 1
-#         score_arr.flags.writeable = False
-#         funcEnum_arr.flags.writeable = False
-#         ENSP_2_tuple_funcEnum_score_dict[protein_AN] = (funcEnum_arr, score_arr)
-#     return ENSP_2_tuple_funcEnum_score_dict
 
 def get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None): # SLOW ~ 26% of startup time
     """

@@ -619,21 +619,6 @@ conda_agotool.yml:
 Protein_2_Function_table_PMID_STS download_Function_2_Description_PMID Function_table_PMID_temp Protein_2_FunctionEnum_and_Score_table_STRING Functions_table_DOID_BTO Taxid_2_FunctionCountArray_2_merge_BTO_DOID download_Interpro_descriptions
 
 
-
-ToDo:
-testing
-- enrichment examples in app/python/test
-- examples from website
-- filter_parents
-- FDR_cutoff
-- genome vs compare_samples --> same result if using genome as background
--
-
-#
-Protein_2_FunctionEnum_and_Score_table_STRING
-
-
-
 ################################################################################
 ##### installing/restarting aGOtool
 ### get the code to run the python flask app from github
@@ -676,14 +661,12 @@ nohup /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python runserver.py 
 #### 20190618
 #### building working DB for UniProt aGOtool version
 # create DBs
-docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL/create_DBs.psql
-docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL/copy_from_file_and_index.psql
-                                                        /agotool_data/PostgreSQL/copy_from_file_and_index.psql
-
-docker exec -it postgres psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
+docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/create_DBs.psql
+docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/copy_from_file_and_index.psql
+docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
 
 
-# remove PostgreSQL data directory, since switching from v10 to v11 results in problems
+### Error using new PostgreSQL version: remove PostgreSQL data directory, since switching from v10 to v11 results in problems
 prune the system with "remove_volumes" in ""~/scripts/docker_volumes.sh "
 """
 removecontainers() {
@@ -699,7 +682,6 @@ remove_volumes() {
     docker rmi -f $(docker images -qa)
 }
 """
-
 
 ### files for rsync transfer from file list
 # from Atlas to Ody, on Ody
