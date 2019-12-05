@@ -30,13 +30,13 @@ CREATE TABLE funcenum_2_lineage (
     enum integer,
     enum_array integer ARRAY);
 
-\copy functions FROM '/agotool_data/PostgreSQL/tables/Functions_table_STRING.txt';
-\copy protein_2_functionenum FROM '/agotool_data/PostgreSQL/tables/Protein_2_FunctionEnum_table_STRING.txt';
-\copy entity_types FROM '/agotool_data/PostgreSQL/tables/Entity_types_table_STRING.txt';
-\copy taxid_2_protein FROM '/agotool_data/PostgreSQL/tables/TaxID_2_Proteins_table_STRING.txt';
+\copy functions FROM '/agotool_data/PostgreSQL/tables/bak_v11.3/Functions_table_STRING.txt';
+\copy protein_2_functionenum FROM '/agotool_data/PostgreSQL/tables/bak_v11.3/Protein_2_FunctionEnum_table_STRING.txt';
+\copy entity_types FROM '/agotool_data/PostgreSQL/tables/bak_v11.3/Entity_types_table_STRING.txt';
+\copy taxid_2_protein FROM '/agotool_data/PostgreSQL/tables/bak_v11.3/TaxID_2_Proteins_table_STRING.txt';
 --\copy go_2_slim FROM '/agotool_data/PostgreSQL/tables/GO_2_Slim_table_STRING.txt';
-\copy taxid_2_functioncountarray FROM '/agotool_data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_STRING.txt';
-\copy funcenum_2_lineage FROM '/agotool_data/PostgreSQL/tables/Lineage_table_STRING.txt';
+\copy taxid_2_functioncountarray FROM '/agotool_data/PostgreSQL/tables/bak_v11.3/Taxid_2_FunctionCountArray_table_STRING.txt';
+\copy funcenum_2_lineage FROM '/agotool_data/PostgreSQL/tables/bak_v11.3/Lineage_table_STRING.txt';
 
 CREATE INDEX functions_enum_idx ON functions (enum);
 CREATE INDEX functions_an_idx ON functions (an);
