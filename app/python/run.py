@@ -13,6 +13,8 @@ import tools, variables
 
 def run_STRING_enrichment(pqo, ui, args_dict):
     enrichment_method = args_dict["enrichment_method"]
+    with open(variables.LOG_USERINPUT_DEBUG, "a") as fh_log:
+        fh_log.write("###>>>\n" + str(args_dict))
     if enrichment_method not in {"characterize_foreground", "compare_samples", "compare_groups"}:
         args_dict["ERROR_enrichment_method"] = "ERROR: enrichment_method {} is not implemented. Please check the input parameters and examples.".format(enrichment_method)
         return False

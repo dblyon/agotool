@@ -119,6 +119,9 @@ LOG_FN_WARNINGS_ERRORS = os.path.join(LOG_DIRECTORY, "warnings_errors_log.txt")
 LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
 LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
 
+LOG_USERINPUT_DEBUG = os.path.join(LOG_DIRECTORY, "userinput_log_debug.txt")
+
+
 def makedirs_():
     if not os.path.exists(LOG_DIRECTORY):
         os.makedirs(LOG_DIRECTORY)

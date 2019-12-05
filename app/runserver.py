@@ -317,6 +317,7 @@ class API_STRING(Resource):
         args_dict["LOW_MEMORY"] = string_2_bool(args_dict["LOW_MEMORY"])
         FDR_cutoff = args_dict["FDR_cutoff"]
         args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
+        # args_dict["session_id"] = generate_session_id()
         filter_PMID_top_n = args_dict["filter_PMID_top_n"]
         if FDR_cutoff == 0 or FDR_cutoff >= 1 or FDR_cutoff == "None":
             args_dict["FDR_cutoff"] = None
