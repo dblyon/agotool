@@ -2,7 +2,7 @@ import os, multiprocessing
 import numpy as np
 ############################
 ### settings
-PRELOAD = True  # set True in production
+PRELOAD = True  # set True in production for STRING_v11 (not for UniProt)
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything

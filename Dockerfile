@@ -70,6 +70,7 @@ COPY ./app/.bashrc /root/.bashrc
 
 # change permissions for nginx, otherwise problems on Aquarius
 #RUN find /opt/services/flaskapp/src/static -type f -exec chmod 644 {} \;
+#RUN find /agotool_data/logs -type f -exec chmod 644 {} \;
 
 WORKDIR /opt/services/flaskapp/src
 EXPOSE 5912
