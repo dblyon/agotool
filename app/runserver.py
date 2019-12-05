@@ -328,6 +328,10 @@ class API_STRING(Resource):
             for key, val in sorted(args_dict.items()):
                 print(key, val)
             print("-"*80)
+
+        # if variables.temp_dont_run_analysis:
+        #     results_all_function_types = run.run_STRING_enrichment_genome(None, None, 100, args_dict)
+        #     return help_page(args_dict)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -954,4 +958,4 @@ if __name__ == "__main__":
     print(IP, port)
     print("#" * 80)
     print("running aGOtool on IP {} port {}".format(IP, port))
-    app.run(host=IP, port=port, processes=1, debug=variables.DEBUG) # threaded
+    app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)

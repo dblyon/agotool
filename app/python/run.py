@@ -46,6 +46,11 @@ def run_STRING_enrichment(pqo, ui, args_dict):
 
 # @profile
 def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
+    # import time
+    # time.sleep(20)
+    # print(args_dict)
+    # return "Bubu"
+
     taxid = check_taxids(args_dict)
     with open(variables.LOG_USERINPUT_DEBUG, "a") as fh_log:
         fh_log.write("\n###>>>\n" + str(args_dict))
