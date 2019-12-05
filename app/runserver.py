@@ -954,4 +954,4 @@ if __name__ == "__main__":
     print(IP, port)
     print("#" * 80)
     print("running aGOtool on IP {} port {}".format(IP, port))
-    app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
+    app.run(host=IP, port=port, processes=1, debug=variables.DEBUG) # threaded

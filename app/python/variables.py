@@ -12,13 +12,13 @@ DOCKER = False # app and data directory, within image or shared with local host,
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 LOW_MEMORY = False # load function_an_2_description_dict or query DB
-DB_DOCKER = True # connect via local port vs via docker, in query.py
+DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = False # for flask and some internals for printing, set to False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = False # print stuff to stdout
+VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 temp_dont_run_analysis = False
@@ -75,6 +75,7 @@ if DOCKER:
 else: # relative path on host
     APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
     DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
+    # debug # /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11.3
 
 # DATA_DIR = "/agotool_data"
 
@@ -99,7 +100,7 @@ STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')
 
 # automatic updates
 POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
-TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
+TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables/bak_v11.3") # DEBUG #!!!
 STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
 PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "test")
@@ -118,14 +119,13 @@ LOG_DIRECTORY = os.path.join(DATA_DIR, "logs")
 LOG_FN_WARNINGS_ERRORS = os.path.join(LOG_DIRECTORY, "warnings_errors_log.txt")
 LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
 LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
-
 LOG_USERINPUT_DEBUG = os.path.join(LOG_DIRECTORY, "userinput_log_debug.txt")
-
+log_files = [LOG_FN_ACTIVITY, LOG_FN_UPDATES, LOG_FN_WARNINGS_ERRORS, LOG_USERINPUT_DEBUG]
 
 def makedirs_():
     if not os.path.exists(LOG_DIRECTORY):
         os.makedirs(LOG_DIRECTORY)
-    for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS, LOG_FN_UPDATES]:
+    for fn in log_files:
         if not os.path.exists(fn):
             fh = open(fn, "w")
             fh.close()
