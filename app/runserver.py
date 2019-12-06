@@ -1,4 +1,5 @@
-import os, sys, logging, time, argparse
+import os, sys, logging, time, datetime, argparse
+start_time = time.time()
 from collections import defaultdict
 import numpy as np
 from lxml import etree
@@ -149,6 +150,7 @@ if PRELOAD:
 api = Api(app)
 parser = reqparse.RequestParser()
 
+print("#" * 80, "\n", "--- startup time: {} ---".format(str(datetime.timedelta(seconds=int(time.time() - start_time)))))
 ################################################################################
 # celery = tasks.celery
 # print("no async", tasks.add_together(1111, 8))
