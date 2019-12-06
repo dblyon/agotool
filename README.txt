@@ -116,6 +116,7 @@ docker run --rm -it --name checkdb --volume "dbdata:/var/lib/postgresql/data" po
 # spin up another container that deletes itself after it is done
 docker run --rm -it --volume /data_from_ody:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp rsync -avr /mounted_data/data /agotool_data/
 docker run --rm -it --volume /agotool_data:/mounted_data --volume "agotool_agotool_data:/agotool_data" agotool_flaskapp bash
+docker run --rm -it --volume /home/dblyon/agotool/data/:/agotool_data agotool_flaskapp bash
 
 # as soon as I exit the container will delete itself. Self destruction
 # volume data persists

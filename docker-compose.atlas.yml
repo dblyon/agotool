@@ -1,33 +1,6 @@
 version: '3'
 services:
-#  db: # name
-#    logging:
-#      driver: "json-file"
-#    container_name: postgres12
-#    image: "postgres:12" # try latest postgres 12
-#    shm_size: 1g
-#    volumes:
-#      - "dbdata:/var/lib/postgresql/data"
-#      # - "agotool_data:/agotool_data" # version 1, named-volume
-#      # - .:/agotool_data # version 2, bind mount, to mount files from the host to the container
-#     ### Ody
-#     # - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
-#     ### Atlas
-#      - /home/dblyon/agotool/data:/agotool_data
-#    ports: # expose port in order to connect to PostgreSQL from outside docker
-#      - "5913:5432"
-#    env_file:
-#      - ./app/env_file
-#    networks:
-#      - db_nw
-
   flaskapp:
-    logging:
-      driver: "json-file"
-    container_name: flaskapp
-    # restart: on-failure
-    build: . # uncomment to build from Dockerfile, else pull from dockerhub
-    # image: dblyon/python_agotool:latest
     volumes:
       ####### app data, if DOCKER == True comment out, if DOCKER == False uncomment
       ## $ docker run -it --rm --name dd --mount type=bind,source=`pwd`/app,target=/opt/services/flaskapp/src  f6a48a325d61 bash
@@ -35,13 +8,13 @@ services:
 
       ####### Data bind mount
       ### Ody
-      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
+      #- /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mounted volume from host, e.g. RW access from container.
       ### Atlas
-      #- /mnt/mnemo5/dblyon/agotool/data/:/agotool_data
+      - /home/dblyon/agotool/data/:/agotool_data
       ### Aquarius
-      #- /home/dblyon/agotool/data:/agotool_data
-#      - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
-#    command: bash -c "find /opt/services/flaskapp/src/static -type f -exec chmod 644 {} \;"
+      # - /home/dblyon/agotool/data:/agotool_data
+      # - /mnt/mnemo5/dblyon/agotool/data:/agotool_data
+      # command: bash -c "find /opt/services/flaskapp/src/static -type f -exec chmod 644 {} \;"
     env_file:
       - ./app/env_file
     networks:
@@ -50,12 +23,7 @@ services:
 #    depends_on:
 #      - db
 
-
   nginx:
-    logging:
-      driver: "json-file"
-    container_name: nginx_agotool
-    image: "nginx:1.13.8"
     ports:
       #- "8080:80"
       #- "5911:80"
