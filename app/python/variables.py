@@ -15,6 +15,7 @@ LOW_MEMORY = False # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = False # for flask and some internals for printing, set to False in production
+LOG_USERINPUT_DEBUG = False # turn logging for userinput (args_dict) on or off. False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
@@ -120,8 +121,8 @@ LOG_DIRECTORY = os.path.join(DATA_DIR, "logs")
 LOG_FN_WARNINGS_ERRORS = os.path.join(LOG_DIRECTORY, "warnings_errors_log.txt")
 LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
 LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
-LOG_USERINPUT_DEBUG = os.path.join(LOG_DIRECTORY, "userinput_log_debug.txt")
-log_files = [LOG_FN_ACTIVITY, LOG_FN_UPDATES, LOG_FN_WARNINGS_ERRORS, LOG_USERINPUT_DEBUG]
+LOG_FN_USERINPUT_DEBUG = os.path.join(LOG_DIRECTORY, "userinput_log_debug.txt")
+log_files = [LOG_FN_ACTIVITY, LOG_FN_UPDATES, LOG_FN_WARNINGS_ERRORS, LOG_FN_USERINPUT_DEBUG]
 
 def makedirs_():
     if not os.path.exists(LOG_DIRECTORY):

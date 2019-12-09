@@ -56,6 +56,7 @@ def convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list):
 
 def print_runtime(start_time):
     print("#" * 80, "\n", "--- runtime: {} ---".format(str(datetime.timedelta(seconds=int(time.time() - start_time)))))
+    print("# Runtime {} # Datetime {}".format(str(datetime.timedelta(seconds=int(time.time() - start_time))), str(datetime.datetime.now())))
 
 def sort_file(fn_in, fn_out, columns=None, fn_bash_script=None, number_of_processes=1, verbose=True):
     if verbose:
