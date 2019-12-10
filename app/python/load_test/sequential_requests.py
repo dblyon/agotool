@@ -17,7 +17,7 @@ for line in open("species.txt"):
 FNULL = open(os.devnull, 'w')
 
 ##### sequential processing (with 2 parallel calls for each iteration) using 1.
-def sequential_requests(url, prefix, sequential_iterations, log_file_name):
+def sequential_requests(url, prefix, sequential_iterations, log_file_name, verbose):
     taxa = []
     for line in open("species.txt"):
         taxa.append(line.strip())
@@ -83,4 +83,4 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name):
                             print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_wrong)
                         log_sequential.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_wrong, str(datetime.datetime.now())))
 
-sequential_requests(url, prefix, sequential_iterations, log_file_name)
+sequential_requests(url, prefix, sequential_iterations, log_file_name, verbose)
