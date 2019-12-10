@@ -17,7 +17,6 @@ argparse_parser.add_argument("sequential_iterations", help="total number of iter
 argparse_parser.add_argument("log_file_name", help="name of file to log requests timestamps and check results for consistency", type=str, default="log_requests.txt", nargs="?")
 argparse_parser.add_argument("verbose", help="be verbose or not. print things.", type=str, default="False", nargs="?")
 
-
 args = argparse_parser.parse_args()
 for arg in sorted(vars(args)):
     if getattr(args, arg) is None:

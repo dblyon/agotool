@@ -89,3 +89,7 @@ data/PostgreSQL/tables
 ####################
 *.svg
 .snakemake/
+
+# flood test. parallel and sequential request # 
+###################
+load_test/test_agotool**
