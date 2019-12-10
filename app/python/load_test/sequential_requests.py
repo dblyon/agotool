@@ -5,6 +5,10 @@ url = sys.argv[1]
 prefix = sys.argv[2]
 sequential_iterations = int(sys.argv[3])
 log_file_name = str(sys.argv[4])
+try:
+    verbose = bool(sys.argv[5])
+except:
+    verbose = False
 
 taxa = []
 for line in open("species.txt"):
@@ -29,9 +33,9 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name):
 
                     file_wrong = prefix + "/" + "results.%s.txt" % caller_id_wrong
                     file_human = prefix + "/" + "results.%s.txt" % caller_id_human
-
-                    print("RequestingSequential " + caller_id_wrong + " #  " + str(datetime.datetime.now())) # is this visible anywhere?
-                    print("RequestingSequential " + caller_id_human + " #  " + str(datetime.datetime.now()))
+                    if verbose:
+                        print("RequestingSequential " + caller_id_wrong + " #  " + str(datetime.datetime.now())) # is this visible anywhere?
+                        print("RequestingSequential " + caller_id_human + " #  " + str(datetime.datetime.now()))
                     log_sequential.write("RequestingSequential " + caller_id_wrong + " #  " + str(datetime.datetime.now()) + "\n")
                     log_sequential.write("RequestingSequential " + caller_id_human + " #  " + str(datetime.datetime.now()) + "\n")
 
@@ -47,14 +51,17 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name):
                             if l[7] == 'heart development':
                                 heart_devel_found = True
                                 if l[3] != "7.489216012376792e-06": # check p_value
-                                    print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human,  str(datetime.datetime.now()))
+                                    if verbose:
+                                        print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human,  str(datetime.datetime.now()))
                                     log_sequential.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_human, str(datetime.datetime.now())))
                         except:  # connection timed out?
-                            print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
+                            if verbose:
+                                print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
                             log_sequential.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_human, str(datetime.datetime.now())))
 
                     if not heart_devel_found:
-                        print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
+                        if verbose:
+                            print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
                         log_sequential.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_human, str(datetime.datetime.now())))
 
                     heart_devel_found = False
@@ -64,13 +71,16 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name):
                             if l[7] == 'heart development':
                                 heart_devel_found = True
                                 if l[8] != "12": # check foreground input
-                                    print("WARNING!", "CallerID:", caller_id_wrong, "FILE:", file_wrong)
+                                    if verbose:
+                                        print("WARNING!", "CallerID:", caller_id_wrong, "FILE:", file_wrong)
                                     log_sequential.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_wrong, str(datetime.datetime.now())))
                         except: # connection timed out?
-                            print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_wrong)
+                            if verbose:
+                                print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_wrong)
                             log_sequential.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_wrong, str(datetime.datetime.now())))
                     if not heart_devel_found:
-                        print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_wrong)
+                        if verbose:
+                            print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_wrong)
                         log_sequential.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_wrong, str(datetime.datetime.now())))
 
 sequential_requests(url, prefix, sequential_iterations, log_file_name)

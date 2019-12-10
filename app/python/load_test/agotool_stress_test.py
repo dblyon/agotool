@@ -1,5 +1,4 @@
-import sys, os, time, datetime, argparse
-import subprocess, multiprocessing
+import sys, os, time, argparse, subprocess
 
 
 def error_(parser):
@@ -11,11 +10,12 @@ argparse_parser = argparse.ArgumentParser()
 argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="0.0.0.0", nargs="?")
 argparse_parser.add_argument("--port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110", nargs="?")
 argparse_parser.add_argument("number_requests_total", help="number of requests in total, e.g. 10000 or 1e4", type=int, default=1000, nargs="?")
-argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="test_agotool_v2", nargs="?")
+argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="test_agotool_v3", nargs="?")
 argparse_parser.add_argument("parallel_processes", help="number of parallel processes for flooding, e.g. 50", type=int, default="50", nargs="?")
 argparse_parser.add_argument("parallel_iterations", help="total number of iterations for parallel test, e.g. 1000 (if parallel_processes is 50 --> 50 * 1000 = 50000", type=int, default="10000", nargs="?")
-argparse_parser.add_argument("sequential_iterations", help="total number of iterations (for 2 parallel but otherwise) sequential requests, e.g. 10000 (2 parallel requests * 10000 = 20000).", type=int, default="10000", nargs="?")
+argparse_parser.add_argument("sequential_iterations", help="total number of iterations (for 2 parallel but otherwise) sequential requests, e.g. 10000 (2 parallel requests * 10000 = 20000).", type=int, default="500", nargs="?")
 argparse_parser.add_argument("log_file_name", help="name of file to log requests timestamps and check results for consistency", type=str, default="log_requests.txt", nargs="?")
+argparse_parser.add_argument("verbose", help="be verbose or not. print things.", type=str, default="False", nargs="?")
 
 
 args = argparse_parser.parse_args()
@@ -31,117 +31,48 @@ parallel_processes = int(args.parallel_processes)
 parallel_iterations = int(args.parallel_iterations)
 sequential_iterations = int(args.sequential_iterations)
 log_file_name = str(args.log_file_name)
+verbose = bool(args.verbose)
 
-# add empty directory to store results
+### empty directory to store results
 if os.path.exists(prefix):
     os.system("rm -r " + prefix)
 os.system("mkdir " + prefix)
 time.sleep(1)
 
-# print(url, number_requests_total, prefix, parallel_processes, parallel_iterations, sequential_iterations)
-# raise StopIteration
-
-##### sequential processing (with 2 parallel calls for each iteration) using 1.
-# def sequential_requests(url, prefix, sequential_iterations):
-#     taxa = []
-#     for line in open("species.txt"):
-#         taxa.append(line.strip())
-#     FNULL = open(os.devnull, 'w')
-#     with open(prefix + "/log_sequential.txt", "a") as log_sequential:
-#         i = 0
-#         while i <= sequential_iterations:
-#             for taxon in taxa:
-#                 i += 1
-#                 if i <= sequential_iterations:
-#                     caller_id_wrong = "%s_WRONG_%d_%s" % (prefix, i, taxon)
-#                     caller_id_human = "%s_HUMAN_%d_%s" % (prefix, i, taxon)
-#
-#                     file_wrong = prefix + "/" + "results.%s.txt" % caller_id_wrong
-#                     file_human = prefix + "/" + "results.%s.txt" % caller_id_human
-#
-#                     print("Requesting " + caller_id_wrong + " #  " + str(datetime.datetime.now())) # is this visible anywhere?
-#                     print("Requesting " + caller_id_human + " #  " + str(datetime.datetime.now()))
-#                     log_sequential.write("Requesting " + caller_id_wrong + " #  " + str(datetime.datetime.now()) + "\n")
-#                     log_sequential.write("Requesting " + caller_id_human + " #  " + str(datetime.datetime.now()) + "\n")
-#
-#                     p1 = subprocess.Popen("perl sequential_wrong.pl %s %s %s >> %s" % (caller_id_wrong, taxon, url, file_wrong), shell=True, stderr=FNULL) # stress the system try to concurrently requests things
-#                     p2 = subprocess.Popen("perl sequential_correct.pl %s %s >> %s" % (caller_id_human, url, file_human), shell=True, stderr=FNULL)
-#                     p1.wait()
-#                     p2.wait()
-#
-#                     heart_devel_found = False
-#                     for line in open(file_human):
-#                         l = line.strip().split("\t")
-#                         try:
-#                             if l[7] == 'heart development':
-#                                 heart_devel_found = True
-#                                 if l[3] != "7.489216012376792e-06":
-#                                     print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
-#                                     log_sequential.write("WARNING! " + "CallerID: " + caller_id_human + " FILE: " + file_human + "\n")
-#                         except:  # why does this happen?
-#                             pass
-#
-#                     if not heart_devel_found:
-#                         print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
-#                         log_sequential.write("WARNING! " + "CallerID: " + caller_id_human + " FILE: " + file_human + "\n")
-#
-#                     heart_devel_found = False
-#                     for line in open(file_wrong):
-#                         l = line.strip().split("\t")
-#                         try:
-#                             if l[7] == 'heart development':
-#                                 heart_devel_found = True
-#                                 if l[8] != "12":
-#                                     print("WARNING!", "CallerID:", caller_id_wrong, "FILE:", file_wrong)
-#                                     log_sequential.write("WARNING! " + "CallerID: " + caller_id_wrong + " FILE: " + file_human + "\n")
-#                         except: # not sure why this happens
-#                             print("WARNING! something wrong with the port (most probably)")
-#                             log_sequential.write("WARNING! something wrong with the port (most probably)\n")
-#
-#
-#                     if not heart_devel_found:
-#                         print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
-#                         log_sequential.write("WARNING! " + "CallerID: " + caller_id_human + " FILE: " + file_human + "\n")
-
-
-########### parallel_processes and parallel_iterations
-# def parallel_requests(parallel_iterations, prefix):
-#     pool = multiprocessing.Pool(processes=parallel_processes)
-#     for i in range(parallel_iterations):
-#         pool.apply_async(worker, args=(i, prefix, ))
-#     pool.close()
-#     pool.join()
-
-# def worker(i, prefix, fh_log):
-#     caller_id = prefix + "_" + str(i)
-#     print("RequestingParallel " + caller_id + " #  " + str(datetime.datetime.now()))
-#     fh_log.write("RequestingParallel " + caller_id + " #  " + str(datetime.datetime.now()) + "\n")
-#     os.system("perl flood_requests.pl %s %s > %s/%s.results" % (url, caller_id, prefix, caller_id))
-
 total_requests_from_parallel_calls = parallel_processes * parallel_iterations
-print("#"*50)
-print("# sequential_requests using {} (2 * {} = {})".format(sequential_iterations, sequential_iterations, sequential_iterations*2))
-print("# parallel_requests using {} ({} * {} = {})".format(parallel_iterations, parallel_processes, parallel_iterations, total_requests_from_parallel_calls))
-print("# total amount of requests {}".format(total_requests_from_parallel_calls + sequential_iterations*2))
-print("#"*50)
+string_2_print_and_log = "#" * 50 + "\n"
+string_2_print_and_log += "# parallel_requests using {} ({} * {} = {})\n".format(parallel_iterations, parallel_processes, parallel_iterations, total_requests_from_parallel_calls)
+string_2_print_and_log += "# sequential_requests using {} (2 * {} = {})\n".format(sequential_iterations, sequential_iterations, sequential_iterations * 2)
+string_2_print_and_log += "# wait one hour and then flood again\n"
+string_2_print_and_log += "# parallel_requests using {} ({} * {} = {})\n".format(parallel_iterations, parallel_processes, parallel_iterations, total_requests_from_parallel_calls)
+string_2_print_and_log += "# total amount of requests {}\n".format(total_requests_from_parallel_calls + sequential_iterations * 2)
+string_2_print_and_log += "#" * 50 + "\n"
+print(string_2_print_and_log)
+### do 2x flood_requests.py with 1h break in between and 1x sequential_requests.py (since this takes longer due to reading and checking output)
+with open(log_file_name, "a") as fh_log:
+    fh_log.write(string_2_print_and_log)
 
-FNULL = open(os.devnull, 'w')
-cmd = "python sequential_requests.py {} {} {} {}".format(url, prefix, sequential_iterations, log_file_name)
-print(cmd)
-sequential = subprocess.Popen(cmd, shell=True, stderr=FNULL) # stress the system try to concurrently requests things
-cmd = "python flood_requests.py {} {} {} {} {}".format(url, prefix, parallel_processes, sequential_iterations, log_file_name)
-print(cmd)
-flood = subprocess.Popen(cmd, shell=True, stderr=FNULL)
-sequential.wait()
-flood.wait()
+    FNULL = open(os.devnull, 'w')
 
+    cmd = "python sequential_requests.py {} {} {} {} {}".format(url, prefix, sequential_iterations, log_file_name, verbose)
+    print(cmd)
+    fh_log.write("# {}\n".format(cmd))
+    sequential = subprocess.Popen(cmd, shell=True, stderr=FNULL) # stress the system try to concurrently requests things
 
-# pool = multiprocessing.Pool(processes=parallel_processes + 1)
-# pool.apply_async(sequential_requests, args=(url, prefix, sequential_iterations))
-# with open(prefix + "/log_sequential.txt", "a") as fh_log:
-#     for i in range(parallel_iterations):
-#         print(i)
-#         pool.apply_async(worker, args=(i, prefix, fh_log, ))
-# pool.close()
-# pool.join()
+    file_start_count = 0
+    cmd = "python flood_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, sequential_iterations, log_file_name, file_start_count, verbose)
+    print(cmd)
+    fh_log.write("# {}\n".format(cmd))
+    flood = subprocess.Popen(cmd, shell=True, stderr=FNULL)
+
+    sequential.wait()
+    flood.wait()
+
+    time.sleep(3600) # wait one hour and then flood again
+    file_start_count = total_requests_from_parallel_calls # since files would otherwise be overwritten
+    cmd = "python flood_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, sequential_iterations, log_file_name, file_start_count, verbose)
+    print(cmd)
+    fh_log.write("# {}\n".format(cmd))
+    flood2 = subprocess.Popen(cmd, shell=True, stderr=FNULL)
+    flood2.wait()
 
