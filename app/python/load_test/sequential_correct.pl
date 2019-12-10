@@ -2,9 +2,8 @@ use strict;
 use warnings;
 use LWP::UserAgent;
 
-
-my $url = $ARGV[0];
-my $caller_id = $ARGV[1];
+my $caller_id = $ARGV[0];
+my $url = $ARGV[1]; #"http://127.0.0.1:10110/api";
 
 my $home_taxon_id = "9606";
 my $enrichment_method = "genome";
@@ -13,15 +12,13 @@ my $foreground_str = "9606.ENSP00000485227%0d9606.ENSP00000365147%0d9606.ENSP000
 my $background_str = "";
 my $values_str = "0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0%0d0";
 
-
 if ($background_str) {
     $enrichment_method = "compare_samples";
 }
 
-my $taxon = "9606";
 
+my $taxon = "9606";
 my $ua = LWP::UserAgent->new();
- 
 my $response = $ua->post ($url,
          [taxid =>  $taxon,
          output_format => 'tsv-no-header',
@@ -32,22 +29,13 @@ my $response = $ua->post ($url,
          foreground => $foreground_str,
          abundance_ratio => $values_str,
          ]);
-
 my $response_text = $response->content;
-
 unless (defined $response_text) {
     print STDERR "CODE_ERROR #1 enrichment response_text is 'undef'\n";
     return undef;
 }
-
 my @response_lines = split("\n", $response_text);
 my $number_of_lines = scalar @response_lines;
-
 foreach my $response_line (split "\n", $response_text) {
-    print "$taxon\t$response_line\t$caller_id\n";
+    print "$caller_id\t$response_line\n";
 }
-
-
-
-
-
