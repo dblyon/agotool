@@ -45,11 +45,12 @@ def sequential_requests(url, prefix, sequential_iterations):
                         try:
                             if l[7] == 'heart development':
                                 heart_devel_found = True
-                                if l[3] != "7.489216012376792e-06":
+                                if l[3] != "7.489216012376792e-06": # check p_value
                                     print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
                                     log_sequential.write("WARNING! " + "CallerID: " + caller_id_human + " FILE: " + file_human + "\n")
-                        except:  # why does this happen?
-                            pass
+                        except:  # connection timed out?
+                            print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
+                            log_sequential.write("WARNING! " + "CallerID: " + caller_id_human + " FILE: " + file_human + "\n")
 
                     if not heart_devel_found:
                         print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
@@ -61,13 +62,12 @@ def sequential_requests(url, prefix, sequential_iterations):
                         try:
                             if l[7] == 'heart development':
                                 heart_devel_found = True
-                                if l[8] != "12":
+                                if l[8] != "12": # check foreground input
                                     print("WARNING!", "CallerID:", caller_id_wrong, "FILE:", file_wrong)
                                     log_sequential.write("WARNING! " + "CallerID: " + caller_id_wrong + " FILE: " + file_human + "\n")
-                        except: # not sure why this happens
-                            print("WARNING! something wrong with the port (most probably)")
-                            log_sequential.write("WARNING! something wrong with the port (most probably)\n")
-
+                        except: # connection timed out?
+                            print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
+                            log_sequential.write("WARNING! " + "CallerID: " + caller_id_human + " FILE: " + file_human + "\n")
                     if not heart_devel_found:
                         print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
                         log_sequential.write("WARNING! " + "CallerID: " + caller_id_human + " FILE: " + file_human + "\n")

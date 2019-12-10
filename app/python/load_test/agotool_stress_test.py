@@ -11,10 +11,10 @@ argparse_parser = argparse.ArgumentParser()
 argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="0.0.0.0", nargs="?")
 argparse_parser.add_argument("--port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110", nargs="?")
 argparse_parser.add_argument("number_requests_total", help="number of requests in total, e.g. 10000 or 1e4", type=int, default=1000, nargs="?")
-argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="test_agotool", nargs="?")
-argparse_parser.add_argument("parallel_processes", help="number of parallel processes for flooding, e.g. 50", type=int, default="5", nargs="?")
-argparse_parser.add_argument("parallel_iterations", help="total number of iterations for parallel test, e.g. 1000 (if parallel_processes is 50 --> 50 * 1000 = 50000", type=int, default="10", nargs="?")
-argparse_parser.add_argument("sequential_iterations", help="total number of iterations (for 2 parallel but otherwise) sequential requests, e.g. 10000 (2 parallel requests * 10000 = 20000).", type=int, default="10", nargs="?")
+argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="test_agotool_v2", nargs="?")
+argparse_parser.add_argument("parallel_processes", help="number of parallel processes for flooding, e.g. 50", type=int, default="50", nargs="?")
+argparse_parser.add_argument("parallel_iterations", help="total number of iterations for parallel test, e.g. 1000 (if parallel_processes is 50 --> 50 * 1000 = 50000", type=int, default="10000", nargs="?")
+argparse_parser.add_argument("sequential_iterations", help="total number of iterations (for 2 parallel but otherwise) sequential requests, e.g. 10000 (2 parallel requests * 10000 = 20000).", type=int, default="10000", nargs="?")
 
 args = argparse_parser.parse_args()
 for arg in sorted(vars(args)):
@@ -123,8 +123,12 @@ print("# total amount of requests {}".format(total_requests_from_parallel_calls 
 print("#"*50)
 
 FNULL = open(os.devnull, 'w')
-sequential = subprocess.Popen("python sequential_requests.py {} {} {}".format(url, prefix, sequential_iterations), shell=True, stderr=FNULL) # stress the system try to concurrently requests things
-flood = subprocess.Popen("python flood_requests.py {} {} {} {}".format(url, prefix, parallel_processes, sequential_iterations), shell=True, stderr=FNULL)
+cmd = "python sequential_requests.py {} {} {}".format(url, prefix, sequential_iterations)
+print(cmd)
+sequential = subprocess.Popen(cmd, shell=True, stderr=FNULL) # stress the system try to concurrently requests things
+cmd = "python flood_requests.py {} {} {} {}".format(url, prefix, parallel_processes, sequential_iterations)
+print(cmd)
+flood = subprocess.Popen(cmd, shell=True, stderr=FNULL)
 sequential.wait()
 flood.wait()
 
