@@ -30,8 +30,9 @@ parallel_processes = int(args.parallel_processes)
 parallel_iterations = int(args.parallel_iterations)
 sequential_iterations = int(args.sequential_iterations)
 log_file_name = str(args.log_file_name)
+log_file_name = prefix + "/" + log_file_name
 verbose = bool(args.verbose)
-print(verbose, type(verbose))
+
 ### empty directory to store results
 if os.path.exists(prefix):
     os.system("rm -r " + prefix)
@@ -47,10 +48,10 @@ string_2_print_and_log += "# parallel_requests using {} ({} * {} = {})\n".format
 string_2_print_and_log += "# total amount of requests {}\n".format(total_requests_from_parallel_calls + sequential_iterations * 2)
 string_2_print_and_log += "#" * 50 + "\n"
 print(string_2_print_and_log)
+with open(log_file_name, "w") as fh_log:
+    fh_log.write(string_2_print_and_log)
 ### do 2x flood_requests.py with 1h break in between and 1x sequential_requests.py (since this takes longer due to reading and checking output)
 with open(log_file_name, "a") as fh_log:
-    fh_log.write(string_2_print_and_log)
-
     FNULL = open(os.devnull, 'w')
 
     cmd = "python sequential_requests.py {} {} {} {} {}".format(url, prefix, sequential_iterations, log_file_name, verbose)

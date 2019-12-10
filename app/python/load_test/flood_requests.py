@@ -11,10 +11,11 @@ try:
 except:
     file_start_count = 0
 try:
-    verbose = bool(sys.argv[7])
+    verbose = sys.argv[7]
+    if verbose.strip().upper() == "FALSE":
+        verbose = False
 except:
     verbose = False
-
 
 def worker(prefix, file_name_out, caller_id, log_file_name, verbose):
     with open(prefix + "/" + log_file_name, "a") as fh_log:
@@ -34,7 +35,7 @@ pool.close()
 pool.join()
 
 # check results for consistency
-with open(prefix + "/" + log_file_name, "a") as fh_log:
+with open(log_file_name, "a") as fh_log:
     for filename in files_list:
         with open(filename, "r") as fh:
             heart_devel_found = False
