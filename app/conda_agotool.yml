@@ -1,25 +1,33 @@
 name: agotool
 channels:
+  - conda-forge
   - anaconda
   - bioconda
-  - conda-forge
+  - defaults
 dependencies:
   - python=3
   - numpy
   - cython
   - pandas
+  - scipy
+  - jupyterlab
+  - ipython
+  - ipykernel
   - libgcc
-  - psycopg2
-  - retrying
   - fisher
+  - psycopg2
+  - line_profiler
   - Werkzeug
   - WTForms
   - Flask
   - flask-restful
+  - flask-markdown
   - networkx
   - lxml
   - pytest
   - pytest-cov
   - markdown
-  - flask-markdown
+  - retrying
   - requests
+  - beautifulsoup4
+  - uwsgi
