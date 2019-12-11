@@ -9,7 +9,7 @@ def error_(parser):
 argparse_parser = argparse.ArgumentParser()
 argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="0.0.0.0", nargs="?")
 argparse_parser.add_argument("--port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110", nargs="?")
-argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="test_agotool_v7", nargs="?")
+argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="test_agotool_v8", nargs="?")
 argparse_parser.add_argument("parallel_processes", help="number of parallel processes for flooding, e.g. 50", type=int, default=50, nargs="?")
 argparse_parser.add_argument("parallel_iterations", help="total total number of iterations for parallel test, e.g. 1000 (parallel_processes: number of synchronous requests, parallel_iterations: total num requests) ", type=int, default=50000, nargs="?")
 argparse_parser.add_argument("sequential_iterations", help="total number of iterations (for 2 parallel but otherwise) sequential requests, e.g. 10000 (2 parallel requests * 1000 = 2000).", type=int, default=10000, nargs="?")
