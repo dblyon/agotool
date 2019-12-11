@@ -17,8 +17,8 @@ try:
 except:
     verbose = False
 
-def worker(prefix, file_name_out, caller_id, log_file_name, verbose):
-    with open(prefix + "/" + log_file_name, "a") as fh_log:
+def worker(file_name_out, caller_id, log_file_name, verbose):
+    with open(log_file_name, "a") as fh_log:
         fh_log.write("RequestingParallel " + caller_id + " #  " + str(datetime.datetime.now()) + "\n")
     if verbose:
         print("RequestingParallel " + caller_id + " #  " + str(datetime.datetime.now()))
@@ -26,14 +26,14 @@ def worker(prefix, file_name_out, caller_id, log_file_name, verbose):
 
 pool = multiprocessing.Pool(processes=parallel_processes)
 files_list = []
-for i in range(file_start_count, sequential_iterations):
+for i in range(file_start_count, sequential_iterations+file_start_count):
     caller_id = prefix + "_" + str(i)
     file_name_out = prefix + "/" + caller_id + ".txt"
     files_list.append(file_name_out)
-    pool.apply_async(worker, args=(prefix, file_name_out, caller_id, log_file_name, verbose))
+    pool.apply_async(worker, args=(file_name_out, caller_id, log_file_name, verbose))
 pool.close()
 pool.join()
-
+print("# Finished part_1 requests of flood_request.py")
 # check results for consistency
 with open(log_file_name, "a") as fh_log:
     for filename in files_list:
@@ -57,4 +57,4 @@ with open(log_file_name, "a") as fh_log:
                 if verbose:
                     print("WARNING! {}".format(filename))
                 fh_log.write("WARNING! {}".format(filename))
-
+print("# Finished part_2 checking results of flood_request.py")

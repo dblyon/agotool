@@ -25,6 +25,7 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name, verbo
         taxa.append(line.strip())
     FNULL = open(os.devnull, 'w')
     with open(log_file_name, "a") as fh_log:
+        print(log_file_name)
         i = 0
         while i <= sequential_iterations:
             for taxon in taxa:
@@ -56,10 +57,12 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name, verbo
                                     if verbose:
                                         print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human,  str(datetime.datetime.now()))
                                     fh_log.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_human, str(datetime.datetime.now())))
+                                    break
                         except:  # connection timed out?
                             if verbose:
                                 print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_human)
                             fh_log.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_human, str(datetime.datetime.now())))
+                            break
 
                     if not heart_devel_found:
                         if verbose:
@@ -76,13 +79,16 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name, verbo
                                     if verbose:
                                         print("WARNING!", "CallerID:", caller_id_wrong, "FILE:", file_wrong)
                                     fh_log.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_wrong, str(datetime.datetime.now())))
+                                    break
                         except: # connection timed out?
                             if verbose:
                                 print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_wrong)
                             fh_log.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_wrong, str(datetime.datetime.now())))
+                            break
                     if not heart_devel_found:
                         if verbose:
                             print("WARNING!", "CallerID:", caller_id_human, "FILE:", file_wrong)
                         fh_log.write("WARNING! CallerID: {} FILE: {} {}\n".format(caller_id_human, file_wrong, str(datetime.datetime.now())))
 
 sequential_requests(url, prefix, sequential_iterations, log_file_name, verbose)
+print("# Finished sequential_requests.py")
