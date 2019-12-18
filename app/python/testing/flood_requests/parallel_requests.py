@@ -22,13 +22,13 @@ def worker(file_name_out, caller_id, log_file_name, verbose):
         fh_log.write("RequestingParallel " + caller_id + " #  " + str(datetime.datetime.now()) + "\n")
     if verbose:
         print("RequestingParallel " + caller_id + " #  " + str(datetime.datetime.now()))
-    os.system("perl flood_requests.pl {} {} > {}".format(url, caller_id, file_name_out))
+    os.system("perl parallel_requests.pl {} {} > {}".format(url, caller_id, file_name_out))
 
 pool = multiprocessing.Pool(processes=parallel_processes)
 files_list = []
 for i in range(file_start_count, sequential_iterations+file_start_count):
     caller_id = prefix + "_" + str(i)
-    file_name_out = prefix + "/" + caller_id + ".txt"
+    file_name_out = prefix + "/" + "parallel_" + caller_id + ".txt"
     files_list.append(file_name_out)
     pool.apply_async(worker, args=(file_name_out, caller_id, log_file_name, verbose))
 pool.close()

@@ -102,10 +102,10 @@ STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')
 
 # automatic updates
 POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
-TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables/bak_v11.3") # DEBUG #!!!
+TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")# /bak_v11.3") # DEBUG #!!!
 STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
-PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "test")
+PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "testing")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
 FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema_STRING.md")
 FN_HELP_ENTITY_TYPES = os.path.join(POSTGRESQL_DIR, "example_help_entity_types.md")

@@ -572,3 +572,14 @@ conda_agotool.yml:
   - clang
   - gcc
   - libgcc
+
+
+#### zip / unzip necessary files for STRING_v11
+tar -cvf STRING_v11.3_flat_files.tar KEGG_Taxid_2_acronym_table.txt Entity_types_table_STRING.txt Lineage_table_STRING.txt Protein_2_Function_table_STRING.txt Function_2_ENSP_table_STRING.txt Functions_table_STRING.txt Protein_2_FunctionEnum_and_Score_table_STRING.txt Protein_2_FunctionEnum_table_STRING.txt Taxid_2_FunctionCountArray_table_STRING.txt Taxid_2_Proteins_table_STRING.txt
+
+zip -r STRING_v11.3_flat_files.zip KEGG_Taxid_2_acronym_table.txt Entity_types_table_STRING.txt Lineage_table_STRING.txt Protein_2_Function_table_STRING.txt Function_2_ENSP_table_STRING.txt Functions_table_STRING.txt Protein_2_FunctionEnum_and_Score_table_STRING.txt Protein_2_FunctionEnum_table_STRING.txt Taxid_2_FunctionCountArray_table_STRING.txt Taxid_2_Proteins_table_STRING.txt
+
+
+
+
+

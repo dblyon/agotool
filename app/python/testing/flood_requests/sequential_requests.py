@@ -31,11 +31,10 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name, verbo
             for taxon in taxa:
                 i += 1
                 if i <= sequential_iterations:
-                    caller_id_wrong = "%s_WRONG_%d_%s" % (prefix, i, taxon)
-                    caller_id_human = "%s_HUMAN_%d_%s" % (prefix, i, taxon)
-
-                    file_wrong = prefix + "/" + "results.%s.txt" % caller_id_wrong
-                    file_human = prefix + "/" + "results.%s.txt" % caller_id_human
+                    caller_id_wrong = "{}_WRONG_{}_{}".format(prefix, i, taxon)
+                    caller_id_human = "{}_HUMAN_{}_{}".format(prefix, i, taxon)
+                    file_wrong = prefix + "/" + "sequential_" + caller_id_wrong + ".txt"
+                    file_human = prefix + "/" + "sequential_" + caller_id_human + ".txt"
                     if verbose:
                         print("RequestingSequential " + caller_id_wrong + " #  " + str(datetime.datetime.now())) # is this visible anywhere?
                         print("RequestingSequential " + caller_id_human + " #  " + str(datetime.datetime.now()))

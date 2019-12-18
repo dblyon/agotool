@@ -48,7 +48,7 @@ string_2_print_and_log += "# total number of requests overall {}\n".format(total
 string_2_print_and_log += "#" * 50 + "\n"
 print(string_2_print_and_log)
 
-### do 2x flood_requests.py with 1h break in between and 1x sequential_requests.py (since this takes longer due to reading and checking output)
+### do 2x parallel_requests.py with 1h break in between and 1x sequential_requests.py (since this takes longer due to reading and checking output)
 with open(log_fn_settings, "a") as fh_log:
     fh_log.write(string_2_print_and_log)
 
@@ -60,14 +60,14 @@ with open(log_fn_settings, "a") as fh_log:
     sequential = subprocess.Popen(cmd, shell=True, stderr=FNULL) # stress the system try to concurrently requests things
 
     file_start_count = 0
-    cmd = "python flood_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, parallel_iterations, log_fn_requests, file_start_count, verbose)
+    cmd = "python parallel_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, parallel_iterations, log_fn_requests, file_start_count, verbose)
     print(cmd, " #  " + str(datetime.datetime.now()))
     fh_log.write("# {} # {}\n".format(cmd, str(datetime.datetime.now())))
     flood = subprocess.Popen(cmd, shell=True, stderr=FNULL)
 
     time.sleep(3600) # wait one hour and then flood again
     file_start_count = parallel_iterations # since files would otherwise be overwritten
-    cmd = "python flood_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, parallel_iterations, log_fn_requests, file_start_count, verbose)
+    cmd = "python parallel_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, parallel_iterations, log_fn_requests, file_start_count, verbose)
     print(cmd, " #  " + str(datetime.datetime.now()))
     fh_log.write("# {} # {}\n".format(cmd, str(datetime.datetime.now())))
     flood2 = subprocess.Popen(cmd, shell=True, stderr=FNULL)
