@@ -1,0 +1,5 @@
+foreground	background	intensity
+NaN	NaN	NaN
+NaN	NaN	NaN
+NaN	NaN	NaN
+NaN	NaN	NaN
