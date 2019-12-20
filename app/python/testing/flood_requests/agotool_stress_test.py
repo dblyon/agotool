@@ -8,10 +8,10 @@ def error_(parser):
 argparse_parser = argparse.ArgumentParser()
 argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="0.0.0.0", nargs="?")
 argparse_parser.add_argument("--port", help="port number, e.g. '10110' (is also the default)", type=str, default="10111", nargs="?")
-argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="test_agotool_v8", nargs="?")
+argparse_parser.add_argument("prefix", help="prefix of directory to store results, e.g. 'test_v1' ", type=str, default="temp", nargs="?")
 argparse_parser.add_argument("parallel_processes", help="number of parallel processes for flooding, e.g. 50", type=int, default=50, nargs="?")
-argparse_parser.add_argument("parallel_iterations", help="total total number of iterations for parallel test, e.g. 1000 (parallel_processes: number of synchronous requests, parallel_iterations: total num requests) ", type=int, default=50000, nargs="?")
-argparse_parser.add_argument("sequential_iterations", help="total number of iterations (for 2 parallel but otherwise) sequential requests, e.g. 10000 (2 parallel requests * 1000 = 2000).", type=int, default=10000, nargs="?")
+argparse_parser.add_argument("parallel_iterations", help="total total number of iterations for parallel test, e.g. 1000 (parallel_processes: number of synchronous requests, parallel_iterations: total num requests) ", type=int, default=50, nargs="?")
+argparse_parser.add_argument("sequential_iterations", help="total number of iterations (for 2 parallel but otherwise) sequential requests, e.g. 10000 (2 parallel requests * 1000 = 2000).", type=int, default=100, nargs="?")
 argparse_parser.add_argument("verbose", help="be verbose or not. print things.", type=bool, default=True, nargs="?")
 # """
 # example of files being created (in directory 'test_agotool_v8') when running this script:
@@ -76,7 +76,8 @@ with open(log_fn_settings, "a") as fh_log:
     fh_log.write("# {} # {}\n".format(cmd, str(datetime.datetime.now())))
     flood = subprocess.Popen(cmd, shell=True, stderr=FNULL)
 
-    time.sleep(3600) # wait one hour and then flood again
+    time.sleep(60) # wait one hour and then flood again
+
     file_start_count = parallel_iterations # since files would otherwise be overwritten
     cmd = "python parallel_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, parallel_iterations, log_fn_requests, file_start_count, verbose)
     print(cmd, " #  " + str(datetime.datetime.now()))
@@ -93,11 +94,16 @@ def rsync_uWSGI_log_files():
     try copying uWSGI log files to prefix directory. The log files are located in the same directory the uwsgi app was launched in (using "uwsgi uwsgi_config.ini")
     # --> ./agotool/app
     """
-    cmd = "rsync -av --update ../../../log_uwsgi_\* ./{}".format(prefix)
     print("Copying uWSGI log files to prefix directory")
+    cmd = "rsync -av --update ../../../log_uwsgi_error.txt ./{}".format(prefix)
     print(cmd)
     rsync = subprocess.Popen(cmd, shell=True)
     rsync.wait()
+    cmd = "rsync -av --update ../../../log_uwsgi_requests.txt ./{}".format(prefix)
+    print(cmd)
+    rsync = subprocess.Popen(cmd, shell=True)
+    rsync.wait()
+
 
 rsync_uWSGI_log_files()
 

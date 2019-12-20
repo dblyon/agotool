@@ -47,14 +47,14 @@ with open(log_file_name, "a") as fh_log:
                         if l[3] != "7.489216012376792e-06":  # check p_value
                             if verbose:
                                 print("WARNING! {}".format(filename))
-                            fh_log.write("WARNING! {}".format(filename))
+                            fh_log.write("WARNING! {}\n".format(filename))
                 except:  # connection timed out?
                     if verbose:
                         print("WARNING! {}".format(filename))
-                    fh_log.write("WARNING! {}".format(filename))
+                    fh_log.write("WARNING! {}\n".format(filename))
 
             if not heart_devel_found:
                 if verbose:
                     print("WARNING! {}".format(filename))
-                fh_log.write("WARNING! {}".format(filename))
+                fh_log.write("WARNING! {}\n".format(filename))
 print("# Finished part_2 checking results of flood_request.py")
