@@ -92,4 +92,5 @@ data/PostgreSQL/tables
 
 # flood test. parallel and sequential request # 
 ###################
-load_test/test_agotool**
+#load_test/test_agotool**
+python/testing/flood_requests/**.txt
