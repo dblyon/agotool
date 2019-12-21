@@ -55,13 +55,7 @@ if args.verbose == "verbose" or args.verbose == "v":
 ###############################################################################
 
 # ToDo
-# - enable overrepresented/underrepresented/both options
-# - userinput from 3 sources
-     # - file
-     # - copy and paste
-     # - REST API
 # - buy goliath domain?
-# - Memory leak
 # - report userinput 2 mapped ID and make available as download
 # - return unused identifiers
 # - multiple entity type results to be displayed
@@ -689,8 +683,8 @@ def results():
         for key, val in sorted(args_dict.items()):
             print(key, val, type(val))
         print("-" * 80)
-        if variables.DEBUG_HTML:
-            ui.check = True # ToDo comment #!!! DEBUG
+        # if variables.DEBUG_HTML:
+        #     ui.check = True # ToDo comment #!!! DEBUG
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
@@ -698,11 +692,11 @@ def results():
             if not app.debug:
                 log_activity(string2log)
             ### DEBUG start
-            if variables.DEBUG_HTML:
-                df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-                df_all_etypes = df_all_etypes.groupby("etype").head(20)
-            else:
-                df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)  # ToDo uncomment #!!! DEBUG
+            # if variables.DEBUG_HTML:
+            #     df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            #     df_all_etypes = df_all_etypes.groupby("etype").head(20)
+            # else:
+            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)  # ToDo uncomment #!!! DEBUG
             ### DEBUG stop
         else:
             return render_template('info_check_input.html', args_dict=args_dict)

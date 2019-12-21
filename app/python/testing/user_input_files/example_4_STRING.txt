@@ -1,0 +1,4 @@
+foreground	background	intensity
+511145.b1260	123.abc	1.0
+511145.b1261	123.bcd	2.0
+511145.b1262	123.efg	3.0

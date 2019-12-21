@@ -1,0 +1,16 @@
+foreground	background	intensity
+A	A	1
+B	B	1
+C	C	1
+D	D	1
+E	E	1
+F	F	1
+G	G	2
+H	H	3
+I	I	4
+J	J	5
+	K	6
+	L	7
+	M	8
+	N	9
+	O	10

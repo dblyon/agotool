@@ -1,0 +1,4 @@
+foreground	background	intensity
+Q9UHI6	ABC123	1
+Q13075	CDE234	2
+A6NDB9	DEF345	3
