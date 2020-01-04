@@ -958,3 +958,10 @@ ggplot(data=df) + stat_ecdf(aes(score, colour=FG_BG, size=2), geom = "step")
 ggsave("/Users/dblyon/SynologyDrive/UZH/Presentations/Cake_group_meeting/ECDF_FuncEnum68613_fillzeroTrue_transformTrue_score.pdf", last_plot())
 ggplot(data=df) + stat_ecdf(aes(rank, colour=FG_BG, size=3), geom = "step")
 ggsave("/Users/dblyon/SynologyDrive/UZH/Presentations/Cake_group_meeting/ECDF_FuncEnum68613_fillzeroTrue_transformTrue_rank.pdf", last_plot())
+
+
+foreground <- c(0,1,2,3,4,5)
+background <- c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)
+result_tw <- ks.test(foreground, background)
+result_tw$statistic # 0.7142857
+result_tw$p.value # 0.01709861

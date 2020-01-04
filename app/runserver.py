@@ -35,23 +35,24 @@ PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
 # MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
+ARGPARSE = variables.ARGPARSE
 ###############################################################################
 def error_(parser):
     sys.stderr.write("The arguments passed are invalid.\nPlease check the input parameters.\n\n")
     parser.print_help()
     sys.exit(2)
-
-argparse_parser = argparse.ArgumentParser()
-argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1", nargs='?')
-argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110", nargs='?')
-argparse_parser.add_argument("verbose", help="add 'verbose' as an argument to print more information", type=str, default="False", nargs="?")
-args = argparse_parser.parse_args()
-for arg in sorted(vars(args)):
-    if getattr(args, arg) is None:
-        error_(argparse_parser)
-IP, port = args.IP, args.port
-if args.verbose == "verbose" or args.verbose == "v":
-    variables.VERBOSE = True
+if ARGPARSE:
+    argparse_parser = argparse.ArgumentParser()
+    argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1", nargs='?')
+    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110", nargs='?')
+    argparse_parser.add_argument("verbose", help="add 'verbose' as an argument to print more information", type=str, default="False", nargs="?")
+    args = argparse_parser.parse_args()
+    for arg in sorted(vars(args)):
+        if getattr(args, arg) is None:
+            error_(argparse_parser)
+    IP, port = args.IP, args.port
+    if args.verbose == "verbose" or args.verbose == "v":
+        variables.VERBOSE = True
 ###############################################################################
 
 # ToDo
@@ -838,6 +839,14 @@ if __name__ == "__main__":
     ### PISCES IP 127.0.0.1 port 10110
     ### ATLAS IP 0.0.0.0 port 5911
     ### Aquarius port 5911 (via docker-compose)
-    print("#" * 80)
-    print("running aGOtool on IP {} port {}".format(IP, port))
-    app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
+    # print("#" * 80)
+    # print("running aGOtool on IP {} port {}".format(IP, port))
+    # app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
+
+    if ARGPARSE:
+        print(IP, port)
+        print("#" * 80)
+        print("running aGOtool on IP {} port {}".format(IP, port))
+        app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
+    else:
+        app.run(processes=1, debug=variables.DEBUG)

@@ -664,6 +664,11 @@ nohup /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python runserver.py 
 docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/create_DBs.psql
 docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/copy_from_file_and_index.psql
 docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
+# or
+cd ~/modules/cpr/agotool/data/PostgreSQL
+psql -d agotool -f copy_from_file_and_index_ODY.psql
+psql -d agotool -f drop_and_rename.psql
+
 
 
 ### Error using new PostgreSQL version: remove PostgreSQL data directory, since switching from v10 to v11 results in problems

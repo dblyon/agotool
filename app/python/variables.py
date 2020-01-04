@@ -26,6 +26,7 @@ temp_dont_run_analysis = False
 # if READ_FROM_FLAT_FILES and LOW_MEMORY:
 #     raise NotImplementedError
 
+ARGPARSE = False
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # SMART is missing in UniProt version
 alpha = 0.05
@@ -227,13 +228,13 @@ else:
 
 tables_dict = {
     "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
-    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file.txt"),
-    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_FIN.txt"),
+    # "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file.txt"),
+    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_{}.txt".format(appendix)),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
-    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)),
+    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)), # if not low_mem
     "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
-    "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)),
+    "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)), # if not low_mem
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
     "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
