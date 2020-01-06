@@ -1371,7 +1371,8 @@ def get_goslimtype_2_cond_dict():
     translate GOterm function names to bool array
     """
     GOslimType_2_cond_dict = {}
-    GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
+    # GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
+    GO_slim_subsets_file = os.path.join(variables.TABLES_DIR, "goslim_subsets_file.txt")
     with open(GO_slim_subsets_file, "r") as fh_in:
         for line in fh_in:
             fn_basename = line.strip()

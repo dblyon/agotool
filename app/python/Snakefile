@@ -34,7 +34,8 @@ GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
 # URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
 # GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
 URL_GO_slim_subsets = r"http://purl.obolibrary.org/obo/go/subsets"
-goslim_subsets_file = variables.tables_dict["goslim_subsets_file"] # os.path.join(DOWNLOADS_DIR, "goslim_subsets_file.txt")
+#goslim_subsets_file = variables.tables_dict["goslim_subsets_file"] # os.path.join(DOWNLOADS_DIR, "goslim_subsets_file.txt")
+goslim_subsets_file = os.path.join(DOWNLOADS_DIR, "goslim_subsets_file.txt")
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 URL_SwissProt_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz"
@@ -136,7 +137,7 @@ Lineage_table_UPS_no_translation = os.path.join(TABLES_DIR, "Lineage_table_UPS_n
 Lineage_table_UPS_hr = os.path.join(TABLES_DIR, "Lineage_table_UPS_hr.txt") # Human Readable
 DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_lineage.txt")
 
-KEGG_Taxid_2_acronym_table_UPS_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table_UPS_FIN"]
+KEGG_Taxid_2_acronym_table_UPS_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
 Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
 Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
 Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
