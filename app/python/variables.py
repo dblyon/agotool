@@ -226,9 +226,8 @@ else:
     print("VERSION_ {} not know".format(VERSION_))
     raise sys.exit(2)
 
-tables_dict = {
-    "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_FIN.txt"),
-    # "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file.txt"),
+tables_dict = {  # "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file.txt"),
+    "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_{}.txt".format(appendix)),
     "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_{}.txt".format(appendix)),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
