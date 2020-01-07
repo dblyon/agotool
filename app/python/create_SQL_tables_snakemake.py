@@ -3694,14 +3694,15 @@ def _helper_yield_gen_AC_2_ID(fn):
             taxid, UniProtAC, UniProtID = line.split("\t")
             yield taxid, UniProtAC, UniProtID.strip()
 
-def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_order, download_GO_slim_subsets_placeholder_for_execution_order):
+# def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_order, download_GO_slim_subsets_placeholder_for_execution_order):
+def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_order, GO_slim_subsets_file):
     """
     read obo files
     parse all terms and add to dict (key: obo file name, val: list of GO terms)
     translate GOterm function names to bool array
     """
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
-    GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
+    #GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
     files = []
     with open(GO_slim_subsets_file, "r") as fh_in:
         for line in fh_in:
