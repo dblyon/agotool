@@ -15,10 +15,10 @@ TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
 cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 # create tar of relevant flat files
 
-find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN.txt' | xargs tar cvf "$TAR_FILE_NAME"
+find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN.txt' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
 # compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-pbzip2 -p24 "$TAR_FILE_NAME" &
+pbzip2 -p24 $TAR_FILE_NAME &
 check_exit_status
 
 # run snakemake pipeline
@@ -32,11 +32,11 @@ echo "\n### tar and compress new files for backup\n"
 TAR_FILE_NAME=aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
 cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 # create tar of relevant flat files
-find . -maxdepth 1 -name "*.npy" -o -name "*_UPS_FIN.txt" | xargs tar cvf "$TAR_FILE_NAME"
+find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN.txt' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
 
 # compress for quick transfer and backup, keep tar
-pbzip2 -k -p20 "$TAR_FILE_NAME"
+pbzip2 -k -p20 $TAR_FILE_NAME
 check_exit_status
 
 # copy files to Aquarius (production server)

@@ -13,8 +13,8 @@ reload(tools)
 import socket
 hostname = socket.gethostname()
 
-DOWNLOADS_DIR = variables.DOWNLOADS_DIR
-TABLES_DIR = variables.TABLES_DIR
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR_SNAKEMAKE
+TABLES_DIR = variables.TABLES_DIR_SNAKEMAKE
 PYTHON_DIR = variables.PYTHON_DIR
 NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 if NUMBER_OF_PROCESSES > 10:

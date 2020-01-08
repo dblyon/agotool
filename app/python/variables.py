@@ -7,12 +7,12 @@ PRELOAD = False # set True in production
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
-DB_DOCKER = False # connect to local Postgres or dockerized-Postgres
+DB_DOCKER = True # connect to local Postgres or dockerized-Postgres
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = False # for flask and some internals for printing, set to False in production
 DEBUG_HTML = False # if True: always load example results on submit
@@ -128,6 +128,9 @@ else: # relative path on host
     APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
     DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
 
+APP_DIR_SNAKEMAKE = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
+DATA_DIR_SNAKEMAKE = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
+
 EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata")
 SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
@@ -151,11 +154,14 @@ STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')
 
 # automatic updates
 POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
+POSTGRESQL_DIR_SNAKEMAKE = os.path.join(DATA_DIR_SNAKEMAKE, "PostgreSQL")
 TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
+TABLES_DIR_SNAKEMAKE = os.path.join(POSTGRESQL_DIR, "tables")
 STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
 PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "test")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
+DOWNLOADS_DIR_SNAKEMAKE = os.path.join(POSTGRESQL_DIR, "downloads")
 FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema.md")
 FN_HELP_ENTITY_TYPES = os.path.join(POSTGRESQL_DIR, "example_help_entity_types.md")
 FN_HELP_PARAMETERS = os.path.join(POSTGRESQL_DIR, "example_help_parameters.md")
