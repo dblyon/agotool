@@ -1,22 +1,19 @@
 #!/usr/bin/env python
-import os, sys #, zlib
-import requests #, time
+import os, sys
+import requests
 import urllib.request, urllib.parse
 from ftplib import FTP
 from bs4 import BeautifulSoup
-# from subprocess import call
 from retrying import retry
 from tqdm import tqdm
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.insert(0, PYTHON_DIR)
-# import tools
-# import variables_snakemake as variables
 import variables
 
-DOWNLOADS_DIR = variables.DOWNLOADS_DIR
-DIRECTORIES_LIST = variables.DIRECTORIES_LIST
-SESSION_FOLDER_ABSOLUTE = variables.SESSION_FOLDER_ABSOLUTE
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR_SNAKEMAKE
+# DIRECTORIES_LIST = variables.DIRECTORIES_LIST
+# SESSION_FOLDER_ABSOLUTE = variables.SESSION_FOLDER_ABSOLUTE
 
 
 @retry(stop_max_attempt_number=5, wait_exponential_multiplier=50000)

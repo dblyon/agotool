@@ -10,6 +10,7 @@ ALTER TABLE lineage_temp RENAME TO lineage;
 
 ALTER INDEX secondary_2_primary_id_sec_idx_temp RENAME TO secondary_2_primary_id_sec_idx;
 ALTER INDEX secondary_2_primary_id_taxid_idx_temp RENAME TO secondary_2_primary_id_taxid_idx;
+ALTER INDEX secondary_2_primary_id_prim_idx_temp RENAME TO secondary_2_primary_id_prim_idx;
 ALTER INDEX protein_2_functionenum_taxid_idx_temp RENAME TO protein_2_functionenum_taxid_idx;
 ALTER INDEX protein_2_functionenum_id_idx_temp RENAME TO protein_2_functionenum_id_idx;
 ALTER INDEX taxid_2_functioncountarray_taxid_idx_temp RENAME TO taxid_2_functioncountarray_taxid_idx;

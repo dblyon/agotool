@@ -71,6 +71,5 @@ echo "\n--- finished cron job ---\n"
 #MAILTO="dblyon@gmail.com" --> only if output not redirected, use log file instead
 ### dblyon inserted cronjob for automated aGOtool updates
 ## testing 10:05 am
-# 40 11 4 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Atlas.sh > /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt
-# 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Atlas.sh > /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt
+# 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Atlas.sh >> /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt 2>&1
 ########################################################################################################################

@@ -19,13 +19,9 @@ import run_cythonized
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 BASH_LOCATION = r"/usr/bin/env bash"
 PYTHON_DIR = variables.PYTHON_DIR
-LOG_DIRECTORY = variables.LOG_DIRECTORY
-POSTGRESQL_DIR = variables.POSTGRESQL_DIR
-DOWNLOADS_DIR = variables.DOWNLOADS_DIR
-STATIC_DIR = variables.STATIC_POSTGRES_DIR
-TABLES_DIR = variables.TABLES_DIR
-TEST_DIR = variables.TEST_DIR
-FILES_NOT_2_DELETE = variables.FILES_NOT_2_DELETE
+LOG_DIRECTORY = variables.LOG_DIRECTORY_SNAKEMAKE
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR_SNAKEMAKE
+TABLES_DIR = variables.TABLES_DIR_SNAKEMAKE
 NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 VERSION_ = variables.VERSION_
 PLATFORM = sys.platform
@@ -678,7 +674,7 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
     559292  HIS4_YEAST      {3971,3980,5332,5616,5642,5663,5671,5681,5794,5846,6457,6458,...}
     """
     # # merge multiline
-    # ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    # ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=DOWNLOADS_DIR, for_SQL=False, update=True)
     # with open(fn_in_Protein_2_Function_table, "r") as fh_in:
     #     with open(fn_out_Protein_2_Function_table_taxids_merged, "w") as fh_out:
     #         taxid_last, UniProtID_last, function_arr_str, etype = fh_in.readline().split("\t")
@@ -963,7 +959,7 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
     """
     Taxid_2_Proteins_table_UniProt --> UniProt entry name (ID) not accession
     """
-    # ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    # ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=DOWNLOADS_DIR, for_SQL=False, update=True)
     # taxid_no_proper_translation = []
     with open(Taxid_2_Proteins_table_UniProt, "w") as fh_out:
         for fn in [fn for fn in os.listdir(UniProt_reference_proteomes_dir) if fn.endswith(".fasta.gz")]:
@@ -2216,7 +2212,7 @@ def Protein_2_Function_table_UPS(fn_list, fn_out_Protein_2_Function_table_orig, 
     tools.concatenate_files(fn_list, fn_out_Protein_2_Function_table_orig)
 
     # merge multiline
-    ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=DOWNLOADS_DIR, for_SQL=False, update=True)
     with open(fn_out_Protein_2_Function_table_orig, "r") as fh_in:
         with open(fn_out_Protein_2_Function_table_taxids_merged, "w") as fh_out:
             for line in fh_in:
@@ -3707,16 +3703,16 @@ def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_or
     with open(GO_slim_subsets_file, "r") as fh_in:
         for line in fh_in:
             fn_basename = line.strip()
-            fn_absolute = os.path.join(variables.DOWNLOADS_DIR, fn_basename)
+            fn_absolute = os.path.join(DOWNLOADS_DIR, fn_basename)
             files.append([fn_basename, fn_absolute])
             # go_dag = obo_parser.GODag(obo_file=fn_absolute)
             # list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
-            # np.save(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
+            # np.save(os.path.join(TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
     for file_base_absolute in tqdm(files):
         fn_basename, fn_absolute = file_base_absolute
         go_dag = obo_parser.GODag(obo_file=fn_absolute)
         list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
-        np.save(os.path.join(variables.TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
+        np.save(os.path.join(TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
 
 ##### Taxonomy mapping explanation, for UniProt version
 # Taxid_2_Proteins_table_UPS_FIN remains as is, which is UniProt space and their TaxIDs (which are partially on strain level).
@@ -3750,8 +3746,8 @@ if __name__ == "__main__":
                        Protein_2_Function_table_PMID_UPS]
     UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
     fn_Functions_table = variables.tables_dict["Functions_table"]
-    fn_in_Protein_2_function_table = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
+    fn_in_Protein_2_function_table = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
     fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
     Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
     Functions_table_UPS_FIN = variables.tables_dict["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
@@ -3814,7 +3810,7 @@ if __name__ == "__main__":
     #                Protein_2_Function_table_KEGG_UPS,
     #                Protein_2_Function_table_WikiPathways_UPS,
     #                Protein_2_Function_table_PMID_UPS]
-    # fn_out_Protein_2_Function_table_UPS = os.path.join(variables.TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    # fn_out_Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
     # Protein_2_Function_table_UPS(fn_list_str, fn_out_Protein_2_Function_table_UPS, number_of_processes=10)
 
 
@@ -3923,6 +3919,3 @@ if __name__ == "__main__":
     # fn_out_ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
     # fn_out_Protein_2_FunctionEnum_and_Score_table_UPS = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
     # Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_Taxid_2_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Functions_table_UPS, fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, fn_out_DOID_GO_BTO_an_without_translation, fn_out_ENSP_2_UniProtID_without_translation, fn_out_DOID_GO_BTO_an_without_lineage, GO_CC_textmining_additional_etype=False)
-
-    # ToDo:
-    # from DOID:2627 to DOID:3070 --> convert Lars outdated DOIDs to up to date ids since they will be excluded otherwise

@@ -515,41 +515,11 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("go go GO and fly like the wind")
             print("#" * 80)
 
-    # @contextmanager
-    # def get_preloaded_objects_per_analysis_contextmanager(self, method="genome"):
-    #     if method == "genome":
-    #         yield self.preloaded_objects_per_analysis_genome
-    #     elif method == "characterize_foreground":
-    #         yield self.preloaded_objects_per_analysis_characterize_foreground
-    #     elif method == "compare_samples":
-    #         yield self.preloaded_objects_per_analysis_compare_samples
-    #     else:
-    #         raise NotImplementedError
-    #     ### regenerate arrays
-    #     self.reset_preloaded_objects_per_analysis(method)
-
     def get_preloaded_objects_per_analysis(self):
         self.reset_preloaded_objects_per_analysis()
-        # if method == "genome":
-        #     return self.preloaded_objects_per_analysis_genome
-        # elif method == "characterize_foreground":
-        #     return self.preloaded_objects_per_analysis_characterize_foreground
-        # elif method == "compare_samples" or method == "abundance_correction":
-        #     return self.preloaded_objects_per_analysis_compare_samples
-        # else:
-        #     return NotImplementedError
         return self.preloaded_objects_per_analysis
 
     def reset_preloaded_objects_per_analysis(self):
-        # if method == "genome":
-        #     self.preloaded_objects_per_analysis_genome = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="genome")
-        # elif method == "characterize_foreground":
-        #     self.preloaded_objects_per_analysis_characterize_foreground = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="characterize_foreground")
-        # elif method == "compare_samples" or method == "abundance_correction":
-        #     self.preloaded_objects_per_analysis_compare_samples = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len, method="compare_samples")
-        # else:
-        #     print(method, "not available")
-        #     raise NotImplementedError
         self.preloaded_objects_per_analysis = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len)
 
     def get_static_preloaded_objects(self, low_memory=False):
@@ -1217,10 +1187,7 @@ def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None, re
     reading from flat file is super slow, DB makes a lot of sense here. Only relevant if low_memory is True
     """
     if Secondary_2_Primary_IDs_dict is None:
-        # if variables.READ_FROM_FLAT_FILES: # don't read this from flat files (very slow)
-            # if there is a DB and low_memory then use DB
-            # if low_memory is False then Secondary_2_Primary_IDs_dict will exist and there is no issue
-            # print("overwriting variables.READ_FROM_FLAT_FILES set to True for query.get_Secondary_2_Primary_IDs_dict_from_sec") # ToDo remove at some point
+        ### don't read this from flat files (VERY slow) if there is a DB and low_memory then use DB
         Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict_from_sec(ids_2_map, read_from_flat_files)
     Secondary_2_Primary_IDs_dict_userquery = {}
     for id_ in ids_2_map:
@@ -1231,6 +1198,23 @@ def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None, re
         if prim:
             Secondary_2_Primary_IDs_dict_userquery[id_] = prim
     return Secondary_2_Primary_IDs_dict_userquery
+
+def map_primary_2_secondary_ANs(ids_2_map, Primary_2_Secondary_IDs_dict=None, read_from_flat_files=False):
+    """
+    reading from flat file is super slow, DB makes a lot of sense here. Only relevant if low_memory is True
+    """
+    if Primary_2_Secondary_IDs_dict is None:
+        ### don't read this from flat files (VERY slow) if there is a DB and low_memory then use DB
+        Primary_2_Secondary_IDs_dict = get_Primary_2_Secondary_IDs_dict_from_prim(ids_2_map, read_from_flat_files)
+    Primary_2_Secondary_IDs_dict_userquery = {}
+    for id_ in ids_2_map:
+        try:
+            sec = Primary_2_Secondary_IDs_dict[id_]
+        except KeyError:
+            sec = False
+        if sec:
+            Primary_2_Secondary_IDs_dict_userquery[id_] = sec
+    return Primary_2_Secondary_IDs_dict_userquery
 
 def get_Secondary_2_Primary_IDs_dict(read_from_flat_files=False):
     Secondary_2_Primary_IDs_dict = {}
@@ -1255,6 +1239,21 @@ def get_Secondary_2_Primary_IDs_dict_from_sec(ids_2_map, read_from_flat_files=Fa
         for sec, prim in result:
             Secondary_2_Primary_IDs_dict[sec] = prim
     return Secondary_2_Primary_IDs_dict
+
+def get_Primary_2_Secondary_IDs_dict_from_prim(ids_2_map, read_from_flat_files=False):
+    Primary_2_Secondary_IDs_dict = {}
+    if read_from_flat_files:
+        ids_2_map = set(ids_2_map)
+        result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_ID_table"], columns=[1, 2])
+        for sec, prim in result:
+            if prim in ids_2_map:
+                Primary_2_Secondary_IDs_dict[prim] = sec
+    else:
+        result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.prim FROM secondary_2_primary_id WHERE secondary_2_primary_id.prim IN ({});".format(str(ids_2_map)[1:-1]))
+        for sec, prim in result:
+            Primary_2_Secondary_IDs_dict[prim] = sec
+    return Primary_2_Secondary_IDs_dict
+
 
 def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins_table_STRING=None):
     if not read_from_flat_files:

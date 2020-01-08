@@ -8,6 +8,7 @@ CREATE TABLE secondary_2_primary_id_temp (
 \copy secondary_2_primary_id_temp FROM '/agotool_data/PostgreSQL/tables/Secondary_2_Primary_ID_UPS_FIN.txt';
 CREATE INDEX secondary_2_primary_id_sec_idx_temp ON secondary_2_primary_id_temp (sec);
 CREATE INDEX secondary_2_primary_id_taxid_idx_temp ON secondary_2_primary_id_temp (taxid);
+-- CREATE INDEX secondary_2_primary_id_prim_idx_temp ON secondary_2_primary_id_temp (prim);
 CLUSTER secondary_2_primary_id_temp USING secondary_2_primary_id_taxid_idx_temp;
 
 
