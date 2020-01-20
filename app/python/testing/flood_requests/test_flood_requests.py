@@ -20,7 +20,7 @@ PYTEST_FN_DIR = variables.PYTEST_FN_DIR
 def test_dir():
     # dir_ = r"/Users/dblyon/modules/cpr/agotool/app/python/load_test/test_2_workers"
     # dir_ = r"/Users/dblyon/modules/cpr/agotool/app/python/testing/flood_requests/test_agotool_v9"
-    dir_2_test = "test_temp"
+    dir_2_test = "san" # "test_temp" # san
     dir_ = os.path.join(os.path.dirname(os.path.abspath(os.path.realpath(__file__))), dir_2_test)
     print("#" * 50)
     print("TESTING: ", dir_)

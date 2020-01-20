@@ -56,6 +56,9 @@ if ARGPARSE:
 ###############################################################################
 
 # ToDo
+# - convert Jensenlab scores so that 5 is 0 and 0 is 5.
+# - add check to size of downloads. e.g. documents_protein2function.tsv.gz == URL_protein_2_function_PMID
+#    --> to be >= previous size
 # - buy goliath domain?
 # - report userinput 2 mapped ID and make available as download
 # - return unused identifiers
@@ -72,6 +75,7 @@ if ARGPARSE:
 # - update documentation specifically about foreground and background
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
 # - version of tool/ dates of files downloaded
+# - one version per year that is fixed. if you need that particular annotation extra submission with some wait time and email results?
 ###############################################################################
 ###############################################################################
 def getitem(obj, item, default):

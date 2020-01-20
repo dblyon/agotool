@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment_DBL_ChristianInput.c
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+limits.h
+-
+float.h
+-
+math.h
+-
+ctype.h
+-
+time.h
+-
+

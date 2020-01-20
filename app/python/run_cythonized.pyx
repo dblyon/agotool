@@ -85,7 +85,7 @@ cdef count_terms_cy(unsigned int[::1] funcEnum_associations,
         k = funcEnum_associations[i]
         funcEnum_count[k] += 1
 
-def collect_scores_per_term_v0(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, list_2_array=False):
+def collect_scores_per_term(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, list_2_array=False):
     """
     ENSP_2_tuple_funcEnum_score_dict['3702.AT1G01010.1']
     (array([ 211,  252,  253,  259,  323,  354,  358,  363,  373,  395,  415,
@@ -751,7 +751,7 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
             except KeyError:
                 funcEnum_2_scores_dict_bg = {}
     elif em == "compare_samples":
-        funcEnum_2_scores_dict_bg = collect_scores_per_term_v0(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict)
+        funcEnum_2_scores_dict_bg = collect_scores_per_term(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict)
     else: # compare_groups
         pass
     if em in {"abundance_correction", "genome", "compare_samples"}:

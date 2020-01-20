@@ -22,6 +22,8 @@ if NUMBER_OF_PROCESSES > 10:
 else:
     NUMBER_OF_PROCESSES_sorting = NUMBER_OF_PROCESSES
 verbose = variables.VERBOSE
+TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
+
 
 ### Parameters
 max_len_description = 250
@@ -34,7 +36,7 @@ GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
 # URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
 # GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
 URL_GO_slim_subsets = r"http://purl.obolibrary.org/obo/go/subsets"
-#goslim_subsets_file = variables.tables_dict["goslim_subsets_file"] # os.path.join(DOWNLOADS_DIR, "goslim_subsets_file.txt")
+#goslim_subsets_file = TABLES_DICT_SNAKEMAKE["goslim_subsets_file"] # os.path.join(DOWNLOADS_DIR, "goslim_subsets_file.txt")
 goslim_subsets_file = os.path.join(DOWNLOADS_DIR, "goslim_subsets_file.txt")
 URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
@@ -45,7 +47,7 @@ URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_releas
 SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
-Secondary_2_Primary_ID_UPS_FIN = variables.tables_dict["Secondary_2_Primary_ID_table"]
+Secondary_2_Primary_ID_UPS_FIN = TABLES_DICT_SNAKEMAKE["Secondary_2_Primary_ID_table"]
 Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
 Secondary_2_Primary_ID_UPS_different_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_different_translation.txt")
 ### Jensenlab
@@ -93,7 +95,7 @@ Functions_table_InterPro = os.path.join(TABLES_DIR, "Functions_table_InterPro.tx
 Functions_table_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
 Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
 Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
-Functions_table_UPS_FIN = variables.tables_dict["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
+Functions_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
 Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_removed.txt")
 UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
 WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
@@ -113,7 +115,7 @@ URL_RCTM_descriptions = r"https://reactome.org/download/current/ReactomePathways
 RCTM_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv")
 
 Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
-Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+Protein_2_FunctionEnum_and_Score_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
 
 Function_2_Protein_table_UPS = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
 Function_2_Protein_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_reduced.txt")
@@ -127,19 +129,19 @@ ENSP_2_UniProt_all = os.path.join(TABLES_DIR, "ENSP_2_UniProt_all.txt")
 EntrezGeneID_2_UniProtID = os.path.join(TABLES_DIR, "EntrezGeneID_2_UniProtID.txt")
 Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
-Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
+Taxid_2_Proteins_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
 Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 
 # Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
 
-Lineage_table_UPS_FIN = variables.tables_dict["Lineage_table"]
+Lineage_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Lineage_table"]
 Lineage_table_UPS_no_translation = os.path.join(TABLES_DIR, "Lineage_table_UPS_no_translation.txt")
 Lineage_table_UPS_hr = os.path.join(TABLES_DIR, "Lineage_table_UPS_hr.txt") # Human Readable
 DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_lineage.txt")
 
-KEGG_Taxid_2_acronym_table_UPS_FIN = variables.tables_dict["KEGG_Taxid_2_acronym_table"]
-Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
-Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
+KEGG_Taxid_2_acronym_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["KEGG_Taxid_2_acronym_table"]
+Taxid_2_FunctionCountArray_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionCountArray_table"]
+Protein_2_FunctionEnum_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_table"]
 Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
 Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
 

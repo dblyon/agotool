@@ -8,8 +8,19 @@ CREATE TABLE secondary_2_primary_id_temp (
 \copy secondary_2_primary_id_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/Secondary_2_Primary_ID_UPS_FIN.txt';
 CREATE INDEX secondary_2_primary_id_sec_idx_temp ON secondary_2_primary_id_temp (sec);
 CREATE INDEX secondary_2_primary_id_taxid_idx_temp ON secondary_2_primary_id_temp (taxid);
--- CREATE INDEX secondary_2_primary_id_prim_idx_temp ON secondary_2_primary_id_temp (prim);
+CREATE INDEX secondary_2_primary_id_prim_idx_temp ON secondary_2_primary_id_temp (prim);
 CLUSTER secondary_2_primary_id_temp USING secondary_2_primary_id_taxid_idx_temp;
+
+-- CREATE TABLE ensp_2_uniprot_an_id_temp (
+--     ensp text,
+--     upid text,
+--     upan text,
+--     source text);
+-- \copy ensp_2_uniprot_an_id_temp FROM '/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/tables/ENSP_2_UniProt_2_use.txt';
+-- CREATE INDEX ensp_2_uniprot_an_id_ensp_idx_temp ON ensp_2_uniprot_an_id_temp (ensp);
+-- CREATE INDEX ensp_2_uniprot_an_id_upid_idx_temp ON ensp_2_uniprot_an_id_temp (upid);
+-- CREATE INDEX ensp_2_uniprot_an_id_upan_idx_temp ON ensp_2_uniprot_an_id_temp (upan);
+
 
 
 CREATE TABLE protein_2_functionenum_temp (

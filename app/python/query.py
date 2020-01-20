@@ -1199,9 +1199,9 @@ def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None, re
             Secondary_2_Primary_IDs_dict_userquery[id_] = prim
     return Secondary_2_Primary_IDs_dict_userquery
 
-def map_primary_2_secondary_ANs(ids_2_map, Primary_2_Secondary_IDs_dict=None, read_from_flat_files=False):
+def map_primary_2_secondary_ANs(ids_2_map, Primary_2_Secondary_IDs_dict=None, read_from_flat_files=False, ENSPs_only=False):
     """
-    reading from flat file is super slow, DB makes a lot of sense here. Only relevant if low_memory is True
+    only maps UniProtID to UniProtAC
     """
     if Primary_2_Secondary_IDs_dict is None:
         ### don't read this from flat files (VERY slow) if there is a DB and low_memory then use DB
@@ -1212,8 +1212,16 @@ def map_primary_2_secondary_ANs(ids_2_map, Primary_2_Secondary_IDs_dict=None, re
             sec = Primary_2_Secondary_IDs_dict[id_]
         except KeyError:
             sec = False
-        if sec:
-            Primary_2_Secondary_IDs_dict_userquery[id_] = sec
+        if sec: # sec is a list
+            if ENSPs_only:
+                for sec_id in sec:
+                    try:
+                        if int(sec_id.split(".")[0]) > 1:
+                            Primary_2_Secondary_IDs_dict_userquery[id_] = sec_id
+                    except:
+                        pass
+            else: # take all IDs
+                Primary_2_Secondary_IDs_dict_userquery[id_] = sec
     return Primary_2_Secondary_IDs_dict_userquery
 
 def get_Secondary_2_Primary_IDs_dict(read_from_flat_files=False):
@@ -1247,13 +1255,19 @@ def get_Primary_2_Secondary_IDs_dict_from_prim(ids_2_map, read_from_flat_files=F
         result = get_results_of_statement_from_flat_file(variables.tables_dict["Secondary_2_Primary_ID_table"], columns=[1, 2])
         for sec, prim in result:
             if prim in ids_2_map:
-                Primary_2_Secondary_IDs_dict[prim] = sec
+                if prim not in Primary_2_Secondary_IDs_dict:
+                    Primary_2_Secondary_IDs_dict[prim] = [sec]
+                else:
+                    Primary_2_Secondary_IDs_dict[prim].append(sec)
+
     else:
         result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.prim FROM secondary_2_primary_id WHERE secondary_2_primary_id.prim IN ({});".format(str(ids_2_map)[1:-1]))
         for sec, prim in result:
-            Primary_2_Secondary_IDs_dict[prim] = sec
+            if prim not in Primary_2_Secondary_IDs_dict:
+                Primary_2_Secondary_IDs_dict[prim] = [sec]
+            else:
+                Primary_2_Secondary_IDs_dict[prim].append(sec)
     return Primary_2_Secondary_IDs_dict
-
 
 def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins_table_STRING=None):
     if not read_from_flat_files:
@@ -1371,7 +1385,7 @@ def get_goslimtype_2_cond_dict():
     """
     GOslimType_2_cond_dict = {}
     # GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
-    GO_slim_subsets_file = os.path.join(variables.TABLES_DIR, "goslim_subsets_file.txt")
+    GO_slim_subsets_file = os.path.join(variables.TABLES_DIR, "goslim_subsets_file.txt") #!!! ToDo make into UPS_FIN.txt file
     with open(GO_slim_subsets_file, "r") as fh_in:
         for line in fh_in:
             fn_basename = line.strip()

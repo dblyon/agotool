@@ -1,13 +1,14 @@
 import os, multiprocessing, sys
 import numpy as np
+np.searchsorted
 ############################
 ### settings
-PRELOAD = False # set True in production
+PRELOAD = True # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
 
-DOCKER = True # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
+DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
 ## vs. dockerized version (named-volume, copy data to named-volume first, if DOCKER=True --> version 2)
@@ -245,6 +246,21 @@ tables_dict = {  # "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subse
     "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
     "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
 }
+
+TABLES_DICT_SNAKEMAKE = {"Entity_types_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Entity_types_table_{}.txt".format(appendix)),
+    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR_SNAKEMAKE, "KEGG_Taxid_2_acronym_table_{}.txt".format(appendix)),
+    "Lineage_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Lineage_table_{}.txt".format(appendix)),
+    "Functions_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
+    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)), # if not low_mem
+    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
+    "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Secondary_2_Primary_ID_{}.txt".format(appendix)), # if not low_mem
+    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
+    "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
+    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Taxid_2_Proteins_table_{}.txt".format(appendix))
+}
+
+
+
 
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):

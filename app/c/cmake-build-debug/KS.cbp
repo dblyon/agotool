@@ -37,8 +37,8 @@
 					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="compute_global_enrichment_DBL">
-				<Option output="/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment_DBL" prefix_auto="0" extension_auto="0"/>
+			<Target title="compute_global_enrichment_DBL_ChristianInput">
+				<Option output="/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment_DBL_ChristianInput" prefix_auto="0" extension_auto="0"/>
 				<Option working_dir="/Users/dblyon/modules/cpr/agotool/app/c"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
@@ -52,14 +52,14 @@
 					<Add directory="/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 compute_global_enrichment_DBL"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 compute_global_enrichment_DBL_ChristianInput"/>
 					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="compute_global_enrichment_DBL/fast">
-				<Option output="/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment_DBL" prefix_auto="0" extension_auto="0"/>
+			<Target title="compute_global_enrichment_DBL_ChristianInput/fast">
+				<Option output="/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment_DBL_ChristianInput" prefix_auto="0" extension_auto="0"/>
 				<Option working_dir="/Users/dblyon/modules/cpr/agotool/app/c"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
@@ -73,15 +73,15 @@
 					<Add directory="/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 compute_global_enrichment_DBL/fast"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 compute_global_enrichment_DBL_ChristianInput/fast"/>
 					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/dblyon/modules/cpr/agotool/app/c/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment_DBL.c">
-			<Option target="compute_global_enrichment_DBL"/>
+		<Unit filename="/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment_DBL_ChristianInput.c">
+			<Option target="compute_global_enrichment_DBL_ChristianInput"/>
 		</Unit>
 		<Unit filename="/Users/dblyon/modules/cpr/agotool/app/c/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>

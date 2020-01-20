@@ -5,7 +5,6 @@ import urllib.request, urllib.parse
 from ftplib import FTP
 from bs4 import BeautifulSoup
 from retrying import retry
-from tqdm import tqdm
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 sys.path.insert(0, PYTHON_DIR)
@@ -67,7 +66,7 @@ def download_GO_slim_subsets(url, download_dir, GO_slim_subsets_file):
     # get URLs to download
     files_2_download = [fn for fn in sorted(set(get_list_of_files_2_download_from_http(url, ext="obo", go_subset=True))) if not os.path.basename(fn).startswith("gocheck")]
     with open(GO_slim_subsets_file, "w") as fh_out:
-        for url in tqdm(files_2_download):
+        for url in files_2_download:
             # check if needed, rename?
             basename = os.path.basename(url)
             file_name = os.path.join(download_dir, basename)
@@ -85,7 +84,7 @@ def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file):
     # get potential URLs to download
     files_2_download = sorted(set(get_list_of_files_2_download_from_http(url, ext="gmt")))
     # download and rename
-    for url in tqdm(files_2_download):
+    for url in files_2_download:
         # check if needed, rename?
         basename = os.path.basename(url)
         file_name = os.path.join(download_dir, basename)
@@ -124,7 +123,7 @@ def download_UniProt_reference_proteomes(download_dir, verbose=True):
         print("Found {} number of reference proteome fasta files to download".format(len(files_2_download)))
     if not os.path.exists(download_dir):
         os.makedirs(download_dir)
-    for url in tqdm(files_2_download):
+    for url in files_2_download:
         file_name = os.path.join(download_dir, os.path.basename(url))
         download_gzip_file(url, file_name, verbose=False)
 

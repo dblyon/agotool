@@ -1,4 +1,4 @@
-import sys, re, os
+import sys, re, os, subprocess
 import gzip
 import pandas as pd
 pd.options.mode.chained_assignment = None
@@ -6,7 +6,6 @@ import numpy as np
 from collections import defaultdict, deque
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
-from tqdm import tqdm
 import tarfile
 from statistics import median
 
@@ -1903,7 +1902,7 @@ def get_KEGG_Protein_2_pathwayName_dict(fn_list):
     --> UniProtAC 2 KeggPathwayName
     """
     Protein_2_pathwayName_dict = {}
-    for fn in tqdm(fn_list):
+    for fn in fn_list:
         basename = os.path.basename(fn)
         acronym = basename.replace(".tar.gz", "")
         tar = tarfile.open(fn, "r:gz")
@@ -2207,22 +2206,27 @@ def Protein_2_Function_table(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_ou
         number_of_processes=number_of_processes)
 
 def Protein_2_Function_table_UPS(fn_list, fn_out_Protein_2_Function_table_orig, fn_out_Protein_2_Function_table_taxids_merged, number_of_processes=1):
+    print("creating {} and {}".format(fn_out_Protein_2_Function_table_orig, fn_out_Protein_2_Function_table_taxids_merged))
     # fn_list = fn_list_str.split(" ")
     ### concatenate files
     tools.concatenate_files(fn_list, fn_out_Protein_2_Function_table_orig)
 
-    # merge multiline
     ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=DOWNLOADS_DIR, for_SQL=False, update=True)
+    taxids_accepted = set()
     with open(fn_out_Protein_2_Function_table_orig, "r") as fh_in:
         with open(fn_out_Protein_2_Function_table_taxids_merged, "w") as fh_out:
             for line in fh_in:
                 taxid, UniProtID, function_arr_str, etype = line.split("\t")
-                try:
-                    taxid = int(taxid)
-                except:
-                    pass
-                taxid = ncbi.get_genus_or_higher(taxid, "species")
-                fh_out.write(str(taxid) + "\t" + UniProtID + "\t" + function_arr_str + "\t" + etype)
+                if taxid in taxids_accepted:
+                    fh_out.write(line)
+                else:
+                    try:
+                        taxid = int(taxid)
+                    except:
+                        pass
+                    taxid = ncbi.get_genus_or_higher(taxid, "species")
+                    fh_out.write(str(taxid) + "\t" + UniProtID + "\t" + function_arr_str + "\t" + etype)
+                    taxids_accepted |= {str(taxid)}
 
     ### sort
     tools.sort_file(fn_out_Protein_2_Function_table_orig, fn_out_Protein_2_Function_table_orig, number_of_processes=number_of_processes, verbose=True)
@@ -3257,22 +3261,28 @@ def get_EntrezGeneID_2_ENSPsList_dict(fn):
                 EntrezGeneID_2_ENSPsList_dict[EntrezGeneID].append(ENSP)
     return EntrezGeneID_2_ENSPsList_dict
 
+def compile_run_cythonized():
+    cmd = "python setup.py build_ext --inplace -f"
+    compile_cy = subprocess.Popen(cmd, shell=True)
+    compile_cy.wait()
+
 def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
     """
     since UniProt ref prot for 4932 doesn't exist but does exist for 559292
     --> create duplicate of 559292 for taxid 4932
     4932 Saccharomyces cerevisiae, Jensenlab
     559292 Saccharomyces cerevisiae S288C, UniProt Reference Proteome
-    4932 --> 559292
     4896 Schizosaccharomyces pombe, Jensenlab
+    4932 --> 559292
     284812 Schizosaccharomyces pombe 972h-, UniProt Reference Proteome
     4896 --> 284812
     """
+    compile_run_cythonized()
     ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
     with open(fn_out_Taxid_2_funcEnum_2_scores_table_FIN, "w") as fh_out:
         for taxid in variables.jensenlab_supported_taxids:
             background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
-            funcEnum_2_scores_dict_bg = run_cythonized.collect_scores_per_term_v0(background_ENSPs, ENSP_2_tuple_funcEnum_score_dict)
+            funcEnum_2_scores_dict_bg = run_cythonized.collect_scores_per_term(background_ENSPs, ENSP_2_tuple_funcEnum_score_dict)
             for funcEnum in sorted(funcEnum_2_scores_dict_bg.keys()):
                 scores = sorted(funcEnum_2_scores_dict_bg[funcEnum])
                 fh_out.write(str(taxid) + "\t" + str(funcEnum) + "\t{" + ",".join([str(ele) for ele in scores]) + "}\n")
@@ -3708,7 +3718,7 @@ def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_or
             # go_dag = obo_parser.GODag(obo_file=fn_absolute)
             # list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
             # np.save(os.path.join(TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
-    for file_base_absolute in tqdm(files):
+    for file_base_absolute in files:
         fn_basename, fn_absolute = file_base_absolute
         go_dag = obo_parser.GODag(obo_file=fn_absolute)
         list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
