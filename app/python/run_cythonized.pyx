@@ -22,6 +22,196 @@ from scipy import stats
 ##################################################################
 ##################################################################
 
+
+%%cython -f --compile-args=-DCYTHON_TRACE=1
+
+### %%cython -a
+
+import Cython
+
+######################################
+### profiling # Set compiler directives (cf. http://docs.cython.org/src/reference/compilation.html)
+import line_profiler
+
+directive_defaults = Cython.Compiler.Options.get_directive_defaults() ### from Cython.Compiler.Options import directive_defaults # deprecated
+directive_defaults['linetrace'] = True
+directive_defaults['binding'] = True
+######################################
+
+from functools import reduce
+import math
+import numpy as np
+import pandas as pd
+from cython cimport boundscheck, wraparound, cdivision, nonecheck
+cimport cython
+cimport numpy as np
+ctypedef np.uint8_t uint8
+from cython.parallel cimport prange
+from collections import defaultdict
+from fisher import pvalue
+from scipy import stats
+import variables, query
+# from libc.math cimport exp
+
+
+def KS_DBL(fg_values, bg_values):
+    fg_values = sorted(fg_values)
+    bg_values = sorted(bg_values)
+    fg_size = len(fg_values)
+    bg_size = len(bg_values)
+    n1 = fg_size
+    n2 = bg_size
+    n1_plus_n2 = n1 + n2
+    n1_times_n2_times_mintwo = -2.0 * n1 * n2
+    D_max = 0.0
+    fg_rank, bg_rank = 0, 0
+    while fg_rank < fg_size:
+        fg_cumulative = fg_rank / fg_size
+        fg_val = fg_values[fg_rank]
+        for bg_rank_temp, bg_val in enumerate(bg_values[bg_rank:], 0):
+            if fg_val <= bg_val:
+                bg_rank = bg_rank_temp + bg_rank
+                break
+        bg_cumulative = (bg_rank + 1) / bg_size
+        D_current = abs(fg_cumulative - bg_cumulative)
+        if D_current > D_max:
+            D_max = D_current
+        fg_rank += 1
+        fg_cumulative = fg_rank / fg_size
+        D_current = abs(fg_cumulative - bg_cumulative)
+        if D_current > D_max:
+            D_max = D_current
+    pvalue = math.exp(n1_times_n2_times_mintwo * D_max * D_max / n1_plus_n2)
+    return D_max, pvalue
+
+# @boundscheck(False)
+# @wraparound(False)
+cpdef KolmogorovSmirnov_arr_cy(unsigned int foreground_n, unsigned int background_n, unsigned int[:, ::1] funcEnumContiguousIndex_2_Scores_arr_fg, unsigned int[:, ::1]funcEnumContiguousIndex_2_Scores_arr_bg, unsigned int[::1] funcEnumIndex_2_funcEnum_arr, double[::1] p_values, cond_multitest, double[::1] effectSizes, double p_value_cutoff, unsigned int[::1] funcEnum_count_foreground, unsigned int[::1] funcEnum_count_background, unsigned int[::1] over_under_int_arr, unsigned int o_or_u_or_both_encoding, enrichment_method):
+    """
+    expects elementf of funcEnumContiguousIndex_2_Scores_arr_bg (which are 1D arrays) to be sorted
+    :param foreground_n: 
+    :param background_n: 
+    :param funcEnumContiguousIndex_2_Scores_arr_fg: 
+    :param funcEnumContiguousIndex_2_Scores_arr_bg: 
+    :param funcEnumIndex_2_funcEnum_arr: 
+    :param p_values: 
+    :param cond_multitest: 
+    :param effectSizes: 
+    :param p_value_cutoff: 
+    :param funcEnum_count_foreground: 
+    :param funcEnum_count_background: 
+    :param over_under_int_arr: 
+    :param o_or_u_or_both_encoding: 
+    :param enrichment_method: 
+    :return: 
+    """
+    cdef:
+        unsigned int n1
+        unsigned int n2
+        unsigned int n1_plus_n2
+        double n1_times_n2_times_mintwo
+        double pvalue
+        unsigned int rows
+        unsigned int row_index
+        unsigned int funcEnum
+        double D_max
+        double D_min
+        double D_max_abs
+        double D_current
+        double D_current_abs
+
+    if enrichment_method != "genome": # "genome" is pre-sorted
+        np.asarray(funcEnumContiguousIndex_2_Scores_arr_bg).sort(axis=1)
+    np.asarray(funcEnumContiguousIndex_2_Scores_arr_fg).sort(axis=1)
+    fg_size = foreground_n
+    bg_size = background_n
+    fg_size_plus_bg_size = fg_size + bg_size
+    fg_size_times_bg_size_times_mintwo = -2.0 * fg_size * bg_size
+    rows = funcEnumIndex_2_funcEnum_arr.shape[0]
+    for row_index in range(rows):
+        funcEnum = funcEnumIndex_2_funcEnum_arr[row_index]
+        fg_values = funcEnumContiguousIndex_2_Scores_arr_fg[row_index]
+        bg_values = funcEnumContiguousIndex_2_Scores_arr_bg[row_index]
+        D_max, D_min, D_max_abs, D_current, D_current_abs = 0.0, 0.0, 0.0, 0.0, 0.0
+        fg_rank, bg_rank = 0, 0
+        while fg_rank < fg_size:
+            fg_cumulative = fg_rank / fg_size
+            fg_val = fg_values[fg_rank]
+            for bg_rank_temp, bg_val in enumerate(bg_values[bg_rank:], 0):
+                if fg_val <= bg_val:
+                    bg_rank = bg_rank_temp + bg_rank
+                    break
+            bg_cumulative = (bg_rank + 1) / bg_size
+
+            D_current = fg_cumulative - bg_cumulative
+            D_current_abs = abs(D_current)
+            if D_current > D_max:
+                D_max = D_current
+            elif D_current < D_min:
+                D_min = D_current
+            if D_current_abs > D_max_abs:
+                D_max_abs = D_current_abs
+
+            fg_rank += 1
+            fg_cumulative = fg_rank / fg_size
+            D_current = fg_cumulative - bg_cumulative
+            D_current_abs = abs(D_current)
+            if D_current > D_max:
+                D_max = D_current
+            elif D_current < D_min:
+                D_min = D_current
+            if D_current_abs > D_max_abs:
+                D_max_abs = D_current_abs
+
+            if o_or_u_or_both_encoding == 0: # "two-sided": # args_dict["o_or_u_or_both"]
+                D = D_max_abs
+            elif o_or_u_or_both_encoding == 1: # "greater":
+                D = D_max
+            elif o_or_u_or_both_encoding == 2: # "less":
+                D = D_min
+            else:
+                raise NotImplementedError
+
+            pvalue = math.exp(fg_size_times_bg_size_times_mintwo * D * D / fg_size_plus_bg_size)
+            if o_or_u_or_both_encoding != 0:
+                pvalue /= 2
+
+            if D_max > D_min:
+                is_greater = True
+            else:
+                is_greater = False
+
+            if pvalue <= p_value_cutoff:
+                # is_greater = np.median(scores_fg) > np.median(scores_bg)
+                ### use all values since test is two-tailed (and multiple testing had to be done)
+                # filter for overrepresented/underrepresented terms
+                if o_or_u_or_both_encoding == 1 and is_greater: # overrepresented
+                    p_values[funcEnum] = pvalue
+                    effectSizes[funcEnum] = D
+                    over_under_int_arr[funcEnum] = 1
+                elif o_or_u_or_both_encoding == 0: # both
+                    p_values[funcEnum] = pvalue
+                    effectSizes[funcEnum] = D
+                    if is_greater:
+                        over_under_int_arr[funcEnum] = 1 # over
+                    else:
+                        over_under_int_arr[funcEnum] = 2 # under
+                elif o_or_u_or_both_encoding == 2 and not is_greater: # underrepresented
+                    p_values[funcEnum] = pvalue
+                    effectSizes[funcEnum] = D
+                    over_under_int_arr[funcEnum] = 2 # under
+                else:
+                    pass
+            cond_multitest[funcEnum] = True
+            funcEnum_count_foreground[funcEnum] = 1 #sum(funcEnumContiguousIndex_2_Scores_arr_fg[row_index] > 0) # number of scores, important for BH (that this does not equal 0 or nan)
+            funcEnum_count_background[funcEnum] = 1 # sum(funcEnumContiguousIndex_2_Scores_arr_bg[row_index] > 0)
+
+
+
+
+
+
+
 @boundscheck(False)
 @wraparound(False)
 cdef create_funcEnum_count_background_v3(unsigned int[::1] funcEnum_count_background,

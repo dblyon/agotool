@@ -1,6 +1,6 @@
 import os, multiprocessing, sys
 import numpy as np
-np.searchsorted
+
 ############################
 ### settings
 PRELOAD = True # set True in production
@@ -284,7 +284,7 @@ except:
 
 jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
-dtype_TM_score = "uint32"
+dtype_TM_score = "uint32" # dtype Jensenlab TextMining score
 dtype_functionEnumeration = "uint32"
 # human, mouse, rat, arabidopsis, yeast, fly, worm, yeast # ??? anything important missing? preload all of swissprot?
 taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]

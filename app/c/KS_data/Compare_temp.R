@@ -1,6 +1,6 @@
 foreground <- c(0,1,2,3,4,5)
 background <- c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23)
-result_tw <- ks.test(foreground, background, alternative="greater")
+result_tw <- ks.test(foreground, background, alternative="greater", exact=TRUE)
 # alternative="two.sided", "less", "greater"
 result_tw$statistic # 0.7142857
 result_tw$p.value # 0.01709861
