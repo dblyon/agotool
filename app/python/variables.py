@@ -38,7 +38,7 @@ PMID = {-56}
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # {-52, -53, -54, -55, -56, -58}
 entity_types_with_scores = {-20, -25, -26}  # GO-CC, BTO, DOID
 enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}
-
+# all except for TM scores "-21;-22;-23;-51;-52;-53;-54;-55;-56-57;-58"
 
 functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
                                   "Gene Ontology biological process": -21,
@@ -234,8 +234,7 @@ else:
     print("VERSION_ {} not know".format(VERSION_))
     raise sys.exit(2)
 
-tables_dict = {  # "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file.txt"),
-    "Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_{}.txt".format(appendix)),
+tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_{}.txt".format(appendix)),
     "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_{}.txt".format(appendix)),
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
@@ -244,23 +243,20 @@ tables_dict = {  # "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subse
     "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)), # if not low_mem
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
-    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix))
-}
-
-TABLES_DICT_SNAKEMAKE = {"Entity_types_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Entity_types_table_{}.txt".format(appendix)),
-    "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR_SNAKEMAKE, "KEGG_Taxid_2_acronym_table_{}.txt".format(appendix)),
-    "Lineage_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Lineage_table_{}.txt".format(appendix)),
-    "Functions_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
-    "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)), # if not low_mem
-    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
-    "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Secondary_2_Primary_ID_{}.txt".format(appendix)), # if not low_mem
-    "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
-    "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
-    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR_SNAKEMAKE, "Taxid_2_Proteins_table_{}.txt".format(appendix))
-}
-
-
-
+    "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix)),
+    "taxid_2_tuple_funcEnum_index_2_associations_counts": os.path.join(TABLES_DIR, "taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_{}.p".format(appendix)),
+    "CSC_ENSPencoding_2_FuncEnum": os.path.join(TABLES_DIR, "CSC_ENSPencoding_2_FuncEnum_{}.npz".format(appendix)),
+    "ENSP_2_rowIndex_dict": os.path.join(TABLES_DIR, "ENSP_2_rowIndex_dict_{}.p".format(appendix)),
+    "year_arr": os.path.join(TABLES_DIR, "year_arr_{}.p".format(appendix)),
+    "hierlevel_arr": os.path.join(TABLES_DIR, "hierlevel_arr_{}.p".format(appendix)),
+    "entitytype_arr": os.path.join(TABLES_DIR, "entitytype_arr_{}.p".format(appendix)),
+    "functionalterm_arr": os.path.join(TABLES_DIR, "functionalterm_arr_{}.p".format(appendix)),
+    "indices_arr": os.path.join(TABLES_DIR, "indices_arr_{}.p".format(appendix)),
+    "description_arr": os.path.join(TABLES_DIR, "description_arr_{}.p".format(appendix)),
+    "category_arr": os.path.join(TABLES_DIR, "category_arr_{}.p".format(appendix)),
+    "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix))
+               }
+TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
 
 
 def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):

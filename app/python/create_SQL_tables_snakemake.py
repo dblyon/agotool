@@ -1,4 +1,5 @@
-import sys, re, os, subprocess
+import sys, re, os, subprocess, pickle
+from scipy import sparse
 import gzip
 import pandas as pd
 pd.options.mode.chained_assignment = None
@@ -2882,21 +2883,6 @@ def helper_reformat_funcEnum_2_score(funcEnum_2_score):
         score_list.append(str(score))
     return "{" + ",".join(funcEnum_list) + "}\t{" + ",".join(score_list) + "}"
 
-# def helper_backtrack_funcName_2_score_list_old(funcName_2_score_list, lineage_dict):
-#     funcName_2_score_list_backtracked, without_lineage = [], []
-#     for funcName_2_score in funcName_2_score_list:
-#         funcName_2_score_list_backtracked.append(funcName_2_score)
-#         funcName, score = funcName_2_score
-#         try:
-#             all_parents = lineage_dict[funcName]
-#         except KeyError:
-#             # print("{} without lineage".format(funcName))
-#             without_lineage.append(funcName)
-#             all_parents = []
-#         for parent in all_parents:
-#             funcName_2_score_list_backtracked.append([parent, score])
-#     return funcName_2_score_list_backtracked, set(without_lineage)
-
 def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict):
     """
     backtrack functions to root and propagate scores
@@ -3220,23 +3206,6 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
                         ID = UniProtID
                         func_array = format_list_of_string_2_postgres_array(list(set(wiki_list)))
                         fh_out_protein_2_function.write(str(taxid) + "\t" + ID + "\t" + func_array + "\t" + etype + "\n")
-
-# def get_EntrezGeneID_2_UniProtID_dict(df_UniProt_ID_mapping, taxid):
-#     taxid = int(taxid)
-#     cond = df_UniProt_ID_mapping["NCBI-taxon"] == taxid
-#     EntrezGeneID_2_UniProtID_dict = {}
-#     for row in df_UniProt_ID_mapping.loc[cond, ["UniProtKB-AC", "UniProtKB-ID", "GeneID (EntrezGene)"]].itertuples():
-#         _, uniprot_an, uniprot_id, geneIDs_list = row
-#         try:
-#             geneIDs_list = geneIDs_list.split("; ")
-#         except AttributeError: # for np.nan
-#             continue
-#         for geneID in geneIDs_list:
-#             if geneID not in EntrezGeneID_2_UniProtID_dict:
-#                 EntrezGeneID_2_UniProtID_dict[geneID] = [uniprot_id]
-#             else:
-#                 EntrezGeneID_2_UniProtID_dict[geneID] += [uniprot_id]
-#     return EntrezGeneID_2_UniProtID_dict
 
 def get_EntrezGeneID_2_ENSPsList_dict(fn):
     """
@@ -3723,6 +3692,80 @@ def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_or
         go_dag = obo_parser.GODag(obo_file=fn_absolute)
         list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
         np.save(os.path.join(TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
+
+def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, CSC_ENSPencoding_2_FuncEnum_UPS_FIN, ENSP_2_rowIndex_dict_UPS_FIN, verbose=True):
+    """
+    Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
+    CSC_ENSPencoding_2_FuncEnum_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["CSC_ENSPencoding_2_FuncEnum"]
+    ENSP_2_rowIndex_dict_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["ENSP_2_rowIndex_dict"]
+    SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, CSC_ENSPencoding_2_FuncEnum_UPS_FIN, ENSP_2_rowIndex_dict_UPS_FIN, verbose=True)
+    1.) sparse matrix for all ENSPs
+    2.) slice first matrix to get user matrix
+    column index --> function enumeration
+    row index --> ENSP (UniProtID) encoding
+    values are Scores
+    matrix: row_num = number of ENSPs; col_num = funcEnum (exact translation)
+    """
+    # get proteinAN to functionEnumerateion and Score arrays
+    assert os.path.exists(Protein_2_FunctionEnum_and_Score_table_UPS_FIN)
+    ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=Protein_2_FunctionEnum_and_Score_table_UPS_FIN, fn=None)
+    ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict = {}, {}
+    for rowIndex, ENSP in enumerate(sorted(ENSP_2_tuple_funcEnum_score_dict.keys())):
+        ENSP_2_rowIndex_dict[ENSP] = rowIndex
+        # rowIndex_2_ENSP_dict[rowIndex] = ENSP
+
+    # get cond arrays to know maximum length of KS_funcEnum for matrix size
+    _, _, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=True, read_from_flat_files=True)
+    etype_2_minmax_funcEnum = query.PersistentQueryObject_STRING.get_etype_2_minmax_funcEnum(entitytype_arr)
+    function_enumeration_len = functionalterm_arr.shape[0]
+    etype_cond_dict = query.get_etype_cond_dict(etype_2_minmax_funcEnum, function_enumeration_len)
+    cond_KS_etypes = etype_cond_dict["cond_25"] | etype_cond_dict["cond_26"] | etype_cond_dict["cond_20"]
+    KS_funcEnums_arr = indices_arr[cond_KS_etypes]
+
+    matrix = sparse.lil_matrix((len(ENSP_2_tuple_funcEnum_score_dict), max(KS_funcEnums_arr) + 1), dtype=np.dtype(variables.dtype_TM_score))
+    for ensp in sorted(ENSP_2_tuple_funcEnum_score_dict.keys()):
+        rowIndex = ENSP_2_rowIndex_dict[ensp]
+        funcEnum_arr, score_arr = ENSP_2_tuple_funcEnum_score_dict[ensp]
+        matrix[rowIndex, funcEnum_arr] = score_arr
+    matrix = matrix.tocsc()
+    if verbose:
+        print("Producing Sparse Matrix CSC_ENSPencoding_2_FuncEnum_UPS_FIN and ENSP_2_rowIndex_dict")
+        print("Memory usage of (in bytes): ", matrix.data.nbytes + matrix.indptr.nbytes + matrix.indices.nbytes)
+
+    pickle.dump(ENSP_2_rowIndex_dict, open(ENSP_2_rowIndex_dict_UPS_FIN, "wb"))
+    sparse.save_npz(CSC_ENSPencoding_2_FuncEnum_UPS_FIN, matrix)
+
+
+def Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(Taxid_2_FunctionCountArray_table_UPS_FIN, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN):
+    """
+    Taxid_2_FunctionCountArray_table_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionCountArray_table"]
+    taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
+    Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(Taxid_2_FunctionCountArray_table_UPS_FIN, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+    """
+    assert os.path.exists(Taxid_2_FunctionCountArray_table_UPS_FIN)
+    taxid_2_tuple_funcEnum_index_2_associations_counts = query.get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=True)
+    pickle.dump(taxid_2_tuple_funcEnum_index_2_associations_counts, open(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, "wb"))
+
+def Pickle_lookup_arrays_UPS_FIN(Functions_table_UPS_FIN, *args):
+    """
+    additional args passed is only for Snakemake
+    """
+    assert os.path.exists(Functions_table_UPS_FIN)
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(low_memory=False, read_from_flat_files=True)
+    arr_list = [year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr]
+    name_list = ["year_arr", "hierlevel_arr", "entitytype_arr", "functionalterm_arr", "indices_arr", "description_arr", "category_arr"]
+    for index_ in range(len(arr_list)):
+        arr_name = name_list[index_]
+        arr = arr_list[index_]
+        with open(variables.tables_dict[arr_name], "wb") as fh_out:
+            pickle.dump(arr, fh_out)
+
+def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN):
+    assert os.path.exists(Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
+    Taxid_2_FunctionEnum_2_Scores_dict = query.get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=True, as_array_or_as_list="array", taxid_2_proteome_count=None)
+    pickle.dump(Taxid_2_FunctionEnum_2_Scores_dict, open(Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, "wb"))
+
+
 
 ##### Taxonomy mapping explanation, for UniProt version
 # Taxid_2_Proteins_table_UPS_FIN remains as is, which is UniProt space and their TaxIDs (which are partially on strain level).

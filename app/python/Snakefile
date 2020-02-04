@@ -68,6 +68,10 @@ Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jen
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
 BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
+taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
+CSC_ENSPencoding_2_FuncEnum_UPS_FIN = TABLES_DICT_SNAKEMAKE["CSC_ENSPencoding_2_FuncEnum"]
+ENSP_2_rowIndex_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["ENSP_2_rowIndex_dict"]
+Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionEnum_2_Scores_dict"]
 
 if hostname == "ody":
     # string_matches = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/string_matches.tsv"
@@ -160,6 +164,13 @@ protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 ENSP_2_UniProt_2_use = os.path.join(TABLES_DIR, "ENSP_2_UniProt_2_use.txt")
 ENSP_of_UniProtIDmapping_not_in_STRINGv11 = os.path.join(TABLES_DIR, "ENSP_of_UniProtIDmapping_not_in_STRINGv11.txt")
 ENSP_2_UniProt_discrepancy = os.path.join(TABLES_DIR, "ENSP_2_UniProt_discrepancy.txt")
+year_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["year_arr"]
+hierlevel_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["hierlevel_arr"]
+entitytype_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["entitytype_arr"]
+functionalterm_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["functionalterm_arr"]
+indices_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["indices_arr"]
+description_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["description_arr"]
+category_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["category_arr"]
 ###################################################################################################
 ### download resources
 rule download_descriptions_PMID:
@@ -198,29 +209,6 @@ rule download_GO_obo:
         verbose = verbose
     run:
         drs.download_requests(params.URL_GO_obo, output.GO_obo, params.verbose)
-
-# rule download_GO_slim_obo:
-#     output:
-#         GO_slim_obo = GO_slim_obo
-#     params:
-#         URL_GO_slim_obo = URL_GO_slim_obo,
-#         verbose = verbose
-#     run:
-#         drs.download_requests(params.URL_GO_slim_obo, output.GO_slim_obo, params.verbose)
-
-# http://current.geneontology.org/ontology/subsets/goslim_agr.obo # GO slim AGR (Alliance of Genomes Resources) subset
-# http://current.geneontology.org/ontology/subsets/goslim_generic.obo # Generic GO subset
-# http://current.geneontology.org/ontology/subsets/goslim_aspergillus.obo # Aspergillus subset
-# http://current.geneontology.org/ontology/subsets/goslim_candida.obo # Candida albicans subset
-# http://current.geneontology.org/ontology/subsets/goslim_chembl.obo # Chembl Drug Target subset
-# http://current.geneontology.org/ontology/subsets/goslim_metagenomics.obo # Metagenomics subset
-# http://current.geneontology.org/ontology/subsets/goslim_mouse.obo # Mouse GO slim
-# http://current.geneontology.org/ontology/subsets/goslim_plant.obo # Plant subset
-# http://current.geneontology.org/ontology/subsets/goslim_pir.obo # Protein Information Resource subset
-# http://current.geneontology.org/ontology/subsets/goslim_pombe.obo # Schizosaccharomyces pombe subset
-# http://current.geneontology.org/ontology/subsets/goslim_yeast.obo # Yeast subset
-# # FlyBase Drosophila GO ribbon slim
-# # "synapse GO slim"
 
 rule download_GO_slim_subsets:
     input:
@@ -733,6 +721,48 @@ rule Secondary_2_Primary_ID_UPS_FIN:
         Secondary_2_Primary_ID_UPS_no_translation = Secondary_2_Primary_ID_UPS_no_translation
     run:
         cst.Secondary_2_Primary_ID_UPS_FIN(input.Protein_2_FunctionEnum_table_UPS_FIN, input.UniProt_sec_2_prim_AC, input.ENSP_2_UniProt_2_use, input.Taxid_UniProt_AC_2_ID, output.Secondary_2_Primary_ID_UPS_FIN, output.Secondary_2_Primary_ID_UPS_no_translation)
+
+rule SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN:
+    input:
+        Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN
+    output:
+        CSC_ENSPencoding_2_FuncEnum_UPS_FIN = CSC_ENSPencoding_2_FuncEnum_UPS_FIN,
+        ENSP_2_rowIndex_dict_UPS_FIN = ENSP_2_rowIndex_dict_UPS_FIN
+    run:
+        cst.SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.CSC_ENSPencoding_2_FuncEnum_UPS_FIN, output.ENSP_2_rowIndex_dict_UPS_FIN)
+
+
+rule Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts_UPS_FIN:
+    input:
+        Taxid_2_FunctionCountArray_table_UPS_FIN = Taxid_2_FunctionCountArray_table_UPS_FIN # only to wait for file to be completed
+    output:
+        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
+    run:
+        cst.Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(input.Taxid_2_FunctionCountArray_table_UPS_FIN, output.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+
+rule Pickle_lookup_arrays_UPS_FIN:
+    input:
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN
+    output:
+        year_arr_UPS_FIN = year_arr_UPS_FIN,
+        hierlevel_arr_UPS_FIN = hierlevel_arr_UPS_FIN,
+        entitytype_arr_UPS_FIN = entitytype_arr_UPS_FIN,
+        functionalterm_arr_UPS_FIN = functionalterm_arr_UPS_FIN,
+        indices_arr_UPS_FIN = indices_arr_UPS_FIN,
+        description_arr_UPS_FIN = description_arr_UPS_FIN,
+        category_arr_UPS_FIN = category_arr_UPS_FIN
+    run:
+        cst.Pickle_lookup_arrays_UPS_FIN(input.Functions_table_UPS_FIN, output.year_arr_UPS_FIN, output.hierlevel_arr_UPS_FIN, output.entitytype_arr_UPS_FIN, output.functionalterm_arr_UPS_FIN, output.indices_arr_UPS_FIN, output.description_arr_UPS_FIN, output.category_arr_UPS_FIN)
+
+rule Pickle_Taxid_2_FunctionEnum_2_Scores_dict:
+    input:
+        Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
+    output:
+        Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN
+    run:
+        cst.Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
+
+
 
 # background proteomes
 # E. coli is 562 but UniProt ref prot is 83333

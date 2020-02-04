@@ -1,10 +1,13 @@
 from __future__ import print_function
+import pickle
 import numpy as np
 import pandas as pd
 import os, sys
 from collections import defaultdict
-import psycopg2 #, math
-from contextlib import contextmanager
+import psycopg2
+from scipy import sparse
+# import math
+# from contextlib import contextmanager
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -436,7 +439,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     only protein_2_function is queried in Postgres,
     everything else is in memory but still deposited in the DB any way
     """
-    def __init__(self, low_memory=False, read_from_flat_files=None):
+    def __init__(self, low_memory=True, read_from_flat_files=None):
         if read_from_flat_files is None:
             read_from_flat_files = variables.READ_FROM_FLAT_FILES
         if variables.VERBOSE:
@@ -450,9 +453,13 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
 
         if variables.VERBOSE:
-            print("getting ENSP_2_tuple_funcEnum_score_dict")
-        self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
-
+            print("getting CSC_ENSPencoding_2_FuncEnum and ENSP_2_rowIndex_dict")
+        ### superfluous
+        # self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
+        with open(variables.tables_dict["ENSP_2_rowIndex_dict"], "rb") as fh_ENSP_2_rowIndex_dict:
+            self.ENSP_2_rowIndex_dict = pickle.load(fh_ENSP_2_rowIndex_dict)
+        self.CSC_ENSPencoding_2_FuncEnum = sparse.load_npz(variables.tables_dict["CSC_ENSPencoding_2_FuncEnum"])
+        self.CSR_ENSPencoding_2_FuncEnum = self.CSC_ENSPencoding_2_FuncEnum.tocsr()
 
         if not low_memory:
             if variables.VERBOSE:
@@ -460,8 +467,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             self.Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict(read_from_flat_files=read_from_flat_files)
 
         if variables.VERBOSE:
-            print("getting Taxid_2_FunctionEnum_2_Scores_table")
-        self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=self.taxid_2_proteome_count)
+            print("getting Taxid_2_FunctionEnum_2_Scores_dict")
+        self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=True)
 
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
@@ -469,10 +476,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("getting lookup arrays")
-        if not low_memory: # override variables if "low_memory" passed to query initialization
-            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = get_lookup_arrays(low_memory, read_from_flat_files)
-        else:
-            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = get_lookup_arrays(low_memory, read_from_flat_files)
+        # if not low_memory: # override variables if "low_memory" passed to query initialization
+        self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = get_lookup_arrays(read_from_flat_files, from_pickle=True)
+        # else:
+            # self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = get_lookup_arrays(low_memory, read_from_flat_files)
         self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
         if variables.VERBOSE:
@@ -499,15 +506,11 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         if variables.VERBOSE:
             print("getting taxid_2_tuple_funcEnum_index_2_associations_counts")
         # background
-        self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
-
+        self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files, from_pickle=True) # from_pickle should reduce start-up time
 
         # set all versions of preloaded_objects_per_analysis
         if variables.VERBOSE:
             print("getting preloaded objects per analysis")
-        # self.reset_preloaded_objects_per_analysis(method="genome")
-        # self.reset_preloaded_objects_per_analysis(method="characterize_foreground")
-        # self.reset_preloaded_objects_per_analysis(method="compare_samples")
         self.reset_preloaded_objects_per_analysis()
 
         if variables.VERBOSE:
@@ -523,22 +526,21 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.preloaded_objects_per_analysis = run_cythonized.get_preloaded_objects_for_single_analysis(self.blacklisted_terms_bool_arr, self.function_enumeration_len)
 
     def get_static_preloaded_objects(self, low_memory=False):
-        if not low_memory:
+        if not low_memory: # removed self.ENSP_2_tuple_funcEnum_score_dict
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
-                                        self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
-                                        self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
-                                        self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
+                                        self.description_arr, self.category_arr, # high mem
+                                        self.etype_2_minmax_funcEnum, self.function_enumeration_len, self.etype_cond_dict,
+                                        self.ENSP_2_functionEnumArray_dict, # high mem
+                                        self.taxid_2_proteome_count, self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
-                                        self.ENSP_2_tuple_funcEnum_score_dict,
-                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict)
+                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum)
         else:
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
-                                        self.etype_2_minmax_funcEnum, self.function_enumeration_len,
-                                        self.etype_cond_dict, self.taxid_2_proteome_count,
-                                        self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
+                                        self.description_arr, self.category_arr,  # high mem --> only 62 MB
+                                        self.etype_2_minmax_funcEnum, self.function_enumeration_len, self.etype_cond_dict,
+                                        self.taxid_2_proteome_count, self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
-                                        self.ENSP_2_tuple_funcEnum_score_dict,
-                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict)
+                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum)
         return static_preloaded_objects
 
     def get_blacklisted_terms_bool_arr(self):
@@ -607,8 +609,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         return etype_2_association_dict
 
 
-def get_lookup_arrays(low_memory, read_from_flat_files=False):
+def get_lookup_arrays(read_from_flat_files=False, from_pickle=False):
     """
+    low_memory=False --> doesn't pay to save mem here
     funcEnum_2_hierarchical_level
     simple numpy array of hierarchical levels
     if -1 in DB --> convert to np.nan since these are missing values
@@ -621,6 +624,15 @@ def get_lookup_arrays(low_memory, read_from_flat_files=False):
     :param read_from_flat_files: Bool flag to get data from DB or flat files
     :return: immutable numpy array of int
     """
+    if from_pickle:
+        year_arr = pickle.load(open(variables.tables_dict["year_arr"], "rb"))
+        hierlevel_arr = pickle.load(open(variables.tables_dict["hierlevel_arr"], "rb"))
+        entitytype_arr = pickle.load(open(variables.tables_dict["entitytype_arr"], "rb"))
+        functionalterm_arr = pickle.load(open(variables.tables_dict["functionalterm_arr"], "rb"))
+        indices_arr = pickle.load(open(variables.tables_dict["indices_arr"], "rb"))
+        description_arr = pickle.load(open(variables.tables_dict["description_arr"], "rb"))
+        category_arr = pickle.load(open(variables.tables_dict["category_arr"], "rb"))
+        return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
     if read_from_flat_files:
         # fn = os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt")
         fn = variables.tables_dict["Functions_table"]
@@ -631,10 +643,11 @@ def get_lookup_arrays(low_memory, read_from_flat_files=False):
     shape_ = len(result)
     year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
     entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
-    if not low_memory:
-        description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
-        # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
-        category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+    # if not low_memory:
+    #     description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
+    #     category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process") # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
+    description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
+    category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process") # category_arr = np.empty(shape=shape_,
     functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
     hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
     indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
@@ -653,22 +666,38 @@ def get_lookup_arrays(low_memory, read_from_flat_files=False):
         functionalterm_arr[func_enum] = term
         year_arr[func_enum] = year
         hierlevel_arr[func_enum] = hierlevel
-        if not low_memory:
-            description_arr[func_enum] = description
-            category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
+        # if not low_memory:
+        #     description_arr[func_enum] = description
+        #     category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
+        description_arr[func_enum] = description
+        category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
 
     year_arr.flags.writeable = False # make it immutable
     hierlevel_arr.flags.writeable = False
     entitytype_arr.flags.writeable = False
     functionalterm_arr.flags.writeable = False
-    if not low_memory:
-        description_arr.flags.writeable = False
-        category_arr.flags.writeable = False
-        return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
-    else:
-        return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
+    # if not low_memory:
+        # description_arr.flags.writeable = False
+        # category_arr.flags.writeable = False
+        # return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
+    # else:
+    #     return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
+    description_arr.flags.writeable = False
+    category_arr.flags.writeable = False
+    return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
 
-def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_or_as_list="list", taxid_2_proteome_count=None):
+def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=False):
+    """
+    :param read_from_flat_files: strig flag
+    :param as_array_or_as_list: string flag
+    :param taxid_2_proteome_count: dict but if None it is a flag to not fill with zeros
+    :return: dict
+    """
+    if from_pickle:
+        with open(variables.tables_dict["Taxid_2_FunctionEnum_2_Scores_dict"], "rb") as fh:
+            Taxid_2_FunctionEnum_2_Scores_dict = pickle.load(fh)
+        return Taxid_2_FunctionEnum_2_Scores_dict
+
     Taxid_2_FunctionEnum_2_Scores_dict = {} #defaultdict(lambda: False)
     if read_from_flat_files:
         results = get_results_of_statement_from_flat_file(variables.tables_dict["Taxid_2_FunctionEnum_2_Scores_table"])
@@ -684,11 +713,9 @@ def get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_
                 zeros_2_add = taxid_2_proteome_count[taxid] - len(scores_list)
                 if zeros_2_add > 0:
                     scores_list = sorted(zeros_2_add*[0] + scores_list)
-                else:
-                    scores_list = sorted(scores_list)
             except KeyError:
                 print("get_Taxid_2_FunctionEnum_2_Scores_dict --> taxid_2_proteome_count taxid '{}' unknown".format(taxid))
-                scores_list = sorted(scores_list)
+        scores_list = sorted(scores_list)
         if as_array_or_as_list == "array":
             scores_arr = np.array(scores_list, dtype=np.dtype(variables.dtype_TM_score))  # previously ("float32")) # float16 would probably be sufficient
         elif as_array_or_as_list == "list":
@@ -1006,9 +1033,9 @@ def get_ENSP_2_functionEnumArray_dict_old():
         ENSP_2_functionEnumArray_dict[ENSP] = np.array(funcEnumArray, dtype=np.dtype("uint32"))
     return ENSP_2_functionEnumArray_dict
 
-def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False): # SLOW ~60% of startup time
+def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False, from_pickle=False): # SLOW ~60% of startup time
     """
-    SLOW ~60% of startup time
+    SLOW ~60% of startup time --> pickle it
     --> reformatted flat file
     output format changed from
     1000565 3919    {{3936,9},{3945,1},{3949,7}, ... }
@@ -1016,24 +1043,22 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
     1000565 3919 {3936,3945,3949, ... } {9,1,7, ... }
     taxid, background_n, background_index_positions_arr, background_counts_arr
     """
+    if from_pickle:
+        taxid_2_tuple_funcEnum_index_2_associations_counts = pickle.load(open(variables.tables_dict["taxid_2_tuple_funcEnum_index_2_associations_counts"], "rb"))
+        for taxid, funcEnum_assoc in taxid_2_tuple_funcEnum_index_2_associations_counts.items():
+            index_positions_arr, counts_arr = funcEnum_assoc
+            index_positions_arr.flags.writeable = False
+            counts_arr.flags.writeable = False
+        return taxid_2_tuple_funcEnum_index_2_associations_counts
+
     taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
     if not read_from_flat_files:
         for taxid in get_taxids():
             background_index_positions_list, background_counts_arr_list = get_background_count_array(taxid)
             # need be uint32 not uint16 since funcEnum is 0 to 7mio
-            # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
             assert len(background_index_positions_list) == len(background_counts_arr_list)
-            # shape_ = len(background_index_positions_list)
-            # index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            # index_positions_arr[:] = np.nan
-            # counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            # counts_arr[:] = np.nan
-            # for enum, index_count in enumerate(zip(background_index_positions_list, background_counts_arr_list)):
-            #     index_, count = index_count
-            #     index_positions_arr[enum] = index_
-            #     counts_arr[enum] = count
-            index_positions_arr = np.array(background_index_positions_list, dtype=np.dtype("uint32"))
-            counts_arr = np.array(background_counts_arr_list, dtype=np.dtype("uint16"))
+            index_positions_arr = np.array(background_index_positions_list, dtype=np.dtype(variables.dtype_functionEnumeration))
+            counts_arr = np.array(background_counts_arr_list, dtype=np.dtype(variables.dtype_functionEnumeration))
             index_positions_arr.flags.writeable = False
             counts_arr.flags.writeable = False
             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
@@ -1043,39 +1068,16 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
         for res in results:
             taxid, background_count, background_index_positions_arr_str, background_counts_arr_str = res
             taxid = int(taxid)
-            # background_index_positions_list = [int(ele) for ele in background_index_positions_arr_str[1:-1].split(",")]
             background_index_positions_list = background_index_positions_arr_str[1:-1].split(",")
-            # background_counts_arr_list = [int(ele) for ele in background_counts_arr_str.strip()[1:-1].split(",")]
             background_counts_arr_list = background_counts_arr_str.strip()[1:-1].split(",")
             assert len(background_index_positions_list) == len(background_counts_arr_list)
-            # shape_ = len(background_index_positions_list)
-            # index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            # index_positions_arr[:] = np.nan
-            # counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            # counts_arr[:] = np.nan
-            # for enum, index_count in enumerate(zip(background_index_positions_list, background_counts_arr_list)):
-            #     index_, count = index_count
-            #     index_positions_arr[enum] = index_
-            #     counts_arr[enum] = count
-            index_positions_arr = np.array(background_index_positions_list, dtype=np.dtype("uint32"))
-            counts_arr = np.array(background_counts_arr_list, dtype=np.dtype("uint16"))
+            index_positions_arr = np.array(background_index_positions_list, dtype=np.dtype(variables.dtype_functionEnumeration))
+            # counts_arr = np.array(background_counts_arr_list, dtype=np.dtype("uint16"))
+            counts_arr = np.array(background_counts_arr_list, dtype=np.dtype(variables.dtype_functionEnumeration)) # switch from uint16 to uint23 since this was being used all along (conversion in function call)
             index_positions_arr.flags.writeable = False
             counts_arr.flags.writeable = False
             taxid_2_tuple_funcEnum_index_2_associations_counts[taxid] = [index_positions_arr, counts_arr]
     return taxid_2_tuple_funcEnum_index_2_associations_counts
-
-# def get_background_count_array_old(taxid):
-#     """
-#     # max_background_count: 58324 (from function_enumeration 47403 "47403   -51     KW-0181 Complete proteome       -1      1")
-#     # (irrelevant but just for reference max_background_n: 98897)
-#     old version:
-#     np.array (of 32bit integer, fixed length and immutable, sparse matrix with 0 as default, otherwise counts of functional associations at index positions corresponding to functionalterm_arr)
-#     new version:
-#     list of tuples (index_position, count)
-#     :param taxid: Integer (NCBI Taxid)
-#     :return: List of tuples of Integers (index_position, count)
-#     """
-#     return get_results_of_statement("SELECT taxid_2_functioncountarray.background_count_array FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0][0]
 
 def get_background_count_array(taxid):
     """
@@ -1091,26 +1093,6 @@ def get_background_count_array(taxid):
     taxid | background_n | background_index_positions_arr | background_counts_arr |
     """
     return get_results_of_statement("SELECT taxid_2_functioncountarray.background_index_positions_arr, taxid_2_functioncountarray.background_count_arr FROM taxid_2_functioncountarray WHERE taxid_2_functioncountarray.taxid='{}';".format(taxid))[0]#[0]
-
-# def get_association_dict_from_etype_and_proteins_list(protein_ans_list, etype):
-#     association_dict = {}
-#     # print(protein_ans_list)
-#     protein_ans_list = str(protein_ans_list)[1:-1]
-#     # print(protein_ans_list)
-#     result = get_results_of_statement("SELECT protein_2_function.an, protein_2_function.function FROM protein_2_function WHERE (protein_2_function.an IN({}) AND protein_2_function.etype ={});".format(protein_ans_list, etype))
-#     for res in result:
-#         an, associations_list = res
-#         association_dict[an] = set(associations_list)
-#     return association_dict
-
-# def get_association_dict_from_proteins_list_v2(protein_ans_list):
-#     association_dict = {}
-#     protein_ans_list = str(protein_ans_list)[1:-1]
-#     result = get_results_of_statement("SELECT protein_2_functionenum.an, protein_2_functionenum.functionenum FROM protein_2_functionenum WHERE protein_2_functionenum.an IN({});".format(protein_ans_list))
-#     for res in result:
-#         an, associations_list = res
-#         association_dict[an] = set(associations_list)
-#     return association_dict
 
 def get_function_an_2_name__an_2_description_dict():
     result = get_results_of_statement("SELECT functions.an, functions.name, functions.description FROM functions; ")
@@ -1394,7 +1376,7 @@ def get_goslimtype_2_cond_dict():
 
 
 if __name__ == "__main__":
-    pass
+    pqo = PersistentQueryObject_STRING()
 
     # pqo = PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
     # get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False)
