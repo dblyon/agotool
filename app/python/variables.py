@@ -254,7 +254,8 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "indices_arr": os.path.join(TABLES_DIR, "indices_arr_{}.p".format(appendix)),
     "description_arr": os.path.join(TABLES_DIR, "description_arr_{}.p".format(appendix)),
     "category_arr": os.path.join(TABLES_DIR, "category_arr_{}.p".format(appendix)),
-    "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix))
+    "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix)),
+    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_.txt".format(appendix))
                }
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
 
@@ -313,3 +314,14 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 # 6239 species 6239 Caenorhabditis elegans
 # 7227 species 7227 Drosophila melanogaster
 
+### time temp.sh on mnemo5
+# temp.sh  2027.61s user 120.36s system 344% cpu 10:23.66 total
+### time temp.sh on atlas home
+# temp.sh  2163.76s user 137.69s system 1883% cpu 2:02.19 total
+
+### Atlas
+# agotool v1 UniProt version running KS with Scipy
+# http://127.0.0.1:5000/
+
+# agotool v2 UniProt version running KS with Cython
+# http://127.0.0.1:5001/

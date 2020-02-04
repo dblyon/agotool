@@ -1367,7 +1367,7 @@ def get_goslimtype_2_cond_dict():
     """
     GOslimType_2_cond_dict = {}
     # GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
-    GO_slim_subsets_file = os.path.join(variables.TABLES_DIR, "goslim_subsets_file.txt") #!!! ToDo make into UPS_FIN.txt file
+    GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"] #!!! ToDo make into UPS_FIN.txt file
     with open(GO_slim_subsets_file, "r") as fh_in:
         for line in fh_in:
             fn_basename = line.strip()
