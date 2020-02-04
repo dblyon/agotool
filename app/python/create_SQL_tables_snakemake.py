@@ -3247,6 +3247,8 @@ def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_t
     4896 --> 284812
     """
     compile_run_cythonized()
+    from importlib import reload
+    reload(run_cythonized)
     ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
     with open(fn_out_Taxid_2_funcEnum_2_scores_table_FIN, "w") as fh_out:
         for taxid in variables.jensenlab_supported_taxids:

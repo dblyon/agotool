@@ -9,13 +9,16 @@ check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
 
+### Header message
+echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+
 ### tar and compress previous files for backup
 echo "\n### tar and compress previous files for backup\n"
 TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
 cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 ### create tar of relevant flat files
 
-find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN.txt' | xargs tar cvf $TAR_FILE_NAME
+find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
 ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
 pbzip2 -p24 $TAR_FILE_NAME &
@@ -32,7 +35,7 @@ echo "\n### tar and compress new files for backup\n"
 TAR_FILE_NAME=aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
 cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 # create tar of relevant flat files
-find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN.txt' | xargs tar cvf $TAR_FILE_NAME
+find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
 
 # compress for quick transfer and backup, keep tar
@@ -45,7 +48,7 @@ rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dbl
 check_exit_status
 
 ssh dblyon@aquarius '/home/dblyon/agotool/monthly_update_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
-echo "\n--- finished cron job ---\n"
+echo "\n--- finished Cronjob ---\n"
 
 
 ########################################################################################################################
