@@ -255,7 +255,7 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "description_arr": os.path.join(TABLES_DIR, "description_arr_{}.p".format(appendix)),
     "category_arr": os.path.join(TABLES_DIR, "category_arr_{}.p".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix)),
-    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_.txt".format(appendix))
+    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_{}.txt".format(appendix))
                }
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
 
@@ -318,10 +318,23 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 # temp.sh  2027.61s user 120.36s system 344% cpu 10:23.66 total
 ### time temp.sh on atlas home
 # temp.sh  2163.76s user 137.69s system 1883% cpu 2:02.19 total
+### time temp.sh on mnemo5 after cleanup
+# temp.sh  2180.76s user 136.73s system 1321% cpu 2:55.40 total
 
+
+####################################
 ### Atlas
-# agotool v1 UniProt version running KS with Scipy
+# agotool v0 STRING v11 (without DB)
+# http://127.0.0.1:5912/
+
+
+# agotool v1 UniProt version running KS with Scipy (using Docker DB)
 # http://127.0.0.1:5000/
 
-# agotool v2 UniProt version running KS with Cython
-# http://127.0.0.1:5001/
+
+# agotool v2 UniProt version running KS with Cython (using different Docker DB)
+# docker DB on 5914:5432
+# http://127.0.0.1:5923/
+# python runserver.py 0.0.0.0 5923
+
+

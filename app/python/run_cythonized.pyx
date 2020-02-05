@@ -31,7 +31,7 @@ from fisher import pvalue
 from scipy import stats
 import variables, query
 
-def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False, do_KS=True, do_KS_py=False):
+def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False):
     if not low_memory:
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, Taxid_2_FunctionEnum_2_Scores_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum = static_preloaded_objects
     else:  # missing: ENSP_2_functionEnumArray_dict
@@ -41,6 +41,8 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     em = ui.enrichment_method
     foreground_n = ui.get_foreground_n()
     args_dict = ui.args_dict
+    do_KS = args_dict["do_KS"]
+    simplified_output = args_dict["simplified_output"]
     background_n = ui.get_background_n()
     protein_ans_fg = ui.get_foreground_an_set()
 
@@ -97,7 +99,6 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     ## limit to given entity types
     cond_limit_2_entity_type = limit_to_entity_types(args_dict["limit_2_entity_type"], function_enumeration_len, etype_cond_dict, funcEnum_count_foreground)
     limit_to_go_subset(etype_cond_dict, args_dict["go_slim_subset"], goslimtype_2_cond_dict, funcEnum_count_foreground)
-
     o_or_u_or_both_encoding = args_dict["o_or_u_or_both_encoding"]
 
     ### calculate Fisher p-values and get bool array for multiple testing
@@ -113,33 +114,35 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
 
 
-    ### FG
-#     if not do_KS_py: # Python
-#         funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-#     else: # Cython
-    fg_scores_matrix = slice_ScoresMatrix_for_given_ENSP(protein_ans_fg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
-
-    ### BG
-    if em == "genome":
-        try:
-            funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
-        except KeyError: # no text mining information for this taxon, try to translate to species level and try again. e.g. user provides 559292 (Saccharomyces cerevisiae S288C, UniProt Reference Proteome), but Jensenlab Textmining supports 4932 (Saccharomyces cerevisiae, rank species)
-            taxid_corrected = ncbi.get_genus_or_higher(taxid, "species") # expects an integer
-            try:
-                funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid_corrected]
-            except KeyError:
-                funcEnum_2_scores_dict_bg = {}
-    else:
-        #if not do_KS_py:
-        bg_scores_matrix = slice_ScoresMatrix_for_given_ENSP(protein_ans_bg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
-        #!!! implement other methods for Cython CSC
-#         if em == "abundance_correction":
-#             funcEnum_2_scores_dict_bg = collect_scores_per_term_abundance_corrected(ui, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-#         elif em == "compare_samples":
-#             funcEnum_2_scores_dict_bg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-#         else: # compare_groups
-#             pass
     if do_KS:
+                ### FG
+    #     if not do_KS_py: # Python
+    #         funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+    #     else: # Cython
+        fg_scores_matrix = slice_ScoresMatrix_for_given_ENSP(protein_ans_fg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
+
+        ### BG
+        if em == "genome":
+            try:
+                funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
+            except KeyError: # no text mining information for this taxon, try to translate to species level and try again. e.g. user provides 559292 (Saccharomyces cerevisiae S288C, UniProt Reference Proteome), but Jensenlab Textmining supports 4932 (Saccharomyces cerevisiae, rank species)
+                taxid_corrected = ncbi.get_genus_or_higher(taxid, "species") # expects an integer
+                try:
+                    funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid_corrected]
+                except KeyError:
+                    funcEnum_2_scores_dict_bg = {}
+        else:
+            #if not do_KS_py:
+            bg_scores_matrix = slice_ScoresMatrix_for_given_ENSP(protein_ans_bg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
+            #!!! implement other methods for Cython CSC
+    #         if em == "abundance_correction":
+    #             funcEnum_2_scores_dict_bg = collect_scores_per_term_abundance_corrected(ui, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+    #         elif em == "compare_samples":
+    #             funcEnum_2_scores_dict_bg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+    #         else: # compare_groups
+    #             pass
+
+
         try: # over_under_int_arr: array of bool to keep track of is_greater or not; o_or_u_or_both_encoding: interger encoding of "overrepresented"/"underrepresented"/"both" strings
             fg_scores_matrix_data = fg_scores_matrix.data
             fg_scores_matrix_indptr = fg_scores_matrix.indptr
@@ -157,6 +160,7 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
 
 #             if not do_KS_py: # Debug
             KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, args_dict["p_value_cutoff"], funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, args_dict["filter_foreground_count_one"])
+            add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
 #             else:
                 # Python slow version:
 #                 KolmogorovSmirnov_old(foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, args_dict["p_value_cutoff"], funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros=True)
@@ -165,8 +169,6 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
         except KeyError: # e.g. enrichment_method "genome" using different taxon for foreground than background
             args_dict["ERROR taxid"] = "The 'taxid' you've provided is: '{}'. Please make sure you've selected the correct NCBI TaxID for your input proteins. The UniProt reference proteome for the TaxID exists, but seems not to match your input proteins.".format(args_dict["taxid"])
             return args_dict
-
-
 
     ### "over/under"
     if o_or_u_or_both_encoding == 1: # overrepresented
@@ -187,17 +189,13 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
         cond_all = np.ones(function_enumeration_len, dtype=bool)
         multiple_testing_per_entity_type(cond_all, cond_multitest, p_values, p_values_corrected, indices_arr)
 
-
-
     # add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict) #!!!
     # need a funcEnum_2_ENSPs_dict for TM data
 #     add_funcEnums_2_dict_v2(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict) #!!!
     # add ENSP 2 funcEnum info using
 #     ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum
     ### #!!!
-    add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
-
-
+    # add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum) --> put in KS block above
 
     ### Filter stuff
     foreground_ids_arr_of_string, funcEnum_indices_for_IDs, cond_etypes_with_ontology_filtered, cond_etypes_rem_foreground_ids_filtered, cond_filter = filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_arr_of_string, funcEnum_count_foreground, year_arr, p_values, indices_arr, ENSP_2_functionEnumArray_dict, cond_filter, etype_cond_dict, cond_PMIDs, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, over_under_int_arr)
@@ -254,7 +252,9 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
 #         df_2_return["category"] = df_2_return["etype"].apply(lambda etype: variables.entityType_2_functionType_dict[etype])
 #         funcEnum_2_description_dict = query.get_function_description_from_funcEnum(indices_arr[cond_2_return].tolist())
 #         df_2_return["description"] = df_2_return["funcEnum"].apply(lambda funcEnum: funcEnum_2_description_dict[funcEnum])
-    df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
+
+    if simplified_output:
+        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
                                 "hierarchical_level": hierlevel_arr[cond_2_return].view(),
                                 "p_value": p_values[cond_2_return].view(),
                                 "FDR": p_values_corrected[cond_2_return].view(),
@@ -262,15 +262,30 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
                                 "etype": entitytype_arr[cond_2_return].view(),
                                 "description": description_arr[cond_2_return].view(),
                                 "year": year_arr[cond_2_return].view(),
-                                "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                                "ratio_in_BG": ratio_in_background[cond_2_return].view(),
                                 "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
                                 "FG_count": funcEnum_count_foreground[cond_2_return].view(),
-                                "BG_count": funcEnum_count_background[cond_2_return].view(),
-                                "effectSize": effectSizes[cond_2_return].view(),
-                                "over_under": over_under_arr_of_string[cond_2_return].view(),
-                                "funcEnum": indices_arr[cond_2_return].view()})
+                                "BG_count": funcEnum_count_background[cond_2_return].view()})
+        return df_2_return[['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', 'description', 'FG_count', 'BG_count', 'FG_IDs', 'year']]
+
+    df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
+                            "hierarchical_level": hierlevel_arr[cond_2_return].view(),
+                            "p_value": p_values[cond_2_return].view(),
+                            "FDR": p_values_corrected[cond_2_return].view(),
+                            "category": category_arr[cond_2_return].view(),
+                            "etype": entitytype_arr[cond_2_return].view(),
+                            "description": description_arr[cond_2_return].view(),
+                            "year": year_arr[cond_2_return].view(),
+                            "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
+                            "ratio_in_BG": ratio_in_background[cond_2_return].view(),
+                            "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
+                            "FG_count": funcEnum_count_foreground[cond_2_return].view(),
+                            "BG_count": funcEnum_count_background[cond_2_return].view(),
+                            "effectSize": effectSizes[cond_2_return].view(),
+                            "over_under": over_under_arr_of_string[cond_2_return].view(),
+                            "funcEnum": indices_arr[cond_2_return].view()})
     cols_2_return_sort_order = ['term', 'hierarchical_level', 'description', 'year', 'over_under', 'p_value', 'FDR', 'effectSize', 'ratio_in_FG', 'ratio_in_BG', 'FG_count', 'FG_n', 'BG_count', 'BG_n', 'FG_IDs', 'BG_IDs', 's_value', 'rank', 'funcEnum', 'category', 'etype']
+
+
     if em in {"compare_samples", "compare_groups"}:
         df_2_return["BG_IDs"] = background_ids_arr_of_string[cond_2_return].view()
     else:

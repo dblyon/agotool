@@ -195,6 +195,8 @@ parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value be
 parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
 parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
 parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
+parser.add_argument("simplified_output", type=str, default="False")
+parser.add_argument("do_KS", type=str, default="False")
 
 
 class API_STRING(Resource):
