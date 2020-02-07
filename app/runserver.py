@@ -848,7 +848,6 @@ if __name__ == "__main__":
     # print("#" * 80)
     # print("running aGOtool on IP {} port {}".format(IP, port))
     # app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
-    print("BUBU was here")
     if ARGPARSE:
         print(IP, port)
         print("#" * 80)
