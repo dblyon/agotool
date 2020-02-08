@@ -281,6 +281,7 @@ except:
 
 jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
+jensenlab_supported_taxids_species_translations_dict = {4932: 559292, 4896: 284812} # Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome
 dtype_TM_score = "uint32" # dtype Jensenlab TextMining score
 dtype_functionEnumeration = "uint32"
 # human, mouse, rat, arabidopsis, yeast, fly, worm, yeast # ??? anything important missing? preload all of swissprot?

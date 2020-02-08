@@ -732,7 +732,8 @@ def Lineage_table_FIN(fn_in_GO_obo_Jensenlab, fn_in_GO_obo, fn_in_keywords, fn_i
         GOTerm_instance = go_dag[go_term_name]
         lineage_dict[go_term_name] = GOTerm_instance.get_all_parents()
 
-    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
+    # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     lineage_dict_enum = {}
     term_no_translation_because_obsolete = []
@@ -859,60 +860,60 @@ def get_child_2_direct_parent_dict_RCTM(fn_in):
                 child_2_parent_dict[child] |= {parent}
     return child_2_parent_dict
 
-def get_lookup_arrays(fn_in_functions, low_memory):
-    """
-    funcEnum_2_hierarchical_level
-    simple numpy array of hierarchical levels
-    if -1 in DB --> convert to np.nan since these are missing values
-    # - funcEnum_2_year
-    # - funcEnum_2_hierarchical_level
-    # - funcEnum_2_etype
-    # - funcEnum_2_description
-    # - funcEnum_2_term
-    :param fn_in_functions: String (file name for functions_table)
-    :param low_memory: Bool flag to return description_array
-    :return: immutable numpy array of int
-    """
-    result = yield_split_line_from_file(fn_in_functions, line_numbers=True)
-    shape_ = next(result)
-    year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
-    entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
-    if not low_memory:
-        description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
-        # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
-        category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
-    functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
-    hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
-    indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
-    indices_arr.flags.writeable = False
-
-    for res in result:
-        func_enum, etype, term, description, year, hierlevel = res
-        func_enum = int(func_enum)
-        etype = int(etype)
-        try:
-            year = int(year)
-        except ValueError: # e.g. "...."
-            year = -1
-        hierlevel = int(hierlevel)
-        entitytype_arr[func_enum] = etype
-        functionalterm_arr[func_enum] = term
-        year_arr[func_enum] = year
-        hierlevel_arr[func_enum] = hierlevel
-        if not low_memory:
-            description_arr[func_enum] = description
-            category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
-
-    year_arr.flags.writeable = False # make it immutable
-    hierlevel_arr.flags.writeable = False
-    entitytype_arr.flags.writeable = False
-    functionalterm_arr.flags.writeable = False
-    if not low_memory:
-        description_arr.flags.writeable = False
-        category_arr.flags.writeable = False
-        return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
-    else:
-        return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
+# def get_lookup_arrays(fn_in_functions, low_memory):
+#     """
+#     funcEnum_2_hierarchical_level
+#     simple numpy array of hierarchical levels
+#     if -1 in DB --> convert to np.nan since these are missing values
+#     # - funcEnum_2_year
+#     # - funcEnum_2_hierarchical_level
+#     # - funcEnum_2_etype
+#     # - funcEnum_2_description
+#     # - funcEnum_2_term
+#     :param fn_in_functions: String (file name for functions_table)
+#     :param low_memory: Bool flag to return description_array
+#     :return: immutable numpy array of int
+#     """
+#     result = yield_split_line_from_file(fn_in_functions, line_numbers=True)
+#     shape_ = next(result)
+#     year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
+#     entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
+#     if not low_memory:
+#         description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
+#         # category_arr = np.empty(shape=shape_, dtype=np.dtype("U49"))  # description of functional category (e.g. "Gene Ontology biological process")
+#         category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+#     functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
+#     hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
+#     indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
+#     indices_arr.flags.writeable = False
+#
+#     for res in result:
+#         func_enum, etype, term, description, year, hierlevel = res
+#         func_enum = int(func_enum)
+#         etype = int(etype)
+#         try:
+#             year = int(year)
+#         except ValueError: # e.g. "...."
+#             year = -1
+#         hierlevel = int(hierlevel)
+#         entitytype_arr[func_enum] = etype
+#         functionalterm_arr[func_enum] = term
+#         year_arr[func_enum] = year
+#         hierlevel_arr[func_enum] = hierlevel
+#         if not low_memory:
+#             description_arr[func_enum] = description
+#             category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
+#
+#     year_arr.flags.writeable = False # make it immutable
+#     hierlevel_arr.flags.writeable = False
+#     entitytype_arr.flags.writeable = False
+#     functionalterm_arr.flags.writeable = False
+#     if not low_memory:
+#         description_arr.flags.writeable = False
+#         category_arr.flags.writeable = False
+#         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
+#     else:
+#         return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr
 
 def yield_split_line_from_file(fn_in, line_numbers=False, split_on="\t"):
     if line_numbers:
@@ -2750,7 +2751,8 @@ def Protein_2_FunctionEnum_and_Score_table_STS(Protein_2_Function_and_Score_DOID
     """
     ENSP_last, ENSP = "bubu", "bubu"
     funcEnum_2_score = []
-    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_STRING_reduced, low_memory=True)
+    # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_STRING_reduced, low_memory=True)
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     ENSP_set = get_all_ENSPs(Taxid_2_Proteins_table_STRING)
     an_without_translation = []
@@ -2812,7 +2814,8 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
 
     ENSP_last, ENSP = "-1", "-1"
     funcEnum_2_score = []
-    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_UPS, low_memory=True)
+    # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(Functions_table_UPS, low_memory=True)
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     an_without_translation, ENSP_without_translation, without_lineage = [], [], set()
     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
@@ -3237,8 +3240,8 @@ def compile_run_cythonized():
 
 def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
     """
+    Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome --> translate via variables.py
     since UniProt ref prot for 4932 doesn't exist but does exist for 559292
-    --> create duplicate of 559292 for taxid 4932
     4932 Saccharomyces cerevisiae, Jensenlab
     559292 Saccharomyces cerevisiae S288C, UniProt Reference Proteome
     4896 Schizosaccharomyces pombe, Jensenlab
@@ -3252,7 +3255,11 @@ def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_t
     ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=fn_in_Protein_2_FunctionEnum_and_Score_table)
     with open(fn_out_Taxid_2_funcEnum_2_scores_table_FIN, "w") as fh_out:
         for taxid in variables.jensenlab_supported_taxids:
+            if taxid in variables.jensenlab_supported_taxids_species_translations_dict:
+                taxid = variables.jensenlab_supported_taxids_species_translations_dict[taxid]
             background_ENSPs = query.get_proteins_of_taxid(taxid, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
+            if background_ENSPs is None or len(background_ENSPs) == 0:
+                print("Taxid_2_funcEnum_2_scores_table_FIN taxid {} without background_ENPSs".format(taxid))
             funcEnum_2_scores_dict_bg = run_cythonized.collect_scores_per_term(background_ENSPs, ENSP_2_tuple_funcEnum_score_dict)
             for funcEnum in sorted(funcEnum_2_scores_dict_bg.keys()):
                 scores = sorted(funcEnum_2_scores_dict_bg[funcEnum])
@@ -3678,7 +3685,8 @@ def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_or
     parse all terms and add to dict (key: obo file name, val: list of GO terms)
     translate GOterm function names to bool array
     """
-    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
+    # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(read_from_flat_files=variables.READ_FROM_FLAT_FILES)
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
     #GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
     files = []
     with open(GO_slim_subsets_file, "r") as fh_in:
@@ -3717,7 +3725,8 @@ def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Scor
         # rowIndex_2_ENSP_dict[rowIndex] = ENSP
 
     # get cond arrays to know maximum length of KS_funcEnum for matrix size
-    _, _, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=True, read_from_flat_files=True)
+    # _, _, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=True, read_from_flat_files=True)
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
     etype_2_minmax_funcEnum = query.PersistentQueryObject_STRING.get_etype_2_minmax_funcEnum(entitytype_arr)
     function_enumeration_len = functionalterm_arr.shape[0]
     etype_cond_dict = query.get_etype_cond_dict(etype_2_minmax_funcEnum, function_enumeration_len)
@@ -3753,7 +3762,8 @@ def Pickle_lookup_arrays_UPS_FIN(Functions_table_UPS_FIN, *args):
     additional args passed is only for Snakemake
     """
     assert os.path.exists(Functions_table_UPS_FIN)
-    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(low_memory=False, read_from_flat_files=True)
+    # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
     arr_list = [year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr]
     name_list = ["year_arr", "hierlevel_arr", "entitytype_arr", "functionalterm_arr", "indices_arr", "description_arr", "category_arr"]
     for index_ in range(len(arr_list)):
@@ -3781,38 +3791,43 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     import variables
 
-    Protein_2_Function_table_UPS_orig_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt")  # original unmodified version
-    Protein_2_Function_table_UPS_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")  # taxids pushed to rank species
-    Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
-    Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
-    Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
-    fn_Functions_table_UPS_FIN = variables.tables_dict["Functions_table"]  # Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
-    Function_2_Protein_table_UPS_fn = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
-    Function_2_Protein_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_reduced.txt")
-    Function_2_Protein_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_removed.txt")
-    Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_removed.txt")
-    Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
-    Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
-    Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
-    Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt")  # 177.656 lines and 5.305.811 unique PMIDs
-    fn_list = [Protein_2_Function_table_UniProtDump_UPS,
-                       Protein_2_Function_table_KEGG_UPS,
-                       Protein_2_Function_table_WikiPathways_UPS,
-                       Protein_2_Function_table_PMID_UPS]
-    UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
-    fn_Functions_table = variables.tables_dict["Functions_table"]
-    fn_in_Protein_2_function_table = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
-    fn_out_Protein_2_functionEnum_table_FIN = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
-    fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
-    Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
-    Functions_table_UPS_FIN = variables.tables_dict["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
-    Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
-    Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
+    # Protein_2_Function_table_UPS_orig_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt")  # original unmodified version
+    # Protein_2_Function_table_UPS_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")  # taxids pushed to rank species
+    # Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
+    # Taxid_2_Proteins_table_UPS_FIN = variables.tables_dict["Taxid_2_Proteins_table"]
+    # Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
+    # fn_Functions_table_UPS_FIN = variables.tables_dict["Functions_table"]  # Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
+    # Function_2_Protein_table_UPS_fn = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
+    # Function_2_Protein_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_reduced.txt")
+    # Function_2_Protein_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_removed.txt")
+    # Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_removed.txt")
+    # Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
+    # Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
+    # Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
+    # Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt")  # 177.656 lines and 5.305.811 unique PMIDs
+    # fn_list = [Protein_2_Function_table_UniProtDump_UPS,
+    #                    Protein_2_Function_table_KEGG_UPS,
+    #                    Protein_2_Function_table_WikiPathways_UPS,
+    #                    Protein_2_Function_table_PMID_UPS]
+    # UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
+    # fn_Functions_table = variables.tables_dict["Functions_table"]
+    # fn_in_Protein_2_function_table = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")
+    # fn_out_Protein_2_functionEnum_table_FIN = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN.txt") #rename  Protein_2_FunctionEnum_table_UPS_FIN_v2.txt #variables.tables_dict["Protein_2_FunctionEnum_table"]
+    # fn_out_Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
+    # Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
+    # Functions_table_UPS_FIN = variables.tables_dict["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
+    # Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
+    # Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
 
     # run single rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
     Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
     Taxid_2_funcEnum_2_scores_table_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
+
+    # e.g. funcEnum = 69816 with lots of 500000 scores
+        # {500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500057, 500070, 500102, 500125, 500190, 50027
+    # % grep "^9606" Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt | grep 75069 | cut -c1-150% grep "^9606" Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt | grep 75069 | cut -c1-150
+
 
     # print("#" * 50)
     # print("Protein_2_Function_table_UPS")
