@@ -47,12 +47,12 @@ echo "\n### copy files to Aquarius (production server)\n"
 rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/
 check_exit_status
 
-ssh dblyon@aquarius '/home/dblyon/agotool/monthly_update_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
+ssh dblyon@aquarius '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
 echo "\n--- finished Cronjob ---\n"
 
 
 ########################################################################################################################
-### on production server "monthly_update_Aquarius.sh"
+### on production server "cronjob_update_aGOtool_Aquarius.sh"
 # pbzip2 -p10 -dc $TAR_FILE_NAME | tar x
 # check if files are similar size of larger than previously
 # copy from file SQL

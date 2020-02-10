@@ -759,7 +759,7 @@ rule Pickle_Taxid_2_FunctionEnum_2_Scores_dict:
     output:
         Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN
     run:
-        cst.Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
+        cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
 
 
 

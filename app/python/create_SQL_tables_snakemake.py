@@ -1024,7 +1024,7 @@ def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Fu
                     index_backgroundCount_array_string = helper_format_funcEnum(funcEnum_count_background)
                     background_n = taxid_2_total_protein_count_dict[taxid_previous]
                     fh_out.write(taxid_previous + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
-                    funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype("uint32"))
+                    funcEnum_count_background = np.zeros(shape=num_lines, dtype=np.dtype(variables.dtype_functionEnumeration))
 
                 funcEnum_count_background = helper_count_funcEnum(funcEnum_count_background, funcEnum_set)
                 taxid_previous = taxid
