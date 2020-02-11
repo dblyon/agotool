@@ -514,6 +514,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.reset_preloaded_objects_per_analysis()
 
         if variables.VERBOSE:
+            print("getting taxid_2_proteins_dict")
+        self.taxid_2_proteins_dict = get_taxid_2_proteins_dict()
+
+        if variables.VERBOSE:
             print("finished with PQO init")
             print("go go GO and fly like the wind")
             print("#" * 80)
@@ -1265,6 +1269,26 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
                 if taxid_line == str(taxid):
                     prot_arr = prot_arr.strip()[1:-1].replace("'", "").replace('"', "").split(",")
                     return sorted(prot_arr)
+
+def get_taxid_2_proteins_dict(fn_Taxid_2_Proteins_table_STRING=None):
+    """
+    taxid_2_proteins_dict: key: Int(Taxid), val: set of String(UniProt ID)
+    """
+    # if not read_from_flat_files:
+    #     result = get_results_of_statement("SELECT taxid_2_protein.an_array FROM taxid_2_protein")
+    #     return sorted(result[0][0])
+    # else:
+    taxid_2_proteins_dict = {}
+    if fn_Taxid_2_Proteins_table_STRING is None:
+        fn_Taxid_2_Proteins_table_STRING = variables.tables_dict["Taxid_2_Proteins_table"]
+    with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
+        for line in fh:
+            # taxid_line, prot_arr, background_count = line.split("\t") # STRING_v11
+            taxid, background_count, prot_arr = line.split("\t") # UniProt
+            taxid = int(taxid)
+            prot_arr = prot_arr.strip()[1:-1].replace("'", "").replace('"', "").split(",")
+            taxid_2_proteins_dict[taxid] = set(prot_arr)
+    return taxid_2_proteins_dict
 
 def get_Taxid_2_proteome_count_dict(read_from_flat_files=False, fn=None): #, searchspace=None):
     """

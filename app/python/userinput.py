@@ -477,6 +477,15 @@ class Userinput:
             correction_factor = min(correction_factor, 1)
             yield proteinGroups_background.tolist(), correction_factor
 
+    def check_if_fg_proper_subset_of_proteome(self):
+        fg_set = self.get_foreground_an_set()
+        proteins_of_taxid_set = self.pqo.taxid_2_proteins_dict[self.args_dict["taxid"]]
+        if len(fg_set - proteins_of_taxid_set) == 0:
+            return True
+        else:
+            return False
+
+
 
 
 
