@@ -454,8 +454,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("getting CSC_ENSPencoding_2_FuncEnum and ENSP_2_rowIndex_dict")
-        ### superfluous
-        # self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
+        ### deprecated --> self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
         with open(variables.tables_dict["ENSP_2_rowIndex_dict"], "rb") as fh_ENSP_2_rowIndex_dict:
             self.ENSP_2_rowIndex_dict = pickle.load(fh_ENSP_2_rowIndex_dict)
         self.CSC_ENSPencoding_2_FuncEnum = sparse.load_npz(variables.tables_dict["CSC_ENSPencoding_2_FuncEnum"])
@@ -468,7 +467,14 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("getting Taxid_2_FunctionEnum_2_Scores_dict")
+            print("getting Taxid_2_FuncEnum_2_Score_2_Rank_dict")
+            print("getting Taxid_2_FuncEnum_2_medianScore_dict")
+            print("getting Taxid_2_FuncEnum_2_numBGvals_dict")
         self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=True)
+        self.Taxid_2_FuncEnum_2_Score_2_Rank_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_Score_2_Rank_dict"], "rb"))
+        self.Taxid_2_FuncEnum_2_medianScore_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_medianScore_dict"], "rb"))
+        self.Taxid_2_FuncEnum_2_numBGvals_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_numBGvals_dict"], "rb"))
+
 
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
@@ -531,20 +537,22 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
     def get_static_preloaded_objects(self, low_memory=False):
         if not low_memory: # removed self.ENSP_2_tuple_funcEnum_score_dict
-            static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
-                                        self.description_arr, self.category_arr, # high mem
+            static_preloaded_objects = (self.ENSP_2_functionEnumArray_dict, # high mem --> the only difference between low_memory versions
+                                        self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
+                                        self.description_arr, self.category_arr, # previously high mem but only 62MB
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len, self.etype_cond_dict,
-                                        self.ENSP_2_functionEnumArray_dict, # high mem
                                         self.taxid_2_proteome_count, self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
-                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum)
+                                        self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum,
+                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.Taxid_2_FuncEnum_2_Score_2_Rank_dict, self.Taxid_2_FuncEnum_2_medianScore_dict, self.Taxid_2_FuncEnum_2_numBGvals_dict)
         else:
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.description_arr, self.category_arr,  # high mem --> only 62 MB
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len, self.etype_cond_dict,
                                         self.taxid_2_proteome_count, self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
-                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum)
+                                        self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum,
+                                        self.Taxid_2_FunctionEnum_2_Scores_dict, self.Taxid_2_FuncEnum_2_Score_2_Rank_dict, self.Taxid_2_FuncEnum_2_medianScore_dict, self.Taxid_2_FuncEnum_2_numBGvals_dict)
         return static_preloaded_objects
 
     def get_blacklisted_terms_bool_arr(self):

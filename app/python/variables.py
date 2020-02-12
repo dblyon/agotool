@@ -255,6 +255,9 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "description_arr": os.path.join(TABLES_DIR, "description_arr_{}.p".format(appendix)),
     "category_arr": os.path.join(TABLES_DIR, "category_arr_{}.p".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix)),
+    "Taxid_2_FuncEnum_2_Score_2_Rank_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_Score_2_Rank_dict_{}.p".format(appendix)),
+    "Taxid_2_FuncEnum_2_medianScore_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_medianScore_dict_{}.p".format(appendix)),
+    "Taxid_2_FuncEnum_2_numBGvals_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_numBGvals_dict_{}.p".format(appendix)),
     "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_{}.txt".format(appendix))
                }
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}

@@ -71,6 +71,9 @@ taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = TABLES_DICT_
 CSC_ENSPencoding_2_FuncEnum_UPS_FIN = TABLES_DICT_SNAKEMAKE["CSC_ENSPencoding_2_FuncEnum"]
 ENSP_2_rowIndex_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["ENSP_2_rowIndex_dict"]
 Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionEnum_2_Scores_dict"]
+Taxid_2_FuncEnum_2_Score_2_Rank_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_Score_2_Rank_dict"]
+Taxid_2_FuncEnum_2_medianScore_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_medianScore_dict"]
+Taxid_2_FuncEnum_2_numBGvals_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_numBGvals_dict"]
 
 if hostname == "ody":
     # string_matches = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/string_matches.tsv"
@@ -757,9 +760,12 @@ rule Pickle_Taxid_2_FunctionEnum_2_Scores_dict:
     input:
         Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     output:
-        Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN
+        Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN,
+        Taxid_2_FuncEnum_2_Score_2_Rank_dict = Taxid_2_FuncEnum_2_Score_2_Rank_dict,
+        Taxid_2_FuncEnum_2_medianScore_dict = Taxid_2_FuncEnum_2_medianScore_dict,
+        Taxid_2_FuncEnum_2_numBGvals_dict = Taxid_2_FuncEnum_2_numBGvals_dict
     run:
-        cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
+        cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, output.Taxid_2_FuncEnum_2_Score_2_Rank_dict, output.Taxid_2_FuncEnum_2_medianScore_dict, output.Taxid_2_FuncEnum_2_numBGvals_dict)
 
 
 
