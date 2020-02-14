@@ -1254,7 +1254,7 @@ def get_Primary_2_Secondary_IDs_dict_from_prim(ids_2_map, read_from_flat_files=F
                 else:
                     Primary_2_Secondary_IDs_dict[prim].append(sec)
 
-    else:
+    else: # -- CREATE INDEX secondary_2_primary_id_prim_idx ON secondary_2_primary_id (prim);
         result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.prim FROM secondary_2_primary_id WHERE secondary_2_primary_id.prim IN ({});".format(str(ids_2_map)[1:-1]))
         for sec, prim in result:
             if prim not in Primary_2_Secondary_IDs_dict:

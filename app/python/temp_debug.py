@@ -111,88 +111,98 @@ def searchsorted_dbl(fg, bg):
 #         funcEnum_count_background[funcEnum] = num_bg_vals
 
 
-def KolmogorovSmirnov_sparse_cy_genome(funcEnum_2_medianScore_dict, funcEnum_2_score_2_rank_dict, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff,funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, filter_foreground_count_one):
+# def KolmogorovSmirnov_sparse_cy_genome(funcEnum_2_medianScore_dict, funcEnum_2_score_2_rank_dict, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff,funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, filter_foreground_count_one):
+#
+#     fg_size_plus_bg_size = foreground_n + background_n
+#     fg_size_times_bg_size_times_mintwo = -2.0 * foreground_n * background_n
+#     len_fg_scores_matrix_indptr = fg_scores_matrix_indptr.shape[0]
+#     for funcEnum in range(len_fg_scores_matrix_indptr - 1):
+#         index_col_start_fg = fg_scores_matrix_indptr[funcEnum]
+#         index_col_stop_fg = fg_scores_matrix_indptr[funcEnum + 1]
+#         if index_col_start_fg == index_col_stop_fg:
+#             continue  # column is empty
+#         elif filter_foreground_count_one and (index_col_stop_fg - index_col_start_fg) == 1:
+#             continue
+#         else:
+#             fg_values = fg_scores_matrix_data[index_col_start_fg:index_col_stop_fg]
+#
+#
+#         fg_values = np.sort(fg_values)
+#         num_fg_vals = fg_values.shape[0]
+#         num_zeros_2_fill_fg = foreground_n - num_fg_vals
+#         fg_rank, D_max_abs = 0, 0
+#         try:
+#             score_2_rank_dict = funcEnum_2_score_2_rank_dict[funcEnum]
+#         except KeyError:
+#             print("KeyError funcEnum {} not in funcEnum_2_score_2_rank_dict".format(funcEnum))
+#             continue
+#
+#         num_bg_vals = len(score_2_rank_dict.keys()) #bg_values.shape[0]
+#         if num_bg_vals == 0:
+#             continue
+#         num_zeros_2_fill_bg = background_n - num_bg_vals
+#
+#         while fg_rank < num_fg_vals:
+#             fg_val = fg_values[fg_rank]
+#             fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
+#
+#             try:
+#                 bg_rank = score_2_rank_dict[fg_val]
+#             except KeyError:
+#                 print("KeyError fg_val {} not in score_2_rank_dict".format(fg_val))
+#                 continue
+#
+#             bg_cumulative = (bg_rank + num_zeros_2_fill_bg + 1) / background_n
+#             D_current_abs = abs(fg_cumulative - bg_cumulative)
+#             if D_current_abs > D_max_abs:
+#                 D_max_abs = D_current_abs
+#
+#             fg_rank += 1
+#             fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
+#             D_current_abs = abs(fg_cumulative - bg_cumulative)
+#             if D_current_abs > D_max_abs:
+#                 D_max_abs = D_current_abs
+#         pvalue = math.exp(fg_size_times_bg_size_times_mintwo * D_max_abs * D_max_abs / fg_size_plus_bg_size)
+#         if o_or_u_or_both_encoding != 0:
+#             pvalue /= 2
+#
+#         num_half_fg = int(round((num_fg_vals + num_zeros_2_fill_fg) / 2))  # index at half of fg
+#         if num_half_fg > num_zeros_2_fill_fg:
+#             median_index = int(num_half_fg - num_zeros_2_fill_fg)
+#             median_fg = fg_values[median_index]
+#         else:
+#             median_fg = 0
+#         num_half_bg = int(round((num_bg_vals + num_zeros_2_fill_bg) / 2))
+#         if num_half_bg > num_zeros_2_fill_bg:
+#             try:
+#                 median_bg = funcEnum_2_medianScore_dict[funcEnum]
+#             except KeyError:
+#                 print("KeyError funcEnum {} not in funcEnum_2_medianScore_dict".format(funcEnum))
+#                 continue
+#         else:
+#             median_bg = 0
+#         is_greater = median_fg > median_bg  # since rank based this is inverted
+#
+#         if pvalue <= p_value_cutoff:
+#             p_values[funcEnum] = pvalue
+#             effectSizes[funcEnum] = D_max_abs
+#             if is_greater:  # overrepresented
+#                 over_under_int_arr[funcEnum] = 1
+#             else:  # underrepresented
+#                 over_under_int_arr[funcEnum] = 2
+#         cond_multitest[funcEnum] = True
+#         funcEnum_count_foreground[funcEnum] = num_fg_vals
+#         funcEnum_count_background[funcEnum] = num_bg_vals
 
-    fg_size_plus_bg_size = foreground_n + background_n
-    fg_size_times_bg_size_times_mintwo = -2.0 * foreground_n * background_n
-    len_fg_scores_matrix_indptr = fg_scores_matrix_indptr.shape[0]
-    for funcEnum in range(len_fg_scores_matrix_indptr - 1):
-        index_col_start_fg = fg_scores_matrix_indptr[funcEnum]
-        index_col_stop_fg = fg_scores_matrix_indptr[funcEnum + 1]
-        if index_col_start_fg == index_col_stop_fg:
-            continue  # column is empty
-        elif filter_foreground_count_one and (index_col_stop_fg - index_col_start_fg) == 1:
-            continue
-        else:
-            fg_values = fg_scores_matrix_data[index_col_start_fg:index_col_stop_fg]
 
 
-        fg_values = np.sort(fg_values)
-        num_fg_vals = fg_values.shape[0]
-        num_zeros_2_fill_fg = foreground_n - num_fg_vals
-        fg_rank, D_max_abs = 0, 0
-        try:
-            score_2_rank_dict = funcEnum_2_score_2_rank_dict[funcEnum]
-        except KeyError:
-            print("KeyError funcEnum {} not in funcEnum_2_score_2_rank_dict".format(funcEnum))
-            continue
 
-        num_bg_vals = len(score_2_rank_dict.keys()) #bg_values.shape[0]
-        if num_bg_vals == 0:
-            continue
-        num_zeros_2_fill_bg = background_n - num_bg_vals
 
-        while fg_rank < num_fg_vals:
-            fg_val = fg_values[fg_rank]
-            fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
 
-            try:
-                bg_rank = score_2_rank_dict[fg_val]
-            except KeyError:
-                print("KeyError fg_val {} not in score_2_rank_dict".format(fg_val))
-                continue
 
-            bg_cumulative = (bg_rank + num_zeros_2_fill_bg + 1) / background_n
-            D_current_abs = abs(fg_cumulative - bg_cumulative)
-            if D_current_abs > D_max_abs:
-                D_max_abs = D_current_abs
 
-            fg_rank += 1
-            fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
-            D_current_abs = abs(fg_cumulative - bg_cumulative)
-            if D_current_abs > D_max_abs:
-                D_max_abs = D_current_abs
-        pvalue = math.exp(fg_size_times_bg_size_times_mintwo * D_max_abs * D_max_abs / fg_size_plus_bg_size)
-        if o_or_u_or_both_encoding != 0:
-            pvalue /= 2
 
-        num_half_fg = int(round((num_fg_vals + num_zeros_2_fill_fg) / 2))  # index at half of fg
-        if num_half_fg > num_zeros_2_fill_fg:
-            median_index = int(num_half_fg - num_zeros_2_fill_fg)
-            median_fg = fg_values[median_index]
-        else:
-            median_fg = 0
-        num_half_bg = int(round((num_bg_vals + num_zeros_2_fill_bg) / 2))
-        if num_half_bg > num_zeros_2_fill_bg:
-            try:
-                median_bg = funcEnum_2_medianScore_dict[funcEnum]
-            except KeyError:
-                print("KeyError funcEnum {} not in funcEnum_2_medianScore_dict".format(funcEnum))
-                continue
-        else:
-            median_bg = 0
-        is_greater = median_fg > median_bg  # since rank based this is inverted
 
-        if pvalue <= p_value_cutoff:
-            p_values[funcEnum] = pvalue
-            effectSizes[funcEnum] = D_max_abs
-            if is_greater:  # overrepresented
-                over_under_int_arr[funcEnum] = 1
-            else:  # underrepresented
-                over_under_int_arr[funcEnum] = 2
-        cond_multitest[funcEnum] = True
-        funcEnum_count_foreground[funcEnum] = num_fg_vals
-        funcEnum_count_background[funcEnum] = num_bg_vals
 
 
 
