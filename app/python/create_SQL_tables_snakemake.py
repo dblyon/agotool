@@ -714,7 +714,6 @@ def Protein_2_FunctionEnum_table_UPS_FIN(fn_Functions_table_STRING, fn_in_Protei
                     functionEnum_list = list(set(functionEnum_list))
                     fh_out_removed.write(taxid_last + "\t" + UniProtID_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")
 
-
 def _helper_format_array(function_arr, function_2_enum_dict):
     functionEnum_list = []
     for ele in function_arr:
@@ -3703,12 +3702,13 @@ def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_or
         list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
         np.save(os.path.join(TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
 
-def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, CSC_ENSPencoding_2_FuncEnum_UPS_FIN, ENSP_2_rowIndex_dict_UPS_FIN, verbose=True):
+def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, CSC_ENSPencoding_2_FuncEnum_UPS_FIN, ENSP_2_rowIndex_dict_UPS_FIN, rowIndex_2_ENSP_dict_UPS_FIN, verbose=True):
     """
     Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
     CSC_ENSPencoding_2_FuncEnum_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["CSC_ENSPencoding_2_FuncEnum"]
     ENSP_2_rowIndex_dict_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["ENSP_2_rowIndex_dict"]
-    SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, CSC_ENSPencoding_2_FuncEnum_UPS_FIN, ENSP_2_rowIndex_dict_UPS_FIN, verbose=True)
+    rowIndex_2_ENSP_dict_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["rowIndex_2_ENSP_dict"]
+    SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, CSC_ENSPencoding_2_FuncEnum_UPS_FIN, ENSP_2_rowIndex_dict_UPS_FIN, rowIndex_2_ENSP_dict_UPS_FIN, verbose=True)
     1.) sparse matrix for all ENSPs
     2.) slice first matrix to get user matrix
     column index --> function enumeration
@@ -3722,7 +3722,7 @@ def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Scor
     ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict = {}, {}
     for rowIndex, ENSP in enumerate(sorted(ENSP_2_tuple_funcEnum_score_dict.keys())):
         ENSP_2_rowIndex_dict[ENSP] = rowIndex
-        # rowIndex_2_ENSP_dict[rowIndex] = ENSP
+        rowIndex_2_ENSP_dict[rowIndex] = ENSP
 
     # get cond arrays to know maximum length of KS_funcEnum for matrix size
     # _, _, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(low_memory=True, read_from_flat_files=True)
@@ -3744,6 +3744,7 @@ def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Scor
         print("Memory usage of (in bytes): ", matrix.data.nbytes + matrix.indptr.nbytes + matrix.indices.nbytes)
 
     pickle.dump(ENSP_2_rowIndex_dict, open(ENSP_2_rowIndex_dict_UPS_FIN, "wb"))
+    pickle.dump(rowIndex_2_ENSP_dict, open(rowIndex_2_ENSP_dict_UPS_FIN, "wb"))
     sparse.save_npz(CSC_ENSPencoding_2_FuncEnum_UPS_FIN, matrix)
 
 

@@ -70,6 +70,7 @@ BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static fi
 taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
 CSC_ENSPencoding_2_FuncEnum_UPS_FIN = TABLES_DICT_SNAKEMAKE["CSC_ENSPencoding_2_FuncEnum"]
 ENSP_2_rowIndex_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["ENSP_2_rowIndex_dict"]
+rowIndex_2_ENPS_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["rowIndex_2_ENSP_dict"]
 Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionEnum_2_Scores_dict"]
 Taxid_2_FuncEnum_2_Score_2_Rank_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_Score_2_Rank_dict"]
 Taxid_2_FuncEnum_2_medianScore_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_medianScore_dict"]
@@ -729,9 +730,10 @@ rule SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN:
         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN
     output:
         CSC_ENSPencoding_2_FuncEnum_UPS_FIN = CSC_ENSPencoding_2_FuncEnum_UPS_FIN,
-        ENSP_2_rowIndex_dict_UPS_FIN = ENSP_2_rowIndex_dict_UPS_FIN
+        ENSP_2_rowIndex_dict_UPS_FIN = ENSP_2_rowIndex_dict_UPS_FIN,
+        rowIndex_2_ENSP_dict_UPS_FIN = rowIndex_2_ENSP_dict_UPS_FIN
     run:
-        cst.SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.CSC_ENSPencoding_2_FuncEnum_UPS_FIN, output.ENSP_2_rowIndex_dict_UPS_FIN)
+        cst.SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.CSC_ENSPencoding_2_FuncEnum_UPS_FIN, output.ENSP_2_rowIndex_dict_UPS_FIN, output.rowIndex_2_ENSP_dict_UPS_FIN)
 
 
 rule Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts_UPS_FIN:
@@ -756,16 +758,16 @@ rule Pickle_lookup_arrays_UPS_FIN:
     run:
         cst.Pickle_lookup_arrays_UPS_FIN(input.Functions_table_UPS_FIN, output.year_arr_UPS_FIN, output.hierlevel_arr_UPS_FIN, output.entitytype_arr_UPS_FIN, output.functionalterm_arr_UPS_FIN, output.indices_arr_UPS_FIN, output.description_arr_UPS_FIN, output.category_arr_UPS_FIN)
 
-rule Pickle_Taxid_2_FunctionEnum_2_Scores_dict:
-    input:
-        Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
-    output:
-        Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN,
-        Taxid_2_FuncEnum_2_Score_2_Rank_dict = Taxid_2_FuncEnum_2_Score_2_Rank_dict,
-        Taxid_2_FuncEnum_2_medianScore_dict = Taxid_2_FuncEnum_2_medianScore_dict,
-        Taxid_2_FuncEnum_2_numBGvals_dict = Taxid_2_FuncEnum_2_numBGvals_dict
-    run:
-        cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, output.Taxid_2_FuncEnum_2_Score_2_Rank_dict, output.Taxid_2_FuncEnum_2_medianScore_dict, output.Taxid_2_FuncEnum_2_numBGvals_dict)
+# rule Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # deprecated since performance improvement lacking --> maybe in C++ version of dicts are implemented, but doesn't seem worth it since KS testing < 300ms
+#     input:
+#         Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
+#     output:
+#         Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN,
+#         Taxid_2_FuncEnum_2_Score_2_Rank_dict = Taxid_2_FuncEnum_2_Score_2_Rank_dict,
+#         Taxid_2_FuncEnum_2_medianScore_dict = Taxid_2_FuncEnum_2_medianScore_dict,
+#         Taxid_2_FuncEnum_2_numBGvals_dict = Taxid_2_FuncEnum_2_numBGvals_dict
+#     run:
+#         cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, output.Taxid_2_FuncEnum_2_Score_2_Rank_dict, output.Taxid_2_FuncEnum_2_medianScore_dict, output.Taxid_2_FuncEnum_2_numBGvals_dict)
 
 
 

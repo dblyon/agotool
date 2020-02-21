@@ -223,7 +223,9 @@ param_2_val_dict = parse_env_file(fn)
 blacklisted_terms = {'GO:0003674', 'GO:0008150', 'GO:0005575', "GOCC:0005575",
                      'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614',
                      'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267',
-                     'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999'}
+                     'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999',
+                     'GOCC:0005623', 'GOCC:0044464', 'GOCC:0005622'} # GOCC:0005623 = Cell; GOCC:0044464= Cell part; GOCC:0005622 = Intracellular
+
 
 ##### final Tables / flat-files needed for flask app / PostgreSQL
 if VERSION_ == "UniProt":
@@ -247,6 +249,7 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "taxid_2_tuple_funcEnum_index_2_associations_counts": os.path.join(TABLES_DIR, "taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_{}.p".format(appendix)),
     "CSC_ENSPencoding_2_FuncEnum": os.path.join(TABLES_DIR, "CSC_ENSPencoding_2_FuncEnum_{}.npz".format(appendix)),
     "ENSP_2_rowIndex_dict": os.path.join(TABLES_DIR, "ENSP_2_rowIndex_dict_{}.p".format(appendix)),
+    "rowIndex_2_ENSP_dict": os.path.join(TABLES_DIR, "rowIndex_2_ENSP_dict_{}.p".format(appendix)),
     "year_arr": os.path.join(TABLES_DIR, "year_arr_{}.p".format(appendix)),
     "hierlevel_arr": os.path.join(TABLES_DIR, "hierlevel_arr_{}.p".format(appendix)),
     "entitytype_arr": os.path.join(TABLES_DIR, "entitytype_arr_{}.p".format(appendix)),

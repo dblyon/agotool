@@ -132,6 +132,7 @@ class Userinput:
         ### check if background is empty
         if self.enrichment_method not in {"characterize_foreground", "genome"}:
             if self.background.shape[0] == 0:
+                self.args_dict["ERROR Background empty"] = "Please check the Background you've provided. It seems the Background is empty."
                 return self.foreground, self.background, False
 
         ### remove splice variant appendix and drop duplicates
