@@ -522,8 +522,7 @@ class Enrichment_Form(wtforms.Form):
                                    choices = (("abundance_correction", "abundance_correction"),
                                               ("characterize_foreground", "characterize_foreground"),
                                               ("compare_samples", "compare_samples"),
-                                              ("compare_groups", "compare_groups"),
-                                              ("genome", "genome")),
+                                              ("genome", "genome")), # ("compare_groups", "compare_groups"),
                                    description="""abundance_correction: Foreground vs Background abundance corrected
 compare_samples: Foreground vs Background (no abundance correction)
 characterize_foreground: Foreground only""")
@@ -570,9 +569,9 @@ class Example_1(Enrichment_Form):
         bg_int += bg_ele + "\t" + str(int_ele) + "\n"
     foreground_textarea = fields.TextAreaField("Foreground", default=fg)
     background_textarea = fields.TextAreaField("Background & Intensity", default=bg_int.strip())
-    enrichment_method = fields.SelectField("Enrichment method", choices=(("abundance_correction", "abundance_correction"), ("compare_samples", "compare_samples"), ("genome", "genome"), ("compare_groups", "compare_groups"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
+    enrichment_method = fields.SelectField("Enrichment method", choices=(("abundance_correction", "abundance_correction"), ("compare_samples", "compare_samples"), ("genome", "genome"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""")
+    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
 
 
 class Example_2(Enrichment_Form):
@@ -583,9 +582,9 @@ class Example_2(Enrichment_Form):
     foreground_textarea = fields.TextAreaField("Foreground", default="""P69905\nP68871\nP02042\nP02100""")
     # foreground_textarea = fields.TextAreaField("Foreground", default="""HBA_HUMAN\nHBB_HUMAN\nHBD_HUMAN\nHBE_HUMAN""")
     background_textarea = fields.TextAreaField("Background & Intensity", default="no data necessary (in this field) since enrichment method 'genome' is being used, which uses pre-selected background reference proteome from UniProt")
-    enrichment_method = fields.SelectField("Enrichment method", choices=(("genome", "genome"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("compare_groups", "compare_groups"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
+    enrichment_method = fields.SelectField("Enrichment method", choices=(("genome", "genome"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""")
+    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
 
 
@@ -598,9 +597,9 @@ class Example_3(Enrichment_Form):
     foreground_textarea = fields.TextAreaField("Foreground", default="""Q9R117\nP33896\nO35664\nO35716\nP01575\nP42225\nP07351\nP52332\nQ9WVL2\nQ61179\nQ61716""")
     background_input = "\n".join(query.get_proteins_of_taxid(10090, read_from_flat_files=True))
     background_textarea = fields.TextAreaField("Background & Intensity", default=background_input)
-    enrichment_method = fields.SelectField("Enrichment method", choices=(("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome"), ("compare_groups", "compare_groups"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
+    enrichment_method = fields.SelectField("Enrichment method", choices=(("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome"),  ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""")
+    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606 for Homo sapiens)")
 
 
@@ -610,9 +609,9 @@ class Example_4(Enrichment_Form):
     characterize_foreground
     """
     foreground_textarea = fields.TextAreaField("Foreground", default="""MPRD_HUMAN""")
-    enrichment_method = fields.SelectField("Enrichment method", choices=(("characterize_foreground", "characterize_foreground"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome"), ("compare_groups", "compare_groups")), description="""abundance_correction: Foreground vs Background abundance corrected
+    enrichment_method = fields.SelectField("Enrichment method", choices=(("characterize_foreground", "characterize_foreground"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""")
+    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups")
 
 
 @app.route('/example_1')
@@ -784,7 +783,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
             cols_sort_order_hierarchy.remove(over_under)
             cols_sort_order_rest.remove(over_under)
 
-        if args_dict["enrichment_method"] not in {"compare_samples", "compare_groups"}:
+        if args_dict["enrichment_method"] not in {"compare_samples"}: # "compare_groups"
             cols_sort_order_PMID.remove(BG_IDs)
             cols_sort_order_hierarchy.remove(BG_IDs)
             cols_sort_order_rest.remove(BG_IDs)

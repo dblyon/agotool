@@ -1,0 +1,20 @@
+version: "3"
+services:
+  db: # name
+    logging:
+      driver: "json-file"
+    container_name: postgres12
+    image: "postgres:12" # try latest postgres 12
+#    shm_size: 1g
+    volumes:
+      - "dbdata:/var/lib/postgresql/data"
+     ### Ody
+      - /Users/dblyon/modules/cpr/agotool/data/:/agotool_data # version 2, bind mount, to mount files from the host to the container
+    ports: # expose port in order to connect to PostgreSQL from outside docker
+      - "5913:5432"
+    env_file:
+      - ./app/env_file
+
+volumes: # can be shared
+  dbdata: # purely Postgres
+  agotool_data: # version 1

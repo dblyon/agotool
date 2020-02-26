@@ -1,5 +1,8 @@
 import os, multiprocessing, sys
 import numpy as np
+import yaml # conda install pyyaml NOT yaml
+import socket
+hostname = socket.gethostname()
 
 ############################
 ### settings
@@ -345,3 +348,25 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 # python runserver.py 0.0.0.0 5923
 
 
+# Lars evidence codes being used
+# ['EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA', 'HMP', 'HGI', 'HEP', 'ISS', 'ISO', 'ISA', 'ISM', 'IGC', 'IBA', 'IBD', 'IKR', 'IMR', 'IRD', 'RCA', 'TAS', 'NAS', 'IC', 'ND', 'IEA', 'NR']
+
+
+######## Docker PostgreSQL port
+AGOTOOL_DIR = os.path.join(APP_DIR, '../')
+if hostname == "ody":
+    docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_ody.yml")
+elif hostname in "aquarius":
+    docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_aquarius.yml")
+elif hostname in {"atlas", "gaia"}:
+    docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_atlas.yml")
+else:
+    print("hostname {} does not have a specific docker_*.yml file".format(hostname))
+    raise StopIteration
+with open(docker_hostspecific_yml) as fh:
+    text = fh.read()
+yml_as_dict = yaml.load(text, Loader=yaml.FullLoader)
+try:
+    Docker_incoming_PostgreSQL_port = yml_as_dict["services"]["db"]["ports"][0].split(":")[0]
+except KeyError:
+    print("Can't parse file {} correctly to find Docker port for PostgreSQL".format(docker_hostspecific_yml))

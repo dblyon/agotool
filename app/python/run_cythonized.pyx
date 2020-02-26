@@ -31,7 +31,7 @@ from scipy import stats
 import variables, query
 
 
-def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False, KS_method="cy"):
+def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False, KS_method="cy"): # ENSP_2_tuple_funcEnum_score_dict debug
     if not low_memory:
         ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
     else:  # missing: ENSP_2_functionEnumArray_dict
@@ -47,13 +47,13 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
     filter_foreground_count_one = args_dict["filter_foreground_count_one"]
     p_value_cutoff = args_dict["p_value_cutoff"]
 
-    if em == "compare_groups":
-        foreground_replicates = args_dict["foreground_replicates"]
-        background_replicates = args_dict["background_replicates"]
-        protein_ans_fg_redundant = ui.get_an_redundant_foreground()
-        protein_ans_bg_redundant = ui.get_an_redundant_background()
+    #     if em == "compare_groups":
+    #         foreground_replicates = args_dict["foreground_replicates"]
+    #         background_replicates = args_dict["background_replicates"]
+    #         protein_ans_fg_redundant = ui.get_an_redundant_foreground()
+    #         protein_ans_bg_redundant = ui.get_an_redundant_background()
 
-    if ui.enrichment_method in {"abundance_correction", "compare_samples", "compare_groups"}:
+    if ui.enrichment_method in {"abundance_correction", "compare_samples"}: # , "compare_groups"
         protein_ans_bg = ui.get_background_an_set()
     if low_memory:
         ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(ui.get_all_individual_AN(), dict_2_array=True)
@@ -61,9 +61,9 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
     ENSP_2_functionEnumArray_dict = add_protein_groups_to_ENSP_2_functionEnumArray_dict(ENSP_2_functionEnumArray_dict, ui.get_all_unique_proteinGroups())
 
     ## count foreground
-    if em == "compare_groups":
-        funcEnum_count_foreground_redundant = funcEnum_count_foreground.copy()
-        count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg_redundant, funcEnum_count_foreground_redundant)
+    #     if em == "compare_groups":
+    #         funcEnum_count_foreground_redundant = funcEnum_count_foreground.copy()
+    #         count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg_redundant, funcEnum_count_foreground_redundant)
     count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg, funcEnum_count_foreground)
 
     ### count background
@@ -76,10 +76,10 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
         background_n = foreground_n
     elif em == "compare_samples":
         count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_bg, funcEnum_count_background)
-    elif em == "compare_groups":
-        funcEnum_count_background_redundant = funcEnum_count_background.copy()
-        count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_bg_redundant, funcEnum_count_background_redundant)
-        count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_bg, funcEnum_count_background)
+    #     elif em == "compare_groups":
+    #         funcEnum_count_background_redundant = funcEnum_count_background.copy()
+    #         count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_bg_redundant, funcEnum_count_background_redundant)
+    #         count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_bg, funcEnum_count_background)
     else:
         args_dict["ERROR enrichment_method"] = "The 'enrichment_method' you've provided: '{}' doesn't exist / isn't implemented.".format(args_dict["enrichment_method"])
         return args_dict
@@ -90,10 +90,10 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
     o_or_u_or_both_encoding = args_dict["o_or_u_or_both_encoding"]
 
     ### calculate Fisher p-values and get bool array for multiple testing
-    if em != "compare_groups":
-        calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest, effectSizes, over_under_int_arr, o_or_u_or_both_encoding)
-    else:
-        calc_pvalues_compare_groups(funcEnum_count_foreground, funcEnum_count_background, funcEnum_count_foreground_redundant, funcEnum_count_background_redundant, foreground_replicates, background_replicates, p_values, cond_multitest, effectSizes, over_under_int_arr, o_or_u_or_both_encoding)
+    #     if em != "compare_groups":
+    calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest, effectSizes, over_under_int_arr, o_or_u_or_both_encoding)
+    #     else:
+    #         calc_pvalues_compare_groups(funcEnum_count_foreground, funcEnum_count_background, funcEnum_count_foreground_redundant, funcEnum_count_background_redundant, foreground_replicates, background_replicates, p_values, cond_multitest, effectSizes, over_under_int_arr, o_or_u_or_both_encoding)
 
     ######################################################################################################################################################
     ### Jensenlab Scores KS test
@@ -103,13 +103,13 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
     fg_scores_matrix_data = fg_scores_matrix.data
     fg_scores_matrix_indptr = fg_scores_matrix.indptr
 
-    if debug:
-        funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
-        funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
-        funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-        bg_scores_matrix_data = None
-        bg_scores_matrix_indptr = None
-        return funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, over_under_int_arr, bg_scores_matrix_data, bg_scores_matrix_indptr, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, filter_foreground_count_one, funcEnum_2_scores_dict_bg, em
+    # if debug:
+    #     funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
+    #     funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
+    #     funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+    #     bg_scores_matrix_data = None
+    #     bg_scores_matrix_indptr = None
+    #     return funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, over_under_int_arr, bg_scores_matrix_data, bg_scores_matrix_indptr, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, filter_foreground_count_one, funcEnum_2_scores_dict_bg, em
 
     if em == "genome": # "genome" has 2 possible KS methods KolmogorovSmirnov_sparse_cy (if fg not a proper subset of bg but comparing to precomputed bg) and KolmogorovSmirnov_sparse_cy_genome.
         if KS_method == "cy":
@@ -124,11 +124,11 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
                 except KeyError:
                     funcEnum_2_scores_dict_bg = {}
             KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
-        elif KS_method == "scipy":
-            funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
-            funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-            funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid]
-            KolmogorovSmirnov_scipy(foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros=True)
+        # elif KS_method == "scipy":
+        #     funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
+        #     funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+        #     funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid]
+        #     KolmogorovSmirnov_scipy(foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros=True)
         else:
             print("KS_method {} not implemented".format(KS_method))
             return None
@@ -138,8 +138,8 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
         bg_scores_matrix_indptr = bg_scores_matrix.indptr
         funcEnum_2_scores_dict_bg = None
         KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
-    elif em == "compare_groups": # not implemented yet. would need redundant ENSPs ENSP_2_rowIndex_dict,
-        pass
+    #     elif em == "compare_groups": # not implemented yet. would need redundant ENSPs ENSP_2_rowIndex_dict,
+    #         pass
     #### other methods e.g. abundance_correction, compare_samples are missing  #!!!
     ### don't delete "add_funcEnums_2_dict_CSC", not using due to speed and too many proteins in list --> but use for characterize_foreground
     # add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
@@ -217,7 +217,7 @@ def run_enrichment_cy(ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_obje
                             "funcEnum": indices_arr[cond_2_return].view()})
     cols_2_return_sort_order = ['term', 'hierarchical_level', 'description', 'year', 'over_under', 'p_value', 'FDR', 'effectSize', 'ratio_in_FG', 'ratio_in_BG', 'FG_count', 'FG_n', 'BG_count', 'BG_n', 'FG_IDs', 'BG_IDs', 's_value', 'rank', 'funcEnum', 'category', 'etype']
 
-    if em in {"compare_samples", "compare_groups"}:
+    if em in {"compare_samples"}: # , "compare_groups"
         df_2_return["BG_IDs"] = background_ids_arr_of_string[cond_2_return].view()
     else:
         cols_2_return_sort_order.remove("BG_IDs")
@@ -743,6 +743,10 @@ cpdef int calc_pvalues_compare_groups(unsigned int[::1] funcEnum_count_foregroun
             b = foreground_n - foreground_count # number of proteins not associated with GO-term
             background_n = funcEnum_count_background[index_] * background_replicates
             c = background_count
+            if background_count == 0:
+                cond_multitest[index_] = True
+                over_under_int_arr[index_] = 3
+                continue
             d = background_n - background_count
             p_val_uncorrected = fisher_dict.get((a, b, c, d), -1)
             if p_val_uncorrected == -1:
@@ -779,7 +783,7 @@ cpdef int calc_pvalues_compare_groups(unsigned int[::1] funcEnum_count_foregroun
                 elif o_or_u_or_both_encoding == 2: # underrepresented
                     over_under_int_arr[index_] = 2
                 else:
-                    over_under_int_arr[index_] = 3 # which caser is this supposed to be?
+                    over_under_int_arr[index_] = 3 # which case is this supposed to be?
             p_values[index_] = p_val_uncorrected
             try:
                 odds_ratio = (a / (a + b)) - (c / (c + d)) # difference in proportions DBL

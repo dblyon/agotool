@@ -1,0 +1,10 @@
+version: '3'
+services:
+  db:
+    image: "postgres:12" # try latest postgres 12
+    container_name: postgres12
+    volumes:
+      ### Aquarius
+      - /home/dblyon/agotool/data:/agotool_data
+    env_file:
+      - ./app/env_file

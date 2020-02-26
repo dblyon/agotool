@@ -70,7 +70,7 @@ def get_cursor(env_dict=None):
         DBNAME = env_dict['POSTGRES_DB']
         PORT = '5432'
         HOST = 'db'
-        return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+        return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
 
     if platform_ == "linux":
         if not variables.DB_DOCKER: # use local Postgres
@@ -83,9 +83,10 @@ def get_cursor(env_dict=None):
             except KeyError:
                 print("query.py sais there is something wrong with the Postgres config")
                 raise StopIteration
-            return get_cursor_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+            return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
         else: # use dockerized Postgres directly from native OS
-            PORT = '5913'
+            # PORT = '5913'
+            PORT = variables.Docker_incoming_PostgreSQL_port
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
             return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
@@ -94,7 +95,8 @@ def get_cursor(env_dict=None):
         if not variables.DB_DOCKER: # use local Postgres
             return get_cursor_ody()
         else: # connect to docker Postgres container. use dockerized Postgres directly from native OS
-            PORT = '5432' # shouldn't this be 5913?
+            # PORT = '5913' # shouldn't this be 5913? YES
+            PORT = variables.Docker_incoming_PostgreSQL_port
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
             return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
@@ -102,51 +104,36 @@ def get_cursor(env_dict=None):
         print("query.get_cursor() doesn't know how to connect to Postgres")
         raise StopIteration
 
-def get_cursor_docker(host, dbname, user, password, port):
-    """
-    e.g.
-    import os
-    user = os.environ['POSTGRES_USER']
-    pwd = os.environ['POSTGRES_PASSWORD']
-    db = os.environ['POSTGRES_DB']
-    host = 'db'
-    port = '5432'
-    cursor = get_cursor_docker(user=user, password=pwd, host=host, port=port, dbname=db)
-    # Sqlalchemy version: engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
-    """
-    # Define our connection string
-    # conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, user, password)
-
-    # engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
-    conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
-    # get a connection, if a connect cannot be made an exception will be raised here
-    conn = psycopg2.connect(conn_string)
-
-    # conn.cursor will return a cursor object, you can use this cursor to perform queries
-    cursor = conn.cursor()
-    return cursor
+# def get_cursor_docker(host, dbname, user, password, port):
+#     """
+#     e.g.
+#     import os
+#     user = os.environ['POSTGRES_USER']
+#     pwd = os.environ['POSTGRES_PASSWORD']
+#     db = os.environ['POSTGRES_DB']
+#     host = 'db'
+#     port = '5432'
+#     cursor = get_cursor_docker(user=user, password=pwd, host=host, port=port, dbname=db)
+#     # Sqlalchemy version: engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
+#     """
+#     conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
+#     conn = psycopg2.connect(conn_string)
+#     cursor = conn.cursor()
+#     return cursor
 
 def get_cursor_ody(dbname='agotool'):
     """
     :param dbname:
     :return: DB Cursor instance object
     """
-    # Define our connection string
     conn_string = "dbname='{}'".format(dbname)
-
-    # get a connection, if a connect cannot be made an exception will be raised here
     conn = psycopg2.connect(conn_string)
-
-    # conn.cursor will return a cursor object, you can use this cursor to perform queries
     cursor = conn.cursor()
     return cursor
 
 def get_cursor_connect_2_docker(host, dbname, user, password, port):
     conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
-    # get a connection, if a connect cannot be made an exception will be raised here
     conn = psycopg2.connect(conn_string)
-
-    # conn.cursor will return a cursor object, you can use this cursor to perform queries
     cursor = conn.cursor()
     return cursor
 
@@ -477,7 +464,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         # self.Taxid_2_FuncEnum_2_medianScore_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_medianScore_dict"], "rb"))
         # self.Taxid_2_FuncEnum_2_numBGvals_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_numBGvals_dict"], "rb"))
 
-
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
         self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True) # small file doesn't make sense to keep in DB for now
@@ -530,7 +516,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         # cond_KS_etypes = self.etype_cond_dict["cond_25"] | self.etype_cond_dict["cond_26"] | self.etype_cond_dict["cond_20"]
         # self.KS_funcEnums_arr = self.indices_arr[cond_KS_etypes]
-
 
         if variables.VERBOSE:
             print("finished with PQO init")
