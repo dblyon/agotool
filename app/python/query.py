@@ -6,6 +6,8 @@ import os, sys
 from collections import defaultdict
 import psycopg2
 from scipy import sparse
+import socket
+hostname = socket.gethostname()
 # import math
 # from contextlib import contextmanager
 
@@ -63,7 +65,6 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'KEGG': "-52"}
 
 def get_cursor(env_dict=None):
-    platform_ = sys.platform
     if env_dict is not None:
         USER = env_dict['POSTGRES_USER']
         PWD = env_dict['POSTGRES_PASSWORD']
@@ -72,6 +73,16 @@ def get_cursor(env_dict=None):
         HOST = 'db'
         return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
 
+    if hostname == "aquarius.meringlab.org":
+        env_dict = variables.param_2_val_dict
+        USER = env_dict['POSTGRES_USER']
+        PWD = env_dict['POSTGRES_PASSWORD']
+        DBNAME = env_dict['POSTGRES_DB']
+        PORT = env_dict['PORT_NUMBER']
+        HOST = 'localhost'
+        return get_cursor_connect(host=HOST, dbname=DBNAME, user=USER, port=PORT, password=PWD)
+
+    platform_ = sys.platform
     if platform_ == "linux":
         if not variables.DB_DOCKER: # use local Postgres
             try:
@@ -93,12 +104,14 @@ def get_cursor(env_dict=None):
 
     elif platform_ == "darwin":
         if not variables.DB_DOCKER: # use local Postgres
+            print("get_cursor_ody")
             return get_cursor_ody()
         else: # connect to docker Postgres container. use dockerized Postgres directly from native OS
             # PORT = '5913' # shouldn't this be 5913? YES
             PORT = variables.Docker_incoming_PostgreSQL_port
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
+            print("get_cursor_connect_2_docker")
             return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
     else:
         print("query.get_cursor() doesn't know how to connect to Postgres")
@@ -127,6 +140,12 @@ def get_cursor_ody(dbname='agotool'):
     :return: DB Cursor instance object
     """
     conn_string = "dbname='{}'".format(dbname)
+    conn = psycopg2.connect(conn_string)
+    cursor = conn.cursor()
+    return cursor
+
+def get_cursor_connect(host, dbname, user, password, port):
+    conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
     conn = psycopg2.connect(conn_string)
     cursor = conn.cursor()
     return cursor

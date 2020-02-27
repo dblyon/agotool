@@ -2,7 +2,7 @@ import os, sys, logging, time, argparse
 from collections import defaultdict
 import numpy as np
 import pandas as pd
-pd.set_option('display.max_colwidth', -1) # in order to prevent 50 character cutoff of to_html export / ellipsis
+pd.set_option('display.max_colwidth', 300) # in order to prevent 50 character cutoff of to_html export / ellipsis
 from lxml import etree
 # from gc import get_objects
 import flask

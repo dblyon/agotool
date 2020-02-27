@@ -668,6 +668,9 @@ docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreS
 cd ~/modules/cpr/agotool/data/PostgreSQL
 psql -d agotool -f copy_from_file_and_index_ODY.psql
 psql -d agotool -f drop_and_rename.psql
+# on Aquarius
+cd /home/dblyon/agotool/data/PostgreSQL
+psql -d agotool -f copy_from_file_and_index.psql
 
 
 

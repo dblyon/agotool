@@ -1,8 +1,8 @@
 import os, multiprocessing, sys
 import numpy as np
-import yaml # conda install pyyaml NOT yaml
 import socket
 hostname = socket.gethostname()
+# import yaml # conda install pyyaml NOT yaml
 
 ############################
 ### settings
@@ -10,7 +10,6 @@ PRELOAD = True # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
-
 DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
@@ -353,20 +352,20 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 
 
 ######## Docker PostgreSQL port
-AGOTOOL_DIR = os.path.join(APP_DIR, '../')
-if hostname == "ody":
-    docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_ody.yml")
-elif hostname in "aquarius":
-    docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_aquarius.yml")
-elif hostname in {"atlas", "gaia"}:
-    docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_atlas.yml")
-else:
-    print("hostname {} does not have a specific docker_*.yml file".format(hostname))
-    raise StopIteration
-with open(docker_hostspecific_yml) as fh:
-    text = fh.read()
-yml_as_dict = yaml.load(text, Loader=yaml.FullLoader)
-try:
-    Docker_incoming_PostgreSQL_port = yml_as_dict["services"]["db"]["ports"][0].split(":")[0]
-except KeyError:
-    print("Can't parse file {} correctly to find Docker port for PostgreSQL".format(docker_hostspecific_yml))
+# AGOTOOL_DIR = os.path.join(APP_DIR, '../')
+# if hostname == "ody":
+#     docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_ody.yml")
+# elif hostname in "aquarius":
+#     docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_aquarius.yml")
+# elif hostname in {"atlas", "gaia"}:
+#     docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_atlas.yml")
+# else:
+#     print("hostname {} does not have a specific docker_*.yml file".format(hostname))
+#     raise StopIteration
+# with open(docker_hostspecific_yml) as fh:
+#     text = fh.read()
+# yml_as_dict = yaml.load(text, Loader=yaml.FullLoader)
+# try:
+#     Docker_incoming_PostgreSQL_port = yml_as_dict["services"]["db"]["ports"][0].split(":")[0]
+# except KeyError:
+#     print("Can't parse file {} correctly to find Docker port for PostgreSQL".format(docker_hostspecific_yml))
