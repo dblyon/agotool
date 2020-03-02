@@ -10,7 +10,7 @@ from collections import deque
 from ast import literal_eval
 import re, obo_parser
 import tools, ratio
-import variables_snakemake as variables
+import variables as variables
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 BASH_LOCATION = r"/usr/bin/env bash"
@@ -1042,16 +1042,19 @@ def Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_
     if verbose:
         print("\ncreate_Protein_2_Function_table_GO")
     GO_dag = obo_parser.GODag(obo_file=fn_in_obo_file, upk=False)
-    fn_in_temp = fn_in_knowledge + "_temp"
-    tools.gunzip_file(fn_in_knowledge, fn_in_temp)
-    tools.sort_file(fn_in_temp, fn_in_temp, columns="1,2", number_of_processes=number_of_processes)
+    # fn_in_temp = fn_in_knowledge + "_temp"
+    # tools.gunzip_file(fn_in_knowledge, fn_in_temp)
+    # tools.sort_file(fn_in_temp, fn_in_temp, columns="1,2", number_of_processes=number_of_processes)
+    tools.sort_file(fn_in_knowledge, fn_in_knowledge, columns="1,2", number_of_processes=number_of_processes)
     if verbose:
-        print("gunzip and sorting {}".format(fn_in_knowledge))
+        # print("gunzip and sorting {}".format(fn_in_knowledge))
+        print("sorting {}".format(fn_in_knowledge))
     GOterms_not_in_obo = []
     if verbose:
         print("parsing previous result to produce Protein_2_Function_table_GO.txt")
     with open(fn_out_Protein_2_Function_table_GO, "w") as fh_out:
-        for ENSP, GOterm_list, _ in parse_string_go_yield_entry(fn_in_temp):
+        # for ENSP, GOterm_list, _ in parse_string_go_yield_entry(fn_in_temp):
+        for ENSP, GOterm_list, _ in parse_string_go_yield_entry(fn_in_knowledge):
             GOterm_list, GOterms_not_in_obo_temp = get_all_parent_terms(GOterm_list, GO_dag)
             GOterms_not_in_obo += GOterms_not_in_obo_temp
             if len(GOterm_list) >= 1:
@@ -1066,7 +1069,7 @@ def Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_
                     fh_out.write(ENSP + "\t" + "{" + str(BPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0008150'] + "\n") # 'Biological Process', -21
     GOterms_not_in_obo = sorted(set(GOterms_not_in_obo))
     fn_log = os.path.join(LOG_DIRECTORY, "create_SQL_tables_GOterms_not_in_OBO.log")
-    os.remove(fn_in_temp)
+    # os.remove(fn_in_temp)
     with open(fn_log, "w") as fh_out:
         fh_out.write(";".join(GOterms_not_in_obo))
     if verbose:

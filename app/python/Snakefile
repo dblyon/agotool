@@ -1,6 +1,6 @@
 import os, sys
 # sys.path.insert(0, os.path.join(os.getcwd(), "python"))
-import variables_snakemake as variables
+import variables as variables
 import create_SQL_tables_snakemake as cst
 import download_resources_snakemake as drs
 from importlib import reload
@@ -70,9 +70,9 @@ RCTM_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv") # https
 # --> there is an "R-" as prefix everywhere which Damian probably took out
 
 
-string_matches = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_matches.tsv" # string_matches = os.path.join(DOWNLOADS_DIR, "string_matches.tsv.gz") # Lars
-pmc_medline = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/pmc_medline.tsv" # pmc_medline_small_example.tsv" # ask LARS
-GO_knowledge_Lars = os.path.join(DOWNLOADS_DIR, "knowledge.tsv.gz") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz" # Lars
+string_matches = os.path.join(DOWNLOADS_DIR, "string_matches.tsv") # string_matches = os.path.join(DOWNLOADS_DIR, "string_matches.tsv.gz") # Lars
+pmc_medline = os.path.join(DOWNLOADS_DIR, "pmc_medline.tsv") # pmc_medline_small_example.tsv" # ask LARS
+GO_knowledge_Lars = os.path.join(DOWNLOADS_DIR, "knowledge.tsv") # version10="string_go.tsv.gz" new_version="knowledge.tsv.gz" # Lars
 all_entities = os.path.join(DOWNLOADS_DIR, "all_entities.tsv.gz") # Lars mapping
 
 ### STRING release intervals

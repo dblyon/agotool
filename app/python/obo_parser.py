@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-import collections as cx
+# import collections as cx
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 
@@ -56,7 +56,10 @@ class OBOReader:
         if not line.startswith(TERM_TAG):
             read_until(self._handle, TERM_TAG)
         while 1:
-            yield self.__next__()
+            try:
+                yield self.__next__()
+            except StopIteration:
+                return
 
     def __next__(self):
         lines = []
@@ -187,6 +190,7 @@ class GOTerm:
             if p.id == term or p.has_child(term):
                 return True
         return False
+
 
     # def get_all_parents(self):
     #     all_parents = set()
