@@ -349,7 +349,7 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 
 # Lars evidence codes being used
 # ['EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA', 'HMP', 'HGI', 'HEP', 'ISS', 'ISO', 'ISA', 'ISM', 'IGC', 'IBA', 'IBD', 'IKR', 'IMR', 'IRD', 'RCA', 'TAS', 'NAS', 'IC', 'ND', 'IEA', 'NR']
-
+# sources being used SGD, WormBase, and FlyBase
 
 ######## Docker PostgreSQL port
 # AGOTOOL_DIR = os.path.join(APP_DIR, '../')

@@ -27,6 +27,20 @@ CREATE INDEX protein_2_functionenum_id_idx_temp ON protein_2_functionenum_temp (
 CLUSTER protein_2_functionenum_temp USING protein_2_functionenum_taxid_idx_temp;
 
 
+CREATE TABLE functions_temp (
+    enum integer,
+    etype integer,
+    an text,
+    description text,
+    year text,
+    level integer);
+\copy functions_temp FROM 'tables/Functions_table_UPS_FIN.txt';
+CREATE INDEX functions_enum_idx_temp ON functions_temp (enum);
+CREATE INDEX functions_an_idx_temp ON functions_temp (an);
+CREATE INDEX functions_etype_an_idx_temp ON functions_temp (etype, an);
+CLUSTER functions_temp USING functions_etype_an_idx_temp;
+
+
 -- CREATE TABLE taxid_2_functioncountarray_temp (
 --     taxid integer,
 --     background_n integer,
@@ -34,20 +48,6 @@ CLUSTER protein_2_functionenum_temp USING protein_2_functionenum_taxid_idx_temp;
 --     background_count_arr integer ARRAY);
 -- \copy taxid_2_functioncountarray_temp FROM '/agotool_data/PostgreSQL/tables/Taxid_2_FunctionCountArray_table_UPS_FIN.txt';
 -- CREATE INDEX taxid_2_functioncountarray_taxid_idx_temp ON taxid_2_functioncountarray_temp (taxid);
---
---
--- CREATE TABLE functions_temp (
---     enum integer,
---     etype integer,
---     an text,
---     description text,
---     year text,
---     level integer);
--- \copy functions_temp FROM '/agotool_data/PostgreSQL/tables/Functions_table_UPS_FIN.txt';
--- CREATE INDEX functions_enum_idx_temp ON functions_temp (enum);
--- CREATE INDEX functions_an_idx_temp ON functions_temp (an);
--- CREATE INDEX functions_etype_an_idx_temp ON functions_temp (etype, an);
--- CLUSTER functions_temp USING functions_etype_an_idx_temp;
 --
 --
 -- CREATE TABLE taxid_2_protein_temp (
