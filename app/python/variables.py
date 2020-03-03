@@ -214,8 +214,10 @@ def parse_env_file(fn):
 # else:
 #     param_2_val_dict = parse_env_file(os.path.join(APP_DIR, "env_file"))
 fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
-# print("VARIABLES env_file bubu: ", fn)
-param_2_val_dict = parse_env_file(fn)
+try:
+    param_2_val_dict = parse_env_file(fn)
+except:
+    pass
 
 ### Blacklisted terms
 # top level KW except Disease and Developmental stage

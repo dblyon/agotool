@@ -73,7 +73,7 @@ def get_cursor(env_dict=None):
         HOST = 'db'
         return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
 
-    if hostname == "aquarius.meringlab.org":
+    if hostname == "aquarius.meringlab.org": # use agotool/app/env_file, which isn't in git repo for security
         env_dict = variables.param_2_val_dict
         USER = env_dict['POSTGRES_USER']
         PWD = env_dict['POSTGRES_PASSWORD']
