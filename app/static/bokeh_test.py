@@ -12,7 +12,6 @@ from bokeh.sampledata.sea_surface_temperature import sea_surface_temperature
 
 app = Flask(__name__)
 
-
 def modify_doc(doc):
     df = sea_surface_temperature.copy()
     source = ColumnDataSource(data=df)
