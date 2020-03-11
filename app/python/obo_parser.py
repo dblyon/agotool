@@ -209,6 +209,9 @@ class GOTerm:
                 self.all_parents |= p.get_all_parents() # same as union of sets, but faster
         return self.all_parents
 
+    def get_direct_parents(self):
+        return [p.id for p in self.parents]
+
     def get_all_children(self):
         all_children = set()
         for p in self.children:

@@ -73,7 +73,7 @@ def get_cursor(env_dict=None):
         HOST = 'db'
         return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
 
-    if hostname == "aquarius.meringlab.org": # use agotool/app/env_file, which isn't in git repo for security
+    if hostname in {"aquarius.meringlab.org", "atlas"}: # use agotool/app/env_file, which isn't in git repo for security, using local Postgres
         env_dict = variables.param_2_val_dict
         USER = env_dict['POSTGRES_USER']
         PWD = env_dict['POSTGRES_PASSWORD']
@@ -96,8 +96,7 @@ def get_cursor(env_dict=None):
                 raise StopIteration
             return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
         else: # use dockerized Postgres directly from native OS
-            # PORT = '5913'
-            PORT = variables.Docker_incoming_PostgreSQL_port
+            PORT = variables.Docker_incoming_PostgreSQL_port # '5913'
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
             return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
@@ -106,8 +105,7 @@ def get_cursor(env_dict=None):
         if not variables.DB_DOCKER: # use local Postgres
             return get_cursor_ody()
         else: # connect to docker Postgres container. use dockerized Postgres directly from native OS
-            # PORT = '5913'
-            PORT = variables.Docker_incoming_PostgreSQL_port
+            PORT = variables.Docker_incoming_PostgreSQL_port # '5913'
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
             return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)

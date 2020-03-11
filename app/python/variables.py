@@ -2,7 +2,7 @@ import os, multiprocessing, sys
 import numpy as np
 import socket
 hostname = socket.gethostname()
-# import yaml # conda install pyyaml NOT yaml
+import yaml # conda install pyyaml NOT yaml
 
 ############################
 ### settings
@@ -192,33 +192,6 @@ def makedirs_():
 # CPU usage during updates (for "sort --parallel")
 NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
 
-def parse_env_file(fn):
-    """
-    fn = r'/Users/dblyon/modules/cpr/agotool/app/env_file'
-    :param fn: String
-    :return: Dict
-    """
-    param_2_val_dict = {}
-    with open(fn, "r") as fh:
-        for line in fh:
-            if not line.startswith("#"):
-                try:
-                    key, val = line.strip().split("=")
-                    param_2_val_dict[key] = val
-                except ValueError: # whitespace, empty lines
-                    pass
-    return param_2_val_dict
-
-# if DB_DOCKER:
-#     param_2_val_dict = parse_env_file(os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file")))
-# else:
-#     param_2_val_dict = parse_env_file(os.path.join(APP_DIR, "env_file"))
-fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
-try:
-    param_2_val_dict = parse_env_file(fn)
-except:
-    pass
-
 ### Blacklisted terms
 # top level KW except Disease and Developmental stage
 # 'KW-9995' 'Disease',
@@ -333,42 +306,73 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 ### time temp.sh on mnemo5 after cleanup
 # temp.sh  2180.76s user 136.73s system 1321% cpu 2:55.40 total
 
-
 ####################################
 ### Atlas
 # agotool v0 STRING v11 (without DB)
 # http://127.0.0.1:5912/
 
-
 # agotool v1 UniProt version running KS with Scipy (using Docker DB)
 # http://127.0.0.1:5000/
-
 
 # agotool v2 UniProt version running KS with Cython (using different Docker DB)
 # docker DB on 5914:5432
 # http://127.0.0.1:5923/
 # python runserver.py 0.0.0.0 5923
 
-
 # Lars evidence codes being used
 # ['EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP', 'HTP', 'HDA', 'HMP', 'HGI', 'HEP', 'ISS', 'ISO', 'ISA', 'ISM', 'IGC', 'IBA', 'IBD', 'IKR', 'IMR', 'IRD', 'RCA', 'TAS', 'NAS', 'IC', 'ND', 'IEA', 'NR']
 # sources being used SGD, WormBase, and FlyBase
 
-######## Docker PostgreSQL port
+# ######## Docker PostgreSQL port
 # AGOTOOL_DIR = os.path.join(APP_DIR, '../')
-# if hostname == "ody":
-#     docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_ody.yml")
-# elif hostname in "aquarius":
-#     docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_aquarius.yml")
-# elif hostname in {"atlas", "gaia"}:
-#     docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_atlas.yml")
+# def get_Docker_PostgreSQL_port_from_yml():
+#     if hostname == "ody":
+#         docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_ody.yml")
+#     elif hostname in "aquarius":
+#         docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_aquarius.yml")
+#     elif hostname in {"atlas", "gaia"}:
+#         docker_hostspecific_yml = os.path.join(AGOTOOL_DIR, "docker_atlas.yml")
+#     else:
+#         print("hostname {} does not have a specific docker_*.yml file".format(hostname))
+#         raise StopIteration
+#     try:
+#         with open(docker_hostspecific_yml) as fh:
+#             text = fh.read()
+#         yml_as_dict = yaml.load(text, Loader=yaml.FullLoader)
+#     except:
+#         return False
+#     try:
+#         Docker_incoming_PostgreSQL_port = yml_as_dict["services"]["db"]["ports"][0].split(":")[0]
+#     except KeyError:
+#         print("Can't parse file {} correctly to find Docker port for PostgreSQL".format(docker_hostspecific_yml))
+#         return False
+#     return Docker_incoming_PostgreSQL_port
+#
+# Docker_incoming_PostgreSQL_port = get_Docker_PostgreSQL_port_from_yml()
+
+def parse_env_file(fn):
+    """
+    fn = r'/Users/dblyon/modules/cpr/agotool/app/env_file'
+    :param fn: String
+    :return: Dict
+    """
+    param_2_val_dict = {}
+    with open(fn, "r") as fh:
+        for line in fh:
+            if not line.startswith("#"):
+                try:
+                    key, val = line.strip().split("=")
+                    param_2_val_dict[key] = val
+                except ValueError: # whitespace, empty lines
+                    pass
+    return param_2_val_dict
+
+# if DB_DOCKER:
+#     param_2_val_dict = parse_env_file(os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file")))
 # else:
-#     print("hostname {} does not have a specific docker_*.yml file".format(hostname))
-#     raise StopIteration
-# with open(docker_hostspecific_yml) as fh:
-#     text = fh.read()
-# yml_as_dict = yaml.load(text, Loader=yaml.FullLoader)
-# try:
-#     Docker_incoming_PostgreSQL_port = yml_as_dict["services"]["db"]["ports"][0].split(":")[0]
-# except KeyError:
-#     print("Can't parse file {} correctly to find Docker port for PostgreSQL".format(docker_hostspecific_yml))
+#     param_2_val_dict = parse_env_file(os.path.join(APP_DIR, "env_file"))
+fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
+try:
+    param_2_val_dict = parse_env_file(fn)
+except:
+    pass
