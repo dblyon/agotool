@@ -31,7 +31,7 @@ from scipy import stats
 import variables, query
 
 
-def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False, KS_method="cy"): # ENSP_2_tuple_funcEnum_score_dict debug
+def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False, KS_method="cy"):
     if not low_memory:
         ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
     else:  # missing: ENSP_2_functionEnumArray_dict
@@ -103,13 +103,13 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     fg_scores_matrix_data = fg_scores_matrix.data
     fg_scores_matrix_indptr = fg_scores_matrix.indptr
 
-    # if debug:
-    #     funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
-    #     funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
-    #     funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-    #     bg_scores_matrix_data = None
-    #     bg_scores_matrix_indptr = None
-    #     return funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, over_under_int_arr, bg_scores_matrix_data, bg_scores_matrix_indptr, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, filter_foreground_count_one, funcEnum_2_scores_dict_bg, em
+#     if debug:
+#         funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
+#         funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
+#         funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+#         bg_scores_matrix_data = None
+#         bg_scores_matrix_indptr = None
+#         return funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, over_under_int_arr, bg_scores_matrix_data, bg_scores_matrix_indptr, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, filter_foreground_count_one, funcEnum_2_scores_dict_bg, em
 
     if em == "genome": # "genome" has 2 possible KS methods KolmogorovSmirnov_sparse_cy (if fg not a proper subset of bg but comparing to precomputed bg) and KolmogorovSmirnov_sparse_cy_genome.
         if KS_method == "cy":
@@ -132,12 +132,16 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
         else:
             print("KS_method {} not implemented".format(KS_method))
             return None
-    elif em in {"compare_samples", "abundance_correction"}: # abundance_correction not treated any differently
+    elif em in {"compare_samples", "abundance_correction"}: # abundance_correction calculated the same way as compare_samples, background_n will differ from non-KS etypes
         bg_scores_matrix, list_of_rowIndices_bg = slice_ScoresMatrix_for_given_ENSP(protein_ans_bg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
         bg_scores_matrix_data = bg_scores_matrix.data
         bg_scores_matrix_indptr = bg_scores_matrix.indptr
         funcEnum_2_scores_dict_bg = None
-        KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
+        if em == "abundance_correction":
+            background_n_temp = ui.background.shape[0]
+        else:
+            background_n_temp = background_n
+        KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n_temp, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
     #     elif em == "compare_groups": # not implemented yet. would need redundant ENSPs ENSP_2_rowIndex_dict,
     #         pass
     #### other methods e.g. abundance_correction, compare_samples are missing  #!!!
@@ -166,8 +170,6 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
 
     ### Filter stuff
     foreground_ids_arr_of_string, funcEnum_indices_for_IDs, cond_etypes_with_ontology_filtered, cond_etypes_rem_foreground_ids_filtered, cond_filter = filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_arr_of_string, funcEnum_count_foreground, year_arr, p_values, indices_arr, ENSP_2_functionEnumArray_dict, cond_filter, etype_cond_dict, cond_PMIDs, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, over_under_int_arr, cond_KS_etypes)
-    # foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
-    # foreground_ids_arr_of_string = map_funcEnum_2_ENSPs_v2(foreground_ids_arr_of_string, funcEnum_indices_for_IDs, protein_ans_fg)
 
     if em in {"compare_samples"}:
         background_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_bg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, background_ids_arr_of_string)
@@ -180,10 +182,6 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
         cond_terms_reduced_with_ontology = cond_filter & cond_etypes_with_ontology
     ### concatenate filtered results
     cond_2_return = cond_PMIDs | cond_terms_reduced_with_ontology | cond_etypes_rem_foreground_ids_filtered
-
-    ### calc ratio in foreground, count foreground / len(protein_ans)
-    ratio_in_foreground = funcEnum_count_foreground / foreground_n
-    ratio_in_background = funcEnum_count_background / background_n
 
     if simplified_output:
         df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
@@ -207,8 +205,8 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
                             "etype": entitytype_arr[cond_2_return].view(),
                             "description": description_arr[cond_2_return].view(),
                             "year": year_arr[cond_2_return].view(),
-                            "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                            "ratio_in_BG": ratio_in_background[cond_2_return].view(),
+#                             "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
+#                             "ratio_in_BG": ratio_in_background[cond_2_return].view(),
                             "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
                             "FG_count": funcEnum_count_foreground[cond_2_return].view(),
                             "BG_count": funcEnum_count_background[cond_2_return].view(),
@@ -225,10 +223,19 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     df_2_return["s_value_abs"] = df_2_return["s_value"].apply(lambda x: abs(x))
     df_2_return = df_2_return.sort_values(["etype", "s_value_abs", "hierarchical_level", "year"], ascending=[False, False, False, False])
     df_2_return["rank"] = df_2_return.groupby("etype")["s_value_abs"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0]).astype(int)
+    if debug:
+            return protein_ans_bg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, background_ids_arr_of_string, df_2_return
     df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
     df_2_return["FG_n"] = foreground_n
     df_2_return["BG_n"] = background_n
+    if em == "abundance_correction":
+        cond_KS_etypes_temp = df_2_return["etype"].isin(variables.entity_types_with_scores)
+        df_2_return.loc[cond_KS_etypes_temp, "BG_n"] = ui.background.shape[0]
     # #!!! DEBUG uncomment for production #     df_2_return.loc[df_2_return["etype"].isin([-20, -25, -26]), ["ratio_in_FG", "ratio_in_BG", "FG_count", "BG_count"]] = np.nan
+
+    ### calc ratio in foreground, count foreground / len(protein_ans)
+    df_2_return["ratio_in_FG"] = df_2_return["FG_count"] / df_2_return["FG_n"] # ratio_in_foreground = funcEnum_count_foreground / foreground_n
+    df_2_return["ratio_in_BG"] = df_2_return["BG_count"] / df_2_return["BG_n"] # ratio_in_background = funcEnum_count_background / background_n
     return df_2_return[cols_2_return_sort_order]
 
 @boundscheck(False)
@@ -250,100 +257,6 @@ cdef set_fg_counts(unsigned int [::1] fg_scores_matrix_data, int [::1] fg_scores
             fg_values = fg_scores_matrix_data[index_col_start_fg:index_col_stop_fg]
         num_fg_vals = fg_values.shape[0]
         funcEnum_count_foreground[funcEnum] = num_fg_vals
-
-@boundscheck(False)
-@wraparound(False)
-cdef int KolmogorovSmirnov_sparse_cy(FunctionEnum_2_Scores_dict, unsigned int foreground_n, unsigned int background_n, unsigned int [::1] fg_scores_matrix_data, int [::1] fg_scores_matrix_indptr, unsigned int [::1] bg_scores_matrix_data, int [::1] bg_scores_matrix_indptr, double[::1] p_values, cond_multitest, double[::1] effectSizes, double p_value_cutoff, unsigned int[::1] funcEnum_count_foreground, unsigned int[::1] funcEnum_count_background, unsigned int[::1] over_under_int_arr, unsigned int o_or_u_or_both_encoding, enrichment_method, filter_foreground_count_one):
-    cdef:
-        int bg_rank_temp
-        unsigned int median_index, num_half_bg, num_half_fg, num_zeros_2_fill_bg, num_zeros_2_fill_fg, fg_size_plus_bg_size, funcEnum, bg_index, len_fg_scores_matrix_indptr, index_col_start_fg, index_col_stop_fg, index_col_start_bg, index_col_stop_bg, num_fg_vals, num_bg_vals, fg_val, bg_val, fg_rank, bg_rank
-        double fg_size_times_bg_size_times_mintwo, pvalue, D_max_abs, D_current_abs, D_current_absfg_cumulative, bg_cumulative, median_fg, median_bg
-        unsigned int[::1] fg_values, bg_values
-
-    fg_size_plus_bg_size = foreground_n + background_n
-    fg_size_times_bg_size_times_mintwo = -2.0 * foreground_n * background_n
-    len_fg_scores_matrix_indptr = fg_scores_matrix_indptr.shape[0]
-    for funcEnum in range(len_fg_scores_matrix_indptr - 1):
-        index_col_start_fg = fg_scores_matrix_indptr[funcEnum]
-        index_col_stop_fg = fg_scores_matrix_indptr[funcEnum + 1]
-        if index_col_start_fg == index_col_stop_fg:
-            continue # column is empty
-        elif filter_foreground_count_one and (index_col_stop_fg - index_col_start_fg) == 1:
-            continue
-        else:
-            fg_values = fg_scores_matrix_data[index_col_start_fg:index_col_stop_fg]
-
-        if enrichment_method == "genome": # is pre-sorted
-            try:
-                bg_values = FunctionEnum_2_Scores_dict[funcEnum]
-            except KeyError:
-                continue
-            num_bg_vals = bg_values.shape[0]
-            if num_bg_vals == 0:
-                continue
-        else:
-            index_col_start_bg = bg_scores_matrix_indptr[funcEnum]
-            index_col_stop_bg = bg_scores_matrix_indptr[funcEnum + 1]
-            if index_col_start_bg == index_col_stop_bg:
-                continue # column is empty
-            else:
-                bg_values = bg_scores_matrix_data[index_col_start_bg:index_col_stop_bg]
-            bg_values = np.sort(bg_values)
-            num_bg_vals = bg_values.shape[0]
-        fg_values = np.sort(fg_values)
-        num_fg_vals = fg_values.shape[0]
-        num_zeros_2_fill_fg = foreground_n - num_fg_vals
-        num_zeros_2_fill_bg = background_n - num_bg_vals
-        fg_rank, bg_rank, D_max_abs = 0, 0, 0
-        while fg_rank < num_fg_vals:
-            fg_val = fg_values[fg_rank]
-            fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
-            bg_rank_temp = 0
-            for bg_index in range(bg_rank, num_bg_vals):
-                bg_val = bg_values[bg_index]
-                if fg_val <= bg_val:
-                    bg_rank = bg_rank_temp + bg_rank
-                    break
-                bg_rank_temp += 1
-
-            bg_cumulative = (bg_rank + num_zeros_2_fill_bg + 1) / background_n
-            D_current_abs = abs(fg_cumulative - bg_cumulative)
-            if D_current_abs > D_max_abs:
-                D_max_abs = D_current_abs
-
-            fg_rank += 1
-            fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
-            D_current_abs = abs(fg_cumulative - bg_cumulative)
-            if D_current_abs > D_max_abs:
-                D_max_abs = D_current_abs
-        pvalue = math.exp(fg_size_times_bg_size_times_mintwo * D_max_abs * D_max_abs / fg_size_plus_bg_size)
-        if o_or_u_or_both_encoding != 0:
-            pvalue /= 2
-        num_half_fg = int(round((num_fg_vals + num_zeros_2_fill_fg)/2)) # index at half of fg
-        if num_half_fg > num_zeros_2_fill_fg:
-            median_index = int(num_half_fg - num_zeros_2_fill_fg)
-            median_fg = fg_values[median_index]
-        else:
-            median_fg = 0
-        num_half_bg = int(round((num_bg_vals + num_zeros_2_fill_bg)/2))
-        if num_half_bg > num_zeros_2_fill_bg:
-            median_index = int(num_half_bg - num_zeros_2_fill_bg)
-            median_bg = bg_values[median_index]
-        else:
-            median_bg = 0
-        is_greater = median_fg > median_bg # since rank based this is inverted
-
-        if pvalue <= p_value_cutoff:
-            p_values[funcEnum] = pvalue
-            effectSizes[funcEnum] = D_max_abs
-            if is_greater: # overrepresented
-                over_under_int_arr[funcEnum] = 1
-            else: # underrepresented
-                over_under_int_arr[funcEnum] = 2
-        cond_multitest[funcEnum] = True
-        funcEnum_count_foreground[funcEnum] = num_fg_vals
-        funcEnum_count_background[funcEnum] = num_bg_vals
-    return 0
 
 @boundscheck(False)
 @wraparound(False)
@@ -629,7 +542,7 @@ cdef int calc_pvalues_orig(unsigned int[::1] funcEnum_count_foreground,
 
 @boundscheck(False)
 @wraparound(False)
-cdef int calc_pvalues(unsigned int[::1] funcEnum_count_foreground,
+cdef calc_pvalues(unsigned int[::1] funcEnum_count_foreground,
                   unsigned int[::1] funcEnum_count_background,
                   unsigned int foreground_n,
                   unsigned int background_n,
@@ -1092,7 +1005,6 @@ def KolmogorovSmirnov_scipy(foreground_n, background_n, funcEnum_2_scores_dict_f
             number_of_zeros_2_fill = background_n - len_scores_bg
             if number_of_zeros_2_fill > 0:
                 scores_bg = [0]*number_of_zeros_2_fill + scores_bg
-
         statistic, pvalue = stats.ks_2samp(scores_fg, scores_bg)
         if pvalue <= p_value_cutoff:
             p_values[funcEnum] = pvalue
@@ -1292,3 +1204,97 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
     df_2_return["FG_n"] = foreground_n
     return df_2_return[cols_2_return_sort_order]
+
+@boundscheck(False)
+@wraparound(False)
+cdef int KolmogorovSmirnov_sparse_cy(FunctionEnum_2_Scores_dict, unsigned int foreground_n, unsigned int background_n, unsigned int [::1] fg_scores_matrix_data, int [::1] fg_scores_matrix_indptr, unsigned int [::1] bg_scores_matrix_data, int [::1] bg_scores_matrix_indptr, double[::1] p_values, cond_multitest, double[::1] effectSizes, double p_value_cutoff, unsigned int[::1] funcEnum_count_foreground, unsigned int[::1] funcEnum_count_background, unsigned int[::1] over_under_int_arr, unsigned int o_or_u_or_both_encoding, enrichment_method, filter_foreground_count_one):
+    cdef:
+        int bg_rank_temp
+        unsigned int median_index, num_half_bg, num_half_fg, num_zeros_2_fill_bg, num_zeros_2_fill_fg, fg_size_plus_bg_size, funcEnum, bg_index, len_fg_scores_matrix_indptr, index_col_start_fg, index_col_stop_fg, index_col_start_bg, index_col_stop_bg, num_fg_vals, num_bg_vals, fg_val, bg_val, fg_rank, bg_rank
+        double fg_size_times_bg_size_times_mintwo, pvalue, D_max_abs, D_current_abs, D_current_absfg_cumulative, bg_cumulative, median_fg, median_bg
+        unsigned int[::1] fg_values, bg_values
+
+    fg_size_plus_bg_size = foreground_n + background_n
+    fg_size_times_bg_size_times_mintwo = -2.0 * foreground_n * background_n
+    len_fg_scores_matrix_indptr = fg_scores_matrix_indptr.shape[0]
+    for funcEnum in range(len_fg_scores_matrix_indptr - 1):
+        index_col_start_fg = fg_scores_matrix_indptr[funcEnum]
+        index_col_stop_fg = fg_scores_matrix_indptr[funcEnum + 1]
+        if index_col_start_fg == index_col_stop_fg:
+            continue # column is empty
+        elif filter_foreground_count_one and (index_col_stop_fg - index_col_start_fg) == 1:
+            continue
+        else:
+            fg_values = fg_scores_matrix_data[index_col_start_fg:index_col_stop_fg]
+
+        if enrichment_method == "genome": # is pre-sorted
+            try:
+                bg_values = FunctionEnum_2_Scores_dict[funcEnum]
+            except KeyError:
+                continue
+            num_bg_vals = bg_values.shape[0]
+            if num_bg_vals == 0:
+                continue
+        else:
+            index_col_start_bg = bg_scores_matrix_indptr[funcEnum]
+            index_col_stop_bg = bg_scores_matrix_indptr[funcEnum + 1]
+            if index_col_start_bg == index_col_stop_bg:
+                continue # column is empty
+            else:
+                bg_values = bg_scores_matrix_data[index_col_start_bg:index_col_stop_bg]
+            bg_values = np.sort(bg_values)
+            num_bg_vals = bg_values.shape[0]
+        fg_values = np.sort(fg_values)
+        num_fg_vals = fg_values.shape[0]
+        num_zeros_2_fill_fg = foreground_n - num_fg_vals
+        num_zeros_2_fill_bg = background_n - num_bg_vals
+        fg_rank, bg_rank, D_max_abs = 0, 0, 0
+        while fg_rank < num_fg_vals:
+            fg_val = fg_values[fg_rank]
+            fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
+            bg_rank_temp = 0
+            for bg_index in range(bg_rank, num_bg_vals):
+                bg_val = bg_values[bg_index]
+                if fg_val <= bg_val:
+                    bg_rank = bg_rank_temp + bg_rank
+                    break
+                bg_rank_temp += 1
+
+            bg_cumulative = (bg_rank + num_zeros_2_fill_bg + 1) / background_n
+            D_current_abs = abs(fg_cumulative - bg_cumulative)
+            if D_current_abs > D_max_abs:
+                D_max_abs = D_current_abs
+
+            fg_rank += 1
+            fg_cumulative = (fg_rank + num_zeros_2_fill_fg) / foreground_n
+            D_current_abs = abs(fg_cumulative - bg_cumulative)
+            if D_current_abs > D_max_abs:
+                D_max_abs = D_current_abs
+        pvalue = math.exp(fg_size_times_bg_size_times_mintwo * D_max_abs * D_max_abs / fg_size_plus_bg_size)
+        if o_or_u_or_both_encoding != 0:
+            pvalue /= 2
+        num_half_fg = int(round((num_fg_vals + num_zeros_2_fill_fg)/2)) # index at half of fg
+        if num_half_fg > num_zeros_2_fill_fg:
+            median_index = int(num_half_fg - num_zeros_2_fill_fg)
+            median_fg = fg_values[median_index]
+        else:
+            median_fg = 0
+        num_half_bg = int(round((num_bg_vals + num_zeros_2_fill_bg)/2))
+        if num_half_bg > num_zeros_2_fill_bg:
+            median_index = int(num_half_bg - num_zeros_2_fill_bg)
+            median_bg = bg_values[median_index]
+        else:
+            median_bg = 0
+        is_greater = median_fg > median_bg # since rank based this is inverted
+
+        if pvalue <= p_value_cutoff:
+            p_values[funcEnum] = pvalue
+            effectSizes[funcEnum] = D_max_abs
+            if is_greater: # overrepresented
+                over_under_int_arr[funcEnum] = 1
+            else: # underrepresented
+                over_under_int_arr[funcEnum] = 2
+        cond_multitest[funcEnum] = True
+        funcEnum_count_foreground[funcEnum] = num_fg_vals
+        funcEnum_count_background[funcEnum] = num_bg_vals
+    return 0

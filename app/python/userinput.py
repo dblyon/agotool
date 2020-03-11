@@ -194,7 +194,8 @@ class Userinput:
         if len(self.Secondary_2_Primary_IDs_dict_fg) > 0:
             df["FG_IDs"] = df["FG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, True))
         if self.enrichment_method == "compare_samples" and len(self.Secondary_2_Primary_IDs_dict_bg) > 0:
-            df["BG_IDs"] = df["BG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
+            cond = df["BG_IDs"].notnull()
+            df.loc[cond, "BG_IDs"] = df.loc[cond, "BG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
         return df
 
     # def cleanupforanalysis_rank_enrichment(self, df, col_population, col_abundance_ratio):
@@ -657,6 +658,7 @@ def replace_secondary_and_primary_IDs(ans_string, secondary_2_primary_dict, inve
     else:
         dict_2_use = secondary_2_primary_dict
     ids_2_return = []
+    # throws error is None --> check here or at calling function?
     for id_ in ans_string.split(";"):  # if proteinGroup
         if id_ in dict_2_use:
             ids_2_return.append(dict_2_use[id_])
@@ -792,15 +794,16 @@ if __name__ == "__main__":
     # foreground_almost_empty = pd.Series(name="foreground", data={0: np.nan, 1: "Q9UHI6", 2: np.nan})
     # background_no_intensity = pd.DataFrame({'background': {0: 'P13747', 1: 'Q6VB85', 2: 'Q8N8S7', 3: 'Q8WXE0', 4: 'Q9UHI6', 5: 'Q9UQ03', 6: 'Q13075', 7: 'A6NDB9', 8: 'A6NFR9', 9: 'O95359', 10: 'D6RGG6', 11: 'Q9BRQ0', 12: 'P09629', 13: 'Q9Y6G5', 14: 'Q96KG9'}, 'intensity': {0: np.nan, 1: np.nan, 2: np.nan, 3: np.nan, 4: np.nan, 5: np.nan, 6: np.nan, 7: np.nan, 8: np.nan, 9: np.nan, 10: np.nan, 11: np.nan, 12: np.nan, 13: np.nan, 14: np.nan}})
     # "compare_samples"
-    foreground_input = ['9606.ENSP00000013070', '9606.ENSP00000222008', '9606.ENSP00000228887', '9606.ENSP00000229812', '9606.ENSP00000230461', '9606.ENSP00000238497', '9606.ENSP00000245046', '9606.ENSP00000256343', '9606.ENSP00000258390', '9606.ENSP00000261183', '9606.ENSP00000261434', '9606.ENSP00000261693', '9606.ENSP00000265849', '9606.ENSP00000270142', '9606.ENSP00000274606', '9606.ENSP00000275517', '9606.ENSP00000285420', '9606.ENSP00000291934', '9606.ENSP00000295896', '9606.ENSP00000300571', '9606.ENSP00000305494', '9606.ENSP00000306328', '9606.ENSP00000307164', '9606.ENSP00000307479', '9606.ENSP00000307706', '9606.ENSP00000307863', '9606.ENSP00000310305', '9606.ENSP00000310704', '9606.ENSP00000313881', '9606.ENSP00000318687', '9606.ENSP00000319281', '9606.ENSP00000321546', '9606.ENSP00000323302', '9606.ENSP00000328444', '9606.ENSP00000329452', '9606.ENSP00000333993', '9606.ENSP00000336800', '9606.ENSP00000338523', '9606.ENSP00000341083', '9606.ENSP00000342162',
-                        '9606.ENSP00000344411', '9606.ENSP00000350377', '9606.ENSP00000350869', '9606.ENSP00000351742', '9606.ENSP00000352676', '9606.ENSP00000354874', '9606.ENSP00000356694', '9606.ENSP00000357779', '9606.ENSP00000358107', '9606.ENSP00000359340', '9606.ENSP00000360824', '9606.ENSP00000361596', '9606.ENSP00000361993', '9606.ENSP00000362464', '9606.ENSP00000364412', '9606.ENSP00000364677', '9606.ENSP00000364976', '9606.ENSP00000365172', '9606.ENSP00000365407', '9606.ENSP00000366410', '9606.ENSP00000366582', '9606.ENSP00000366673', '9606.ENSP00000367219', '9606.ENSP00000367545', '9606.ENSP00000368737', '9606.ENSP00000369989', '9606.ENSP00000369996', '9606.ENSP00000370373', '9606.ENSP00000373648', '9606.ENSP00000375647', '9606.ENSP00000376010', '9606.ENSP00000378275', '9606.ENSP00000379110', '9606.ENSP00000380087', '9606.ENSP00000381089', '9606.ENSP00000381857', '9606.ENSP00000387426', '9606.ENSP00000389103', '9606.ENSP00000396163', '9606.ENSP00000404102',
-                        '9606.ENSP00000409000', '9606.ENSP00000409107', '9606.ENSP00000412361', '9606.ENSP00000415836', '9606.ENSP00000419712', '9606.ENSP00000421592', '9606.ENSP00000426159', '9606.ENSP00000433071', '9606.ENSP00000435010', '9606.ENSP00000439228', '9606.ENSP00000446688', '9606.ENSP00000457935', '9606.ENSP00000458130', '9606.ENSP00000461413', '9606.ENSP00000464619', '9606.ENSP00000468969', '9606.ENSP00000470239', '9606.ENSP00000471126', '9606.ENSP00000482063', '9606.ENSP00000485454']
+    # foreground_input = ['9606.ENSP00000013070', '9606.ENSP00000222008', '9606.ENSP00000228887', '9606.ENSP00000229812', '9606.ENSP00000230461', '9606.ENSP00000238497', '9606.ENSP00000245046', '9606.ENSP00000256343', '9606.ENSP00000258390', '9606.ENSP00000261183', '9606.ENSP00000261434', '9606.ENSP00000261693', '9606.ENSP00000265849', '9606.ENSP00000270142', '9606.ENSP00000274606', '9606.ENSP00000275517', '9606.ENSP00000285420', '9606.ENSP00000291934', '9606.ENSP00000295896', '9606.ENSP00000300571', '9606.ENSP00000305494', '9606.ENSP00000306328', '9606.ENSP00000307164', '9606.ENSP00000307479', '9606.ENSP00000307706', '9606.ENSP00000307863', '9606.ENSP00000310305', '9606.ENSP00000310704', '9606.ENSP00000313881', '9606.ENSP00000318687', '9606.ENSP00000319281', '9606.ENSP00000321546', '9606.ENSP00000323302', '9606.ENSP00000328444', '9606.ENSP00000329452', '9606.ENSP00000333993', '9606.ENSP00000336800', '9606.ENSP00000338523', '9606.ENSP00000341083', '9606.ENSP00000342162',
+    #                     '9606.ENSP00000344411', '9606.ENSP00000350377', '9606.ENSP00000350869', '9606.ENSP00000351742', '9606.ENSP00000352676', '9606.ENSP00000354874', '9606.ENSP00000356694', '9606.ENSP00000357779', '9606.ENSP00000358107', '9606.ENSP00000359340', '9606.ENSP00000360824', '9606.ENSP00000361596', '9606.ENSP00000361993', '9606.ENSP00000362464', '9606.ENSP00000364412', '9606.ENSP00000364677', '9606.ENSP00000364976', '9606.ENSP00000365172', '9606.ENSP00000365407', '9606.ENSP00000366410', '9606.ENSP00000366582', '9606.ENSP00000366673', '9606.ENSP00000367219', '9606.ENSP00000367545', '9606.ENSP00000368737', '9606.ENSP00000369989', '9606.ENSP00000369996', '9606.ENSP00000370373', '9606.ENSP00000373648', '9606.ENSP00000375647', '9606.ENSP00000376010', '9606.ENSP00000378275', '9606.ENSP00000379110', '9606.ENSP00000380087', '9606.ENSP00000381089', '9606.ENSP00000381857', '9606.ENSP00000387426', '9606.ENSP00000389103', '9606.ENSP00000396163', '9606.ENSP00000404102',
+    #                     '9606.ENSP00000409000', '9606.ENSP00000409107', '9606.ENSP00000412361', '9606.ENSP00000415836', '9606.ENSP00000419712', '9606.ENSP00000421592', '9606.ENSP00000426159', '9606.ENSP00000433071', '9606.ENSP00000435010', '9606.ENSP00000439228', '9606.ENSP00000446688', '9606.ENSP00000457935', '9606.ENSP00000458130', '9606.ENSP00000461413', '9606.ENSP00000464619', '9606.ENSP00000468969', '9606.ENSP00000470239', '9606.ENSP00000471126', '9606.ENSP00000482063', '9606.ENSP00000485454']
     ###
-    contiguous = False
-    foreground_n = 100
+    # contiguous = False
+    # foreground_n = 100
     # foreground_input = sorted(get_random_human_ENSP(foreground_n, joined_for_web=False, contiguous=contiguous))
-    enrichment_method = "genome"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
-    # fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_3_Niu_PlasmaCirrhosis_compare_samples.txt" #compare_groups_v2.txt" # ExampleData_for_testing.txt" # Example_1_Yeast_acetylation_abundance_correction.txt
+    enrichment_method = "compare_samples"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
+    fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1.1_Yeast_acetylation_without_abundance.txt"
+        #Example_3_Niu_PlasmaCirrhosis_compare_samples.txt" #compare_groups_v2.txt" # ExampleData_for_testing.txt" # Example_1_Yeast_acetylation_abundance_correction.txt
     # fn_userinput = r"/Users/dblyon/Downloads/ExampleData.txt"
     from_file = False  # read user input from file
     args_dict = {}
@@ -820,6 +823,8 @@ if __name__ == "__main__":
     args_dict["foreground_replicates"] = 10
     args_dict["background_replicates"] = 10
     taxid = args_dict["taxid"]
-    pqo = query.PersistentQueryObject_STRING(low_memory=True)
+    # pqo = query.PersistentQueryObject_STRING(low_memory=True)
+    pqo = None
     background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
-    ui = Userinput(pqo, fn=None, foreground_string=stringify_for_Userinput(foreground_input), background_string=stringify_for_Userinput(background_input), args_dict=args_dict)
+    # ui = Userinput(pqo, fn=None, foreground_string=stringify_for_Userinput(foreground_input), background_string=stringify_for_Userinput(background_input), args_dict=args_dict)
+    ui = Userinput(pqo, fn_userinput, args_dict=args_dict)

@@ -92,7 +92,7 @@ def get_cursor(env_dict=None):
                 PORT = '5432'
                 HOST = 'db'
             except KeyError:
-                print("query.py sais there is something wrong with the Postgres config")
+                print("query.py says there is something wrong with the Postgres config")
                 raise StopIteration
             return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
         else: # use dockerized Postgres directly from native OS
@@ -104,14 +104,12 @@ def get_cursor(env_dict=None):
 
     elif platform_ == "darwin":
         if not variables.DB_DOCKER: # use local Postgres
-            print("get_cursor_ody")
             return get_cursor_ody()
         else: # connect to docker Postgres container. use dockerized Postgres directly from native OS
-            # PORT = '5913' # shouldn't this be 5913? YES
+            # PORT = '5913'
             PORT = variables.Docker_incoming_PostgreSQL_port
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
-            print("get_cursor_connect_2_docker")
             return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
     else:
         print("query.get_cursor() doesn't know how to connect to Postgres")

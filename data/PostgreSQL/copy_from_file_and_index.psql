@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS secondary_2_primary_id_temp, protein_2_functionenum_temp;
+DROP TABLE IF EXISTS secondary_2_primary_id_temp, protein_2_functionenum_temp, functions_temp;
 --     , taxid_2_functioncountarray_temp, functions_temp, taxid_2_protein_temp, protein_2_functionenum_and_score_temp, lineage_temp;
 -- DROP TABLE IF EXISTS secondary_2_primary_id_temp, protein_2_functionenum_temp, taxid_2_functioncountarray_temp, functions_temp, taxid_2_protein_temp, protein_2_functionenum_and_score_temp, lineage_temp;
 

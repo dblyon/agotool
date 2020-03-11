@@ -47,7 +47,7 @@ echo "\n### copy files to Aquarius (production server)\n"
 rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/
 check_exit_status
 
-ssh dblyon@aquarius '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
+ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
 echo "\n--- finished Cronjob ---\n"
 
 

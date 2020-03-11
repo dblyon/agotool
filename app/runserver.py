@@ -4,12 +4,10 @@ import numpy as np
 import pandas as pd
 pd.set_option('display.max_colwidth', 300) # in order to prevent 50 character cutoff of to_html export / ellipsis
 from lxml import etree
-# from gc import get_objects
 import flask
 from flask import render_template, request, send_from_directory, jsonify
 from flask_restful import reqparse, Api, Resource
 from werkzeug.wrappers import Response
-# from werkzeug.utils import secure_filename
 import wtforms
 from wtforms import fields
 import markdown
@@ -17,7 +15,8 @@ from flaskext.markdown import Markdown
 from ast import literal_eval
 sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
 import query, userinput, run, variables, taxonomy
-# from profilehooks import profile
+
+
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER

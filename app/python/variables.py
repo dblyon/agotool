@@ -229,6 +229,7 @@ blacklisted_terms = {'GO:0003674', 'GO:0008150', 'GO:0005575', "GOCC:0005575",
                      'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999',
                      'GOCC:0005623', 'GOCC:0044464', 'GOCC:0005622'} # GOCC:0005623 = Cell; GOCC:0044464= Cell part; GOCC:0005622 = Intracellular
+                        # 'Organelle part	'
 
 
 ##### final Tables / flat-files needed for flask app / PostgreSQL
