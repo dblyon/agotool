@@ -198,31 +198,6 @@ class Userinput:
             df.loc[cond, "BG_IDs"] = df.loc[cond, "BG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
         return df
 
-    # def cleanupforanalysis_rank_enrichment(self, df, col_population, col_abundance_ratio):
-    #     ### remove rows consisting of only NaNs
-    #     df = df[-df.isnull().all(axis=1)]
-    #
-    #     ### remove NaNs from foreground-ANs and abundance_ratios
-    #     ### population is a DF with "foreground" and "abundance_ratio" as columns
-    #     population = df.loc[ : , [col_population, col_abundance_ratio]]
-    #     ### remove rows consisting of only NaNs
-    #     population = population[-population.isnull().all(axis=1)]
-    #     ### check if foreground empty or abundance_ratio empty
-    #     if population.shape[0] == 0:
-    #         self.args_dict["ERROR foreground"] = "ERROR: 'foreground' is empty. Please check your input"
-    #         return population[col_population], population[col_abundance_ratio], False
-    #     if population.shape[1] == 0:
-    #         self.args_dict["ERROR abundance_ratio"] = "ERROR: 'abundance_ratio' is empty. Please check your input"
-    #         return population, False
-    #     ### check if missing values in either column
-    #     cond = population.isnull().any(axis=1)
-    #     if sum(cond) > 0:
-    #         return population, False
-    #
-    #     population["rank"] = population[col_abundance_ratio].rank(method="first", ascending=False).astype(int)
-    #     population = population.sort_values("rank").reset_index(drop=True)
-    #     return population, True
-
     def check_decimal(self, fn):
         """
         test if userinput uses ',' or '.' as a decimal separator
@@ -517,10 +492,6 @@ class REST_API_input(Userinput):
         self.check_cleanup = False
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
-            # if self.enrichment_method == "rank_enrichment":
-            #     # abundance_ratio goes in, rank comes out
-            #     self.population_df, self.check_cleanup = self.cleanupforanalysis_rank_enrichment(self.df_orig, self.col_population, self.col_abundance_ratio)
-            # else:
             self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
         if self.check_parse and self.check_cleanup:
             self.check = True

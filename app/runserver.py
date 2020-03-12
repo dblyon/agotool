@@ -239,6 +239,7 @@ class API_STRING(Resource):
         if variables.DEBUG_HTML:
             df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
             results_all_function_types = df_all_etypes.groupby("etype").head(20)
+        # debug stop
         else:
             results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict, api_call=True)
 

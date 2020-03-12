@@ -8,8 +8,8 @@ import yaml # conda install pyyaml NOT yaml
 ### settings
 PRELOAD = True # set True in production
 # pre-load objects DB connection necessary, set to False while testing with pytest
-skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
-skip_downloads_completely = True # don't download anything
+# skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
+# skip_downloads_completely = True # don't download anything
 DOCKER = False # app and data directory, within image or shared with local host, adapt accordingly in docker-compose
 # FUTURES = False # parallel code disabled
 ## local (bind-mounted volume if DOCKER=False --> version 1)
