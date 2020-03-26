@@ -64,8 +64,8 @@ URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aG
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
 Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
-DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
+DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
 taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
 CSC_ENSPencoding_2_FuncEnum_UPS_FIN = TABLES_DICT_SNAKEMAKE["CSC_ENSPencoding_2_FuncEnum"]
@@ -734,7 +734,6 @@ rule SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN:
         rowIndex_2_ENSP_dict_UPS_FIN = rowIndex_2_ENSP_dict_UPS_FIN
     run:
         cst.SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.CSC_ENSPencoding_2_FuncEnum_UPS_FIN, output.ENSP_2_rowIndex_dict_UPS_FIN, output.rowIndex_2_ENSP_dict_UPS_FIN)
-
 
 rule Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts_UPS_FIN:
     input:

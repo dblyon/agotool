@@ -73,3 +73,4 @@ background <- c(-1.806683,1.3226406,-1.027905,-4.181466,-6.364167,-2.246649,-2.2
 result_tw <- ks.test(foreground, background)
 result_tw$statistic
 result_tw$p.value 
+

@@ -73,7 +73,7 @@ def get_cursor(env_dict=None):
         HOST = 'db'
         return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
 
-    if hostname in {"aquarius.meringlab.org", "atlas"}: # use agotool/app/env_file, which isn't in git repo for security, using local Postgres
+    if hostname in {"aquarius.meringlab.org", "atlas", "gaia"}: # use agotool/app/env_file, which isn't in git repo for security, using local Postgres
         env_dict = variables.param_2_val_dict
         USER = env_dict['POSTGRES_USER']
         PWD = env_dict['POSTGRES_PASSWORD']
@@ -437,7 +437,7 @@ class PersistentQueryObject:
 
 class PersistentQueryObject_STRING(PersistentQueryObject):
     """
-    used to query protein 2 functional associationsfunction_enumeration_len
+    used to query protein 2 functional associations function_enumeration_len
     only protein_2_function is queried in Postgres,
     everything else is in memory but still deposited in the DB any way
     """
@@ -630,7 +630,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             an, associations_list, etype = res
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
-
 
 def get_lookup_arrays(read_from_flat_files=False, from_pickle=False):
     """
@@ -1298,6 +1297,15 @@ def get_proteins_of_taxid(taxid, read_from_flat_files=False, fn_Taxid_2_Proteins
                 if taxid_line == str(taxid):
                     prot_arr = prot_arr.strip()[1:-1].replace("'", "").replace('"', "").split(",")
                     return sorted(prot_arr)
+
+def get_proteins_of_human(fn=None):
+    if fn is None:
+        fn = os.path.join(variables.TABLES_DIR, "9606_proteins_ENSPs_STRINGv11.txt")
+    ENSPs_human = []
+    with open(fn) as fh:
+        for line in fh:
+            ENSPs_human.append(line.strip())
+    return sorted(ENSPs_human)
 
 def get_taxid_2_proteins_dict(fn_Taxid_2_Proteins_table_STRING=None):
     """

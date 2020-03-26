@@ -622,6 +622,7 @@ def concatenate_Functions_tables(fn_list_str, fn_out, number_of_processes): # fn
 
 def format_list_of_string_2_postgres_array(list_of_string):
     """
+    {{"GO:0005783",0.214286},{"GO:0005794",0.642857},{"GO...
     removes internal spaces
     :param list_of_string: List of String
     :return: String
@@ -3806,7 +3807,7 @@ def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Scor
     values are Scores
     matrix: row_num = number of ENSPs; col_num = funcEnum (exact translation)
     """
-    # get proteinAN to functionEnumerateion and Score arrays
+    # get proteinAN to functionEnumeration and Score arrays
     assert os.path.exists(Protein_2_FunctionEnum_and_Score_table_UPS_FIN)
     ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=None)
     ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict = {}, {}
@@ -3836,7 +3837,6 @@ def SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(Protein_2_FunctionEnum_and_Scor
     pickle.dump(ENSP_2_rowIndex_dict, open(ENSP_2_rowIndex_dict_UPS_FIN, "wb"))
     pickle.dump(rowIndex_2_ENSP_dict, open(rowIndex_2_ENSP_dict_UPS_FIN, "wb"))
     sparse.save_npz(CSC_ENSPencoding_2_FuncEnum_UPS_FIN, matrix)
-
 
 def Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(Taxid_2_FunctionCountArray_table_UPS_FIN, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN):
     """
