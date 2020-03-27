@@ -3376,6 +3376,8 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_re
             functions_2_include.update(function_name_set)
 
     enum = 0
+    # prevent redundant entries
+    funcNames_already_written = set()
     with open(Functions_table_all, "r") as fh_in: # table already sorted
         # | etype | an | description | year | level |
         # | enum | etype | an | description | year | level |
@@ -3383,8 +3385,12 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_re
             with open(Functions_table_UPS_removed, "w") as fh_out_removed:
                 for line in fh_in:
                     funcName = line.split("\t")[1]
+                    if funcName in funcNames_already_written:
+                        fh_out_removed.write(line.strip() + "\tredundant\n")
+                        continue
                     if funcName in functions_2_include or funcName.startswith("GOCC:"):
                         fh_out_reduced.write(str(enum) + "\t" + line)
+                        funcNames_already_written.update({funcName})
                         enum += 1
                     else:
                         fh_out_removed.write(line)

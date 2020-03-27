@@ -1,6 +1,6 @@
 """Define some fixtures to use in the project."""
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get from API to python directory
 import random
 import pandas as pd
 import numpy as np
@@ -103,19 +103,29 @@ def args_dict():
     args_d["privileged"] = False
     return args_d
 
-@pytest.fixture(scope="session")
-def UniProt_IDs_human():
-    return sorted(query.get_proteins_of_taxid(9606, read_from_flat_files=True))
-
-def ENSPs_human():
-    return get_proteins_of_human
 
 
-def get_random_human_ENSP(num_ENSPs=20, joined_for_web=False, contiguous=False, UniProt_ID=False, UniProt_IDs_human=None, ENSPs_homo=None):
+# UniProt_IDs_human_list = sorted(query.get_proteins_of_taxid(9606, read_from_flat_files=True))
+# ENSP_human_list = sorted(query.get_proteins_of_human())
+#
+# @pytest.fixture(scope="session")
+# def UniProt_IDs_human():
+#     return UniProt_IDs_human_list
+#
+# @pytest.fixture(scope="session")
+# def ENSPs_human():
+#     return ENSP_human_list
+
+### preloaded objects --> put into conftest.py?
+UniProt_IDs_human_list = sorted(query.get_proteins_of_taxid(9606, read_from_flat_files=True))
+ENSP_human_list = sorted(query.get_proteins_of_human())
+###
+
+def get_random_human_ENSP(num_ENSPs=20, joined_for_web=False, contiguous=False, UniProt_ID=False, UniProt_IDs_human_list=UniProt_IDs_human_list, ENSP_human_list=ENSP_human_list):
     if UniProt_ID:
-        IDs_2_sample = UniProt_IDs_human
+        IDs_2_sample = UniProt_IDs_human_list
     else:
-        IDs_2_sample = ENSPs_homo
+        IDs_2_sample = ENSP_human_list
     max_index = len(IDs_2_sample)
     if not contiguous:
         if not joined_for_web:
