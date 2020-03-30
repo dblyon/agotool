@@ -3328,13 +3328,13 @@ def compile_run_cythonized():
     compile_cy = subprocess.Popen(cmd, shell=True)
     compile_cy.wait()
 
-def Taxid_2_funcEnum_2_scores_table_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
+def Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN(fn_in_Protein_2_FunctionEnum_and_Score_table, fn_out_Taxid_2_funcEnum_2_scores_table_FIN):
     """
     Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome --> translate via variables.py
     since UniProt ref prot for 4932 doesn't exist but does exist for 559292
     4932 Saccharomyces cerevisiae, Jensenlab
     559292 Saccharomyces cerevisiae S288C, UniProt Reference Proteome
-    4896 Schizosaccharomyces pombe, Jensenlab
+    4896 Schizosaccharomyces pombe, JensenlabTaxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     4932 --> 559292
     284812 Schizosaccharomyces pombe 972h-, UniProt Reference Proteome
     4896 --> 284812
@@ -3869,7 +3869,8 @@ def Pickle_lookup_arrays_UPS_FIN(Functions_table_UPS_FIN, *args):
         with open(variables.tables_dict[arr_name], "wb") as fh_out:
             pickle.dump(arr, fh_out)
 
-def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, Taxid_2_FuncEnum_2_Score_2_Rank_dict_UPS_FIN, Taxid_2_FuncEnum_2_medianScore_dict_UPS_FIN, Taxid_2_FuncEnum_2_numBGvals_dict_UPS_FIN):
+def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN):
+    #, Taxid_2_FuncEnum_2_Score_2_Rank_dict_UPS_FIN, Taxid_2_FuncEnum_2_medianScore_dict_UPS_FIN, Taxid_2_FuncEnum_2_numBGvals_dict_UPS_FIN):
     """
     import create_SQL_tables_snakemake as cst
     reload(variables)
@@ -3884,28 +3885,28 @@ def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_tabl
     Taxid_2_FunctionEnum_2_Scores_dict = query.get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=True, as_array_or_as_list="array", taxid_2_proteome_count=None)
     pickle.dump(Taxid_2_FunctionEnum_2_Scores_dict, open(Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, "wb"))
 
-    taxid_2_funcEnum_2_score_2_rank_dict = {}
-    taxid_2_funcEnum_2_medianScore_dict = {}
-    taxid_2_funcEnum_2_numBGvals_dict = {}
-    for taxid in Taxid_2_FunctionEnum_2_Scores_dict.keys():
-        taxid_2_funcEnum_2_score_2_rank_dict[taxid] = {}
-        taxid_2_funcEnum_2_medianScore_dict[taxid] = {}
-        taxid_2_funcEnum_2_numBGvals_dict[taxid] = {}
-        funcEnum_2_scores_dict = Taxid_2_FunctionEnum_2_Scores_dict[taxid]
-        funcEnum_2_score_2_rank_dict = taxid_2_funcEnum_2_score_2_rank_dict[taxid]
-        funcEnum_2_medianScore_dict = taxid_2_funcEnum_2_medianScore_dict[taxid]
-        funcEnum_2_numBGvals = taxid_2_funcEnum_2_numBGvals_dict[taxid]
-        for funcEnum, scores in funcEnum_2_scores_dict.items():
-            funcEnum_2_medianScore_dict[funcEnum] = np.median(scores)
-            funcEnum_2_score_2_rank_dict[funcEnum] = {}
-            funcEnum_2_numBGvals[funcEnum] = scores.shape[0]
-            score_2_rank_dict = funcEnum_2_score_2_rank_dict[funcEnum]
-            for rank, score in enumerate(sorted(scores)): # DON'T make a set out of the scores, since this messes up rank-order
-                if score not in score_2_rank_dict:
-                    score_2_rank_dict[score] = rank
-    pickle.dump(taxid_2_funcEnum_2_score_2_rank_dict, open(Taxid_2_FuncEnum_2_Score_2_Rank_dict_UPS_FIN, "wb"))
-    pickle.dump(taxid_2_funcEnum_2_medianScore_dict, open(Taxid_2_FuncEnum_2_medianScore_dict_UPS_FIN, "wb"))
-    pickle.dump(taxid_2_funcEnum_2_numBGvals_dict, open(Taxid_2_FuncEnum_2_numBGvals_dict_UPS_FIN, "wb"))
+    # taxid_2_funcEnum_2_score_2_rank_dict = {}
+    # taxid_2_funcEnum_2_medianScore_dict = {}
+    # taxid_2_funcEnum_2_numBGvals_dict = {}
+    # for taxid in Taxid_2_FunctionEnum_2_Scores_dict.keys():
+    #     taxid_2_funcEnum_2_score_2_rank_dict[taxid] = {}
+    #     taxid_2_funcEnum_2_medianScore_dict[taxid] = {}
+    #     taxid_2_funcEnum_2_numBGvals_dict[taxid] = {}
+    #     funcEnum_2_scores_dict = Taxid_2_FunctionEnum_2_Scores_dict[taxid]
+    #     funcEnum_2_score_2_rank_dict = taxid_2_funcEnum_2_score_2_rank_dict[taxid]
+    #     funcEnum_2_medianScore_dict = taxid_2_funcEnum_2_medianScore_dict[taxid]
+    #     funcEnum_2_numBGvals = taxid_2_funcEnum_2_numBGvals_dict[taxid]
+    #     for funcEnum, scores in funcEnum_2_scores_dict.items():
+    #         funcEnum_2_medianScore_dict[funcEnum] = np.median(scores)
+    #         funcEnum_2_score_2_rank_dict[funcEnum] = {}
+    #         funcEnum_2_numBGvals[funcEnum] = scores.shape[0]
+    #         score_2_rank_dict = funcEnum_2_score_2_rank_dict[funcEnum]
+    #         for rank, score in enumerate(sorted(scores)): # DON'T make a set out of the scores, since this messes up rank-order
+    #             if score not in score_2_rank_dict:
+    #                 score_2_rank_dict[score] = rank
+    # pickle.dump(taxid_2_funcEnum_2_score_2_rank_dict, open(Taxid_2_FuncEnum_2_Score_2_Rank_dict_UPS_FIN, "wb"))
+    # pickle.dump(taxid_2_funcEnum_2_medianScore_dict, open(Taxid_2_FuncEnum_2_medianScore_dict_UPS_FIN, "wb"))
+    # pickle.dump(taxid_2_funcEnum_2_numBGvals_dict, open(Taxid_2_FuncEnum_2_numBGvals_dict_UPS_FIN, "wb"))
 
 
 ##### Taxonomy mapping explanation, for UniProt version
@@ -3951,7 +3952,7 @@ if __name__ == "__main__":
     # run single rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
     Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
-    Taxid_2_funcEnum_2_scores_table_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
+    Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
 
     # e.g. funcEnum = 69816 with lots of 500000 scores
         # {500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500057, 500070, 500102, 500125, 500190, 50027
