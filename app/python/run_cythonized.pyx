@@ -350,30 +350,6 @@ def collect_scores_per_term_characterize_foreground(protein_AN_list, ENSP_2_tupl
                         funcEnum_already_counted.update(set([funcEnum]))
     return funcEnum_2_scores_dict
 
-def collect_scores_per_term(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, list_2_array=False):
-    """
-    ENSP_2_tuple_funcEnum_score_dict['3702.AT1G01010.1']
-    (array([ 211,  252,  253], dtype=uint32),
-     array([4200000, 4166357, 4195121], dtype=uint32))
-    funcEnum_2_scores_dict: key: functionEnumeration, val: list of scores
-    """
-    funcEnum_2_scores_dict = defaultdict(lambda: [])
-    for protein_AN in protein_AN_list:
-        try:
-            funcEnum_score = ENSP_2_tuple_funcEnum_score_dict[protein_AN]
-        except KeyError:
-            continue
-        funcEnum_arr, score_arr = funcEnum_score
-        len_funcEnum_arr = len(funcEnum_arr)
-        for index_ in range(len_funcEnum_arr):
-            score = score_arr[index_]
-            funcEnum_2_scores_dict[funcEnum_arr[index_]].append(score)
-    if list_2_array:
-        return {funcEnum: np.asarray(scores, dtype=np.dtype(variables.dtype_TM_score)) for funcEnum, scores in funcEnum_2_scores_dict.items()} # float64 --> uint32
-    # since concatenating np.arrays later on (for filling with zeros) produces 64 bit array anyway
-    else:
-        return funcEnum_2_scores_dict
-
 def collect_scores_per_term_limit_2_inclusionTerms(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=False):
     """
     for a given protein: a functional term should only have a single score (not multiple as previously)

@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 # from itertools import islice
 
+import pytest
 from scipy import sparse
 import pickle
 
@@ -136,12 +137,29 @@ def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_ex_4_multiple_entri
         assert len(scores_list_sparse) == len(scores_list_ff)
         assert scores_list_sparse == scores_list_ff
 
+# def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_ex_debug_all_human_prots():
+#     """
+#     very lenghty test
+#     test all human proteins, since test_Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN_pickle_vs_sparse fails
+#     w
+#     Protein_2_FunctionEnum_and_Score_table_UPS_FIN vs SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN
+#     """
+#     for UniProtID_2_test in ENSP_2_tuple_funcEnum_score_dict_keys_list[::-1]:
+#         funcEnum_list_from_sparse, score_list_from_sparse = get_funcEnum_and_score_from_sparse_matrix(UniProtID_2_test, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
+#         funcEnum_arr, score_arr = ENSP_2_tuple_funcEnum_score_dict[UniProtID_2_test]
+#         assert list(funcEnum_arr) == funcEnum_list_from_sparse
+#         assert list(score_arr) == score_list_from_sparse
+
+
+
 def test_Taxid_2_FunctionEnum_2_Scores_flatfile_vs_pickle():
     """
+    passed
     hopefully solved, Snakemake rule was commented out and therefore Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN_pickle not updated
     Taxid_2_FunctionEnum_2_Scores_dict vs Taxid_2_FunctionEnum_2_Scores_table
     Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN vs Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN_pickle
     Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(variables.TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
+    testing r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict
     """
     Taxid_2_FunctionEnum_2_Scores_dict_ff = query.get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=True, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=False)
     Taxid_2_FunctionEnum_2_Scores_dict_p = query.get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=False, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=True)
@@ -156,6 +174,7 @@ def test_Taxid_2_FunctionEnum_2_Scores_flatfile_vs_pickle():
 
 def test_Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN_flatfile_vs_sparse():
     """
+    failed
     SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN vs Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(variables.TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
     """
@@ -173,9 +192,6 @@ def test_Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN_flatfile_vs_sparse():
         score_arr_ff = FunctionEnum_2_Scores_dict_ff[funcEnum]
         assert score_arr_sparse.shape[0] == score_arr_ff.shape[0]
         assert sorted(score_arr_sparse) == sorted(score_arr_ff)
-        # not equal
-        # - checked if UniProtIDs are the same
-        #
 
 def test_Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN_pickle_vs_sparse():
     """
@@ -196,3 +212,19 @@ def test_Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN_pickle_vs_sparse():
         score_arr_ff = FunctionEnum_2_Scores_dict_p[funcEnum]
         assert score_arr_sparse.shape[0] == score_arr_ff.shape[0]
         assert sorted(score_arr_sparse) == sorted(score_arr_ff)
+
+def test_taxid_2_tuple_funcEnum_index_2_associations_counts():
+    """
+    snakemake r_Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts_UPS_FIN
+    compare pickled vs flatfile data
+    """
+    taxid_2_tuple_funcEnum_index_2_associations_counts_p = query.get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False, from_pickle=True)
+    taxid_2_tuple_funcEnum_index_2_associations_counts_ff = query.get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=True, from_pickle=False)
+    assert sorted(taxid_2_tuple_funcEnum_index_2_associations_counts_p.keys()) == sorted(taxid_2_tuple_funcEnum_index_2_associations_counts_ff.keys())
+    for taxid in taxid_2_tuple_funcEnum_index_2_associations_counts_ff.keys():
+        funcEnum_index_2_associations_ff = taxid_2_tuple_funcEnum_index_2_associations_counts_ff[taxid]
+        funcEnum_index_positions_arr_ff, counts_arr_ff = funcEnum_index_2_associations_ff
+        funcEnum_index_2_associations_p = taxid_2_tuple_funcEnum_index_2_associations_counts_p[taxid]
+        funcEnum_index_positions_arr_p, counts_arr_p = funcEnum_index_2_associations_p
+        assert np.array_equal(funcEnum_index_positions_arr_ff, funcEnum_index_positions_arr_p)
+        assert np.array_equal(counts_arr_ff, counts_arr_p)

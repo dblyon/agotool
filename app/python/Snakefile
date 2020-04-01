@@ -463,7 +463,7 @@ rule r_Functions_table_all:
                        Functions_table_WikiPathways]
     output:
         Functions_table_all = Functions_table_all,
-    threads: NUMBER_OF_PROCESSES_sorting
+    threads: Secondary_2_Primary_ID_UPS_FIN
     run:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_table_all, threads)
 
@@ -757,7 +757,7 @@ rule r_Pickle_lookup_arrays_UPS_FIN:
     run:
         cst.Pickle_lookup_arrays_UPS_FIN(input.Functions_table_UPS_FIN, output.year_arr_UPS_FIN, output.hierlevel_arr_UPS_FIN, output.entitytype_arr_UPS_FIN, output.functionalterm_arr_UPS_FIN, output.indices_arr_UPS_FIN, output.description_arr_UPS_FIN, output.category_arr_UPS_FIN)
 
-rule Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since performance improvement lacking --> maybe in C++ version of dicts are implemented, but doesn't seem worth it since KS testing < 300ms
+rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since performance improvement lacking --> maybe in C++ version of dicts are implemented, but doesn't seem worth it since KS testing < 300ms
     input:
         Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     output:
@@ -780,6 +780,7 @@ rule Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since performan
 # - add Protein_2_FunctionEnum_table_UPS_FIN.txt to DB and connect via pqo --> preload background proteome for most common taxa
 
 ### TODO:
+# ToDo: some UniProtIDs not translated to ENSPs since not in Secondary to primary file, but they are in ENSP_2_UniProt_all file, why not include them in the DB?
 # - ToDo fix API and adapt to Damian STRING API
 # - CRON job
 # - create DB --> temp tables and drop_and_rename

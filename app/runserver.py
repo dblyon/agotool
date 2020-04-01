@@ -55,7 +55,7 @@ if ARGPARSE:
 ###############################################################################
 
 # ToDo
-# - convert Jensenlab scores so that 5 is 0 and 0 is 5.
+# - add example to API with abundance correction method --> input fg_string with abundance values
 # - add check to size of downloads. e.g. documents_protein2function.tsv.gz == URL_protein_2_function_PMID
 #    --> to be >= previous size
 # - buy goliath domain?
@@ -297,8 +297,6 @@ def convert_string_2_bool(args_dict):
             else:
                 pass
     return args_dict
-
-
 
 def write2file(fn, tsv):
     with open(fn, 'w') as f:
@@ -556,7 +554,6 @@ characterize_foreground: Foreground only""")
     background_replicates = fields.IntegerField("background replicates", [validate_integer], default=10, description="'Background replicates' is an integer, defines the number of samples (replicates) of the background. default=10.")
 
 
-
 class Example_1(Enrichment_Form):
     """
     example 1: Yeast acetylation,
@@ -588,7 +585,6 @@ class Example_2(Enrichment_Form):
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
 
 
-
 class Example_3(Enrichment_Form):
     """
     example 3: Mouse interferon (STRING network)
@@ -599,7 +595,7 @@ class Example_3(Enrichment_Form):
     background_textarea = fields.TextAreaField("Background & Intensity", default=background_input)
     enrichment_method = fields.SelectField("Enrichment method", choices=(("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome"),  ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
+    characterize_foreground: Foreground only""")
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606 for Homo sapiens)")
 
 
@@ -611,7 +607,7 @@ class Example_4(Enrichment_Form):
     foreground_textarea = fields.TextAreaField("Foreground", default="""MPRD_HUMAN""")
     enrichment_method = fields.SelectField("Enrichment method", choices=(("characterize_foreground", "characterize_foreground"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups")
+    characterize_foreground: Foreground only""")
 
 
 @app.route('/example_1')
