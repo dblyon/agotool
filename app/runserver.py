@@ -150,7 +150,7 @@ api = Api(app)
 parser = reqparse.RequestParser()
 ################################################################################
 ### API arguments/parameters
-parser.add_argument("taxid", type=int,help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
+parser.add_argument("taxid", type=int,help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).", default=9606)
 parser.add_argument("species", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
 parser.add_argument("organism", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
 parser.add_argument("output_format", type=str, help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}", default="tsv")

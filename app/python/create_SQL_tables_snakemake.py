@@ -2835,6 +2835,8 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     an_without_translation, ENSP_without_translation, without_lineage = [], [], set()
     lineage_dict_direct_parents = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False, direct_parents_only=True)
+    blacklisted_funcNames_set = variables.blacklisted_terms # DBL blacklisted, manually curated GOCC terms to exclude
+
     with open(fn_out_Protein_2_FunctionEnum_and_Score_table_UPS, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
             ENSP_last, _, _ = line.split("\t")
@@ -2857,7 +2859,11 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
                         ENSP_without_translation.append(ENSP_last)
                 funcEnum_2_score_per_ENSP = []
             # parse current and add to funcEnum_2_score
-            funcName_2_score_list = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
+            funcName_2_score_list_temp = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
+            funcName_2_score_list = []
+            for funcName, score in funcName_2_score_list_temp:
+                if funcName not in blacklisted_funcNames_set:
+                    funcName_2_score_list.append([funcName, score])
             # backtracking. funcName_2_score_list --> scores are now integer NOT floats
             funcName_2_score_list, without_lineage_temp = helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_direct_parents)
             without_lineage |= without_lineage_temp
@@ -2874,7 +2880,7 @@ def Protein_2_FunctionEnum_and_Score_table_UPS(fn_go_basic_obo, fn_in_DOID_obo_J
                 try:
                     anEnum = term_2_enum_dict[an]
                     funcEnum_2_score.append([anEnum, score])
-                except KeyError: # because e.g. blacklisted
+                except KeyError: # because e.g. blacklisted via Jensenlab blacklist download file
                     an_without_translation.append(an)
             funcEnum_2_score = helper_select_higher_score_if_redundant(funcEnum_2_score) # can happen due to mapping of alternate IDs
             funcEnum_2_score_per_ENSP += funcEnum_2_score

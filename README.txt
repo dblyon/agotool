@@ -699,3 +699,9 @@ rsync -avP --update --files-from=/mnt/mnemo5/dblyon/agotool/app/rsync_files_UniP
 
 # from Ody to Aquarius, on Ody
 rsync -avP --update --files-from=/Users/dblyon/modules/cpr/agotool/app/rsync_files_UniProtVersion.txt . dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables
+
+### uWSGI
+configuration: agotool/app/uwsgi_config.ini
+start the app with:
+uwsgi uwsgi_config.ini
+

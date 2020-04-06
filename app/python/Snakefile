@@ -463,7 +463,7 @@ rule r_Functions_table_all:
                        Functions_table_WikiPathways]
     output:
         Functions_table_all = Functions_table_all,
-    threads: Secondary_2_Primary_ID_UPS_FIN
+    threads: NUMBER_OF_PROCESSES_sorting
     run:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_table_all, threads)
 

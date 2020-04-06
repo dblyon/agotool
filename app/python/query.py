@@ -471,13 +471,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
         if variables.VERBOSE:
             print("getting Taxid_2_FunctionEnum_2_Scores_dict")
-        #     print("getting Taxid_2_FuncEnum_2_Score_2_Rank_dict")
-        #     print("getting Taxid_2_FuncEnum_2_medianScore_dict")
-        #     print("getting Taxid_2_FuncEnum_2_numBGvals_dict")
         self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=True)
-        # self.Taxid_2_FuncEnum_2_Score_2_Rank_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_Score_2_Rank_dict"], "rb"))
-        # self.Taxid_2_FuncEnum_2_medianScore_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_medianScore_dict"], "rb"))
-        # self.Taxid_2_FuncEnum_2_numBGvals_dict = pickle.load(open(variables.tables_dict["Taxid_2_FuncEnum_2_numBGvals_dict"], "rb"))
 
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")

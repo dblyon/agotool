@@ -201,10 +201,37 @@ blacklisted_terms = {'GO:0003674', 'GO:0008150', 'GO:0005575', "GOCC:0005575",
                      'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614',
                      'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999',
-                     'GOCC:0005623', 'GOCC:0044464', 'GOCC:0005622', 'GOCC:0043226', 'GOCC:0044422'}
-# GOCC:0005623 = Cell; GOCC:0044464 = Cell part; GOCC:0005622 = Intracellular
+                     'GOCC:0005623', 'GOCC:0044464', 'GOCC:0005622', 'GOCC:0043226', 'GOCC:0044422',
+                     'GOCC:0044424', 'GOCC:0043229', 'GOCC:0043227', 'GOCC:0005737', 'GOCC:0043231', 'GOCC:0016020', 'GOCC:0044444', 'GOCC:0044446',
+                     'GOCC:0032991', 'GOCC:0071944', 'GOCC:0044425', 'GOCC:0043232', 'GOCC:0012505', 'GOCC:0070013', 'GOCC:0031224', 'GOCC:0031090',
+                     'GOCC:0016021', 'GOCC:0031982'}
+# GOCC:0005623 = Cell;
+# GOCC:0044464 = Cell part;
+# GOCC:0005622 = Intracellular
 # GOCC:0043226 = Organelle
-# GOCC:0044422 = 'Organelle part	'
+# GOCC:0044422 = Organelle part
+#       	funcName 	descripion
+# 0 	GOCC:0044424 	Intracellular part
+# 1 	GOCC:0043229 	Intracellular organelle
+# 2 	GOCC:0043227 	Membrane-bounded organelle
+# 3 	GOCC:0005737 	Cytoplasm
+# 4 	GOCC:0043231 	Intracellular membrane-bounded organelle
+# 5 	GOCC:0016020 	Membrane
+# 6 	GOCC:0044444 	Cytoplasmic part
+# 7 	GOCC:0044446 	Intracellular organelle part
+# 8 	GOCC:0032991 	Protein-containing complex
+# 9 	GOCC:0071944 	Cell periphery
+# 10 	GOCC:0044425 	Membrane part
+# 11 	GOCC:0043232 	Intracellular non-membrane-bounded organelle
+# 12 	GOCC:0012505 	Endomembrane system
+# 13 	GOCC:0070013 	Intracellular organelle lumen
+# 14 	GOCC:0031224 	Intrinsic component of membrane
+# 15 	GOCC:0031090 	Organelle membrane
+# 16 	GOCC:0016021 	Integral component of membrane
+# 17 	GOCC:0031982 	Vesicle
+
+
+
 
 ##### final Tables / flat-files needed for flask app / PostgreSQL
 if VERSION_ == "UniProt":
