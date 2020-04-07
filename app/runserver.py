@@ -58,6 +58,9 @@ if ARGPARSE:
 # - add example to API with abundance correction method --> input fg_string with abundance values
 # - add check to size of downloads. e.g. documents_protein2function.tsv.gz == URL_protein_2_function_PMID
 #    --> to be >= previous size
+# - checkboxes for limi_2_entity_types instead of drop_down_list
+# add poster from ASMS
+# single help page with FAQ section
 # - buy goliath domain?
 # - report userinput 2 mapped ID and make available as download
 # - return unused identifiers

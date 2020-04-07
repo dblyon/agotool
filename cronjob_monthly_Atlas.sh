@@ -21,14 +21,22 @@ cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
 ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-pbzip2 -p24 $TAR_FILE_NAME &
+pbzip2 -p10 $TAR_FILE_NAME &
 check_exit_status
 
 ### run snakemake pipeline
 echo "\n### run snakemake pipeline\n"
 cd /mnt/mnemo5/dblyon/agotool/app/python
-/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -j 24 -F
+/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -j 10 -F
 check_exit_status
+
+# add file dimensions to log for testing and debugging
+cd /mnt/mnemo5/dblyon/agotool/app/python
+/mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
+
+# automated testing here!!! ToDo if tests pass --> then proceed with the rest
+
+
 
 # tar and compress new files for backup
 echo "\n### tar and compress new files for backup\n"
@@ -39,7 +47,7 @@ find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE
 check_exit_status
 
 # compress for quick transfer and backup, keep tar
-pbzip2 -k -p20 $TAR_FILE_NAME
+pbzip2 -k -p10 $TAR_FILE_NAME
 check_exit_status
 
 # copy files to Aquarius (production server)
