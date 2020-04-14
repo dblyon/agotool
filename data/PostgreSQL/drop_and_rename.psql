@@ -1,6 +1,7 @@
 -- DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum;
 --     taxid_2_functioncountarray, functions, taxid_2_protein, protein_2_functionenum_and_score, lineage;
-DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum, taxid_2_functioncountarray, functions, taxid_2_protein, protein_2_functionenum_and_score, lineage;
+DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum, functions;
+DROP TABLE IF EXISTS taxid_2_functioncountarray, taxid_2_protein, protein_2_functionenum_and_score, lineage;
 
 
 ALTER TABLE secondary_2_primary_id_temp RENAME TO secondary_2_primary_id;

@@ -184,7 +184,7 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
         cols_2_return_sort_order.remove("BG_IDs")
     df_2_return = s_value(df_2_return)
     df_2_return["s_value_abs"] = df_2_return["s_value"].apply(lambda x: abs(x))
-    df_2_return = df_2_return.sort_values(["etype", "s_value_abs", "hierarchical_level", "year"], ascending=[False, False, False, False])
+    df_2_return = df_2_return.sort_values(["etype", "s_value_abs", "hierarchical_level", "year"], ascending=[False, False, False, False]).reset_index(drop=True)
     df_2_return["rank"] = df_2_return.groupby("etype")["s_value_abs"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0]).astype(int)
     if debug:
             return protein_ans_bg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, background_ids_arr_of_string, df_2_return
@@ -1142,6 +1142,7 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     cols_2_return_sort_order = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category']
     df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
     df_2_return["FG_n"] = foreground_n
+    df_2_return = df_2_return.sort_values(["etype", "FG_count", "hierarchical_level", "year"], ascending=[False, False, False, False]).reset_index(drop=True)
     return df_2_return[cols_2_return_sort_order]
 
 @boundscheck(False)
