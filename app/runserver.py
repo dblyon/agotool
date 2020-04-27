@@ -13,7 +13,7 @@ from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
-sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
+sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy
 
 

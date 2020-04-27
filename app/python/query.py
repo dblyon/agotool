@@ -13,6 +13,7 @@ hostname = socket.gethostname()
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+# from pyt import variables, obo_parser, taxonomy
 import variables, obo_parser, taxonomy
 # print(os.getcwd())
 # print(sorted(os.listdir()))
@@ -442,6 +443,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     everything else is in memory but still deposited in the DB any way
     """
     def __init__(self, low_memory=True, read_from_flat_files=None):
+        # should have a call like this: super().__init() and then other things below
         if read_from_flat_files is None:
             read_from_flat_files = variables.READ_FROM_FLAT_FILES
         if variables.VERBOSE:
@@ -530,6 +532,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("finished with PQO init")
             print("go go GO and fly like the wind")
             print("#" * 80)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__} @ {hex(id(self))}"
 
     def get_preloaded_objects_per_analysis(self):
         self.reset_preloaded_objects_per_analysis()
