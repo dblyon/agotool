@@ -11,5 +11,5 @@ initial_testing:
   script:
     - python -V  # Print out python version for debugging
     - echo "$0"
-    - echo "whoami"
-    - echo hostname
+    - echo "$USER"
+    - echo $HOSTNAME
