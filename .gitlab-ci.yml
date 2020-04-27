@@ -3,6 +3,8 @@ stages:
   - test
   - push
   - deploy
+  - build_weekly
+  - build_monthly
 
 initial_testing:
   stage: test
@@ -13,3 +15,14 @@ initial_testing:
     - echo "$0"
     - echo "$USER"
     - echo $HOSTNAME
+    - python_conda -c "print('Bubu was here\n'*5)"
+    - snakemake --help
+
+job:on-schedule:
+  only:
+    - schedules
+  tags:
+    - aquarius
+  script:
+    - python_conda -c "print('scheduled job here, nothing to see')"
+  
