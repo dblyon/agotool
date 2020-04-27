@@ -1,4 +1,15 @@
-before_script:
-  - python -V  # Print out python version for debugging
-  - echo "$0"
-  - echo "whoami"
+stages:
+  - build
+  - test
+  - push
+  - deploy
+
+initial_testing:
+  stage: test
+  tags:
+    - shell
+  script:
+    - python -V  # Print out python version for debugging
+    - echo "$0"
+    - echo "whoami"
+    - echo hostname
