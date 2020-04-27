@@ -16,6 +16,7 @@ initial_testing:
   tags:
     - aquarius
   script:
+    - echo "$(date)"
     - python -V  # Print out python version for debugging
     - echo "$0"
     - echo "$USER"
