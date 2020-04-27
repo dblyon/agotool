@@ -1,3 +1,9 @@
+# include these files #
+###################
+!.gitlab-ci.yml
+!.gitignore
+
+
 env_file
 *.nfs*
 *.png

@@ -1,0 +1,15 @@
+stages:
+  - build
+  - test
+  - push
+  - deploy
+
+initial_testing:
+  stage: test
+  tags:
+    - aquarius
+  script:
+    - python -V  # Print out python version for debugging
+    - echo "$0"
+    - echo "$USER"
+    - echo $HOSTNAME
