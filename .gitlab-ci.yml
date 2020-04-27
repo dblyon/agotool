@@ -15,6 +15,7 @@ initial_testing:
     - echo "$0"
     - echo "$USER"
     - echo $HOSTNAME
+    - source ~/.bashrc
     - python_conda -c "print('Bubu was here\n'*5)"
     - snakemake --help
 
