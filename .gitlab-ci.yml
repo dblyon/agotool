@@ -1,0 +1,4 @@
+before_script:
+  - python -V  # Print out python version for debugging
+  - echo "$0"
+  - echo "whoami"
