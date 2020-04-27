@@ -6,6 +6,11 @@ stages:
   - build_weekly
   - build_monthly
 
+variables:
+  PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
+  SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
+
+
 initial_testing:
   stage: test
   tags:
@@ -16,8 +21,8 @@ initial_testing:
     - echo "$USER"
     - echo $HOSTNAME
     - source ~/.bashrc
-    - python_conda -c "print('Bubu was here\n'*5)"
-    - snakemake --help
+    - PYTHON -c "print('Bubu was here\n'*5)"
+    - SNAKEMAKE --help
 
 job:on-schedule:
   only:
