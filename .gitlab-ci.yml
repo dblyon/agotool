@@ -22,7 +22,7 @@ initial_testing:
     - echo "$USER"
     - echo $HOSTNAME
     - source ~/.bashrc
-    - /home/gitlab-runner/anaconda3/envs/snake/bin/python -c "print('Bubu was here\n'*5)"
+    #- /home/gitlab-runner/anaconda3/envs/snake/bin/python -c "print('Bubu was here\n'*5)"
     #- SNAKEMAKE --help 
 
 job:on-schedule:
