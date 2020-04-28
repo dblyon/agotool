@@ -28,8 +28,8 @@ initial_testing:
     - echo pwd
     ### tar and compress previous files for backup
     - cd /home/dblyon/agotool/data/PostgreSQL/tables
-    - echo pwd
-    - find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
+    - echo $(pwd)
+    - sudo find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
     ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
     - pbzip2 -p8 $TAR_FILE_NAME &
 
