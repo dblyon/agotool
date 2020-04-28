@@ -7,8 +7,6 @@ variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
   SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
   TAR_FILE_NAME: 'bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar'
-  CI_SHORT_COMMIT_SHA: '$${CI_COMMIT_SHA:0:8}'
-  FOO_BAR: '$${FOO}-$${BAR}'
 
 initial_testing:
   stage: test
@@ -25,18 +23,6 @@ initial_testing:
     - echo $HOSTNAME
     - echo $TAR_FILE_NAME
 
-before_script:
-  tags:
-    - aquarius
-  - eval export CI_SHORT_COMMIT_SHA=${CI_SHORT_COMMIT_SHA}
-  - eval export FOO_BAR=${FOO_BAR}
-
-test:
-  tags:
-    - aquarius
-  script:
-    - echo ${CI_SHORT_COMMIT_SHA}
-    - echo ${FOO_BAR}
 
 
 # job:on-schedule:
