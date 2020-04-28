@@ -23,10 +23,10 @@ initial_testing:
     - $SNAKEMAKE --version
     - echo "$USER"
     - echo $HOSTNAME
-    - echo $TAR_FILE_NAME
     - echo $DATE
     - echo $TAR_FILE_NAME
-    - echo 'bak_aGOtool_flatfiles_$DATE.tar'
+    - echo "bak_aGOtool_flatfiles_$DATE.tar"
+    - echo "bak_aGOtool_flatfiles_${DATE}.tar"
 
 # job:on-schedule:
 #   only:
