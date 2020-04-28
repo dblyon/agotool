@@ -23,7 +23,15 @@ initial_testing:
     - echo $HOSTNAME
     - echo $DATE
     - echo $TAR_FILE_NAME
-    - echo "bak_aGOtool_flatfiles_$DATE.tar"
+    # - echo "bak_aGOtool_flatfiles_$DATE.tar"
+    - cd /home/dblyon/agotool/data/PostgreSQL/tables
+    - echo pwd
+    ### tar and compress previous files for backup
+    - cd /home/dblyon/agotool/data/PostgreSQL/tables
+    - echo pwd
+    - find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
+    ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
+    - pbzip2 -p8 $TAR_FILE_NAME &
 
 job:on-schedule:
   only:
@@ -33,20 +41,12 @@ job:on-schedule:
     - aquarius
   script:
     - echo "$(date)"
-    # - $PYTHON -c "print('scheduled pipeline job here. Let's get this done!')"
-
-
-#     ### tar and compress previous files for backup
-# echo "\n### tar and compress previous files for backup\n"
-# TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
-# cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
-# ### create tar of relevant flat files
-
-# find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
-# check_exit_status
-# ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-# pbzip2 -p10 $TAR_FILE_NAME &
-# check_exit_status
+    ### tar and compress previous files for backup
+    - cd /home/dblyon/agotool/data/PostgreSQL/tables
+    - echo pwd
+    - find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
+    ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
+    - pbzip2 -p8 $TAR_FILE_NAME &
 
 # ### run snakemake pipeline
 # echo "\n### run snakemake pipeline\n"
