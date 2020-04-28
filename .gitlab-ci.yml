@@ -1,15 +1,12 @@
 stages:
-  - build
-  - test
-  - push
-  - deploy
-  - build_weekly
   - build_monthly
+  - test
+  - deploy
 
 variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
   SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
-
+  TAR_FILE_NAME: 'bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar'
 
 initial_testing:
   stage: test
@@ -24,13 +21,35 @@ initial_testing:
     - echo "$0"
     - echo "$USER"
     - echo $HOSTNAME
+    - echo $TAR_FILE_NAME
 
 job:on-schedule:
   only:
     - schedules
+  stage: build_monthly
   tags:
     - aquarius
   script:
     - echo "$(date)"
-    - $PYTHON -c "print('scheduled job here, nothing to see')"
+    # - $PYTHON -c "print('scheduled pipeline job here. Let's get this done!')"
+    - $SNAKEMAKE
+
+
+#     ### tar and compress previous files for backup
+# echo "\n### tar and compress previous files for backup\n"
+# TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
+# cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
+# ### create tar of relevant flat files
+
+# find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
+# check_exit_status
+# ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
+# pbzip2 -p10 $TAR_FILE_NAME &
+# check_exit_status
+
+# ### run snakemake pipeline
+# echo "\n### run snakemake pipeline\n"
+# cd /mnt/mnemo5/dblyon/agotool/app/python
+# /mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -j 10 -F
+# check_exit_status
   
