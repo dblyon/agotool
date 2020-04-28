@@ -26,10 +26,14 @@ initial_testing:
     - echo $TAR_FILE_NAME
 
 before_script:
+  tags:
+    - aquarius
   - eval export CI_SHORT_COMMIT_SHA=${CI_SHORT_COMMIT_SHA}
   - eval export FOO_BAR=${FOO_BAR}
 
 test:
+  tags:
+    - aquarius
   script:
     - echo ${CI_SHORT_COMMIT_SHA}
     - echo ${FOO_BAR}
