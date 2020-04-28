@@ -9,8 +9,11 @@ variables:
   TAR_FILE_NAME: 'bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar'
 
 before_script:
-    - export CI_JOB_TIMESTAMP=$(date --utc --iso-8601=seconds)
-    - echo $CI_JOB_TIMESTAMP
+    #- export CI_JOB_TIMESTAMP=$(date --utc --iso-8601=seconds)
+    #- echo $CI_JOB_TIMESTAMP
+    - echo DATE=$(date +"%Y_%m_%d_%I_%M_%p")
+    - echo $DATE
+
 
 
 initial_testing:
