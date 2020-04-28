@@ -19,8 +19,8 @@ initial_testing:
     - echo "$(date)"
     - python -V  # Print out python version for debugging
     - /home/gitlab-runner/anaconda3/envs/snake/bin/python -c "print('Bubu was here\n'*5)"
-    - python_conda -V
     - source ~/.bashrc
+    - python_conda -V
     - echo "$0"
     - echo "$USER"
     - echo $HOSTNAME
