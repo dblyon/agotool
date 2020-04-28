@@ -26,18 +26,16 @@ initial_testing:
     - echo $DATE
     - echo $TAR_FILE_NAME
     - echo "bak_aGOtool_flatfiles_$DATE.tar"
-    - echo "bak_aGOtool_flatfiles_${DATE}.tar"
 
-# job:on-schedule:
-#   only:
-#     - schedules
-#   stage: build_monthly
-#   tags:
-#     - aquarius
-#   script:
-#     - echo "$(date)"
-#     # - $PYTHON -c "print('scheduled pipeline job here. Let's get this done!')"
-#     - $SNAKEMAKE
+job:on-schedule:
+  only:
+    - schedules
+  stage: build_monthly
+  tags:
+    - aquarius
+  script:
+    - echo "$(date)"
+    # - $PYTHON -c "print('scheduled pipeline job here. Let's get this done!')"
 
 
 #     ### tar and compress previous files for backup
