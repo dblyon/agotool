@@ -39,7 +39,6 @@ test:
     - echo ${FOO_BAR}
 
 
-
 # job:on-schedule:
 #   only:
 #     - schedules
