@@ -6,12 +6,10 @@ stages:
 variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
   SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
-  
 
 before_script:
     - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
-    - export TAR_FILE_NAME='bak_aGOtool_flatfiles_$DATE.tar'
-    - echo $TAR_FILE_NAME
+    - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
 
 initial_testing:
   stage: test
