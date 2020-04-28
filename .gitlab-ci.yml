@@ -7,11 +7,10 @@ variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
   SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
   TAR_FILE_NAME: 'bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar'
+  DATE_v2: $(date +"%Y_%m_%d_%I_%M_%p")
 
 before_script:
-    #- export CI_JOB_TIMESTAMP=$(date --utc --iso-8601=seconds)
-    #- echo $CI_JOB_TIMESTAMP
-    - echo DATE=$(date +"%Y_%m_%d_%I_%M_%p")
+    - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
     - echo $DATE
 
 
@@ -30,6 +29,8 @@ initial_testing:
     - echo "$USER"
     - echo $HOSTNAME
     - echo $TAR_FILE_NAME
+    - echo $DATE
+    - echo $DATE_v2
 
 
 
