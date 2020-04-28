@@ -17,11 +17,13 @@ initial_testing:
     - aquarius
   script:
     - echo "$(date)"
-    - python -V  # Print out python version for debugging
+    - python -V  # Print python version for debugging
+    - source ~/.bashrc
+    - python -V  # Print python version for debugging, should be conda version
+    - /home/gitlab-runner/anaconda3/envs/snake/bin/python -V
     - echo "$0"
     - echo "$USER"
-    - echo $HOSTNAME
-    - source ~/.bashrc
+    - echo $HOSTNAME    
     - echo /home/gitlab-runner/anaconda3/envs/snake/bin/python -c "print('Bubu was here\n'*5)"
     - echo SNAKEMAKE --help 
 
