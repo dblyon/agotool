@@ -31,5 +31,6 @@ job:on-schedule:
   tags:
     - aquarius
   script:
-    - python_conda -c "print('scheduled job here, nothing to see')"
+    - echo "$(date)"
+    - $PYTHON -c "print('scheduled job here, nothing to see')"
   
