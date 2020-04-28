@@ -6,14 +6,12 @@ stages:
 variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
   SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
-  TAR_FILE_NAME: 'bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar'
-  DATE_v2: $(date +"%Y_%m_%d_%I_%M_%p")
+  
 
 before_script:
     - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
-    - echo $DATE
-
-
+    - export TAR_FILE_NAME='bak_aGOtool_flatfiles_$DATE.tar'
+    - echo $TAR_FILE_NAME
 
 initial_testing:
   stage: test
@@ -21,18 +19,14 @@ initial_testing:
     - aquarius
   script:
     - echo "$(date)"
-    - python -V  # Print out python version for debugging
-    - /home/gitlab-runner/anaconda3/envs/snake/bin/python -V
     - $PYTHON -V
-    - $SNAKEMAKE --version    
-    - echo "$0"
+    - $SNAKEMAKE --version
     - echo "$USER"
     - echo $HOSTNAME
     - echo $TAR_FILE_NAME
     - echo $DATE
-    - echo $DATE_v2
-
-
+    - echo $TAR_FILE_NAME
+    - echo 'bak_aGOtool_flatfiles_$DATE.tar'
 
 # job:on-schedule:
 #   only:
