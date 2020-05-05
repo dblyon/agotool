@@ -1,3 +1,4 @@
+# single environment including snakemake
 name: agotool
 channels:
   - conda-forge
@@ -6,24 +7,42 @@ channels:
   - defaults
 dependencies:
   - python=3
-  - numpy
+  - snakemake
   - cython
+  - fisher
+  - numpy
   - pandas
   - scipy
-  - jupyterlab
-  - ipython
-  - libgcc
-  - fisher
-  - Werkzeug
-  - WTForms
-  - Flask
+  - beautifulsoup4
+  - curl
+  - flask
   - flask-restful
   - flask-markdown
-  - networkx
+  - ipdb
+  - ipython
+  - ipykernel
+  - jupyterlab
+  - jinja2
+  - json5
+  - libblas
+  - libclang
+  - libcurl
+  - libgfortran-ng
+  - libopenblas
+  - libgcc
   - lxml
+  - openssl
+  - pip
+  - psycopg2
+  - requests
+  - tqdm
+  - urllib3
+  - Werkzeug
+  - WTForms
+  - wheel
+  - xlrd
+  - networkx
   - pytest
   - pytest-cov
   - markdown
   - retrying
-  - requests
-  - beautifulsoup4

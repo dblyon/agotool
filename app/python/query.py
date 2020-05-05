@@ -909,6 +909,9 @@ def get_parents_iterative(child, child_2_parent_dict):
     return all_parents
 
 def get_lineage_dict_enum(as_array=False, read_from_flat_files=False, cast_2_int=True):
+    """
+    lineage_dict = {} # key: function enumeration, value: set of func enum array all parents
+    """
     lineage_dict = {} # key: function enumeration, value: set of func enum array all parents
     if read_from_flat_files:
         # fn = os.path.join(variables.TABLES_DIR, "Lineage_table_STRING.txt")

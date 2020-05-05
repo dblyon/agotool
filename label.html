@@ -1,0 +1,85 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  
+  <head>
+    
+      <meta charset="utf-8">
+      <title>label.py example</title>
+      
+      
+        
+          
+        
+        
+          
+        <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.0.2.min.js" integrity="sha384-ufR9RFnRs6lniiaFvtJziE0YeidtAgBRH6ux2oUItHw5WTvE1zuk9uzhUU/FJXDp" crossorigin="anonymous"></script>
+        <script type="text/javascript">
+            Bokeh.set_log_level("info");
+        </script>
+        
+      
+      
+    
+  </head>
+  
+  
+  <body>
+    
+      
+        
+          
+          
+            
+              <div class="bk-root" id="704f900b-5a10-4fbd-9202-cfff76835b10" data-root-id="1773"></div>
+            
+          
+        
+      
+      
+        <script type="application/json" id="2005">
+          {"3417e20d-0036-4349-8c11-7226d2a88e34":{"roots":{"references":[{"attributes":{"below":[{"id":"1783"}],"center":[{"id":"1786"},{"id":"1790"},{"id":"1810"},{"id":"1812"}],"left":[{"id":"1787"}],"renderers":[{"id":"1808"}],"title":{"id":"1774"},"toolbar":{"id":"1798"},"x_range":{"id":"1772"},"x_scale":{"id":"1779"},"y_range":{"id":"1777"},"y_scale":{"id":"1781"}},"id":"1773","subtype":"Figure","type":"Plot"},{"attributes":{"background_fill_color":"white","border_line_color":"black","render_mode":"css","text":"Collected by Luke C. 2016-04-01","x":70,"x_units":"screen","y":70,"y_units":"screen"},"id":"1812","type":"Label"},{"attributes":{},"id":"1781","type":"LinearScale"},{"attributes":{"data_source":{"id":"1771"},"glyph":{"id":"1806"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1807"},"selection_glyph":null,"view":{"id":"1809"}},"id":"1808","type":"GlyphRenderer"},{"attributes":{"fill_color":{"value":"#1f77b4"},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":8},"x":{"field":"weight"},"y":{"field":"height"}},"id":"1806","type":"Scatter"},{"attributes":{"data":{"height":[66,71,72,68,58,62],"names":["Mark","Amir","Matt","Greg","Owen","Juan"],"weight":[165,189,220,141,260,174]},"selected":{"id":"1858"},"selection_policy":{"id":"1859"}},"id":"1771","type":"ColumnDataSource"},{"attributes":{},"id":"1857","type":"BasicTickFormatter"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1791"},{"id":"1792"},{"id":"1793"},{"id":"1794"},{"id":"1795"},{"id":"1796"}]},"id":"1798","type":"Toolbar"},{"attributes":{"axis":{"id":"1783"},"ticker":null},"id":"1786","type":"Grid"},{"attributes":{},"id":"1795","type":"ResetTool"},{"attributes":{"level":"glyph","source":{"id":"1771"},"text":{"field":"names"},"x":{"field":"weight"},"x_offset":{"value":5},"y":{"field":"height"},"y_offset":{"value":5}},"id":"1810","type":"LabelSet"},{"attributes":{},"id":"1794","type":"SaveTool"},{"attributes":{"axis_label":"Height (in)","formatter":{"id":"1855"},"ticker":{"id":"1788"}},"id":"1787","type":"LinearAxis"},{"attributes":{},"id":"1777","type":"DataRange1d"},{"attributes":{},"id":"1788","type":"BasicTicker"},{"attributes":{"end":275,"start":140},"id":"1772","type":"Range1d"},{"attributes":{},"id":"1855","type":"BasicTickFormatter"},{"attributes":{"overlay":{"id":"1797"}},"id":"1793","type":"BoxZoomTool"},{"attributes":{"axis":{"id":"1787"},"dimension":1,"ticker":null},"id":"1790","type":"Grid"},{"attributes":{},"id":"1796","type":"HelpTool"},{"attributes":{"bottom_units":"screen","fill_alpha":0.5,"fill_color":"lightgrey","left_units":"screen","level":"overlay","line_alpha":1.0,"line_color":"black","line_dash":[4,4],"line_width":2,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1797","type":"BoxAnnotation"},{"attributes":{"axis_label":"Weight (lbs)","formatter":{"id":"1857"},"ticker":{"id":"1784"}},"id":"1783","type":"LinearAxis"},{"attributes":{},"id":"1779","type":"LinearScale"},{"attributes":{"text":"Dist. of 10th Grade Students at Lee High"},"id":"1774","type":"Title"},{"attributes":{},"id":"1858","type":"Selection"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":8},"x":{"field":"weight"},"y":{"field":"height"}},"id":"1807","type":"Scatter"},{"attributes":{},"id":"1792","type":"WheelZoomTool"},{"attributes":{"source":{"id":"1771"}},"id":"1809","type":"CDSView"},{"attributes":{},"id":"1784","type":"BasicTicker"},{"attributes":{},"id":"1791","type":"PanTool"},{"attributes":{},"id":"1859","type":"UnionRenderers"}],"root_ids":["1773"]},"title":"Bokeh Application","version":"2.0.2"}}
+        </script>
+        <script type="text/javascript">
+          (function() {
+            var fn = function() {
+              Bokeh.safely(function() {
+                (function(root) {
+                  function embed_document(root) {
+                    
+                  var docs_json = document.getElementById('2005').textContent;
+                  var render_items = [{"docid":"3417e20d-0036-4349-8c11-7226d2a88e34","root_ids":["1773"],"roots":{"1773":"704f900b-5a10-4fbd-9202-cfff76835b10"}}];
+                  root.Bokeh.embed.embed_items(docs_json, render_items);
+                
+                  }
+                  if (root.Bokeh !== undefined) {
+                    embed_document(root);
+                  } else {
+                    var attempts = 0;
+                    var timer = setInterval(function(root) {
+                      if (root.Bokeh !== undefined) {
+                        clearInterval(timer);
+                        embed_document(root);
+                      } else {
+                        attempts++;
+                        if (attempts > 100) {
+                          clearInterval(timer);
+                          console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                        }
+                      }
+                    }, 10, root)
+                  }
+                })(window);
+              });
+            };
+            if (document.readyState != "loading") fn();
+            else document.addEventListener("DOMContentLoaded", fn);
+          })();
+        </script>
+    
+  </body>
+  
+</html>

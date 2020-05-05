@@ -37,7 +37,6 @@ cd /mnt/mnemo5/dblyon/agotool/app/python
 # automated testing here!!! ToDo if tests pass --> then proceed with the rest
 
 
-
 # tar and compress new files for backup
 echo "\n### tar and compress new files for backup\n"
 TAR_FILE_NAME=aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
@@ -52,7 +51,7 @@ check_exit_status
 
 # copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
-rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/
+rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.b2
 check_exit_status
 
 ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
