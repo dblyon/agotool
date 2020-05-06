@@ -13,7 +13,7 @@ from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
-sys.path.insert(0, os.path.abspath(os.path.realpath('./python')))
+sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy
 
 
@@ -58,6 +58,9 @@ if ARGPARSE:
 # - add example to API with abundance correction method --> input fg_string with abundance values
 # - add check to size of downloads. e.g. documents_protein2function.tsv.gz == URL_protein_2_function_PMID
 #    --> to be >= previous size
+# - checkboxes for limi_2_entity_types instead of drop_down_list
+# add poster from ASMS
+# single help page with FAQ section
 # - buy goliath domain?
 # - report userinput 2 mapped ID and make available as download
 # - return unused identifiers
@@ -192,10 +195,10 @@ parser.add_argument("num_bins", type=int, help="The number of bins created based
 # parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
-parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
-parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
+# parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
+# parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
 parser.add_argument("simplified_output", type=str, default="False")
-parser.add_argument("do_KS", type=str, default="False")
+# parser.add_argument("do_KS", type=str, default="False")
 
 
 class API_STRING(Resource):
@@ -742,7 +745,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
                 num_rows = group.shape[0]
                 if num_rows > 0:
                     etype_2_rowsCount_dict[etype] = num_rows
-                    if etype in variables.PMID:
+                    if etype in variables.PMID: # .sort_values(["FG_count", "year"], ascending=[False, False])
                         etype_2_df_as_html_dict[etype] = group[cols_compact + ["year"]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
                     elif etype in variables.entity_types_with_ontology:
                         etype_2_df_as_html_dict[etype] = group[cols_compact + [hierarchical_level]].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})

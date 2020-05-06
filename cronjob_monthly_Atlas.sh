@@ -21,14 +21,21 @@ cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
 ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-pbzip2 -p24 $TAR_FILE_NAME &
+pbzip2 -p10 $TAR_FILE_NAME &
 check_exit_status
 
 ### run snakemake pipeline
 echo "\n### run snakemake pipeline\n"
 cd /mnt/mnemo5/dblyon/agotool/app/python
-/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -j 24 -F
+/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -j 10 -F
 check_exit_status
+
+# add file dimensions to log for testing and debugging
+cd /mnt/mnemo5/dblyon/agotool/app/python
+/mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
+
+# automated testing here!!! ToDo if tests pass --> then proceed with the rest
+
 
 # tar and compress new files for backup
 echo "\n### tar and compress new files for backup\n"
@@ -39,15 +46,16 @@ find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE
 check_exit_status
 
 # compress for quick transfer and backup, keep tar
-pbzip2 -k -p20 $TAR_FILE_NAME
+pbzip2 -k -p10 $TAR_FILE_NAME
 check_exit_status
 
 # copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
-rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/
+rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
 check_exit_status
 
-ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
+# on production server, decompress files, populate DB, restart service
+ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt'
 echo "\n--- finished Cronjob ---\n"
 
 
@@ -59,8 +67,8 @@ echo "\n--- finished Cronjob ---\n"
 # alter tables SQL
 
 # restart service (hard restart)
-#cd /mnt/mnemo5/dblyon/agotool/app
-#/mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
+# cd /home/dblyon/agotool/app (# cd /mnt/mnemo5/dblyon/agotool/app)
+# /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt (# /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt)
 # --> dockerize
 ########################################################################################################################
 

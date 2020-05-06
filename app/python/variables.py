@@ -176,6 +176,7 @@ FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.
 
 # log files
 LOG_DIRECTORY = os.path.join(DATA_DIR, "logs")
+LOG_DF_FILE_DIMENSIONS = os.path.join(LOG_DIRECTORY, "DF_file_dimensions_log.txt")
 LOG_DIRECTORY_SNAKEMAKE = os.path.join(DATA_DIR_SNAKEMAKE, "logs")
 LOG_FN_WARNINGS_ERRORS = os.path.join(LOG_DIRECTORY, "warnings_errors_log.txt")
 LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
