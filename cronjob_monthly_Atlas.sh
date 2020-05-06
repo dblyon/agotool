@@ -51,10 +51,11 @@ check_exit_status
 
 # copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
-rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.b2
+rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
 check_exit_status
 
-ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh $TAR_FILE_NAME &> /home/dblyon/agotool/data/logs/log_updates.txt'
+# on production server, decompress files, populate DB, restart service
+ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt'
 echo "\n--- finished Cronjob ---\n"
 
 
@@ -66,8 +67,8 @@ echo "\n--- finished Cronjob ---\n"
 # alter tables SQL
 
 # restart service (hard restart)
-#cd /mnt/mnemo5/dblyon/agotool/app
-#/mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
+# cd /home/dblyon/agotool/app (# cd /mnt/mnemo5/dblyon/agotool/app)
+# /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt (# /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt)
 # --> dockerize
 ########################################################################################################################
 
