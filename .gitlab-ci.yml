@@ -37,40 +37,40 @@ test:
     # - cd /home/dblyon/agotool
     # - git pull
 
-    ### PyTest
-    # - cd /home/dblyon/agotool/app/python/testing/sanity
-    # - /home/dblyon/anaconda3/envs/agotool/bin/pytest
+    ## PyTest
+    - cd /home/dblyon/agotool/app/python/testing/sanity
+    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
     
-    ### compile Cython
-    - cd /home/dblyon/agotool/app/python
-    - $PYTHON setup.py build_ext --inplace -f
+    # ### compile Cython
+    # - cd /home/dblyon/agotool/app/python
+    # - $PYTHON setup.py build_ext --inplace -f
 
-    ### restart uWSGI
-    - cd /home/dblyon/agotool/app
-    - /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
+    # ### restart uWSGI
+    # - cd /home/dblyon/agotool/app
+    # - /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
 
 
-job:on-schedule:
-  only:
-    - schedules
-  stage: deploy
-  tags:
-    - aquarius
-  script:
-    - echo "$(date)"
-    # ### tar and compress previous files for backup
-    # - cd /home/dblyon/agotool/data/PostgreSQL/tables
-    # - echo pwd
-    # - find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
-    # ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-    # - pbzip2 -p8 $TAR_FILE_NAME &
-    ### compile Cython
-    - cd /home/dblyon/agotool/app/python
-    - $PYTHON setup.py build_ext --inplace -f
+# job:on-schedule:
+#   only:
+#     - schedules
+#   stage: deploy
+#   tags:
+#     - aquarius
+#   script:
+#     - echo "$(date)"
+#     # ### tar and compress previous files for backup
+#     # - cd /home/dblyon/agotool/data/PostgreSQL/tables
+#     # - echo pwd
+#     # - find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
+#     # ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
+#     # - pbzip2 -p8 $TAR_FILE_NAME &
+#     ### compile Cython
+#     - cd /home/dblyon/agotool/app/python
+#     - $PYTHON setup.py build_ext --inplace -f
 
-    ### restart uWSGI
-    - cd /home/dblyon/agotool/app
-    - /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
+#     ### restart uWSGI
+#     - cd /home/dblyon/agotool/app
+#     - /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
 
 
 # ### run snakemake pipeline
