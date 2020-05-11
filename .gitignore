@@ -1,3 +1,4 @@
+env_file_Aquarius_bak
 *.npy
 *.npz
 =======
@@ -5,6 +6,8 @@
 ###################
 !.gitlab-ci.yml
 !.gitignore
+!DF_file_dimensions_log.txt
+
 
 env_file
 *.nfs*
