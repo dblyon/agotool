@@ -22,7 +22,7 @@ test:
     - echo "$USER"
     - echo $HOSTNAME
     - echo $DATE
-    # - echo $TAR_FILE_NAME
+    - echo $TAR_FILE_NAME
     # - echo "bak_aGOtool_flatfiles_$DATE.tar"
     # - cd /home/dblyon/agotool/data/PostgreSQL/tables
     # - echo pwd
