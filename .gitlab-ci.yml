@@ -34,6 +34,7 @@ test:
     # - pbzip2 -p8 $TAR_FILE_NAME &
     
     ### update
+    - cd /home/dblyon/agotool/app/python
     - git pull
 
     ### PyTest
