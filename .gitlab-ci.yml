@@ -32,10 +32,13 @@ test:
     #- sudo find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
     ### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
     # - pbzip2 -p8 $TAR_FILE_NAME &
+    
+    ### update
+    - git pull
 
     ### PyTest
-    - cd /home/dblyon/agotool/app/python/testing/sanity
-    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
+    # - cd /home/dblyon/agotool/app/python/testing/sanity
+    # - /home/dblyon/anaconda3/envs/agotool/bin/pytest
     
     ### compile Cython
     - cd /home/dblyon/agotool/app/python
