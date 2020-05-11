@@ -16,12 +16,12 @@ test:
   tags:
     - aquarius
   script:
-    # - echo "$(date)"
-    # - $PYTHON -V
-    # - $SNAKEMAKE --version
-    # - echo "$USER"
-    # - echo $HOSTNAME
-    # - echo $DATE
+    - echo "$(date)"
+    - $PYTHON -V
+    - $SNAKEMAKE --version
+    - echo "$USER"
+    - echo $HOSTNAME
+    - echo $DATE
     # - echo $TAR_FILE_NAME
     # - echo "bak_aGOtool_flatfiles_$DATE.tar"
     # - cd /home/dblyon/agotool/data/PostgreSQL/tables
