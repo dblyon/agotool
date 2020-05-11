@@ -34,8 +34,8 @@ test:
     # - pbzip2 -p8 $TAR_FILE_NAME &
     
     ### update
-    - cd /home/dblyon/agotool
-    - git pull
+    # - cd /home/dblyon/agotool
+    # - git pull
 
     ### PyTest
     # - cd /home/dblyon/agotool/app/python/testing/sanity
