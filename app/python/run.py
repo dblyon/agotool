@@ -27,6 +27,7 @@ def run_UniProt_enrichment(pqo, ui, args_dict, api_call=False):
         df_2_return = run_cythonized.run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=variables.LOW_MEMORY)
     else:
         df_2_return = run_cythonized.run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=variables.LOW_MEMORY)
+        # ENSP_2_tuple_funcEnum_score_dict, ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False, KS_method="cy", KS_etypes_FG_IDs=True)
     if type(df_2_return) == dict: # args_dict returned since
         # e.g. enrichment_method "genome" using different taxon for foreground than background
         return False # display "info_check_input.html"

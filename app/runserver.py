@@ -199,6 +199,8 @@ parser.add_argument("score_cutoff", type=float, help="Apply a filter for the min
 # parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
 parser.add_argument("simplified_output", type=str, default="False")
 # parser.add_argument("do_KS", type=str, default="False")
+parser.add_argument("STRING_beta", type=str, default="False")
+
 
 
 class API_STRING(Resource):
@@ -790,7 +792,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
         if args_dict["enrichment_method"] == "characterize_foreground":
             cols_2_remove = (BG_IDs, BG_n, BG_count, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value, rank)
             cols_sort_order_PMID = [ele for ele in cols_sort_order_PMID if ele not in cols_2_remove]
-            cols_sort_order_entity_types_with_scores = [ele for ele in cols_sort_order_entity_types_with_scores if ele not in cols_2_remove]
+            # cols_sort_order_entity_types_with_scores = [ele for ele in cols_sort_order_entity_types_with_scores if ele not in cols_2_remove]
             cols_sort_order_hierarchy = [ele for ele in cols_sort_order_hierarchy if ele not in cols_2_remove]
             cols_sort_order_rest = [ele for ele in cols_sort_order_rest if ele not in cols_2_remove]
 
@@ -800,8 +802,10 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
                 etype_2_rowsCount_dict[etype] = num_rows
                 if etype in variables.PMID: # -56 is the only one with "year"
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_PMID])
+                # elif etype in variables.entity_types_with_scores: # in case Forground_IDs are NOT queried and not to be displayed
+                #     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_entity_types_with_scores])
                 elif etype in variables.entity_types_with_scores:
-                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_entity_types_with_scores])
+                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
                 elif etype in variables.entity_types_with_ontology:
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
                 else:
