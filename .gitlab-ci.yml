@@ -17,11 +17,11 @@ test:
     - aquarius
   script:
     - echo "$(date)"
+    - echo $DATE
     - $PYTHON -V
     - $SNAKEMAKE --version
     - echo "$USER"
-    - echo $HOSTNAME
-    - echo $DATE
+    - echo $HOSTNAME    
     - echo $TAR_FILE_NAME
     # - echo "bak_aGOtool_flatfiles_$DATE.tar"
     # - cd /home/dblyon/agotool/data/PostgreSQL/tables
@@ -50,14 +50,23 @@ test:
     # - /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
 
 
-# job:on-schedule:
-#   only:
-#     - schedules
-#   stage: deploy
-#   tags:
-#     - aquarius
-#   script:
-#     - echo "$(date)"
+job:on-schedule:
+  only:
+    - schedules
+  stage: deploy
+  tags:
+    - aquarius
+  script:
+    - echo "$(date)"
+    - $PYTHON -V
+    - $SNAKEMAKE --version
+    - echo "$USER"
+    - echo $HOSTNAME
+    - echo $DATE
+    ## PyTest
+    - cd /home/dblyon/agotool/app/python/testing/sanity
+    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
+
 #     # ### tar and compress previous files for backup
 #     # - cd /home/dblyon/agotool/data/PostgreSQL/tables
 #     # - echo pwd
