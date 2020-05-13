@@ -782,15 +782,9 @@ rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since perform
 ### TODO:
 # ToDo: some UniProtIDs not translated to ENSPs since not in Secondary to primary file, but they are in ENSP_2_UniProt_all file, why not include them in the DB?
 # - ToDo fix API and adapt to Damian STRING API
-# - CRON job
-# - create DB --> temp tables and drop_and_rename
-# - Damian and Christian email about ENSPs in UniProt which are not in STRING v11
 # - preload most commong model organisms even for low memory
-# - profile code
-# - use Christian's C code for KS test
 # - add Jensenlab Scores data to "characterize_foreground" method --> these 3 etypes don't show up yet --> using user defined cutoff
 # - alignment of table in enrichment
-# - add compare_groups method
 # - create link outs
 # - fix form validation of wtforms or flask-wtf
 
@@ -830,12 +824,6 @@ rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since perform
 # REST API
 # suggestions for TaxIDs and names
 
-# Pipeline
-# - different CRON jobs / executing various parts of the pipeline
-# - sanity check that similar amount of data going into DB
-# - sanity check that methods work
-# - sanity check on some results
-
 ### Docker changes
 # chmod o+r * recursively for all static files on aquarius in order for nginx to read them
 
@@ -847,7 +835,6 @@ rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since perform
 # - linkouts
 # - enrichment page alignments
 # - enrichment page footer
-
 
 
 # changes to the last version of aGOtool:

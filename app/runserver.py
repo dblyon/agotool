@@ -235,9 +235,13 @@ class API_STRING(Resource):
             return help_page(args_dict)
 
         if args_dict["enrichment_method"] == "genome":
-            background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
-            if not background_n:
-                args_dict["ERROR taxid"] = "taxid: '{}' does not exist in the data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) with 'Download one protein sequence per gene (FASTA)'."
+            taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(args_dict["taxid"], pqo)
+            if is_taxid_valid:
+                args_dict["taxid"] = taxid
+            # background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
+            # if not background_n:
+            else:
+                args_dict["ERROR taxid"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) with 'Download one protein sequence per gene (FASTA)'."
                 return help_page(args_dict)
 
         ### DEBUG start
@@ -686,10 +690,11 @@ def results():
         ui = userinput.Userinput(pqo, fn=fileobject,
             foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
-        print("-" * 80)
-        for key, val in sorted(args_dict.items()):
-            print(key, val, type(val))
-        print("-" * 80)
+        if variables.VERBOSE:
+            print("-" * 80)
+            for key, val in sorted(args_dict.items()):
+                print(key, val, type(val))
+            print("-" * 80)
         # if variables.DEBUG_HTML:
         #     ui.check = True # ToDo comment #!!! DEBUG
         if ui.check:

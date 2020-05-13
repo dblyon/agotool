@@ -296,6 +296,7 @@ except:
 jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
 jensenlab_supported_taxids_species_translations_dict = {4932: 559292, 4896: 284812} # Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome
+taxid_species_2_uniprotRefProtTaxid_dict = {4932: 559292, 4896: 284812}
 dtype_TM_score = "uint32" # dtype Jensenlab TextMining score
 dtype_functionEnumeration = "uint32"
 # human, mouse, rat, arabidopsis, yeast, fly, worm, yeast # ??? anything important missing? preload all of swissprot?
@@ -328,6 +329,9 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 # 4932 species 4932 Saccharomyces cerevisiae
 # 6239 species 6239 Caenorhabditis elegans
 # 7227 species 7227 Drosophila melanogaster
+
+
+
 
 ### time temp.sh on mnemo5
 # temp.sh  2027.61s user 120.36s system 344% cpu 10:23.66 total

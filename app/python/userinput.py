@@ -62,9 +62,13 @@ class Userinput:
             print(self.enrichment_method, "problem since this is in not in in {}".format(variables.enrichment_methods))
             return False, False, False
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
-            if self.args_dict["taxid"] not in self.pqo.taxid_2_proteome_count: # TaxIDs of UniProt
-                self.args_dict["ERROR taxid"] = "ERROR taxid: 'taxid': {} does not exist in the data base, thus enrichment_method 'genome' can't be run, change the species (TaxID) or use 'compare_samples' method instead, which means you have to provide your own background ENSPs".format(self.args_dict["taxid"])
+            taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(self.args_dict["taxid"], self.pqo)
+            if is_taxid_valid:
+                self.args_dict["taxid"] = taxid
+            else:
+                self.args_dict["ERROR taxid"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) with 'Download one protein sequence per gene (FASTA)'."
                 return False, False, False
+
         is_copypaste = self.check_if_copy_and_paste()
         if is_copypaste: # copy&paste field
             self.fn = StringIO()
