@@ -15,7 +15,6 @@ import variables, query
 url_local = r"http://127.0.0.1:5911/api"
 
 
-
 def test_random_contiguous_input_yields_results():
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=100, UniProt_ID=True, contiguous=True, joined_for_web=True)
     response = requests.post(url_local, params={"output_format": "tsv", "foreground": fg_string, "enrichment_method": "genome", "taxid": 9606})
@@ -157,3 +156,13 @@ def test_web_example_4():
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 1000
     assert df.groupby("category").count().shape[0] >= 11  # at least 11 categories with significant results, last time I checked (2020 04 01)
+
+def test_taxid_species_mapping():
+    ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W', '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
+    fg = "%0d".join(ENSPs)
+    # UniProt reference proteomes uses "Saccharomyces cerevisiae S288C" with Taxid 559292 as a pan proteome instead of 4932 (TaxID on taxonomic rank of species).
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 4932, "STRING_beta": False}, data={"foreground": fg})
+    df_4932 = pd.read_csv(StringIO(result.text), sep="\t")
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 559292, "STRING_beta": False}, data={"foreground": fg})
+    df_559292 = pd.read_csv(StringIO(result.text), sep="\t")
+    pd_testing.assert_frame_equal(df_4932, df_559292)

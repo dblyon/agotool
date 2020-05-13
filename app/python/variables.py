@@ -6,7 +6,7 @@ import yaml # conda install pyyaml NOT yaml
 
 ############################
 ### settings
-PRELOAD = True # set True in production
+PRELOAD = True # set True in production. Load necessary data via PQO
 # pre-load objects DB connection necessary, set to False while testing with pytest
 # skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 # skip_downloads_completely = True # don't download anything
@@ -20,8 +20,7 @@ READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from P
 DEBUG = False # for flask and some internals for printing, set to False in production
 DEBUG_HTML = False # if True: always load example results on submit
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
-TESTING = False
-# use small testing subset of files for DB import, checking settings when intilizing everything for the first time
+TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the program
