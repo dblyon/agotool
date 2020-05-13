@@ -341,7 +341,9 @@ def format_multiple_results(args_dict, results_all_entity_types, pqo):
     elif output_format == "json":
         # return jsonify(results_all_entity_types)
         # return results_all_entity_types.to_json(orient="records")
-        return results_all_entity_types
+        # return results_all_entity_types
+        return app.response_class(response=results_all_entity_types, status=200, mimetype='application/json')
+
     elif output_format == "xml":
         # dict_2_return = {}
         # for etype, results in results_all_entity_types.items():
