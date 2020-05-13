@@ -1,4 +1,4 @@
-import sys, re, os, subprocess, pickle
+import sys, re, os, subprocess, pickle, json
 from scipy import sparse
 import gzip
 import pandas as pd
@@ -3971,6 +3971,39 @@ def add_2_DF_file_dimensions_log():
     df = pd.concat([df_old, df])
 
     df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)
+
+def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_TaxidProteome_dict_json):
+    """
+    Taxid_2_Proteins_table_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
+    TaxidSpecies_2_TaxidProteome_dict_p = variables.TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_TaxidProteome_dict"]
+    TaxidSpecies_2_TaxidProteome_dict_json = TaxidSpecies_2_TaxidProteome_dict_p.replace(".p", ".json.txt")
+    create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_TaxidProteome_dict_json)
+    """
+    ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    taxid_proteome_list = []  # exist as UniProt Ref Prots
+    with open(Taxid_2_Proteins_table_UPS_FIN, "r") as fh:
+        for line in fh:
+            taxid_proteome_list.append(int(line.split()[0].strip()))
+    taxid_proteome_list = sorted(taxid_proteome_list)
+
+    speciesTaxid_2_proteomeTaxid_dict = {}
+    for taxid in taxid_proteome_list:
+        rank = ncbi.get_rank(taxid)
+        if rank == "species":  # nothing needs to be done
+            continue
+        else:
+            taxid_mapped = ncbi.get_genus_or_higher(taxid, "species")
+            rank = ncbi.get_rank(taxid_mapped)
+            if rank != "species":
+                print(taxid, taxid_mapped, rank)
+            else:
+                speciesTaxid_2_proteomeTaxid_dict[taxid_mapped] = taxid
+
+    pickle.dump(speciesTaxid_2_proteomeTaxid_dict, open(TaxidSpecies_2_TaxidProteome_dict_p, "wb"))
+
+    with open(TaxidSpecies_2_TaxidProteome_dict_json, "w") as fh_json:
+        fh_json.write(json.dumps(speciesTaxid_2_proteomeTaxid_dict))
+
 
 
 ##### Taxonomy mapping explanation, for UniProt version

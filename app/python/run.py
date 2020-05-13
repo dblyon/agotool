@@ -137,10 +137,11 @@ def format_results(df, output_format, args_dict):
     elif output_format == "tsv-no-header" or output_format == "tsv_no_header":
         return df.to_csv(sep="\t", header=False, index=False)
     elif output_format == "json":
-        etype_2_resultsjson_dict = {}
-        for etype, group in df.groupby("etype"):
-            etype_2_resultsjson_dict[etype] = group.to_json(orient='records')
-        return etype_2_resultsjson_dict
+        # etype_2_resultsjson_dict = {}
+        # for etype, group in df.groupby("etype"):
+        #     etype_2_resultsjson_dict[etype] = group.to_json(orient='records')
+        # return etype_2_resultsjson_dict
+        return df.to_json(orient="records")
     elif output_format == "xml": # xml gets formatted in runserver.py
         dict_2_return = {}
         for etype, df_group in df.groupby("etype"):

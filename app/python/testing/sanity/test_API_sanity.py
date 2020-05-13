@@ -1,4 +1,4 @@
-import sys, os
+import sys, os #, argparse
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import pandas as pd
 
@@ -12,6 +12,23 @@ import conftest
 
 import variables, query
 
+
+# argparse_parser = argparse.ArgumentParser()
+# argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1", nargs='?')
+# argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="5911", nargs='?')
+#
+# args = argparse_parser.parse_args()
+# def error_(parser):
+#     sys.stderr.write("The arguments passed are invalid.\nPlease check the input parameters.\n\n")
+#     parser.print_help()
+#     sys.exit(2)
+# for arg in sorted(vars(args)):
+#     if getattr(args, arg) is None:
+#         error_(argparse_parser)
+#
+#
+# url_local = r"http://{}:{}/api".format(args.IP, args.port)
+# print("url_local: {}".format(url_local))
 url_local = r"http://127.0.0.1:5911/api"
 
 
@@ -157,12 +174,73 @@ def test_web_example_4():
     assert df.shape[0] > 1000
     assert df.groupby("category").count().shape[0] >= 11  # at least 11 categories with significant results, last time I checked (2020 04 01)
 
-def test_taxid_species_mapping():
+def test_taxid_species_mapping_1():
+    """
+    # 4932 Saccharomyces cerevisiae --> rank species
+    # 1337652 Saccharomyces cerevisiae 101S
+    # 559292 Saccharomyces cerevisiae S288C --> UniProt Ref prot
+    4932 is Saccharomyces cerevisiae with rank species
+    559292 is Saccharomyces cerevisiae S288C with rank 'no rank' --> used by UniProt Ref Prot
+    """
     ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W', '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
     fg = "%0d".join(ENSPs)
     # UniProt reference proteomes uses "Saccharomyces cerevisiae S288C" with Taxid 559292 as a pan proteome instead of 4932 (TaxID on taxonomic rank of species).
-    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 4932, "STRING_beta": False}, data={"foreground": fg})
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 4932}, data={"foreground": fg})
     df_4932 = pd.read_csv(StringIO(result.text), sep="\t")
-    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 559292, "STRING_beta": False}, data={"foreground": fg})
+
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 559292}, data={"foreground": fg})
     df_559292 = pd.read_csv(StringIO(result.text), sep="\t")
+
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 1337652}, data={"foreground": fg})
+    df_1337652 = pd.read_csv(StringIO(result.text), sep="\t")
+
     pd_testing.assert_frame_equal(df_4932, df_559292)
+    pd_testing.assert_frame_equal(df_4932, df_1337652)
+    pd_testing.assert_frame_equal(df_559292, df_1337652)
+
+def test_taxid_species_mapping_2():
+    """
+    4896 is Schizosaccharomyces pombe with rank species
+    284812 is Schizosaccharomyces pombe 972h- with rank 'no rank' --> used by UniProt Ref Prot
+    """
+    fg_ids = ["1A1D_SCHPO","2AAA_SCHPO","2ABA_SCHPO","2AD1_SCHPO","2AD2_SCHPO","6PGD_SCHPO","6PGL_SCHPO","AAKB_SCHPO","AAKG_SCHPO","AAP1_SCHPO"]
+    fg = "%0d".join(fg_ids)
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 284812}, data={"foreground": fg})
+    df_1 = pd.read_csv(StringIO(result.text), sep="\t")
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 4896}, data={"foreground": fg})
+    df_2 = pd.read_csv(StringIO(result.text), sep="\t")
+    pd_testing.assert_frame_equal(df_1, df_2)
+
+def test_taxid_species_mapping_3():
+    """
+    # 511145 Escherichia coli str. K-12 substr. MG1655
+    # 562 E. coli --> rank species
+    # 83334 Escherichia coli O157:H7 --> UniProt Ref Prot
+    {'taxid': '511145', 'output_format': 'json', 'foreground': '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585', 'background': '', 'enrichment_method': 'genome', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    """
+    fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
+    bg = ""
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 511145, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg, "background": bg})
+    df_1 = pd.read_csv(StringIO(result.text), sep="\t")
+    assert df_1.shape[0] > 0
+
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg, "background": bg})
+    df_2 = pd.read_csv(StringIO(result.text), sep="\t")
+    pd_testing.assert_frame_equal(df_1, df_2)
+
+# # fix input error --> userinput.py
+# EGFR_HUMAN
+# SH3K1_HUMAN
+# AKP13_HUMAN
+# VOPP1_HUMAN
+# CLC14_HUMAN
+
+
+# check if "Filter foreground count one button" works
+# doesn't work on agotool.org but does work in local version
+
+# discrepancy of local vs server version for example 1 with default values
+
+# add sanity test:
+#  - compare funcEnum from flatfile with funcEnum returned via API.
+#      Randomly select Protein ID. query associated functions from file, compare with API

@@ -451,10 +451,14 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("initializing PQO")
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
+        if variables.VERBOSE:
+            print("getting NCBI_taxonomy and TaxidSpecies_2_TaxidProteome_dict")
         try:
             self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=False)
         except FileNotFoundError:
             self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+        with open(variables.tables_dict["TaxidSpecies_2_TaxidProteome_dict"], "rb") as fh_TaxidSpecies_2_TaxidProteome_dict:
+            self.TaxidSpecies_2_TaxidProteome_dict = pickle.load(fh_TaxidSpecies_2_TaxidProteome_dict)
 
         if variables.VERBOSE:
             print("getting CSC_ENSPencoding_2_FuncEnum and ENSP_2_rowIndex_dict")
@@ -1460,13 +1464,18 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo):
         return taxid, True # taxid is part of UniProt Ref Prots
     else:
         try:
-            taxid_mapped = variables.taxid_species_2_uniprotRefProtTaxid_dict[taxid]
-            return taxid_mapped, True # taxid can easily be mapped because it's known
+            taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid]
+            return taxid_mapped, True # taxid can easily be mapped because it's known (e.g.
         except KeyError:
-            taxid_corrected = pqo.ncbi.get_genus_or_higher(taxid, "species") # provided taxid is below species rank
+            taxid_corrected = int(pqo.ncbi.get_genus_or_higher(taxid, "species")) # provided taxid is below species rank
             if taxid_corrected in pqo.taxid_2_proteome_count:
                 return taxid_corrected, True
-    return taxid, False
+            else:
+                try:
+                    taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_corrected]
+                    return taxid_mapped, True  # taxid can easily be mapped because it's known
+                except KeyError:
+                    return taxid, False
 
 if __name__ == "__main__":
     pass

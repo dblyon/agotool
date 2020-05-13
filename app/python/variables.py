@@ -267,8 +267,9 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "category_arr": os.path.join(TABLES_DIR, "category_arr_{}.p".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix)),
     "Taxid_2_FuncEnum_2_Score_2_Rank_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_Score_2_Rank_dict_{}.p".format(appendix)),
-    "Taxid_2_FuncEnum_2_medianScore_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_medianScore_dict_{}.p".format(appendix)),
-    "Taxid_2_FuncEnum_2_numBGvals_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_numBGvals_dict_{}.p".format(appendix)),
+    # deprecated? "Taxid_2_FuncEnum_2_medianScore_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_medianScore_dict_{}.p".format(appendix)),
+    # deprecated? "Taxid_2_FuncEnum_2_numBGvals_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_numBGvals_dict_{}.p".format(appendix)),
+    "TaxidSpecies_2_TaxidProteome_dict": os.path.join(TABLES_DIR, "TaxidSpecies_2_TaxidProteome_dict_{}.p".format(appendix)),
     "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_{}.txt".format(appendix))
                }
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
@@ -295,8 +296,9 @@ except:
 
 jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
+# 511145.b1260
 jensenlab_supported_taxids_species_translations_dict = {4932: 559292, 4896: 284812} # Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome
-taxid_species_2_uniprotRefProtTaxid_dict = {4932: 559292, 4896: 284812}
+# taxid_species_2_uniprotRefProtTaxid_dict = {4932: 559292, 4896: 284812} # deprecated
 dtype_TM_score = "uint32" # dtype Jensenlab TextMining score
 dtype_functionEnumeration = "uint32"
 # human, mouse, rat, arabidopsis, yeast, fly, worm, yeast # ??? anything important missing? preload all of swissprot?

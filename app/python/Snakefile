@@ -138,7 +138,8 @@ Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
 Taxid_2_Proteins_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
 Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
-
+TaxidSpecies_2_TaxidProteome_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_TaxidProteome_dict"]
+TaxidSpecies_2_TaxidProteome_dict_json = TaxidSpecies_2_TaxidProteome_dict_p.replace(".p", ".json.txt")
 # Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
 
 Lineage_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Lineage_table"]
@@ -769,7 +770,14 @@ rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since perform
         cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
         #, output.Taxid_2_FuncEnum_2_Score_2_Rank_dict, output.Taxid_2_FuncEnum_2_medianScore_dict, output.Taxid_2_FuncEnum_2_numBGvals_dict)
 
-
+rule r_bb:
+    input:
+        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
+    output:
+        TaxidSpecies_2_TaxidProteome_dict_p = TaxidSpecies_2_TaxidProteome_dict_p,
+        TaxidSpecies_2_TaxidProteome_dict_json = TaxidSpecies_2_TaxidProteome_dict_json
+    run:
+        cst.create_speciesTaxid_2_proteomeTaxid_dict(input.Taxid_2_Proteins_table_UPS_FIN, output.TaxidSpecies_2_TaxidProteome_dict_p, output.TaxidSpecies_2_TaxidProteome_dict_json)
 
 # background proteomes
 # E. coli is 562 but UniProt ref prot is 83333

@@ -93,12 +93,19 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
             try:
                 funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
             except KeyError: # no text mining information for this taxon, try to translate to species level and try again. e.g. user provides 559292 (Saccharomyces cerevisiae S288C, UniProt Reference Proteome), but Jensenlab Textmining supports 4932 (Saccharomyces cerevisiae, rank species)
-                taxid_corrected = ncbi.get_genus_or_higher(taxid, "species") # expects an integer
-                try:
-                    funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid_corrected]
-                except KeyError:
-                    funcEnum_2_scores_dict_bg = {}
-            KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
+#                 taxid_corrected = ncbi.get_genus_or_higher(taxid, "species") # expects an integer
+#                 try:
+#                     funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid_corrected]
+#                 except KeyError:
+#                     funcEnum_2_scores_dict_bg = {}
+                funcEnum_2_scores_dict_bg = {} # this is already done in runserver.py and userinput.py
+#             print(foreground_n, type(foreground_n), background_n, type(background_n), o_or_u_or_both_encoding, type(o_or_u_or_both_encoding))
+#             if debug:
+#                 return funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one
+            if fg_scores_matrix_data.size > 0:
+                KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
+#             else:
+#                 print("fg_scores_matrix_data.size == 0", " KS can't be computed")
         elif KS_method == "scipy":
             funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
             funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
@@ -1125,7 +1132,6 @@ cdef int KolmogorovSmirnov_sparse_cy(FunctionEnum_2_Scores_dict, unsigned int fo
         unsigned int median_index, num_half_bg, num_half_fg, num_zeros_2_fill_bg, num_zeros_2_fill_fg, fg_size_plus_bg_size, funcEnum, bg_index, len_fg_scores_matrix_indptr, index_col_start_fg, index_col_stop_fg, index_col_start_bg, index_col_stop_bg, num_fg_vals, num_bg_vals, fg_val, bg_val, fg_rank, bg_rank
         double fg_size_times_bg_size_times_mintwo, pvalue, D_max_abs, D_current_abs, D_current_absfg_cumulative, bg_cumulative, median_fg, median_bg
         unsigned int[::1] fg_values, bg_values
-
     fg_size_plus_bg_size = foreground_n + background_n
     fg_size_times_bg_size_times_mintwo = -2.0 * foreground_n * background_n
     len_fg_scores_matrix_indptr = fg_scores_matrix_indptr.shape[0]

@@ -134,16 +134,11 @@ def log_activity(string2log):
 # pre-load objects
 ################################################################################
 if PRELOAD:
-    # if variables.VERSION_ == "aGOtool":
-    #     pqo = query.PersistentQueryObject()
-    if variables.VERSION_ == "STRING":
-        pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
-    elif variables.VERSION_ == "UniProt":
+    if variables.VERSION_ == "STRING" or variables.VERSION_ == "UniProt":
         pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
     else:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
-    #filter_ = cluster_filter.Filter(pqo.go_dag, pqo.upk_dag)
 else:
     pqo = None # just for mocking
 
@@ -861,6 +856,6 @@ if __name__ == "__main__":
         print("running aGOtool on IP {} port {}".format(IP, port))
         app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
     else:
-        app.run(processes=1, debug=variables.DEBUG)
+        app.run(processes=1, port=5911, debug=variables.DEBUG)
 
 # fix bug for abundance_correction and
