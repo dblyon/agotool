@@ -451,6 +451,11 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("initializing PQO")
             print("getting taxid_2_proteome_count")
         self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict(read_from_flat_files=read_from_flat_files)
+
+        if variables.VERBOSE:
+            print("getting taxid_2_proteins_dict")
+        self.taxid_2_proteins_dict = get_taxid_2_proteins_dict()
+
         if variables.VERBOSE:
             print("getting NCBI_taxonomy and TaxidSpecies_2_TaxidProteome_dict")
         try:
@@ -459,6 +464,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             self.ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
         with open(variables.tables_dict["TaxidSpecies_2_TaxidProteome_dict"], "rb") as fh_TaxidSpecies_2_TaxidProteome_dict:
             self.TaxidSpecies_2_TaxidProteome_dict = pickle.load(fh_TaxidSpecies_2_TaxidProteome_dict)
+
+        with open(variables.tables_dict["TaxidSpecies_2_multipleRefProtTaxid_dict"], "rb") as fh_TaxidSpecies_2_multipleRefProtTaxid_dict:
+            self.TaxidSpecies_2_multipleRefProtTaxid_dict = pickle.load(fh_TaxidSpecies_2_multipleRefProtTaxid_dict)
 
         if variables.VERBOSE:
             print("getting CSC_ENSPencoding_2_FuncEnum and ENSP_2_rowIndex_dict")
@@ -525,9 +533,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting preloaded objects per analysis")
         self.reset_preloaded_objects_per_analysis()
 
-        if variables.VERBOSE:
-            print("getting taxid_2_proteins_dict")
-        self.taxid_2_proteins_dict = get_taxid_2_proteins_dict()
 
         # cond_KS_etypes = self.etype_cond_dict["cond_25"] | self.etype_cond_dict["cond_26"] | self.etype_cond_dict["cond_20"]
         # self.KS_funcEnums_arr = self.indices_arr[cond_KS_etypes]
@@ -1452,7 +1457,7 @@ def get_random_protein(ENSP_or_UniProtID="UniProtID", taxid="9606", number_of_pr
     result = get_results_of_statement("SELECT * FROM secondary_2_primary_id ORDER BY random() LIMIT 10;")
     return result
 
-def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo):
+def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dict={}):
     """
     figure out if given taxid is part of UniProt Reference Proteomes
     if not try to map it via static dictionary (from variables.py) or via NCBI (from lower than species to species rank)
@@ -1465,17 +1470,32 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo):
     else:
         try:
             taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid]
-            return taxid_mapped, True # taxid can easily be mapped because it's known (e.g.
+            return taxid_mapped, True # taxid can easily be mapped un-ambiguously
         except KeyError:
-            taxid_corrected = int(pqo.ncbi.get_genus_or_higher(taxid, "species")) # provided taxid is below species rank
-            if taxid_corrected in pqo.taxid_2_proteome_count:
-                return taxid_corrected, True
+            if taxid in pqo.TaxidSpecies_2_multipleRefProtTaxid_dict: # ambiguous matches, report Error
+                args_dict["ERROR TaxID"] = "The Taxid {} you've provided is not a valid UniProt Reference Proteome TaxID. We found multiple potential valid Taxids {}".format(taxid, pqo.TaxidSpecies_2_multipleRefProtTaxid_dict[taxid])
+                # print(args_dict)
+                return taxid, False
             else:
-                try:
-                    taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_corrected]
-                    return taxid_mapped, True  # taxid can easily be mapped because it's known
-                except KeyError:
-                    return taxid, False
+                # try to find a parent that is in of UniProt Ref Prots
+                for taxid_parent in pqo.ncbi.iter_direct_parent(taxid): # relevant for e.g. Taxid 511145; Escherichia coli str. K-12 substr. MG1655 --> should match to 83333 not 83334!
+                    taxid_parent = int(taxid_parent)
+                    if taxid_parent in pqo.taxid_2_proteome_count:
+                        return taxid_parent, True  # taxid is part of UniProt Ref Prots
+                    elif pqo.TaxidSpecies_2_TaxidProteome_dict.get(taxid_parent, False):
+                        taxid = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_parent]
+                        return taxid, True
+    args_dict["ERROR taxid"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes)".format(taxid)
+    return taxid, False
+                # taxid_corrected = int(pqo.ncbi.get_genus_or_higher(taxid, "species")) # provided taxid is below species rank
+                # if taxid_corrected in pqo.taxid_2_proteome_count:
+                #     return taxid_corrected, True
+                # else:
+                #     try:
+                #         taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_corrected]
+                #         return taxid_mapped, True  # taxid can easily be mapped because it's known
+                #     except KeyError:
+                #         return taxid, False
 
 if __name__ == "__main__":
     pass

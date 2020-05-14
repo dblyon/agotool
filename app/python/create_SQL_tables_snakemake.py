@@ -1110,6 +1110,7 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
     # - for line in Protein_2_FunctionEnum_table_UPS_FIN
     #     add counts to array until taxid_new != taxid_previous
     # only use Taxids that exist in Taxid_2_Proteins_table_UPS_FIN, since these are UniProt Reference Proteome proteins (no ref prot for other taxids)
+    BUT try to map taxid to UniProtRefProtTaxid
     output format changed from
     1000565 3919    {{3936,9},{3945,1},{3949,7}, ... }
     to
@@ -3972,14 +3973,14 @@ def add_2_DF_file_dimensions_log():
 
     df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)
 
-def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_TaxidProteome_dict_json):
+def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_multipleRefProtTaxid_dict_p, update_NCBI=True):
     """
     Taxid_2_Proteins_table_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
     TaxidSpecies_2_TaxidProteome_dict_p = variables.TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_TaxidProteome_dict"]
-    TaxidSpecies_2_TaxidProteome_dict_json = TaxidSpecies_2_TaxidProteome_dict_p.replace(".p", ".json.txt")
+    TaxidSpecies_2_multipleRefProtTaxid_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_multipleRefProtTaxid_dict"]
     create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_TaxidProteome_dict_json)
     """
-    ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=True)
+    ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=update_NCBI)
     taxid_proteome_list = []  # exist as UniProt Ref Prots
     with open(Taxid_2_Proteins_table_UPS_FIN, "r") as fh:
         for line in fh:
@@ -3987,6 +3988,7 @@ def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, Tax
     taxid_proteome_list = sorted(taxid_proteome_list)
 
     speciesTaxid_2_proteomeTaxid_dict = {}
+    speciesTaxid_2_multipleRefProtTaxid_dict = defaultdict(lambda: set())
     for taxid in taxid_proteome_list:
         rank = ncbi.get_rank(taxid)
         if rank == "species":  # nothing needs to be done
@@ -3997,12 +3999,20 @@ def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, Tax
             if rank != "species":
                 print(taxid, taxid_mapped, rank)
             else:
-                speciesTaxid_2_proteomeTaxid_dict[taxid_mapped] = taxid
+                if not taxid_mapped in speciesTaxid_2_proteomeTaxid_dict:
+                    speciesTaxid_2_proteomeTaxid_dict[taxid_mapped] = taxid
+                else:
+                    # print("speciesTaxid_2_proteomeTaxid_dict with double assignment {} and {} both map to {}".format(speciesTaxid_2_proteomeTaxid_dict[taxid_mapped], taxid_mapped, taxid))
+                    speciesTaxid_2_multipleRefProtTaxid_dict[taxid_mapped].update((taxid, ))
+                    speciesTaxid_2_multipleRefProtTaxid_dict[taxid_mapped].update((speciesTaxid_2_proteomeTaxid_dict[taxid_mapped], ))
+                    speciesTaxid_2_proteomeTaxid_dict.pop(taxid_mapped, None)
 
     pickle.dump(speciesTaxid_2_proteomeTaxid_dict, open(TaxidSpecies_2_TaxidProteome_dict_p, "wb"))
-
-    with open(TaxidSpecies_2_TaxidProteome_dict_json, "w") as fh_json:
-        fh_json.write(json.dumps(speciesTaxid_2_proteomeTaxid_dict))
+    pickle.dump(dict(speciesTaxid_2_multipleRefProtTaxid_dict), open(TaxidSpecies_2_multipleRefProtTaxid_dict_p, "wb"))
+    # with open(TaxidSpecies_2_TaxidProteome_dict_json, "w") as fh_json:
+    #     fh_json.write(json.dumps(speciesTaxid_2_proteomeTaxid_dict))
+    #
+    return speciesTaxid_2_proteomeTaxid_dict, speciesTaxid_2_multipleRefProtTaxid_dict
 
 
 

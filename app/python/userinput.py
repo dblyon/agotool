@@ -62,11 +62,10 @@ class Userinput:
             print(self.enrichment_method, "problem since this is in not in in {}".format(variables.enrichment_methods))
             return False, False, False
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
-            taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(self.args_dict["taxid"], self.pqo)
+            taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(self.args_dict["taxid"], self.pqo, self.args_dict)
             if is_taxid_valid:
                 self.args_dict["taxid"] = taxid
-            else:
-                self.args_dict["ERROR taxid"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) with 'Download one protein sequence per gene (FASTA)'."
+            else: # error messages added here --> check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise
                 return False, False, False
 
         is_copypaste = self.check_if_copy_and_paste()

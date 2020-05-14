@@ -200,6 +200,14 @@ class NCBI_taxonomy(object):
                 if taxid == 1 or taxid == -1:
                     return taxid
 
+    def iter_direct_parent(self, taxid):
+        while True:
+            taxid = self.get_parent_taxid(taxid)
+            if taxid == 1 or taxid == -1:
+                break
+            else:
+                yield taxid
+
     def get_allparents(self, taxid):
         parents_list = []
         while True:

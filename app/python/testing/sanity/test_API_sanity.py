@@ -224,11 +224,17 @@ def test_taxid_species_mapping_3():
     df_1 = pd.read_csv(StringIO(result.text), sep="\t")
     assert df_1.shape[0] > 0
 
+    # check that PMID "background_count" is larger than 0
+    ser = df_1.loc[df_1["etype"] == -56, "background_count"]
+    assert ser.shape[0] == ser[ser > 0].shape[0]
+
     result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg, "background": bg})
     df_2 = pd.read_csv(StringIO(result.text), sep="\t")
     pd_testing.assert_frame_equal(df_1, df_2)
 
-# # fix input error --> userinput.py
+
+
+### fix input error --> userinput.py
 # EGFR_HUMAN
 # SH3K1_HUMAN
 # AKP13_HUMAN
@@ -236,10 +242,12 @@ def test_taxid_species_mapping_3():
 # CLC14_HUMAN
 
 
-# check if "Filter foreground count one button" works
+### seriously no PMIDs for fg_ids = ["1A1D_SCHPO","2AAA_SCHPO","2ABA_SCHPO","2AD1_SCHPO","2AD2_SCHPO","6PGD_SCHPO","6PGL_SCHPO","AAKB_SCHPO","AAKG_SCHPO","AAP1_SCHPO"]?
+
+### check if "Filter foreground count one button" works
 # doesn't work on agotool.org but does work in local version
 
-# discrepancy of local vs server version for example 1 with default values
+### discrepancy of local vs server version for example 1 with default values
 
 # add sanity test:
 #  - compare funcEnum from flatfile with funcEnum returned via API.

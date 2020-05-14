@@ -1073,9 +1073,11 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     fg_scores_matrix, list_of_rowIndices_fg = slice_ScoresMatrix_for_given_ENSP(protein_ans_fg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
     fg_scores_matrix_data = fg_scores_matrix.data
     fg_scores_matrix_indptr = fg_scores_matrix.indptr
-    set_fg_counts(fg_scores_matrix_data, fg_scores_matrix_indptr, funcEnum_count_foreground, filter_foreground_count_one)
-    # add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict)
-    add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
+
+    if fg_scores_matrix_data.size > 0:
+        set_fg_counts(fg_scores_matrix_data, fg_scores_matrix_indptr, funcEnum_count_foreground, filter_foreground_count_one)
+        # add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict)
+        add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
 
     ### calc ratio in foreground, count foreground / len(protein_ans)
     ratio_in_foreground = funcEnum_count_foreground / foreground_n

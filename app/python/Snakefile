@@ -139,7 +139,7 @@ UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_backgrou
 Taxid_2_Proteins_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
 Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 TaxidSpecies_2_TaxidProteome_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_TaxidProteome_dict"]
-TaxidSpecies_2_TaxidProteome_dict_json = TaxidSpecies_2_TaxidProteome_dict_p.replace(".p", ".json.txt")
+TaxidSpecies_2_multipleRefProtTaxid_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_multipleRefProtTaxid_dict"]
 # Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
 
 Lineage_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Lineage_table"]
@@ -775,9 +775,9 @@ rule r_bb:
         Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
     output:
         TaxidSpecies_2_TaxidProteome_dict_p = TaxidSpecies_2_TaxidProteome_dict_p,
-        TaxidSpecies_2_TaxidProteome_dict_json = TaxidSpecies_2_TaxidProteome_dict_json
+        TaxidSpecies_2_multipleRefProtTaxid_dict_p = TaxidSpecies_2_multipleRefProtTaxid_dict_p
     run:
-        cst.create_speciesTaxid_2_proteomeTaxid_dict(input.Taxid_2_Proteins_table_UPS_FIN, output.TaxidSpecies_2_TaxidProteome_dict_p, output.TaxidSpecies_2_TaxidProteome_dict_json)
+        cst.create_speciesTaxid_2_proteomeTaxid_dict(input.Taxid_2_Proteins_table_UPS_FIN, output.TaxidSpecies_2_TaxidProteome_dict_p, output.TaxidSpecies_2_multipleRefProtTaxid_dict_p)
 
 # background proteomes
 # E. coli is 562 but UniProt ref prot is 83333
