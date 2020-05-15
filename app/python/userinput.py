@@ -136,7 +136,7 @@ class Userinput:
                 return self.foreground, self.background, False
         else:
             pass
-        
+
         ### check if background is empty
         if self.enrichment_method not in {"characterize_foreground", "genome"}:
             if self.background.shape[0] == 0:

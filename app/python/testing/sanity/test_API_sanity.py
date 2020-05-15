@@ -250,13 +250,11 @@ def test_compare_samples_works_without_error():
     {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
 {'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
     """
-    params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '1.05', 'caller_identity': '11_0', 'STRING_beta': True}
     data = {'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
-    result = requests.post(url_local, params, data)
-    results_json = json.loads(result.text)
-    keys_lower = [ele.lower() for ele in results_json.keys()]
-    for key in keys_lower:
-        assert "error" not in key
+    result = requests.post(url_local, params=params, data=data)
+    result_json = json.loads(result.text)
+    assert len(result_json) > 10
 
 
 ### fix input error --> userinput.py
