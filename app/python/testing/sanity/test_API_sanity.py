@@ -1,7 +1,6 @@
-import sys, os #, argparse
+import sys, os, json #, argparse
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import pandas as pd
-
 from pandas import testing as pd_testing
 import pytest, random
 import numpy as np
@@ -216,6 +215,12 @@ def test_taxid_species_mapping_3():
     # 511145 Escherichia coli str. K-12 substr. MG1655
     # 562 E. coli --> rank species
     # 83334 Escherichia coli O157:H7 --> UniProt Ref Prot
+
+    # https://www.uniprot.org/proteomes/?query=Escherichia+coli&sort=score
+    # 562 E. coli --> rank species
+    # 511145 Escherichia coli str. K-12 substr. MG1655 --> should match to 83333 not 83334!
+    # 83333 Escherichia coli K-12 --> UniProt Ref Prot (with 4391 proteins)
+    # 83334 Escherichia coli O157:H7 --> UniProt Ref Prot (with 5062 proteins)
     {'taxid': '511145', 'output_format': 'json', 'foreground': '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585', 'background': '', 'enrichment_method': 'genome', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
     """
     fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
@@ -228,10 +233,30 @@ def test_taxid_species_mapping_3():
     ser = df_1.loc[df_1["etype"] == -56, "background_count"]
     assert ser.shape[0] == ser[ser > 0].shape[0]
 
-    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg, "background": bg})
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 83333, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg, "background": bg})
     df_2 = pd.read_csv(StringIO(result.text), sep="\t")
     pd_testing.assert_frame_equal(df_1, df_2)
 
+def test_wrong_Taxid():
+    fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
+    results_json = json.loads(result.text)
+    keys_lower = [ele.lower() for ele in results_json.keys()]
+    assert "error taxid" in keys_lower
+
+def test_compare_samples_works_without_error():
+    """
+    Damian problematic call
+    {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+{'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
+    """
+    params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    data = {'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
+    result = requests.post(url_local, params, data)
+    results_json = json.loads(result.text)
+    keys_lower = [ele.lower() for ele in results_json.keys()]
+    for key in keys_lower:
+        assert "error" not in key
 
 
 ### fix input error --> userinput.py

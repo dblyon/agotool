@@ -26,7 +26,11 @@
     <h2>Parameters and ERROR MESSAGES</h2>
     <h4>The parameters include default parameters. Please have a look at the error messages, which hopefully indicate what needs to be changed to successfully run the analysis.</h4>
     {% for key, value in args_dict.items() %}
-        <li>{{ key }}: {{ value }}</li>
+        {% if "ERROR" in key or "error" in key %}
+            <li class="errors">{{ key }}: {{ value }}</li>
+        {% else %}
+            <li>{{ key }}: {{ value }}</li>
+        {% endif %}
     {% endfor %}
 
 <br><br><br>

@@ -1473,7 +1473,7 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dic
             return taxid_mapped, True # taxid can easily be mapped un-ambiguously
         except KeyError:
             if taxid in pqo.TaxidSpecies_2_multipleRefProtTaxid_dict: # ambiguous matches, report Error
-                args_dict["ERROR TaxID"] = "The Taxid {} you've provided is not a valid UniProt Reference Proteome TaxID. We found multiple potential valid Taxids {}".format(taxid, pqo.TaxidSpecies_2_multipleRefProtTaxid_dict[taxid])
+                args_dict["ERROR TaxID"] = "The Taxid '{}' you've provided is not a valid UniProt Reference Proteome TaxID (https://www.uniprot.org/proteomes). We found multiple potential valid Taxids {}. Please select one of these or another valid UniProt Reference Proteome Taxid that is suitable for your data.".format(taxid, pqo.TaxidSpecies_2_multipleRefProtTaxid_dict[taxid])
                 # print(args_dict)
                 return taxid, False
             else:
@@ -1485,7 +1485,7 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dic
                     elif pqo.TaxidSpecies_2_TaxidProteome_dict.get(taxid_parent, False):
                         taxid = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_parent]
                         return taxid, True
-    args_dict["ERROR taxid"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes)".format(taxid)
+    args_dict["ERROR TaxID"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) that is suitable for your data.".format(taxid)
     return taxid, False
                 # taxid_corrected = int(pqo.ncbi.get_genus_or_higher(taxid, "species")) # provided taxid is below species rank
                 # if taxid_corrected in pqo.taxid_2_proteome_count:

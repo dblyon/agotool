@@ -59,10 +59,10 @@ class Userinput:
 
     def parse_input(self):
         if self.enrichment_method not in variables.enrichment_methods:
-            print(self.enrichment_method, "problem since this is in not in in {}".format(variables.enrichment_methods))
             return False, False, False
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
             taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(self.args_dict["taxid"], self.pqo, self.args_dict)
+
             if is_taxid_valid:
                 self.args_dict["taxid"] = taxid
             else: # error messages added here --> check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise
@@ -96,6 +96,7 @@ class Userinput:
         try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
         except:
+            print("userinput 107 something wrong")
             return False, False, False
         return df_orig, decimal, check_parse
 
@@ -120,7 +121,7 @@ class Userinput:
 
         ### check if foreground empty
         if self.foreground.shape[0] == 0:
-            self.args_dict["ERROR Foreground empty"] = "Please check the Foreground you've provided. It seems we can't find anything to parse."
+            self.args_dict["ERROR foreground empty"] = "Please check the foreground you've provided. It seems we can't find anything to parse."
             return self.foreground, self.background, False
 
         if self.enrichment_method == "abundance_correction": # abundance_correction
@@ -128,14 +129,18 @@ class Userinput:
             # set default missing value for NaNs
             self.background.loc[pd.isnull(df[col_background]), col_intensity] = DEFAULT_MISSING_BIN
         elif self.enrichment_method in {"compare_samples", "compare_groups"}:
-            self.background = df.loc[pd.notnull(df[col_background]), [col_background]]
+            try:
+                self.background = df.loc[pd.notnull(df[col_background]), [col_background]]
+            except KeyError:
+                self.args_dict["ERROR background empty"] = "Please check the background you've provided. It seems we can't find anything to parse."
+                return self.foreground, self.background, False
         else:
             pass
-
+        
         ### check if background is empty
         if self.enrichment_method not in {"characterize_foreground", "genome"}:
             if self.background.shape[0] == 0:
-                self.args_dict["ERROR Background empty"] = "Please check the Background you've provided. It seems the Background is empty."
+                self.args_dict["ERROR background empty"] = "Please check the background you've provided. It seems the Background is empty."
                 return self.foreground, self.background, False
 
         ### remove splice variant appendix and drop duplicates
@@ -678,8 +683,12 @@ def clean_args_dict(args_dict):
             dict_2_return[key] = string_2_properType(val)
         else:
             dict_2_return[key] = val
-    dict_2_return["FDR_cutoff"] = zero_one_or_None_to_1(dict_2_return["FDR_cutoff"])
-    dict_2_return["p_value_cutoff"] = zero_one_or_None_to_1(dict_2_return["p_value_cutoff"])
+    dict_2_return["FDR_cutoff"], is_valid = zero_one_or_None_to_1(dict_2_return["FDR_cutoff"])
+    if not is_valid:
+        dict_2_return["ERROR FDR_cutoff"] = "We can't interpret the FDR_cutoff {} you've provided, please check your input.".format(dict_2_return["FDR_cutoff"])
+    dict_2_return["p_value_cutoff"], is_valid = zero_one_or_None_to_1(dict_2_return["p_value_cutoff"])
+    if not is_valid:
+        dict_2_return["ERROR p_value_cutoff"] = "We can't interpret the p_value_cutoff {} you've provided, please check your input.".format(dict_2_return["p_value_cutoff"])
     if args_dict["filter_PMID_top_n"] == 0:
         dict_2_return["filter_PMID_top_n"] = None
     if args_dict["go_slim_subset"] == "basic":
@@ -688,11 +697,17 @@ def clean_args_dict(args_dict):
 
 def zero_one_or_None_to_1(FDR_cutoff):
     if FDR_cutoff is None:
-        return 1
-    elif FDR_cutoff == 0 or FDR_cutoff >= 1:
-        return 1
+        return 1, True
     else:
-        return FDR_cutoff
+        if isinstance(FDR_cutoff, str):
+            try:
+                FDR_cutoff = float(FDR_cutoff)
+            except:
+                pass
+    if FDR_cutoff == 0 or FDR_cutoff >= 1:
+        return 1, True
+    else:
+        return FDR_cutoff, True
 
 # def translate_NoneStr_2_None(args_dict):
 #     for key, val in args_dict.items():
@@ -768,10 +783,6 @@ if __name__ == "__main__":
     # foreground_almost_empty = pd.Series(name="foreground", data={0: np.nan, 1: "Q9UHI6", 2: np.nan})
     # background_no_intensity = pd.DataFrame({'background': {0: 'P13747', 1: 'Q6VB85', 2: 'Q8N8S7', 3: 'Q8WXE0', 4: 'Q9UHI6', 5: 'Q9UQ03', 6: 'Q13075', 7: 'A6NDB9', 8: 'A6NFR9', 9: 'O95359', 10: 'D6RGG6', 11: 'Q9BRQ0', 12: 'P09629', 13: 'Q9Y6G5', 14: 'Q96KG9'}, 'intensity': {0: np.nan, 1: np.nan, 2: np.nan, 3: np.nan, 4: np.nan, 5: np.nan, 6: np.nan, 7: np.nan, 8: np.nan, 9: np.nan, 10: np.nan, 11: np.nan, 12: np.nan, 13: np.nan, 14: np.nan}})
     # "compare_samples"
-    # foreground_input = ['9606.ENSP00000013070', '9606.ENSP00000222008', '9606.ENSP00000228887', '9606.ENSP00000229812', '9606.ENSP00000230461', '9606.ENSP00000238497', '9606.ENSP00000245046', '9606.ENSP00000256343', '9606.ENSP00000258390', '9606.ENSP00000261183', '9606.ENSP00000261434', '9606.ENSP00000261693', '9606.ENSP00000265849', '9606.ENSP00000270142', '9606.ENSP00000274606', '9606.ENSP00000275517', '9606.ENSP00000285420', '9606.ENSP00000291934', '9606.ENSP00000295896', '9606.ENSP00000300571', '9606.ENSP00000305494', '9606.ENSP00000306328', '9606.ENSP00000307164', '9606.ENSP00000307479', '9606.ENSP00000307706', '9606.ENSP00000307863', '9606.ENSP00000310305', '9606.ENSP00000310704', '9606.ENSP00000313881', '9606.ENSP00000318687', '9606.ENSP00000319281', '9606.ENSP00000321546', '9606.ENSP00000323302', '9606.ENSP00000328444', '9606.ENSP00000329452', '9606.ENSP00000333993', '9606.ENSP00000336800', '9606.ENSP00000338523', '9606.ENSP00000341083', '9606.ENSP00000342162',
-    #                     '9606.ENSP00000344411', '9606.ENSP00000350377', '9606.ENSP00000350869', '9606.ENSP00000351742', '9606.ENSP00000352676', '9606.ENSP00000354874', '9606.ENSP00000356694', '9606.ENSP00000357779', '9606.ENSP00000358107', '9606.ENSP00000359340', '9606.ENSP00000360824', '9606.ENSP00000361596', '9606.ENSP00000361993', '9606.ENSP00000362464', '9606.ENSP00000364412', '9606.ENSP00000364677', '9606.ENSP00000364976', '9606.ENSP00000365172', '9606.ENSP00000365407', '9606.ENSP00000366410', '9606.ENSP00000366582', '9606.ENSP00000366673', '9606.ENSP00000367219', '9606.ENSP00000367545', '9606.ENSP00000368737', '9606.ENSP00000369989', '9606.ENSP00000369996', '9606.ENSP00000370373', '9606.ENSP00000373648', '9606.ENSP00000375647', '9606.ENSP00000376010', '9606.ENSP00000378275', '9606.ENSP00000379110', '9606.ENSP00000380087', '9606.ENSP00000381089', '9606.ENSP00000381857', '9606.ENSP00000387426', '9606.ENSP00000389103', '9606.ENSP00000396163', '9606.ENSP00000404102',
-    #                     '9606.ENSP00000409000', '9606.ENSP00000409107', '9606.ENSP00000412361', '9606.ENSP00000415836', '9606.ENSP00000419712', '9606.ENSP00000421592', '9606.ENSP00000426159', '9606.ENSP00000433071', '9606.ENSP00000435010', '9606.ENSP00000439228', '9606.ENSP00000446688', '9606.ENSP00000457935', '9606.ENSP00000458130', '9606.ENSP00000461413', '9606.ENSP00000464619', '9606.ENSP00000468969', '9606.ENSP00000470239', '9606.ENSP00000471126', '9606.ENSP00000482063', '9606.ENSP00000485454']
-    ###
     # contiguous = False
     # foreground_n = 100
     # foreground_input = sorted(get_random_human_ENSP(foreground_n, joined_for_web=False, contiguous=contiguous))
@@ -799,6 +810,28 @@ if __name__ == "__main__":
     taxid = args_dict["taxid"]
     # pqo = query.PersistentQueryObject_STRING(low_memory=True)
     pqo = None
-    background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
+    # background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
     # ui = Userinput(pqo, fn=None, foreground_string=stringify_for_Userinput(foreground_input), background_string=stringify_for_Userinput(background_input), args_dict=args_dict)
-    ui = Userinput(pqo, fn_userinput, args_dict=args_dict)
+    # ui = Userinput(pqo, fn_userinput, args_dict=args_dict)
+    # import pdb
+    # pdb.set_trace()
+
+    # import requests
+    # from io import StringIO
+    # import pandas as pd
+    #
+    # # url_ = r"https://agotool.org/api"
+    # # url_ = r"http://localhost:5911/api"
+    # # fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
+    # # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome",
+    # #                                      "taxid": "511145", "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'},
+    # #                        data={'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'})
+    params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    for key, val in params.items():
+        args_dict[key] = val
+    data = {'foreground': "511145.b1261%0d511145.b1260%0d511145.b1263", 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
+    ui = Userinput(pqo, fn=None, foreground_string=data["foreground"], background_string=data["background"], args_dict=args_dict)
+    import pdb
+    pdb.set_trace()
+    # result = requests.post(url_, params, data)
+    # result.text

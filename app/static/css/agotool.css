@@ -1,4 +1,5 @@
-.errors {color:red;}
+.errors {color:red;
+    font-weight: bold;}
 
 body {background-color:#fff;}
 
