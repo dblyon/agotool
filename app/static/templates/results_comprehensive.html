@@ -22,7 +22,6 @@
               {% block nav_Parameters %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters</a></li>{% endblock %}
               {% block nav_Example %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('example') }}">Example</a></li>{% endblock %}
               {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock %}
-              {% block nav_DB_schema %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('db_schema') }}">DB_schema</a></li>{% endblock %}
               {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock %}
 
             {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link results" name="file_path" onclick="submit_form('form', 'results_comprehensive')">Results compact</a></li>{% endblock %}
