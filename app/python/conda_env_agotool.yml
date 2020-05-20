@@ -31,7 +31,8 @@ dependencies:
   - requests
   - beautifulsoup4
   - uwsgi
-#  - pyyaml
+  - yaml
+# pyyaml --> conflicts (conda install -c anaconda yaml -n agotool)
 #  - uwsgitop # can't be found --> install via pip
 
 ### Anaconda installation

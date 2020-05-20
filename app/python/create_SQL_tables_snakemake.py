@@ -732,7 +732,7 @@ def _helper_format_array(function_arr, function_2_enum_dict):
     return [int(ele) for ele in functionEnum_list]
 
 def Lineage_table_FIN(fn_in_GO_obo_Jensenlab, fn_in_GO_obo, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_out_lineage_table, fn_out_lineage_table_no_translation, fn_out_lineage_table_hr, GO_CC_textmining_additional_etype=False):
-    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_GO_obo_Jensenlab, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype)
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies("allParents", fn_in_GO_obo_Jensenlab, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype)
     # Jensenlab obo first, up-to-date GO_obo after to overwrite/update entries
     go_dag = obo_parser.GODag(obo_file=fn_in_GO_obo)
     for go_term_name in go_dag:
@@ -770,7 +770,93 @@ def Lineage_table_FIN(fn_in_GO_obo_Jensenlab, fn_in_GO_obo, fn_in_keywords, fn_i
         for key, value in lineage_dict.items():
             fh_out_hr.write(str(key) + "\t" + "{" + str(sorted(set(value)))[1:-1].replace("'", '"') + "}\n")
 
-def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype=False):
+def get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents, *args, **kwags):
+    """
+
+    """
+    if direct_or_allParents == "allParents":
+        return get_lineage_dict_for_all_entity_types_with_ontologies_allParents(*args, **kwags)
+    else:
+        return get_lineage_dict_for_all_entity_types_with_ontologies_directParents(*args, **kwags)
+
+def yield_direct_parents(terms, lineage_dict):
+    """
+    generator: to return all direct parents of given terms
+    lineage_dict = cst.get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents="direct")
+    terms = ["GO:0016572"]
+    for parents in yield_direct_parents(terms, lineage_dict):
+        print(parents)
+    :param terms: list of string
+    :param lineage_dict: child 2 direct parents dict
+    :return: list of string
+    """
+    def get_direct_parents(terms, lineage_dict):
+        parents = []
+        for term in terms:
+            try:
+                parents += lineage_dict[term]
+            except KeyError:
+                pass
+        parents = sorted(set(parents))
+        return parents
+    parents = get_direct_parents(terms, lineage_dict)
+    while parents:
+        yield parents
+        parents = get_direct_parents(parents, lineage_dict)
+    return None
+
+def get_lineage_dict_for_all_entity_types_with_ontologies_directParents(GO_obo_Jensenlab=None, go_basic_obo=None, keywords_obo=None, RCTM_hierarchy=None, DOID_obo_Jensenlab=None, BTO_obo_Jensenlab=None, GO_CC_textmining_additional_etype=True):
+    """
+    """
+    if GO_obo_Jensenlab is None:
+        GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
+    if go_basic_obo is None:
+        go_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+    if DOID_obo_Jensenlab is None:
+        DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
+    if BTO_obo_Jensenlab is None:
+        BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo")
+    if keywords_obo is None:
+        keywords_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+    if RCTM_hierarchy is None:
+        RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+
+    lineage_dict = {}
+    go_dag_Jensenlab = obo_parser.GODag(obo_file=GO_obo_Jensenlab)
+    # key=GO-term, val=set of GO-terms (parents)
+    for go_term_name in go_dag_Jensenlab:
+        GOTerm_instance = go_dag_Jensenlab[go_term_name]
+        lineage_dict[go_term_name] = GOTerm_instance.get_direct_parents()
+    if GO_CC_textmining_additional_etype:
+        for go_term_name in go_dag_Jensenlab:
+            etype = str(get_entity_type_from_GO_term(go_term_name, go_dag_Jensenlab))
+            if etype == "-22": # GO-CC need be changed since unique names needed
+                GOTerm_instance = go_dag_Jensenlab[go_term_name]
+                lineage_dict[go_term_name.replace("GO:", "GOCC:")] = {ele.replace("GO:", "GOCC:") for ele in GOTerm_instance.get_all_parents()}
+
+    go_dag_basic = obo_parser.GODag(obo_file=go_basic_obo)
+    for term_name in go_dag_basic:
+        Term_instance = go_dag_basic[term_name]
+        lineage_dict[term_name] = Term_instance.get_direct_parents()
+    upk_dag = obo_parser.GODag(obo_file=keywords_obo, upk=True)
+    for term_name in upk_dag:
+        Term_instance = upk_dag[term_name]
+        lineage_dict[term_name] = Term_instance.get_direct_parents()
+    bto_dag = obo_parser.GODag(obo_file=BTO_obo_Jensenlab)
+    for term_name in bto_dag:
+        Term_instance = bto_dag[term_name]
+        lineage_dict[term_name ] = Term_instance.get_direct_parents()
+    doid_dag = obo_parser.GODag(obo_file=DOID_obo_Jensenlab)
+    for term_name in doid_dag:
+        Term_instance = doid_dag[term_name]
+        lineage_dict[term_name ] = Term_instance.get_direct_parents()
+
+    child_2_parent_dict = get_child_2_direct_parent_dict_RCTM(RCTM_hierarchy)
+    lineage_dict.update(child_2_parent_dict)
+
+    return lineage_dict
+
+def get_lineage_dict_for_all_entity_types_with_ontologies_allParents(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_interpro_parent_2_child_tree, GO_CC_textmining_additional_etype=False):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)
     upk_dag = obo_parser.GODag(obo_file=fn_keywords_obo, upk=True)

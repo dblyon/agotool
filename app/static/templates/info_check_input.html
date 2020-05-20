@@ -1,13 +1,7 @@
 {% extends "layout.html" %}
-
 {% block head %}
-
 {% endblock head %}
-
-
 {% block content %}
-
-
 <div class="container-fluid">
     <h2>Input error</h2>
     <br>
@@ -15,9 +9,8 @@
     <li>foreground</li>
     <li>background</li>
     <li>intensity</li>
-    <p>If you have de-selected 'Abundance correction' the 'intensity' column and header can be omitted.</p>
+    <p>If you are not using 'abundance_correction' the 'intensity' column and header can be omitted.</p>
     <p>You might be seeing this page since you apply abundance correction, but the accessions in the foreground are not present in the background.</p>
-
     <br>
     Look at the <a href="{{ url_for('example') }}">example</a> data/page for comparison.
     <br>
@@ -25,14 +18,12 @@
     <br><br>
     <h2>Parameters and ERROR MESSAGES</h2>
     <h4>The parameters include default parameters. Please have a look at the error messages, which hopefully indicate what needs to be changed to successfully run the analysis.</h4>
-    {% for key, value in args_dict.items() %}
-        {% if "ERROR" in key or "error" in key %}
+    {% for key, value in errors_dict.items() %}
             <li class="errors">{{ key }}: {{ value }}</li>
-        {% else %}
-            <li>{{ key }}: {{ value }}</li>
-        {% endif %}
     {% endfor %}
-
+    {% for key, value in args_dict.items() %}
+            <li>{{ key }}: {{ value }}</li>
+    {% endfor %}
 <br><br><br>
 </div>
 {% endblock content %}

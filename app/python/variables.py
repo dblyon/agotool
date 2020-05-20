@@ -2,7 +2,7 @@ import os, multiprocessing, sys
 import numpy as np
 import socket
 hostname = socket.gethostname()
-import yaml # conda install pyyaml NOT yaml
+# import yaml # conda install pyyaml NOT yaml
 
 ############################
 ### settings

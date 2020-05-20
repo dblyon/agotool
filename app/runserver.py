@@ -55,6 +55,9 @@ if ARGPARSE:
 ###############################################################################
 
 # ToDo
+# check if "Filter foreground count one button" works
+# doesn't work on agotool.org but does work in local version
+
 # - add example to API with abundance correction method --> input fg_string with abundance values
 # - add check to size of downloads. e.g. documents_protein2function.tsv.gz == URL_protein_2_function_PMID
 #    --> to be >= previous size
@@ -690,7 +693,8 @@ def results():
         ui = userinput.Userinput(pqo, fn=fileobject,
             foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
-        args_dict = ui.args_dict # since args_dict was
+        args_dict = dict(ui.args_dict) # since args_dict was copied
+        # ui.args_dict = args_dict
         if variables.VERBOSE:
             print("-" * 80)
             for key, val in sorted(args_dict.items()):
@@ -701,7 +705,7 @@ def results():
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\no_or_u_or_both: {}\np_value_cutoff: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.o_or_u_or_both.data, form.p_value_cutoff.data, form.FDR_cutoff.data, form.enrichment_method.data) # \nnum_bins: {} # form.num_bins.data form.fold_enrichment_for2background.data, \nfold_enrichment_foreground_2_background: {}
+            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\no_or_u_or_both: {}\np_value_cutoff: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.o_or_u_or_both.data, form.p_value_cutoff.data, form.FDR_cutoff.data, form.enrichment_method.data)
             if not app.debug:
                 log_activity(string2log)
             ### DEBUG start
@@ -709,17 +713,28 @@ def results():
             #     df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
             #     df_all_etypes = df_all_etypes.groupby("etype").head(20)
             # else:
-            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)  # ToDo uncomment #!!! DEBUG
+            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)
             ### DEBUG stop
         else:
-            return render_template('info_check_input.html', args_dict=args_dict)
+            errors_dict, args_dict_minus_errors = helper_split_errors_from_dict(args_dict)
+            return render_template('info_check_input.html', args_dict=args_dict_minus_errors, errors_dict=errors_dict)
         if type(df_all_etypes) == bool:
-            return render_template('info_check_input.html', args_dict=args_dict)
+            errors_dict, args_dict_minus_errors = helper_split_errors_from_dict(args_dict)
+            return render_template('info_check_input.html', args_dict=args_dict_minus_errors, errors_dict=errors_dict)
         elif len(df_all_etypes) == 0:
             return render_template('results_zero.html')
         else:
             return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
     return render_template('enrichment.html', form=form)
+
+def helper_split_errors_from_dict(args_dict):
+    errors_dict, args_dict_minus_errors = {}, {}
+    for key, val in args_dict.items():
+        if key.lower().startswith("error"):
+            errors_dict[key] = val
+        else:
+            args_dict_minus_errors[key] = val
+    return errors_dict, args_dict_minus_errors
 
 def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), compact_or_comprehensive="compact"):
     file_name = "results_orig" + session_id + ".tsv"
@@ -825,7 +840,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
 def results_comprehensive():
     file_path = request.form['file_path']
     df_all_etypes = pd.read_csv(os.path.join(SESSION_FOLDER_ABSOLUTE, file_path), sep='\t')
-    args_dict = request.form['args_dict']
+    args_dict = request.form['args_dict'] # cast to dict from defaultdict
     args_dict = literal_eval(args_dict)
     # print(args_dict, type(args_dict))
     session_id = request.form['session_id']

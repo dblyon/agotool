@@ -257,21 +257,14 @@ def test_compare_samples_works_without_error():
     assert len(result_json) > 10
 
 
-### fix input error --> userinput.py
-# EGFR_HUMAN
-# SH3K1_HUMAN
-# AKP13_HUMAN
-# VOPP1_HUMAN
-# CLC14_HUMAN
-
-
-### seriously no PMIDs for fg_ids = ["1A1D_SCHPO","2AAA_SCHPO","2ABA_SCHPO","2AD1_SCHPO","2AD2_SCHPO","6PGD_SCHPO","6PGL_SCHPO","AAKB_SCHPO","AAKG_SCHPO","AAP1_SCHPO"]?
-
-### check if "Filter foreground count one button" works
-# doesn't work on agotool.org but does work in local version
-
-### discrepancy of local vs server version for example 1 with default values
-
-# add sanity test:
-#  - compare funcEnum from flatfile with funcEnum returned via API.
-#      Randomly select Protein ID. query associated functions from file, compare with API
+@pytest.mark.parametrize("i", range(3))
+def test_compare_funEnum_consistency(i):
+    """
+    compare funcEnum from flatfile with funcEnum returned via API.
+    Randomly select Protein ID. query associated functions from file, compare with API
+    """
+    UniProtID = random.sample(conftest.UniProt_IDs_human_list, 1)[0]
+    response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "characterize_foreground", "filter_foreground_count_one": False}, data={"foreground": UniProtID})
+    df = pd.read_csv(StringIO(response.text), sep='\t')
+    for funcEnum, term in zip(df["funcEnum"], df["term"]):
+        assert conftest.funcEnum_2_funcName_dict[funcEnum] == term

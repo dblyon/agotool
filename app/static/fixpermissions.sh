@@ -1,6 +1,6 @@
 #!/bin/sh
 # this is aimed at fixing file permissions for Nginx on Aquarius
-chmod -R 744 /home/dblyon/agotool/app/static
+chmod -R 755 /home/dblyon/agotool/app/static
 
 # on Aquarius
 #~/agotool/.git/hooks$
