@@ -1,22 +1,20 @@
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get from API to python directory
-import random
-import conftest
-import pandas as pd
-import numpy as np
-# from itertools import islice
-
-import pytest
 from scipy import sparse
 import pickle
+import random
+import numpy as np
+import pandas as pd
+# from itertools import islice
+# import pytest
 
+# sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get from API to python directory
+import conftest
 import variables, query
 
 
 ### load data
-Protein_2_FunctionEnum_and_Score_table_UPS = variables.TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
-ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=Protein_2_FunctionEnum_and_Score_table_UPS)
+ENSP_2_tuple_funcEnum_score_dict = conftest.ENSP_2_tuple_funcEnum_score_dict
 ENSP_2_tuple_funcEnum_score_dict_keys_list = list(ENSP_2_tuple_funcEnum_score_dict.keys())
 
 CSC_ENSPencoding_2_FuncEnum_UPS_FIN = variables.tables_dict["CSC_ENSPencoding_2_FuncEnum"]
@@ -137,6 +135,53 @@ def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_ex_4_multiple_entri
         assert len(scores_list_sparse) == len(scores_list_ff)
         assert scores_list_sparse == scores_list_ff
 
+def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_Yeast_acetylation():
+    """
+    Protein_2_FunctionEnum_and_Score_table_UPS_FIN vs SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN
+    """
+    fn_userinput = os.path.join(variables.EXAMPLE_FOLDER, "Example_1_Yeast_acetylation_abundance_correction.txt")
+    df = pd.read_csv(fn_userinput, sep='\t')
+    fg = df.loc[df["Foreground"].notnull(), "Foreground"].tolist() # redundant UniProt accessions
+    UniProtID_2_test_list = list(query.map_secondary_2_primary_ANs(fg).values()) # no more redundancy
+    assert len(UniProtID_2_test_list) == 1159
+
+    fg_scores_matrix, list_of_rowIndices_fg = slice_ScoresMatrix_for_given_ENSP(UniProtID_2_test_list, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
+
+    funcEnum_2_scores_dict = {}
+    for UniProtID in UniProtID_2_test_list:
+        try:
+            funcEnum_arr, score_arr = ENSP_2_tuple_funcEnum_score_dict[UniProtID]
+        except KeyError:
+            continue
+        for funcEnum, score in zip(funcEnum_arr, score_arr):
+            if funcEnum not in funcEnum_2_scores_dict:
+                funcEnum_2_scores_dict[funcEnum] = [score]
+            else:
+                funcEnum_2_scores_dict[funcEnum].append(score)
+
+    m = fg_scores_matrix
+    for i in range(len(m.indptr[:-1])):  # get column values
+        index_row_start = m.indptr[i]
+        index_row_stop = m.indptr[i + 1]
+        if index_row_start == index_row_stop:
+            continue
+        funcEnum = i
+        scores_list_sparse = sorted(m.data[index_row_start:index_row_stop])
+        scores_list_ff = sorted(funcEnum_2_scores_dict[funcEnum])
+        assert len(scores_list_sparse) == len(scores_list_ff)
+        assert scores_list_sparse == scores_list_ff
+
+# def test_Protein_2_FunctionEnum_and_Score_Yeast_acetylation_KS_Cython_vs_Scipy_counting():
+#     funcName = "GOCC:0005634" # "Nucleus"
+#     fn_userinput = os.path.join(variables.EXAMPLE_FOLDER, "Example_1_Yeast_acetylation_abundance_correction.txt")
+#     df = pd.read_csv(fn_userinput, sep='\t')
+#     fg = df.loc[df["Foreground"].notnull(), "Foreground"].tolist()  # redundant UniProt accessions
+#     UniProtID_2_test_list = list(query.map_secondary_2_primary_ANs(fg).values())  # no more redundancy
+
+
+
+
+### very slow therefore commented out
 # def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_ex_debug_all_human_prots():
 #     """
 #     very lenghty test
@@ -149,8 +194,6 @@ def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_ex_4_multiple_entri
 #         funcEnum_arr, score_arr = ENSP_2_tuple_funcEnum_score_dict[UniProtID_2_test]
 #         assert list(funcEnum_arr) == funcEnum_list_from_sparse
 #         assert list(score_arr) == score_list_from_sparse
-
-
 
 def test_Taxid_2_FunctionEnum_2_Scores_flatfile_vs_pickle():
     """

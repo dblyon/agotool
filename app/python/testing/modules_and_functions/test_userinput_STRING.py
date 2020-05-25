@@ -446,8 +446,8 @@ def test_check_parse_with_copy_and_paste_1(foreground, background, enrichment_me
 foreground_empty = pd.Series(name="foreground", data={0: np.nan, 1: np.nan, 2: np.nan})
 background_empty = pd.DataFrame({"background": {0: np.nan, 1: np.nan, 2: np.nan},
                                  "intensity": {0: np.nan, 1: np.nan, 2: np.nan}})
-foreground_empty_1 = pd.Series()
-background_empty_1 = pd.DataFrame()
+foreground_empty_1 = pd.Series(dtype="float64")
+background_empty_1 = pd.DataFrame(dtype="float64")
 foreground_empty_2 = [[], []]
 background_empty_2 = [[], []]
 foreground_empty_3 = []

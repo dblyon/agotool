@@ -647,7 +647,7 @@ rule r_Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
         BTO_obo_Jensenlab = BTO_obo_Jensenlab,
         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
-        Functions_table_UPS_FIN = Functions_table_UPS_FIN # restricts output for Protein_2_FunctionEnum_and_Score_table_UPS_FIN
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN # ToDo: restrict output for Protein_2_FunctionEnum_and_Score_table_UPS_FIN
     output:
         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN,
         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation,

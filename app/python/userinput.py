@@ -224,8 +224,8 @@ class Userinput:
         except pd.errors.ParserError:
             return df_orig, decimal, check_parse
 
+        df_orig = self.change_column_names(df_orig)
         if self.enrichment_method == "abundance_correction":
-            df_orig = self.change_column_names(df_orig)
             if len({self.col_background, self.col_intensity, self.col_foreground}.intersection(set(df_orig.columns.tolist()))) == 3:
                 try:
                     np.histogram(df_orig.loc[pd.notnull(df_orig[self.col_intensity]), self.col_intensity], bins=10)
@@ -826,12 +826,27 @@ if __name__ == "__main__":
     # # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome",
     # #                                      "taxid": "511145", "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'},
     # #                        data={'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'})
-    params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
-    for key, val in params.items():
-        args_dict[key] = val
-    data = {'foreground': "511145.b1261%0d511145.b1260%0d511145.b1263", 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
-    ui = Userinput(pqo, fn=None, foreground_string=data["foreground"], background_string=data["background"], args_dict=args_dict)
-    import pdb
-    pdb.set_trace()
+    # params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    # for key, val in params.items():
+    #     args_dict[key] = val
+    # data = {'foreground': "511145.b1261%0d511145.b1260%0d511145.b1263", 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
+    # ui = Userinput(pqo, fn=None, foreground_string=data["foreground"], background_string=data["background"], args_dict=args_dict)
+    # import pdb
+    # pdb.set_trace()
     # result = requests.post(url_, params, data)
     # result.text
+
+    ###
+    params = {'taxid': 559292, 'output_format': 'tsv', 'enrichment_method': 'genome', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    for key, val in params.items():
+        args_dict[key] = val
+    fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1_Yeast_acetylation_foreground_only.txt"
+    class Y:
+        def __init__(self):
+            pass
+    pqo = Y()
+    pqo.taxid_2_proteome_count = {559292: 1234}
+    ui = Userinput(pqo, fn=fn_userinput, foreground_string=None, background_string=None, args_dict=args_dict)
+    # import pdb
+    # pdb.set_trace()
+

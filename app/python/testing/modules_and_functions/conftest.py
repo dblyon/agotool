@@ -1,6 +1,6 @@
 """Define some fixtures to use in the project."""
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get to python directory
 import random
 import pandas as pd
 # import numpy as np

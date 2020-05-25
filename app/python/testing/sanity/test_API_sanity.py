@@ -256,7 +256,6 @@ def test_compare_samples_works_without_error():
     result_json = json.loads(result.text)
     assert len(result_json) > 10
 
-
 @pytest.mark.parametrize("i", range(3))
 def test_compare_funEnum_consistency(i):
     """

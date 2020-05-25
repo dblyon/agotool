@@ -1,6 +1,6 @@
 """Define some fixtures to use in the project."""
 import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get from API to python directory
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get to python directory
 import random
 import pandas as pd
 import numpy as np
@@ -8,6 +8,10 @@ import pytest
 from itertools import islice
 
 import query, userinput, variables
+
+
+Protein_2_FunctionEnum_and_Score_table_UPS = variables.TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
+ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=Protein_2_FunctionEnum_and_Score_table_UPS)
 
 
 @pytest.fixture(scope='session')

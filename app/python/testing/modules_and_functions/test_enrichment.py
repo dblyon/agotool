@@ -1,5 +1,6 @@
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+# sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get to python directory
 
 import pytest
 import requests

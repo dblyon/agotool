@@ -5,7 +5,7 @@ import random
 from scipy import stats
 import numpy as np
 from ratio import count_terms
-# from numba import jit
+from numba import jit
 
 class AbstractCorrection(object):
 
@@ -150,36 +150,36 @@ def BenjaminiHochberg(pvals, num_total_tests, array=False):# try removing pvalue
         p_values_corrected.append(bh_value)
     return p_values_corrected
 
-# @jit(nopython=True, fastmath=True)
-# def BenjaminiHochberg_jit_v3(p_values, num_total_tests, p_values_corrected):
-#     """
-#     expects a sorted (ascending) list of uncorrected p-values
-#     and the total number of tests
-#     http://stats.stackexchange.com/questions/870/multiple-hypothesis-testing-correction-with-benjamini-hochberg-p-values-or-q-va
-#     http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1074290335
-#     :param p_values: np.array
-#     :param num_total_tests: Integer
-#     :param p_values_corrected: np.array
-#     :return: ListOfFloat
-#     """
-#     prev_bh_value = 0
-#     for i, p_value in enumerate(p_values):
-#         bh_value = p_value * num_total_tests / (i + 1)
-#         # Sometimes this correction can give values greater than 1,
-#         # so we set those values at 1
-#         bh_value = min(bh_value, 1)
-#         # To preserve monotonicity in the values, we take the
-#         # maximum of the previous value or this one, so that we
-#         # don't yield a value less than the previous.
-#         bh_value = max(bh_value, prev_bh_value)
-#         prev_bh_value = bh_value
-#         p_values_corrected[i] = bh_value
-#     return p_values_corrected
-#
-# def BH_fast_v3(df):
-#     df = df.sort_values("pvalue", ascending=True)
-#     df["FDR"] = BenjaminiHochberg_jit_v3(df["pvalue"].values, df.shape[0], np.zeros(shape=df["pvalue"].shape, dtype="float64"))
-#     return df
+@jit(nopython=True, fastmath=True)
+def BenjaminiHochberg_jit_v3(p_values, num_total_tests, p_values_corrected):
+    """
+    expects a sorted (ascending) list of uncorrected p-values
+    and the total number of tests
+    http://stats.stackexchange.com/questions/870/multiple-hypothesis-testing-correction-with-benjamini-hochberg-p-values-or-q-va
+    http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aos/1074290335
+    :param p_values: np.array
+    :param num_total_tests: Integer
+    :param p_values_corrected: np.array
+    :return: ListOfFloat
+    """
+    prev_bh_value = 0
+    for i, p_value in enumerate(p_values):
+        bh_value = p_value * num_total_tests / (i + 1)
+        # Sometimes this correction can give values greater than 1,
+        # so we set those values at 1
+        bh_value = min(bh_value, 1)
+        # To preserve monotonicity in the values, we take the
+        # maximum of the previous value or this one, so that we
+        # don't yield a value less than the previous.
+        bh_value = max(bh_value, prev_bh_value)
+        prev_bh_value = bh_value
+        p_values_corrected[i] = bh_value
+    return p_values_corrected
+
+def BH_fast_v3(df):
+    df = df.sort_values("pvalue", ascending=True)
+    df["FDR"] = BenjaminiHochberg_jit_v3(df["pvalue"].values, df.shape[0], np.zeros(shape=df["pvalue"].shape, dtype="float64"))
+    return df
 
 
 if __name__ == '__main__':

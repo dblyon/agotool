@@ -33,6 +33,7 @@ dependencies:
   - uwsgi
   - matplotlib
   - bokeh
+  - numba
 # pyyaml --> conflicts (conda install -c anaconda yaml -n agotool)
 #  - uwsgitop # can't be found --> install via pip
 

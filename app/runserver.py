@@ -44,7 +44,7 @@ if ARGPARSE:
     argparse_parser = argparse.ArgumentParser()
     argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1", nargs='?')
     argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="10110", nargs='?')
-    argparse_parser.add_argument("verbose", help="add 'verbose' as an argumeqqqqqqnt to print more information", type=str, default="False", nargs="?")
+    argparse_parser.add_argument("verbose", help="add 'verbose' as an argument to print more information", type=str, default="False", nargs="?")
     args = argparse_parser.parse_args()
     for arg in sorted(vars(args)):
         if getattr(args, arg) is None:
