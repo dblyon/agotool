@@ -64,8 +64,11 @@ def test_genome_same_as_compare_samples():
     df_genome = pd.read_csv(StringIO(response.text), sep='\t')
 
     bg_string = "%0d".join(conftest.UniProt_IDs_human_list)
-    response = requests.post(url_local, params={"output_format": "tsv", "foreground": fg_string, "enrichment_method": "compare_samples", "taxid": 9606}, data={"foreground": fg_string, "background": bg_string})
+    response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "compare_samples", "taxid": 9606},
+        data={"foreground": fg_string, "background": bg_string})
     df_compare_samples = pd.read_csv(StringIO(response.text), sep='\t')
+
+    assert df_compare_samples.shape[0] == df_genome.shape[0] # same number of rows but additional column of BG_IDs for compare_samples
 
     cond_FG_count = df_compare_samples["FG_count"] == df_genome["FG_count"]
     assert cond_FG_count.all()
