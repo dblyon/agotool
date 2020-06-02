@@ -1,6 +1,7 @@
 #!/bin/sh
 # this is aimed at fixing file permissions for Nginx on Aquarius
 chmod -R 755 /home/dblyon/agotool/app/static
+chmod 777 /home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh
 
 # on Aquarius
 #~/agotool/.git/hooks$
