@@ -1457,6 +1457,16 @@ def get_random_protein(ENSP_or_UniProtID="UniProtID", taxid="9606", number_of_pr
     result = get_results_of_statement("SELECT * FROM secondary_2_primary_id ORDER BY random() LIMIT 10;")
     return result
 
+def get_funcName_2_funcEnum_dict():
+    funcName_2_funcEnum_dict = {}
+    fn_functions_table = os.path.join(variables.TABLES_DIR, "Functions_table_UPS_FIN.txt")
+    with open(fn_functions_table, "r") as fh_in:
+        for line in fh_in:
+            funcEnum, _, funcName, *rest = line.split("\t")
+            funcName_2_funcEnum_dict[funcName] = int(funcEnum)
+    return funcName_2_funcEnum_dict
+
+
 def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dict={}):
     """
     figure out if given taxid is part of UniProt Reference Proteomes

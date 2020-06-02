@@ -63,6 +63,9 @@ if ARGPARSE:
 # ToDo
 # - check if "Filter foreground count one button" works, doesn't work on agotool.org but does work in local version
 # - DF_file_dimensions_log.txt --> check that it is part of git repo (exception in .gitignore), and that new entries get added with each auto-update
+# characterize_foreground --> cap at 100 PMIDs with checkbox
+
+# ad Snakemake: Function_2_Protein_table_UPS missing etypes for GOCC, BTO, DOID
 
 # - add example to API with abundance correction method --> input fg_string with abundance values
 # - add check to size of downloads. e.g. documents_protein2function.tsv.gz == URL_protein_2_function_PMID

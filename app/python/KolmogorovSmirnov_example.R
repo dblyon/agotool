@@ -30,3 +30,10 @@ ks.test(x, y)
 df <- data.frame(x=x, y=y)
 ggplot(df) + stat_ecdf(aes(x, size=2), geom = "step", colour="red") + 
   stat_ecdf(aes(y, size=2), geom = "step", colour="blue")
+
+
+x = c(1.1, 2.7, 2.8, 2.9, 3, 3, 3, 3.1, 3.2, 3.3, 4, 4.0, 4.0, 4.0, 4.0)
+y = c(1.1, 2.7, 2.8, 2.9, 3, 3, 3, 3.1, 3.2, 3.3, 4, 4.1, 4.1, 4.3, 4.4)
+ks.test(x, y)
+df <- data.frame(x=x, y=y)
+ggplot(df) + stat_ecdf(aes(x, size=3), geom = "step", colour="red") + stat_ecdf(aes(y, size=1), geom = "step", colour="blue")

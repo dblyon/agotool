@@ -960,6 +960,21 @@ ggplot(data=df) + stat_ecdf(aes(rank, colour=FG_BG, size=3), geom = "step")
 ggsave("/Users/dblyon/SynologyDrive/UZH/Presentations/Cake_group_meeting/ECDF_FuncEnum68613_fillzeroTrue_transformTrue_rank.pdf", last_plot())
 
 
+####################################################################################
+### 2 lines above each other, since only FG values, with 2 different line thickness, to show fill zero is necessary
+df = read.csv("/Users/dblyon/modules/cpr/agotool/app/python/ECDF_example_overlayingCurves.txt", sep="\t")
+ggplot(data=df) + stat_ecdf(aes(rank, colour="red", size=4), geom = "step") + 
+  stat_ecdf(aes(rank, colour="blue", size=2), geom = "step") + 
+  theme(legend.text=element_text(size=18))
+ggsave("/Users/dblyon/SynologyDrive/UZH/Presentations/BIG_group_meeting/ECDF_2overlayingLines.png", last_plot())
+
+df = read.csv("/Users/dblyon/modules/cpr/agotool/app/python/ECDF_FuncEnum68613_fillzeroTrue_transformTrue.txt", sep="\t")
+ggplot(data=df) + stat_ecdf(aes(rank, colour="red", size=4), geom = "step") + 
+  stat_ecdf(aes(rank, colour="blue", size=2), geom = "step") + 
+  theme(legend.text=element_text(size=18))
+ggsave("/Users/dblyon/SynologyDrive/UZH/Presentations/BIG_group_meeting/ECDF_FillZeros.png", last_plot())
+####################################################################################
+
 foreground <- c(0,1,2,3,4,5)
 background <- c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)
 result_tw <- ks.test(foreground, background)
