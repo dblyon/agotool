@@ -2,7 +2,6 @@ import os, sys
 import gzip
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
 
 from collections import defaultdict
 from collections import deque
@@ -1514,7 +1513,7 @@ def Protein_2_Function_table_STRING(fn_list, fn_in_Taxid_2_Proteins_table_STRING
         fn_out_protein_2_function_rest=fn_out_Protein_2_Function_table_STRING_rest,
         number_of_processes=number_of_processes)
 
-def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_Taxid_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):#, minimum_number_of_annotations=1):
+def reduce_Protein_2_Function_table_2_STRING_proteins(fn_in_protein_2_function_temp, fn_in_Taxid_2_Proteins_table_STRING, fn_out_protein_2_function_reduced, fn_out_protein_2_function_rest, number_of_processes=1):
     """
     - reduce Protein_2_Function_table_2_STRING to relevant ENSPs (those that are in fn_in_Taxid_2_Proteins_table_STRING)
     - and remove duplicates
@@ -1790,6 +1789,61 @@ def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
         except KeyError:
             print("{} # no internal ID found".format(ENSP))
     return list_2_return
+
+def Functions_table_PMID_cleanup(Functions_table_PMID_all, max_len_description, Functions_table_PMID):
+    """
+    make Lars download file conform to overall Functions_table style
+    hierarchy "-1" missing, year without info is "()" but should be "(....)"
+    before:
+    -56     PMID:26516301   () Mining the Breast Cancer Proteome for Predictors of Drug Sensitivity.
+    -56     PMID:20534597   (2010) Circulating microRNAs are blabla of myocardial infarction.         2010
+    after:
+    -56     PMID:26516301   (....) Mining the Breast Cancer Proteome for Predictors of Drug Sensitivity.    ....    -1
+    """
+    hierarchy = "-1\n"
+    tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
+    with open(Functions_table_PMID, "w") as fh_out:
+        for line in tools.yield_line_uncompressed_or_gz_file(Functions_table_PMID_all):
+            ls = line.split("\t")
+            etype, pmid, description, year = ls
+            year = year.strip()
+            if not year: # is an empty string
+                year = "-1"
+                description = "(....)" + description[2:]
+            else:
+                pass
+            description = helper_clean_messy_string(description) # in order to capture foreign language titles' open and closing brackets e.g. "[bla bla bla]"
+            description = helper_cut_long_string_at_word(description, max_len_description)
+            description = tags_2_remove.sub('', description)
+            fh_out.write("{}\t{}\t{}\t{}\t{}".format(etype, pmid, description, year, hierarchy))
+
+def helper_cut_long_string_at_word(string_, max_len_description):
+    if len(string_) > max_len_description:
+        string_2_use = ""
+        for word in string_.split(" "):
+            if len(string_2_use + word) > max_len_description:
+                string_2_return = string_2_use.strip() + " ..."
+                assert len(string_2_return) <= (max_len_description + 4)
+                return string_2_return
+            else:
+                string_2_use += word + " "
+    else:
+        return string_.strip()
+
+def helper_clean_messy_string(string_):
+    string_ = string_.strip().replace('"', "'")
+    tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
+    string_ = tags_2_remove.sub('', string_)
+    if string_.startswith("[") and string_.endswith("]"):
+        return helper_clean_messy_string(string_[1:-1])
+    elif string_.startswith("[") and string_.endswith("]."):
+        return helper_clean_messy_string(string_[1:-2])
+    elif string_.isupper():
+        return string_[0] + string_[1:].lower()
+    else:
+        return string_
+
+
 
 
 

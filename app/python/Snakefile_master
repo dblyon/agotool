@@ -1,0 +1,859 @@
+import os, sys
+# sys.path.insert(0, os.path.join(os.getcwd(), "python"))
+# import variables_snakemake as variables
+import variables
+import create_SQL_tables_snakemake as cst
+import download_resources_snakemake as drs
+import tools
+from importlib import reload
+reload(cst)
+reload(drs)
+reload(tools)
+
+import socket
+hostname = socket.gethostname()
+
+DOWNLOADS_DIR = variables.DOWNLOADS_DIR_SNAKEMAKE
+TABLES_DIR = variables.TABLES_DIR_SNAKEMAKE
+PYTHON_DIR = variables.PYTHON_DIR
+NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
+if NUMBER_OF_PROCESSES > 10:
+    NUMBER_OF_PROCESSES_sorting = 10
+else:
+    NUMBER_OF_PROCESSES_sorting = NUMBER_OF_PROCESSES
+verbose = variables.VERBOSE
+TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
+
+
+### Parameters
+max_len_description = 250
+min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID for a each functional_association
+### static mapping_files
+damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
+################################################## URLs & Downloads
+URL_GO_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
+GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+# URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
+# GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
+URL_GO_slim_subsets = r"http://purl.obolibrary.org/obo/go/subsets"
+goslim_subsets_file = TABLES_DICT_SNAKEMAKE["goslim_subsets_file"]
+URL_UPK_obo = r"http://www.uniprot.org/keywords/?query=&format=obo"
+UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+URL_SwissProt_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz"
+URL_TrEMBL_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz"
+URL_UniProt_sec_2_prim_AC = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
+URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz" # monthly
+SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
+TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
+UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
+Secondary_2_Primary_ID_UPS_FIN = TABLES_DICT_SNAKEMAKE["Secondary_2_Primary_ID_table"]
+Secondary_2_Primary_ID_UPS_no_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_no_translation.txt")
+Secondary_2_Primary_ID_UPS_different_translation = os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_UPS_different_translation.txt")
+### Jensenlab
+URL_blacklisted_terms_Jensenlab = r"http://download.jensenlab.org/aGOtool/all_hidden.tsv"
+URL_doid_obo = r"http://download.jensenlab.org/aGOtool/doid.obo"
+URL_go_obo_Jensenlab = r"http://download.jensenlab.org/aGOtool/go.obo"
+URL_Function_2_Description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
+Function_2_Description_PMID = os.path.join(DOWNLOADS_DIR, "Function_2_Description_PMID.txt.gz") # 29.678.010
+URL_integrated_function_2_description_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_function2description.tsv.gz"
+Function_2_Description_DOID_BTO_GO_down = os.path.join(DOWNLOADS_DIR, "Function_2_Description_DOID_BTO_GO.txt.gz")
+URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
+Protein_2_Function_table_PMID_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID.txt") # 295.762 # Protein_2_Function_table_PMID_abstracts.txt
+Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt") # 177.656 lines and 5.305.811 unique PMIDs
+URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
+Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
+Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
+Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
+GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
+DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
+BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
+taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
+CSC_ENSPencoding_2_FuncEnum_UPS_FIN = TABLES_DICT_SNAKEMAKE["CSC_ENSPencoding_2_FuncEnum"]
+ENSP_2_rowIndex_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["ENSP_2_rowIndex_dict"]
+rowIndex_2_ENSP_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["rowIndex_2_ENSP_dict"]
+Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionEnum_2_Scores_dict"]
+Taxid_2_FuncEnum_2_Score_2_Rank_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_Score_2_Rank_dict"]
+Taxid_2_FuncEnum_2_medianScore_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_medianScore_dict"]
+Taxid_2_FuncEnum_2_numBGvals_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_numBGvals_dict"]
+
+if hostname == "ody":
+    # string_matches = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/string_matches.tsv"
+    KEGG_dir = DOWNLOADS_DIR # fake mock
+    KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
+    KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, "taxonomic_rank")
+    KEGG_pathway = os.path.join(KEGG_dir, "pathway.list")
+elif hostname in {"atlas", "gaia"}:
+    # string_matches = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_matches.tsv"
+    KEGG_dir = r"/mnt/mnemo5/dblyon/STRING_freeze_v11/kegg"
+    KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms")
+    KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, r"genes/misc/taxonomic_rank")
+    KEGG_pathway = os.path.join(KEGG_dir, "pathway/pathway.list")
+
+URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on the 11th
+PFAM_clans = os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv")
+map_name_2_an_PFAM = os.path.join(TABLES_DIR, "map_name_2_an_PFAM.txt")
+Functions_table_PFAM = os.path.join(TABLES_DIR, "Functions_table_PFAM.txt")
+Functions_table_GO_Jensenlab = os.path.join(TABLES_DIR, "Functions_table_GO_Jensenlab.txt")
+Functions_table_GO = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
+Functions_table_RCTM = os.path.join(TABLES_DIR, "Functions_table_RCTM.txt")
+Functions_table_DOID_BTO_GOCC = os.path.join(TABLES_DIR, "Functions_table_DOID_BTO_GOCC.txt")
+Functions_table_UPK = os.path.join(TABLES_DIR, "Functions_table_UPK.txt")
+Functions_table_InterPro = os.path.join(TABLES_DIR, "Functions_table_InterPro.txt")
+Functions_table_KEGG = os.path.join(TABLES_DIR, "Functions_table_KEGG.txt")
+Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
+Functions_table_all = os.path.join(TABLES_DIR, "Functions_table_all.txt")
+Functions_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
+Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_removed.txt")
+UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
+WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
+WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gmt_file.txt")
+# STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz") # https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
+
+URL_interpro_parent_2_child_tree = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/ParentChildTreeFile.txt"
+interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
+
+URL_RCTM_hierarchy = r"https://reactome.org/download/current/ReactomePathwaysRelation.txt"
+RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv") # https://reactome.org/download/current/ReactomePathwaysRelation.txt
+
+DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")
+DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage.txt")
+
+URL_RCTM_descriptions = r"https://reactome.org/download/current/ReactomePathways.txt"
+RCTM_descriptions = os.path.join(DOWNLOADS_DIR, "RCTM_descriptions.tsv")
+
+Protein_2_Function_table_UniProtDump_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS.txt")
+Protein_2_FunctionEnum_and_Score_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
+
+Function_2_Protein_table_UPS = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS.txt")
+Function_2_Protein_table_UPS_reduced = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_reduced.txt")
+Function_2_Protein_table_UPS_removed = os.path.join(TABLES_DIR, "Function_2_Protein_table_UPS_removed.txt")
+Protein_2_Function_table_UPS_orig = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt") # original unmodified version
+Protein_2_Function_table_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt") # taxids pushed to rank species
+
+Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
+Taxid_UniProt_AC_2_ID = os.path.join(TABLES_DIR, "Taxid_UniProt_AC_2_ID.txt")
+ENSP_2_UniProt_all = os.path.join(TABLES_DIR, "ENSP_2_UniProt_all.txt")
+EntrezGeneID_2_UniProtID = os.path.join(TABLES_DIR, "EntrezGeneID_2_UniProtID.txt")
+Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
+UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
+Taxid_2_Proteins_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
+Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+TaxidSpecies_2_TaxidProteome_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_TaxidProteome_dict"]
+TaxidSpecies_2_multipleRefProtTaxid_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_multipleRefProtTaxid_dict"]
+# Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
+
+Lineage_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Lineage_table"]
+Lineage_table_UPS_no_translation = os.path.join(TABLES_DIR, "Lineage_table_UPS_no_translation.txt")
+Lineage_table_UPS_hr = os.path.join(TABLES_DIR, "Lineage_table_UPS_hr.txt") # Human Readable
+DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_lineage.txt")
+
+KEGG_Taxid_2_acronym_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["KEGG_Taxid_2_acronym_table"]
+Taxid_2_FunctionCountArray_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionCountArray_table"]
+Protein_2_FunctionEnum_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_table"]
+Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
+Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
+
+URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
+interpro_AN_2_name = os.path.join(DOWNLOADS_DIR, "interpro_AN_2_name.txt") # InterPro_name_2_AN
+
+Protein_2_Function_table_WikiPathways_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_UPS.txt")
+Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
+Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS_ENSP_benchmark.txt")
+KEGG_entry_no_pathway_annotation = os.path.join(TABLES_DIR, "KEGG_entry_no_pathway_annotation.txt")
+Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
+ENSP_2_UniProtID_without_translation_1 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_1.txt")
+ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
+ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
+protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
+ENSP_2_UniProt_2_use = os.path.join(TABLES_DIR, "ENSP_2_UniProt_2_use.txt")
+ENSP_of_UniProtIDmapping_not_in_STRINGv11 = os.path.join(TABLES_DIR, "ENSP_of_UniProtIDmapping_not_in_STRINGv11.txt")
+ENSP_2_UniProt_discrepancy = os.path.join(TABLES_DIR, "ENSP_2_UniProt_discrepancy.txt")
+year_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["year_arr"]
+hierlevel_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["hierlevel_arr"]
+entitytype_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["entitytype_arr"]
+functionalterm_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["functionalterm_arr"]
+indices_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["indices_arr"]
+description_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["description_arr"]
+category_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["category_arr"]
+###################################################################################################
+### download resources
+rule download_descriptions_PMID:
+    output:
+        Function_2_Description_PMID = Function_2_Description_PMID
+    params:
+        URL_Function_2_Description_PMID = URL_Function_2_Description_PMID,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_Function_2_Description_PMID, output.Function_2_Description_PMID, params.verbose)
+
+rule download_Protein_2_Function_table_PMID:
+    output:
+        Protein_2_Function_table_PMID_STS_gz = Protein_2_Function_table_PMID_STS + ".gz",
+        Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS
+    params:
+        URL_protein_2_function_PMID = URL_protein_2_function_PMID,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_STS_gz, params.verbose)
+        tools.gunzip_file(output.Protein_2_Function_table_PMID_STS_gz, output.Protein_2_Function_table_PMID_STS)
+
+rule download_RCTM_hierarchy:
+    params:
+        URL_RCTM_hierarchy = URL_RCTM_hierarchy
+    output:
+        RCTM_hierarchy = RCTM_hierarchy
+    run:
+        drs.download_requests(params.URL_RCTM_hierarchy, output.RCTM_hierarchy)
+
+rule download_GO_obo:
+    output:
+        GO_obo = GO_obo
+    params:
+        URL_GO_obo = URL_GO_obo,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_GO_obo, output.GO_obo, params.verbose)
+
+rule download_GO_slim_subsets:
+    input:
+        DOWNLOADS_DIR = DOWNLOADS_DIR
+    params:
+        URL_GO_slim_subsets = URL_GO_slim_subsets,
+    output:
+        goslim_subsets_file = goslim_subsets_file
+    run:
+        drs.download_GO_slim_subsets(params.URL_GO_slim_subsets, input.DOWNLOADS_DIR, output.goslim_subsets_file)
+
+rule download_UPK_obo:
+    output:
+        UPK_obo = UPK_obo
+    params:
+        URL_UPK_obo = URL_UPK_obo,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_UPK_obo, output.UPK_obo, params.verbose)
+
+rule download_SwissProt_dump:
+    output:
+        SwissProt_dump = SwissProt_dump
+    params:
+        URL_SwissProt_dump = URL_SwissProt_dump,
+        verbose = verbose
+    run:
+        drs.download_gzip_file(params.URL_SwissProt_dump, output.SwissProt_dump, params.verbose)
+
+rule download_TrEMBL_dump:
+    output:
+        TrEMBL_dump = TrEMBL_dump
+    params:
+        URL_TrEMBL_dump = URL_TrEMBL_dump,
+        verbose = verbose
+    run:
+        drs.download_gzip_file(params.URL_TrEMBL_dump, output.TrEMBL_dump, params.verbose)
+
+rule download_UniProt_sec_2_prim:
+    output:
+        UniProt_sec_2_prim_AC = UniProt_sec_2_prim_AC
+    params:
+        URL_UniProt_sec_2_prim_AC = URL_UniProt_sec_2_prim_AC
+    run:
+        drs.download_gzip_file(params.URL_UniProt_sec_2_prim_AC, output.UniProt_sec_2_prim_AC)
+
+rule download_ontology_Interpro:
+    output:
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree
+    params:
+        URL_interpro_parent_2_child_tree = URL_interpro_parent_2_child_tree,
+        verbose = verbose
+    run:
+        drs.download_gzip_file(params.URL_interpro_parent_2_child_tree, output.interpro_parent_2_child_tree, verbose=params.verbose)
+
+rule download_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS:
+    output:
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
+    params:
+        URL_integrated_protein_2_function_Jensenlab = URL_integrated_protein_2_function_Jensenlab,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_integrated_protein_2_function_Jensenlab, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, params.verbose)
+
+rule download_descriptions_DOID_BTO_GO:
+    output:
+        Function_2_Description_DOID_BTO_GO_down = Function_2_Description_DOID_BTO_GO_down
+    params:
+        URL_integrated_function_2_description_Jensenlab = URL_integrated_function_2_description_Jensenlab,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_integrated_function_2_description_Jensenlab, output.Function_2_Description_DOID_BTO_GO_down, params.verbose)
+
+rule download_Blacklist_Jensenlab:
+    output:
+        Blacklisted_terms_Jensenlab = Blacklisted_terms_Jensenlab
+    params:
+        URL_blacklisted_terms_Jensenlab = URL_blacklisted_terms_Jensenlab,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_blacklisted_terms_Jensenlab, output.Blacklisted_terms_Jensenlab, params.verbose)
+
+rule download_DOID_obo_Jensenlab:
+    output:
+        DOID_obo_Jensenlab = DOID_obo_Jensenlab
+    params:
+        URL_doid_obo = URL_doid_obo,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_doid_obo, output.DOID_obo_Jensenlab, params.verbose)
+
+rule download_GO_obo_Jensenlab:
+    output:
+        GO_obo_Jensenlab = GO_obo_Jensenlab
+    params:
+        URL_go_obo_Jensenlab = URL_go_obo_Jensenlab,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_go_obo_Jensenlab, output.GO_obo_Jensenlab, params.verbose)
+
+rule download_WikiPathways:
+    input:
+        DOWNLOADS_DIR = DOWNLOADS_DIR
+    params:
+        URL_WikiPathways_GMT = URL_WikiPathways_GMT,
+    output:
+        WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
+    run:
+        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, output.WikiPathways_not_a_gmt_file)
+
+rule download_UniProt_ID_mapping:
+    output:
+        UniProt_ID_mapping = UniProt_ID_mapping
+    params:
+        URL_UniProt_ID_mapping = URL_UniProt_ID_mapping,
+        verbose = verbose
+    run:
+        drs.download_gzip_file(params.URL_UniProt_ID_mapping, output.UniProt_ID_mapping, params.verbose)
+
+rule download_descriptions_Interpro:
+    output:
+        interpro_AN_2_name = interpro_AN_2_name
+    params:
+        URL_interpro_AN_2_name = URL_interpro_AN_2_name,
+        verbose = verbose
+    run:
+        drs.download_gzip_file(params.URL_interpro_AN_2_name, output.interpro_AN_2_name, params.verbose)
+
+rule download_descriptions_RCTM:
+    output:
+        RCTM_descriptions = RCTM_descriptions
+    params:
+        URL_RCTM_descriptions = URL_RCTM_descriptions,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_RCTM_descriptions, output.RCTM_descriptions, params.verbose)
+
+rule download_UniProt_reference_proteomes:
+    output:
+        UniProt_background_proteomes_dir = directory(UniProt_background_proteomes_dir)
+    params:
+        verbose = verbose
+    run:
+        drs.download_UniProt_reference_proteomes(output.UniProt_background_proteomes_dir, params.verbose)
+###################################################################################################
+### create tables
+rule r_Functions_table_GO_Jensenlab:
+    input:
+        GO_obo_Jensenlab = GO_obo_Jensenlab
+    output:
+        Functions_table_GO_Jensenlab = Functions_table_GO_Jensenlab
+    params:
+        is_upk = False
+    run:
+        cst.Functions_table_GO_or_UPK(input.GO_obo_Jensenlab, output.Functions_table_GO_Jensenlab, params.is_upk)
+
+rule r_Functions_table_GO:
+    input:
+        GO_obo = GO_obo
+    output:
+        Functions_table_GO = Functions_table_GO
+    params:
+        is_upk = False
+    run:
+        cst.Functions_table_GO_or_UPK(input.GO_obo, output.Functions_table_GO, params.is_upk)
+
+rule r_Functions_table_UPK:
+    input:
+        UPK_obo = UPK_obo
+    output:
+        Functions_table_UPK = Functions_table_UPK
+    params:
+        is_upk = True
+    run:
+        cst.Functions_table_GO_or_UPK(input.UPK_obo, output.Functions_table_UPK, params.is_upk)
+
+rule r_Functions_table_InterPro:
+    input:
+        interpro_AN_2_name = interpro_AN_2_name,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree
+    output:
+        Functions_table_InterPro = Functions_table_InterPro
+    run:
+        cst.Functions_table_InterPro(input.interpro_AN_2_name, input.interpro_parent_2_child_tree, output.Functions_table_InterPro)
+
+rule r_Functions_table_KEGG:
+    input:
+        KEGG_pathway = KEGG_pathway
+    output:
+        Functions_table_KEGG = Functions_table_KEGG
+    params:
+        verbose = verbose
+    run:
+        cst.Functions_table_KEGG(input.KEGG_pathway, output.Functions_table_KEGG, params.verbose)
+
+rule r_Functions_table_PFAM:
+    input:
+        PFAM_clans = PFAM_clans
+    output:
+        Functions_table_PFAM = Functions_table_PFAM,
+        map_name_2_an_PFAM = map_name_2_an_PFAM
+    run:
+        cst.Functions_table_PFAM(input.PFAM_clans, output.Functions_table_PFAM, output.map_name_2_an_PFAM)
+
+rule r_Functions_table_PMID:
+    input:
+        Function_2_Description_PMID = Function_2_Description_PMID
+    output:
+        Functions_table_PMID = Functions_table_PMID
+    run:
+        cst.Functions_table_PMID(input.Function_2_Description_PMID, output.Functions_table_PMID, max_len_description)
+
+rule r_Functions_table_RCTM: # UPS
+    input:
+        RCTM_descriptions = RCTM_descriptions,
+        RCTM_hierarchy = RCTM_hierarchy
+    output:
+        Functions_table_RCTM = Functions_table_RCTM
+    run:
+        cst.Functions_table_RCTM(input.RCTM_descriptions, input.RCTM_hierarchy, output.Functions_table_RCTM)
+
+rule r_Functions_table_DOID_BTO_GOCC: # these are not being filtered to relevant ones, but since number is small (~20k), the impact should be negligible
+    input:
+        Function_2_Description_DOID_BTO_GO_down = Function_2_Description_DOID_BTO_GO_down,
+        BTO_obo_Jensenlab = BTO_obo_Jensenlab,
+        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+        GO_obo_Jensenlab = GO_obo_Jensenlab,
+        Blacklisted_terms_Jensenlab = Blacklisted_terms_Jensenlab
+    output:
+        Functions_table_DOID_BTO_GOCC = Functions_table_DOID_BTO_GOCC
+    params:
+        GO_CC_textmining_additional_etype = True,
+        verbose = verbose
+    threads: NUMBER_OF_PROCESSES_sorting
+    run:
+        cst.Functions_table_DOID_BTO_GOCC(input.Function_2_Description_DOID_BTO_GO_down, input.BTO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.GO_obo_Jensenlab, input.Blacklisted_terms_Jensenlab, output.Functions_table_DOID_BTO_GOCC, params.GO_CC_textmining_additional_etype, threads, params.verbose)
+
+rule r_Functions_table_all:
+    input: # Functions_table_SMART, # not supported in aGOtool version UniProt but in STRING_v11
+        fn_list_str = [Functions_table_InterPro,
+                       Functions_table_KEGG,
+                       Functions_table_PFAM,
+                       Functions_table_GO,
+                       Functions_table_GO_Jensenlab,
+                       Functions_table_UPK,
+                       Functions_table_PMID,
+                       Functions_table_RCTM,
+                       Functions_table_DOID_BTO_GOCC,
+                       Functions_table_WikiPathways]
+    output:
+        Functions_table_all = Functions_table_all,
+    threads: NUMBER_OF_PROCESSES_sorting
+    run:
+        cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_table_all, threads)
+
+rule r_Function_2_Protein_table_UPS:
+    input:
+        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS,
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN, # for background_counts, but not to restrict by reference proteome
+        Functions_table_all = Functions_table_all
+    output:
+        Function_2_Protein_table_UPS = Function_2_Protein_table_UPS,
+        Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced, # reduced by min_count per taxid, for background proteomes?
+        Function_2_Protein_table_UPS_removed = Function_2_Protein_table_UPS_removed
+    threads: NUMBER_OF_PROCESSES_sorting
+    run: # helper_convert_str_arr_2_nested_list
+        cst.Function_2_Protein_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Protein_table_UPS, output.Function_2_Protein_table_UPS_reduced, output.Function_2_Protein_table_UPS_removed, threads)
+
+rule r_Taxid_2_Proteins_table_UPS_FIN:
+    input:
+        UniProt_background_proteomes_dir = UniProt_background_proteomes_dir
+    output:
+        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
+        # Taxid_without_mapping_2_species_rank = Taxid_without_mapping_2_species_rank
+    run:
+        cst.Taxid_2_Proteins_table_UPS(input.UniProt_background_proteomes_dir, output.Taxid_2_Proteins_table_UPS_FIN)
+
+rule r_Lineage_table_UPS_FIN:
+    input:
+        GO_obo_Jensenlab = GO_obo_Jensenlab,
+        GO_obo = GO_obo,
+        UPK_obo = UPK_obo,
+        RCTM_hierarchy = RCTM_hierarchy,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN,
+        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+        BTO_obo_Jensenlab = BTO_obo_Jensenlab
+    output:
+        Lineage_table_UPS_FIN = Lineage_table_UPS_FIN,
+        Lineage_table_UPS_no_translation = Lineage_table_UPS_no_translation,
+        Lineage_table_UPS_hr = Lineage_table_UPS_hr
+    params:
+        GO_CC_textmining_additional_etype = True
+    run:
+        cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.GO_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_UPS_FIN, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table_UPS_FIN, output.Lineage_table_UPS_no_translation, output.Lineage_table_UPS_hr, params.GO_CC_textmining_additional_etype)
+
+rule r_KEGG_Taxid_2_acronym_table_UPS_FIN:
+    input:
+        KEGG_taxonomic_rank_file = KEGG_taxonomic_rank_file
+    output:
+        KEGG_Taxid_2_acronym_table_UPS_FIN = KEGG_Taxid_2_acronym_table_UPS_FIN
+    run:
+        cst.KEGG_Taxid_2_acronym_table_UPS(input.KEGG_taxonomic_rank_file, output.KEGG_Taxid_2_acronym_table_UPS_FIN)
+
+rule r_Protein_2_Function_table_UniProtDump_UPS:
+    input:
+        Functions_table_UPK = Functions_table_UPK,
+        GO_obo = GO_obo, # not Jensenlab obo
+        UPK_obo = UPK_obo,
+        SwissProt_dump = SwissProt_dump,
+        TrEMBL_dump = TrEMBL_dump,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+        RCTM_hierarchy = RCTM_hierarchy
+    output:
+        Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, Pfam
+        # Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs, # from UniProtIDmapping from now on
+        # Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
+    params:
+        verbose = verbose
+    run:
+        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, params.verbose)
+
+# rule Protein_2_Function_table_UniProtDump_UPS_parallel: # doens't work properly, regex parsing
+#     input:
+#         # Functions_table_UPK = Functions_table_UPK,
+#         # GO_obo = GO_obo, # not Jensenlab obo
+#         # UPK_obo = UPK_obo,
+#         SwissProt_dump_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat"),
+#         # TrEMBL_dump = TrEMBL_dump,
+#         # interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+#         # RCTM_hierarchy = RCTM_hierarchy,
+#         parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
+#     output:
+#         temp_dir = directory(os.path.join(TABLES_DIR, "temp")),
+#         Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp.txt"), # Protein_2_Function_table_UniProtDump_UPS, Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID
+#     threads: NUMBER_OF_PROCESSES
+#     shell:
+#         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.SwissProt_dump_dat}", r"{input.parallel_parse_UniProt_dump}", r"{output.Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads}, recstart=r"^ID", recend=r"\/\/", KB_MB_GB="M", split_size="100")'"""
+
+rule r_Protein_2_Function_table_KEGG_UPS:
+    input:
+        KEGG_organisms_dir = KEGG_organisms_dir,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
+    output:
+        Protein_2_Function_table_KEGG_UPS = Protein_2_Function_table_KEGG_UPS,
+        Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = Protein_2_Function_table_KEGG_UPS_ENSP_benchmark,
+        KEGG_entry_no_pathway_annotation = KEGG_entry_no_pathway_annotation
+    run:
+        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_organisms_dir, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
+
+rule r_Protein_2_Function__and__Functions_table_WikiPathways:
+    input:
+        WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
+        EntrezGeneID_2_UniProtID = EntrezGeneID_2_UniProtID, # previously UniProt_ID_mapping
+        WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
+    output:
+        Functions_table_WikiPathways = Functions_table_WikiPathways,
+        Protein_2_Function_table_WikiPathways_UPS = Protein_2_Function_table_WikiPathways_UPS
+    run:
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.EntrezGeneID_2_UniProtID, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
+
+rule r_Protein_2_Function_table_PMID_UPS:
+    input:
+        Protein_2_Function_table_PMID_STS = Protein_2_Function_table_PMID_STS,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
+    output:
+        Protein_2_Function_table_PMID_UPS = Protein_2_Function_table_PMID_UPS,
+        ENSP_2_UniProtID_without_translation_1 = ENSP_2_UniProtID_without_translation_1
+    run:
+        cst.Protein_2_Function_table_PMID_UPS(input.Protein_2_Function_table_PMID_STS, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.ENSP_2_UniProtID_without_translation_1, output.Protein_2_Function_table_PMID_UPS)
+
+rule r_Protein_2_Function_table_UPS:
+    input:
+        fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
+                       Protein_2_Function_table_KEGG_UPS,
+                       Protein_2_Function_table_WikiPathways_UPS,
+                       Protein_2_Function_table_PMID_UPS]
+    output:
+        Protein_2_Function_table_UPS_orig = Protein_2_Function_table_UPS_orig, # sorted at the end
+        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # taxids merged
+    threads: NUMBER_OF_PROCESSES_sorting
+    run:
+        cst.Protein_2_Function_table_UPS(input.fn_list_str, output.Protein_2_Function_table_UPS_orig, output.Protein_2_Function_table_UPS, threads)
+
+rule r_Protein_2_FunctionEnum_table_UPS_FIN:
+    input:
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN,
+        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS
+    output:
+        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN,
+        Protein_2_FunctionEnum_table_UPS_removed = Protein_2_FunctionEnum_table_UPS_removed
+    threads: NUMBER_OF_PROCESSES_sorting
+    run:
+        cst.Protein_2_FunctionEnum_table_UPS_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, output.Protein_2_FunctionEnum_table_UPS_removed, threads)
+
+rule r_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
+    input:
+        GO_obo_Jensenlab = GO_obo_Jensenlab,
+        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+        BTO_obo_Jensenlab = BTO_obo_Jensenlab,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
+    output:
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+        DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
+    run:
+        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage)
+
+rule r_Functions_table_UPS_FIN:
+    input:
+        Functions_table_all = Functions_table_all, # superset
+        Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced, # include all prefiltered functions
+        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
+    output:
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN,
+        Functions_table_UPS_removed = Functions_table_UPS_removed # removed if description, hierarchy, etc. but not associated with more than 1 protein per function per taxid (in any taxid)
+    run:
+        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
+
+rule r_Create_goslimtype_2_cond_arrays: # ToDo make sure executed to be executed AFTER Functions_table_UPS_FIN
+    input:
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN,
+        goslim_subsets_file = goslim_subsets_file
+    run:
+        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN, input.goslim_subsets_file)
+
+rule r_Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
+    input:
+        GO_obo_Jensenlab = GO_obo_Jensenlab,
+        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+        BTO_obo_Jensenlab = BTO_obo_Jensenlab,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN # ToDo: restrict output for Protein_2_FunctionEnum_and_Score_table_UPS_FIN
+    output:
+        Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN,
+        DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation,
+        ENSP_2_UniProtID_without_translation_2 = ENSP_2_UniProtID_without_translation_2,
+        DOID_GO_BTO_an_without_lineage = DOID_GO_BTO_an_without_lineage
+    params:
+        GO_CC_textmining_additional_etype = True
+    run:
+        cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, output.DOID_GO_BTO_an_without_lineage, params.GO_CC_textmining_additional_etype)
+
+rule r_ENSP_2_UniProtID_without_translation:
+    input:
+        fn_list = [ENSP_2_UniProtID_without_translation_1, ENSP_2_UniProtID_without_translation_2],
+        protein_shorthands = protein_shorthands
+    output:
+        ENSP_2_UniProtID_without_translation = ENSP_2_UniProtID_without_translation
+    run:
+        cst.ENSP_2_UniProtID_without_translation(input.fn_list, input.protein_shorthands, output.ENSP_2_UniProtID_without_translation)
+
+rule r_Taxid_2_FunctionCountArray_table_UPS_FIN: # restricted to UniProtIDs of reference proteome
+    input:
+        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN,
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN,
+        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
+    output:
+        Taxid_2_FunctionCountArray_table_UPS_FIN = Taxid_2_FunctionCountArray_table_UPS_FIN,
+        Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count
+    threads: NUMBER_OF_PROCESSES_sorting
+    params:
+        verbose = verbose
+    run:
+        cst.Taxid_2_FunctionCountArray_table_UPS(input.Protein_2_FunctionEnum_table_UPS_FIN, input.Functions_table_UPS_FIN, input.Taxid_2_Proteins_table_UPS_FIN, output.Taxid_2_FunctionCountArray_table_UPS_FIN, output.Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, threads, params.verbose)
+
+rule r_Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference proteome via Taxid_2_Proteins_table_UPS_FIN.txt (get_proteins_of_taxid)
+    input:
+        Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN
+    output:
+        Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
+    run:
+        cst.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
+
+rule r_ENSP_2_UniProt_all:
+    input:
+        damian_uniprot_2_string = damian_uniprot_2_string,
+        UniProt_ID_mapping = UniProt_ID_mapping
+    output:
+        ENSP_2_UniProt_all = ENSP_2_UniProt_all,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
+        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID,
+        EntrezGeneID_2_UniProtID = EntrezGeneID_2_UniProtID
+    threads: NUMBER_OF_PROCESSES_sorting
+    run:
+        cst.ENSP_2_UniProt_all(input.damian_uniprot_2_string, input.UniProt_ID_mapping, output.ENSP_2_UniProt_all, output.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Taxid_UniProt_AC_2_ID, output.EntrezGeneID_2_UniProtID, threads)
+
+rule r_STRING_2_UniProt_mapping_discrepancies:
+    input:
+        ENSP_2_UniProt_all = ENSP_2_UniProt_all,
+        Taxid_2_Proteins_table_STS = Taxid_2_Proteins_table_STS,
+        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN
+    output:
+        ENSP_2_UniProt_2_use = ENSP_2_UniProt_2_use,
+        ENSP_of_UniProtIDmapping_not_in_STRINGv11 = ENSP_of_UniProtIDmapping_not_in_STRINGv11,
+        ENSP_2_UniProt_discrepancy = ENSP_2_UniProt_discrepancy
+    run:
+        cst.STRING_2_UniProt_mapping_discrepancies(input.ENSP_2_UniProt_all, input.Taxid_2_Proteins_table_STS, input.Protein_2_FunctionEnum_table_UPS_FIN, output.ENSP_2_UniProt_2_use, output.ENSP_of_UniProtIDmapping_not_in_STRINGv11, output.ENSP_2_UniProt_discrepancy)
+
+rule r_Secondary_2_Primary_ID_UPS_FIN:
+    input:
+        Protein_2_FunctionEnum_table_UPS_FIN = Protein_2_FunctionEnum_table_UPS_FIN, # to restrict Taxid_UniProt_AC_2_ID
+        UniProt_sec_2_prim_AC = UniProt_sec_2_prim_AC, # secondary AC to ID
+        ENSP_2_UniProt_2_use = ENSP_2_UniProt_2_use, # ENSP to UniProtID
+        Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID # primary AC to ID
+    output:
+        Secondary_2_Primary_ID_UPS_FIN = Secondary_2_Primary_ID_UPS_FIN,
+        Secondary_2_Primary_ID_UPS_no_translation = Secondary_2_Primary_ID_UPS_no_translation
+    run:
+        cst.Secondary_2_Primary_ID_UPS_FIN(input.Protein_2_FunctionEnum_table_UPS_FIN, input.UniProt_sec_2_prim_AC, input.ENSP_2_UniProt_2_use, input.Taxid_UniProt_AC_2_ID, output.Secondary_2_Primary_ID_UPS_FIN, output.Secondary_2_Primary_ID_UPS_no_translation)
+
+rule r_SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN:
+    input:
+        Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN
+    output:
+        CSC_ENSPencoding_2_FuncEnum_UPS_FIN = CSC_ENSPencoding_2_FuncEnum_UPS_FIN,
+        ENSP_2_rowIndex_dict_UPS_FIN = ENSP_2_rowIndex_dict_UPS_FIN,
+        rowIndex_2_ENSP_dict_UPS_FIN = rowIndex_2_ENSP_dict_UPS_FIN
+    run:
+        cst.SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.CSC_ENSPencoding_2_FuncEnum_UPS_FIN, output.ENSP_2_rowIndex_dict_UPS_FIN, output.rowIndex_2_ENSP_dict_UPS_FIN)
+
+rule r_Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts_UPS_FIN:
+    input:
+        Taxid_2_FunctionCountArray_table_UPS_FIN = Taxid_2_FunctionCountArray_table_UPS_FIN # only to wait for file to be completed
+    output:
+        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
+    run:
+        cst.Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(input.Taxid_2_FunctionCountArray_table_UPS_FIN, output.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+
+rule r_Pickle_lookup_arrays_UPS_FIN:
+    input:
+        Functions_table_UPS_FIN = Functions_table_UPS_FIN
+    output:
+        year_arr_UPS_FIN = year_arr_UPS_FIN,
+        hierlevel_arr_UPS_FIN = hierlevel_arr_UPS_FIN,
+        entitytype_arr_UPS_FIN = entitytype_arr_UPS_FIN,
+        functionalterm_arr_UPS_FIN = functionalterm_arr_UPS_FIN,
+        indices_arr_UPS_FIN = indices_arr_UPS_FIN,
+        description_arr_UPS_FIN = description_arr_UPS_FIN,
+        category_arr_UPS_FIN = category_arr_UPS_FIN
+    run:
+        cst.Pickle_lookup_arrays_UPS_FIN(input.Functions_table_UPS_FIN, output.year_arr_UPS_FIN, output.hierlevel_arr_UPS_FIN, output.entitytype_arr_UPS_FIN, output.functionalterm_arr_UPS_FIN, output.indices_arr_UPS_FIN, output.description_arr_UPS_FIN, output.category_arr_UPS_FIN)
+
+rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since performance improvement lacking --> maybe in C++ version of dicts are implemented, but doesn't seem worth it since KS testing < 300ms
+    input:
+        Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
+    output:
+        Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN,
+        # Taxid_2_FuncEnum_2_Score_2_Rank_dict = Taxid_2_FuncEnum_2_Score_2_Rank_dict,
+        # Taxid_2_FuncEnum_2_medianScore_dict = Taxid_2_FuncEnum_2_medianScore_dict,
+        # Taxid_2_FuncEnum_2_numBGvals_dict = Taxid_2_FuncEnum_2_numBGvals_dict
+    run:
+        cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
+        #, output.Taxid_2_FuncEnum_2_Score_2_Rank_dict, output.Taxid_2_FuncEnum_2_medianScore_dict, output.Taxid_2_FuncEnum_2_numBGvals_dict)
+
+rule r_bb:
+    input:
+        Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
+    output:
+        TaxidSpecies_2_TaxidProteome_dict_p = TaxidSpecies_2_TaxidProteome_dict_p,
+        TaxidSpecies_2_multipleRefProtTaxid_dict_p = TaxidSpecies_2_multipleRefProtTaxid_dict_p
+    run:
+        cst.create_speciesTaxid_2_proteomeTaxid_dict(input.Taxid_2_Proteins_table_UPS_FIN, output.TaxidSpecies_2_TaxidProteome_dict_p, output.TaxidSpecies_2_multipleRefProtTaxid_dict_p)
+
+# background proteomes
+# E. coli is 562 but UniProt ref prot is 83333
+# 511145 Escherichia coli str. K-12 substr. MG1655
+# 83333 Escherichia coli (strain K12)
+
+# - Damian mapping of ENSP to UniProtAC --> Secondary_2_Primary_ID_UPS_FIN to make one to one mapping of ENSP to UniProtIDs
+# - add Protein_2_FunctionEnum_table_UPS_FIN.txt to DB and connect via pqo --> preload background proteome for most common taxa
+
+### TODO:
+# ToDo: some UniProtIDs not translated to ENSPs since not in Secondary to primary file, but they are in ENSP_2_UniProt_all file, why not include them in the DB?
+# - ToDo fix API and adapt to Damian STRING API
+# - preload most commong model organisms even for low memory
+# - add Jensenlab Scores data to "characterize_foreground" method --> these 3 etypes don't show up yet --> using user defined cutoff
+# - alignment of table in enrichment
+# - create link outs
+# - fix form validation of wtforms or flask-wtf
+
+# examples for Lars for missing PMID descriptions
+# https://www.ncbi.nlm.nih.gov/pubmed/?term=31059822
+# Metaanalysis of true user data inputs
+#  - compare GO with GOCC: intersection and complement of terms in numbers, correlation of p-value and effect size
+# ? What to report for abundance_correction of KS test? ratio_in_foreground	ratio_in_background	foreground_count	foreground_n	background_count	background_n
+# - ?abundance_correction with KS?
+# - ?compare_groups with KS?
+# Function_2_Description_DOID_BTO_GO.
+# e.g. of term without description:
+# DOID:3805, (BTO:0003099 blacklisted)
+# Function_2_Proteins_table:
+# 9606    -1      DOID:3805       62      20960   ARPC3_HUMAN;ASCL4_HUMAN;AT2C1_HUMAN;BLMH_HUMAN;CAMP_HUMAN;CASPE_HUMAN;CBPE_HUMAN;CENPR_HUMAN;CHSTB_HUMAN;CLC4K_HUMAN;CML1_H
+# nothing in Functions table or blacklisted_terms_Jensenlab
+# but appears in Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz
+# When backtracking GOCC terms --> multiple scores for same GOterm
+# - which implications for KS?
+# - which implications for characterize_foreground
+
+
+# bugfix:
+# - why does it make a difference if I use the same foreground and background and all filters off. compare_samples vs. genome???
+# - why can't i see PMIDs even if filter_fg_count_one is off
+# - check compare_samples vs genome --> background_counts are off
+# - update prism
+
+
+# CSS Gregor questions
+# - Bootstrap vs Jquery styles
+# - create link outs
+# - change GOCC to GO
+
+# documentation
+# examples --> temp fix
+# REST API
+# suggestions for TaxIDs and names
+
+### Docker changes
+# chmod o+r * recursively for all static files on aquarius in order for nginx to read them
+
+###
+# fix link for http://localhost:10110/example_1
+# add description and link to sources of slim terms
+# results_comprehensive and results_compact names in URL are not displayed correctly when switching back and forth
+
+# - linkouts
+# - enrichment page alignments
+# - enrichment page footer
+
+
+# changes to the last version of aGOtool:
+# - MCL clustering is no longer supported
+# - simple changes to column names (fold_enrichment_foreground_2_background, population vs background)
+
+# add "score_cutoff" to enrichemnt.html and show only if characterize_foreground is selected
+
+# example results for all 4 examples
+
+
+# add links to uniprot and string to map other identifiers
+# fix navbar to show API
+# add visualization
