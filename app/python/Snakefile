@@ -73,8 +73,8 @@ ENSP_2_rowIndex_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["ENSP_2_rowIndex_dict"]
 rowIndex_2_ENSP_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["rowIndex_2_ENSP_dict"]
 Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionEnum_2_Scores_dict"]
 Taxid_2_FuncEnum_2_Score_2_Rank_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_Score_2_Rank_dict"]
-Taxid_2_FuncEnum_2_medianScore_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_medianScore_dict"]
-Taxid_2_FuncEnum_2_numBGvals_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_numBGvals_dict"]
+#Taxid_2_FuncEnum_2_medianScore_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_medianScore_dict"]
+#Taxid_2_FuncEnum_2_numBGvals_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_numBGvals_dict"]
 
 if hostname == "ody":
     # string_matches = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/string_matches.tsv"
