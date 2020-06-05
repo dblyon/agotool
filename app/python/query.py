@@ -3,8 +3,9 @@ import numpy as np
 import pandas as pd
 import os, sys
 from collections import defaultdict
-import psycopg2, math
+import psycopg2
 from contextlib import contextmanager
+import pickle
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -442,48 +443,51 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
     only protein_2_function is queried in Postgres,
     everything else is in memory but still deposited in the DB any way
     """
-    def __init__(self, low_memory=False, read_from_flat_files=None):
+    def __init__(self, low_memory=False, read_from_flat_files=None, from_pickle=None):
         if read_from_flat_files is None:
             read_from_flat_files = variables.READ_FROM_FLAT_FILES
+        if from_pickle is None:
+            from_pickle = variables.FROM_PICKLE
+        print(repr(from_pickle), from_pickle, type(from_pickle))
         if variables.VERBOSE:
             print("#"*80)
             print("initializing PQO")
-            print("getting taxid_2_proteome_count")
-        self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict(read_from_flat_files)
+            print("getting taxid_2_proteome_count_dict")
+        self.taxid_2_proteome_count_dict = get_TaxID_2_proteome_count_dict(read_from_flat_files, from_pickle)
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
-        self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files)
+        self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files, from_pickle)
 
         if variables.VERBOSE:
             print("getting lookup arrays")
-        if not low_memory: # override variables if "low_memory" passed to query initialization
-            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory, read_from_flat_files)
-        else:
-            self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = self.get_lookup_arrays(low_memory, read_from_flat_files)
+        # if not low_memory: # override variables if "low_memory" passed to query initialization
+        self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory, read_from_flat_files, from_pickle)
+        # else:
+        #     self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = self.get_lookup_arrays(low_memory, read_from_flat_files)
         self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
         if variables.VERBOSE:
             print("getting lineage dict")
-        self.lineage_dict_enum = get_lineage_dict_enum(False, read_from_flat_files) # default is as set not array, check if this is necessary later
+        self.lineage_dict_enum = get_lineage_dict_enum(False, read_from_flat_files, from_pickle) # default is as set not array, check if this is necessary later
         if variables.VERBOSE:
             print("getting blacklisted terms")
-        self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr()
+        self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr(from_pickle)
 
         if variables.VERBOSE:
             print("getting get_ENSP_2_functionEnumArray_dict")
         if not low_memory:
             #foreground
-            self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict(read_from_flat_files)
+            self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict(read_from_flat_files, from_pickle)
 
         if variables.VERBOSE:
             print("getting taxid_2_tuple_funcEnum_index_2_associations_counts ")
         #background
-        self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files)
+        self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files, from_pickle)
 
         if variables.VERBOSE:
             print("getting cond arrays")
-        self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
-        self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
+        self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr, from_pickle)
+        self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len, from_pickle)
         self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
         self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
 
@@ -534,23 +538,27 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             raise NotImplementedError
 
     def get_static_preloaded_objects(self, low_memory=False):
-        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+        if not low_memory: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
-                                        self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count,
+                                        self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count_dict,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
         else:
             # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
-            # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+            # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len,
-                                        self.etype_cond_dict, self.taxid_2_proteome_count,
+                                        self.etype_cond_dict, self.taxid_2_proteome_count_dict,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
         return static_preloaded_objects
 
-    def get_blacklisted_terms_bool_arr(self):
+    def get_blacklisted_terms_bool_arr(self, from_pickle=False):
+        if from_pickle:
+            with open(variables.tables_dict["blacklisted_terms_bool_arr"], "rb") as fh:
+                blacklisted_terms_bool_arr = pickle.load(fh)
+            return blacklisted_terms_bool_arr
         blacklisted_terms_bool_arr = np.zeros(self.function_enumeration_len, dtype=np.dtype("uint8"))
         # use uint8 and code as 0, 1 instead to make into mem view
         for term_enum in variables.blacklisted_enum_terms:
@@ -559,10 +567,14 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         return blacklisted_terms_bool_arr
 
     @staticmethod
-    def get_etype_2_minmax_funcEnum(entitytype_arr):
+    def get_etype_2_minmax_funcEnum(entitytype_arr, from_pickle=False):
         """
         start and stop positions of funcEnum_array grouped by entity type
         """
+        if from_pickle:
+            with open(variables.tables_dict["etype_2_minmax_funcEnum"], "rb") as fh:
+                etype_2_minmax_funcEnum = pickle.load(fh)
+            return etype_2_minmax_funcEnum
         etype_2_minmax_funcEnum = {}
         s = pd.Series(entitytype_arr)
         for name, group in s.groupby(s):
@@ -578,7 +590,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         return functerm_2_level_dict
 
     @staticmethod
-    def get_lookup_arrays(low_memory, read_from_flat_files=False):
+    def get_lookup_arrays(low_memory, read_from_flat_files=False, from_pickle=False):
         """
         funcEnum_2_hierarchical_level
         simple numpy array of hierarchical levels
@@ -592,6 +604,23 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         :param read_from_flat_files: Bool flag to get data from DB or flat files
         :return: immutable numpy array of int
         """
+        if from_pickle:
+            with open(variables.tables_dict["year_arr"], "rb") as fh:
+                year_arr = pickle.load(fh)
+            with open(variables.tables_dict["hierlevel_arr"], "rb") as fh:
+                hierlevel_arr = pickle.load(fh)
+            with open(variables.tables_dict["entitytype_arr"], "rb") as fh:
+                entitytype_arr = pickle.load(fh)
+            with open(variables.tables_dict["functionalterm_arr"], "rb") as fh:
+                functionalterm_arr = pickle.load(fh)
+            with open(variables.tables_dict["indices_arr"], "rb") as fh:
+                indices_arr = pickle.load(fh)
+            with open(variables.tables_dict["description_arr"], "rb") as fh:
+                description_arr = pickle.load(fh)
+            with open(variables.tables_dict["category_arr"], "rb") as fh:
+                category_arr = pickle.load(fh)
+            return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
+
         if read_from_flat_files:
             result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt"))
             result = list(result)
@@ -655,7 +684,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
 
     def get_proteome_count_from_taxid(self, taxid):
         try:
-            return self.taxid_2_proteome_count[taxid]
+            return self.taxid_2_proteome_count_dict[taxid]
         except KeyError:
             return False
 
@@ -675,7 +704,12 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
-def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True):
+def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True, from_pickle=False):
+    if from_pickle:
+        with open(variables.tables_dict["kegg_taxid_2_acronym_dict"], "rb") as fh:
+            KEGG_TaxID_2_acronym_dict = pickle.load(fh)
+        return KEGG_TaxID_2_acronym_dict
+
     KEGG_TaxID_2_acronym_dict = {}
     if read_from_flat_files:
         results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "KEGG_Taxid_2_acronym_table.txt"))
@@ -780,7 +814,11 @@ def get_parents_iterative(child, child_2_parent_dict):
         current_parents = new_parents
     return all_parents
 
-def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
+def get_lineage_dict_enum(as_array=False, read_from_flat_files=False, from_pickle=False):
+    if from_pickle:
+        with open(variables.tables_dict["lineage_dict_enum"], "rb") as fh_taxid_2_proteome_count_dict:
+            lineage_dict_enum = pickle.load(fh_taxid_2_proteome_count_dict)
+        return lineage_dict_enum
     lineage_dict = {} # key: function enumeration, value: set of func enum array all parents and children
     if read_from_flat_files:
         results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Lineage_table_STRING.txt"))
@@ -804,12 +842,16 @@ def get_lineage_dict_enum(as_array=False, read_from_flat_files=False):
                 lineage_dict[term] = set(lineage)
     return lineage_dict
 
-def get_etype_cond_dict(etype_2_minmax_funcEnum, function_enumeration_len):
+def get_etype_cond_dict(etype_2_minmax_funcEnum, function_enumeration_len, from_pickle=False):
     """
     :return: Dict (key: Str(entity type e.g. 'cond_57'), val: Bool array of len function_enumeration_len)
     """
     # etype_2_minmax_funcEnum = self.etype_2_minmax_funcEnum # etype_2_minmax_funcEnum = pqo.get_etype_2_minmax_funcEnum(pqo.entitytype_arr)
     # function_enumeration_len = self.function_enumeration_len # function_enumeration_len = pqo.entitytype_arr.shape[0]
+    if from_pickle:
+        with open(variables.tables_dict["etype_cond_dict"], "rb") as fh:
+            etype_cond_dict = pickle.load(fh)
+        return etype_cond_dict
     etype_cond_dict = {}
     for etype, min_max in etype_2_minmax_funcEnum.items():
         min_, max_ = min_max
@@ -844,7 +886,7 @@ def get_functionEnumArray_from_proteins(protein_ans_list, dict_2_array=False):
             dict_2_return[ENSP] = np.array(list_of_funcEnums, dtype=np.dtype("uint32"))
         return dict_2_return
 
-def get_ENSP_2_functionEnumArray_dict(read_from_flat_files=False):
+def get_ENSP_2_functionEnumArray_dict(read_from_flat_files=False, from_pickle=False):
     """
     debug : ORDER BY bubu LIMIT 100 OFFSET 50;
     21.839.546 Protein_2_FunctionEnum_table_STRING.txt
@@ -856,6 +898,11 @@ def get_ENSP_2_functionEnumArray_dict(read_from_flat_files=False):
     int32 Integer (-2147483648 to 2147483647), since enumeration between 0 and 6.815.598 (variables.function_enumeration_len)
     :return: List of Tuple( String(ENSP), List of Integers(function enumeration) )
     """
+    if from_pickle:
+        with open(variables.tables_dict["ENSP_2_functionEnumArray_dict"], "rb") as fh_in:
+            ENSP_2_functionEnumArray_dict = pickle.load(fh_in)
+        return ENSP_2_functionEnumArray_dict
+
     ENSP_2_functionEnumArray_dict = {} # key: String (ENSP), val: np.array(uint32) of function enumerations
     if read_from_flat_files:
         result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt"))
@@ -906,7 +953,13 @@ def get_background_taxid_2_funcEnum_index_2_associations_old():
         taxid_2_funcEnum_index_2_associations[taxid] = funcEnum_index_2_associations
     return taxid_2_funcEnum_index_2_associations
 
-def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False):
+def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=False, from_pickle=False):
+    if from_pickle:
+        with open(variables.tables_dict["taxid_2_tuple_funcEnum_index_2_associations_counts"], "rb") as fh_in:
+            taxid_2_tuple_funcEnum_index_2_associations_counts = pickle.load(fh_in)
+        return taxid_2_tuple_funcEnum_index_2_associations_counts
+
+
     taxid_2_tuple_funcEnum_index_2_associations_counts = {} # for background preloaded
     if not read_from_flat_files:
         for taxid in get_taxids():
@@ -1044,7 +1097,11 @@ def get_proteins_of_taxid(taxid):
     result = get_results_of_statement("SELECT taxid_2_protein.an_array FROM taxid_2_protein WHERE taxid_2_protein.taxid={}".format(taxid))
     return sorted(result[0][0])
 
-def get_TaxID_2_proteome_count_dict(read_from_flat_files=False):
+def get_TaxID_2_proteome_count_dict(read_from_flat_files=False, from_pickle=False):
+    if from_pickle:
+        with open(variables.tables_dict["taxid_2_proteome_count_dict"], "rb") as fh_taxid_2_proteome_count_dict:
+            taxid_2_proteome_count_dict = pickle.load(fh_taxid_2_proteome_count_dict)
+        return taxid_2_proteome_count_dict
     taxid_2_proteome_count_dict = {}
     if read_from_flat_files:
         result = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt"), columns=[0, 2])
@@ -1130,8 +1187,6 @@ def get_functionAN_2_etype_dict():
 
 if __name__ == "__main__":
     pqo = PersistentQueryObject_STRING(low_memory=True)
-
-
     # import os
     # user = os.environ['POSTGRES_USER']
     # pwd = os.environ['POSTGRES_PASSWORD']
@@ -1175,73 +1230,3 @@ if __name__ == "__main__":
     # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs(ans_list)
     # # print(len(secondary_2_primary_dict))
     # # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs_v2(ans_list)
-
-
-# def __init__(self, low_memory=False):
-    #     print("initializing PQO")
-    #     # super(PersistentQueryObject, self).__init__() # py2 and py3
-    #     # super().__init__() # py3
-    #     # self.type_2_association_dict = self.get_type_2_association_dict()
-    #     # self.go_slim_set = self.get_go_slim_terms()
-    #     # ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-    #     # ### --> obsolete since using functerm_2_level_dict
-    #     # self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-    #     # self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
-    #     #blacklisted_terms_bool_arr
-    #     # self.lineage_dict = {}
-    #     # # key=GO-term, val=set of GO-terms (parents)
-    #     # for go_term_name in self.go_dag:
-    #     #     GOTerm_instance = self.go_dag[go_term_name]
-    #     #     self.lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
-    #     # for term_name in self.upk_dag:
-    #     #     Term_instance = self.upk_dag[term_name]
-    #     #     self.lineage_dict[term_name] = Term_instance.get_all_parents().union(Term_instance.get_all_children())
-    #     #
-    #     # fn_hierarchy = os.path.join(variables.DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
-    #     # self.lineage_dict.update(get_lineage_Reactome(fn_hierarchy))
-    #
-    #     # self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
-    #     # self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
-    #     # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
-    #     # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
-    #     # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
-    #     # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
-    #     self.taxid_2_proteome_count = get_TaxID_2_proteome_count_dict()
-    #
-    #     ### lineage_dict: key: functional_association_term_name val: set of parent terms
-    #     ### functional term 2 hierarchical level dict
-    #     # self.functerm_2_level_dict = defaultdict(lambda: np.nan)
-    #     # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.go_dag))
-    #     # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.upk_dag))
-    #     # del self.go_dag # needed for cluster_filter
-    #     # del self.upk_dag
-    #     # self.functerm_2_level_dict = self.get_functional_term_2_level_dict()
-    #     if not low_memory: # override variables if "low_memory" passed to query initialization
-    #         # low_memory = variables.LOW_MEMORY
-    #     # if not low_memory:
-    #         ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
-    #         # self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity() # cf. if association is string
-    #         # self.function_an_2_description_dict = defaultdict(lambda: np.nan)
-    #         # an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
-    #         # an_2_description_dict = get_function_an_2_description_dict()
-    #         # self.function_an_2_description_dict.update(an_2_description_dict)
-    #
-    #         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory)
-    #     else:
-    #         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = self.get_lookup_arrays(low_memory)
-    #
-    #     self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
-    #     self.function_enumeration_len = self.functionalterm_arr.shape[0]
-    #     if not low_memory:
-    #         #foreground
-    #         self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict()
-    #         #background
-    #         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations()
-    #
-    #     self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
-    #     # self.cond_etypes_with_ontology = self.get_cond_bool_array_of_etypes(variables.entity_types_with_ontology)
-    #     # self.cond_etypes_rem_foreground_ids = self.get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids)
-    #     self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
-    #     self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
-    #     self.lineage_dict_enum = get_lineage_dict_enum()
-    #     self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr()

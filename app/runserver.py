@@ -29,7 +29,7 @@ FN_GO_BASIC = variables.FN_GO_BASIC
 DEBUG = variables.DEBUG
 PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
-MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
+# MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 ARGPARSE = variables.ARGPARSE
 ###############################################################################
@@ -43,7 +43,7 @@ def error_(parser):
 
 if ARGPARSE:
     argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="0.0.0.0", nargs="?")
-    argparse_parser.add_argument("port", help="port number, e.g. '10110' (is also the default)", type=str, default="80", nargs="?")
+    argparse_parser.add_argument("port", help="port number, e.g. '5912' (is also the default)", type=str, default="5912", nargs="?")
     argparse_parser.add_argument("verbose", help="add 'verbose' as an argument to print more information", type=str, default="False", nargs="?")
     args = argparse_parser.parse_args()
     for arg in sorted(vars(args)):

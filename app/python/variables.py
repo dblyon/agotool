@@ -1,4 +1,4 @@
-import os, multiprocessing
+import os, sys, multiprocessing
 import numpy as np
 ############################
 ### settings
@@ -14,12 +14,13 @@ DOCKER = False # app and data directory, within image or shared with local host,
 LOW_MEMORY = False # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
+FROM_PICKLE = True # read PQO data from pickle instead of flatfiles
 DEBUG = False # for flask and some internals for printing, set to False in production
 LOG_USERINPUT_DEBUG = False # turn logging for userinput (args_dict) on or off. False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
-VERBOSE = False # print stuff to stdout
+VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "STRING" # switch between "STRING" and "aGOtool" versions of the program
 temp_dont_run_analysis = False
@@ -70,23 +71,19 @@ cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR
 api_url = "http://0.0.0.0:5911/api" # local
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-# e.g. '/opt/services/flaskapp/src/python'
 if DOCKER:
     APP_DIR = "/opt/services/flaskapp/src"
     DATA_DIR = "/agotool_data"
 else: # relative path on host
     APP_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
     DATA_DIR = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
-    # debug # /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/bak_v11.3
 
-# DATA_DIR = "/agotool_data"
+APP_DIR_SNAKEMAKE = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
+DATA_DIR_SNAKEMAKE = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
 
-# WEBSERVER_DATA = DATA_DIR #os.path.join(PROJECT_DIR, 'data')
-EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata") #os.path.join(PROJECT_DIR, 'data/exampledata')
-SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session') #os.path.join(PROJECT_DIR, 'data/session')
+EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata")
+SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
-
-# FLASK_DATA = APP_DIR
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(APP_DIR, 'static/templates')
 
 # obo files for PRELOAD/persistent objects
@@ -94,20 +91,20 @@ FN_KEYWORDS = os.path.join(DATA_DIR, "PostgreSQL/downloads/keywords-all.obo")
 FN_GO_SLIM = os.path.join(DATA_DIR, "PostgreSQL/downloads/goslim_generic.obo")
 FN_GO_BASIC = os.path.join(DATA_DIR, "PostgreSQL/downloads/go-basic.obo")
 
-##### Maximum Time for MCL clustering
-MAX_TIMEOUT = 5 # minutes
-
 # Flask app
 STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')
 
 # automatic updates
 POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
-TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")# /bak_v11.3") # DEBUG #!!!
+POSTGRESQL_DIR_SNAKEMAKE = os.path.join(DATA_DIR_SNAKEMAKE, "PostgreSQL")
+TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
+TABLES_DIR_SNAKEMAKE = os.path.join(POSTGRESQL_DIR_SNAKEMAKE, "tables")
 STATIC_POSTGRES_DIR = os.path.join(POSTGRESQL_DIR, "static")
 TEST_DIR = os.path.join(TABLES_DIR, "test")
-PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "testing")
+PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "testing/user_input_files")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
-FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema_STRING.md")
+DOWNLOADS_DIR_SNAKEMAKE = os.path.join(POSTGRESQL_DIR_SNAKEMAKE, "downloads")
+FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema.md")
 FN_HELP_ENTITY_TYPES = os.path.join(POSTGRESQL_DIR, "example_help_entity_types.md")
 FN_HELP_PARAMETERS = os.path.join(POSTGRESQL_DIR, "example_help_parameters.md")
 
@@ -220,3 +217,40 @@ def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
 fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
 blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
 # blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
+
+
+##### final Tables / flat-files needed for flask app / PostgreSQL
+if VERSION_ == "UniProt":
+    appendix = "UPS_FIN"
+elif VERSION_ == "STRING":
+    appendix = "STS_FIN"
+else:
+    print("VERSION_ {} not know".format(VERSION_))
+    raise sys.exit(2)
+
+    # if from_pickle:
+    #     with open(variables.tables_dict["taxid_2_proteome_count_dict"], "rb") as fh_taxid_2_proteome_count_dict:
+    #         taxid_2_proteome_count_dict = pickle.load(fh_taxid_2_proteome_count_dict)
+    #     return taxid_2_proteome_count_dict
+
+tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_proteome_count_dict_{}.p".format(appendix)),
+               "kegg_taxid_2_acronym_dict": os.path.join(TABLES_DIR, "kegg_taxid_2_acronym_dict_{}.p".format(appendix)),
+               "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_TaxID_2_acronym_table_{}.txt".format(appendix)),
+               "year_arr": os.path.join(TABLES_DIR, "year_arr_{}.p".format(appendix)),
+               "hierlevel_arr": os.path.join(TABLES_DIR, "hierlevel_arr_{}.p".format(appendix)),
+               "entitytype_arr": os.path.join(TABLES_DIR, "entitytype_arr_{}.p".format(appendix)),
+               "functionalterm_arr": os.path.join(TABLES_DIR, "functionalterm_arr_{}.p".format(appendix)),
+               "indices_arr": os.path.join(TABLES_DIR, "indices_arr_{}.p".format(appendix)),
+               "description_arr": os.path.join(TABLES_DIR, "description_arr_{}.p".format(appendix)),
+               "category_arr": os.path.join(TABLES_DIR, "category_arr_{}.p".format(appendix)),
+               "lineage_dict_enum": os.path.join(TABLES_DIR, "lineage_dict_enum_{}.p".format(appendix)),
+               "blacklisted_terms_bool_arr": os.path.join(TABLES_DIR, "blacklisted_terms_bool_arr_{}.p".format(appendix)),
+               "ENSP_2_functionEnumArray_dict": os.path.join(TABLES_DIR, "ENSP_2_functionEnumArray_dict_{}.p".format(appendix)),
+               "taxid_2_tuple_funcEnum_index_2_associations_counts": os.path.join(TABLES_DIR, "taxid_2_tuple_funcEnum_index_2_associations_counts_{}.p".format(appendix)),
+               "etype_2_minmax_funcEnum": os.path.join(TABLES_DIR, "etype_2_minmax_funcEnum_{}.p".format(appendix)),
+               "etype_cond_dict": os.path.join(TABLES_DIR, "etype_cond_dict_{}.p".format(appendix)),
+               "cond_etypes_with_ontology": os.path.join(TABLES_DIR, "cond_etypes_with_ontology_{}.p".format(appendix)),
+               "cond_etypes_rem_foreground_ids": os.path.join(TABLES_DIR, "cond_etypes_rem_foreground_ids_{}.p".format(appendix))
+               }
+
+TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}

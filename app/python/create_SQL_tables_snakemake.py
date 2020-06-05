@@ -2,13 +2,13 @@ import os, sys
 import gzip
 import pandas as pd
 import numpy as np
-
+import pickle
 from collections import defaultdict
 from collections import deque
 # sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 import re, obo_parser
-import tools, ratio
+import query, tools, ratio
 import variables as variables
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
@@ -543,10 +543,11 @@ def clean_messy_string(string_):
     except TypeError:
         return string_
 
-def concatenate_Functions_tables(fn_list_str, fn_out_temp, fn_out, number_of_processes):
+def concatenate_Functions_tables(fn_list_str, fn_out, number_of_processes):
     # fn_list = [os.path.join(TABLES_DIR, fn) for fn in ["Functions_table_GO.txt", "Functions_table_UPK.txt", "Functions_table_KEGG.txt", "Functions_table_SMART.txt", "Functions_table_PFAM.txt", "Functions_table_InterPro.txt", "Functions_table_RCTM.txt"]]
     fn_list = [fn for fn in fn_list_str]
     # concatenate files
+    fn_out_temp = fn_out + "_temp"
     tools.concatenate_files(fn_list, fn_out_temp)
     # sort
     tools.sort_file(fn_out_temp, fn_out_temp, number_of_processes=number_of_processes)
@@ -1547,7 +1548,7 @@ def parse_taxid_2_proteins_get_all_ENSPs(fn_Taxid_2_Proteins_table_STRING):
     return ENSP_set
 
 def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins_table, fn_in_Functions_table,
-        fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_removed,
+        fn_out_Function_2_ENSP_table_all, fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_removed,
         min_count=1, verbose=True):
     """
     min_count: for each function minimum number of ENSPs per TaxID, e.g. 1 otherwise removed, also from Protein_2_Function_table_STRING
@@ -1561,7 +1562,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
     with open(fn_in_Protein_2_Function_table, "r") as fh_in:
         taxid_ENSP, taxid_last, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func(fh_in.readline())
         fh_in.seek(0)
-        with open(fn_out_Function_2_ENSP_table, "w") as fh_out:
+        with open(fn_out_Function_2_ENSP_table_all, "w") as fh_out:
             with open(fn_out_Function_2_ENSP_table_reduced, "w") as fh_out_reduced:
                 with open(fn_out_Function_2_ENSP_table_removed, "w") as fh_out_removed:
                     for line in fh_in:
@@ -1602,7 +1603,7 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
                             fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
     tools.sort_file(fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_reduced)
     if verbose:
-        print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
+        print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table_all, fn_out_Function_2_ENSP_table_reduced))
 
 def Functions_table_STRING_reduced(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
     # create Functions_table_STRING_reduced
@@ -1801,6 +1802,7 @@ def Functions_table_PMID_cleanup(Functions_table_PMID_all, max_len_description, 
     -56     PMID:26516301   (....) Mining the Breast Cancer Proteome for Predictors of Drug Sensitivity.    ....    -1
     """
     hierarchy = "-1\n"
+    max_len_description = int(max_len_description) # since can be passed as string by Snakemake
     tags_2_remove = re.compile("|".join([r"<[^>]+>", r"\[Purpose\]", r"\\", "\/"]))
     with open(Functions_table_PMID, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Functions_table_PMID_all):
@@ -1843,6 +1845,29 @@ def helper_clean_messy_string(string_):
     else:
         return string_
 
+def pickle_PMID_autoupdates(Taxid_2_FunctionCountArray_table_STRING, output_list):
+    # Taxid_2_Proteins_table_STRING, KEGG_Taxid_2_acronym_table, Functions_table_STRING_reduced, Lineage_table_STRING, Protein_2_FunctionEnum_table_STRING, Taxid_2_FunctionCountArray_table_STRING = input_list
+    assert os.path.exists(Taxid_2_FunctionCountArray_table_STRING)
+    taxid_2_proteome_count_dict, kegg_taxid_2_acronym_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, lineage_dict_enum, blacklisted_terms_bool_arr, ENSP_2_functionEnumArray_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, etype_2_minmax_funcEnum, etype_cond_dict = output_list
+    # , cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+    pqo = query.PersistentQueryObject_STRING(low_memory=False, read_from_flat_files=True, from_pickle=False)
+    pickle.dump(pqo.taxid_2_proteome_count_dict, open(taxid_2_proteome_count_dict, "wb"))
+    pickle.dump(pqo.kegg_taxid_2_acronym_dict, open(kegg_taxid_2_acronym_dict, "wb"))
+    pickle.dump(pqo.year_arr, open(year_arr, "wb"))
+    pickle.dump(pqo.hierlevel_arr, open(hierlevel_arr, "wb"))
+    pickle.dump(pqo.entitytype_arr, open(entitytype_arr, "wb"))
+    pickle.dump(pqo.functionalterm_arr, open(functionalterm_arr, "wb"))
+    pickle.dump(pqo.indices_arr, open(indices_arr, "wb"))
+    pickle.dump(pqo.description_arr, open(description_arr, "wb"))
+    pickle.dump(pqo.category_arr, open(category_arr, "wb"))
+    pickle.dump(pqo.lineage_dict_enum, open(lineage_dict_enum, "wb"))
+    pickle.dump(pqo.blacklisted_terms_bool_arr, open(blacklisted_terms_bool_arr, "wb"))
+    pickle.dump(pqo.ENSP_2_functionEnumArray_dict, open(ENSP_2_functionEnumArray_dict, "wb"))
+    pickle.dump(pqo.taxid_2_tuple_funcEnum_index_2_associations_counts, open(taxid_2_tuple_funcEnum_index_2_associations_counts, "wb"))
+    pickle.dump(pqo.etype_2_minmax_funcEnum, open(etype_2_minmax_funcEnum, "wb"))
+    pickle.dump(pqo.etype_cond_dict, open(etype_cond_dict, "wb"))
+    # pickle.dump(pqo.cond_etypes_with_ontology, open(cond_etypes_with_ontology, "wb"))
+    # pickle.dump(pqo.cond_etypes_rem_foreground_ids, open(cond_etypes_rem_foreground_ids, "wb"))
 
 
 

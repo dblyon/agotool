@@ -1,6 +1,7 @@
 import os, sys
-# sys.path.insert(0, os.path.join(os.getcwd(), "python"))
+sys.path.insert(0, os.path.join(os.getcwd(), "python"))
 # import variables_snakemake as variables
+from importlib import reload
 import variables
 import create_SQL_tables_snakemake as cst
 import download_resources_snakemake as drs
@@ -16,6 +17,7 @@ hostname = socket.gethostname()
 DOWNLOADS_DIR = variables.DOWNLOADS_DIR_SNAKEMAKE
 TABLES_DIR = variables.TABLES_DIR_SNAKEMAKE
 PYTHON_DIR = variables.PYTHON_DIR
+TABLES_DICT = variables.TABLES_DICT_SNAKEMAKE
 NUMBER_OF_PROCESSES = variables.NUMBER_OF_PROCESSES
 if NUMBER_OF_PROCESSES > 10:
     NUMBER_OF_PROCESSES_sorting = 10
@@ -24,17 +26,30 @@ else:
 verbose = variables.VERBOSE
 TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
 
+# ToDo
+# - tar and pbzip2, run on Aquarius
+# - profile code --> maybe change ast.literal_eval, and or flat file style from "{...}" to simple ";" as delimiter
+# - uWSGI zerg dance
+# - run PMID_autoupdates on Aquarius
+# - set up pytests --> DF with file sizes
+# - fix bug: after running pipeline DF should be updated and also transferred to where pytest runs
+# - create Crontab for PMID_updates on Atlas
+### nginx config aquarius
+# /etc/nginx/sites-available/agotool.org.conf
+# root@imlslnx-sagittarius:/etc/apache2/sites-enabled# cat agotool.meringlab.org
+
+
+
 ### Parameters
 max_len_description = 250
 min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID for a each functional_association
 
-
 ### weekly downloads
 URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
-Protein_2_Function_table_PMID = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID.txt")
 URL_Function_2_Description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
-Functions_table_PMID = os.path.join(DOWNLOADS_DIR, "Functions_table_PMID_all.txt.gz")
 Functions_table_PMID_all = os.path.join(DOWNLOADS_DIR, "Functions_table_PMID_all.txt.gz")
+Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
+Protein_2_Function_table_PMID = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID.txt")
 
 ### static files from STRING v11
 Entity_types_table_STRING = os.path.join(TABLES_DIR, "Entity_types_table_STRING.txt")
@@ -42,20 +57,41 @@ Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt")
 Functions_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Functions_table_STRING_all_but_PMID.txt")
 Protein_2_Function_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all_but_PMID.txt")
 Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+KEGG_Taxid_2_acronym_table = TABLES_DICT_SNAKEMAKE["KEGG_Taxid_2_acronym_table"]
 
 ### files to be created STRING final
-# Functions_table_STRING_reduced below
+Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt") # final table
+Functions_table_STRING_reduced = os.path.join(TABLES_DIR, "Functions_table_STRING.txt") # final table
 Protein_2_FunctionEnum_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt")
+Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt") # final
 Taxid_2_FunctionCountArray_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
 
 ### intermediate temp files
-Protein_2_Function_table_STRING = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
-Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_reduced.txt")
 Functions_table_STRING_all = os.path.join(TABLES_DIR, "Functions_table_STRING_all.txt")
 Functions_table_STRING_removed = os.path.join(TABLES_DIR, "Functions_table_STRING_removed.txt")
-Functions_table_STRING = os.path.join(TABLES_DIR, "Functions_table_STRING.txt") # reduced final table
-# Protein_2_Function_table_STRING_reduced
+Function_2_ENSP_table_STRING_all = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_all.txt")
+Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")
+Protein_2_Function_table_STRING_all = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all.txt")
+Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
 
+### pickled results
+taxid_2_proteome_count_dict = TABLES_DICT_SNAKEMAKE["taxid_2_proteome_count_dict"]
+kegg_taxid_2_acronym_dict = TABLES_DICT_SNAKEMAKE["kegg_taxid_2_acronym_dict"]
+year_arr = TABLES_DICT_SNAKEMAKE["year_arr"]
+hierlevel_arr = TABLES_DICT_SNAKEMAKE["hierlevel_arr"]
+entitytype_arr = TABLES_DICT_SNAKEMAKE["entitytype_arr"]
+functionalterm_arr = TABLES_DICT_SNAKEMAKE["functionalterm_arr"]
+indices_arr = TABLES_DICT_SNAKEMAKE["indices_arr"]
+description_arr = TABLES_DICT_SNAKEMAKE["description_arr"]
+category_arr = TABLES_DICT_SNAKEMAKE["category_arr"]
+lineage_dict_enum = TABLES_DICT_SNAKEMAKE["lineage_dict_enum"]
+blacklisted_terms_bool_arr = TABLES_DICT_SNAKEMAKE["blacklisted_terms_bool_arr"]
+ENSP_2_functionEnumArray_dict = TABLES_DICT_SNAKEMAKE["ENSP_2_functionEnumArray_dict"]
+taxid_2_tuple_funcEnum_index_2_associations_counts = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
+etype_2_minmax_funcEnum = TABLES_DICT_SNAKEMAKE["etype_2_minmax_funcEnum"]
+etype_cond_dict = TABLES_DICT_SNAKEMAKE["etype_cond_dict"]
+cond_etypes_with_ontology = TABLES_DICT_SNAKEMAKE["cond_etypes_with_ontology"]
+cond_etypes_rem_foreground_ids = TABLES_DICT_SNAKEMAKE["cond_etypes_rem_foreground_ids"]
 
 
 rule download_Protein_2_Function_PMID:
@@ -80,50 +116,49 @@ rule download_Functions_2_Descriptions_PMID:
 
 rule r_Functions_table_PMID_cleanup:
     input:
-        Functions_table_PMID_all = Functions_table_PMID_all,
+        Functions_table_PMID_all = Functions_table_PMID_all
+    params:
         max_len_description = max_len_description
     output:
         Functions_table_PMID = Functions_table_PMID
     run:
-        cst.Functions_table_PMID_cleanup(input.Functions_table_PMID_all, input.max_len_description, output.Functions_table_PMID)
+        cst.Functions_table_PMID_cleanup(input.Functions_table_PMID_all, params.max_len_description, output.Functions_table_PMID)
 
 rule r_Functions_table_STRING_all:
     input:
-        fn_list_str = [Functions_table_STRING_all_but_PMID,
-                       Functions_table_PMID]
+        Functions_table_STRING_all_but_PMID = Functions_table_STRING_all_but_PMID,
+        Functions_table_PMID = Functions_table_PMID
     output:
         Functions_table_STRING_all = Functions_table_STRING_all
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_table_STRING_all, threads)
+        cst.concatenate_Functions_tables(input, output.Functions_table_STRING_all, threads)
 
-rule r_Protein_2_Function_table_STRING:
+rule r_Protein_2_Function_table_STRING_all:
     input:
         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         fn_list_str = [Protein_2_Function_table_STRING_all_but_PMID,
                        Protein_2_Function_table_PMID]
     output:
-        Protein_2_Function_table_STRING = Protein_2_Function_table_STRING
+        Protein_2_Function_table_STRING_all = Protein_2_Function_table_STRING_all
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_Function_table_STRING(input.fn_list_str, input.Taxid_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING, threads)
-
+        cst.Protein_2_Function_table_STRING(input.fn_list_str, input.Taxid_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING_all, threads)
 
 rule r_Function_2_ENSP_table:
     input:
-        Protein_2_Function_table_STRING = Protein_2_Function_table_STRING, # Protein_2_Function_table_STRING_all_but_PMID
+        Protein_2_Function_table_STRING_all = Protein_2_Function_table_STRING_all,
         Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         Functions_table_STRING_all = Functions_table_STRING_all,
     output:
-        Function_2_ENSP_table_STRING = Function_2_ENSP_table_STRING,
+        Function_2_ENSP_table_STRING_all = Function_2_ENSP_table_STRING_all,
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
-        Function_2_ENSP_table_STRING_removed = Function_2_ENSP_table_STRING_removed
+        Function_2_ENSP_table_STRING_removed = Function_2_ENSP_table_STRING_removed,
     params:
         min_count = min_count,
         verbose = verbose
     run:
-        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING, input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
-
+        cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING_all, input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING_all, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
 
 rule r_Functions_table_STRING: # reduce to relevant part
     input:
@@ -131,30 +166,69 @@ rule r_Functions_table_STRING: # reduce to relevant part
         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced
     output:
         Functions_table_STRING_removed = Functions_table_STRING_removed,
-        Functions_table_STRING = Functions_table_STRING
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced
     run:
-        cst.Functions_table_STRING_reduced(input.Functions_table_STRING_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_STRING)
-
-
-
+        cst.Functions_table_STRING_reduced(input.Functions_table_STRING_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_STRING_reduced)
 
 rule r_Protein_2_Function_table_reduced:
     input:
-        Protein_2_Function_table_STRING = Protein_2_Function_table_STRING,
+        Protein_2_Function_table_STRING_all = Protein_2_Function_table_STRING_all,
         Function_2_ENSP_table_STRING_removed = Function_2_ENSP_table_STRING_removed,
-        Functions_table_STRING = Functions_table_STRING
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced
     output:
         Protein_2_Function_table_STRING_reduced = Protein_2_Function_table_STRING_reduced,
         Protein_2_Function_table_STRING_removed = Protein_2_Function_table_STRING_removed
     run:
-        cst.reduce_Protein_2_Function_table(input.Protein_2_Function_table_STRING, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
+        cst.reduce_Protein_2_Function_table(input.Protein_2_Function_table_STRING_all, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_reduced, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
 
 rule r_Protein_2_FunctionEnum_table_STRING:
     input:
         Protein_2_Function_table_STRING_reduced = Protein_2_Function_table_STRING_reduced,
-        Functions_table_STRING = Functions_table_STRING
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced
     output:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Protein_2_FunctionEnum_table_STRING(input.Functions_table_STRING, input.Protein_2_Function_table_STRING_reduced, output.Protein_2_FunctionEnum_table_STRING, threads)
+        cst.Protein_2_FunctionEnum_table_STRING(input.Functions_table_STRING_reduced, input.Protein_2_Function_table_STRING_reduced, output.Protein_2_FunctionEnum_table_STRING, threads)
+
+rule r_Taxid_2_FunctionCountArray_table_STRING:
+    input:
+        Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+        Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING
+    output:
+        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
+    threads: NUMBER_OF_PROCESSES_sorting
+    params:
+        verbose = verbose
+    run:
+        cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads)
+
+rule r_pickle_final_results:
+    input:
+        # Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
+        # KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
+        # Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+        # Lineage_table_STRING = Lineage_table_STRING,
+        # Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
+        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
+    output:
+        taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
+        kegg_taxid_2_acronym_dict = kegg_taxid_2_acronym_dict,
+        year_arr = year_arr,
+        hierlevel_arr = hierlevel_arr,
+        entitytype_arr = entitytype_arr,
+        functionalterm_arr = functionalterm_arr,
+        indices_arr = indices_arr,
+        description_arr = description_arr,
+        category_arr = category_arr,
+        lineage_dict_enum = lineage_dict_enum,
+        blacklisted_terms_bool_arr = blacklisted_terms_bool_arr,
+        ENSP_2_functionEnumArray_dict = ENSP_2_functionEnumArray_dict,
+        taxid_2_tuple_funcEnum_index_2_associations_counts = taxid_2_tuple_funcEnum_index_2_associations_counts,
+        etype_2_minmax_funcEnum = etype_2_minmax_funcEnum,
+        etype_cond_dict = etype_cond_dict
+        # cond_etypes_with_ontology = cond_etypes_with_ontology,
+        # cond_etypes_rem_foreground_ids = cond_etypes_rem_foreground_ids
+    run:
+        cst.pickle_PMID_autoupdates(input.Taxid_2_FunctionCountArray_table_STRING, output)
