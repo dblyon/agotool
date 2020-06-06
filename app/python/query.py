@@ -448,7 +448,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             read_from_flat_files = variables.READ_FROM_FLAT_FILES
         if from_pickle is None:
             from_pickle = variables.FROM_PICKLE
-        print(repr(from_pickle), from_pickle, type(from_pickle))
+        # print(repr(from_pickle), from_pickle, type(from_pickle))
         if variables.VERBOSE:
             print("#"*80)
             print("initializing PQO")

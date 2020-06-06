@@ -1,5 +1,6 @@
 import os, sys, multiprocessing
 import numpy as np
+import pickle
 ############################
 ### settings
 PRELOAD = True  # set True in production for STRING_v11 (not for UniProt)
@@ -201,24 +202,6 @@ blacklisted_terms = {'GO:0003674', 'GO:0005575', 'GO:0008150',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999'}
 # 'KW-9990' 'Technical term' and all its children
 
-def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
-    "| enum | etype | an | description | year | level |"
-    blacklisted_enum_terms = []
-    with open(fn_functions_table, "r") as fh:
-        for line in fh:
-            line_split = line.split("\t")
-            enum = line_split[0]
-            an = line_split[2]
-            if an in blacklisted_terms:
-                blacklisted_enum_terms.append(int(enum))
-    blacklisted_enum_terms = sorted(blacklisted_enum_terms)
-    return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
-
-fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
-blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
-# blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
-
-
 ##### final Tables / flat-files needed for flask app / PostgreSQL
 if VERSION_ == "UniProt":
     appendix = "UPS_FIN"
@@ -227,11 +210,6 @@ elif VERSION_ == "STRING":
 else:
     print("VERSION_ {} not know".format(VERSION_))
     raise sys.exit(2)
-
-    # if from_pickle:
-    #     with open(variables.tables_dict["taxid_2_proteome_count_dict"], "rb") as fh_taxid_2_proteome_count_dict:
-    #         taxid_2_proteome_count_dict = pickle.load(fh_taxid_2_proteome_count_dict)
-    #     return taxid_2_proteome_count_dict
 
 tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_proteome_count_dict_{}.p".format(appendix)),
                "kegg_taxid_2_acronym_dict": os.path.join(TABLES_DIR, "kegg_taxid_2_acronym_dict_{}.p".format(appendix)),
@@ -250,7 +228,32 @@ tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_
                "etype_2_minmax_funcEnum": os.path.join(TABLES_DIR, "etype_2_minmax_funcEnum_{}.p".format(appendix)),
                "etype_cond_dict": os.path.join(TABLES_DIR, "etype_cond_dict_{}.p".format(appendix)),
                "cond_etypes_with_ontology": os.path.join(TABLES_DIR, "cond_etypes_with_ontology_{}.p".format(appendix)),
-               "cond_etypes_rem_foreground_ids": os.path.join(TABLES_DIR, "cond_etypes_rem_foreground_ids_{}.p".format(appendix))
+               "cond_etypes_rem_foreground_ids": os.path.join(TABLES_DIR, "cond_etypes_rem_foreground_ids_{}.p".format(appendix)),
+               "blacklisted_enum_terms": os.path.join(TABLES_DIR, "blacklisted_enum_terms_{}.p".format(appendix))
                }
 
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
+
+
+def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms, FROM_PICKLE=True):
+    "| enum | etype | an | description | year | level |"
+    if FROM_PICKLE:
+        with open(tables_dict["blacklisted_enum_terms"], "rb") as fh:
+            blacklisted_enum_terms = pickle.load(fh)
+        return blacklisted_enum_terms
+    blacklisted_enum_terms = []
+    with open(fn_functions_table, "r") as fh:
+        for line in fh:
+            line_split = line.split("\t")
+            enum = line_split[0]
+            an = line_split[2]
+            if an in blacklisted_terms:
+                blacklisted_enum_terms.append(int(enum))
+    blacklisted_enum_terms = sorted(blacklisted_enum_terms)
+    return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
+
+fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
+# blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
+
+

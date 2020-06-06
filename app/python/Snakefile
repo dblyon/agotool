@@ -44,7 +44,7 @@ TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
 max_len_description = 250
 min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID for a each functional_association
 
-### weekly downloads
+### weekly downloads # Sunday ~ 14h done --> start cronjob at 20h to be on the safe side
 URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_protein2function.tsv.gz"
 URL_Function_2_Description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
 Functions_table_PMID_all = os.path.join(DOWNLOADS_DIR, "Functions_table_PMID_all.txt.gz")
@@ -92,6 +92,7 @@ etype_2_minmax_funcEnum = TABLES_DICT_SNAKEMAKE["etype_2_minmax_funcEnum"]
 etype_cond_dict = TABLES_DICT_SNAKEMAKE["etype_cond_dict"]
 cond_etypes_with_ontology = TABLES_DICT_SNAKEMAKE["cond_etypes_with_ontology"]
 cond_etypes_rem_foreground_ids = TABLES_DICT_SNAKEMAKE["cond_etypes_rem_foreground_ids"]
+blacklisted_enum_terms = TABLES_DICT_SNAKEMAKE["blacklisted_enum_terms"]
 
 
 rule download_Protein_2_Function_PMID:
@@ -227,7 +228,8 @@ rule r_pickle_final_results:
         ENSP_2_functionEnumArray_dict = ENSP_2_functionEnumArray_dict,
         taxid_2_tuple_funcEnum_index_2_associations_counts = taxid_2_tuple_funcEnum_index_2_associations_counts,
         etype_2_minmax_funcEnum = etype_2_minmax_funcEnum,
-        etype_cond_dict = etype_cond_dict
+        etype_cond_dict = etype_cond_dict,
+        blacklisted_enum_terms = blacklisted_enum_terms
         # cond_etypes_with_ontology = cond_etypes_with_ontology,
         # cond_etypes_rem_foreground_ids = cond_etypes_rem_foreground_ids
     run:
