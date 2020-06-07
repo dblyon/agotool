@@ -1846,25 +1846,41 @@ def helper_clean_messy_string(string_):
         return string_
 
 
-def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
-    "| enum | etype | an | description | year | level |"
-    blacklisted_enum_terms = []
-    with open(fn_functions_table, "r") as fh:
-        for line in fh:
-            line_split = line.split("\t")
-            enum = line_split[0]
-            an = line_split[2]
-            if an in blacklisted_terms:
-                blacklisted_enum_terms.append(int(enum))
-    blacklisted_enum_terms = sorted(blacklisted_enum_terms)
-    return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
+# def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
+#     "| enum | etype | an | description | year | level |"
+#     blacklisted_enum_terms = []
+#     with open(fn_functions_table, "r") as fh:
+#         for line in fh:
+#             line_split = line.split("\t")
+#             enum = line_split[0]
+#             an = line_split[2]
+#             if an in blacklisted_terms:
+#                 blacklisted_enum_terms.append(int(enum))
+#     blacklisted_enum_terms = sorted(blacklisted_enum_terms)
+#     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
 
+# def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms, FROM_PICKLE=True):
+#     """| enum | etype | an | description | year | level |"""
+#     if FROM_PICKLE:
+#         with open(variables.tables_dict["blacklisted_enum_terms"], "rb") as fh:
+#             blacklisted_enum_terms = pickle.load(fh)
+#         return blacklisted_enum_terms
+#     blacklisted_enum_terms = []
+#     with open(fn_functions_table, "r") as fh:
+#         for line in fh:
+#             line_split = line.split("\t")
+#             enum = line_split[0]
+#             an = line_split[2]
+#             if an in blacklisted_terms:
+#                 blacklisted_enum_terms.append(int(enum))
+#     blacklisted_enum_terms = sorted(blacklisted_enum_terms)
+#     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
 
-def pickle_PMID_autoupdates(Taxid_2_FunctionCountArray_table_STRING, Functions_table_STRING_reduced, output_list):
+def pickle_PMID_autoupdates(Taxid_2_FunctionCountArray_table_STRING, output_list): # Functions_table_STRING_reduced
     # Taxid_2_Proteins_table_STRING, KEGG_Taxid_2_acronym_table, Functions_table_STRING_reduced, Lineage_table_STRING, Protein_2_FunctionEnum_table_STRING, Taxid_2_FunctionCountArray_table_STRING = input_list
     assert os.path.exists(Taxid_2_FunctionCountArray_table_STRING)
-    taxid_2_proteome_count_dict, kegg_taxid_2_acronym_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, lineage_dict_enum, blacklisted_terms_bool_arr, ENSP_2_functionEnumArray_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, etype_2_minmax_funcEnum, etype_cond_dict, blacklisted_enum_terms = output_list
-    # , cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
+    taxid_2_proteome_count_dict, kegg_taxid_2_acronym_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, lineage_dict_enum, blacklisted_terms_bool_arr, ENSP_2_functionEnumArray_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, etype_2_minmax_funcEnum, etype_cond_dict = output_list
+    # , cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, blacklisted_terms_bool_arr
     pqo = query.PersistentQueryObject_STRING(low_memory=False, read_from_flat_files=True, from_pickle=False)
     pickle.dump(pqo.taxid_2_proteome_count_dict, open(taxid_2_proteome_count_dict, "wb"))
     pickle.dump(pqo.kegg_taxid_2_acronym_dict, open(kegg_taxid_2_acronym_dict, "wb"))
@@ -1883,12 +1899,8 @@ def pickle_PMID_autoupdates(Taxid_2_FunctionCountArray_table_STRING, Functions_t
     pickle.dump(pqo.etype_cond_dict, open(etype_cond_dict, "wb"))
     # pickle.dump(pqo.cond_etypes_with_ontology, open(cond_etypes_with_ontology, "wb"))
     # pickle.dump(pqo.cond_etypes_rem_foreground_ids, open(cond_etypes_rem_foreground_ids, "wb"))
-
-    blacklisted_enum_terms = variables.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms)
-    pickle.dump(blacklisted_enum_terms, open(blacklisted_enum_terms, "wb"))
-
-
-
+    # blacklisted_enum_terms = query.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms, FROM_PICKLE=False)
+    # pickle.dump(blacklisted_enum_terms, open(blacklisted_enum_terms, "wb"))
 
 if __name__ == "__main__":
     # create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM()

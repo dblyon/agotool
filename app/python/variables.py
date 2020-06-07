@@ -213,7 +213,7 @@ else:
 
 tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_proteome_count_dict_{}.p".format(appendix)),
                "kegg_taxid_2_acronym_dict": os.path.join(TABLES_DIR, "kegg_taxid_2_acronym_dict_{}.p".format(appendix)),
-               "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_TaxID_2_acronym_table_{}.txt".format(appendix)),
+               "kegg_taxid_2_acronym_table": os.path.join(TABLES_DIR, "kegg_taxid_2_acronym_table_{}.txt".format(appendix)),
                "year_arr": os.path.join(TABLES_DIR, "year_arr_{}.p".format(appendix)),
                "hierlevel_arr": os.path.join(TABLES_DIR, "hierlevel_arr_{}.p".format(appendix)),
                "entitytype_arr": os.path.join(TABLES_DIR, "entitytype_arr_{}.p".format(appendix)),
@@ -229,31 +229,32 @@ tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_
                "etype_cond_dict": os.path.join(TABLES_DIR, "etype_cond_dict_{}.p".format(appendix)),
                "cond_etypes_with_ontology": os.path.join(TABLES_DIR, "cond_etypes_with_ontology_{}.p".format(appendix)),
                "cond_etypes_rem_foreground_ids": os.path.join(TABLES_DIR, "cond_etypes_rem_foreground_ids_{}.p".format(appendix)),
-               "blacklisted_enum_terms": os.path.join(TABLES_DIR, "blacklisted_enum_terms_{}.p".format(appendix))
+               # "blacklisted_enum_terms": os.path.join(TABLES_DIR, "blacklisted_enum_terms_{}.p".format(appendix)),
+               # os.path.join(TABLES_DIR, "Functions_table_STRING.txt") --> STS_FIN
                }
 
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
 
 
-def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms, FROM_PICKLE=True):
-    "| enum | etype | an | description | year | level |"
-    if FROM_PICKLE:
-        with open(tables_dict["blacklisted_enum_terms"], "rb") as fh:
-            blacklisted_enum_terms = pickle.load(fh)
-        return blacklisted_enum_terms
-    blacklisted_enum_terms = []
-    with open(fn_functions_table, "r") as fh:
-        for line in fh:
-            line_split = line.split("\t")
-            enum = line_split[0]
-            an = line_split[2]
-            if an in blacklisted_terms:
-                blacklisted_enum_terms.append(int(enum))
-    blacklisted_enum_terms = sorted(blacklisted_enum_terms)
-    return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
-
-fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
-blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
+# def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms, FROM_PICKLE=True):
+#     "| enum | etype | an | description | year | level |"
+#     if FROM_PICKLE:
+#         with open(tables_dict["blacklisted_enum_terms"], "rb") as fh:
+#             blacklisted_enum_terms = pickle.load(fh)
+#         return blacklisted_enum_terms
+#     blacklisted_enum_terms = []
+#     with open(fn_functions_table, "r") as fh:
+#         for line in fh:
+#             line_split = line.split("\t")
+#             enum = line_split[0]
+#             an = line_split[2]
+#             if an in blacklisted_terms:
+#                 blacklisted_enum_terms.append(int(enum))
+#     blacklisted_enum_terms = sorted(blacklisted_enum_terms)
+#     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
+#
+# fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
+# blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
 # blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
 
 

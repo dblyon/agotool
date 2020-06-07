@@ -57,7 +57,7 @@ Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt")
 Functions_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Functions_table_STRING_all_but_PMID.txt")
 Protein_2_Function_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all_but_PMID.txt")
 Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
-KEGG_Taxid_2_acronym_table = TABLES_DICT_SNAKEMAKE["KEGG_Taxid_2_acronym_table"]
+KEGG_Taxid_2_acronym_table = TABLES_DICT_SNAKEMAKE["kegg_taxid_2_acronym_table"]
 
 ### files to be created STRING final
 Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt") # final table
@@ -212,7 +212,8 @@ rule r_pickle_final_results:
         # Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         # Lineage_table_STRING = Lineage_table_STRING,
         # Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
-        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
+        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING,
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced
     output:
         taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
         kegg_taxid_2_acronym_dict = kegg_taxid_2_acronym_dict,
@@ -229,8 +230,8 @@ rule r_pickle_final_results:
         taxid_2_tuple_funcEnum_index_2_associations_counts = taxid_2_tuple_funcEnum_index_2_associations_counts,
         etype_2_minmax_funcEnum = etype_2_minmax_funcEnum,
         etype_cond_dict = etype_cond_dict,
-        blacklisted_enum_terms = blacklisted_enum_terms
+        # blacklisted_enum_terms = blacklisted_enum_terms
         # cond_etypes_with_ontology = cond_etypes_with_ontology,
         # cond_etypes_rem_foreground_ids = cond_etypes_rem_foreground_ids
     run:
-        cst.pickle_PMID_autoupdates(input.Taxid_2_FunctionCountArray_table_STRING, output)
+        cst.pickle_PMID_autoupdates(input.Taxid_2_FunctionCountArray_table_STRING, input.Functions_table_STRING_reduced, output)

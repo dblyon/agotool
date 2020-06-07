@@ -561,7 +561,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             return blacklisted_terms_bool_arr
         blacklisted_terms_bool_arr = np.zeros(self.function_enumeration_len, dtype=np.dtype("uint8"))
         # use uint8 and code as 0, 1 instead to make into mem view
-        for term_enum in variables.blacklisted_enum_terms:
+        blacklisted_enum_terms = get_blacklisted_enum_terms(os.path.join(variables.TABLES_DIR, "Functions_table_STRING.txt"), variables.blacklisted_terms, FROM_PICKLE=False) # intentional from_pickle
+        for term_enum in blacklisted_enum_terms: # variables.blacklisted_enum_terms:
             blacklisted_terms_bool_arr[term_enum] = True
         blacklisted_terms_bool_arr.flags.writeable = False
         return blacklisted_terms_bool_arr
@@ -704,6 +705,24 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             etype_2_association_dict[etype][an] = set(associations_list)
         return etype_2_association_dict
 
+def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms, FROM_PICKLE=True):
+    """| enum | etype | an | description | year | level |"""
+    if FROM_PICKLE:
+        with open(variables.tables_dict["blacklisted_enum_terms"], "rb") as fh:
+            blacklisted_enum_terms = pickle.load(fh)
+        return blacklisted_enum_terms
+    blacklisted_enum_terms = []
+    with open(fn_functions_table, "r") as fh:
+        for line in fh:
+            line_split = line.split("\t")
+            enum = line_split[0]
+            an = line_split[2]
+            if an in blacklisted_terms:
+                blacklisted_enum_terms.append(int(enum))
+    blacklisted_enum_terms = sorted(blacklisted_enum_terms)
+    return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
+
+
 def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True, from_pickle=False):
     if from_pickle:
         with open(variables.tables_dict["kegg_taxid_2_acronym_dict"], "rb") as fh:
@@ -712,7 +731,7 @@ def get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True, from_pickle=False):
 
     KEGG_TaxID_2_acronym_dict = {}
     if read_from_flat_files:
-        results = get_results_of_statement_from_flat_file(os.path.join(variables.TABLES_DIR, "KEGG_Taxid_2_acronym_table.txt"))
+        results = get_results_of_statement_from_flat_file(variables.tables_dict["kegg_taxid_2_acronym_table"])
     else:
         raise NotImplementedError # result = get_results_of_statement()
     for res in results:
