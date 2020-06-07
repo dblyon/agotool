@@ -92,7 +92,6 @@ etype_2_minmax_funcEnum = TABLES_DICT_SNAKEMAKE["etype_2_minmax_funcEnum"]
 etype_cond_dict = TABLES_DICT_SNAKEMAKE["etype_cond_dict"]
 cond_etypes_with_ontology = TABLES_DICT_SNAKEMAKE["cond_etypes_with_ontology"]
 cond_etypes_rem_foreground_ids = TABLES_DICT_SNAKEMAKE["cond_etypes_rem_foreground_ids"]
-blacklisted_enum_terms = TABLES_DICT_SNAKEMAKE["blacklisted_enum_terms"]
 
 
 rule download_Protein_2_Function_PMID:
@@ -212,8 +211,7 @@ rule r_pickle_final_results:
         # Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         # Lineage_table_STRING = Lineage_table_STRING,
         # Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
-        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING,
-        Functions_table_STRING_reduced = Functions_table_STRING_reduced
+        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
     output:
         taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
         kegg_taxid_2_acronym_dict = kegg_taxid_2_acronym_dict,
@@ -234,4 +232,4 @@ rule r_pickle_final_results:
         # cond_etypes_with_ontology = cond_etypes_with_ontology,
         # cond_etypes_rem_foreground_ids = cond_etypes_rem_foreground_ids
     run:
-        cst.pickle_PMID_autoupdates(input.Taxid_2_FunctionCountArray_table_STRING, input.Functions_table_STRING_reduced, output)
+        cst.pickle_PMID_autoupdates(input.Taxid_2_FunctionCountArray_table_STRING, output)
