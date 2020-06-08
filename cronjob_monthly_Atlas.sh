@@ -55,6 +55,7 @@ rsync -av /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2
 check_exit_status
 
 # on production server, decompress files, populate DB, restart service
+echo "now attempting to run script on production server cronjob_update_aGOtool_Aquarius.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
 echo "\n--- finished Cronjob ---\n"
 

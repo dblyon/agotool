@@ -12,6 +12,7 @@ check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
 
+echo "running script on production server cronjob_update_aGOtool_Aquarius.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 # shellcheck disable=SC2028
 echo "\n### unpacking tar bzip files\n"
 pbzip2 -p8 -dc /home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2 | tar x
