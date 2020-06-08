@@ -8,6 +8,7 @@
 #TAR_FILE_NAME=$1
 #LOG_UPDATES=$2
 
+echo "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
