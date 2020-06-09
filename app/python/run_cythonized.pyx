@@ -1125,8 +1125,6 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
         cond_kegg = etype_cond_dict["cond_52"]
         cond_2_return = cond_2_return & ~cond_kegg
 
-
-
     funcEnum_indices_for_IDs = indices_arr[cond_2_return]
     foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
     if not low_memory:
@@ -1154,6 +1152,12 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     #cols_2_return_sort_order = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category']
     df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
     df_2_return["FG_n"] = foreground_n
+    # rank everything correctly except PMIDs, "year"-column will only affect PMIDs
+    df_2_return = df_2_return.sort_values(["etype", "year", "FG_count"], ascending=[True, False, False]).reset_index(drop=True)
+    cond_PMIDs = df_2_return["etype"] == -56
+    df_2_return.loc[~cond_PMIDs, "rank"] = df_2_return[~cond_PMIDs].groupby("etype")["FG_count"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
+    df_2_return.loc[cond_PMIDs, "rank"] = df_2_return[cond_PMIDs].groupby("etype")["year"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
+    df_2_return["rank"] = df_2_return["rank"].astype(int)
     return df_2_return[cols_2_return_sort_order]
 
 def filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_arr_of_string, funcEnum_count_foreground, year_arr, p_values, indices_arr, ENSP_2_functionEnumArray_dict, cond_filter, etype_cond_dict, cond_PMIDs, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, over_under_int_arr, cond_KS_etypes, KS_etypes_FG_IDs=True):

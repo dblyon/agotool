@@ -771,7 +771,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
     ### compact results
     if compact_or_comprehensive == "compact":
         if args_dict["enrichment_method"] == "characterize_foreground":
-            cols_compact = [FG_count, "term", "description", ratio_in_FG]
+            cols_compact = [rank, "term", "description", ratio_in_FG] # [FG_count, "term", "description", ratio_in_FG]
             for etype, group in df_all_etypes.groupby("etype"):
                 num_rows = group.shape[0]
                 if num_rows > 0:
