@@ -1115,6 +1115,8 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
         cond_2_return[etype_cond_dict["cond_56"]] = False
         for index_ in indices_PMID:
             cond_2_return[index_] = True
+    ### exclude blacklisted terms
+    cond_2_return[blacklisted_terms_bool_arr > 0] = False
 
     try:
         privileged = args_dict["privileged"]
