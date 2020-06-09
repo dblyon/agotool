@@ -138,7 +138,7 @@ def test_ENSP_vs_UniProtID(i):
 
 # examples from webpage need to work
 def test_web_example_1():
-    df = pd.read_csv(os.path.join(variables.EXAMPLE_FOLDER, "Example_1_Yeast_acetylation_abundance_correction.txt"), sep='\t')
+    df = pd.read_csv(os.path.join(variables.EXAMPLE_FOLDER, "Example_Yeast_acetylation_abundance_correction.txt"), sep='\t')
     fg_id_string = "%0d".join(df.loc[df["Foreground"].notnull(), "Foreground"].tolist())
     bg_id_string = "%0d".join(df["Background"].tolist())
     bg_abundance_string = "%0d".join(df["Intensity"].astype(str).tolist())

@@ -1105,6 +1105,17 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     else:
         cond_2_return = funcEnum_count_foreground >= 1
 
+    ### limit PMID results
+    filter_PMID_top_n = args_dict["filter_PMID_top_n"]
+    if filter_PMID_top_n is not None:
+        cond_PMID_2_filter = cond_2_return & etype_cond_dict["cond_56"]
+        df_PMID = pd.DataFrame({"foreground_count": funcEnum_count_foreground[cond_PMID_2_filter].view(), "year": year_arr[cond_PMID_2_filter].view(), "indices_arr": indices_arr[cond_PMID_2_filter].view()})
+        indices_PMID = df_PMID.sort_values(["foreground_count", "year"], ascending=[False, False])["indices_arr"].values[:filter_PMID_top_n]
+        # set all PMIDs to False and then include only those that were selected
+        cond_2_return[etype_cond_dict["cond_56"]] = False
+        for index_ in indices_PMID:
+            cond_2_return[index_] = True
+
     try:
         privileged = args_dict["privileged"]
     except KeyError:
@@ -1113,6 +1124,8 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
         # remove KEGG unless privileged
         cond_kegg = etype_cond_dict["cond_52"]
         cond_2_return = cond_2_return & ~cond_kegg
+
+
 
     funcEnum_indices_for_IDs = indices_arr[cond_2_return]
     foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
@@ -1185,6 +1198,7 @@ def filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_a
     if not KS_etypes_FG_IDs:
         foreground_ids_arr_of_string[cond_KS_etypes] = "" # commented out for STRING
     return foreground_ids_arr_of_string, funcEnum_indices_for_IDs, cond_etypes_with_ontology_filtered, cond_etypes_rem_foreground_ids_filtered, cond_filter
+
 
 @boundscheck(False)
 @wraparound(False)

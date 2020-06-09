@@ -788,7 +788,7 @@ if __name__ == "__main__":
     # foreground_input = sorted(get_random_human_ENSP(foreground_n, joined_for_web=False, contiguous=contiguous))
     enrichment_method = "compare_samples"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
     fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1.1_Yeast_acetylation_without_abundance.txt"
-        #Example_3_Niu_PlasmaCirrhosis_compare_samples.txt" #compare_groups_v2.txt" # ExampleData_for_testing.txt" # Example_1_Yeast_acetylation_abundance_correction.txt
+        #Example_3_Niu_PlasmaCirrhosis_compare_samples.txt" #compare_groups_v2.txt" # ExampleData_for_testing.txt" # Example_Yeast_acetylation_abundance_correction.txt
     # fn_userinput = r"/Users/dblyon/Downloads/ExampleData.txt"
     from_file = False  # read user input from file
     args_dict = {}

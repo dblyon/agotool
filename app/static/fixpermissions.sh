@@ -11,3 +11,7 @@ chmod 777 /home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh
 ##!/bin/sh
 #chmod a+x /home/dblyon/agotool/app/static/fixpermissions.sh
 #/home/dblyon/agotool/app/static/fixpermissions.sh
+
+# ### don't forget to
+# chmod 777 post-merge
+# chmod 777 post-checkout

@@ -438,15 +438,15 @@ def download_results_data(filename):
 ################################################################################
 # db_schema.html
 ################################################################################
-@app.route("/db_schema")
-def db_schema():
-    with open(variables.FN_DATABASE_SCHEMA, "r") as fh:
-        content = fh.read()
-    # content = content.replace("{", "\{").replace("}", "\}")
-    # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
-    # content = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
-    content = format_markdown(content)
-    return render_template("db_schema.html", **locals())
+# @app.route("/db_schema")
+# def db_schema():
+#     with open(variables.FN_DATABASE_SCHEMA, "r") as fh:
+#         content = fh.read()
+#     # content = content.replace("{", "\{").replace("}", "\}")
+#     # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
+#     # content = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
+#     content = format_markdown(content)
+#     return render_template("db_schema.html", **locals())
 
 ################################################################################
 # FAQ.html
@@ -577,20 +577,16 @@ characterize_foreground: Foreground only""")
 
 class Example_1(Enrichment_Form):
     """
-    example 1: Yeast acetylation,
-    abundance_correction. Example_1_Yeast_acetylation_abundance_correction.txt
+    characterize_foreground
+    replace with Covid-19 example
+    previously example 4: Cation-dependent mannose-6-phosphate receptor, MPRD_HUMAN, Gene M6PR
     """
-    df = pd.read_csv(os.path.join(variables.EXAMPLE_FOLDER, "Example_1_Yeast_acetylation_abundance_correction.txt"), sep='\t')
-    fg = "\n".join(df.loc[df["Foreground"].notnull(), "Foreground"].tolist())
-    bg_int = ""
-    for bg_ele, int_ele in zip(df["Background"].values, df["Intensity"].values):
-        bg_int += bg_ele + "\t" + str(int_ele) + "\n"
-    foreground_textarea = fields.TextAreaField("Foreground", default=fg)
-    background_textarea = fields.TextAreaField("Background & Intensity", default=bg_int.strip())
-    enrichment_method = fields.SelectField("Enrichment method", choices=(("abundance_correction", "abundance_correction"), ("compare_samples", "compare_samples"), ("genome", "genome"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
-    compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
-
+    # foreground_textarea = fields.TextAreaField("Foreground", default="""MPRD_HUMAN""")
+    # enrichment_method = fields.SelectField("Enrichment method", choices=(("characterize_foreground", "characterize_foreground"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome")), description="""abundance_correction: Foreground vs Background abundance corrected
+    # compare_samples: Foreground vs Background (no abundance correction)
+    # characterize_foreground: Foreground only""")
+    foreground_textarea = fields.TextAreaField("Foreground", default="""O15393\nP09958\nQ92499\nQ9BYF1\nO43765\nP05231\nP08887\nP20701\nP35232\nP40189\nP52292\nP84022\nQ10589\nQ8N3R9\nQ99623\nP0C6U8\nP0C6X7\nP0DTC1\nP0DTD1\nP0DTC2\nP59594\nP59595\nP59632\nP59635\nP59636\nP59637\nP59596\nP59633\nP59634\nP0DTC3\nP0DTC5\nP0DTC7\nP0DTC9\nP0DTC4\nP0DTC6\nP0DTC8\nP0DTD2\nQ7TFA1\nQ7TLC7\nQ80H93\nP0DTD3\nP0DTD8\nQ7TFA0\nA0A663DJA2""")
+    enrichment_method = fields.SelectField("Enrichment method", choices=(("characterize_foreground", "characterize_foreground"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome")), description="""abundance_correction: Foreground vs Background abundance corrected  # compare_samples: Foreground vs Background (no abundance correction)  # characterize_foreground: Foreground only""")
 
 class Example_2(Enrichment_Form):
     """
@@ -605,10 +601,25 @@ class Example_2(Enrichment_Form):
     characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
 
-
 class Example_3(Enrichment_Form):
     """
-    example 3: Mouse interferon (STRING network)
+    example 3: Yeast acetylation,
+    abundance_correction. Example_Yeast_acetylation_abundance_correction.txt
+    """
+    df = pd.read_csv(os.path.join(variables.EXAMPLE_FOLDER, "Example_Yeast_acetylation_abundance_correction.txt"), sep='\t')
+    fg = "\n".join(df.loc[df["Foreground"].notnull(), "Foreground"].tolist())
+    bg_int = ""
+    for bg_ele, int_ele in zip(df["Background"].values, df["Intensity"].values):
+        bg_int += bg_ele + "\t" + str(int_ele) + "\n"
+    foreground_textarea = fields.TextAreaField("Foreground", default=fg)
+    background_textarea = fields.TextAreaField("Background & Intensity", default=bg_int.strip())
+    enrichment_method = fields.SelectField("Enrichment method", choices=(("abundance_correction", "abundance_correction"), ("compare_samples", "compare_samples"), ("genome", "genome"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
+    compare_samples: Foreground vs Background (no abundance correction)
+    characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
+
+class Example_4(Enrichment_Form):
+    """
+    example 4: Mouse interferon (STRING network)
     compare_samples
     """
     foreground_textarea = fields.TextAreaField("Foreground", default="""Q9R117\nP33896\nO35664\nO35716\nP01575\nP42225\nP07351\nP52332\nQ9WVL2\nQ61179\nQ61716""")
@@ -620,20 +631,9 @@ class Example_3(Enrichment_Form):
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606 for Homo sapiens)")
 
 
-class Example_4(Enrichment_Form):
-    """
-    example 4: Cation-dependent mannose-6-phosphate receptor, MPRD_HUMAN, Gene M6PR
-    characterize_foreground
-    """
-    foreground_textarea = fields.TextAreaField("Foreground", default="""MPRD_HUMAN""")
-    enrichment_method = fields.SelectField("Enrichment method", choices=(("characterize_foreground", "characterize_foreground"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome")), description="""abundance_correction: Foreground vs Background abundance corrected
-    compare_samples: Foreground vs Background (no abundance correction)
-    characterize_foreground: Foreground only""")
-
-
 @app.route('/example_1')
 def example_1():
-    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="Yeast acetylation", example_description="""comparing acetylated yeast (Saccharomyces cerevisiae) proteins to the experimentally observed proteome using the 'abundance_correction' method. Data was taken from the original publication (see 'About' page).""")
+    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak", example_description="""characterize the foreground: SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak (from https://covid-19.uniprot.org).""")
 
 @app.route('/example_2')
 def example_2():
@@ -641,12 +641,11 @@ def example_2():
 
 @app.route('/example_3')
 def example_3():
-    return render_template('enrichment.html', form=Example_3(), example_status="example_3", example_title="Mouse interferon", example_description="""comparing a couple of mouse interferons to the reference proteome, applying the 'compare_samples' method.""")
-
+    return render_template('enrichment.html', form=Example_3(), example_status="example_1", example_title="Yeast acetylation", example_description="""comparing acetylated yeast (Saccharomyces cerevisiae) proteins to the experimentally observed proteome using the 'abundance_correction' method. Data was taken from the original publication (see 'About' page).""")
 
 @app.route('/example_4')
 def example_4():
-    return render_template('enrichment.html', form=Example_4(), example_status="example_4", example_title="show functional annotations for the gene M6PR", example_description="""characterize the foreground. Cation-dependent mannose-6-phosphate receptor, MPRD_HUMAN, Gene M6PR.""")
+    return render_template('enrichment.html', form=Example_4(), example_status="example_4", example_title="Mouse interferon", example_description="""comparing a couple of mouse interferons to the reference proteome, applying the 'compare_samples' method.""")
 
 @app.route('/')
 def enrichment():

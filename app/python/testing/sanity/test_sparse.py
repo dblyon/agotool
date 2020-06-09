@@ -139,7 +139,7 @@ def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_Yeast_acetylation()
     """
     Protein_2_FunctionEnum_and_Score_table_UPS_FIN vs SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN
     """
-    fn_userinput = os.path.join(variables.EXAMPLE_FOLDER, "Example_1_Yeast_acetylation_abundance_correction.txt")
+    fn_userinput = os.path.join(variables.EXAMPLE_FOLDER, "Example_Yeast_acetylation_abundance_correction.txt")
     df = pd.read_csv(fn_userinput, sep='\t')
     fg = df.loc[df["Foreground"].notnull(), "Foreground"].tolist() # redundant UniProt accessions
     UniProtID_2_test_list = list(query.map_secondary_2_primary_ANs(fg).values()) # no more redundancy
@@ -173,7 +173,7 @@ def test_Protein_2_FunctionEnum_and_Score_sparse_vs_flatfile_Yeast_acetylation()
 
 # def test_Protein_2_FunctionEnum_and_Score_Yeast_acetylation_KS_Cython_vs_Scipy_counting():
 #     funcName = "GOCC:0005634" # "Nucleus"
-#     fn_userinput = os.path.join(variables.EXAMPLE_FOLDER, "Example_1_Yeast_acetylation_abundance_correction.txt")
+#     fn_userinput = os.path.join(variables.EXAMPLE_FOLDER, "Example_Yeast_acetylation_abundance_correction.txt")
 #     df = pd.read_csv(fn_userinput, sep='\t')
 #     fg = df.loc[df["Foreground"].notnull(), "Foreground"].tolist()  # redundant UniProt accessions
 #     UniProtID_2_test_list = list(query.map_secondary_2_primary_ANs(fg).values())  # no more redundancy
