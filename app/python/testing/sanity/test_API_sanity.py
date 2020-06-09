@@ -137,6 +137,7 @@ def test_ENSP_vs_UniProtID(i):
     pd_testing.assert_frame_equal(df_UP, df_ENSP)
 
 # examples from webpage need to work
+# check p_value vs FDR
 def test_web_example_1():
     df = pd.read_csv(os.path.join(variables.EXAMPLE_FOLDER, "Example_Yeast_acetylation_abundance_correction.txt"), sep='\t')
     fg_id_string = "%0d".join(df.loc[df["Foreground"].notnull(), "Foreground"].tolist())
@@ -149,6 +150,8 @@ def test_web_example_1():
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 50
     assert df.groupby("category").count().shape[0] >= 5 # at least 5 categories with significant results, last time I checked (2020 04 01)
+    cond_FDR = df["p_value"] <= df["FDR"]
+    assert sum(cond_FDR) == len(cond_FDR)
 
 def test_web_example_2():
     fg_string = "%0d".join(["P69905", "P68871", "P02042", "P02100"])
@@ -157,6 +160,8 @@ def test_web_example_2():
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 100
     assert df.groupby("category").count().shape[0] >= 9 # at least 9 categories with significant results, last time I checked (2020 04 01)
+    cond_FDR = df["p_value"] <= df["FDR"]
+    assert sum(cond_FDR) == len(cond_FDR)
 
 def test_web_example_3():
     fg_string = "%0d".join(["Q9R117", "P33896", "O35664", "O35716", "P01575", "P42225", "P07351", "P52332", "Q9WVL2", "Q61179", "Q61716"])
@@ -167,6 +172,8 @@ def test_web_example_3():
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 700
     assert df.groupby("category").count().shape[0] >= 11  # at least 11 categories with significant results, last time I checked (2020 04 01)
+    cond_FDR = df["p_value"] <= df["FDR"]
+    assert sum(cond_FDR) == len(cond_FDR)
 
 def test_web_example_4():
     fg_string = "MPRD_HUMAN"

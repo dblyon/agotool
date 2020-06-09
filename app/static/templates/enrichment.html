@@ -23,9 +23,9 @@
     <h1 class="row text-center">ENRICHMENT</h1>
     <br>
         <div class="row"><h3>Drag & drop or click to upload a file</h3></div>
-        <div class="col-md-10">Please see the <a href="{{ url_for('example') }}">Example</a> page or try one of the examples below.</div>
+        <div class="col-md-10">Please see the <a class="grey_underline" href="{{ url_for('example') }}">Example</a> page or try one of the examples below.</div>
             <div class="col-md-8">
-                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }} (see <a href="{{ url_for('parameters') }}">Parameters</a> for details): {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
+                <span title="{{ form.userinput_file.description }}">{{ form.userinput_file.label }} (see <a class="grey_underline" href="{{ url_for('parameters') }}">Parameters</a> for details): {{ form.userinput_file(class="filestyle btn-info" , **{"data-buttonText" : "Upload file"}) }}</span>
                     {% if form.userinput_file.errors %}
                     <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
