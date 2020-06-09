@@ -1,3 +1,4 @@
+
 env_file_Aquarius_bak
 *.npy
 *.npz
@@ -8,6 +9,7 @@ env_file_Aquarius_bak
 !.gitignore
 !DF_file_dimensions_log.txt
 !Example_Yeast_acetylation_abundance_correction.txt
+!ExampleData_results_orig.txt
 
 env_file
 *.nfs*
