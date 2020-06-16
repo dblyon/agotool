@@ -58,6 +58,11 @@ Functions_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Functions_table_
 Protein_2_Function_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all_but_PMID.txt")
 Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 KEGG_Taxid_2_acronym_table = TABLES_DICT_SNAKEMAKE["kegg_taxid_2_acronym_table"]
+Protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
+GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
 
 ### files to be created STRING final
 Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt") # final table
@@ -73,6 +78,8 @@ Function_2_ENSP_table_STRING_all = os.path.join(TABLES_DIR, "Function_2_ENSP_tab
 Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING_removed.txt")
 Protein_2_Function_table_STRING_all = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all.txt")
 Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
+
+AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "afc_ks/"))
 
 ### pickled results
 taxid_2_proteome_count_dict = TABLES_DICT_SNAKEMAKE["taxid_2_proteome_count_dict"]
@@ -233,3 +240,20 @@ rule r_pickle_final_results:
         # cond_etypes_rem_foreground_ids = cond_etypes_rem_foreground_ids
     run:
         cst.pickle_PMID_autoupdates(input.Taxid_2_FunctionCountArray_table_STRING, output)
+
+rule r_AFC_KS_enrichment_terms_flat_files:
+    input:
+        Protein_shorthands = Protein_shorthands,
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
+        KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
+        GO_basic_obo = GO_basic_obo,
+        UPK_obo = UPK_obo,
+        RCTM_hierarchy = RCTM_hierarchy,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree
+    output:
+        AFC_KS_DIR = AFC_KS_DIR
+    params:
+        verbose = verbose
+    run:
+        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_Taxid_2_acronym_table, input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)

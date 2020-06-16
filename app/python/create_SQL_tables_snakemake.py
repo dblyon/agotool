@@ -1767,7 +1767,7 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
                 try:
                     acronym = taxid_2_acronym_dict[taxid]
                 except KeyError:
-                    print("no KEGG acronym translation for TaxID: {}".format(taxid))
+                    # print("no KEGG acronym translation for TaxID: {}".format(taxid))
                     acronym = "map"
                 association = association.replace("map", acronym)
             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
