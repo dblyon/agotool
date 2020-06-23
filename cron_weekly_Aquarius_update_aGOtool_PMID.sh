@@ -42,5 +42,9 @@ check_exit_status
 #docker exec -it
 echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
 cd /home/dblyon/PMID_autoupdate/agotool/app
-/home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
+#/home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt # previously, but now using "chain-reload"
+echo c > master.fifo
 check_exit_status
+
+# uwsgi --reload uwsgi_aGOtool_master_PID.txt
+# uwsgi --touch-chain-reload uwsgi_aGOtool_master_PID.txt
