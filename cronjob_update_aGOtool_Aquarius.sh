@@ -42,5 +42,6 @@ check_exit_status
 #docker exec -it
 echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
 cd /home/dblyon/agotool/app
-/home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
+# /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt # deprecated
+echo c > master.fifo
 check_exit_status

@@ -12,17 +12,17 @@ check_exit_status () {
 ### Header message
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 
-### tar and compress previous files for backup
-echo "\n### tar and compress previous files for backup\n"
-TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
-cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
-### create tar of relevant flat files
-
-find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
-check_exit_status
-### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-pbzip2 -p10 $TAR_FILE_NAME &
-check_exit_status
+#### tar and compress previous files for backup --> commented out: since too many backups
+#echo "\n### tar and compress previous files for backup\n"
+#TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
+#cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
+#### create tar of relevant flat files
+#
+#find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
+#check_exit_status
+#### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
+#pbzip2 -p10 $TAR_FILE_NAME &
+#check_exit_status
 
 ### run snakemake pipeline
 echo "\n### run snakemake pipeline\n"
@@ -39,7 +39,7 @@ cd /mnt/mnemo5/dblyon/agotool/app/python
 
 # tar and compress new files for backup
 echo "\n### tar and compress new files for backup\n"
-TAR_FILE_NAME=aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
+TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
 cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 # create tar of relevant flat files
 find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf $TAR_FILE_NAME
@@ -57,6 +57,10 @@ check_exit_status
 # on production server, decompress files, populate DB, restart service
 echo "now attempting to run script on production server cronjob_update_aGOtool_Aquarius.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
+check_exit_status
+### remove tar, but not bz2
+rm $TAR_FILE_NAME
+
 echo "\n--- finished Cronjob ---\n"
 
 
