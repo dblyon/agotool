@@ -1,0 +1,47 @@
+stages:
+  - test
+  - deploy
+
+variables:
+  PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
+  PYTEST: "/home/dblyon/anaconda3/envs/agotool/bin/pytest"
+
+before_script:
+    - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
+    - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
+
+test:
+  stage: test
+  tags:
+    - aquarius
+  script:
+    - echo "$(date)"
+    - echo $DATE
+    - $PYTHON -V
+    - $PYTEST --version
+    - echo "$USER"
+    - echo $HOSTNAME
+    - echo $TAR_FILE_NAME
+
+    ## PyTest
+    - cd /home/dblyon/PMID_autoupdate/agotool/app/testing/sanity
+    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
+
+job:on-schedule:
+  only:
+    - schedules
+  stage: test
+  tags:
+    - aquarius
+  script:
+    - echo "$(date)"
+    - echo $DATE
+    - $PYTHON -V
+    - $PYTEST --version
+    - echo "$USER"
+    - echo $HOSTNAME
+    - echo $TAR_FILE_NAME
+
+    ## PyTest
+    - cd /home/dblyon/PMID_autoupdate/agotool/app/testing/sanity
+    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
