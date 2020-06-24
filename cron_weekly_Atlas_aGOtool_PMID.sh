@@ -12,18 +12,6 @@ check_exit_status () {
 ### Header message
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 
-### tar and compress previous files for backup
-echo "\n### tar and compress previous files for backup\n"
-TAR_FILE_NAME=bak_aGOtool_PMID_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
-cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-### create tar of relevant flat files
-
-find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar cvf $TAR_FILE_NAME
-check_exit_status
-### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-pbzip2 -p10 $TAR_FILE_NAME &
-check_exit_status
-
 ### run snakemake pipeline
 echo "\n### run snakemake pipeline\n"
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/app/python
@@ -36,23 +24,50 @@ check_exit_status
 
 # automated testing here!!! ToDo if tests pass --> then proceed with the rest
 
-
-# tar and compress new files for backup
-echo "\n### tar and compress new files for backup\n"
-TAR_FILE_NAME=aGOtool_PMID_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
+### tar and compress new files for transfer and backup
+echo "\n### tar and compress new files for transfer and backup\n"
+TAR_FILE_NAME=bak_aGOtool_PMID_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-# create tar of relevant flat files
+### create tar of relevant flat files
+
 find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
-
-# compress for quick transfer and backup, keep tar
-pbzip2 -k -p10 $TAR_FILE_NAME
+### compress for quick transfer
+pbzip2 -p10 $TAR_FILE_NAME
 check_exit_status
-
 # copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
 rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
 check_exit_status
+### delete tar but keep tar.bz2
+rm $TAR_FILE_NAME
+
+
+### AFC_KS file: tar and gzip current, bz2 backup, remove tar
+cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+check_exit_status
+tar -cf AFC_KS_flat_files_current.tar ./afc_ks
+check_exit_status
+gzip -kf AFC_KS_flat_files_current.tar
+check_exit_status
+pbzip2 -p10 AFC_KS_flat_files_current.tar
+check_exit_status
+mv AFC_KS_flat_files_current.tar.bz2 bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
+check_exit_status
+
+
+## tar and compress new files for backup
+#echo "\n### tar and compress new files for backup\n"
+#TAR_FILE_NAME=bak_aGOtool_PMID_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
+#cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+## create tar of relevant flat files
+#find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar cvf $TAR_FILE_NAME
+#check_exit_status
+#
+## compress for quick transfer and backup, keep tar
+#pbzip2 -k -p10 $TAR_FILE_NAME
+#check_exit_status
+
 
 # on production server, decompress files, populate DB, restart service
 echo "now attempting to run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
