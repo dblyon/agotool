@@ -39,6 +39,7 @@ check_exit_status
 echo "\n### copy files to Aquarius (production server)\n"
 rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
 check_exit_status
+#rsync -avz /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@san.embl.de:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar # won't work yet due to ssh prompting for pw
 ### delete tar but keep tar.bz2
 rm $TAR_FILE_NAME
 
@@ -70,8 +71,13 @@ check_exit_status
 
 
 # on production server, decompress files, populate DB, restart service
-echo "now attempting to run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+### Aquarius
+#echo "now attempting to run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+#ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+
+### San
+cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+ssh dblyon@san.embl.de '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 echo "\n--- finished Cronjob ---\n"
 
 
