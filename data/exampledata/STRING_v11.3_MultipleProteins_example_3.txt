@@ -1,0 +1,170 @@
+category	term	number_of_genes	number_of_genes_in_background	ncbiTaxonId	inputGenes	preferredNames	p_value	fdr	description
+Component	GO.0005737	4	3684	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	0.0049	0.0216	cytoplasm
+Component	GO.0005768	2	183	7227	7227.FBpp0077788,7227.FBpp0099945	smo,hh	0.001	0.0076	endosome
+Component	GO.0005886	3	1085	7227	7227.FBpp0077788,7227.FBpp0088443,7227.FBpp0099945	smo,ptc,hh	0.0018	0.0098	plasma membrane
+Component	GO.0005887	2	471	7227	7227.FBpp0077788,7227.FBpp0088443	smo,ptc	0.0066	0.0264	integral component of plasma membrane
+Component	GO.0005929	2	122	7227	7227.FBpp0077788,7227.FBpp0088443	smo,ptc	0.00047000000000000004	0.0041	cilium
+Component	GO.0016020	4	2553	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	0.0011	0.0076	membrane
+Component	GO.0030139	2	21	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	1.56e-05	0.0006900000000000001	endocytic vesicle
+Component	GO.0031410	3	324	7227	7227.FBpp0077788,7227.FBpp0088443,7227.FBpp0099945	smo,ptc,hh	5.03e-05	0.0011	cytoplasmic vesicle
+Component	GO.0043227	4	4110	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	0.0076	0.0264	membrane-bounded organelle
+Component	GO.0043229	4	4624	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	0.0122	0.0334	intracellular organelle
+Function	GO.0004888	2	339	7227	7227.FBpp0077788,7227.FBpp0088443	smo,ptc	0.0035	0.0364	transmembrane signaling receptor activity
+Function	GO.0005113	2	4	7227	7227.FBpp0077788,7227.FBpp0099945	smo,hh	9.27e-07	3.8900000000000004e-05	patched binding
+Function	GO.0005515	4	2272	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	0.0007099999999999999	0.0149	protein binding
+KEGG	dme04341	4	36	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.8200000000000003e-11	5.8200000000000003e-11	Hedgehog signaling pathway - fly
+Keyword	KW-0217	4	599	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.47e-06	5.9e-05	Developmental protein
+Keyword	KW-0709	3	21	7227	7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	ci,ptc,hh	1.79e-08	6.1e-07	Segmentation polarity protein
+PMID	PMID.10352011	4	25	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.51e-11	2.04e-09	(1999) Heptahelical receptor signaling: beyond the G protein paradigm.
+PMID	PMID.10457013	4	7	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.1e-13	4.58e-10	(1999) Differential requirements of the fused kinase for hedgehog signalling in the Drosophila embryo.
+PMID	PMID.10983991	4	4	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.46e-14	4.58e-10	(2000) Posttranscriptional regulation of smoothened is part of a self-correcting mechanism in the Hedgehog signaling system.
+PMID	PMID.11667962	4	15	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.4700000000000006e-12	7.46e-10	(2000) From fruitflies to mammals: mechanisms of signalling via the Sonic hedgehog pathway in lung development.
+PMID	PMID.11734468	4	8	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.15e-13	4.58e-10	(2001) Do lung remodeling, repair, and regeneration recapitulate respiratory ontogeny?
+PMID	PMID.12437769	4	4	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.46e-14	4.58e-10	(2002) Roughing up Smoothened: chemical modulators of hedgehog signaling.
+PMID	PMID.12437772	4	16	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.0800000000000002e-12	8.800000000000001e-10	(2002) Small-molecule modulators of Hedgehog signaling: identification and characterization of Smoothened agonists and antagonists.
+PMID	PMID.12874118	4	9	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.55e-13	4.58e-10	(2003) Smoothened translates Hedgehog levels into distinct responses.
+PMID	PMID.14566027	4	9	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.55e-13	4.58e-10	(2003) Expression of hedgehog proteins in the human thymus.
+PMID	PMID.15104233	4	7	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.1e-13	4.58e-10	(2004) Regulation of Hedgehog signaling: a complex story.
+PMID	PMID.15123884	4	27	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.0000000000000002e-11	2.39e-09	(2004) Genetic Cross-Talk During Head Development in Drosophila.
+PMID	PMID.15268766	4	12	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.16e-12	6.610000000000001e-10	(2004) The FU gene and its possible protein isoforms.
+PMID	PMID.15547729	4	7	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.1e-13	4.58e-10	(2004) KIF27 is one of orthologs for Drosophila Costal-2.
+PMID	PMID.16197551	4	20	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	6.7599999999999995e-12	1.29e-09	(2005) Differential range and activity of various forms of the Hedgehog protein.
+PMID	PMID.17183721	4	26	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.74e-11	2.1899999999999997e-09	(2006) Wnt, Hedgehog and junctional Armadillobeta-catenin establish planar polarity in the Drosophila embryo.
+PMID	PMID.17284519	4	5	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	8.02e-14	4.58e-10	(2007) A large complex containing Patched and Smoothened initiates Hedgehog signaling in Drosophila.
+PMID	PMID.17658259	4	7	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.1e-13	4.58e-10	(2007) Evidence for a novel feedback loop in the Hedgehog pathway involving Smoothened and Fused.
+PMID	PMID.17848995	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2007) An amphioxus Gli gene reveals conservation of midline patterning and the evolution of hedgehog signalling diversity in chordates.
+PMID	PMID.18334026	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2008) Evolution of hedgehog and hedgehog-related genes, their origin from Hog proteins in ancestral eukaryotes and discovery of a novel Hint motif.
+PMID	PMID.18378682	4	23	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.1199999999999999e-11	1.66e-09	(2008) Novel human glioma-associated oncogene 1 (GLI1) splice variants reveal distinct mechanisms in the terminal transduction of the hedgehog signal.
+PMID	PMID.18392879	4	25	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.51e-11	2.04e-09	(2008) Hedgehog signaling pathway function conserved in Tribolium segmentation.
+PMID	PMID.18488998	4	21	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	8.05e-12	1.4300000000000002e-09	(2008) Intraflagellar transport, cilia, and mammalian Hedgehog signaling: analysis in mouse embryonic fibroblasts.
+PMID	PMID.18691888	4	28	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.29e-11	2.64e-09	(2008) Costal2 functions as a kinesin-like protein in the hedgehog signal transduction pathway.
+PMID	PMID.18987629	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2008) G protein Galphai functions immediately downstream of Smoothened in Hedgehog signalling.
+PMID	PMID.19004860	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2008) C2cd3 is required for cilia formation and Hedgehog signaling in mouse.
+PMID	PMID.19040769	4	21	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	8.05e-12	1.4300000000000002e-09	(2008) The Hedgehog protein family.
+PMID	PMID.19056373	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2009) Phosphorylation of Gli2 by protein kinase A is required for Gli2 processing and degradation and the Sonic Hedgehog-regulated mouse development.
+PMID	PMID.19124651	4	24	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.2999999999999999e-11	1.8600000000000002e-09	(2009) Progenitor cell proliferation in the retina is dependent on Notch-independent Sonic hedgehogHes1 activity.
+PMID	PMID.19365551	4	13	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.52e-12	6.610000000000001e-10	(2009) Smoothened adopts multiple active and inactive conformations capable of trafficking to the primary cilium.
+PMID	PMID.19371734	4	18	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.66e-12	1.09e-09	(2009) Suppressor of Fused inhibits mammalian Hedgehog signaling in the absence of cilia.
+PMID	PMID.19389352	4	24	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.2999999999999999e-11	1.8600000000000002e-09	(2009) Germ cell migration in zebrafish is cyclopamine-sensitive but Smoothened-independent.
+PMID	PMID.19659647	4	25	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.51e-11	2.04e-09	(2009) Development, repair and fibrosis: what is common and why it matters.
+PMID	PMID.19787036	4	12	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.16e-12	6.610000000000001e-10	(2009) Dynamic interpretation of hedgehog signaling in the Drosophila wing disc.
+PMID	PMID.20362092	4	28	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.29e-11	2.64e-09	(2009) The primary cilium as a Hedgehog signal transduction machine.
+PMID	PMID.20487519	4	15	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.4700000000000006e-12	7.46e-10	(2010) Gli2a protein localization reveals a role for IguanaDZIP1 in primary ciliogenesis and a dependence of Hedgehog signal transduction on primary cilia in the zebrafish.
+PMID	PMID.20643350	4	26	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.74e-11	2.1899999999999997e-09	(2010) Role of lipid metabolism in smoothened derepression in hedgehog signaling.
+PMID	PMID.20647470	4	16	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.0800000000000002e-12	8.800000000000001e-10	(2010) Hedgehog signaling regulates segment formation in the annelid Platynereis.
+PMID	PMID.20687907	4	12	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.16e-12	6.610000000000001e-10	(2010) Vertebrate Hedgehog signaling: cilia rule.
+PMID	PMID.20850015	4	18	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.66e-12	1.09e-09	(2010) Patterning axon targeting of olfactory receptor neurons by coupled hedgehog signaling at two distinct steps.
+PMID	PMID.20850429	4	19	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.639999999999999e-12	1.21e-09	(2010) Costal 2 interactions with Cubitus interruptus (Ci) underlying Hedgehog-regulated Ci processing.
+PMID	PMID.20956384	4	19	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.639999999999999e-12	1.21e-09	(2010) A mechanism for vertebrate Hedgehog signaling: recruitment to cilia and dissociation of SuFu-Gli protein complexes.
+PMID	PMID.21044292	4	20	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	6.7599999999999995e-12	1.29e-09	(2010) Ihog and Boi are essential for Hedgehog signaling in Drosophila.
+PMID	PMID.21098113	4	18	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.66e-12	1.09e-09	(2010) Drosophila Boi limits Hedgehog levels to suppress follicle stem cell proliferation.
+PMID	PMID.21133842	4	17	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.81e-12	9.79e-10	(2010) Hedgehog signaling in hematopoiesis.
+PMID	PMID.21203590	4	13	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.52e-12	6.610000000000001e-10	(2010) Visualization of Gli activity in craniofacial tissues of hedgehog-pathway reporter transgenic zebrafish.
+PMID	PMID.21209912	4	16	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.0800000000000002e-12	8.800000000000001e-10	(2010) Coordinated translocation of mammalian Gli proteins and suppressor of fused to the primary cilium.
+PMID	PMID.21215260	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2011) C. elegans patched-3 is an essential gene implicated in osmoregulation and requiring an intact permease transporter domain.
+PMID	PMID.21490725	4	12	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.16e-12	6.610000000000001e-10	(2011) Cell-sorting at the AP boundary in the Drosophila wing primordium: a computational model to consolidate observed non-local effects of Hh signaling.
+PMID	PMID.21664578	4	20	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	6.7599999999999995e-12	1.29e-09	(2011) Hedgehog activates fused through phosphorylation to elicit a full spectrum of pathway responses.
+PMID	PMID.21844892	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2011) Transduction of the Hedgehog signal through the dimerization of Fused and the nuclear translocation of Cubitus interruptus.
+PMID	PMID.21906949	4	18	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.66e-12	1.09e-09	(2011) Hedgehog signaling regulates nociceptive sensitization.
+PMID	PMID.22228099	4	19	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.639999999999999e-12	1.21e-09	(2012) BBS proteins interact genetically with the IFT pathway to influence SHH-related phenotypes.
+PMID	PMID.22253574	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2012) Hedgehog-regulated ubiquitination controls smoothened trafficking and cell surface expression in Drosophila.
+PMID	PMID.22391302	4	17	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.81e-12	9.79e-10	(2012) Identification, functional characterization, and pathobiological significance of GLI1 isoforms in human cancers.
+PMID	PMID.22537496	4	14	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.95e-12	6.610000000000001e-10	(2012) Hh-induced Smoothened conformational switch is mediated by differential phosphorylation at its C-terminal tail in a dose- and position-dependent manner.
+PMID	PMID.22705500	4	26	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.74e-11	2.1899999999999997e-09	(2012) Regulation of Yorkie activity in Drosophila imaginal discs by the Hedgehog receptor gene patched.
+PMID	PMID.23227236	4	12	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.16e-12	6.610000000000001e-10	(2012) Differential involvement of Hedgehog signaling in butterfly wing and eyespot development.
+PMID	PMID.23337587	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2013) Decoding the phosphorylation code in Hedgehog signal transduction.
+PMID	PMID.23520449	4	19	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.639999999999999e-12	1.21e-09	(2013) Canalization and control in automata networks: body segmentation in Drosophila melanogaster.
+PMID	PMID.23565096	4	17	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.81e-12	9.79e-10	(2013) A review of hedgehog signaling in cranial bone development.
+PMID	PMID.23587183	4	7	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.1e-13	4.58e-10	(2013) Drugging Hedgehog: signaling the pathway to translation.
+PMID	PMID.23792115	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2013) optix functions as a link between the retinal determination network and the dpp pathway to control morphogenetic furrow progression in Drosophila.
+PMID	PMID.23934610	4	13	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.52e-12	6.610000000000001e-10	(2013) A graphical model method for integrating multiple sources of genome-scale data.
+PMID	PMID.23951062	4	13	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.52e-12	6.610000000000001e-10	(2013) Integrated genotypic analysis of hedgehog-related genes identifies subgroups of keratocystic odontogenic tumor with distinct clinicopathological features.
+PMID	PMID.23995793	4	9	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	4.55e-13	4.58e-10	(2013) Imiquimod directly inhibits Hedgehog signalling by stimulating adenosine receptorprotein kinase A-mediated GLI phosphorylation.
+PMID	PMID.24007940	4	27	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.0000000000000002e-11	2.39e-09	(2014) Inhibition of Hedgehog signaling in the gastrointestinal tract: targeting the cancer microenvironment.
+PMID	PMID.24217340	4	19	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.639999999999999e-12	1.21e-09	(2013) Structural insight into the mutual recognition and regulation between Suppressor of Fused and GliCi.
+PMID	PMID.24244405	4	20	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	6.7599999999999995e-12	1.29e-09	(2013) Hrs promotes ubiquitination and mediates endosomal trafficking of smoothened in Drosophila hedgehog signaling.
+PMID	PMID.24339784	4	26	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.74e-11	2.1899999999999997e-09	(2013) Positive and negative regulation of Gli activity by Kif7 in the zebrafish embryo.
+PMID	PMID.24373970	4	13	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.52e-12	6.610000000000001e-10	(2014) Gli protein activity is controlled by multisite phosphorylation in vertebrate Hedgehog signaling.
+PMID	PMID.24385484	4	23	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.1199999999999999e-11	1.66e-09	(2013) Atrophin-Rpd3 complex represses Hedgehog signaling by acting as a corepressor of CiR.
+PMID	PMID.24391661	4	24	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.2999999999999999e-11	1.8600000000000002e-09	(2013) A computation using mutually exclusive processing is sufficient to identify specific Hedgehog signaling components.
+PMID	PMID.24527387	4	12	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.16e-12	6.610000000000001e-10	(2014) Debra-mediated Ci degradation controls tissue homeostasis in Drosophila adult midgut.
+PMID	PMID.24862856	4	12	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.16e-12	6.610000000000001e-10	(2014) Transcriptional regulation of graded Hedgehog signaling.
+PMID	PMID.25009998	4	14	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.95e-12	6.610000000000001e-10	(2014) A broadly conserved g-protein-coupled receptor kinase phosphorylation mechanism controls Drosophila smoothened activity.
+PMID	PMID.25141859	4	10	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	6.37e-13	4.58e-10	(2014) The effects of sonic hedgehog signaling pathway components on non-small-cell lung cancer progression and clinical outcome.
+PMID	PMID.25206052	4	25	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.51e-11	2.04e-09	(2014) Sonic hedgehog signalling pathway: a complex network.
+PMID	PMID.25265279	4	10	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	6.37e-13	4.58e-10	(2014) Downregulation of the gli transcription factors regulator Kif7 facilitates cell survival and migration of choriocarcinoma cells.
+PMID	PMID.25339593	4	22	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.52e-12	1.6e-09	(2015) Holoprosencephaly: signaling interactions between the brain and the face, the environment and the genes, and the phenotypic variability in animal models and humans.
+PMID	PMID.26179038	4	10	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	6.37e-13	4.58e-10	(2015) Analysis of Smoothened Phosphorylation and Activation in Cultured Cells and Wing Discs of Drosophila.
+PMID	PMID.26343726	4	17	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.81e-12	9.79e-10	(2015) The Role of Hedgehog Signaling in Tumor Induced Bone Disease.
+PMID	PMID.26446620	4	23	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.1199999999999999e-11	1.66e-09	(2015) Control of the dynamics and homeostasis of the Drosophila Hedgehog receptor Patched by two C2-WW-HECT-E3 Ubiquitin ligases.
+PMID	PMID.26801178	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2016) Hedgehog Signaling Strength Is Orchestrated by the mir-310 Cluster of MicroRNAs in Response to Diet.
+PMID	PMID.27280464	4	24	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.2999999999999999e-11	1.8600000000000002e-09	(2016) Regulation of Smoothened Phosphorylation and High-Level Hedgehog Signaling Activity by a Plasma Membrane Associated Kinase.
+PMID	PMID.27486815	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2016) The human Smoothened inhibitor PF-04449913 induces exit from quiescence and loss of multipotent Drosophila hematopoietic progenitor cells.
+PMID	PMID.27746045	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2016) Regulation of Smoothened Trafficking and Hedgehog Signaling by the SUMO Pathway.
+PMID	PMID.27881449	4	25	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.51e-11	2.04e-09	(2017) Primary Cilia and Mammalian Hedgehog Signaling.
+PMID	PMID.28825565	4	19	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.639999999999999e-12	1.21e-09	(2017) Cytoneme-mediated cell-cell contacts for Hedgehog reception.
+PMID	PMID.28837667	4	14	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.95e-12	6.610000000000001e-10	(2017) Influenza NS1 directly modulates Hedgehog signaling during infection.
+PMID	PMID.28894158	4	25	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.51e-11	2.04e-09	(2017) Biophysical characterisation of the novel zinc binding property in Suppressor of Fused.
+PMID	PMID.28900135	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2017) Hedgehog signalling is required for cell survival in Drosophila wing pouch cells.
+PMID	PMID.29093440	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2017) Quantitative microscopy of the Drosophila ovary shows multiple niche signals specify progenitor cell fate.
+PMID	PMID.29119099	4	27	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.0000000000000002e-11	2.39e-09	(2017) Wnt and Hedgehog Signaling Regulate the Differentiation of F9 Cells into Extraembryonic Endoderm.
+PMID	PMID.29214147	4	16	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.0800000000000002e-12	8.800000000000001e-10	(2017) The Hedgehog Signaling Pathway Emerges as a Pathogenic Target.
+PMID	PMID.29663653	4	13	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.52e-12	6.610000000000001e-10	(2018) The mir-7 and bag of marbles genes regulate Hedgehog pathway signaling in blood cell progenitors in Drosophila larval lymph glands.
+PMID	PMID.29966604	4	21	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	8.05e-12	1.4300000000000002e-09	(2018) Hedgehog signaling from the Posterior Signaling Center maintains U-shaped expression and a prohemocyte population in Drosophila.
+PMID	PMID.30288252	4	29	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.5999999999999997e-11	2.9100000000000005e-09	(2018) Gene expression analysis of potential morphogen signalling modifying factors in Panarthropoda.
+PMID	PMID.31138608	4	28	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.29e-11	2.64e-09	(2019) Cell Adhesion-Mediated Actomyosin Assembly Regulates the Activity of Cubitus Interruptus for Hematopoietic Progenitor Maintenance in Drosophila.
+PMID	PMID.7984239	4	8	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.15e-13	4.58e-10	(1994) Distinct pathways for autocrine and paracrine Wingless signalling in Drosophila embryos.
+PMID	PMID.9039793	4	6	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.34e-13	4.58e-10	(1997) Hedgehog signaling in Drosophila eye and limb development - conserved machinery, divergent roles?
+Process	GO.0001746	3	9	7227	7227.FBpp0077788,7227.FBpp0088443,7227.FBpp0099945	smo,ptc,hh	1.95e-09	1.4e-07	Bolwig's organ morphogenesis
+Process	GO.0002385	3	13	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0099945	smo,ci,hh	4.96e-09	2.1399999999999998e-07	mucosal immune response
+Process	GO.0006357	2	696	7227	7227.FBpp0088245,7227.FBpp0099945	ci,hh	0.013999999999999999	0.033	regulation of transcription by RNA polymerase II
+Process	GO.0006508	2	838	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	0.0201	0.0469	proteolysis
+Process	GO.0006928	2	680	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	0.0134	0.0317	movement of cell or subcellular component
+Process	GO.0006935	2	269	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	0.0022	0.0061	chemotaxis
+Process	GO.0007224	4	30	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.95e-11	4.25e-09	smoothened signaling pathway
+Process	GO.0007346	4	193	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.87e-08	1.29e-06	regulation of mitotic cell cycle
+Process	GO.0007350	3	196	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0099945	smo,ci,hh	1.1400000000000001e-05	0.00011	blastoderm segmentation
+Process	GO.0007367	2	37	7227	7227.FBpp0088245,7227.FBpp0099945	ci,hh	4.5600000000000004e-05	0.00028	segment polarity determination
+Process	GO.0007409	2	300	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	0.0027	0.0073	axonogenesis
+Process	GO.0007455	2	42	7227	7227.FBpp0077788,7227.FBpp0088443	smo,ptc	5.8200000000000005e-05	0.00033999999999999997	eye-antennal disc morphogenesis
+Process	GO.0007476	2	272	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	0.0023	0.0062	imaginal disc-derived wing morphogenesis
+Process	GO.0007560	3	389	7227	7227.FBpp0077788,7227.FBpp0088443,7227.FBpp0099945	smo,ptc,hh	8.65e-05	0.00043	imaginal disc morphogenesis
+Process	GO.0008406	2	52	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	8.8e-05	0.00043	gonad development
+Process	GO.0009880	4	213	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.7199999999999996e-08	1.77e-06	embryonic pattern specification
+Process	GO.0009966	4	778	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.84e-06	9.449999999999999e-05	regulation of signal transduction
+Process	GO.0009967	3	320	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0099945	smo,ci,hh	4.85e-05	0.00029	positive regulation of signal transduction
+Process	GO.0009968	2	303	7227	7227.FBpp0077788,7227.FBpp0088443	smo,ptc	0.0028	0.0074	negative regulation of signal transduction
+Process	GO.0030707	4	306	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.4e-07	5.77e-06	ovarian follicle cell development
+Process	GO.0032879	3	404	7227	7227.FBpp0077788,7227.FBpp0088443,7227.FBpp0099945	smo,ptc,hh	9.68e-05	0.00044	regulation of localization
+Process	GO.0035215	3	50	7227	7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	ci,ptc,hh	2.07e-07	5.27e-06	genital disc development
+Process	GO.0035217	2	4	7227	7227.FBpp0088245,7227.FBpp0099945	ci,hh	9.27e-07	1.4300000000000002e-05	labial disc development
+Process	GO.0035224	2	8	7227	7227.FBpp0088245,7227.FBpp0099945	ci,hh	2.78e-06	3.3299999999999996e-05	genital disc anterior/posterior pattern formation
+Process	GO.0035277	2	23	7227	7227.FBpp0088245,7227.FBpp0099945	ci,hh	1.85e-05	0.00015	spiracle morphogenesis, open tracheal system
+Process	GO.0042078	2	46	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	6.94e-05	0.00037	germ-line stem cell division
+Process	GO.0042981	2	209	7227	7227.FBpp0077788,7227.FBpp0088443	smo,ptc	0.0013	0.0039	regulation of apoptotic process
+Process	GO.0045165	2	325	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	0.0032	0.0084	cell fate commitment
+Process	GO.0048099	3	4	7227	7227.FBpp0077788,7227.FBpp0088443,7227.FBpp0099945	smo,ptc,hh	3.1e-10	3.35e-08	anterior/posterior lineage restriction, imaginal disc
+Process	GO.0048100	4	11	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	8.690000000000001e-13	3.75e-10	wing disc anterior/posterior pattern formation
+Process	GO.0048103	2	54	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	9.470000000000001e-05	0.00044	somatic stem cell division
+Process	GO.0048523	3	1198	7227	7227.FBpp0077788,7227.FBpp0088443,7227.FBpp0099945	smo,ptc,hh	0.0024	0.0065	negative regulation of cellular process
+Process	GO.0048592	4	275	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.57e-07	4.53e-06	eye morphogenesis
+Process	GO.0048667	3	398	7227	7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	ci,ptc,hh	9.259999999999999e-05	0.00043	cell morphogenesis involved in neuron differentiation
+Process	GO.0048812	3	408	7227	7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	ci,ptc,hh	9.96e-05	0.00045	neuron projection morphogenesis
+Process	GO.0060914	2	6	7227	7227.FBpp0088245,7227.FBpp0099945	ci,hh	1.73e-06	2.26e-05	heart formation
+Process	GO.1903829	2	24	7227	7227.FBpp0077788,7227.FBpp0099945	smo,hh	2e-05	0.00015	positive regulation of cellular protein localization
+Process	GO.1904263	2	20	7227	7227.FBpp0077788,7227.FBpp0088245	smo,ci	1.42e-05	0.00011999999999999999	positive regulation of TORC1 signaling
+Process	GO.2000026	3	526	7227	7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	ci,ptc,hh	0.00021	0.00078	regulation of multicellular organismal development
+Process	GO.2000045	2	25	7227	7227.FBpp0077788,7227.FBpp0088245	smo,ci	2.1600000000000003e-05	0.00016	regulation of G1/S transition of mitotic cell cycle
+Process	GO.2000274	2	11	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	4.81e-06	5.3299999999999995e-05	regulation of epithelial cell migration, open tracheal system
+RCTM	DME-162582	4	767	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	9.3e-06	2.14e-05	Signal Transduction
+RCTM	DME-209214	2	19	7227	7227.FBpp0077788,7227.FBpp0088245	smo,ci	1.3000000000000001e-05	2.71e-05	Phosphorylation of SMO
+RCTM	DME-209338	4	7	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.1e-13	4.83e-12	Assembly of the 'signalling complexes'
+RCTM	DME-209392	4	65	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.5e-10	4.220000000000001e-09	Hedgehog pathway
+RCTM	DME-209452	4	57	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	3.32e-10	3.8200000000000005e-09	N-HH ligand bound to PTC receptor complex
+RCTM	DME-216119	2	4	7227	7227.FBpp0077788,7227.FBpp0088245	smo,ci	9.27e-07	3.04e-06	Activation of CI
+RCTM	DME-216217	2	19	7227	7227.FBpp0077788,7227.FBpp0088245	smo,ci	1.3000000000000001e-05	2.71e-05	Activation of SMO
+RCTM	DME-5252538	4	168	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	2.2400000000000002e-08	8.59e-08	Drosophila signaling pathways
+RCTM	DME-5358351	4	117	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	5.41e-09	2.49e-08	Signaling by Hedgehog
+RCTM	DME-5610787	3	94	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443	smo,ci,ptc	1.3e-06	3.73e-06	Hedgehog 'off' state
+RCTM	DME-5632681	2	5	7227	7227.FBpp0088443,7227.FBpp0099945	ptc,hh	1.3e-06	3.73e-06	Ligand-receptor interactions
+RCTM	DME-5632684	4	77	7227	7227.FBpp0077788,7227.FBpp0088245,7227.FBpp0088443,7227.FBpp0099945	smo,ci,ptc,hh	1.06e-09	6.09e-09	Hedgehog 'on' state

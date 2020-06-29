@@ -1,3 +1,6 @@
+# include STRING examples for pytest sanity testing
+!STRING_v11.3_MultipleProteins_example_*
+
 *.png
 data/plots/*
 # Compiled source #

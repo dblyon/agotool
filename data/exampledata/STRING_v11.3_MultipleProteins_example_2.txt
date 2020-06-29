@@ -1,0 +1,61 @@
+category	term	number_of_genes	number_of_genes_in_background	ncbiTaxonId	inputGenes	preferredNames	p_value	fdr	description
+Component	GO.0000136	4	7	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	1.97e-11	8.67e-10	alpha-1,6-mannosyltransferase complex
+Component	GO.0005783	4	674	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YML115C	ANP1,OLE1,MNN11,VAN1	0.00047999999999999996	0.0009599999999999999	endoplasmic reticulum
+Component	GO.0005789	3	382	4932	4932.YEL036C,4932.YGL055W,4932.YML115C	ANP1,OLE1,VAN1	0.0017	0.003	endoplasmic reticulum membrane
+Component	GO.0012505	5	1074	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,OLE1,MNN11,HOC1,VAN1	0.00011	0.00028	endomembrane system
+Component	GO.0031301	5	191	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,OLE1,MNN11,HOC1,VAN1	2.04e-08	1.12e-07	integral component of organelle membrane
+Component	GO.0031984	5	519	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,OLE1,MNN11,HOC1,VAN1	2.88e-06	1.15e-05	organelle subcompartment
+Component	GO.0044444	5	3192	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,OLE1,MNN11,HOC1,VAN1	0.0248	0.0341	cytoplasmic part
+Component	GO.0098827	3	389	4932	4932.YEL036C,4932.YGL055W,4932.YML115C	ANP1,OLE1,VAN1	0.0018	0.0031	endoplasmic reticulum subcompartment
+Function	GO.0000030	2	39	4932	4932.YEL036C,4932.YJL183W	ANP1,MNN11	0.00036	0.0034	mannosyltransferase activity
+Function	GO.0016757	3	97	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W	ANP1,MNN11,HOC1	3.16e-05	0.0006	transferase activity, transferring glycosyl groups
+InterPro	IPR029044	3	38	4932	4932.YEL036C,4932.YJR075W,4932.YML115C	ANP1,HOC1,VAN1	2.11e-06	1.4800000000000002e-05	Nucleotide-diphospho-sugar transferases
+KEGG	map00513	4	30	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	2.7600000000000004e-09	1.1000000000000001e-08	Various types of N-glycan biosynthesis
+KEGG	map01100	4	716	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	0.00061	0.0012	Metabolic pathways
+Keyword	KW-0256	3	387	4932	4932.YEL036C,4932.YGL055W,4932.YML115C	ANP1,OLE1,VAN1	0.0018	0.0066	Endoplasmic reticulum
+Keyword	KW-0328	2	76	4932	4932.YJL183W,4932.YJR075W	MNN11,HOC1	0.0013	0.0058	Glycosyltransferase
+Keyword	KW-0333	4	197	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	3.85e-06	4.24e-05	Golgi apparatus
+Keyword	KW-0735	4	68	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	6.099999999999999e-08	1.34e-06	Signal-anchor
+Keyword	KW-1133	5	1459	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,OLE1,MNN11,HOC1,VAN1	0.0005	0.0036	Transmembrane helix
+PMID	PMID.10037752	3	5	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W	ANP1,MNN11,HOC1	1.1200000000000001e-08	7.57e-07	(1999) The Saccharomyces cerevisiae protein Mnn10pBed1p is a subunit of a Golgi mannosyltransferase complex.
+PMID	PMID.10635561	4	6	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	1.25e-11	5.0900000000000004e-09	(1999) Interaction among the subunits of Golgi membrane mannosyltransferase complexes of the yeast Saccharomyces cerevisiae.
+PMID	PMID.10713261	2	13	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	4.6700000000000003e-05	0.00086	(2000) Proteins in the early golgi compartment of Saccharomyces cerevisiae immunoisolated by Sed5p.
+PMID	PMID.11095735	4	7	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	1.97e-11	5.0900000000000004e-09	(2000) Active recycling of yeast Golgi mannosyltransferase complexes through the endoplasmic reticulum.
+PMID	PMID.16717099	2	5	4932	4932.YJR075W,4932.YML115C	HOC1,VAN1	9.35e-06	0.00018	(2006) A screen for genes of heme uptake identifies the FLC family required for import of FAD into the endoplasmic reticulum.
+PMID	PMID.18053250	3	32	4932	4932.YEL036C,4932.YJL183W,4932.YML115C	ANP1,MNN11,VAN1	1.3e-06	4.8e-05	(2007) Broad network-based predictability of Saccharomyces cerevisiae gene loss-of-function phenotypes.
+PMID	PMID.18398455	4	27	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	1.87e-09	1.5199999999999998e-07	(2008) Mapping genetically compensatory pathways from synthetic lethal interactions in yeast.
+PMID	PMID.19908201	4	19	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	5.28e-10	5.3600000000000004e-08	(2010) Paracoccin from Paracoccidioides brasiliensis; purification through affinity with chitin and identification of N-acetyl-beta-D-glucosaminidase activity.
+PMID	PMID.20973990	2	137	4932	4932.YEL036C,4932.YJL183W	ANP1,MNN11	0.0041	0.049	(2010) Genome-wide identification of Saccharomyces cerevisiae genes required for tolerance to acetic acid.
+PMID	PMID.21777812	2	25	4932	4932.YEL036C,4932.YJL183W	ANP1,MNN11	0.00016	0.0023	(2011) Global functional map of the p23 molecular chaperone reveals an extensive cellular network.
+PMID	PMID.21993350	2	22	4932	4932.YJL183W,4932.YML115C	MNN11,VAN1	0.00011999999999999999	0.0018	(2011) The Antifungal Plant Defensin HsAFP1 from Heuchera sanguinea Induces Apoptosis in Candida albicans.
+PMID	PMID.22629230	3	41	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W	ANP1,MNN11,HOC1	2.62e-06	7.609999999999999e-05	(2012) A systematic approach to pair secretory cargo receptors with their cargo suggests a mechanism for cargo selection by Erv14.
+PMID	PMID.22816435	2	26	4932	4932.YJL183W,4932.YML115C	MNN11,VAN1	0.00016999999999999999	0.0023	(2012) The impact of protein glycosylation on Flo11-dependent adherence in Saccharomyces cerevisiae.
+PMID	PMID.22826123	2	29	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	0.00021	0.0028	(2012) Atg9 vesicles are an important membrane source during early steps of autophagosome formation.
+PMID	PMID.23210626	3	38	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W	ANP1,MNN11,HOC1	2.11e-06	6.6e-05	(2013) Proper protein glycosylation promotes mitogen-activated protein kinase signal fidelity.
+PMID	PMID.24125554	2	15	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	6.04e-05	0.001	(2013) Mannosylation in Candida albicans: role in cell wall function and immune recognition.
+PMID	PMID.24258022	3	36	4932	4932.YEL036C,4932.YJR075W,4932.YML115C	ANP1,HOC1,VAN1	1.81e-06	6.13e-05	(2014) Distinct roles of cell wall biogenesis in yeast morphogenesis as revealed by multivariate analysis of high-dimensional morphometric data.
+PMID	PMID.24286259	3	133	4932	4932.YEL036C,4932.YJL183W,4932.YML115C	ANP1,MNN11,VAN1	7.96e-05	0.0012	(2013) Genome-wide identification of genes involved in the positive and negative regulation of acetic acid-induced programmed cell death in Saccharomyces cerevisiae.
+PMID	PMID.24585773	2	33	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	0.00026000000000000003	0.0034	(2014) Distinct adaptor proteins assist exit of Kre2-family proteins from the yeast ER.
+PMID	PMID.24789333	2	3	4932	4932.YEL036C,4932.YJL183W	ANP1,MNN11	4.46e-06	0.00011	(2014) Identification of Candida glabrata genes involved in pH modulation and modification of the phagosomal environment in macrophages.
+PMID	PMID.25104959	4	60	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	3.77e-08	1.91e-06	(2014) Comparative Analysis of Protein Glycosylation Pathways in Humans and the Fungal Pathogen Candida albicans.
+PMID	PMID.26064897	2	13	4932	4932.YEL036C,4932.YJL183W	ANP1,MNN11	4.6700000000000003e-05	0.00086	(2015) Prohibitin: A Novel Molecular Player in KDEL Receptor Signalling.
+PMID	PMID.26474840	3	23	4932	4932.YJL183W,4932.YJR075W,4932.YML115C	MNN11,HOC1,VAN1	5.17e-07	2.1e-05	(2016) Glycosyltransferase complexes in eukaryotes: long-known, prevalent but still unrecognized.
+PMID	PMID.26764011	3	48	4932	4932.YJL183W,4932.YJR075W,4932.YML115C	MNN11,HOC1,VAN1	4.12e-06	0.00011	(2016) Mapping the O-Mannose Glycoproteome in Saccharomyces cerevisiae.
+PMID	PMID.27245696	2	128	4932	4932.YEL036C,4932.YJR075W	ANP1,HOC1	0.0036	0.0443	(2016) Ribosome quality control is a central protection mechanism for yeast exposed to deoxynivalenol and trichothecin.
+PMID	PMID.28074929	3	15	4932	4932.YJL183W,4932.YJR075W,4932.YML115C	MNN11,HOC1,VAN1	1.6300000000000002e-07	7.34e-06	(2017) Evolution of protein N-glycosylation process in Golgi apparatus which shapes diversity of protein N-glycan structures in plants, animals and fungi.
+PMID	PMID.28435892	2	4	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	6.68e-06	0.00015	(2017) Dramatic Improvement of CRISPRCas9 Editing in Candida albicans by Increased Single Guide RNA Expression.
+PMID	PMID.30322079	2	43	4932	4932.YJL183W,4932.YML115C	MNN11,VAN1	0.00044	0.0055	(2018) Monitoring Protein Dynamics in Protein O-Mannosyltransferase Mutants In Vivo by Tandem Fluorescent Protein Timers.
+PMID	PMID.30755510	4	16	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	2.89e-10	3.91e-08	(2019) Two KTR Mannosyltransferases Are Responsible for the Biosynthesis of Cell Wall Mannans and Control Polarized Growth in Aspergillus fumigatus.
+PMID	PMID.7649981	2	15	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	6.04e-05	0.001	(1995) Biosynthesis of the side chain of yeast glycosylphosphatidylinositol anchors is operated by novel mannosyltransferases located in the endoplasmic reticulum and the Golgi apparatus.
+PMID	PMID.7672592	2	4	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	6.68e-06	0.00015	(1995) Sodium orthovanadate-resistant mutants of Saccharomyces cerevisiae show defects in Golgi-mediated protein glycosylation, sporulation and detergent resistance.
+PMID	PMID.7957057	2	4	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	6.68e-06	0.00015	(1994) The functioning of the yeast Golgi apparatus requires an ER protein encoded by ANP1, a member of a new family of genes affecting the secretory pathway.
+PMID	PMID.9430634	2	3	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	4.46e-06	0.00011	(1998) Multi-protein complexes in the cis Golgi of Saccharomyces cerevisiae with alpha-1,6-mannosyltransferase activity.
+PMID	PMID.9434768	3	5	4932	4932.YEL036C,4932.YJR075W,4932.YML115C	ANP1,HOC1,VAN1	1.1200000000000001e-08	7.57e-07	(1997) Novel membrane protein complexes for protein glycosylation in the yeast Golgi apparatus.
+Pfam	PF03452	2	3	4932	4932.YEL036C,4932.YML115C	ANP1,VAN1	4.46e-06	1.7800000000000002e-05	Anp1
+Process	GO.0000032	3	19	4932	4932.YEL036C,4932.YJR075W,4932.YML115C	ANP1,HOC1,VAN1	3.07e-07	4.97e-06	cell wall mannoprotein biosynthetic process
+Process	GO.0006487	3	47	4932	4932.YEL036C,4932.YJL183W,4932.YML115C	ANP1,MNN11,VAN1	3.88e-06	3.4899999999999995e-05	protein N-linked glycosylation
+Process	GO.0009100	4	88	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	1.65e-07	4.85e-06	glycoprotein metabolic process
+Process	GO.0009101	4	81	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	1.2e-07	4.85e-06	glycoprotein biosynthetic process
+Process	GO.0044249	5	1803	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,OLE1,MNN11,HOC1,VAN1	0.0014	0.0061	cellular biosynthetic process
+Process	GO.0097502	4	46	4932	4932.YEL036C,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,MNN11,HOC1,VAN1	1.37e-08	1.11e-06	mannosylation
+Process	GO.1901576	5	1826	4932	4932.YEL036C,4932.YGL055W,4932.YJL183W,4932.YJR075W,4932.YML115C	ANP1,OLE1,MNN11,HOC1,VAN1	0.0015	0.0061	organic substance biosynthetic process

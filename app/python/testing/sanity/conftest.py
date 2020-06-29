@@ -10,8 +10,8 @@ from itertools import islice
 import query, userinput, variables
 
 
-Protein_2_FunctionEnum_and_Score_table_UPS = variables.TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
-ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=Protein_2_FunctionEnum_and_Score_table_UPS)
+# Protein_2_FunctionEnum_and_Score_table_UPS = variables.TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
+# ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=Protein_2_FunctionEnum_and_Score_table_UPS)
 
 
 @pytest.fixture(scope='session')
@@ -121,7 +121,8 @@ def args_dict():
 #     return ENSP_human_list
 
 ### preloaded objects --> put into conftest.py?
-UniProt_IDs_human_list = sorted(query.get_proteins_of_taxid(9606, read_from_flat_files=True))
+# UniProt_IDs_human_list = sorted(query.get_proteins_of_taxid(9606, read_from_flat_files=True))
+UniProt_IDs_human_list = "NOT needed, we're in STRING ENSP space"
 ENSP_human_list = sorted(query.get_proteins_of_human())
 ###
 
@@ -145,23 +146,23 @@ def get_random_human_ENSP(num_ENSPs=20, joined_for_web=False, contiguous=False, 
             return list(islice(IDs_2_sample, start_pos, stop_pos))
         else:
             return "%0d".join(list(islice(IDs_2_sample, start_pos, stop_pos)))
-
-### preload funcEnum to funcName table from flatfile
-def get_funcEnum_2_funcName_dict():
-    """
-    0       -20     GOCC:0000015    Phosphopyruvate hydratase complex       -1      10
-    1       -20     GOCC:0000109    Nucleotide-excision repair complex      -1      10
-    2       -20     GOCC:0000110    Nucleotide-excision repair factor 1 complex     -1      11
-    3       -20     GOCC:0000111    Nucleotide-excision repair factor 2 complex     -1      11
-    """
-    funcEnum_2_funcName_dict = {}
-    Functions_table = variables.tables_dict["Functions_table"]
-    with open(Functions_table, "r") as fh:
-        for line in fh:
-            ls = line.split("\t")
-            funcEnum = int(ls[0])
-            funcName = ls[2]
-            funcEnum_2_funcName_dict[funcEnum] = funcName
-    return funcEnum_2_funcName_dict
-
-funcEnum_2_funcName_dict = get_funcEnum_2_funcName_dict()
+#
+# ### preload funcEnum to funcName table from flatfile
+# def get_funcEnum_2_funcName_dict():
+#     """
+#     0       -20     GOCC:0000015    Phosphopyruvate hydratase complex       -1      10
+#     1       -20     GOCC:0000109    Nucleotide-excision repair complex      -1      10
+#     2       -20     GOCC:0000110    Nucleotide-excision repair factor 1 complex     -1      11
+#     3       -20     GOCC:0000111    Nucleotide-excision repair factor 2 complex     -1      11
+#     """
+#     funcEnum_2_funcName_dict = {}
+#     Functions_table = variables.tables_dict["Functions_table"]
+#     with open(Functions_table, "r") as fh:
+#         for line in fh:
+#             ls = line.split("\t")
+#             funcEnum = int(ls[0])
+#             funcName = ls[2]
+#             funcEnum_2_funcName_dict[funcEnum] = funcName
+#     return funcEnum_2_funcName_dict
+#
+# funcEnum_2_funcName_dict = get_funcEnum_2_funcName_dict()
