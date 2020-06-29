@@ -24,7 +24,7 @@ test:
     - echo $TAR_FILE_NAME
 
     ## PyTest
-    - cd /home/dblyon/PMID_autoupdate/agotool/app/testing/sanity
+    - cd /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
     - /home/dblyon/anaconda3/envs/agotool/bin/pytest
 
 job:on-schedule:
@@ -43,5 +43,5 @@ job:on-schedule:
     - echo $TAR_FILE_NAME
 
     ## PyTest
-    - cd /home/dblyon/PMID_autoupdate/agotool/app/testing/sanity
+    - cd /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
     - /home/dblyon/anaconda3/envs/agotool/bin/pytest
