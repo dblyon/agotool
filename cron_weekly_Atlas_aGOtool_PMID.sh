@@ -35,11 +35,18 @@ check_exit_status
 ### compress for quick transfer
 pbzip2 -p10 $TAR_FILE_NAME
 check_exit_status
-# copy files to Aquarius (production server)
+
+#### copy files to production servers
 echo "\n### copy files to Aquarius (production server)\n"
+### Aquarius
 rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
 check_exit_status
+### Pisces
+rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
+check_exit_status
+### San --> ssh keys not working ToDo
 #rsync -avz /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@san.embl.de:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar # won't work yet due to ssh prompting for pw
+
 ### delete tar but keep tar.bz2
 rm $TAR_FILE_NAME
 
@@ -57,52 +64,17 @@ mv AFC_KS_flat_files_current.tar.bz2 bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_
 check_exit_status
 
 
-## tar and compress new files for backup
-#echo "\n### tar and compress new files for backup\n"
-#TAR_FILE_NAME=bak_aGOtool_PMID_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
-#cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-## create tar of relevant flat files
-#find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar cvf $TAR_FILE_NAME
-#check_exit_status
-#
-## compress for quick transfer and backup, keep tar
-#pbzip2 -k -p10 $TAR_FILE_NAME
-#check_exit_status
-
-
-# on production server, decompress files, populate DB, restart service
+#### Production server, decompress files and restart service
 ### Aquarius
-#echo "now attempting to run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-#ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+echo "now attempting to run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 
-### San
-cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-ssh dblyon@san.embl.de '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+### Pisces
+echo "now attempting to run script on Pisces production server cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+
+### San --> ssh keys not working ToDo
+#cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+#ssh dblyon@san.embl.de '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+
 echo "\n--- finished Cronjob ---\n"
-
-
-########################################################################################################################
-### on production server "cron_weekly_Aquarius_update_aGOtool_PMID.sh"
-# pbzip2 -p10 -dc $TAR_FILE_NAME | tar x
-# check if files are similar size of larger than previously
-# copy from file SQL
-# alter tables SQL
-
-# restart service (hard restart)
-# cd /home/dblyon/agotool/app (# cd /mnt/mnemo5/dblyon/agotool/app)
-# /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt (# /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt)
-# --> dockerize
-########################################################################################################################
-
-########################################################################################################################
-### cron commands
-# crontab -e --> modify
-# crontab -l --> list
-# crontab -r --> remove
-
-### contents of crontab for dblyon
-#MAILTO="dblyon@gmail.com" --> only if output not redirected, use log file instead
-### dblyon inserted cronjob for automated aGOtool updates
-## testing 10:05 am
-# 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cron_weekly_Atlas_aGOtool_PMID.sh >> /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt 2>&1
-########################################################################################################################
