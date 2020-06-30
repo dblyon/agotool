@@ -1204,6 +1204,15 @@ def get_functionAN_2_etype_dict():
         an_2_etype_dict[an] = etype
     return an_2_etype_dict
 
+def get_proteins_of_human(fn=None):
+    if fn is None:
+        fn = os.path.join(variables.TABLES_DIR, "9606_proteins_ENSPs_STRINGv11.txt")
+    ENSPs_human = []
+    with open(fn) as fh:
+        for line in fh:
+            ENSPs_human.append(line.strip())
+    return sorted(ENSPs_human)
+
 if __name__ == "__main__":
     pqo = PersistentQueryObject_STRING(low_memory=True)
     # import os

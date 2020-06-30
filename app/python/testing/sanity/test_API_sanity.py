@@ -15,10 +15,10 @@ import variables #, query
 
 
 #### settings / parameters
-url_local = r"http://127.0.0.1:5912/api"
+url_local = r"http://127.0.0.1:10112/api"
 # url_local = r"http://agotool.meringlab.org/api"
 correlation_coefficient_min_threhold = 0.99
-p_value_min_threshold = 1e-25
+p_value_min_threshold = 1e-20
 
 def test_random_contiguous_input_yields_results():
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=100, UniProt_ID=False, contiguous=True, joined_for_web=True)
@@ -266,6 +266,14 @@ def test_tsv_and_json_results_are_equal():
     df_json = pd.read_json(result.text)
     pd_testing.assert_frame_equal(df_tsv, df_json)
 
+def test_json_precision():
+    fg = "9606.ENSP00000228682%0d9606.ENSP00000332353%0d9606.ENSP00000297261%0d9606.ENSP00000379258%0d9606.ENSP00000296575%0d9606.ENSP00000249373"
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
+    term = "GO:0007224"
+    df = pd.read_json(result.text)
+    p_value = df.loc[df["term"] == term, "p_value"].values[0]
+    assert p_value > 0
+    assert p_value < 1e-10
 
 
 
