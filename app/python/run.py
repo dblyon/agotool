@@ -2,7 +2,7 @@ import os, sys
 import pandas as pd
 import numpy as np
 from lxml import etree
-
+import json
 
 sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
 import run_cythonized
@@ -141,7 +141,8 @@ def format_results(df, output_format, args_dict):
         # for etype, group in df.groupby("etype"):
         #     etype_2_resultsjson_dict[etype] = group.to_json(orient='records')
         # return etype_2_resultsjson_dict
-        return df.to_json(orient="records")
+        # return df.to_json(orient="records")
+        return json.dumps(df.to_dict(orient='records'))
     elif output_format == "xml": # xml gets formatted in runserver.py
         dict_2_return = {}
         for etype, df_group in df.groupby("etype"):
