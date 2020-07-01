@@ -19,7 +19,8 @@ rsync -av dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/dat
 check_exit_status
 
 echo "\n### unpacking tar.gz files\n"
-tar -xvzf /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
+cd /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
+tar --overwrite -xvzf /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 
 echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"

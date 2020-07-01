@@ -15,7 +15,8 @@ check_exit_status () {
 
 # shellcheck disable=SC2028
 echo "\n### unpacking tar bzip files\n"
-tar -xvzf /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
+cd /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
+tar --overwrite -xvzf /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 
 ## check if file sizes etc. are as expected --> done on Atlas side, adding data to DF_file_dimensions.txt

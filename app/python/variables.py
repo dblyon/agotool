@@ -105,7 +105,7 @@ TEST_DIR = os.path.join(TABLES_DIR, "test")
 PYTEST_FN_DIR = os.path.join(PYTHON_DIR, "testing/user_input_files")
 DOWNLOADS_DIR = os.path.join(POSTGRESQL_DIR, "downloads")
 DOWNLOADS_DIR_SNAKEMAKE = os.path.join(POSTGRESQL_DIR_SNAKEMAKE, "downloads")
-FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema.md")
+# FN_DATABASE_SCHEMA = os.path.join(POSTGRESQL_DIR, "DataBase_Schema.md")
 FN_HELP_ENTITY_TYPES = os.path.join(POSTGRESQL_DIR, "example_help_entity_types.md")
 FN_HELP_PARAMETERS = os.path.join(POSTGRESQL_DIR, "example_help_parameters.md")
 

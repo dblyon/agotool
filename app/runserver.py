@@ -546,15 +546,15 @@ def download_results_data(filename):
 ################################################################################
 # db_schema.html
 ################################################################################
-@app.route("/db_schema")
-def db_schema():
-    with open(variables.FN_DATABASE_SCHEMA, "r") as fh:
-        content = fh.read()
-    # content = content.replace("{", "\{").replace("}", "\}")
-    # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
-    # content = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
-    content = format_markdown(content)
-    return render_template("db_schema.html", **locals())
+# @app.route("/db_schema")
+# def db_schema():
+#     with open(variables.FN_DATABASE_SCHEMA, "r") as fh:
+#         content = fh.read()
+#     # content = content.replace("{", "\{").replace("}", "\}")
+#     # content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
+#     # content = content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">').replace("{", "\{").replace("}", "\}")
+#     content = format_markdown(content)
+#     return render_template("db_schema.html", **locals())
 
 ################################################################################
 # FAQ.html
