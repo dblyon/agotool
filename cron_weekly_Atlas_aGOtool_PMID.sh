@@ -26,32 +26,22 @@ check_exit_status
 
 ### tar and compress new files for transfer and backup
 echo "\n### tar and compress new files for transfer and backup\n"
-TAR_FILE_NAME=bak_aGOtool_PMID_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
+TAR_FILE_NAME=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-### create tar of relevant flat files
 
-find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar cvf $TAR_FILE_NAME
-check_exit_status
-### compress for quick transfer
-pbzip2 -k -p10 $TAR_FILE_NAME
+### create tar.gz of relevant flat files
+find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar -cvzf $TAR_FILE_NAME
 check_exit_status
 
 #### copy files to production servers
 echo "\n### copy files to Aquarius (production server)\n"
 ### Aquarius
-rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
+rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
-# push tar as well --> for San (since pbzip2 missing, and San will pull from Aquarius
-rsync -avz /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar
-check_exit_status
-
 ### Pisces
-rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
+rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 ### San --> pull instead of push
-
-### delete tar but keep tar.bz2
-rm $TAR_FILE_NAME
 
 ### AFC_KS file: tar and gzip current, bz2 backup, remove tar
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
@@ -76,18 +66,23 @@ ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekl
 
 echo "\n--- finished Cronjob ---\n"
 
+
+############################################################
+##### Cronjob OVERVIEW
+
 ### Crontab Atlas
 ## at 01:01 (1 AM) 1st day of every month
 # 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Atlas.sh >> /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt 2>&1
 ## at 20:01 (8 PM) every Sunday
 # 1 20 * * 0 /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/cron_weekly_Atlas_aGOtool_PMID.sh >> /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/log_cron_weekly_snakemake.txt 2>&1
+
 ### Crontab San
 ## at 01:01 (1 PM) every Monday
 # 1 13 * * 1 /home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh >> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_cron_weekly_San_update_aGOtool_PMID.txt 2>&1
+
 ### GitLab.com
 ## at 07:01 (7 AM) every Monday
 # 1 7 * * 1 Weekly Monday morning schedule for aGOtool PMID autoupdate --> PMID_autoupdate branch
-
 
 ### Cheat Sheet
 #* * * * * command to be executed
@@ -98,3 +93,4 @@ echo "\n--- finished Cronjob ---\n"
 #| | --------- Day of month (1 - 31)
 #| ----------- Hour (0 - 23)
 #------------- Minute (0 - 59)
+############################################################

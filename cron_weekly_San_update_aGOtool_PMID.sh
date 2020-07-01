@@ -15,11 +15,11 @@ check_exit_status () {
 
 ### pull files from Aquarius instead of pushing from Atlas
 echo "\n### pull files from Aquarius\n"
-rsync -av dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar
+rsync -av dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 
-echo "\n### unpacking tar files\n"
-tar -xvf /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar
+echo "\n### unpacking tar.gz files\n"
+tar -xvzf /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 
 echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
