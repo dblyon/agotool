@@ -75,3 +75,26 @@ echo "now attempting to run script on Pisces production server cron_weekly_Pisce
 ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 
 echo "\n--- finished Cronjob ---\n"
+
+### Crontab Atlas
+## at 01:01 (1 AM) 1st day of every month
+# 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Atlas.sh >> /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt 2>&1
+## at 20:01 (8 PM) every Sunday
+# 1 20 * * 0 /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/cron_weekly_Atlas_aGOtool_PMID.sh >> /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/log_cron_weekly_snakemake.txt 2>&1
+### Crontab San
+## at 01:01 (1 PM) every Monday
+# 1 13 * * 1 /home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh >> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_cron_weekly_San_update_aGOtool_PMID.txt 2>&1
+### GitLab.com
+## at 07:01 (7 AM) every Monday
+# 1 7 * * 1 Weekly Monday morning schedule for aGOtool PMID autoupdate --> PMID_autoupdate branch
+
+
+### Cheat Sheet
+#* * * * * command to be executed
+#- - - - -
+#| | | | |
+#| | | | ----- Day of week (0 - 7) (Sunday=0 or 7)
+#| | | ------- Month (1 - 12)
+#| | --------- Day of month (1 - 31)
+#| ----------- Hour (0 - 23)
+#------------- Minute (0 - 59)
