@@ -33,7 +33,7 @@ cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
 find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar cvf $TAR_FILE_NAME
 check_exit_status
 ### compress for quick transfer
-pbzip2 -p10 $TAR_FILE_NAME
+pbzip2 -k -p10 $TAR_FILE_NAME
 check_exit_status
 
 #### copy files to production servers
@@ -41,15 +41,17 @@ echo "\n### copy files to Aquarius (production server)\n"
 ### Aquarius
 rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
 check_exit_status
+# push tar as well --> for San (since pbzip2 missing, and San will pull from Aquarius
+rsync -avz /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar
+check_exit_status
+
 ### Pisces
 rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME".bz2 dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2
 check_exit_status
-### San --> ssh keys not working ToDo
-#rsync -avz /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@san.embl.de:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar # won't work yet due to ssh prompting for pw
+### San --> pull instead of push
 
 ### delete tar but keep tar.bz2
 rm $TAR_FILE_NAME
-
 
 ### AFC_KS file: tar and gzip current, bz2 backup, remove tar
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
@@ -63,7 +65,6 @@ check_exit_status
 mv AFC_KS_flat_files_current.tar.bz2 bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
 check_exit_status
 
-
 #### Production server, decompress files and restart service
 ### Aquarius
 echo "now attempting to run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
@@ -72,9 +73,5 @@ ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_wee
 ### Pisces
 echo "now attempting to run script on Pisces production server cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
-
-### San --> ssh keys not working ToDo
-#cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-#ssh dblyon@san.embl.de '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh &> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 
 echo "\n--- finished Cronjob ---\n"
