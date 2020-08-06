@@ -1,5 +1,15 @@
 #!/bin/bash
 
+### Overview of scripts and pipelines --> for PMID autoupdate part
+## ATLAS
+# - run snakemake on Atlas
+# - tar and compress new files for transfer and backup
+# - push to Aquarius and Pisces, on San pull from Aquarius
+# -
+
+
+
+
 # shellcheck disable=SC2038
 # shellcheck disable=SC2164
 # shellcheck disable=SC2028
@@ -8,6 +18,11 @@
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
+
+TAR_CURRENT=aGOtool_PMID_pickle_current.tar.gz
+TAR_BAK=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
+AFC_KS_CURRENT=AFC_KS_flat_files_current.tar
+AFC_KS_BAK=bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
 
 ### Header message
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
@@ -26,34 +41,34 @@ check_exit_status
 
 ### tar and compress new files for transfer and backup
 echo "\n### tar and compress new files for transfer and backup\n"
-TAR_FILE_NAME=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-
 ### create tar.gz of relevant flat files
-find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar --overwrite -cvzf $TAR_FILE_NAME
+find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar --overwrite -cvzf TAR_CURRENT
+check_exit_status
+rsync -av "$TAR_CURRENT" "$TAR_BAK"
+check_exit_status
+
+### AFC_KS file: tar and gzip current, bz2 backup, remove tar
+cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+check_exit_status
+tar -cf "$AFC_KS_CURRENT" ./afc_ks
+check_exit_status
+gzip -kf "$AFC_KS_CURRENT"
+check_exit_status
+pbzip2 -p10 "$AFC_KS_CURRENT"
+check_exit_status
+mv "$AFC_KS_CURRENT".bz2 "$AFC_KS_BAK"
 check_exit_status
 
 #### copy files to production servers
 echo "\n### copy files to Aquarius (production server)\n"
 ### Aquarius
-rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
+rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
 ### Pisces
-rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
+rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
 ### San --> pull instead of push
-
-### AFC_KS file: tar and gzip current, bz2 backup, remove tar
-cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-check_exit_status
-tar -cf AFC_KS_flat_files_current.tar ./afc_ks
-check_exit_status
-gzip -kf AFC_KS_flat_files_current.tar
-check_exit_status
-pbzip2 -p10 AFC_KS_flat_files_current.tar
-check_exit_status
-mv AFC_KS_flat_files_current.tar.bz2 bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
-check_exit_status
 
 #### Production server, decompress files and restart service
 ### Aquarius
