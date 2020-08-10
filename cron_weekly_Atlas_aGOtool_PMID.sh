@@ -43,7 +43,7 @@ check_exit_status
 echo "\n### tar and compress new files for transfer and backup\n"
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
 ### create tar.gz of relevant flat files
-find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar --overwrite -cvzf TAR_CURRENT
+find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar --overwrite -cvzf "$TAR_CURRENT"
 check_exit_status
 rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status
