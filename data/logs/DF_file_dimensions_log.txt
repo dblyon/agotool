@@ -75,3 +75,81 @@ indices_arr_UPS_FIN.p	True	15694249		2020-04-01 18:05:23.390905	1
 rowIndex_2_ENSP_dict_UPS_FIN.p	True	2781816		2020-04-06 18:02:36.243271	1
 taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN.p	True	721161059		2020-04-02 21:43:29.512225	1
 year_arr_UPS_FIN.p	True	7847205		2020-04-01 18:05:23.390905	1
+CSC_ENSPencoding_2_FuncEnum_UPS_FIN.npz	True	154432927		2020-07-02 02:30:41.206252	2
+ENSP_2_rowIndex_dict_UPS_FIN.p	True	2776734		2020-07-02 02:30:41.206252	2
+Entity_types_table_UPS_FIN.txt	False	1248	34.0	2019-06-13 10:47:39	2
+Functions_table_UPS_FIN.txt	False	602885272	4049067.0	2020-07-01 23:07:47.298580	2
+KEGG_Taxid_2_acronym_table_UPS_FIN.txt	False	59930	5309.0	2020-07-01 00:57:14.520731	2
+Lineage_table_UPS_FIN.txt	False	4583517	74536.0	2020-07-02 01:29:24.670351	2
+Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt	False	423587842	112909.0	2020-07-02 02:28:10.218256	2
+Protein_2_FunctionEnum_table_UPS_FIN.txt	False	29510769537	167494563.0	2020-07-02 03:11:29.418186	2
+Secondary_2_Primary_ID_UPS_FIN.txt	False	6275716287	183274403.0	2020-07-02 03:08:04.698192	2
+TaxidSpecies_2_TaxidProteome_dict_UPS_FIN.p	True	20387		2020-07-01 01:55:51.896636	2
+TaxidSpecies_2_multipleRefProtTaxid_dict_UPS_FIN.p	True	1996		2020-07-01 01:55:51.896636	2
+Taxid_2_FunctionCountArray_table_UPS_FIN.txt	False	804323883	9338.0	2020-07-02 11:05:31.425420	2
+Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN.p	True	131979130		2020-07-02 02:31:16.774251	2
+Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt	False	240230663	42960.0	2020-07-02 02:30:38.858252	2
+Taxid_2_Proteins_table_UPS_FIN.txt	False	919914563	9338.0	2020-07-01 01:55:05.752638	2
+category_arr_UPS_FIN.p	True	8106770		2020-07-02 01:28:51.150352	2
+description_arr_UPS_FIN.p	True	504075139		2020-07-02 01:28:51.150352	2
+entitytype_arr_UPS_FIN.p	True	4049228		2020-07-02 01:28:51.150352	2
+functionalterm_arr_UPS_FIN.p	True	92177045		2020-07-02 01:28:51.150352	2
+goslim_agr.npy	True	4049195		2020-07-02 01:29:14.282351	2
+goslim_aspergillus.npy	True	4049195		2020-07-02 01:30:12.842350	2
+goslim_candida.npy	True	4049195		2020-07-02 01:31:11.470348	2
+goslim_chembl.npy	True	4049195		2020-07-02 01:34:12.630343	2
+goslim_drosophila.npy	True	4049195		2020-07-02 01:35:50.906341	2
+goslim_flybase_ribbon.npy	True	4049195		2020-07-02 01:36:17.374340	2
+goslim_generic.npy	True	4049195		2020-07-02 01:37:57.074337	2
+goslim_metagenomics.npy	True	4049195		2020-07-02 01:39:18.526335	2
+goslim_mouse.npy	True	4049195		2020-07-02 01:39:46.702334	2
+goslim_pir.npy	True	4049195		2020-07-02 01:44:21.002327	2
+goslim_plant.npy	True	4049195		2020-07-02 01:45:40.022325	2
+goslim_pombe.npy	True	4049195		2020-07-02 01:46:28.954324	2
+goslim_subsets_file_UPS_FIN.txt	False	268	14.0	2020-07-01 00:57:19.420731	2
+goslim_synapse.npy	True	4049195		2020-07-02 01:49:52.142318	2
+goslim_yeast.npy	True	4049195		2020-07-02 01:52:02.266315	2
+hierlevel_arr_UPS_FIN.p	True	4049228		2020-07-02 01:28:51.150352	2
+indices_arr_UPS_FIN.p	True	16196429		2020-07-02 01:28:51.150352	2
+rowIndex_2_ENSP_dict_UPS_FIN.p	True	2776734		2020-07-02 02:30:41.206252	2
+taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN.p	True	784219957		2020-07-02 11:06:49.445418	2
+year_arr_UPS_FIN.p	True	8098295		2020-07-02 01:28:51.146352	2
+CSC_ENSPencoding_2_FuncEnum_UPS_FIN.npz	True	146064650		2020-08-02 02:10:20.758121	3
+ENSP_2_rowIndex_dict_UPS_FIN.p	True	2776444		2020-08-02 02:10:20.758121	3
+Entity_types_table_UPS_FIN.txt	False	1248	34.0	2019-06-13 10:47:39	3
+Functions_table_UPS_FIN.txt	False	522891519	3516225.0	2020-08-01 22:40:40.758460	3
+KEGG_Taxid_2_acronym_table_UPS_FIN.txt	False	59930	5309.0	2020-08-01 00:56:57.212568	3
+Lineage_table_UPS_FIN.txt	False	4555143	74348.0	2020-08-02 01:09:18.378220	3
+Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt	False	401609349	112898.0	2020-08-02 02:07:44.618125	3
+Protein_2_FunctionEnum_table_UPS_FIN.txt	False	29455951209	167494370.0	2020-08-02 02:49:50.710057	3
+Secondary_2_Primary_ID_UPS_FIN.txt	False	6275712892	183274301.0	2020-08-02 02:46:18.918063	3
+TaxidSpecies_2_TaxidProteome_dict_UPS_FIN.p	True	20381		2020-08-01 01:38:42.580500	3
+TaxidSpecies_2_multipleRefProtTaxid_dict_UPS_FIN.p	True	1996		2020-08-01 01:38:42.580500	3
+Taxid_2_FunctionCountArray_table_UPS_FIN.txt	False	795195740	9338.0	2020-08-02 10:52:44.997277	3
+Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN.p	True	125212219		2020-08-02 02:10:51.322120	3
+Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt	False	227705202	42838.0	2020-08-02 02:10:18.318121	3
+Taxid_2_Proteins_table_UPS_FIN.txt	False	919914563	9338.0	2020-08-01 01:38:01.156501	3
+category_arr_UPS_FIN.p	True	7040020		2020-08-02 01:08:45.370221	3
+description_arr_UPS_FIN.p	True	437345199		2020-08-02 01:08:45.370221	3
+entitytype_arr_UPS_FIN.p	True	3516386		2020-08-02 01:08:45.366220	3
+functionalterm_arr_UPS_FIN.p	True	79976304		2020-08-02 01:08:45.366220	3
+goslim_agr.npy	True	3516353		2020-08-02 01:09:19.314220	3
+goslim_aspergillus.npy	True	3516353		2020-08-02 01:10:12.766218	3
+goslim_candida.npy	True	3516353		2020-08-02 01:11:03.486217	3
+goslim_chembl.npy	True	3516353		2020-08-02 01:13:45.002213	3
+goslim_drosophila.npy	True	3516353		2020-08-02 01:15:10.838210	3
+goslim_flybase_ribbon.npy	True	3516353		2020-08-02 01:15:33.946210	3
+goslim_generic.npy	True	3516353		2020-08-02 01:16:58.406207	3
+goslim_metagenomics.npy	True	3516353		2020-08-02 01:18:12.434205	3
+goslim_mouse.npy	True	3516353		2020-08-02 01:18:36.994205	3
+goslim_pir.npy	True	3516353		2020-08-02 01:22:07.762199	3
+goslim_plant.npy	True	3516353		2020-08-02 01:23:01.510197	3
+goslim_pombe.npy	True	3516353		2020-08-02 01:23:35.758197	3
+goslim_subsets_file_UPS_FIN.txt	False	268	14.0	2020-08-01 00:57:02.708567	3
+goslim_synapse.npy	True	3516353		2020-08-02 01:26:04.586193	3
+goslim_yeast.npy	True	3516353		2020-08-02 01:27:40.218190	3
+hierlevel_arr_UPS_FIN.p	True	3516386		2020-08-02 01:08:45.366220	3
+indices_arr_UPS_FIN.p	True	14065061		2020-08-02 01:08:45.370221	3
+rowIndex_2_ENSP_dict_UPS_FIN.p	True	2776444		2020-08-02 02:10:20.758121	3
+taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN.p	True	777175029		2020-08-02 10:53:57.801275	3
+year_arr_UPS_FIN.p	True	7032611		2020-08-02 01:08:45.366220	3
