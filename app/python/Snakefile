@@ -33,6 +33,8 @@ damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan
 ################################################## URLs & Downloads
 URL_GO_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
 GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+DOID_obo_current = os.path.join(DOWNLOADS_DIR, "DOID_obo_current.obo")
+URL_DOID_obo_current = r"http://purl.obolibrary.org/obo/doid.obo"
 # URL_GO_slim_obo = r"http://purl.obolibrary.org/obo/go/subsets/goslim_generic.obo"
 # GO_slim_obo = os.path.join(DOWNLOADS_DIR, "goslim_generic.obo")
 URL_GO_slim_subsets = r"http://purl.obolibrary.org/obo/go/subsets"
@@ -63,6 +65,11 @@ Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
 Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
+Protein_2_Function_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_UPS.txt")
+Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled.txt")
+Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked.txt")
+
+
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
@@ -204,6 +211,15 @@ rule download_RCTM_hierarchy:
         RCTM_hierarchy = RCTM_hierarchy
     run:
         drs.download_requests(params.URL_RCTM_hierarchy, output.RCTM_hierarchy)
+
+rule download_DOID_obo_current:
+    output:
+        DOID_obo_current = DOID_obo_current
+    params:
+        URL_DOID_obo_current = URL_DOID_obo_current,
+        verbose = verbose
+    run:
+        drs.download_requests(params.URL_DOID_obo_current, output.DOID_obo_current, params.verbose)
 
 rule download_GO_obo:
     output:
@@ -609,18 +625,47 @@ rule r_Protein_2_FunctionEnum_table_UPS_FIN:
     run:
         cst.Protein_2_FunctionEnum_table_UPS_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, output.Protein_2_FunctionEnum_table_UPS_removed, threads)
 
-rule r_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
+### DEPRECATED
+# rule r_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
+#     input:
+#         GO_obo_Jensenlab = GO_obo_Jensenlab,
+#         DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+#         BTO_obo_Jensenlab = BTO_obo_Jensenlab,
+#         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
+#         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
+#     output:
+#         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+#         DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
+#     run:
+#         cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage)
+
+rule r_Protein_2_Function_DOID_BTO_GOCC_UPS:
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
-        DOID_obo_Jensenlab = DOID_obo_Jensenlab,
+        DOID_obo_current = DOID_obo_current,
         BTO_obo_Jensenlab = BTO_obo_Jensenlab,
-        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
     output:
-        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled,
+        Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked,
+        Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS,
         DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
+    params:
+        alpha = 0.5,
+        max_score = 5
     run:
-        cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage)
+        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage, alpha=params.alpha, max_score=params.max_score)
+
+
+
+
+
+
+
+
+
+
 
 rule r_Functions_table_UPS_FIN:
     input:

@@ -4,6 +4,7 @@ import gzip
 import pandas as pd
 pd.options.mode.chained_assignment = None
 import numpy as np
+import math
 from collections import defaultdict, deque
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
@@ -3076,7 +3077,7 @@ def helper_select_higher_score_if_redundant(funcEnum_2_score_per_ENSP):
 #
 #     return funcName_2_score_list_backtracked, set(without_lineage)
 
-def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_direct_parents):
+def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_direct_parents, scale_by_1e6=True):
     """
     backtrack and propage text mining scores from Jensenlab without creating redundancy
     backtrack functions to root and propagate scores
@@ -3135,71 +3136,189 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
 
     # now calc median if multiple values exist
     funcName_2_score_list_backtracked = []
-    for funcName in funcName_2_score_dict_backtracked:
-        val = funcName_2_score_dict_backtracked[funcName]
-        if isinstance(val, float):
-            funcName_2_score_list_backtracked.append([funcName, int(val * 1e6)])
-        else:
-            funcName_2_score_list_backtracked.append([funcName, int(median(val) * 1e6)])
+    if scale_by_1e6:
+        for funcName in funcName_2_score_dict_backtracked:
+            val = funcName_2_score_dict_backtracked[funcName]
+            if isinstance(val, float):
+                funcName_2_score_list_backtracked.append([funcName, int(val * 1e6)])
+            else:
+                funcName_2_score_list_backtracked.append([funcName, int(median(val) * 1e6)])
+    else:
+        for funcName in funcName_2_score_dict_backtracked:
+            val = funcName_2_score_dict_backtracked[funcName]
+            if isinstance(val, float):
+                funcName_2_score_list_backtracked.append([funcName, val])
+            else:
+                funcName_2_score_list_backtracked.append([funcName, median(val)])
 
     return funcName_2_score_list_backtracked, set(without_lineage)
 
-
-def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_out_without_lineage):
+def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, alpha=0.5, max_score=5):
     """
+    discretize TextMining scores
+    - reformat data --> DF
+    - discretize scores
+    - backtrack
+    - translate ENSP to UniProtID (ignore things that can't be translated)
+    ( - map Function to FuncEnum elsewhere )
 
-    :param fn_go_basic_obo:
-    :param fn_in_DOID_obo_Jensenlab:
-    :param fn_in_BTO_obo_Jensenlab:
-    :param fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid:
-    :param fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS:
-    :param fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS: outputs normal GO not GOCC terms
-    :param fn_out_without_lineage:
-    :return:
+    GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
+    DOID_obo_current = os.path.join(DOWNLOADS_DIR, "doid.obo") # http://purl.obolibrary.org/obo/doid.obo
+    BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo")  # static file
+    Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
+    Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
+    Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled.txt")
+    Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked.txt")
+    Protein_2_Function_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_UPS.txt")
+    DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_lineage.txt")
+    alpha = 0.5
+    max_score = 5
     """
-    alternative_2_current_ID_dict = {}
-    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_go_basic_obo, upk=False))  # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
-    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_DOID_obo_Jensenlab, upk=True))
-    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_BTO_obo_Jensenlab, upk=True))
-
-    ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid)
-    # lineage_dict has GO as well as GOCC terms
-    lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
-
-    terms_without_lineage = set()
-    with open(fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "w") as fh_out_Prot_2_func:
-        for line in tools.yield_line_uncompressed_or_gz_file(fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
+    # - reformat data --> DF
+    with open(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, "w") as fh_out:
+        for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
             etype = etype.strip()
             taxid = ENSP.split(".")[0]
-            UniProtID_list = ENSP_2_UniProtID_dict[ENSP] # defaultdict
-            funcName_list = helper_grep_funcNames(funcName_2_score_arr_str)
-            # backtracking of functions
-            funcName_list_backtracked = []
-            for funcName in funcName_list:
-                try: # translate if possible
-                    funcName = alternative_2_current_ID_dict[funcName]
-                except KeyError:
-                    funcName = funcName
-                funcName_list_backtracked.append(funcName)
-                try:
-                    funcName_list_backtracked += list(lineage_dict[funcName])
-                except KeyError:
-                    # print("{} without a lineage".format(funcName))
-                    terms_without_lineage |= set([funcName])
-            for UniProtID in UniProtID_list:
-                fh_out_Prot_2_func.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list_backtracked) + "\t" + etype + "\n")
-    with open(fn_out_without_lineage, "w") as fh_out_without_lineage:
-        for term in sorted(terms_without_lineage):
-            fh_out_without_lineage.write(term + "\n")
+            funcName_2_score_list_temp = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
+            for funcName, score in funcName_2_score_list_temp:
+                fh_out.write("{}\t{}\t{}\t{}\t{}\n".format(taxid, etype, ENSP, funcName, score))
 
-def get_ENSP_2_UniProtID_dict(UniprotID_2_ENSPs_2_KEGGs):
+    # - discretize scores
+    df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep='\t', names=["Taxid", "Etype", "ENSP", "funcName", "Score"])
+    # discretize per genome, per etype
+    df = rescale_scores(df, alpha=alpha, max_score=max_score)
+    df.to_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep='\t', header=True, index=False)
+
+    # - backtrack
+    alternative_2_current_ID_dict = {}
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(GO_obo_Jensenlab, upk=False))  # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(BTO_obo_Jensenlab, upk=True))
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(DOID_obo_current, upk=True))
+    lineage_dict_all_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False, direct_parents_only=False)
+    ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs)
+    df = df[["Taxid", "Etype", "ENSP", "funcName"]] # scores not needed any longer
+    backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage)
+
+def rescale_scores(df, alpha=0.5, max_score=5):
+    # df = df.sort_values(["funcName", "Score"], ascending=[True, True])
+    df = df.sort_values(["Taxid", "Etype", "funcName", "Score"], ascending=[True, True, True, True]) # discretize per genome, per etype
+    df = df.reset_index(drop=True)
+    df["Rescaled_score_orig"] = np.nan
+    df["Rescaled_score"] = np.nan
+    rescaled_score_orig_list, rescaled_score_equal_ranks_list = [], []
+    # for DOID, group in df.groupby("funcName"):
+    for taxid_etype_funcName, group in df.groupby(["Taxid", "Etype", "funcName"]):
+        rescaled_score_group, rescaled_score_equal_ranks_group = [], []
+        for score, gene_rank in zip(group.Score, list(range(1, group.shape[0] + 1))[::-1]):
+            rescaled_score_group.append(math.pow(gene_rank, alpha) * math.pow((1 - score / max_score), (1 - alpha)))
+        rescaled_score_orig_list += rescaled_score_group
+
+        ### average rescaled_scores if original confidence_scores are equal
+        sorted_Scores = group.Score.values
+        vals, idx_start, count = np.unique(sorted_Scores, return_counts=True, return_index=True)
+        start_stop_index_list = list(zip(idx_start, idx_start[1:])) + [(idx_start[-1], None)]
+        for start_stop, num_genes in zip(start_stop_index_list, count):
+            start, stop = start_stop
+            if num_genes > 1:
+                rescaled_score_equal_ranks_group += [np.median(rescaled_score_group[start:stop])] * num_genes
+            else:
+                rescaled_score_equal_ranks_group.append(rescaled_score_group[start])
+        rescaled_score_equal_ranks_list += rescaled_score_equal_ranks_group
+
+    df["Rescaled_score_orig"] = rescaled_score_orig_list
+    df["Rescaled_score"] = rescaled_score_equal_ranks_list
+    df = df.reset_index(drop=True)
+    return df
+
+def backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, fn_out_ENSP, fn_out_UniProtID, without_lineage):
     """
-    :param UniprotID_2_ENSPs_2_KEGGs: String (input file)
+    df with ENSP, DOID, and Score column
+    """
+    terms_without_lineage = set()
+    with open(fn_out_ENSP, "w") as fh_out_ENSP:
+        with open(fn_out_UniProtID, "w") as fh_out_UniProtID:
+            for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
+                taxid, etype, ENSP = taxid_etype_ENSP
+                UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
+                funcName_list_backtracked = set(group.funcName.values)
+                for funcName in group.funcName.values:
+                    try:
+                        funcName_list_backtracked |= lineage_dict_all_parents[funcName]
+                    except KeyError:
+                        terms_without_lineage |= {funcName}
+
+                funcName_list_backtracked_clean = []
+                for funcName in funcName_list_backtracked:
+                    try: # translate from alternative/alias to main name (synonym or obsolete funcName to current name)
+                        funcName = alternative_2_current_ID_dict[funcName]
+                    except KeyError:
+                        pass
+                    funcName_list_backtracked_clean.append(funcName)
+                    fh_out_ENSP.write("{}\t{}\n".format(ENSP, funcName))
+                for UniProtID in UniProtID_list:
+                    fh_out_UniProtID.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked_clean)) + "\t" + etype + "\n")
+
+    with open(without_lineage, "w") as fh_without_lineage:
+        for term in sorted(terms_without_lineage):
+            fh_without_lineage.write(term + "\n")
+
+
+# def Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid, fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_out_without_lineage):
+#     """
+#     DEPRECATED since scores are discretized
+#     :param fn_go_basic_obo:
+#     :param fn_in_DOID_obo_Jensenlab:
+#     :param fn_in_BTO_obo_Jensenlab:
+#     :param fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid:
+#     :param fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS:
+#     :param fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS: outputs normal GO not GOCC terms
+#     :param fn_out_without_lineage:
+#     :return:
+#     """
+#     alternative_2_current_ID_dict = {}
+#     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_go_basic_obo, upk=False))  # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
+#     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_DOID_obo_Jensenlab, upk=True))
+#     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(fn_in_BTO_obo_Jensenlab, upk=True))
+#
+#     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(fn_in_UniProtID_2_ENSPs_2_KEGGs_2_Taxid)
+#     # lineage_dict has GO as well as GOCC terms
+#     lineage_dict = get_lineage_dict_for_DOID_BTO_GO(fn_go_basic_obo, fn_in_DOID_obo_Jensenlab, fn_in_BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False)
+#
+#     terms_without_lineage = set()
+#     with open(fn_out_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "w") as fh_out_Prot_2_func:
+#         for line in tools.yield_line_uncompressed_or_gz_file(fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
+#             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
+#             etype = etype.strip()
+#             taxid = ENSP.split(".")[0]
+#             UniProtID_list = ENSP_2_UniProtID_dict[ENSP] # defaultdict
+#             funcName_list = helper_grep_funcNames(funcName_2_score_arr_str)
+#             # backtracking of functions
+#             funcName_list_backtracked = []
+#             for funcName in funcName_list:
+#                 try: # translate if possible
+#                     funcName = alternative_2_current_ID_dict[funcName]
+#                 except KeyError:
+#                     funcName = funcName
+#                 funcName_list_backtracked.append(funcName)
+#                 try:
+#                     funcName_list_backtracked += list(lineage_dict[funcName])
+#                 except KeyError:
+#                     # print("{} without a lineage".format(funcName))
+#                     terms_without_lineage |= set([funcName])
+#             for UniProtID in UniProtID_list:
+#                 fh_out_Prot_2_func.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(funcName_list_backtracked) + "\t" + etype + "\n")
+#     with open(fn_out_without_lineage, "w") as fh_out_without_lineage:
+#         for term in sorted(terms_without_lineage):
+#             fh_out_without_lineage.write(term + "\n")
+
+def get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs):
+    """
+    :param Taxid_UniProtID_2_ENSPs_2_KEGGs: String (input file)
     :return: defaultdict (key: ENSP, val: list of UniProtIDs)
     """
     ENSP_2_UniProtID_dict = defaultdict(lambda: [])
-    with open(UniprotID_2_ENSPs_2_KEGGs, "r") as fh_in:
+    with open(Taxid_UniProtID_2_ENSPs_2_KEGGs, "r") as fh_in:
         for line in fh_in:
             taxid, UniProtID, ENSP, KEGG = line.split("\t")
             if len(ENSP) > 0:
