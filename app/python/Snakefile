@@ -76,7 +76,7 @@ Taxid_2_FuncEnum_2_Score_2_Rank_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2
 #Taxid_2_FuncEnum_2_medianScore_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_medianScore_dict"]
 #Taxid_2_FuncEnum_2_numBGvals_dict = TABLES_DICT_SNAKEMAKE["Taxid_2_FuncEnum_2_numBGvals_dict"]
 
-if hostname == "ody":
+if hostname in {"ody", "MLS-M-DALY.local"}:
     # string_matches = r"/Users/dblyon/modules/cpr/agotool/data/PostgreSQL/downloads/string_matches.tsv"
     KEGG_dir = DOWNLOADS_DIR # fake mock
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
@@ -770,7 +770,7 @@ rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since perform
         cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
         #, output.Taxid_2_FuncEnum_2_Score_2_Rank_dict, output.Taxid_2_FuncEnum_2_medianScore_dict, output.Taxid_2_FuncEnum_2_numBGvals_dict)
 
-rule r_bb:
+rule r_Taxid_2_Proteins_table_p:
     input:
         Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
     output:
