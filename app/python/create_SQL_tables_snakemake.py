@@ -3257,8 +3257,7 @@ def backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_d
                     funcName_list_backtracked_clean.append(funcName)
                     fh_out_ENSP.write("{}\t{}\n".format(ENSP, funcName))
                 for UniProtID in UniProtID_list:
-                    fh_out_UniProtID.write(taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked_clean)) + "\t" + etype + "\n")
-
+                    fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked_clean)), etype))
     with open(without_lineage, "w") as fh_without_lineage:
         for term in sorted(terms_without_lineage):
             fh_without_lineage.write(term + "\n")
