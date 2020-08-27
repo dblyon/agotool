@@ -654,9 +654,10 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS:
         DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
     params:
         alpha = 0.5,
-        max_score = 5
+        max_score = 5,
+        GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage, alpha=params.alpha, max_score=params.max_score)
+        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage, alpha=params.alpha, max_score=params.max_score, GO_CC_textmining_additional_etyp=params.GO_CC_textmining_additional_etype)
 
 
 

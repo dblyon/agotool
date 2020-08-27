@@ -3153,7 +3153,7 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
 
     return funcName_2_score_list_backtracked, set(without_lineage)
 
-def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, alpha=0.5, max_score=5):
+def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, alpha=0.5, max_score=5, GO_CC_textmining_additional_etype=True):
     """
     discretize TextMining scores
     - reformat data --> DF
@@ -3195,10 +3195,10 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(GO_obo_Jensenlab, upk=False))  # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(BTO_obo_Jensenlab, upk=True))
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(DOID_obo_current, upk=True))
-    lineage_dict_all_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False, direct_parents_only=False)
+    lineage_dict_all_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=GO_CC_textmining_additional_etype, direct_parents_only=False) # GO_CC_textmining_additional_etype should be False, since everything is still a regular GO term
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs)
     df = df[["Taxid", "Etype", "ENSP", "funcName"]] # scores not needed any longer
-    backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage)
+    backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, GO_CC_textmining_additional_etype=GO_CC_textmining_additional_etype) # translate to GOCC
 
 def rescale_scores(df, alpha=0.5, max_score=5):
     # df = df.sort_values(["funcName", "Score"], ascending=[True, True])
@@ -3231,10 +3231,16 @@ def rescale_scores(df, alpha=0.5, max_score=5):
     df = df.reset_index(drop=True)
     return df
 
-def backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, fn_out_ENSP, fn_out_UniProtID, without_lineage):
+def backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, fn_out_ENSP, fn_out_UniProtID, without_lineage, GO_CC_textmining_additional_etype=False):
     """
     df with ENSP, DOID, and Score column
     """
+    if GO_CC_textmining_additional_etype:
+        df["Etype"] = df["Etype"].astype(int)
+        cond_GOCC = df["Etype"] == -22
+        df.loc[cond_GOCC, "Etype"] = -20
+        df.loc[cond_GOCC, "funcName"] = df.loc[cond_GOCC, "funcName"].apply(lambda x: x.replace("GO:", "GOCC:"))
+
     terms_without_lineage = set()
     with open(fn_out_ENSP, "w") as fh_out_ENSP:
         with open(fn_out_UniProtID, "w") as fh_out_UniProtID:
@@ -3256,6 +3262,7 @@ def backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_d
                         pass
                     funcName_list_backtracked_clean.append(funcName)
                     fh_out_ENSP.write("{}\t{}\n".format(ENSP, funcName))
+
                 for UniProtID in UniProtID_list:
                     fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked_clean)), etype))
     with open(without_lineage, "w") as fh_without_lineage:
