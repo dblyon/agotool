@@ -468,15 +468,16 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         with open(variables.tables_dict["TaxidSpecies_2_multipleRefProtTaxid_dict"], "rb") as fh_TaxidSpecies_2_multipleRefProtTaxid_dict:
             self.TaxidSpecies_2_multipleRefProtTaxid_dict = pickle.load(fh_TaxidSpecies_2_multipleRefProtTaxid_dict)
 
-        if variables.VERBOSE:
-            print("getting CSC_ENSPencoding_2_FuncEnum and ENSP_2_rowIndex_dict")
+        ### DEPRECATED
+        # if variables.VERBOSE:
+        #     print("getting CSC_ENSPencoding_2_FuncEnum and ENSP_2_rowIndex_dict")
         ### deprecated --> self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
-        with open(variables.tables_dict["ENSP_2_rowIndex_dict"], "rb") as fh_ENSP_2_rowIndex_dict:
-            self.ENSP_2_rowIndex_dict = pickle.load(fh_ENSP_2_rowIndex_dict)
-        with open(variables.tables_dict["rowIndex_2_ENSP_dict"], "rb") as fh_rowIndex_2_ENSP_dict:
-            self.rowIndex_2_ENSP_dict = pickle.load(fh_rowIndex_2_ENSP_dict)
-        self.CSC_ENSPencoding_2_FuncEnum = sparse.load_npz(variables.tables_dict["CSC_ENSPencoding_2_FuncEnum"])
-        self.CSR_ENSPencoding_2_FuncEnum = self.CSC_ENSPencoding_2_FuncEnum.tocsr()
+        # with open(variables.tables_dict["ENSP_2_rowIndex_dict"], "rb") as fh_ENSP_2_rowIndex_dict:
+        #     self.ENSP_2_rowIndex_dict = pickle.load(fh_ENSP_2_rowIndex_dict)
+        # with open(variables.tables_dict["rowIndex_2_ENSP_dict"], "rb") as fh_rowIndex_2_ENSP_dict:
+        #     self.rowIndex_2_ENSP_dict = pickle.load(fh_rowIndex_2_ENSP_dict)
+        # self.CSC_ENSPencoding_2_FuncEnum = sparse.load_npz(variables.tables_dict["CSC_ENSPencoding_2_FuncEnum"])
+        # self.CSR_ENSPencoding_2_FuncEnum = self.CSC_ENSPencoding_2_FuncEnum.tocsr()
 
         if not low_memory:
             if variables.VERBOSE:
@@ -560,18 +561,16 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len, self.etype_cond_dict, self.etype_2_num_functions_dict,
                                         self.taxid_2_proteome_count, self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
-                                        self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.rowIndex_2_ENSP_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum,
-                                        self.Taxid_2_FunctionEnum_2_Scores_dict)
-                                        # self.Taxid_2_FunctionEnum_2_Scores_dict, self.Taxid_2_FuncEnum_2_Score_2_Rank_dict, self.Taxid_2_FuncEnum_2_medianScore_dict, self.Taxid_2_FuncEnum_2_numBGvals_dict)
+                                        self.goslimtype_2_cond_dict) # DEPRECATED self.ENSP_2_rowIndex_dict, self.rowIndex_2_ENSP_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum,
+                                        # self.Taxid_2_FunctionEnum_2_Scores_dict)
         else:
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.description_arr, self.category_arr,  # high mem --> only 62 MB
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len, self.etype_cond_dict, self.etype_2_num_functions_dict,
                                         self.taxid_2_proteome_count, self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
-                                        self.goslimtype_2_cond_dict, self.ENSP_2_rowIndex_dict, self.rowIndex_2_ENSP_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum,
-                                        self.Taxid_2_FunctionEnum_2_Scores_dict)
-                                        # self.Taxid_2_FunctionEnum_2_Scores_dict, self.Taxid_2_FuncEnum_2_Score_2_Rank_dict, self.Taxid_2_FuncEnum_2_medianScore_dict, self.Taxid_2_FuncEnum_2_numBGvals_dict)
+                                        self.goslimtype_2_cond_dict) # DEPRECATED self.ENSP_2_rowIndex_dict, self.rowIndex_2_ENSP_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum,
+                                        # self.Taxid_2_FunctionEnum_2_Scores_dict)
         return static_preloaded_objects
 
     def get_blacklisted_terms_bool_arr(self):

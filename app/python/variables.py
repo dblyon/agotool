@@ -37,7 +37,7 @@ entity_types_with_ontology = {-20, -21, -22, -23, -25, -26, -51, -57} # Interpro
 PMID = {-56}
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55} # all etypes - PMID - ontologies
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # {-52, -53, -54, -55, -56, -58}
-entity_types_with_scores = {-20, -25, -26}  # GO-CC, BTO, DOID
+# DEPRECATED entity_types_with_scores = {-20, -25, -26}  # GO-CC, BTO, DOID
 enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}
 # all except for TM scores "-21;-22;-23;-51;-52;-53;-54;-55;-56-57;-58"
 
@@ -206,7 +206,15 @@ blacklisted_terms = {'GO:0003674', 'GO:0008150', 'GO:0005575', "GOCC:0005575",
                      'GOCC:0005623', 'GOCC:0044464', 'GOCC:0005622', 'GOCC:0043226', 'GOCC:0044422',
                      'GOCC:0044424', 'GOCC:0043229', 'GOCC:0043227', 'GOCC:0005737', 'GOCC:0043231', 'GOCC:0016020', 'GOCC:0044444', 'GOCC:0044446',
                      'GOCC:0032991', 'GOCC:0071944', 'GOCC:0044425', 'GOCC:0043232', 'GOCC:0012505', 'GOCC:0070013', 'GOCC:0031224', 'GOCC:0031090',
-                     'GOCC:0016021', 'GOCC:0031982'}
+                     'GOCC:0016021', 'GOCC:0031982',
+                     "DOID:4", "DOID:7", "DOID:14566"}
+# DOID:4 disease
+# DOID:7 disease of anatomical entity
+# DOID:14566 disease of cellular proliferation
+# DOID:162 cancer
+# DOID:0050686 organ system cancer
+# DOID:863 nervous system disease
+# DOID:630 genetic disease
 # GOCC:0005623 = Cell;
 # GOCC:0044464 = Cell part;
 # GOCC:0005622 = Intracellular
