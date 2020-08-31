@@ -30,11 +30,14 @@ from fisher import pvalue
 from scipy import stats
 import variables, query
 
-def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False, KS_method="sparse_scipy", ENSP_2_tuple_funcEnum_score_dict=None, KS_etypes_FG_IDs=True):
+
+def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False): #, KS_method="sparse_scipy", ENSP_2_tuple_funcEnum_score_dict=None, KS_etypes_FG_IDs=True):
     if not low_memory:
-        ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
+        # ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
+        ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
     else:  # missing: ENSP_2_functionEnumArray_dict
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
+        # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
     foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes, over_under_int_arr, over_under_arr_of_string = preloaded_objects_per_analysis
     em = ui.enrichment_method
     foreground_n = ui.get_foreground_n()
@@ -80,69 +83,69 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
 
     ######################################################################################################################################################
     ### Jensenlab Scores KS test
-    cond_KS_etypes = etype_cond_dict["cond_25"] | etype_cond_dict["cond_26"] | etype_cond_dict["cond_20"]
+#     cond_KS_etypes = etype_cond_dict["cond_25"] | etype_cond_dict["cond_26"] | etype_cond_dict["cond_20"]
 
-    fg_scores_matrix, list_of_rowIndices_fg = slice_ScoresMatrix_for_given_ENSP(protein_ans_fg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
-    fg_scores_matrix_data = fg_scores_matrix.data
-    fg_scores_matrix_indptr = fg_scores_matrix.indptr
-    if fg_scores_matrix_data.size > 0:
-        if em == "genome": # "genome" has 2 possible KS methods KolmogorovSmirnov_sparse_cy (if fg not a proper subset of bg but comparing to precomputed bg) and KolmogorovSmirnov_sparse_cy_genome.
-            if KS_method in {"cy", "sparse_scipy"}:
-                bg_scores_matrix_data = None
-                bg_scores_matrix_indptr = None
-                try:
-                    funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
-                except KeyError: # no text mining information for this taxon, try to translate to species level and try again. e.g. user provides 559292 (Saccharomyces cerevisiae S288C, UniProt Reference Proteome), but Jensenlab Textmining supports 4932 (Saccharomyces cerevisiae, rank species)
-                    funcEnum_2_scores_dict_bg = {} # TaxID check is already done in runserver.py and userinput.py
-                if KS_method == "sparse_scipy":
-                    KolmogorovSmirnov_sparse_scipy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
-                elif KS_method == "cy":
-                    KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
-                else:
-                    print("KS_method {} unknown".format(KS_method))
-                    return None
+#     fg_scores_matrix, list_of_rowIndices_fg = slice_ScoresMatrix_for_given_ENSP(protein_ans_fg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
+#     fg_scores_matrix_data = fg_scores_matrix.data
+#     fg_scores_matrix_indptr = fg_scores_matrix.indptr
+#     if fg_scores_matrix_data.size > 0:
+#         if em == "genome": # "genome" has 2 possible KS methods KolmogorovSmirnov_sparse_cy (if fg not a proper subset of bg but comparing to precomputed bg) and KolmogorovSmirnov_sparse_cy_genome.
+#             if KS_method in {"cy", "sparse_scipy"}:
+#                 bg_scores_matrix_data = None
+#                 bg_scores_matrix_indptr = None
+#                 try:
+#                     funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid] # taxid is an Integer
+#                 except KeyError: # no text mining information for this taxon, try to translate to species level and try again. e.g. user provides 559292 (Saccharomyces cerevisiae S288C, UniProt Reference Proteome), but Jensenlab Textmining supports 4932 (Saccharomyces cerevisiae, rank species)
+#                     funcEnum_2_scores_dict_bg = {} # TaxID check is already done in runserver.py and userinput.py
+#                 if KS_method == "sparse_scipy":
+#                     KolmogorovSmirnov_sparse_scipy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
+#                 elif KS_method == "cy":
+#                     KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
+#                 else:
+#                     print("KS_method {} unknown".format(KS_method))
+#                     return None
 
-            elif KS_method == "scipy":
-                funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
-                funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-                funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid]
-                if debug:
-                    return foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, True
-                print("running KolmogorovSmirnov_scipy")
-                KolmogorovSmirnov_scipy(foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros=True)
-            else:
-                print("KS_method {} not implemented".format(KS_method))
-                return None
-        elif em in {"compare_samples", "abundance_correction"}: # abundance_correction calculated the same way as compare_samples, background_n will differ from non-KS etypes
-            if KS_method in {"cy", "sparse_scipy"}:
-                bg_scores_matrix, list_of_rowIndices_bg = slice_ScoresMatrix_for_given_ENSP(protein_ans_bg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
-                bg_scores_matrix_data = bg_scores_matrix.data
-                bg_scores_matrix_indptr = bg_scores_matrix.indptr
-                funcEnum_2_scores_dict_bg = None
-                if em == "abundance_correction":
-                    background_n_temp = ui.background.shape[0]
-                else:
-                    background_n_temp = background_n
-                if debug:
-                    return funcEnum_2_scores_dict_bg, foreground_n, background_n_temp, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one
-                if KS_method == "cy":
-                    print("running KolmogorovSmirnov_sparse_cy")
-                    KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n_temp, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
-                elif KS_method == "sparse_scipy":
-                    print("running KolmogorovSmirnov_sparse_scipy")
-                    KolmogorovSmirnov_sparse_scipy(funcEnum_2_scores_dict_bg, foreground_n, background_n_temp, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
-                else:
-                    print("KS_method {} unknown".format(KS_method))
-                    return None
-            elif KS_method == "scipy":
-                funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
-                funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-                funcEnum_2_scores_dict_bg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
-                print("running KolmogorovSmirnov_scipy")
-                if debug:
-                    fill_zeros = True
-                    return foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros
-                KolmogorovSmirnov_scipy(foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros=True)
+#             elif KS_method == "scipy":
+#                 funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
+#                 funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+#                 funcEnum_2_scores_dict_bg = Taxid_2_FunctionEnum_2_Scores_dict[taxid]
+#                 if debug:
+#                     return foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, True
+#                 print("running KolmogorovSmirnov_scipy")
+#                 KolmogorovSmirnov_scipy(foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros=True)
+#             else:
+#                 print("KS_method {} not implemented".format(KS_method))
+#                 return None
+#         elif em in {"compare_samples", "abundance_correction"}: # abundance_correction calculated the same way as compare_samples, background_n will differ from non-KS etypes
+#             if KS_method in {"cy", "sparse_scipy"}:
+#                 bg_scores_matrix, list_of_rowIndices_bg = slice_ScoresMatrix_for_given_ENSP(protein_ans_bg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
+#                 bg_scores_matrix_data = bg_scores_matrix.data
+#                 bg_scores_matrix_indptr = bg_scores_matrix.indptr
+#                 funcEnum_2_scores_dict_bg = None
+#                 if em == "abundance_correction":
+#                     background_n_temp = ui.background.shape[0]
+#                 else:
+#                     background_n_temp = background_n
+#                 if debug:
+#                     return funcEnum_2_scores_dict_bg, foreground_n, background_n_temp, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one
+#                 if KS_method == "cy":
+#                     print("running KolmogorovSmirnov_sparse_cy")
+#                     KolmogorovSmirnov_sparse_cy(funcEnum_2_scores_dict_bg, foreground_n, background_n_temp, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
+#                 elif KS_method == "sparse_scipy":
+#                     print("running KolmogorovSmirnov_sparse_scipy")
+#                     KolmogorovSmirnov_sparse_scipy(funcEnum_2_scores_dict_bg, foreground_n, background_n_temp, fg_scores_matrix_data, fg_scores_matrix_indptr, bg_scores_matrix_data, bg_scores_matrix_indptr, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, em, filter_foreground_count_one)
+#                 else:
+#                     print("KS_method {} unknown".format(KS_method))
+#                     return None
+#             elif KS_method == "scipy":
+#                 funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
+#                 funcEnum_2_scores_dict_fg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+#                 funcEnum_2_scores_dict_bg = collect_scores_per_term_limit_2_inclusionTerms(protein_ans_bg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=True)
+#                 print("running KolmogorovSmirnov_scipy")
+#                 if debug:
+#                     fill_zeros = True
+#                     return foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros
+#                 KolmogorovSmirnov_scipy(foreground_n, background_n, funcEnum_2_scores_dict_fg, funcEnum_2_scores_dict_bg, p_values, cond_multitest, effectSizes, p_value_cutoff, funcEnum_count_foreground, funcEnum_count_background, over_under_int_arr, o_or_u_or_both_encoding, fill_zeros=True)
 
     #### other methods e.g. abundance_correction, compare_samples are missing  #!!!
     ### don't delete "add_funcEnums_2_dict_CSC", not using due to speed and too many proteins in list --> but use for characterize_foreground
@@ -169,9 +172,9 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
         multiple_testing_per_entity_type(cond_all, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
 
     ### Filter stuff
-    if KS_etypes_FG_IDs:
-        add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
-    foreground_ids_arr_of_string, funcEnum_indices_for_IDs, cond_etypes_with_ontology_filtered, cond_etypes_rem_foreground_ids_filtered, cond_filter = filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_arr_of_string, funcEnum_count_foreground, year_arr, p_values, indices_arr, ENSP_2_functionEnumArray_dict, cond_filter, etype_cond_dict, cond_PMIDs, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, over_under_int_arr, cond_KS_etypes, KS_etypes_FG_IDs)
+#     if KS_etypes_FG_IDs:
+#         add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
+    foreground_ids_arr_of_string, funcEnum_indices_for_IDs, cond_etypes_with_ontology_filtered, cond_etypes_rem_foreground_ids_filtered, cond_filter = filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_arr_of_string, funcEnum_count_foreground, year_arr, p_values, indices_arr, ENSP_2_functionEnumArray_dict, cond_filter, etype_cond_dict, cond_PMIDs, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, over_under_int_arr)
     if debug:
         return foreground_ids_arr_of_string
     if em in {"compare_samples"}:
@@ -230,9 +233,9 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
     df_2_return["FG_n"] = foreground_n
     df_2_return["BG_n"] = background_n
-    if em == "abundance_correction":
-        cond_KS_etypes_temp = df_2_return["etype"].isin(variables.entity_types_with_scores)
-        df_2_return.loc[cond_KS_etypes_temp, "BG_n"] = ui.background.shape[0]
+#     if em == "abundance_correction":
+#         cond_KS_etypes_temp = df_2_return["etype"].isin(variables.entity_types_with_scores)
+#         df_2_return.loc[cond_KS_etypes_temp, "BG_n"] = ui.background.shape[0]
     # #!!! DEBUG uncomment for production #     df_2_return.loc[df_2_return["etype"].isin([-20, -25, -26]), ["ratio_in_FG", "ratio_in_BG", "FG_count", "BG_count"]] = np.nan
 
     ### calc ratio in foreground, count foreground / len(protein_ans)
@@ -1052,118 +1055,7 @@ def KS_DBL_adapted_from_Christian(fg_values, bg_values):
     pvalue = math.exp(n1_times_n2_times_mintwo * D_max * D_max / n1_plus_n2)
     return D_max, pvalue
 
-def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
-    if not low_memory:
-        ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
-    else:  # missing: ENSP_2_functionEnumArray_dict
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
-    foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes, over_under_int_arr, over_under_arr_of_string = preloaded_objects_per_analysis
-    em = ui.enrichment_method
-    foreground_n = ui.get_foreground_n()
-    args_dict = ui.args_dict
-    filter_foreground_count_one = args_dict["filter_foreground_count_one"]
-    cols_2_return_sort_order = variables.cols_sort_order_characterize_foreground[:]
-
-    protein_ans_fg = ui.get_foreground_an_set()
-    if low_memory:
-        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(ui.get_all_individual_AN(), dict_2_array=True)
-    ### add protein groups to ENSP_2_functionEnumArray_dict
-    ENSP_2_functionEnumArray_dict = add_protein_groups_to_ENSP_2_functionEnumArray_dict(ENSP_2_functionEnumArray_dict, ui.get_all_unique_proteinGroups())
-
-    ## count foreground
-    count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg, funcEnum_count_foreground)
-
-    ## limit to given entity types
-    cond_limit_2_entity_type = limit_to_entity_types(args_dict["limit_2_entity_type"], function_enumeration_len, etype_cond_dict, funcEnum_count_foreground)
-    limit_to_go_subset(etype_cond_dict, args_dict["go_slim_subset"], goslimtype_2_cond_dict, funcEnum_count_foreground)
-
-    ### Jensenlab Scores KS test
-    cond_KS_etypes = etype_cond_dict["cond_25"] | etype_cond_dict["cond_26"] | etype_cond_dict["cond_20"]
-    funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
-
-    # orig
-#     if orig:
-#         funcEnum_2_scores_dict_fg = collect_scores_per_term_characterize_foreground(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, score_cutoff=args_dict["score_cutoff"])
-#         for funcEnum, scores_fg in funcEnum_2_scores_dict_fg.items():
-#             funcEnum_count_foreground[funcEnum] = len(scores_fg)
-    # new CSC version
-#     else:
-    fg_scores_matrix, list_of_rowIndices_fg = slice_ScoresMatrix_for_given_ENSP(protein_ans_fg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
-    fg_scores_matrix_data = fg_scores_matrix.data
-    fg_scores_matrix_indptr = fg_scores_matrix.indptr
-    if fg_scores_matrix_data.size > 0:
-        set_fg_counts(fg_scores_matrix_data, fg_scores_matrix_indptr, funcEnum_count_foreground, filter_foreground_count_one)
-        # add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict)
-        add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
-
-    ### calc ratio in foreground, count foreground / len(protein_ans)
-    ratio_in_foreground = funcEnum_count_foreground / foreground_n
-
-    ### concatenate filtered results
-    if filter_foreground_count_one:
-        cond_2_return = funcEnum_count_foreground > 1
-    else:
-        cond_2_return = funcEnum_count_foreground >= 1
-
-    ### limit PMID results
-    filter_PMID_top_n = args_dict["filter_PMID_top_n"]
-    if filter_PMID_top_n is not None:
-        cond_PMID_2_filter = cond_2_return & etype_cond_dict["cond_56"]
-        df_PMID = pd.DataFrame({"foreground_count": funcEnum_count_foreground[cond_PMID_2_filter].view(), "year": year_arr[cond_PMID_2_filter].view(), "indices_arr": indices_arr[cond_PMID_2_filter].view()})
-        indices_PMID = df_PMID.sort_values(["foreground_count", "year"], ascending=[False, False])["indices_arr"].values[:filter_PMID_top_n]
-        # set all PMIDs to False and then include only those that were selected
-        cond_2_return[etype_cond_dict["cond_56"]] = False
-        for index_ in indices_PMID:
-            cond_2_return[index_] = True
-    ### exclude blacklisted terms
-    cond_2_return[blacklisted_terms_bool_arr > 0] = False
-
-    try:
-        privileged = args_dict["privileged"]
-    except KeyError:
-        privileged = False
-    if not privileged:
-        # remove KEGG unless privileged
-        cond_kegg = etype_cond_dict["cond_52"]
-        cond_2_return = cond_2_return & ~cond_kegg
-
-    funcEnum_indices_for_IDs = indices_arr[cond_2_return]
-    foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
-    if not low_memory:
-        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                                    "category": category_arr[cond_2_return].view(),
-                                    "etype": entitytype_arr[cond_2_return].view(),
-                                    "description": description_arr[cond_2_return].view(),
-                                    "year": year_arr[cond_2_return].view(),
-                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                                    "FG_ids": foreground_ids_arr_of_string[cond_2_return].view(),
-                                    "FG_count": funcEnum_count_foreground[cond_2_return].view()})
-    else:
-        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                                    "etype": entitytype_arr[cond_2_return].view(),
-                                    "year": year_arr[cond_2_return].view(),
-                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                                    "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
-                                    "FG_count": funcEnum_count_foreground[cond_2_return].view(),
-                                    "funcEnum": indices_arr[cond_2_return].view()})
-        df_2_return["category"] = df_2_return["etype"].apply(lambda etype: variables.entityType_2_functionType_dict[etype])
-        funcEnum_2_description_dict = query.get_function_description_from_funcEnum(indices_arr[cond_2_return].tolist())
-        df_2_return["description"] = df_2_return["funcEnum"].apply(lambda funcEnum: funcEnum_2_description_dict[funcEnum])
-    #cols_2_return_sort_order = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category']
-    df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
-    df_2_return["FG_n"] = foreground_n
-    # rank everything correctly except PMIDs, "year"-column will only affect PMIDs
-    df_2_return = df_2_return.sort_values(["etype", "FG_count", "year"], ascending=[True, False, False]).reset_index(drop=True)
-    # cond_PMIDs = df_2_return["etype"] == -56
-    # df_2_return.loc[~cond_PMIDs, "rank"] = df_2_return[~cond_PMIDs].groupby("etype")["FG_count"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
-    # df_2_return.loc[cond_PMIDs, "rank"] = df_2_return[cond_PMIDs].groupby("etype")["year"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
-    # df_2_return["rank"] = df_2_return["rank"].astype(int)
-    df_2_return["rank"] = df_2_return.groupby("etype")["FG_count"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0]).astype(int)
-    return df_2_return[cols_2_return_sort_order]
-
-def filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_arr_of_string, funcEnum_count_foreground, year_arr, p_values, indices_arr, ENSP_2_functionEnumArray_dict, cond_filter, etype_cond_dict, cond_PMIDs, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, over_under_int_arr, cond_KS_etypes, KS_etypes_FG_IDs=True):
+def filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_arr_of_string, funcEnum_count_foreground, year_arr, p_values, indices_arr, ENSP_2_functionEnumArray_dict, cond_filter, etype_cond_dict, cond_PMIDs, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, over_under_int_arr):
     FDR_cutoff, p_value_cutoff = args_dict["FDR_cutoff"], args_dict["p_value_cutoff"]
     cond_filter = (p_values_corrected <= FDR_cutoff) & (p_values <= p_value_cutoff)
     ### remove terms with only a single annotation
@@ -1198,12 +1090,12 @@ def filter_stuff(args_dict, protein_ans_fg, p_values_corrected, foreground_ids_a
     cond_IDs_2_query = (cond_PMIDs | cond_etypes_with_ontology_filtered | cond_etypes_rem_foreground_ids_filtered)
     ### get foreground IDs of relevant subset --> array for entire data set
     ## exclude TextMining KS functionEnumerations since these are probably not very informative and we need performance --> don't exclude
-    if not KS_etypes_FG_IDs:
-        cond_IDs_2_query = cond_IDs_2_query & ~cond_KS_etypes # commented on purpose since STRING needs these
+#     if not KS_etypes_FG_IDs:
+#         cond_IDs_2_query = cond_IDs_2_query & ~cond_KS_etypes # commented on purpose since STRING needs these
     funcEnum_indices_for_IDs = indices_arr[cond_IDs_2_query]
     foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
-    if not KS_etypes_FG_IDs:
-        foreground_ids_arr_of_string[cond_KS_etypes] = "" # commented out for STRING
+#     if not KS_etypes_FG_IDs:
+#         foreground_ids_arr_of_string[cond_KS_etypes] = "" # commented out for STRING
     return foreground_ids_arr_of_string, funcEnum_indices_for_IDs, cond_etypes_with_ontology_filtered, cond_etypes_rem_foreground_ids_filtered, cond_filter
 
 
@@ -1408,3 +1300,119 @@ cdef int KolmogorovSmirnov_sparse_scipy(FunctionEnum_2_Scores_dict, unsigned int
         funcEnum_count_foreground[funcEnum] = num_fg_vals
         funcEnum_count_background[funcEnum] = num_bg_vals
     return 0
+
+def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
+    if not low_memory:
+        # ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
+        ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
+    else:  # missing: ENSP_2_functionEnumArray_dict
+        # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
+    foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes, over_under_int_arr, over_under_arr_of_string = preloaded_objects_per_analysis
+    em = ui.enrichment_method
+    foreground_n = ui.get_foreground_n()
+    args_dict = ui.args_dict
+    filter_foreground_count_one = args_dict["filter_foreground_count_one"]
+    cols_2_return_sort_order = variables.cols_sort_order_characterize_foreground[:]
+
+    protein_ans_fg = ui.get_foreground_an_set()
+    if low_memory:
+        ENSP_2_functionEnumArray_dict = query.get_functionEnumArray_from_proteins(ui.get_all_individual_AN(), dict_2_array=True)
+    ### add protein groups to ENSP_2_functionEnumArray_dict
+    ENSP_2_functionEnumArray_dict = add_protein_groups_to_ENSP_2_functionEnumArray_dict(ENSP_2_functionEnumArray_dict, ui.get_all_unique_proteinGroups())
+
+    ## count foreground
+    count_all_terms(ENSP_2_functionEnumArray_dict, protein_ans_fg, funcEnum_count_foreground)
+
+    ## limit to given entity types
+    cond_limit_2_entity_type = limit_to_entity_types(args_dict["limit_2_entity_type"], function_enumeration_len, etype_cond_dict, funcEnum_count_foreground)
+    limit_to_go_subset(etype_cond_dict, args_dict["go_slim_subset"], goslimtype_2_cond_dict, funcEnum_count_foreground)
+
+#     ### Jensenlab Scores KS test
+#     cond_KS_etypes = etype_cond_dict["cond_25"] | etype_cond_dict["cond_26"] | etype_cond_dict["cond_20"]
+#     funcEnums_2_include_set = set(indices_arr[cond_KS_etypes & cond_limit_2_entity_type])
+
+    # orig
+#     if orig:
+#         funcEnum_2_scores_dict_fg = collect_scores_per_term_characterize_foreground(protein_ans_fg, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, score_cutoff=args_dict["score_cutoff"])
+#         for funcEnum, scores_fg in funcEnum_2_scores_dict_fg.items():
+#             funcEnum_count_foreground[funcEnum] = len(scores_fg)
+    # new CSC version
+#     else:
+
+#     fg_scores_matrix, list_of_rowIndices_fg = slice_ScoresMatrix_for_given_ENSP(protein_ans_fg, ENSP_2_rowIndex_dict, CSC_ENSPencoding_2_FuncEnum)
+#     fg_scores_matrix_data = fg_scores_matrix.data
+#     fg_scores_matrix_indptr = fg_scores_matrix.indptr
+#     if fg_scores_matrix_data.size > 0:
+#         set_fg_counts(fg_scores_matrix_data, fg_scores_matrix_indptr, funcEnum_count_foreground, filter_foreground_count_one)
+#         # add_funcEnums_2_dict(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_tuple_funcEnum_score_dict)
+#         add_funcEnums_2_dict_CSC(protein_ans_fg, ENSP_2_functionEnumArray_dict, ENSP_2_rowIndex_dict, CSR_ENSPencoding_2_FuncEnum)
+
+    ### calc ratio in foreground, count foreground / len(protein_ans)
+    ratio_in_foreground = funcEnum_count_foreground / foreground_n
+
+    ### concatenate filtered results
+    if filter_foreground_count_one:
+        cond_2_return = funcEnum_count_foreground > 1
+    else:
+        cond_2_return = funcEnum_count_foreground >= 1
+
+    ### limit PMID results
+    filter_PMID_top_n = args_dict["filter_PMID_top_n"]
+    if filter_PMID_top_n is not None:
+        cond_PMID_2_filter = cond_2_return & etype_cond_dict["cond_56"]
+        df_PMID = pd.DataFrame({"foreground_count": funcEnum_count_foreground[cond_PMID_2_filter].view(), "year": year_arr[cond_PMID_2_filter].view(), "indices_arr": indices_arr[cond_PMID_2_filter].view()})
+        indices_PMID = df_PMID.sort_values(["foreground_count", "year"], ascending=[False, False])["indices_arr"].values[:filter_PMID_top_n]
+        # set all PMIDs to False and then include only those that were selected
+        cond_2_return[etype_cond_dict["cond_56"]] = False
+        for index_ in indices_PMID:
+            cond_2_return[index_] = True
+    ### exclude blacklisted terms
+#     print(len(cond_2_return), sum(cond_2_return))
+    cond_2_return[blacklisted_terms_bool_arr > 0] = False
+#     print(blacklisted_terms_bool_arr)
+#     print(len(cond_2_return), sum(cond_2_return))
+
+    try:
+        privileged = args_dict["privileged"]
+    except KeyError:
+        privileged = False
+    if not privileged:
+        # remove KEGG unless privileged
+        cond_kegg = etype_cond_dict["cond_52"]
+        cond_2_return = cond_2_return & ~cond_kegg
+
+    funcEnum_indices_for_IDs = indices_arr[cond_2_return]
+    foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
+    if not low_memory:
+        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
+                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
+                                    "category": category_arr[cond_2_return].view(),
+                                    "etype": entitytype_arr[cond_2_return].view(),
+                                    "description": description_arr[cond_2_return].view(),
+                                    "year": year_arr[cond_2_return].view(),
+                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
+                                    "FG_ids": foreground_ids_arr_of_string[cond_2_return].view(),
+                                    "FG_count": funcEnum_count_foreground[cond_2_return].view()})
+    else:
+        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
+                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
+                                    "etype": entitytype_arr[cond_2_return].view(),
+                                    "year": year_arr[cond_2_return].view(),
+                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
+                                    "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
+                                    "FG_count": funcEnum_count_foreground[cond_2_return].view(),
+                                    "funcEnum": indices_arr[cond_2_return].view()})
+        df_2_return["category"] = df_2_return["etype"].apply(lambda etype: variables.entityType_2_functionType_dict[etype])
+        funcEnum_2_description_dict = query.get_function_description_from_funcEnum(indices_arr[cond_2_return].tolist())
+        df_2_return["description"] = df_2_return["funcEnum"].apply(lambda funcEnum: funcEnum_2_description_dict[funcEnum])
+    #cols_2_return_sort_order = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category']
+    df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
+    df_2_return["FG_n"] = foreground_n
+    # rank everything correctly except PMIDs, "year"-column will only affect PMIDs
+    df_2_return = df_2_return.sort_values(["etype", "year", "FG_count"], ascending=[True, False, False]).reset_index(drop=True)
+    cond_PMIDs = df_2_return["etype"] == -56
+    df_2_return.loc[~cond_PMIDs, "rank"] = df_2_return[~cond_PMIDs].groupby("etype")["FG_count"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
+    df_2_return.loc[cond_PMIDs, "rank"] = df_2_return[cond_PMIDs].groupby("etype")["year"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
+    df_2_return["rank"] = df_2_return["rank"].astype(int)
+    return df_2_return[cols_2_return_sort_order]
