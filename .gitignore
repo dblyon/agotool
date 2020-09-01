@@ -60,7 +60,8 @@ Thumbs.db
 # ipython notebook #
 ######################
 .idea/
-.ipython_checkpoints/
+.ipython_checkpoints/*
+.ipynb_checkpoints/*
 *.ipynb
 
 # agotool #

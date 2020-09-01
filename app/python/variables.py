@@ -6,7 +6,7 @@ hostname = socket.gethostname()
 
 ############################
 ### settings
-PRELOAD = True # set True in production. Load necessary data via PQO
+PRELOAD = False # set True in production. Load necessary data via PQO
 # pre-load objects DB connection necessary, set to False while testing with pytest
 # skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 # skip_downloads_completely = True # don't download anything
@@ -199,14 +199,11 @@ NUMBER_OF_PROCESSES = multiprocessing.cpu_count()
 # 'KW-9995' 'Disease',
 # 'KW-9996' 'Developmental stage'
 # 'KW-9990' 'Technical term' and all its children
-blacklisted_terms = {'GO:0003674', 'GO:0008150', 'GO:0005575', "GOCC:0005575",
+blacklisted_terms = {'GO:0003674', 'GO:0008150', 'GO:0005575',
+                     'GOCC:0003674', 'GOCC:0008150', 'GOCC:0005575',
                      'KW-0002', 'KW-0181', 'KW-0308', 'KW-0374', 'KW-0582', 'KW-0614',
                      'KW-0814', 'KW-0895', 'KW-0903', 'KW-0952', 'KW-1185', 'KW-1267',
                      'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9997', 'KW-9998', 'KW-9999',
-                     'GOCC:0005623', 'GOCC:0044464', 'GOCC:0005622', 'GOCC:0043226', 'GOCC:0044422',
-                     'GOCC:0044424', 'GOCC:0043229', 'GOCC:0043227', 'GOCC:0005737', 'GOCC:0043231', 'GOCC:0016020', 'GOCC:0044444', 'GOCC:0044446',
-                     'GOCC:0032991', 'GOCC:0071944', 'GOCC:0044425', 'GOCC:0043232', 'GOCC:0012505', 'GOCC:0070013', 'GOCC:0031224', 'GOCC:0031090',
-                     'GOCC:0016021', 'GOCC:0031982',
                      "DOID:4", "DOID:7", "DOID:14566"}
 # DOID:4 disease
 # DOID:7 disease of anatomical entity

@@ -3231,7 +3231,7 @@ def rescale_scores(df, alpha=0.5, max_score=5):
     df = df.reset_index(drop=True)
     return df
 
-def backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, fn_out_ENSP, fn_out_UniProtID, without_lineage, GO_CC_textmining_additional_etype=False):
+def backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, fn_out_ENSP, fn_out_UniProtID, without_lineage, GO_CC_textmining_additional_etype=True):
     """
     df with ENSP, DOID, and Score column
     """
