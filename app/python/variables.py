@@ -417,4 +417,5 @@ fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
 try:
     param_2_val_dict = parse_env_file(fn)
 except:
-    pass
+    print("env_file missing")
+    raise StopIteration

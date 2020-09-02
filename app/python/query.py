@@ -66,13 +66,13 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               'KEGG': "-52"}
 
 def get_cursor(env_dict=None):
-    if env_dict is not None:
-        USER = env_dict['POSTGRES_USER']
-        PWD = env_dict['POSTGRES_PASSWORD']
-        DBNAME = env_dict['POSTGRES_DB']
-        PORT = '5432'
-        HOST = 'db'
-        return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+    # if env_dict is not None:
+    #     USER = env_dict['POSTGRES_USER']
+    #     PWD = env_dict['POSTGRES_PASSWORD']
+    #     DBNAME = env_dict['POSTGRES_DB']
+    #     PORT = '5432'
+    #     HOST = 'db'
+    #     return get_cursor_connect(host=HOST, dbname=DBNAME, user=USER, port=PORT, password=PWD)
 
     if hostname in {"aquarius.meringlab.org", "atlas", "gaia"}: # use agotool/app/env_file, which isn't in git repo for security, using local Postgres
         env_dict = variables.param_2_val_dict
@@ -95,12 +95,12 @@ def get_cursor(env_dict=None):
             except KeyError:
                 print("query.py says there is something wrong with the Postgres config")
                 raise StopIteration
-            return get_cursor_connect_2_docker(host=HOST, dbname=DBNAME, user=USER, password=PWD, port=PORT)
+            return get_cursor_connect(host=HOST, dbname=DBNAME, user=USER, port=PORT, password=PWD)
         else: # use dockerized Postgres directly from native OS
             PORT = variables.Docker_incoming_PostgreSQL_port # '5913'
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
-            return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
+            return get_cursor_connect(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
 
     elif platform_ == "darwin":
         if not variables.DB_DOCKER: # use local Postgres
@@ -109,7 +109,7 @@ def get_cursor(env_dict=None):
             PORT = variables.Docker_incoming_PostgreSQL_port # '5913'
             HOST = 'localhost'
             param_2_val_dict = variables.param_2_val_dict
-            return get_cursor_connect_2_docker(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
+            return get_cursor_connect(host=HOST, dbname=param_2_val_dict["POSTGRES_DB"], user=param_2_val_dict["POSTGRES_USER"], password=param_2_val_dict["POSTGRES_PASSWORD"], port=PORT)
     else:
         print("query.get_cursor() doesn't know how to connect to Postgres")
         raise StopIteration
@@ -142,12 +142,6 @@ def get_cursor_ody(dbname='agotool'):
     return cursor
 
 def get_cursor_connect(host, dbname, user, password, port):
-    conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
-    conn = psycopg2.connect(conn_string)
-    cursor = conn.cursor()
-    return cursor
-
-def get_cursor_connect_2_docker(host, dbname, user, password, port):
     conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
     conn = psycopg2.connect(conn_string)
     cursor = conn.cursor()
