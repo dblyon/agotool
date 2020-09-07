@@ -654,11 +654,13 @@ def enrichment():
 def temp():
     return render_template('temp.html', form=Enrichment_Form())
 
-
 @app.route('/help')
 def help():
     return render_template('help.html', form=Enrichment_Form())
 
+@app.route('/plot')
+def plot():
+    return render_template('plot.html', form=Enrichment_Form())
 
 ################################################################################
 # results.html

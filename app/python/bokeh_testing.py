@@ -5,7 +5,6 @@ import math
 from collections import namedtuple
 from itertools import combinations
 
-import query, variables
 homedir = os.path.expanduser("~")
 from bokeh.layouts import column
 from bokeh.plotting import figure, curdoc, output_file, show
@@ -14,6 +13,8 @@ from bokeh.models import Circle
 
 from bokeh.io import output_notebook, export_png, show
 # output_notebook()
+output_file("bokeh_testing.html")
+
 from bokeh.events import ButtonClick
 
 from bokeh.plotting import figure, show
@@ -24,10 +25,12 @@ from bokeh.models import CustomJS, LabelSet, TapTool
 # output_file(fn_output)
 ### run "python bokeh_testing.py" --> creates bokeh_testing.html
 
-fn_example = os.path.join(os.path.expanduser("~"), "modules/cpr/agotool/data/exampledata/DF_Bokeh_example_for_plotting_playground.txt")
+# fn_example = os.path.join(os.path.expanduser("~"), "modules/cpr/agotool/data/exampledata/DF_Bokeh_example_for_plotting_playground.txt")
+fn_example = os.path.join(os.path.expanduser("~"), "modules/cpr/agotool/data/exampledata/DF_Bokeh_example_for_plotting_playground_small.txt")
 df = pd.read_csv(fn_example, sep="\t")
 df = df[df["etype"] != -20].reset_index(drop=True)
-df_as_cds = ColumnDataSource(data=df)
+del df["FG_IDs"]
+source = ColumnDataSource(data=df)
 
 # links need be replaced with proper edge values based on hierarchy
 links = {
@@ -60,15 +63,15 @@ for category, group in df.groupby("category"):
         nonselection_fill_color=color_of_etype, nonselection_line_color=color_of_etype, selection_color=color_of_etype,
         name="subplot_{}".format(category))
     legend_it.append((category, [renderer_per_category]))
-    labels = ColumnDataSource(data=dict(x=[], y=[], t=[], ind=[]))
-    plot.add_layout(LabelSet(x="x", y="y", text="t", y_offset=7, x_offset=7, source=labels, text_font_size="8pt"))
+
+labels = ColumnDataSource(data=dict(x=[], y=[], t=[], ind=[]))
+plot.add_layout(LabelSet(x="x", y="y", text="t", y_offset=7, x_offset=7, source=labels, text_font_size="8pt"))
 
 legend = Legend(items=legend_it, location=(10, 0))
 legend.click_policy = "hide" #"mute"
 plot.add_layout(legend, "right")
 # plot.legend.location = (10, 0)
 # plot.legend.click_policy = "hide"
-
 
 ### if on_click() is outside of circle --> change labels.data to be empty, else do the existing loop
 code_2_add_term_label_on_click = """
@@ -83,12 +86,11 @@ for (var i = 0; i < points.selected.indices.length; i++) {
 console.log("DBL message: tapping ");
 labels.change.emit();
 """
-callback = CustomJS(args=dict(points=df_as_cds, labels=labels), code=code_2_add_term_label_on_click)
+callback = CustomJS(args=dict(points=source, labels=labels), code=code_2_add_term_label_on_click)
 plot.add_tools(TapTool(callback=callback))
+renderer_transparent = plot.circle(x="logFDR", y="effectSize", source=source, size="FG_count_2_circle_size", alpha=0.0, color=None, name="plot_transparent")
 
-renderer_transparent = plot.circle(x="logFDR", y="effectSize", source=df_as_cds, size="FG_count_2_circle_size", alpha=0.0, color=None)
-
-# labels = LabelSet(x="logFDR", y="effectSize", source=df_as_cds, text="term", level="glyph", render_mode="canvas") # x_offset=3, y_offset=3,
+# labels = LabelSet(x="logFDR", y="effectSize", source=source, text="term", level="glyph", render_mode="canvas") # x_offset=3, y_offset=3,
 # plot.add_layout(labels)
 selected_circle = Circle()
 nonselected_circle = Circle()
@@ -102,7 +104,7 @@ renderer_transparent.nonselection_glyph = nonselected_circle
 #     else:
 #         pass
 #
-# df_as_cds.selected.on_change('indices', sel_cb)
+# source.selected.on_change('indices', sel_cb)
 
 
 # button_reset_labels = Button()
@@ -120,12 +122,15 @@ def reset_labels(): # running a python callback --> works
     # renderer_per_category.nonselection_glyph = None
     # renderer_transparent.selection_glyph = None
     # renderer_transparent.nonselection_glyph = None
-    # df_as_cds.selected.update(indices=[2])
-    # df_as_cds.selected.unapply_theme()
-    # global df_as_cds
-    # df_as_cds = ColumnDataSource(data=df)
-    df_as_cds.selected.update(indices=[])
+    # source.selected.update(indices=[2])
+    # source.selected.unapply_theme()
+    # global source
+    # source = ColumnDataSource(data=df)
+    source.selected.update(indices=[])
     labels.selected.update(indices=[])
+    source.selected.indices = []
+    labels.selected.indices = []
+    # LabelSet.select(None)
 
 button_reset_labels = Button(label="Button reset labels Python callback", button_type="success", width=100)
 button_reset_labels.on_click(reset_labels)
@@ -134,22 +139,28 @@ button_reset_labels.on_click(reset_labels)
 code_2_reset_labels = """
 console.log('DBL JS callback: code_2_reset_labels ');
 
-const data = labels.data;
+for (var i = 0; i < points.selected.indices.length; i++) {
+    const ind = points.selected.indices[i];
+    data.x.pop();
+    data.y.pop();
+    data.t.pop();
+    data.ind.pop();
+}
+labels.change.emit();
+
 labels.selected.indices = [];
 labels.change.emit();
 
 points.selected.indices = [];
 points.change.emit();
 
-const df_as_cds = df_as_cds.data;
-df_as_cds.selected.indices = [];
-df_as_cds.change.emit();
+source.selected.indices = [];
+source.change.emit();
 """
-callback_2 = CustomJS(args=dict(points=df_as_cds, labels=labels, df_as_cds=df_as_cds), code=code_2_reset_labels)
+callback_2 = CustomJS(args=dict(points=source, labels=labels, source=source), code=code_2_reset_labels)
 button_reset_labels2 = Button(label="Button reset labels JS callback")
 # button_reset_labels.on_click(reset_labels)
 button_reset_labels2.js_on_event(ButtonClick, callback_2)
-
 
 # yellow_box = BoxAnnotation(left=6, right=12, fill_color='yellow', fill_alpha=0.2)
 # plot.add_layout(yellow_box)
@@ -161,16 +172,15 @@ button_reset_labels2.js_on_event(ButtonClick, callback_2)
 # toggle_edges = Toggle(label="Toggle edges", button_type="success", active=True)
 # toggle_edges.js_link('active', blue_box, 'visible')
 
-
 # plot.add_tools(Toggle(callback=callback))
 # plot.add_tools(TapTool(callback=callback), BoxZoomTool(), ZoomInTool(), ZoomOutTool(), ResetTool(), PanTool(), SaveTool())
 
 # callback = CustomJS(args=dict(points=points, labels=labels), code=code_2_add_term_label_on_click)
 # plot.add_tools(LassoSelectTool(callback=callback))
 
-# show(p)
+show(column(plot, button_reset_labels, button_reset_labels2))
 # curdoc().add_root(plot)
-curdoc().add_root(column(plot, button_reset_labels, button_reset_labels2)) #, toggle_labels, toggle_edges))
+# curdoc().add_root(column(plot, button_reset_labels, button_reset_labels2)) #, toggle_labels, toggle_edges))
 
 ### check out this next
 # https://docs.bokeh.org/en/latest/docs/user_guide/interaction/callbacks.html#userguide-interaction-jscallbacks

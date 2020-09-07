@@ -12,7 +12,6 @@ check_exit_status () {
 TAR_CURRENT=aGOtool_flatfiles_current.tar
 TAR_BAK=bak_aGOtool_flatfiles_current$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
 
-
 ### Header message
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 
@@ -40,7 +39,6 @@ cd /mnt/mnemo5/dblyon/agotool/app/python
 
 # automated testing here!!! ToDo if tests pass --> then proceed with the rest
 
-
 # tar and compress new files for backup
 echo "\n### tar and compress new files for backup\n"
 cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
@@ -48,7 +46,7 @@ cd /mnt/mnemo5/dblyon/agotool/data/PostgreSQL/tables
 find . -maxdepth 1 -name '*_UPS_FIN*' | xargs tar --overwrite -cvf "$TAR_CURRENT"
 check_exit_status
 # compress for quick transfer and backup, keep tar
-pbzip2 -k -p10 $TAR_FILE_NAME
+pbzip2 -f -k -p10 $TAR_FILE_NAME
 check_exit_status
 rsync -av "$TAR_CURRENT".bz2 "$TAR_BAK"
 check_exit_status
@@ -66,8 +64,6 @@ check_exit_status
 rm $TAR_FILE_NAME
 
 echo "\n--- finished Cronjob ---\n"
-
-
 ########################################################################################################################
 ### on production server "cronjob_update_aGOtool_Aquarius.sh"
 # pbzip2 -p10 -dc $TAR_FILE_NAME | tar x
