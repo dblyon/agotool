@@ -53,7 +53,6 @@ Protein_2_Function_table_PMID = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_
 
 ### static files from STRING v11
 Entity_types_table_STRING = os.path.join(TABLES_DIR, "Entity_types_table_STRING.txt")
-Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt")
 Functions_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Functions_table_STRING_all_but_PMID.txt")
 Protein_2_Function_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all_but_PMID.txt")
 Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
@@ -63,6 +62,11 @@ GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
 interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
+
+### STRING_clusters
+Protein_2_Function_table_STRING_clusters = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_clusters.txt")
+Functions_table_STRING_clusters = os.path.join(TABLES_DIR, "Functions_table_STRING_clusters.txt")
+
 
 ### files to be created STRING final
 Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt") # final table

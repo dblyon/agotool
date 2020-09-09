@@ -29,11 +29,11 @@ if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
 ARGPARSE = False # use argparse for IP and port parsing
 ############################
-entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57}
+entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57, -58}
 PMID = {-56}
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
-entity_types_with_ontology = {-21, -22, -23, -51, -57} # turn InterPro filter off
+entity_types_with_ontology = {-21, -22, -23, -51, -57, -58} # turn InterPro filter off
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55}
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # all_etypes - PMID - ontologies
 
@@ -46,7 +46,8 @@ functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "INTERPRO": -54,
                                   "PFAM (Protein FAMilies)": -55,
                                   "PMID": -56,
-                                  "Reactome": -57}
+                                  "Reactome": -57,
+                                  "STRING_clusters": -58}
 
 entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
@@ -57,7 +58,8 @@ entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -54: "INTERPRO",
                                   -55: "PFAM (Protein FAMilies)",
                                   -56: "PMID (PubMed IDentifier)",
-                                  -57: "Reactome"}
+                                  -57: "Reactome",
+                                  -58: "STRING_clusters"}
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
@@ -189,7 +191,8 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               "INTERPRO": "-54", # Interpro domains
                               "PFAM": "-55", # Pfam domains
                               "PMID": "-56", # Pubmed identifiers
-                              "Reactome": "-57"} # Reactome
+                              "Reactome": "-57",
+                              "STRING_clusters": "-58"}
 
 # function_enumeration_len = 6815598 # ?deprecated?
 #blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9995', 'KW-9996', 'KW-9997', 'KW-9998', 'KW-9999']

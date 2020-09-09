@@ -183,6 +183,7 @@ def get_parents_iterative(child, child_2_parent_dict):
 
 def get_term_2_level_dict(child_2_parent_dict):
     """
+    direct parents
     calculate level of hierarchy for data
     if term in hierarchy --> default to level 1
     if term not in hierarchy --> not present in dict
@@ -563,7 +564,7 @@ def format_list_of_string_2_postgres_array(list_of_string):
     :param list_of_string: List of String
     :return: String
     """
-    return "{" + str(list_of_string)[1:-1].replace(" ", "").replace("'", '"') + "}"
+    return "{" + str(sorted(list_of_string))[1:-1].replace(" ", "").replace("'", '"') + "}"
 
 def get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING):
     function_2_enum_dict, enum_2_function_dict = {}, {}
