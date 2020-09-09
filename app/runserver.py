@@ -797,7 +797,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
         # show year, not hierarchy
         cols_sort_order_PMID = ['rank', 'term', 'description', 'year', over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
         # entity_types_with_scores
-        cols_sort_order_entity_types_with_scores = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value]
+        # cols_sort_order_entity_types_with_scores = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value]
         # show hierarchy, not year
         cols_sort_order_hierarchy = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
         # not hiearachy, not year
@@ -810,7 +810,7 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
 
         if args_dict["o_or_u_or_both"] != "both": # don't hide "over under"
             cols_sort_order_PMID.remove(over_under)
-            cols_sort_order_entity_types_with_scores.remove(over_under)
+            # cols_sort_order_entity_types_with_scores.remove(over_under)
             cols_sort_order_hierarchy.remove(over_under)
             cols_sort_order_rest.remove(over_under)
 
@@ -834,8 +834,8 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_PMID])
                 # elif etype in variables.entity_types_with_scores: # in case Forground_IDs are NOT queried and not to be displayed
                 #     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_entity_types_with_scores])
-                elif etype in variables.entity_types_with_scores:
-                    etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
+                # elif etype in variables.entity_types_with_scores:
+                #     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
                 elif etype in variables.entity_types_with_ontology:
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
                 else:

@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum, taxid_2_functioncountarray, functions, taxid_2_protein, protein_2_functionenum_and_score;
+DROP TABLE IF EXISTS secondary_2_primary_id, protein_2_functionenum, taxid_2_functioncountarray, functions, taxid_2_protein;
 
 ALTER TABLE secondary_2_primary_id_temp RENAME TO secondary_2_primary_id;
 ALTER INDEX secondary_2_primary_id_sec_idx_temp RENAME TO secondary_2_primary_id_sec_idx;
