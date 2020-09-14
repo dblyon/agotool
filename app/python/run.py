@@ -39,7 +39,9 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     elif enrichment_method == "characterize_foreground":
         protein_ans = ui.get_an_redundant_foreground() # is a list
         df_2_return = run_cythonized.run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, variables.LOW_MEMORY)
-
+    else:
+        print("enrichment_method: {} not recognized".format(enrichment_method))
+        df_2_return = None
     ### for STRING internally disabled, otherwise this makes sense to use DONT DELETE
     # if df_2_return.shape[0] == 0:
     #     args_dict["ERROR_Empty_Results"] = "Unfortunately no results to display or download. This could be due to e.g. FDR_threshold being set too stringent, identifiers not being present in our system or not having any functional annotations, as well as others. Please check your input and try again."
