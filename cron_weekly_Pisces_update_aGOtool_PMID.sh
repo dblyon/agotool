@@ -6,6 +6,7 @@
 
 #TAR_FILE_NAME=$1
 #LOG_UPDATES=$2
+### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
 
 echo "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 check_exit_status () {

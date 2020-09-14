@@ -186,7 +186,7 @@ parser.add_argument("filter_foreground_count_one", type=str,
     default="True")
 
 parser.add_argument("LOW_MEMORY", type=str, default="True")
-parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p-value and recent publication date.")
+parser.add_argument("filter_PMID_top_n", type=int, default=0, help="Filter the top n PMIDs (e.g. 100, default=0 meaning report everything), sorting by low p-value and recent publication date.")
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
@@ -201,7 +201,7 @@ parser.add_argument("FDR_cutoff", type=float,
 
 parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
-    default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57")
+    default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57;-58")
 
 parser.add_argument("privileged", type=str,
     default="False")
@@ -966,3 +966,19 @@ if __name__ == "__main__":
         app.run(host=IP, port=port, processes=1, debug=variables.DEBUG)
     else:
         app.run(processes=1, debug=variables.DEBUG)
+
+    ### curl "http://agotool.meringlab.org/api?taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&caller_identity=test&foreground=9606.ENSP00000378699" | head
+    ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&caller_identity=test&foreground=9606.ENSP00000378699" | head
+    ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263" | head
+    ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=9606.ENSP00000002165%0d9606.ENSP000000538675%0d9606.ENSP00000216124%0d9606.ENSP00000227266%0d9606.ENSP00000258145%0d9606.ENSP00000264595%0d9606.ENSP00000268695%0d9606.ENSP00000359540" | head
+
+    ### Corona example of 13 UniProt ENSPs
+    # import requests
+    # from io import StringIO
+    # import pandas as pd
+    # url_ = r"http://agotool.meringlab.org/api"
+    # ensps = ['9606.ENSP00000221566', '9606.ENSP00000252593', '9606.ENSP00000332973', '9606.ENSP00000349252', '9606.ENSP00000357470', '9606.ENSP00000370698', '9606.ENSP00000381588', '9606.ENSP00000385675', '9606.ENSP00000389326', '9606.ENSP00000438483', '9606.ENSP00000441875', '9606.ENSP00000479488', '9606.ENSP00000483552']
+    # fg = "%0d".join(ensps)
+    # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
+    # df = pd.read_csv(StringIO(result.text), sep='\t')
+    # print(df.groupby("etype")["term"].count())

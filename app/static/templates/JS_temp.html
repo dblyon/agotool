@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JS testing</title>
+
+</head>
+<body>
+
+<script>
+    let userName = prompt("Who's there?", "");
+    if (userName === "Admin") {
+        let password = prompt("PassWord:", "");
+        if (password === "TheMaster") {
+            alert("Welcome!");
+        } else if (password === "" || password == null) {
+            alert("Canceled");
+        } else {
+            alert("wrong password");
+        }
+    } else if (userName == null || userName == "") {
+        alert("Canceled!");
+    } else {
+        alert("I don't know you");
+    }
+</script>
+
+</body>
+</html>
