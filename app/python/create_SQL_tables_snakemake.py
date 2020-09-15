@@ -637,6 +637,70 @@ def Lineage_table_STRING(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, f
         for term in term_no_translation_because_obsolete:
             fh_out_no_trans.write(term + "\n")
 
+def Lineage_table_STRING_v2_STRING_clusters(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_in_functions, fn_tree_STRING_clusters,fn_out_lineage_table, fn_out_lineage_table_hr, fn_out_no_translation):
+    """
+    GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+    UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+    RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+    interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
+    Functions_table_STRING_reduced = os.path.join(TABLES_DIR, "Functions_table_STRING.txt") # reduced but not as suffix
+    Lineage_table = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt")
+    Lineage_table_hr = os.path.join(TABLES_DIR, "Lineage_table_STRING_hr.txt")
+    Lineage_table_no_translation = os.path.join(TABLES_DIR, "Lineage_table_no_translation.txt")
+    fn_tree_STRING_clusters = os.path.join(DOWNLOADS_DIR, "clusters.tree.v11.0.txt.gz")
+    Lineage_table_STRING_v2_STRING_clusters(GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, Functions_table_STRING_reduced, fn_tree_STRING_clusters. Lineage_table, Lineage_table_hr, Lineage_table_no_translation)
+    """
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(fn_in_go_basic, fn_in_keywords, fn_in_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
+    child_2_parent_dict_STRING_clusters = get_child_2_parent_dict_STRING_clusters(fn_tree_STRING_clusters)
+    lineage_dict.update(get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict_STRING_clusters))
+    # lineage includes child. lineage_dict[child] = {child, parent_1, parent_2, ...}
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = get_lookup_arrays(fn_in_functions, low_memory=True)
+    term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
+    lineage_dict_enum = {}
+    term_no_translation_because_obsolete = []
+
+    for funcName, lineage in lineage_dict.items():  # lineage of funcNames
+        try:
+            funcEnum = term_2_enum_dict[funcName]
+        except KeyError:
+            term_no_translation_because_obsolete.append(funcName)
+            continue
+        term_enum_temp = []
+        for funcName_temp in lineage:
+            try:
+                term_enum_temp.append(term_2_enum_dict[funcName_temp])
+            except KeyError:
+                term_no_translation_because_obsolete.append(funcName_temp)
+        lineage_dict_enum[funcEnum] = sorted(term_enum_temp)
+
+    with open(fn_out_lineage_table, "w") as fh_out:
+        for key in sorted(lineage_dict_enum.keys()):
+            fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict_enum[key])))[1:-1].replace("'", '"') + "}\n")
+
+    with open(fn_out_lineage_table_hr, "w") as fh_out:
+        for key in sorted(lineage_dict.keys()):
+            fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict[key])))[1:-1].replace("'", '"') + "}\n")
+
+    with open(fn_out_no_translation, "w") as fh_out_no_trans:
+        for term in term_no_translation_because_obsolete:
+            fh_out_no_trans.write(term + "\n")
+
+def get_child_2_parent_dict_STRING_clusters(fn_tree):
+    child_2_parent_dict = {} # direct parents
+    #ncbi_taxid     child_cluster_id        parent_cluster_id
+    gen = tools.yield_line_uncompressed_or_gz_file(fn_tree)
+    _ = next(gen)
+    for line in gen:
+        ncbi_taxid, child_cluster_id, parent_cluster_id = line.split()
+        child = ncbi_taxid + "_" + child_cluster_id
+        parent = ncbi_taxid + "_" + parent_cluster_id
+        if child not in child_2_parent_dict:
+            child_2_parent_dict[child] = {parent}
+        else:
+            child_2_parent_dict[child] |= {parent}
+    return child_2_parent_dict
+
+
 def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)

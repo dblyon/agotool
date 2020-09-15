@@ -62,11 +62,14 @@ GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
 UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
 RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
 interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
+fn_tree_STRING_clusters = os.path.join(DOWNLOADS_DIR, "clusters.tree.v11.0.txt.gz")
 
 ### STRING_clusters
 Protein_2_Function_table_STRING_clusters = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_clusters.txt")
 Functions_table_STRING_clusters = os.path.join(TABLES_DIR, "Functions_table_STRING_clusters.txt")
-Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt") # created once after clusters were added
+Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt") # created with every update since funcEnums change due to PMIDs
+Lineage_table_STRING_hr = os.path.join(TABLES_DIR, "Lineage_table_STRING_hr.txt")
+Lineage_table_STRING_no_translation = os.path.join(TABLES_DIR, "Lineage_table_STRING_no_translation.txt")
 
 
 ### files to be created STRING final
@@ -215,6 +218,21 @@ rule r_Taxid_2_FunctionCountArray_table_STRING:
         verbose = verbose
     run:
         cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads)
+
+rule r_Lineage_table_STRING:
+    input:
+        GO_basic_obo = GO_basic_obo,
+        UPK_obo = UPK_obo,
+        RCTM_hierarchy = RCTM_hierarchy,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+        fn_tree_STRING_clusters = fn_tree_STRING_clusters
+    output:
+        Lineage_table_STRING = Lineage_table_STRING,
+        Lineage_table_STRING_hr = Lineage_table_STRING_hr,
+        Lineage_table_STRING_no_translation = Lineage_table_STRING_no_translation
+    run:
+        cst.Lineage_table_STRING_v2_STRING_clusters(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced, input.fn_tree_STRING_clusters, output.Lineage_table_STRING, output.Lineage_table_STRING_hr, output.Lineage_table_STRING_no_translation)
 
 rule r_pickle_final_results:
     input:
