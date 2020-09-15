@@ -31,3 +31,4 @@ dependencies:
   - requests
   - beautifulsoup4
   - uwsgi
+  - snakemake

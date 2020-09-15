@@ -36,7 +36,7 @@ entity_types_with_data_in_functions_table = entity_types
 entity_types_with_ontology = {-21, -22, -23, -51, -57, -58} # turn InterPro filter off
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55}
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # all_etypes - PMID - ontologies
-
+enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}
 functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,
                                   "Gene Ontology molecular function": -23,
@@ -232,6 +232,7 @@ tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_
                "etype_cond_dict": os.path.join(TABLES_DIR, "etype_cond_dict_{}.p".format(appendix)),
                "cond_etypes_with_ontology": os.path.join(TABLES_DIR, "cond_etypes_with_ontology_{}.p".format(appendix)),
                "cond_etypes_rem_foreground_ids": os.path.join(TABLES_DIR, "cond_etypes_rem_foreground_ids_{}.p".format(appendix)),
+               # "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix)),
                # "blacklisted_enum_terms": os.path.join(TABLES_DIR, "blacklisted_enum_terms_{}.p".format(appendix)),
                # os.path.join(TABLES_DIR, "Functions_table_STRING.txt") --> STS_FIN
                }

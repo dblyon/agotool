@@ -66,6 +66,7 @@ interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_ch
 ### STRING_clusters
 Protein_2_Function_table_STRING_clusters = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_clusters.txt")
 Functions_table_STRING_clusters = os.path.join(TABLES_DIR, "Functions_table_STRING_clusters.txt")
+Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt") # created once after clusters were added
 
 
 ### files to be created STRING final
@@ -220,8 +221,8 @@ rule r_pickle_final_results:
         # Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
         # KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
         # Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        # Lineage_table_STRING = Lineage_table_STRING,
         # Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
+        Lineage_table_STRING = Lineage_table_STRING,
         Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
     output:
         taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
@@ -243,7 +244,7 @@ rule r_pickle_final_results:
         # cond_etypes_with_ontology = cond_etypes_with_ontology,
         # cond_etypes_rem_foreground_ids = cond_etypes_rem_foreground_ids
     run:
-        cst.pickle_PMID_autoupdates(input.Taxid_2_FunctionCountArray_table_STRING, output)
+        cst.pickle_PMID_autoupdates(input.Lineage_table_STRING, input.Taxid_2_FunctionCountArray_table_STRING, output)
 
 rule r_AFC_KS_enrichment_terms_flat_files:
     input:

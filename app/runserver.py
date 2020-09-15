@@ -970,7 +970,8 @@ if __name__ == "__main__":
     ### curl "http://agotool.meringlab.org/api?taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&caller_identity=test&foreground=9606.ENSP00000378699" | head
     ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&caller_identity=test&foreground=9606.ENSP00000378699" | head
     ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263" | head
-    ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=9606.ENSP00000002165%0d9606.ENSP000000538675%0d9606.ENSP00000216124%0d9606.ENSP00000227266%0d9606.ENSP00000258145%0d9606.ENSP00000264595%0d9606.ENSP00000268695%0d9606.ENSP00000359540" | head
+    ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=9606.ENSP00000002165%0d9606.ENSP000000538675%0d9606.ENSP00000216124%0d9606.ENSP00000227266%0d9606.ENSP00000258145%0d9606.ENSP00000264595%0d9606.ENSP00000268695%0d9606.ENSP00000359540" > temp.txt
+    # curl "san.embl.de:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=9606.ENSP00000002165%0d9606.ENSP000000538675%0d9606.ENSP00000216124%0d9606.ENSP00000227266%0d9606.ENSP00000258145%0d9606.ENSP00000264595%0d9606.ENSP00000268695%0d9606.ENSP00000359540" > temp.txt
 
     ### Corona example of 13 UniProt ENSPs
     # import requests

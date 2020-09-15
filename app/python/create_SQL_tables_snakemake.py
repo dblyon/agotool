@@ -1877,8 +1877,9 @@ def helper_clean_messy_string(string_):
 #     blacklisted_enum_terms = sorted(blacklisted_enum_terms)
 #     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
 
-def pickle_PMID_autoupdates(Taxid_2_FunctionCountArray_table_STRING, output_list): # Functions_table_STRING_reduced
+def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_table_STRING, output_list): # Functions_table_STRING_reduced
     # Taxid_2_Proteins_table_STRING, KEGG_Taxid_2_acronym_table, Functions_table_STRING_reduced, Lineage_table_STRING, Protein_2_FunctionEnum_table_STRING, Taxid_2_FunctionCountArray_table_STRING = input_list
+    assert os.path.exists(Lineage_table_STRING)
     assert os.path.exists(Taxid_2_FunctionCountArray_table_STRING)
     taxid_2_proteome_count_dict, kegg_taxid_2_acronym_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, lineage_dict_enum, blacklisted_terms_bool_arr, ENSP_2_functionEnumArray_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, etype_2_minmax_funcEnum, etype_cond_dict = output_list
     # , cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, blacklisted_terms_bool_arr
