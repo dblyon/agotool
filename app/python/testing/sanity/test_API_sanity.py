@@ -275,6 +275,24 @@ def test_json_precision():
     assert p_value > 0
     assert p_value < 1e-10
 
+# def test_equality_of_Lineage_dict_flatFile_vs_pickled():
+#     """
+#     only pickled object rsynced to Aquarius... for local test
+#     """
+#     lineage_dict_v1 = query.get_lineage_dict_enum(as_array=False, read_from_flat_files=False, from_pickle=True)
+#     lineage_dict_v2 = query.get_lineage_dict_enum(as_array=False, read_from_flat_files=True, from_pickle=False)
+#     assert lineage_dict_v1 == lineage_dict_v2
+
+def test_filter_parents_redundancy_STRING_clusters():
+    fg = '9606.ENSP00000228872%0d9606.ENSP00000262643%0d9606.ENSP00000266970%0d9606.ENSP00000267163%0d9606.ENSP00000274026%0d9606.ENSP00000311083%0d9606.ENSP00000362082%0d9606.ENSP00000384849%0d9606.ENSP00000429089' # cdk2 homo sapiens
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
+    df = pd.read_csv(StringIO(result.text), sep='\t')
+    cond = df["term"] == "CL:12482"
+    assert sum(cond) == 1
+    cond = df["term"] == "CL:12477"
+    assert sum(cond) == 0
+
+
 
 
 ####### tests from agotool.org that can't simply be ported to this version
