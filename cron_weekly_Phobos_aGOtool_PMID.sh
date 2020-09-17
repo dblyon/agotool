@@ -30,8 +30,9 @@ echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ### run snakemake pipeline
 echo "\n### run snakemake pipeline\n"
 cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/app/python
-/mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/snake/bin/snakemake -j 10 -F
+/mnt/mnemo5/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -j 10 -F
 check_exit_status
+
 
 # add file dimensions to log for testing and debugging
 #cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/app/python
@@ -90,7 +91,7 @@ echo "\n--- finished Cronjob ---\n"
 ## at 01:01 (1 AM) 1st day of every month
 # 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Atlas.sh >> /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt 2>&1
 ## at 20:01 (8 PM) every Sunday
-# 1 20 * * 0 /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/cron_weekly_Atlas_aGOtool_PMID.sh >> /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/log_cron_weekly_snakemake.txt 2>&1
+# 1 20 * * 0 /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/cron_weekly_Phobos_aGOtool_PMID.sh >> /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/log_cron_weekly_snakemake.txt 2>&1
 
 ### Crontab San
 ## at 01:01 (1 PM) every Monday

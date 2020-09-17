@@ -1948,6 +1948,7 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     taxid_2_proteome_count_dict, kegg_taxid_2_acronym_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, lineage_dict_enum, blacklisted_terms_bool_arr, ENSP_2_functionEnumArray_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, etype_2_minmax_funcEnum, etype_cond_dict = output_list
     # , cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, blacklisted_terms_bool_arr
     pqo = query.PersistentQueryObject_STRING(low_memory=False, read_from_flat_files=True, from_pickle=False)
+    print("writing pickle dumps")
     pickle.dump(pqo.taxid_2_proteome_count_dict, open(taxid_2_proteome_count_dict, "wb"))
     pickle.dump(pqo.kegg_taxid_2_acronym_dict, open(kegg_taxid_2_acronym_dict, "wb"))
     pickle.dump(pqo.year_arr, open(year_arr, "wb"))
@@ -1963,6 +1964,7 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     pickle.dump(pqo.taxid_2_tuple_funcEnum_index_2_associations_counts, open(taxid_2_tuple_funcEnum_index_2_associations_counts, "wb"))
     pickle.dump(pqo.etype_2_minmax_funcEnum, open(etype_2_minmax_funcEnum, "wb"))
     pickle.dump(pqo.etype_cond_dict, open(etype_cond_dict, "wb"))
+    print("done :)")
     # pickle.dump(pqo.cond_etypes_with_ontology, open(cond_etypes_with_ontology, "wb"))
     # pickle.dump(pqo.cond_etypes_rem_foreground_ids, open(cond_etypes_rem_foreground_ids, "wb"))
     # blacklisted_enum_terms = query.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms, FROM_PICKLE=False)
