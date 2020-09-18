@@ -64,7 +64,7 @@ functionType_term_2_an_dict = {"UPK": upkTerm_2_functionAN_dict,
 #                               'UPK:9998': "-51",  # 'Cellular component',
 #                               'UPK:9999': "-51",  # 'Biological process'
 #                               'KEGG': "-52"}
-upkTerm_2_functionAN_dict = variables.upkTerm_2_functionAN_dict
+id_2_entityTypeNumber_dict = variables.id_2_entityTypeNumber_dict
 
 
 def get_cursor(env_dict=None):

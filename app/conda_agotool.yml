@@ -47,3 +47,5 @@ dependencies:
   - markdown
   - retrying
   - uwsgi
+  - matplotlib
+  - seaborn

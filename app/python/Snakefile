@@ -30,6 +30,8 @@ max_len_description = 250
 min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID for a each functional_association
 ### static mapping_files
 damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
+Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+
 ################################################## URLs & Downloads
 URL_GO_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
 GO_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
@@ -64,7 +66,7 @@ Protein_2_Function_table_PMID_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Funct
 Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_PMID_UPS.txt") # 177.656 lines and 5.305.811 unique PMIDs
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
-Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
+# Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt") # deprecated
 Protein_2_Function_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_UPS.txt")
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled.txt")
 Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked.txt")
@@ -144,7 +146,6 @@ EntrezGeneID_2_UniProtID = os.path.join(TABLES_DIR, "EntrezGeneID_2_UniProtID.tx
 Protein_2_Function_table_KEGG_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_table_KEGG_UPS.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
 Taxid_2_Proteins_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
-Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
 TaxidSpecies_2_TaxidProteome_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_TaxidProteome_dict"]
 TaxidSpecies_2_multipleRefProtTaxid_dict_p = TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_multipleRefProtTaxid_dict"]
 # Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
@@ -169,7 +170,7 @@ Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = os.path.join(TABLES_DIR, "Pro
 KEGG_entry_no_pathway_annotation = os.path.join(TABLES_DIR, "KEGG_entry_no_pathway_annotation.txt")
 Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
 ENSP_2_UniProtID_without_translation_1 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_1.txt")
-ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
+# ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
 ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
 protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 ENSP_2_UniProt_2_use = os.path.join(TABLES_DIR, "ENSP_2_UniProt_2_use.txt")
@@ -487,7 +488,8 @@ rule r_Functions_table_all:
 rule r_Function_2_Protein_table_UPS:
     input:
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS,
-        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+        # Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
+        Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS,
         Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN, # for background_counts, but not to restrict by reference proteome
         Functions_table_all = Functions_table_all
     output:
@@ -496,7 +498,7 @@ rule r_Function_2_Protein_table_UPS:
         Function_2_Protein_table_UPS_removed = Function_2_Protein_table_UPS_removed
     threads: NUMBER_OF_PROCESSES_sorting
     run: # helper_convert_str_arr_2_nested_list
-        cst.Function_2_Protein_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Protein_table_UPS, output.Function_2_Protein_table_UPS_reduced, output.Function_2_Protein_table_UPS_removed, threads)
+        cst.Function_2_Protein_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Protein_table_UPS, output.Function_2_Protein_table_UPS_reduced, output.Function_2_Protein_table_UPS_removed, threads)
 
 rule r_Taxid_2_Proteins_table_UPS_FIN:
     input:
@@ -673,12 +675,13 @@ rule r_Functions_table_UPS_FIN:
     input:
         Functions_table_all = Functions_table_all, # superset
         Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced, # include all prefiltered functions
-        Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
+        # Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
+        Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS
     output:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         Functions_table_UPS_removed = Functions_table_UPS_removed # removed if description, hierarchy, etc. but not associated with more than 1 protein per function per taxid (in any taxid)
     run:
-        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
+        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
 rule r_Create_goslimtype_2_cond_arrays: # ToDo make sure executed to be executed AFTER Functions_table_UPS_FIN
     input:
@@ -707,7 +710,7 @@ rule r_Create_goslimtype_2_cond_arrays: # ToDo make sure executed to be executed
 
 rule r_ENSP_2_UniProtID_without_translation:
     input:
-        fn_list = [ENSP_2_UniProtID_without_translation_1, ENSP_2_UniProtID_without_translation_2],
+        fn_list = [ENSP_2_UniProtID_without_translation_1, ], #ENSP_2_UniProtID_without_translation_2],
         protein_shorthands = protein_shorthands
     output:
         ENSP_2_UniProtID_without_translation = ENSP_2_UniProtID_without_translation
@@ -790,6 +793,13 @@ rule r_Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts_UPS_FIN:
         taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
     run:
         cst.Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(input.Taxid_2_FunctionCountArray_table_UPS_FIN, output.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+
+rule r_cleanup_scratch_drive:
+    input:
+        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
+    run:
+        cst.cleanup_scratch_drive(input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+
 
 rule r_Pickle_lookup_arrays_UPS_FIN:
     input:

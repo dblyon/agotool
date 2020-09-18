@@ -11,6 +11,7 @@ from ast import literal_eval
 import tarfile
 from statistics import median
 import datetime
+from shutil import copyfile
 
 import taxonomy
 import obo_parser
@@ -1780,8 +1781,16 @@ def parse_uniprot_dat_dump_yield_entry(fn_in):
         Keywords_list = [cleanup_Keyword(keyword) for keyword in Keywords_list if len(keyword) > 0]
         yield (UniProtAN_list, Keywords_list)
 
-def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, verbose=True): # fn_out_UniProt_AC_2_ID_2_Taxid,fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping
+def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, verbose=True): #, copy_downloads_2_local_disk=True): # fn_out_UniProt_AC_2_ID_2_Taxid,fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping fn_out_UniProtID_2_ENSPs_2_KEGGs_mapping
+
     if verbose:
+        # if copy_downloads_2_local_disk:
+        #     if variables.SCRATCH_DRIVE is None:
+        #         print("can't use scratch drive since not on Phobos or Deimos")
+        #     print("copying downloaded files to local disk")
+        #     for source in fn_in_list_uniprot_dumps:
+        #         destination = os.path.join(variables.SCRATCH_DRIVE, os.path.basename(source))
+        #         copyfile(source, destination)
         print("\nparsing UniProt dumps: creating output file \n{}".format(fn_out_Protein_2_Function_table_UniProt_dump))
     etype_UniProtKeywords = variables.id_2_entityTypeNumber_dict["UniProtKeywords"]
     etype_GOMF = variables.id_2_entityTypeNumber_dict['GO:0003674']
@@ -1849,6 +1858,9 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
 
                         # for AC in UniProtAC_list:
                         #     fh_out_UniProt_AC_2_ID.write("{}\t{}\t{}\n".format(NCBI_Taxid, AC, UniProtID))
+    # if verbose:
+    #     if copy_downloads_2_local_disk:
+    #         print("delete local copies of downloads")
 
 def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
     """
@@ -4117,6 +4129,15 @@ def Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(Taxid_2_FunctionCo
     assert os.path.exists(Taxid_2_FunctionCountArray_table_UPS_FIN)
     taxid_2_tuple_funcEnum_index_2_associations_counts = query.get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=True)
     pickle.dump(taxid_2_tuple_funcEnum_index_2_associations_counts, open(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, "wb"))
+
+def cleanup_scratch_drive(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN):
+    assert os.path.exists(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+    # copy everything from variables.TABLES_DIR_SNAKEMAKE to variables.TABLES_DIR
+    cmd = "rsync -av {} {}".format(variables.TABLES_DIR_SNAKEMAKE, variables.TABLES_DIR)
+    rsync_tables = subprocess.Popen(cmd, shell=True)
+    rsync_tables.wait()
+
+
 
 def Pickle_lookup_arrays_UPS_FIN(Functions_table_UPS_FIN, *args):
     """
