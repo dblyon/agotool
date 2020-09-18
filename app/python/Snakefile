@@ -89,7 +89,7 @@ if hostname in {"ody", "MLS-M-DALY.local"}:
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
     KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, "taxonomic_rank")
     KEGG_pathway = os.path.join(KEGG_dir, "pathway.list")
-elif hostname in {"atlas", "gaia"}:
+elif hostname in {"atlas", "gaia", "phobos", "deimos"}:
     # string_matches = r"/mnt/mnemo5/dblyon/agotool/data/PostgreSQL/downloads/string_matches.tsv"
     KEGG_dir = r"/mnt/mnemo5/dblyon/STRING_freeze_v11/kegg"
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms")
