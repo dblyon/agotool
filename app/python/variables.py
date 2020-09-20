@@ -164,8 +164,8 @@ POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
 POSTGRESQL_DIR_SNAKEMAKE = os.path.join(DATA_DIR_SNAKEMAKE, "PostgreSQL")
 TABLES_DIR = os.path.join(POSTGRESQL_DIR, "tables")
 TABLES_DIR_SNAKEMAKE = os.path.join(POSTGRESQL_DIR_SNAKEMAKE, "tables")
-if hostname in {"phobos"}:#, "deimos"}:
-    TABLES_DIR_SNAKEMAKE = r"/scratch/agotool_tables"
+#if hostname in {"phobos"}:#, "deimos"}:
+#    TABLES_DIR_SNAKEMAKE = r"/scratch/dblyon/agotool/data/PostgreSQL/tables"
 # else:
     # print("TABLES_DIR_SNAKEMAKE can't be changed to the SCRATCH drive since hostname is {}".format(hostname))
 
