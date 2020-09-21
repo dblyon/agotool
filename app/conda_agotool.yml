@@ -46,3 +46,6 @@ dependencies:
   - pytest-cov
   - markdown
   - retrying
+  - uwsgi
+  - matplotlib
+  - seaborn

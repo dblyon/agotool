@@ -50,20 +50,22 @@ humanName_2_functionAN_dict = {u"BP": u"GO:0008150",
 functionType_term_2_an_dict = {"UPK": upkTerm_2_functionAN_dict,
                                "GO": humanName_2_functionAN_dict}
 
-id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
-                              'GO:0005575': "-22",  # 'Cellular Component',
-                              'GO:0008150': "-21",  # 'Biological Process',
-                              'UPK:9990': "-51",  # 'Technical term',
-                              'UPK:9991': "-51",  # 'PTM',
-                              'UPK:9992': "-51",  # 'Molecular function',
-                              'UPK:9993': "-51",  # 'Ligand',
-                              'UPK:9994': "-51",  # 'Domain',
-                              'UPK:9995': "-51",  # 'Disease',
-                              'UPK:9996': "-51",  # 'Developmental stage',
-                              'UPK:9997': "-51",  # 'Coding sequence diversity',
-                              'UPK:9998': "-51",  # 'Cellular component',
-                              'UPK:9999': "-51",  # 'Biological process'
-                              'KEGG': "-52"}
+# id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
+#                               'GO:0005575': "-22",  # 'Cellular Component',
+#                               'GO:0008150': "-21",  # 'Biological Process',
+#                               'UPK:9990': "-51",  # 'Technical term',
+#                               'UPK:9991': "-51",  # 'PTM',
+#                               'UPK:9992': "-51",  # 'Molecular function',
+#                               'UPK:9993': "-51",  # 'Ligand',
+#                               'UPK:9994': "-51",  # 'Domain',
+#                               'UPK:9995': "-51",  # 'Disease',
+#                               'UPK:9996': "-51",  # 'Developmental stage',
+#                               'UPK:9997': "-51",  # 'Coding sequence diversity',
+#                               'UPK:9998': "-51",  # 'Cellular component',
+#                               'UPK:9999': "-51",  # 'Biological process'
+#                               'KEGG': "-52"}
+id_2_entityTypeNumber_dict = variables.id_2_entityTypeNumber_dict
+
 
 def get_cursor(env_dict=None):
     # if env_dict is not None:
@@ -557,7 +559,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict,
                                         self.goslimtype_2_cond_dict) # DEPRECATED self.ENSP_2_rowIndex_dict, self.rowIndex_2_ENSP_dict, self.CSC_ENSPencoding_2_FuncEnum, self.CSR_ENSPencoding_2_FuncEnum,
                                         # self.Taxid_2_FunctionEnum_2_Scores_dict)
-        else:
+        else: # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict
             static_preloaded_objects = (self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr,
                                         self.description_arr, self.category_arr,  # high mem --> only 62 MB
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len, self.etype_cond_dict, self.etype_2_num_functions_dict,

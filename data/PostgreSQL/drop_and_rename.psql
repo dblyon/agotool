@@ -20,11 +20,6 @@ ALTER INDEX taxid_2_functioncountarray_taxid_idx_temp RENAME TO taxid_2_function
 ALTER TABLE taxid_2_protein_temp RENAME TO taxid_2_protein;
 ALTER INDEX taxid_2_protein_taxid_idx_temp RENAME TO taxid_2_protein_taxid_idx;
 
-ALTER TABLE functions_temp RENAME TO functions;
-ALTER INDEX functions_enum_idx_temp RENAME TO functions_enum_idx;
-ALTER INDEX functions_an_idx_temp RENAME TO functions_an_idx;
-ALTER INDEX functions_etype_an_idx_temp RENAME TO functions_etype_an_idx;
-
 
 -- DEPRECATED
 -- DROP TABLE IF EXISTS protein_2_functionenum_and_score;
