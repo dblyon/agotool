@@ -186,7 +186,7 @@ parser.add_argument("filter_foreground_count_one", type=str,
     default="True")
 
 parser.add_argument("LOW_MEMORY", type=str, default="True")
-parser.add_argument("filter_PMID_top_n", type=int, default=0, help="Filter the top n PMIDs (e.g. 100, default=0 meaning report everything), sorting by low p-value and recent publication date.")
+parser.add_argument("filter_PMID_top_n", type=int, default=10000, help="Filter the top n PMIDs (e.g. 100, default=0 meaning report everything), sorting by low p-value and recent publication date.")
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
@@ -972,7 +972,7 @@ if __name__ == "__main__":
     ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263" | head
     ### curl "0.0.0.0:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=9606.ENSP00000002165%0d9606.ENSP000000538675%0d9606.ENSP00000216124%0d9606.ENSP00000227266%0d9606.ENSP00000258145%0d9606.ENSP00000264595%0d9606.ENSP00000268695%0d9606.ENSP00000359540" > temp.txt
     # curl "san.embl.de:10112/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=9606.ENSP00000002165%0d9606.ENSP000000538675%0d9606.ENSP00000216124%0d9606.ENSP00000227266%0d9606.ENSP00000258145%0d9606.ENSP00000264595%0d9606.ENSP00000268695%0d9606.ENSP00000359540" > temp.txt
-
+    # curl "0.0.0.0:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=511145&caller_identity=test&foreground=9606.ENSP00000267163%0d9606.ENSP00000300093%0d9606.ENSP00000265734%0d9606.ENSP00000378699%0d9606.ENSP00000287598%0d9606.ENSP00000288207%0d9606.ENSP00000362082%0d9606.ENSP00000262643%0d9606.ENSP00000311083%0d9606.ENSP00000378529%0d9606.ENSP00000429089%0d9606.ENSP00000384849%0d9606.ENSP00000227507%0d9606.ENSP00000296509%0d9606.ENSP00000257904%0d9606.ENSP00000209728%0d9606.ENSP00000256442%0d9606.ENSP00000228872%0d9606.ENSP00000361540%0d9606.ENSP00000266970%0d9606.ENSP00000274026" > temp.txt
     ### Corona example of 13 UniProt ENSPs
     # import requests
     # from io import StringIO
