@@ -588,7 +588,7 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
                                 "p_value": p_values[cond_PMID_2_filter].view(),
                                 "FDR": p_values_corrected[cond_PMID_2_filter].view(),
                                 "indices_arr": indices_arr[cond_PMID_2_filter].view()})
-        indices_PMID = df_PMID.sort_values(["FDR", "p_value", "year", "foreground_count"], ascending=[True, True, False, False])["indices_arr"].values[:filter_PMID_top_n]
+        indices_PMID = df_PMID.sort_values(["FDR", "year", "p_value", "foreground_count"], ascending=[True, False, True, False])["indices_arr"].values[:filter_PMID_top_n]
         for index_ in indices_PMID:
             cond_PMIDs[index_] = True
     else: # since no filtering use all PMIDs
