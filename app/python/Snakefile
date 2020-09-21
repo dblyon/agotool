@@ -31,6 +31,7 @@ min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID 
 ### static mapping_files
 damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
 Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 
 ################################################## URLs & Downloads
 URL_GO_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
@@ -172,7 +173,6 @@ Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_
 ENSP_2_UniProtID_without_translation_1 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_1.txt")
 # ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
 ENSP_2_UniProtID_without_translation = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation.txt")
-protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 ENSP_2_UniProt_2_use = os.path.join(TABLES_DIR, "ENSP_2_UniProt_2_use.txt")
 ENSP_of_UniProtIDmapping_not_in_STRINGv11 = os.path.join(TABLES_DIR, "ENSP_of_UniProtIDmapping_not_in_STRINGv11.txt")
 ENSP_2_UniProt_discrepancy = os.path.join(TABLES_DIR, "ENSP_2_UniProt_discrepancy.txt")
