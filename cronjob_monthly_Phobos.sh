@@ -87,4 +87,8 @@ echo "\n--- finished Cronjob ---\n"
 ### dblyon inserted cronjob for automated aGOtool updates
 ## testing 10:05 am
 # 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Phobos.sh >> /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt 2>&1
+<<<<<<< HEAD:cronjob_monthly_Phobos.sh
 ########################################################################################################################
+=======
+########################################################################################################################
+>>>>>>> cfd391b1cf56f8ac0056e1ed0401b263fee36aa8:cronjob_monthly_Atlas.sh
