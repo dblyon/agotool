@@ -170,8 +170,9 @@ def test_web_example_3():
         data={"foreground": fg_string,
               "background": bg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert df.shape[0] > 700
-    assert df.groupby("category").count().shape[0] >= 11  # at least 11 categories with significant results, last time I checked (2020 04 01)
+    assert df.shape[0] > 500
+    assert df.groupby("category").count().shape[0] >= 10  # at least 11 categories with significant results, last time I checked (2020 04 01)
+    # changed after discretizing TM scores
     cond_FDR = df["p_value"] <= df["FDR"]
     assert sum(cond_FDR) == len(cond_FDR)
 
@@ -180,8 +181,8 @@ def test_web_example_4():
     response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "characterize_foreground", "filter_foreground_count_one": False},
         data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert df.shape[0] > 1000
-    assert df.groupby("category").count().shape[0] >= 11  # at least 11 categories with significant results, last time I checked (2020 04 01)
+    assert df.shape[0] > 730
+    assert df.groupby("category").count().shape[0] >= 9  # at least 11 categories with significant results, last time I checked (2020 04 01)
 
 def test_taxid_species_mapping_1():
     """
