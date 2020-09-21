@@ -191,7 +191,7 @@ LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
 def makedirs_():
     for dir_ in [LOG_DIRECTORY, SESSION_FOLDER_ABSOLUTE]:
         if not os.path.exists(dir_):
-            os.makedirs(LOG_DIRECTORY)
+            os.makedirs(dir_)
     for fn in [LOG_FN_ACTIVITY, LOG_FN_WARNINGS_ERRORS, LOG_FN_UPDATES]:
         if not os.path.exists(fn):
             fh = open(fn, "w")

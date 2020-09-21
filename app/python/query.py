@@ -480,9 +480,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                 print("getting Secondary_2_Primary_IDs_dict")
             self.Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict(read_from_flat_files=read_from_flat_files)
 
-        if variables.VERBOSE:
-            print("getting Taxid_2_FunctionEnum_2_Scores_dict")
-        self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=True)
+        # if variables.VERBOSE:
+        #     print("getting Taxid_2_FunctionEnum_2_Scores_dict")
+        # self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=True)
 
         if variables.VERBOSE:
             print("getting KEGG Taxid 2 TaxName acronym translation")
