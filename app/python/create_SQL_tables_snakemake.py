@@ -1969,6 +1969,44 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     # pickle.dump(pqo.cond_etypes_rem_foreground_ids, open(cond_etypes_rem_foreground_ids, "wb"))
     # blacklisted_enum_terms = query.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms, FROM_PICKLE=False)
     # pickle.dump(blacklisted_enum_terms, open(blacklisted_enum_terms, "wb"))
+def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_proteome_count_dict):
+    """
+    read old log and add number of lines of flat files and bytes of data for binary files to log,
+    write to disk
+    :return: None
+    """
+    assert os.path.exists(taxid_2_proteome_count_dict)
+    # read old table and add data to it
+    df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
+
+    fn_list, binary_list, size_list, num_lines_list, date_list = [], [], [], [], []
+    for fn in sorted(os.listdir(TABLES_DIR)):
+        fn_abs_path = os.path.join(TABLES_DIR, fn)
+        if fn.endswith("STS_FIN.txt"):
+            binary_list.append(False)
+            num_lines_list.append(tools.line_numbers(fn_abs_path))
+        elif fn.endswith("STS_FIN.p"):
+            binary_list.append(True)
+            num_lines_list.append(np.nan)
+        else:
+            continue
+        fn_list.append(fn)
+        size_list.append(os.path.getsize(fn_abs_path))
+        timestamp = tools.creation_date(fn_abs_path)
+        date_list.append(datetime.datetime.fromtimestamp(timestamp))
+
+    df = pd.DataFrame()
+    df["fn"] = fn_list
+    df["binary"] = binary_list
+    df["size"] = size_list
+    df["num_lines"] = num_lines_list
+    df["date"] = date_list
+    df["version"] = max(df_old["version"]) + 1
+    df = pd.concat([df_old, df])
+
+    df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)
+
+
 
 if __name__ == "__main__":
     # create_table_Protein_2_Function_table_RCTM__and__Function_table_RCTM()

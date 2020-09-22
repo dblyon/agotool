@@ -123,6 +123,8 @@ LOG_FN_ACTIVITY = os.path.join(LOG_DIRECTORY, "activity_log.txt")
 LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
 LOG_FN_USERINPUT_DEBUG = os.path.join(LOG_DIRECTORY, "userinput_log_debug.txt")
 log_files = [LOG_FN_ACTIVITY, LOG_FN_UPDATES, LOG_FN_WARNINGS_ERRORS, LOG_FN_USERINPUT_DEBUG]
+LOG_DF_FILE_DIMENSIONS = os.path.join(LOG_DIRECTORY, "DF_file_dimensions_log.txt")
+
 
 def makedirs_():
     if not os.path.exists(LOG_DIRECTORY):

@@ -1,15 +1,9 @@
 #!/bin/bash
-
 ### Overview of scripts and pipelines --> for PMID autoupdate part
 ## ATLAS
 # - run snakemake on Atlas
 # - tar and compress new files for transfer and backup
 # - push to Aquarius and Pisces, on San pull from Aquarius
-# -
-
-
-
-
 # shellcheck disable=SC2038
 # shellcheck disable=SC2164
 # shellcheck disable=SC2028
@@ -23,26 +17,35 @@ TAR_CURRENT=aGOtool_PMID_pickle_current.tar.gz
 TAR_BAK=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 AFC_KS_CURRENT=AFC_KS_flat_files_current.tar
 AFC_KS_BAK=bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
+PYTHON_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python
+TABLES_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+SNAKEMAKE_EXECUTABLE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
+PYTHON_EXECUTABLE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotool/bin/python
 
 ### Header message
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 
 ### run snakemake pipeline
 echo "\n### run snakemake pipeline\n"
-cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/app/python
-/mnt/mnemo5/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo5/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -j 10 -F
+# cd /home/dblyon/agotool_PMID_autoupdate/agotool/app/python
+cd "$PYTHON_DIR"
+#/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -j 10 -F
+"$SNAKEMAKE_EXECUTABLE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXECUTABLE" -j 10 -F
 check_exit_status
 
 
-# add file dimensions to log for testing and debugging
-#cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/app/python
-#/mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
+# add file dimensions to log for testing and debugging --> built into Snakemake
+#cd /home/dblyon/agotool_PMID_autoupdate/agotool/app/python
+#/mnt/mnemo4/dblyon/install/anaconda3/envs/agotool/bin/python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
+#cd "$PYTHON_DIR"
+#"$PYTHON_EXECUTABLE"  -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
 
 # automated testing here!!! ToDo if tests pass --> then proceed with the rest
 
 ### tar and compress new files for transfer and backup
 echo "\n### tar and compress new files for transfer and backup\n"
-cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+#cd /home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+cd "$TABLES_DIR"
 ### create tar.gz of relevant flat files
 find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar --overwrite -cvzf "$TAR_CURRENT"
 check_exit_status
@@ -50,7 +53,8 @@ rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status
 
 ### AFC_KS file: tar and gzip current, bz2 backup, remove tar
-cd /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+#cd /home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
+cd "$TABLES_DIR"
 check_exit_status
 tar -cf "$AFC_KS_CURRENT" ./afc_ks
 check_exit_status
@@ -64,11 +68,13 @@ check_exit_status
 #### copy files to production servers
 echo "\n### copy files to Aquarius (production server)\n"
 ### Aquarius
-rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
+#rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
+rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
 echo "\n### copy files to Pisces (production server)\n"
 ### Pisces
-rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
+#rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
+rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
 ### San --> pull instead of push
 
