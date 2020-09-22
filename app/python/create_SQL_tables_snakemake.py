@@ -4169,12 +4169,14 @@ def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_tabl
     Taxid_2_FunctionEnum_2_Scores_dict = query.get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=True, as_array_or_as_list="array", taxid_2_proteome_count=None)
     pickle.dump(Taxid_2_FunctionEnum_2_Scores_dict, open(Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, "wb"))
 
-def add_2_DF_file_dimensions_log():
+def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN):    
     """
     read old log and add number of lines of flat files and bytes of data for binary files to log,
     write to disk
     :return: None
     """
+    assert os.path.exists(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+
     # read old table and add data to it
     LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
     df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")

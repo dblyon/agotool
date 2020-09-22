@@ -183,6 +183,9 @@ functionalterm_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["functionalterm_arr
 indices_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["indices_arr"]
 description_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["description_arr"]
 category_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["category_arr"]
+
+LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
+
 ###################################################################################################
 ### download resources
 rule download_descriptions_PMID:
@@ -794,12 +797,12 @@ rule r_Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts_UPS_FIN:
     run:
         cst.Pickle_taxid_2_tuple_funcEnum_index_2_associations_counts(input.Taxid_2_FunctionCountArray_table_UPS_FIN, output.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
 
-rule r_cleanup_scratch_drive:
-    input:
-        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
-    run:
-        cst.cleanup_scratch_drive(input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
-
+#rule r_cleanup_scratch_drive:
+#    input:
+#        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
+#    run:
+#        cst.cleanup_scratch_drive(input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+#
 
 rule r_Pickle_lookup_arrays_UPS_FIN:
     input:
@@ -835,6 +838,15 @@ rule r_Taxid_2_Proteins_table_p:
         TaxidSpecies_2_multipleRefProtTaxid_dict_p = TaxidSpecies_2_multipleRefProtTaxid_dict_p
     run:
         cst.create_speciesTaxid_2_proteomeTaxid_dict(input.Taxid_2_Proteins_table_UPS_FIN, output.TaxidSpecies_2_TaxidProteome_dict_p, output.TaxidSpecies_2_multipleRefProtTaxid_dict_p)
+
+rule r_add_2_DF_file_dimensions_log:
+    input:
+        LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSION,
+        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
+    run:
+        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+
+
 
 # background proteomes
 # E. coli is 562 but UniProt ref prot is 83333
