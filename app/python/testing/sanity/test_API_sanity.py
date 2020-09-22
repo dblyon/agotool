@@ -15,7 +15,7 @@ import variables #, query
 
 
 #### settings / parameters
-url_local = r"http://127.0.0.1:10112/api"
+url_local = r"http://127.0.0.1:10114/api"
 # url_local = r"http://agotool.meringlab.org/api"
 correlation_coefficient_min_threhold = 0.99
 p_value_min_threshold = 1e-20
