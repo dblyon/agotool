@@ -841,7 +841,7 @@ rule r_Taxid_2_Proteins_table_p:
 
 rule r_add_2_DF_file_dimensions_log:
     input:
-        LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSION,
+        LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
         taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
     run:
         cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
