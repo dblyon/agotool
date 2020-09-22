@@ -15,3 +15,19 @@ lineage_dict_enum_STS_FIN.p	True	144682963		2020-09-22 15:30:19.572432	0
 taxid_2_proteome_count_dict_STS_FIN.p	True	39796		2020-09-22 15:30:19.572432	0
 taxid_2_tuple_funcEnum_index_2_associations_counts_STS_FIN.p	True	141493629		2020-09-22 15:30:19.572432	0
 year_arr_STS_FIN.p	True	16883934		2020-09-22 15:30:19.572432	0
+ENSP_2_functionEnumArray_dict_STS_FIN.p	True	2412606215		2020-09-15 21:16:09	1
+blacklisted_terms_bool_arr_STS_FIN.p	True	8442048		2020-09-15 21:16:09	1
+category_arr_STS_FIN.p	True	16903414		2020-09-15 21:16:09	1
+description_arr_STS_FIN.p	True	774177903		2020-09-15 21:16:09	1
+entitytype_arr_STS_FIN.p	True	8442048		2020-09-15 21:16:09	1
+etype_2_minmax_funcEnum_STS_FIN.p	True	172		2020-09-15 21:16:09	1
+etype_cond_dict_STS_FIN.p	True	92861472		2020-09-15 21:16:09	1
+functionalterm_arr_STS_FIN.p	True	139599277		2020-09-15 21:16:09	1
+hierlevel_arr_STS_FIN.p	True	8442048		2020-09-15 21:16:09	1
+indices_arr_STS_FIN.p	True	33767706		2020-09-15 21:16:09	1
+kegg_taxid_2_acronym_dict_STS_FIN.p	True	56065		2020-09-15 21:16:09	1
+kegg_taxid_2_acronym_table_STS_FIN.txt	False	59930	5309.0	2020-06-05 14:18:28	1
+lineage_dict_enum_STS_FIN.p	True	144682963		2020-09-15 21:16:09	1
+taxid_2_proteome_count_dict_STS_FIN.p	True	39796		2020-09-15 21:16:09	1
+taxid_2_tuple_funcEnum_index_2_associations_counts_STS_FIN.p	True	141493629		2020-09-15 21:16:09	1
+year_arr_STS_FIN.p	True	16883934		2020-09-15 21:16:09	1

@@ -10,6 +10,7 @@ from ast import literal_eval
 import re, obo_parser
 import query, tools, ratio
 import variables as variables
+import datetime
 
 TYPEDEF_TAG, TERM_TAG = "[Typedef]", "[Term]"
 BASH_LOCATION = r"/usr/bin/env bash"

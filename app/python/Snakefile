@@ -285,7 +285,7 @@ rule r_AFC_KS_enrichment_terms_flat_files:
 
 rule r_add_2_DF_file_dimensions_log:
     input:
-        LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSION,
+        LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
         taxid_2_proteome_count_dict = taxid_2_proteome_count_dict
     run:
         cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_proteome_count_dict)
