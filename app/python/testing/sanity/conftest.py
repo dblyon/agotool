@@ -10,8 +10,6 @@ from itertools import islice
 import query, userinput, variables
 
 
-Protein_2_FunctionEnum_and_Score_table_UPS = variables.TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_and_Score_table"]
-ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=Protein_2_FunctionEnum_and_Score_table_UPS)
 
 
 @pytest.fixture(scope='session')
