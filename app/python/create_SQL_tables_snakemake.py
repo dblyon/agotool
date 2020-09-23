@@ -4176,9 +4176,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
     :return: None
     """
     assert os.path.exists(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
-
     # read old table and add data to it
-    LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
     df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
 
     fn_list, binary_list, size_list, num_lines_list, date_list = [], [], [], [], []

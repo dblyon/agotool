@@ -1,47 +1,57 @@
 #!/bin/bash
-
 # shellcheck disable=SC2038
 # shellcheck disable=SC2164
 # shellcheck disable=SC2028
 # shellcheck disable=SC2181
-
-#TAR_FILE_NAME=$1
-#LOG_UPDATES=$2
-
+# shellcheck disable=SC2028
+### called from Phobos
+### /home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
+TABLES_DIR=/home/dblyon/agotool/data/PostgreSQL/tables
+PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
+TESTING_DIR=/home/dblyon/agotool/app/python/testing/sanity
+APP_DIR=/home/dblyon/agotool/app
+POSTGRES_DIR=/home/dblyon/agotool/data/PostgreSQL
 
+### decompress files
 echo "running script on production server cronjob_update_aGOtool_Aquarius.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-# shellcheck disable=SC2028
-echo "\n### unpacking tar bzip files\n"
-pbzip2 -p8 -dc /home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.bz2 | tar x
+printf "\n### unpacking tar bzip files\n"
+cd "$TABLES_DIR"
+tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_flatfiles_current.tar.gz
 check_exit_status
 
-## check if file sizes etc. are as expected --> done on Atlas side, adding data to DF_file_dimensions.txt
-#echo "\n### checking updated files for size\n"
-#python /home/dblyon/agotool/app/python/obsolete_check_file_dimensions.py
-#check_exit_status
+### PyTest file sizes and line numbers
+printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
+"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+check_exit_status
 
-# copy from file to PostgreSQL
+### copy from file to PostgreSQL
 echo "\n### copying to PostgreSQL\n"
-#docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/copy_from_file_and_index.psql
-cd /home/dblyon/agotool/data/PostgreSQL
+cd "$POSTGRES_DIR"
+check_exit_status
 psql -d agotool -p 8001 -f copy_from_file_and_index.psql
 check_exit_status
-
-# drop old tables and rename temp tables
-echo "\n### drop and rename PostgreSQL\n"
-#docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/drop_and_rename.psql
+### drop old tables and rename temp tables
+printf "\n### drop and rename PostgreSQL\n"
+cd "$POSTGRES_DIR"
 psql -d agotool -p 8001 -f drop_and_rename.psql
 check_exit_status
 psql -d agotool -p 8001 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO agotool;"
 check_exit_status
 
-# restart service (hard restart)
-#docker exec -it
+### chain-reloading
 echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
-cd /home/dblyon/agotool/app
-# /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt # deprecated
+cd "$APP_DIR"
 echo c > master.fifo
 check_exit_status
+
+### PyTest all sanity tests
+printf "\n### PyTest all sanity tests\n"
+cd "$TESTING_DIR"
+"$PYTEST_EXT"
+check_exit_status
+
+#### DEPRECATED
+#docker exec -it postgres12 psql -U postgres -d agotool -f /agotool_data/PostgreSQL/copy_from_file_and_index.psql

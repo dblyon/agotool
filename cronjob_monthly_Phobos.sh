@@ -7,67 +7,46 @@ check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
 
-TAR_CURRENT=aGOtool_flatfiles_current.tar
-TAR_BAK=bak_aGOtool_flatfiles_current$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
-SNAKEMAKE_EXECUTABLE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
-PYTHON_EXECUTABLE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/python
+TAR_CURRENT=aGOtool_flatfiles_current.tar.gz
+TAR_BAK=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
+
+PYTEST_EXT=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
+SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
+PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/python
+TESTING_DIR=/scratch/dblyon/agotool/app/python/testing/sanity
 TABLES_DIR=/scratch/dblyon/agotool/data/PostgreSQL/tables
 PYTHON_DIR=/scratch/dblyon/agotool/app/python
-TAR_FILE_NAME=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar
-### Header message
+
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-#### tar and compress previous files for backup --> commented out: since too many backups
-#echo "\n### tar and compress previous files for backup\n"
-##cd /scratch/dblyon/agotool/data/PostgreSQL/tables
-#cd "$TABLES_DIR"
-##### create tar of relevant flat files
-#find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' | xargs tar cvf "$TAR_FILE_NAME"
-#check_exit_status
-##### compress for quick transfer and backup, this can run in the background since it's independent of snakemake
-#pbzip2 -p10 "$TAR_FILE_NAME" &
-#check_exit_status
-
 ### run snakemake pipeline
-echo "\n### run snakemake pipeline\n"
-#cd /scratch/dblyon/agotool/app/python
+printf "\n### run snakemake pipeline\n"
 cd "$PYTHON_DIR"
-#/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -j 10 -F
-"$SNAKEMAKE_EXECUTABLE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXECUTABLE" -j 10 -F
+check_exit_status
+"$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
 check_exit_status
 
-# add file dimensions to log for testing and debugging
-#cd /scratch/dblyon/agotool/app/python
-cd "$PYTHON_DIR" 
-#/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
-"$PYTHON_EXECUTABLE" -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
+### PyTest file sizes and line numbers
+printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
+"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+check_exit_status
 
-# automated testing here!!! ToDo if tests pass --> then proceed with the rest
-
-# tar and compress new files for backup
-echo "\n### tar and compress new files for backup\n"
-#cd /scratch/dblyon/agotool/data/PostgreSQL/tables
+### tar and compress new files for transfer and backup
+printf "\n### tar.gz new files for transfer and backup\n"
 cd "$TABLES_DIR"
-### create tar.gz of relevant flat files
-find . -maxdepth 1 -name '*_UPS_FIN*' | xargs tar --overwrite -cvf "$TAR_CURRENT"
+find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' -o -name "DF_file_dimensions_log.txt" | xargs tar -cvzf "$TAR_CURRENT"
 check_exit_status
-# compress for quick transfer and backup, keep tar
-pbzip2 -f -k -p10 $TAR_FILE_NAME
-check_exit_status
-rsync -av "$TAR_CURRENT".bz2 "$TAR_BAK"
+rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status
 
-# copy files to Aquarius (production server)
+### copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
-#rsync -av /scratch/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT".bz2
-rsync -av "$TABLES_DIR"/"$TAR_CURRENT".bz2 dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT".bz2
+rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
 
-# on production server, decompress files, populate DB, restart service
+### on production server, decompress files, populate DB, restart service
 echo "now attempting to run script on production server cronjob_update_aGOtool_Aquarius.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
-### remove tar, but not bz2
-rm $TAR_FILE_NAME
 
 echo "\n--- finished Cronjob ---\n"
 ########################################################################################################################

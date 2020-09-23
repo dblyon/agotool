@@ -28,8 +28,8 @@ import variables, query
 #
 # url_local = r"http://{}:{}/api".format(args.IP, args.port)
 # print("url_local: {}".format(url_local))
-url_local = r"http://127.0.0.1:5911/api"
-
+# url_local = r"http://127.0.0.1:5911/api"
+url_local = variables.pytest_url_local
 
 def test_random_contiguous_input_yields_results():
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=100, UniProt_ID=True, contiguous=True, joined_for_web=True)
