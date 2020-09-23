@@ -13,7 +13,7 @@ PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
 TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
 
-printf "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+echo "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 printf "\n### unpacking tar gz files\n"
 cd "$TABLES_DIR"
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
@@ -25,7 +25,7 @@ printf "\n### PyTest test_flatfiles.py checking updated files for size and line 
 check_exit_status
 
 ### chain-reload
-printf "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
+echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
 cd "$APP_DIR"
 echo c > master.fifo
 check_exit_status

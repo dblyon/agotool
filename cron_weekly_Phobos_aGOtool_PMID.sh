@@ -23,15 +23,11 @@ PYTEST_EXT=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
 TESTING_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python/testing/sanity
 
 #### Header message
-printf "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 #### run snakemake pipeline
 printf "\n### run snakemake pipeline\n"
 cd "$PYTHON_DIR"
 "$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
-check_exit_status
-### add file dimensions to log for testing and debugging --> built into Snakemake
-cd "$PYTHON_DIR"
-"$PYTHON_EXE"  -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
 check_exit_status
 
 ### PyTest file sizes and line numbers
@@ -69,11 +65,11 @@ check_exit_status
 ### San --> pull instead of push
 #### Production server, decompress files and restart service
 ### Aquarius
-printf "run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+echo "run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
 ### Pisces
-printf "run script on Pisces production server cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+echo "run script on Pisces production server cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
 printf "\n--- finished Cronjob ---\n"
@@ -104,3 +100,8 @@ printf "\n--- finished Cronjob ---\n"
 #| ----------- Hour (0 - 23)
 #------------- Minute (0 - 59)
 ############################################################
+### DEPRECATED since --> built into Snakemake
+### add file dimensions to log for testing and debugging
+#cd "$PYTHON_DIR"
+#"$PYTHON_EXE"  -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
+#check_exit_status
