@@ -10,12 +10,13 @@ check_exit_status () {
 TAR_CURRENT=aGOtool_flatfiles_current.tar.gz
 TAR_BAK=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 
-PYTEST_EXT=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
+PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
 SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
 PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/python
 TESTING_DIR=/scratch/dblyon/agotool/app/python/testing/sanity
 TABLES_DIR=/scratch/dblyon/agotool/data/PostgreSQL/tables
 PYTHON_DIR=/scratch/dblyon/agotool/app/python
+POSTGRES_DIR=/scratch/dblyon/agotool/data/PostgreSQL
 
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ### run snakemake pipeline
@@ -27,7 +28,7 @@ check_exit_status
 
 ### PyTest file sizes and line numbers
 printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
 check_exit_status
 
 ### tar and compress new files for transfer and backup
@@ -36,6 +37,16 @@ cd "$TABLES_DIR"
 find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' -o -name "DF_file_dimensions_log.txt" | xargs tar -cvzf "$TAR_CURRENT"
 check_exit_status
 rsync -av "$TAR_CURRENT" "$TAR_BAK"
+check_exit_status
+
+### populate local PostgreSQL
+echo "\n### copying to PostgreSQL\n"
+cd "$POSTGRES_DIR"
+check_exit_status
+psql -d agotool -f copy_from_file_and_index.psql
+check_exit_status
+printf "\n### drop and rename PostgreSQL\n"
+psql -d agotool -f drop_and_rename.psql
 check_exit_status
 
 ### copy files to Aquarius (production server)

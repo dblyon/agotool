@@ -24,7 +24,7 @@ check_exit_status
 
 ### PyTest file sizes and line numbers
 printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
 check_exit_status
 
 ### copy from file to PostgreSQL
@@ -50,7 +50,7 @@ check_exit_status
 ### PyTest all sanity tests
 printf "\n### PyTest all sanity tests\n"
 cd "$TESTING_DIR"
-"$PYTEST_EXT"
+"$PYTEST_EXE"
 check_exit_status
 
 #### DEPRECATED
