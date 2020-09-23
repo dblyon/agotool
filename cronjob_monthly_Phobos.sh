@@ -49,8 +49,15 @@ printf "\n### drop and rename PostgreSQL\n"
 psql -d agotool -f drop_and_rename.psql
 check_exit_status
 
+### chain-reloading
+echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
+cd "$APP_DIR"
+echo c > master.fifo
+check_exit_status
+
 ### PyTest all sanity tests
-printf "\n### PyTest all sanity tests\n"
+printf "\n### Sleep 3min and PyTest all sanity tests\n"
+sleep 3m
 cd "$TESTING_DIR"
 "$PYTEST_EXE"
 check_exit_status
