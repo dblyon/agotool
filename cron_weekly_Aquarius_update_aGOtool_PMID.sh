@@ -4,10 +4,11 @@
 # shellcheck disable=SC2028
 # shellcheck disable=SC2181
 # shellcheck disable=SC2028
+### called from Phobos
+### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
-### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
 TABLES_DIR=/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
 PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
 TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity

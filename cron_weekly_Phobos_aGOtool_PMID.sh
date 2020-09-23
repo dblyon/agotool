@@ -51,10 +51,12 @@ tar -czf "$AFC_KS_CURRENT" ./afc_ks
 check_exit_status
 rsync -av "$AFC_KS_CURRENT" "$AFC_KS_BAK"
 check_exit_status
-# ToDo AFC rsync and python script translation
+
+# ToDo AFC/KS rsync and python script translation
 
 #### copy files to production servers
 printf "\n### copy files to Aquarius (production server)\n"
+### San --> does pull instead of push via cronjob, data on Aquarius
 ### Aquarius
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
@@ -62,7 +64,6 @@ printf "\n### copy files to Pisces (production server)\n"
 ### Pisces
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
-### San --> pull instead of push
 #### Production server, decompress files and restart service
 ### Aquarius
 echo "run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"

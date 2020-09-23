@@ -2,19 +2,9 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get from API to python directory
 import pandas as pd
-import numpy as np
+# import numpy as np
 
 import variables
-
-### adding files to deprecated list
-# df["deprecated"] = False
-# cond = df["fn"].isin(["Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt", "Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN.p",
-#                       "Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt", "rowIndex_2_ENSP_dict_UPS_FIN.p",
-#                       "CSC_ENSPencoding_2_FuncEnum_UPS_FIN.npz", "ENSP_2_rowIndex_dict_UPS_FIN.p",
-#                      "SparseMatrixCSC_ENSPencoding_vs_FuncEnum_UPS_FIN.npz"])
-# df.loc[cond, "deprecated"] = True
-# df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)
-
 
 # check if files are similar size of larger than previously
 # record status quo in table
@@ -22,7 +12,6 @@ import variables
 # read old table and add data to it
 LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
 df = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
-df = df[df["deprecated"] == False] # skip TextMining Scores tables
 version_current = max(df["version"])
 version_previous = version_current - 1
 cond_previous = df["version"] == version_previous
@@ -81,7 +70,6 @@ def test_compare_file_size():
 ##     timestamp = tools.creation_date(fn_abs_path)
 #    timestamp = stat.st_mtime
 #    date_list.append(datetime.datetime.fromtimestamp(timestamp))
-#
 #df = pd.DataFrame()
 #df["fn"] = fn_list
 #df["binary"] = binary_list
@@ -91,5 +79,4 @@ def test_compare_file_size():
 #df["version"] = 0
 ## df["version"] = max(df_old["version"]) + 1
 ## df = pd.concat([df_old, df])
-#
 #df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)

@@ -3,28 +3,41 @@
 # shellcheck disable=SC2164
 # shellcheck disable=SC2028
 # shellcheck disable=SC2181
-
-#TAR_FILE_NAME=$1
-#LOG_UPDATES=$2
+### called from Phobos
 ### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
-
-echo "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
+TABLES_DIR=/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
+APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
+PYTEST_EXT=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
+TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 
-# shellcheck disable=SC2028
-echo "\n### unpacking tar.gz files\n"
-cd /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
-tar --overwrite -xvzf /home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz
+echo "--- running script cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+### pull files from Aquarius instead of pushing from Atlas
+printf "\n### pull files from Aquarius\n"
+rsync -av dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 
-## check if file sizes etc. are as expected --> done on Atlas side, adding data to DF_file_dimensions.txt
-#echo "\n### checking updated files for size\n"
-#python /home/dblyon/PMID_autoupdate/agotool/app/python/obsolete_check_file_dimensions.py
-#check_exit_status
+### decompress files
+echo "\n### unpacking tar.gz files\n"
+cd "$TABLES_DIR"
+tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
+check_exit_status
 
+### PyTest file sizes and line numbers
+printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
+"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+check_exit_status
+
+### chain_reloading
 echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
-cd /home/dblyon/PMID_autoupdate/agotool/app
+cd "$APP_DIR"
 echo c > master.fifo
+check_exit_status
+
+### PyTest all sanity tests
+printf "\n### PyTest all sanity tests\n"
+cd "$TESTING_DIR"
+"$PYTEST_EXT"
 check_exit_status
