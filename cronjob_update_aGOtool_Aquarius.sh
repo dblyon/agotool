@@ -17,7 +17,7 @@ POSTGRES_DIR=/home/dblyon/agotool/data/PostgreSQL
 
 ### decompress files
 echo "running script on production server cronjob_update_aGOtool_Aquarius.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-printf "\n### unpacking tar bzip files\n"
+printf "\n### unpacking tar.gz files\n"
 cd "$TABLES_DIR"
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_flatfiles_current.tar.gz
 check_exit_status

@@ -50,18 +50,6 @@ check_exit_status
 
 echo "\n--- finished Cronjob ---\n"
 ########################################################################################################################
-### on production server "cronjob_update_aGOtool_Aquarius.sh"
-# pbzip2 -p10 -dc $TAR_FILE_NAME | tar x
-# check if files are similar size of larger than previously
-# copy from file SQL
-# alter tables SQL
-
-# restart service (hard restart)
-# cd /home/dblyon/agotool/app (# cd /mnt/mnemo5/dblyon/agotool/app)
-# /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt (# /mnt/mnemo5/dblyon/install/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt)
-# --> dockerize
-########################################################################################################################
-
 ########################################################################################################################
 ### cron commands
 # crontab -e --> modify
