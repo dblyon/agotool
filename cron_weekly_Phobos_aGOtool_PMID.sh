@@ -1,9 +1,4 @@
 #!/bin/bash
-### Overview of scripts and pipelines --> for PMID autoupdate part
-## ATLAS
-# - run snakemake on Atlas
-# - tar and compress new files for transfer and backup
-# - push to Aquarius and Pisces, on San pull from Aquarius
 # shellcheck disable=SC2038
 # shellcheck disable=SC2164
 # shellcheck disable=SC2028
@@ -11,82 +6,77 @@
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
+### Overview of scripts and pipelines --> for PMID autoupdate part
+### Phobos
+# - run snakemake on Phobos /home/dblyon/agotool_PMID_autoupdate/agotool
+# - tar and gz compress new files for transfer and backup
+# - push to Aquarius and Pisces, on San pull from Aquarius
 TAR_CURRENT=aGOtool_PMID_pickle_current.tar.gz
 TAR_BAK=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
-AFC_KS_CURRENT=AFC_KS_flat_files_current.tar
-AFC_KS_BAK=bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.bz2
+AFC_KS_CURRENT=AFC_KS_flat_files_current.tar.gz
+AFC_KS_BAK=bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 PYTHON_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python
 TABLES_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-SNAKEMAKE_EXECUTABLE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
-PYTHON_EXECUTABLE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotool/bin/python
+SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
+PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotool/bin/python
+PYTEST_EXT=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
+TESTING_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python/testing/sanity
+
 #### Header message
-#echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-#
+printf "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 #### run snakemake pipeline
-#echo "\n### run snakemake pipeline\n"
-## cd /home/dblyon/agotool_PMID_autoupdate/agotool/app/python
-#cd "$PYTHON_DIR"
-##/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -l | tr '\n' ' ' | xargs /mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake -j 10 -F
-#"$SNAKEMAKE_EXECUTABLE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXECUTABLE" -j 10 -F
-#check_exit_status
-#
+printf "\n### run snakemake pipeline\n"
+cd "$PYTHON_DIR"
+"$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
+check_exit_status
+### add file dimensions to log for testing and debugging --> built into Snakemake
+cd "$PYTHON_DIR"
+"$PYTHON_EXE"  -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
+check_exit_status
 
-# add file dimensions to log for testing and debugging --> built into Snakemake
-#cd /home/dblyon/agotool_PMID_autoupdate/agotool/app/python
-#/mnt/mnemo4/dblyon/install/anaconda3/envs/agotool/bin/python -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
-#cd "$PYTHON_DIR"
-#"$PYTHON_EXECUTABLE"  -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
-
-# automated testing here!!! ToDo if tests pass --> then proceed with the rest
+### PyTest file sizes and line numbers
+printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
+"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+check_exit_status
 
 #### tar and compress new files for transfer and backup
-#echo "\n### tar and compress new files for transfer and backup\n"
-##cd /home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-#cd "$TABLES_DIR"
+printf "\n### tar and compress new files for transfer and backup\n"
+cd "$TABLES_DIR"
+check_exit_status
 #### create tar.gz of relevant flat files
-#find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar --overwrite -cvzf "$TAR_CURRENT"
-#check_exit_status
-#rsync -av "$TAR_CURRENT" "$TAR_BAK"
-#check_exit_status
-
-### AFC_KS file: tar and gzip current, bz2 backup, remove tar
-#cd /home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-#cd "$TABLES_DIR"
-#check_exit_status
-#tar -cf "$AFC_KS_CURRENT" ./afc_ks
-#check_exit_status
-#gzip -kf "$AFC_KS_CURRENT"
-#check_exit_status
-#pbzip2 -p10 "$AFC_KS_CURRENT"
-#check_exit_status
-#mv "$AFC_KS_CURRENT".bz2 "$AFC_KS_BAK"
-#check_exit_status
+find . -maxdepth 1 -name '*_STS_FIN.p' | xargs tar --overwrite -cvzf "$TAR_CURRENT"
+check_exit_status
+rsync -av "$TAR_CURRENT" "$TAR_BAK"
+check_exit_status
+### AFC_KS file: tar and gzip current
+cd "$TABLES_DIR"
+check_exit_status
+tar -czf "$AFC_KS_CURRENT" ./afc_ks
+check_exit_status
+rsync -av "$AFC_KS_CURRENT" "$AFC_KS_BAK"
+check_exit_status
+# ToDo AFC rsync and python script translation
 
 #### copy files to production servers
-echo "\n### copy files to Aquarius (production server)\n"
+printf "\n### copy files to Aquarius (production server)\n"
 ### Aquarius
-#rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
-echo "\n### copy files to Pisces (production server)\n"
+printf "\n### copy files to Pisces (production server)\n"
 ### Pisces
-#rsync -av /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
 ### San --> pull instead of push
-
 #### Production server, decompress files and restart service
 ### Aquarius
-echo "run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+printf "run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
-
+check_exit_status
 ### Pisces
-echo "run script on Pisces production server cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+printf "run script on Pisces production server cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
-
-echo "\n--- finished Cronjob ---\n"
-
-
+check_exit_status
+printf "\n--- finished Cronjob ---\n"
 ############################################################
 ##### Cronjob OVERVIEW
 

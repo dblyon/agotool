@@ -1970,6 +1970,7 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     # pickle.dump(pqo.cond_etypes_rem_foreground_ids, open(cond_etypes_rem_foreground_ids, "wb"))
     # blacklisted_enum_terms = query.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms, FROM_PICKLE=False)
     # pickle.dump(blacklisted_enum_terms, open(blacklisted_enum_terms, "wb"))
+
 def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_proteome_count_dict):
     """
     read old log and add number of lines of flat files and bytes of data for binary files to log,

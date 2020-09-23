@@ -1,6 +1,6 @@
 # include STRING examples for pytest sanity testing
 !STRING_v11.3_MultipleProteins_example_*
-!DF_file_dimensions_log.txt
+# DEPRECATED file in tables_dir and part of tar to rsync !DF_file_dimensions_log.txt
 
 *.png
 data/plots/*
