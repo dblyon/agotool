@@ -49,6 +49,12 @@ printf "\n### drop and rename PostgreSQL\n"
 psql -d agotool -f drop_and_rename.psql
 check_exit_status
 
+### PyTest all sanity tests
+printf "\n### PyTest all sanity tests\n"
+cd "$TESTING_DIR"
+"$PYTEST_EXE"
+check_exit_status
+
 ### copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
