@@ -13,6 +13,7 @@ TAR_BAK=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
 SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
 PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/python
+UWSGI_EXT=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/uwsgi
 TESTING_DIR=/scratch/dblyon/agotool/app/python/testing/sanity
 TABLES_DIR=/scratch/dblyon/agotool/data/PostgreSQL/tables
 PYTHON_DIR=/scratch/dblyon/agotool/app/python
@@ -49,18 +50,22 @@ printf "\n### drop and rename PostgreSQL\n"
 psql -d agotool -f drop_and_rename.psql
 check_exit_status
 
-### chain-reloading
-echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
+### start uWSGI flask app
+printf "\n###start uWSGI flask app and sleep for 3min\n"
 cd "$APP_DIR"
-echo c > master.fifo
-check_exit_status
+"$UWSGI_EXT" uwsgi_config_master.ini
+sleep3
 
 ### PyTest all sanity tests
-printf "\n### Sleep 3min and PyTest all sanity tests\n"
-sleep 3m
+printf "\n###PyTest all sanity tests\n"
 cd "$TESTING_DIR"
 "$PYTEST_EXE"
 check_exit_status
+
+### stop uWSGI flask app
+printf "\n###stop uWSGI flask app\n"
+cd "$APP_DIR"
+echo q > master.fifo # also works: "$UWSGI_EXT" --stop uwsgi_aGOtool_master_PID.txt
 
 ### copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"

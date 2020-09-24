@@ -2,9 +2,6 @@ import os, multiprocessing, sys
 import numpy as np
 import socket
 hostname = socket.gethostname()
-# import yaml # conda install pyyaml NOT yaml
-# ToDo
-# - abundance_correction example yields few results --> checked
 
 
 ############################
