@@ -5,8 +5,8 @@ from collections import defaultdict
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import variables, tools
 import create_SQL_tables_snakemake as cst
-# etype = "-58"
-etype = variables.id_2_entityTypeNumber_dict["STRING_clusters"] = "-58"
+# etype = "-58" --> -78
+etype = variables.id_2_entityTypeNumber_dict["STRING_clusters"] = "-78"
 
 
 # dirs

@@ -18,8 +18,8 @@ AFC_KS_BAK=bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 PYTHON_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python
 TABLES_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
 SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
-PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotool/bin/python
-PYTEST_EXT=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
+PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
+UWSGI_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/uwsgi
 TESTING_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python/testing/sanity
 
 #### Header message
@@ -32,7 +32,19 @@ check_exit_status
 
 ### PyTest file sizes and line numbers
 printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
+check_exit_status
+
+### start uWSGI flask app
+printf "\n###start uWSGI flask app and sleep for 3min\n"
+cd "$APP_DIR"
+"$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini
+sleep3
+
+### PyTest all sanity tests
+printf "\n###PyTest all sanity tests\n"
+cd "$TESTING_DIR"
+"$PYTEST_EXE"
 check_exit_status
 
 #### tar and compress new files for transfer and backup

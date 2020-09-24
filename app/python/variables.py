@@ -47,7 +47,7 @@ functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
                                   "PFAM (Protein FAMilies)": -55,
                                   "PMID": -56,
                                   "Reactome": -57,
-                                  "STRING_clusters": -58}
+                                  "STRING_clusters": -78}
 
 entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
@@ -59,7 +59,7 @@ entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -55: "PFAM (Protein FAMilies)",
                                   -56: "PMID (PubMed IDentifier)",
                                   -57: "Reactome",
-                                  -58: "STRING_clusters"}
+                                  -78: "STRING_clusters"}
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
@@ -191,7 +191,7 @@ id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
                               "PFAM": "-55", # Pfam domains
                               "PMID": "-56", # Pubmed identifiers
                               "Reactome": "-57",
-                              "STRING_clusters": "-58"}
+                              "STRING_clusters": "-78"}
 
 # function_enumeration_len = 6815598 # ?deprecated?
 #blacklisted_terms = ['GO:0003674', 'GO:0005575', 'GO:0008150', 'KW-9990', 'KW-9991', 'KW-9992', 'KW-9993', 'KW-9994', 'KW-9995', 'KW-9996', 'KW-9997', 'KW-9998', 'KW-9999']
