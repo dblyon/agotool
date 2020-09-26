@@ -1847,10 +1847,9 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
 def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, output_AFC_KS_DIR, fn_out_sql):
     print("creating AFC_KS files")
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = get_lookup_arrays(functions_table, low_memory=False)
+    functionalterm_set = set(functionalterm_arr)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     term_2_description_dict = {key: val for key, val in zip(functionalterm_arr, description_arr)}
-    # enum_2_description_dict = {key: val for key, val in zip(indices_arr, description_arr)}
-    # enum_2_term_dict = {key: val for key, val in zip(indices_arr, functionalterm_arr)}
     ENSP_2_internalID_dict = {}
     with open(protein_shorthands, "r") as fh:
         for line in fh:
@@ -1863,13 +1862,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
             acronym = acronym.strip()
             taxid_2_acronym_dict[taxid] = acronym
 
-    # GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
-    # UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
-    # RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
-    # interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
-    # fn_tree_STRING_clusters = os.path.join(DOWNLOADS_DIR, "clusters.tree.v11.0.txt.gz")
     parent_2_child_dict = get_parent_2_direct_children_dict(GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters)
-
     parent_2_child_dict_ENUM, term_without_enum_list = {}, []
     for parent, child_list in parent_2_child_dict.items():
         try:
@@ -1949,17 +1942,17 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
             taxid = int(taxid)
             etype = int(etype)
             ENSP_list = an_array.strip()[1:-1].replace('"', "").split(",")
-            try:
-                description = term_2_description_dict[term]
-            except KeyError:  # since removed due to e.g. blacklisting
-                term_without_description_list.append(term)
-                description = "-1"
+            if term not in functionalterm_set:
                 continue
+            # try:
+            #     description = term_2_description_dict[term]
+            # except KeyError:  # since removed due to e.g. blacklisting
+            #     term_without_description_list.append(term)
+            #     continue
             try:
                 termEnum = term_2_enum_dict[term]
             except KeyError:
                 term_without_enum_list.append(term)
-                termEnum = -1
                 continue
             num_ENSPs = len(ENSP_list)
             taxid_l += [taxid] * num_ENSPs
@@ -2022,7 +2015,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
         fh_out_sql.write(psql_intermittent_chars)
         fh_out_sql.write(psql_4)
 
-    subprocess.call("gzip {}".format(fn_out_sql), shell=True)
+    subprocess.call("gzip -k {}".format(fn_out_sql), shell=True)
     print("writing 3 files per taxid: members, descriptions, and children")
     termEnum_without_lineage_list = []
     ### create taxid.terms_members.tsv and taxid.terms_descriptions.tsv
