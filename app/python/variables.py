@@ -29,11 +29,11 @@ if READ_FROM_FLAT_FILES and LOW_MEMORY:
     raise NotImplementedError
 ARGPARSE = False # use argparse for IP and port parsing
 ############################
-entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57, -58}
+entity_types = {-21, -22, -23, -51, -52, -53, -54, -55, -56, -57, -78}
 PMID = {-56}
 alpha = 0.05
 entity_types_with_data_in_functions_table = entity_types
-entity_types_with_ontology = {-21, -22, -23, -51, -57, -58} # turn InterPro filter off
+entity_types_with_ontology = {-21, -22, -23, -51, -57, -78} # turn InterPro filter off
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55}
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # all_etypes - PMID - ontologies
 enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}

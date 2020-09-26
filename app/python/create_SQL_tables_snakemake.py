@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, subprocess
 import gzip
 import pandas as pd
 import numpy as np
@@ -565,7 +565,7 @@ def format_list_of_string_2_postgres_array(list_of_string):
     :param list_of_string: List of String
     :return: String
     """
-    return "{" + str(sorted(list_of_string))[1:-1].replace(" ", "").replace("'", '"') + "}"
+    return "{" + str(sorted(set(list_of_string)))[1:-1].replace(" ", "").replace("'", '"') + "}"
 
 def get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING):
     function_2_enum_dict, enum_2_function_dict = {}, {}
@@ -701,7 +701,6 @@ def get_child_2_parent_dict_STRING_clusters(fn_tree):
             child_2_parent_dict[child] |= {parent}
     return child_2_parent_dict
 
-
 def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree):
     lineage_dict = {}
     go_dag = obo_parser.GODag(obo_file=fn_go_basic_obo)
@@ -723,8 +722,9 @@ def get_lineage_dict_for_all_entity_types_with_ontologies(fn_go_basic_obo, fn_ke
     lineage_dict.update(get_lineage_from_child_2_direct_parent_dict(child_2_parent_dict))
     return lineage_dict
 
-def get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree):
+def get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_tree_STRING_clusters):
     child_2_parent_dict, parent_2_child_dict = {}, {}
+    child_2_parent_dict.update(get_child_2_parent_dict_STRING_clusters(fn_tree_STRING_clusters))
     child_2_parent_dict.update(get_child_2_direct_parent_dict_from_dag(obo_parser.GODag(obo_file=fn_go_basic_obo)))
     child_2_parent_dict.update(get_child_2_direct_parent_dict_from_dag(obo_parser.GODag(obo_file=fn_keywords_obo, upk=True)))
     child_2_parent_dict.update(get_child_2_direct_parent_dict_RCTM(fn_rctm_hierarchy))
@@ -781,12 +781,16 @@ def get_lineage_from_child_2_direct_parent_dict(child_2_direct_parent_dict):
 def get_child_2_direct_parent_dict_RCTM(fn_in):
     """
     child_2_parent_dict --> child 2 direct parents
+    R-BTA-109581    R-BTA-109606
+    R-BTA-109581    R-BTA-169911
+    R-BTA-109581    R-BTA-5357769
     """
     child_2_parent_dict = {}
     with open(fn_in, "r") as fh_in:
         for line in fh_in:
             parent, child = line.split("\t")
-            child = child.strip()
+            parent = parent[2:]
+            child = child[2:].strip()
             if child not in child_2_parent_dict:
                 child_2_parent_dict[child] = {parent}
             else:
@@ -1108,23 +1112,17 @@ def Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_
     if verbose:
         print("\ncreate_Protein_2_Function_table_GO")
     GO_dag = obo_parser.GODag(obo_file=fn_in_obo_file, upk=False)
-    # fn_in_temp = fn_in_knowledge + "_temp"
-    # tools.gunzip_file(fn_in_knowledge, fn_in_temp)
-    # tools.sort_file(fn_in_temp, fn_in_temp, columns="1,2", number_of_processes=number_of_processes)
     tools.sort_file(fn_in_knowledge, fn_in_knowledge, columns="1,2", number_of_processes=number_of_processes)
     if verbose:
-        # print("gunzip and sorting {}".format(fn_in_knowledge))
         print("sorting {}".format(fn_in_knowledge))
     GOterms_not_in_obo = []
     if verbose:
         print("parsing previous result to produce Protein_2_Function_table_GO.txt")
     with open(fn_out_Protein_2_Function_table_GO, "w") as fh_out:
-        # for ENSP, GOterm_list, _ in parse_string_go_yield_entry(fn_in_temp):
         for ENSP, GOterm_list, _ in parse_string_go_yield_entry(fn_in_knowledge):
             GOterm_list, GOterms_not_in_obo_temp = get_all_parent_terms(GOterm_list, GO_dag)
             GOterms_not_in_obo += GOterms_not_in_obo_temp
             if len(GOterm_list) >= 1:
-                # fh_out.write(ENSP + "\t" + "{" + str(GOterm_list)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + entityType + "\n")
                 MFs, CPs, BPs, not_in_OBO = divide_into_categories(GOterm_list, GO_dag, [], [], [], [])
                 GOterms_not_in_obo_temp += not_in_OBO
                 if MFs:
@@ -1135,7 +1133,6 @@ def Protein_2_Function_table_GO(fn_in_obo_file, fn_in_knowledge, fn_out_Protein_
                     fh_out.write(ENSP + "\t" + "{" + str(BPs)[1:-1].replace(" ", "").replace("'", '"') + "}\t" + variables.id_2_entityTypeNumber_dict['GO:0008150'] + "\n") # 'Biological Process', -21
     GOterms_not_in_obo = sorted(set(GOterms_not_in_obo))
     fn_log = os.path.join(LOG_DIRECTORY, "create_SQL_tables_GOterms_not_in_OBO.log")
-    # os.remove(fn_in_temp)
     with open(fn_log, "w") as fh_out:
         fh_out.write(";".join(GOterms_not_in_obo))
     if verbose:
@@ -1782,22 +1779,82 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
                             fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
     print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
 
-def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_out_AFC_KS_DIR, verbose=True):
-    parent_2_direct_children_dict = get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
-    print("AFC_KS_enrichment_terms_flat_files start")
+# def AFC_KS_enrichment_terms_flat_files_old(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_out_AFC_KS_DIR, verbose=True):
+#     parent_2_direct_children_dict = get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
+#     print("AFC_KS_enrichment_terms_flat_files start")
+#     ENSP_2_internalID_dict = {}
+#     with open(fn_in_Protein_shorthands, "r") as fh:
+#         for line in fh:
+#             ENSP, internalID = line.split()
+#             internalID = internalID.strip()
+#             ENSP_2_internalID_dict[ENSP] = internalID
+#
+#     association_2_description_dict = {}
+#     with open(fn_in_Functions_table_STRING_reduced, "r") as fh:
+#         for line in fh:
+#             enum, etype, an, description, year, level = line.split("\t")
+#             association_2_description_dict[an] = description
+#
+#     taxid_2_acronym_dict = {}
+#     with open(KEGG_TaxID_2_acronym_table, "r") as fh:
+#         for line in fh:
+#             taxid, acronym = line.split("\t")
+#             acronym = acronym.strip()
+#             taxid_2_acronym_dict[taxid] = acronym
+#
+#     fn_out_prefix = os.path.join(fn_out_AFC_KS_DIR + "{}_AFC_KS_all_terms.tsv")
+#     with open(fn_in_Function_2_ENSP_table_STRING_reduced, "r") as fh_in:
+#         taxid_last, etype, association, background_count, background_n, an_array = fh_in.readline().split()
+#         fn_out = fn_out_prefix.format(taxid_last)
+#         fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
+#         fh_out = open(fn_out, "w")
+#         fh_out_lineage = open(fn_out_lineage, "w")
+#         fh_in.seek(0)
+#         for line in fh_in:
+#             taxid, etype, association, background_count, background_n, an_array = line.split()
+#             an_array = literal_eval(an_array.strip())
+#             try:
+#                 description = association_2_description_dict[association]
+#             except KeyError: # since removed due to e.g. blacklisting
+#                 continue
+#             number_of_ENSPs = str(len(an_array))
+#             array_of_ENSPs_with_internal_IDS = " ".join(sorted(map_ENSPs_2_internalIDs(an_array, ENSP_2_internalID_dict)))
+#             if taxid != taxid_last:
+#                 fh_out.close()
+#                 fh_out_lineage.close()
+#                 fn_out = fn_out_prefix.format(taxid)
+#                 fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
+#                 fh_out = open(fn_out, "w")
+#                 fh_out_lineage = open(fn_out_lineage, "w")
+#             if etype == "-52": # KEGG
+#                 try:
+#                     acronym = taxid_2_acronym_dict[taxid]
+#                 except KeyError:
+#                     # print("no KEGG acronym translation for TaxID: {}".format(taxid))
+#                     acronym = "map"
+#                 association = association.replace("map", acronym)
+#             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
+#             taxid_last = taxid
+#             try:
+#                 children_list = parent_2_direct_children_dict[association]
+#             except KeyError:
+#                 continue
+#             fh_out_lineage.write(association + "\t" + "\t".join(children_list) + "\n")
+#         fh_out.close()
+#         fh_out_lineage.close()
+#     print("AFC_KS_enrichment_terms_flat_files done :)")
+
+def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, output_AFC_KS_DIR, fn_out_sql):
+    year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = get_lookup_arrays(functions_table, low_memory=False)
+    term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
+    term_2_description_dict = {key: val for key, val in zip(functionalterm_arr, description_arr)}
+    # enum_2_description_dict = {key: val for key, val in zip(indices_arr, description_arr)}
+    # enum_2_term_dict = {key: val for key, val in zip(indices_arr, functionalterm_arr)}
     ENSP_2_internalID_dict = {}
-    with open(fn_in_Protein_shorthands, "r") as fh:
+    with open(protein_shorthands, "r") as fh:
         for line in fh:
             ENSP, internalID = line.split()
-            internalID = internalID.strip()
-            ENSP_2_internalID_dict[ENSP] = internalID
-
-    association_2_description_dict = {}
-    with open(fn_in_Functions_table_STRING_reduced, "r") as fh:
-        for line in fh:
-            enum, etype, an, description, year, level = line.split("\t")
-            association_2_description_dict[an] = description
-
+            ENSP_2_internalID_dict[ENSP] = internalID.strip()
     taxid_2_acronym_dict = {}
     with open(KEGG_TaxID_2_acronym_table, "r") as fh:
         for line in fh:
@@ -1805,47 +1862,207 @@ def AFC_KS_enrichment_terms_flat_files(fn_in_Protein_shorthands, fn_in_Functions
             acronym = acronym.strip()
             taxid_2_acronym_dict[taxid] = acronym
 
-    fn_out_prefix = os.path.join(fn_out_AFC_KS_DIR + "{}_AFC_KS_all_terms.tsv")
-    with open(fn_in_Function_2_ENSP_table_STRING_reduced, "r") as fh_in:
-        taxid_last, etype, association, background_count, background_n, an_array = fh_in.readline().split()
-        fn_out = fn_out_prefix.format(taxid_last)
-        fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
-        fh_out = open(fn_out, "w")
-        fh_out_lineage = open(fn_out_lineage, "w")
-        fh_in.seek(0)
-        for line in fh_in:
-            taxid, etype, association, background_count, background_n, an_array = line.split()
-            an_array = literal_eval(an_array.strip())
+    # GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
+    # UPK_obo = os.path.join(DOWNLOADS_DIR, "keywords-all.obo")
+    # RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
+    # interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
+    # fn_tree_STRING_clusters = os.path.join(DOWNLOADS_DIR, "clusters.tree.v11.0.txt.gz")
+    parent_2_child_dict = get_parent_2_direct_children_dict(GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters)
+
+    parent_2_child_dict_ENUM, term_without_enum_list = {}, []
+    for parent, child_list in parent_2_child_dict.items():
+        try:
+            parent_enum = term_2_enum_dict[parent]
+        except KeyError:
+            term_without_enum_list.append(parent)
+            parent_enum = -1
+        child_enum_list = []
+        for child in child_list:
             try:
-                description = association_2_description_dict[association]
-            except KeyError: # since removed due to e.g. blacklisting
-                continue
-            number_of_ENSPs = str(len(an_array))
-            array_of_ENSPs_with_internal_IDS = " ".join(sorted(map_ENSPs_2_internalIDs(an_array, ENSP_2_internalID_dict)))
-            if taxid != taxid_last:
-                fh_out.close()
-                fh_out_lineage.close()
-                fn_out = fn_out_prefix.format(taxid)
-                fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
-                fh_out = open(fn_out, "w")
-                fh_out_lineage = open(fn_out_lineage, "w")
-            if etype == "-52": # KEGG
-                try:
-                    acronym = taxid_2_acronym_dict[taxid]
-                except KeyError:
-                    # print("no KEGG acronym translation for TaxID: {}".format(taxid))
-                    acronym = "map"
-                association = association.replace("map", acronym)
-            fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
-            taxid_last = taxid
-            try:
-                children_list = parent_2_direct_children_dict[association]
+                child_enum = term_2_enum_dict[child]
             except KeyError:
+                term_without_enum_list.append(child)
+                # child_enum = -1
                 continue
-            fh_out_lineage.write(association + "\t" + "\t".join(children_list) + "\n")
-        fh_out.close()
-        fh_out_lineage.close()
-    print("AFC_KS_enrichment_terms_flat_files done :)")
+            child_enum_list.append(child_enum)
+        parent_2_child_dict_ENUM[parent_enum] = sorted(child_enum_list)
+    # len(parent_2_child_dict_ENUM), len(parent_2_child_dict)
+
+    psql_intermittent_chars = r"\.\n"
+
+    psql_1 = """CREATE TABLE classification.terms_proteins_temp (
+    \tterm_id integer,
+    \tspecies_id integer,
+    \tprotein_id integer
+    ) WITHOUT OIDS;
+    CREATE TABLE classification.terms_counts_temp (
+    \tterm_id integer,
+    \tspecies_id integer,
+    \tmember_count integer
+    ) WITHOUT OIDS;
+    CREATE TABLE classification.terms_temp (
+    \tterm_id integer,
+    \tterm_external_id_full character varying (100),
+    \tterm_external_id_compact character varying (100),
+    \tdescription character varying
+    ) WITHOUT OIDS;
+    COPY classification.terms_proteins_temp FROM stdin;\n"""
+
+    # table_1
+    # psql_intermittent_chars
+
+    psql_2 = r"COPY classification.terms_counts_temp FROM stdin;\n"
+    # table_2
+    # psql_intermittent_chars
+
+    psql_3 = r"COPY classification.terms_temp FROM stdin;\n"
+    # table_3
+    # psql_intermittent_chars
+
+    psql_4 = """CREATE INDEX pi_terms_term_id_temp ON classification.terms_temp (term_id);\n
+    CREATE INDEX si_terms_term_external_id_temp ON classification.terms_temp (term_external_id_full);\n
+    CLUSTER pi_terms_term_id_temp ON classification.terms_temp;\n
+    VACUUM ANALYZE classification.terms_temp;\n
+
+    CREATE INDEX pi_terms_proteins_term_id_species_id_temp ON classification.terms_proteins_temp (term_id, species_id);\n
+    CLUSTER pi_terms_proteins_term_id_species_id_temp ON classification.terms_proteins_temp;\n
+    VACUUM ANALYZE classification.terms_proteins_temp;\n
+
+    CREATE INDEX pi_terms_counts_term_id_species_id_temp ON classification.terms_counts_temp (term_id, species_id);\n
+    CLUSTER pi_terms_counts_term_id_species_id_temp ON classification.terms_counts_temp;\n
+    VACUUM ANALYZE classification.terms_counts_temp;"""
+
+    ### table_1 terms_proteins_temp  # sort order: termEnum, taxid, NOT proteinEnum but ENSP  # termEnum, taxid, proteinEnum
+    ### table_2 terms_counts_temp  # sort order: termEnum, taxon  # termEnum, taxid, num_of_proteins
+    ### table_3 terms_temp  # sort order: termEnum  # termEnum, term, compact_term, description  # ?compact_term? -->1577887:CL:105  CL:105
+
+    ### df with 4 columns, but printing only 3
+    ### termEnum, taxid, proteinEnum, ENSP
+    ### sort_values(["termEnum", "taxid", "ENSP"])
+    ### df["termEnum", "taxid", "proteinEnum"]
+    termEnum_l, taxid_l, proteinEnum_l, ENSP_l, etype_l = [], [], [], [], []
+    term_without_description_list, ENSP_without_protEnum_list, term_without_enum_list = [], [], []
+    with open(Function_2_ENSP_table_STRING, "r") as fh_in:
+        for line in fh_in:
+            taxid, etype, term, background_count, background_n, an_array = line.split()
+            taxid = int(taxid)
+            etype = int(etype)
+            ENSP_list = an_array.strip()[1:-1].replace('"', "").split(",")
+            try:
+                description = term_2_description_dict[term]
+            except KeyError:  # since removed due to e.g. blacklisting
+                term_without_description_list.append(term)
+                description = "-1"
+                continue
+            try:
+                termEnum = term_2_enum_dict[term]
+            except KeyError:
+                term_without_enum_list.append(term)
+                termEnum = -1
+                continue
+            num_ENSPs = len(ENSP_list)
+            taxid_l += [taxid] * num_ENSPs
+            termEnum_l += [termEnum] * num_ENSPs
+            ENSP_list = sorted(ENSP_list)
+            ENSP_l += ENSP_list
+            etype_l += [etype] * num_ENSPs
+            proteinEnum_list = []
+            for ENSP in ENSP_list:
+                try:
+                    protEnum = ENSP_2_internalID_dict[ENSP]
+                except KeyError:
+                    ENSP_without_protEnum_list.append(ENSP)
+                    protEnum = -1
+                proteinEnum_list.append(protEnum)
+            proteinEnum_l += proteinEnum_list  # don't sort!!
+
+    df = pd.DataFrame()
+    df["termEnum"] = termEnum_l
+    df["taxid"] = taxid_l
+    df["proteinEnum"] = proteinEnum_l
+    df["ENSP"] = ENSP_l
+    df["etype"] = etype_l
+    print(df.shape)
+    df = df.drop_duplicates()
+    print(df.shape)
+    df = df.sort_values(["termEnum", "taxid", "ENSP"], ascending=[True, True, True]).reset_index(drop=True)
+    table_1 = df[["termEnum", "taxid", "proteinEnum"]].to_csv(header=False, index=False, sep='\t')
+
+    ### table_2 terms_counts_temp
+    ### sort order: termEnum, taxon
+    ### termEnum, taxid, num_of_proteins
+    df_table2 = df[["termEnum", "taxid", "proteinEnum"]].groupby(["termEnum", "taxid"]).size().reset_index(name="num_proteins").sort_values(["termEnum", "taxid", "num_proteins"]).reset_index(drop=True)
+    table_2 = df_table2.to_csv(header=False, index=False, sep='\t')
+
+    ### table_3 terms_temp --> preloads
+    ### sort order: termEnum
+    ### termEnum, term, compact_term, description
+    ### ?compact_term? --> 1577887:CL:105  CL:105
+    df_table3 = pd.DataFrame()
+    df_table3["termEnum"] = indices_arr
+    df_table3["term"] = functionalterm_arr
+    df_table3["description"] = description_arr
+    df_table3["etype"] = entitytype_arr
+    cond = df_table3["etype"] == -78
+    df_table3["compact_term"] = df_table3["term"]
+    df_table3.loc[cond, "compact_term"] = df_table3.loc[cond, "compact_term"].apply(lambda x: x.split("_")[1])
+    df_table3.loc[cond, "term"] = df_table3.loc[cond, "term"].apply(lambda x: ":".join(x.split("_")))
+    table_3 = df_table3[["termEnum", "term", "compact_term", "description"]].to_csv(header=False, index=False, sep='\t')
+
+    with open(fn_out_sql, "w") as fh_out_sql:
+        fh_out_sql.write(psql_1)
+        fh_out_sql.write(table_1)
+        fh_out_sql.write(psql_intermittent_chars)
+        fh_out_sql.write(psql_2)
+        fh_out_sql.write(table_2)
+        fh_out_sql.write(psql_intermittent_chars)
+        fh_out_sql.write(psql_3)
+        fh_out_sql.write(table_3)
+        fh_out_sql.write(psql_intermittent_chars)
+        fh_out_sql.write(psql_4)
+
+    subprocess.call("gzip {}".format(fn_out_sql), shell=True)
+
+
+    termEnum_without_lineage_list = []
+    ### create taxid.terms_members.tsv and taxid.terms_descriptions.tsv
+    for taxid, df_taxid in df.groupby("taxid"):
+        fn_out_members = os.path.join(output_AFC_KS_DIR, "{}.terms_members.tsv".format(taxid))
+        fn_out_descriptions = os.path.join(output_AFC_KS_DIR, "{}.terms_descriptions.tsv".format(taxid))
+        fn_out_children = os.path.join(output_AFC_KS_DIR, "{}.terms_children.tsv".format(taxid))
+        with open(fn_out_members, "w") as fh_out_members:
+            for termEnum, df_termEnum in df_taxid.groupby("termEnum"):
+                etype = df_termEnum["etype"].iloc[0]
+                ENSP_list = df_termEnum["ENSP"].to_list()
+                protein_shorthands_list = " ".join(sorted(map_ENSPs_2_internalIDs(ENSP_list, ENSP_2_internalID_dict)))
+                number_of_proteins = len(ENSP_list)
+                fh_out_members.write("{}\t{}\t{}\t{}\n".format(termEnum, etype, number_of_proteins, protein_shorthands_list))
+
+        termEnum_arr_for_taxid = df_taxid["termEnum"].values
+        try:  # KEGG is "map" and needs to be translated to e.g. "hsa" instead
+            acronym = taxid_2_acronym_dict[str(taxid)]
+        except KeyError:
+            acronym = "map"
+        with open(fn_out_descriptions, "w") as fh_out_descriptions:
+            cond_taxid = df_table3["termEnum"].isin(termEnum_arr_for_taxid)
+            # here we want "hsa00010" and not "map00010" --> for KEGG etype -52
+            df_temp = df_table3.loc[cond_taxid, ["termEnum", "term", "description", "etype"]]
+            if acronym != "map":
+                cond_KEGG = df_temp["etype"] == -52
+                df_temp.loc[cond_KEGG, "term"] = df_temp.loc[cond_KEGG, "term"].apply(lambda x: x.replace("map", acronym))
+            fh_out_descriptions.write(df_temp[["termEnum", "term", "description"]].to_csv(header=False, index=False, sep='\t'))
+
+        with open(fn_out_children, "w") as fh_out_children:
+            for termEnum in sorted(set(termEnum_arr_for_taxid)):
+                try:
+                    childEnum_list = parent_2_child_dict_ENUM[termEnum]
+                except KeyError:
+                    termEnum_without_lineage_list.append(termEnum)
+                    # childEnum_list = [-1]
+                    continue
+                number_of_children = len(childEnum_list)
+                fh_out_children.write("{}\t{}\t{}\n".format(termEnum, number_of_children, "\t".join(str(ele) for ele in childEnum_list)))
+
 
 def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
     list_2_return = []
@@ -1981,7 +2198,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_proteome_count_
     # read old table and add data to it
     df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
 
-    fn_list, binary_list, size_list, num_lines_list, date_list = [], [], [], [], []
+    fn_list, binary_list, size_list, num_lines_list, date_list, checksum_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(TABLES_DIR)):
         fn_abs_path = os.path.join(TABLES_DIR, fn)
         if fn.endswith("STS_FIN.txt"):
@@ -1996,6 +2213,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_proteome_count_
         size_list.append(os.path.getsize(fn_abs_path))
         timestamp = tools.creation_date(fn_abs_path)
         date_list.append(datetime.datetime.fromtimestamp(timestamp))
+        checksum_list.append(tools.md5(fn_abs_path))
 
     df = pd.DataFrame()
     df["fn"] = fn_list
@@ -2004,6 +2222,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_proteome_count_
     df["num_lines"] = num_lines_list
     df["date"] = date_list
     df["version"] = max(df_old["version"]) + 1
+    df["checksum"] = checksum_list
     df = pd.concat([df_old, df])
 
     df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)

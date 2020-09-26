@@ -103,9 +103,10 @@ class OBOReader:
             elif line.startswith("relationship: part_of"):
                 parents = relationship_part_of(line)
                 rec._parents.append(parents)
-            elif (line.startswith("is_obsolete:") and
-                  after_colon(line) == "true"):
+            elif (line.startswith("is_obsolete:") and after_colon(line) == "true"):
                 rec.is_obsolete = True
+            elif line.startswith("consider:"):
+                rec.consider.append(line.replace("consider: ", "").strip())
         return rec
 
     def replace_KW_with_UPK(self, id_):
@@ -175,6 +176,7 @@ class GOTerm:
         self.depth = None           # longest distance from root node
         self.is_obsolete = False    # is_obsolete
         self.alt_ids = []           # alternative identifiers
+        self.consider = []          # consider one of these terms instead
 
     def __repr__(self):
         return "GOTerm({})".format(self.id)
@@ -319,61 +321,6 @@ class GODag(dict):
             if rec.depth is None:
                 _init_depth(rec)
 
-    # def write_dag(self, out=sys.stdout):
-    #     """Write info for all GO Terms in obo file, sorted numerically."""
-    #     for rec_id, rec in sorted(self.items()):
-    #         print(rec, file=out)
-    #
-    # def write_hier_all(self, out=sys.stdout,
-    #                   len_dash=1, max_depth=None, num_child=None, short_prt=False):
-    #     """Write hierarchy for all GO Terms in obo file."""
-    #     # Print: [biological_process, molecular_function, and cellular_component]
-    #     for go_id in ['GO:0008150', 'GO:0003674', 'GO:0005575']:
-    #       self.write_hier(go_id, out, len_dash, max_depth, num_child, short_prt, None)
-    #
-    # def write_hier(self, GO_id, out=sys.stdout, len_dash=1, max_depth=None, num_child=None, short_prt=False, include_only=None, go_marks=None):
-    #     """Write hierarchy for a GO Term."""
-    #     gos_printed = set()
-    #     self[GO_id].write_hier_rec(gos_printed, out, len_dash, max_depth, num_child,
-    #         short_prt, include_only, go_marks)
-    #
-    # def write_summary_cnts(self, GO_ids, out=sys.stdout):
-    #     """Write summary of level and depth counts for specific GO ids."""
-    #     cnts = GODag.get_cnts_levels_depths_recs([self[GO] for GO in GO_ids])
-    #     self._write_summary_cnts(cnts, out)
-    #
-    # def write_summary_cnts_all(self, out=sys.stdout):
-    #     """Write summary of level and depth counts for all active GO Terms."""
-    #     cnts = self.get_cnts_levels_depths_recs(set(self.values()))
-    #     self._write_summary_cnts(cnts, out)
-    #
-    # def _write_summary_cnts(self, cnts, out=sys.stdout):
-    #     """Write summary of level and depth counts for active GO Terms."""
-    #     # Count level(shortest path to root) and depth(longest path to root)
-    #     # values for all unique GO Terms.
-    #     max_val = max(max(dep for dep in cnts['depth']),
-    #                   max(lev for lev in cnts['level']))
-    #     nss = ['biological_process', 'molecular_function', 'cellular_component']
-    #     out.write('Dep <-Depth Counts->  <-Level Counts->\n')
-    #     out.write('Lev   BP    MF    CC    BP    MF    CC\n')
-    #     out.write('--- ----  ----  ----  ----  ----  ----\n')
-    #     for i in range(max_val+1):
-    #         vals = ['{:>5}'.format(cnts[desc][i][ns]) for desc in cnts for ns in nss]
-    #         out.write('{:>02} {}\n'.format(i, ' '.join(vals)))
-    #
-    # @staticmethod
-    # def get_cnts_levels_depths_recs(recs):
-    #     """Collect counts of levels and depths in a Group of GO Terms."""
-    #     cnts = cx.defaultdict(lambda: cx.defaultdict(cx.Counter))
-    #     for rec in recs:
-    #         if not rec.is_obsolete:
-    #             cnts['level'][rec.level][rec.namespace] += 1
-    #             cnts['depth'][rec.depth][rec.namespace] += 1
-    #     return cnts
-    #
-    # @staticmethod
-    # def id2int(GO_id): return int(GO_id.replace("GO:", "", 1))
-
     def query_term(self, term, verbose=False):
         if term not in self:
             print("Term %s not found!" % term, file=sys.stderr)
@@ -462,30 +409,6 @@ class Functional_term:
         self.is_obsolete = False  # is_obsolete
 
 
-
-# class KEGG_pseudo_dag(dict):
-#     """
-#     depends on DB
-#     kegg_pseudo_dag: description=name, goterm=id
-#     """
-#     def __init__(self):
-#         KEGG_id_2_name_dict = query.get_function_type_id_2_name_dict("KEGG")
-#         # kegg_pseudo_dag: description=name, goterm=id
-#         for id_, name in KEGG_id_2_name_dict.items():
-#             self[id_] = KEGGterm(id_, name)
-
-# class Pseudo_dag(dict):
-#     """
-#     depends on DB
-#     pseudo_dag: description=name, goterm=id
-#     """
-#     def __init__(self, etype):
-#         Function_id_2_name_dict = query.get_function_type_id_2_name_dict(etype)
-#         for id_, name in Function_id_2_name_dict.items():
-#             self[id_] = Functional_term(id_, name)
-
-
-
 class DOMterm:
     """
     Domain 'term'
@@ -498,17 +421,3 @@ class DOMterm:
         self.level = 0  # shortest distance from root node
         self.depth = None  # longest distance from root node
         self.is_obsolete = False  # is_obsolete
-
-
-# class DOM_pseudo_dag(dict):
-#
-#     def __init__(self):
-#         # DOM_id_2_name_dict = query.get_DOM_id_2_name_dict()
-#         DOM_id_2_name_dict = query.get_function_type_id_2_name_dict("DOM")
-#         # DOM_pseudo_dag: description=name, DOM_term=id
-#         for id_, name in DOM_id_2_name_dict.items():
-#             self[id_] = DOMterm(id_, name)
-
-
-
-

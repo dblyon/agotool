@@ -1,4 +1,4 @@
-import datetime, time, os, sys, subprocess
+import datetime, time, os, sys, subprocess, hashlib
 PLATFORM = sys.platform
 
 def creation_date(path_to_file):
@@ -164,3 +164,10 @@ def diff_of_columns_of_2_files(fn_1, fn_2, column_number_1=0, column_number_2=0,
     print("len of list2: {}, len of set2: {}".format(len(list2), len(set2)))
     print("len and diff of set1 - set2: {}\n{}".format(len(set1 - set2), sorted(set1 - set2)))
     print("len and diff of set2 - set1: {}\n{}".format(len(set2 - set1), sorted(set2 - set1)))
+
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()

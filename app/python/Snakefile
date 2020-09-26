@@ -88,6 +88,7 @@ Protein_2_Function_table_STRING_all = os.path.join(TABLES_DIR, "Protein_2_Functi
 Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
 
 AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "afc_ks/"))
+fn_out_sql = os.path.join(TABLES_DIR, "populate_classification_schema_current.sql")
 
 ### pickled results
 taxid_2_proteome_count_dict = TABLES_DICT_SNAKEMAKE["taxid_2_proteome_count_dict"]
@@ -266,22 +267,41 @@ rule r_pickle_final_results:
     run:
         cst.pickle_PMID_autoupdates(input.Lineage_table_STRING, input.Taxid_2_FunctionCountArray_table_STRING, output)
 
-rule r_AFC_KS_enrichment_terms_flat_files:
+# rule r_AFC_KS_enrichment_terms_flat_files_old:
+#     input:
+#         Protein_shorthands = Protein_shorthands,
+#         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+#         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
+#         KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
+#         GO_basic_obo = GO_basic_obo,
+#         UPK_obo = UPK_obo,
+#         RCTM_hierarchy = RCTM_hierarchy,
+#         interpro_parent_2_child_tree = interpro_parent_2_child_tree
+#     output:
+#         AFC_KS_DIR = AFC_KS_DIR
+#     params:
+#         verbose = verbose
+#     run:
+#         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_Taxid_2_acronym_table, input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
+
+rule r_AFC_KS_enrichment_terms_flat_files: # functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, output_AFC_KS_DIR, fn_out_sql
     input:
-        Protein_shorthands = Protein_shorthands,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
+        Protein_shorthands = Protein_shorthands,
         KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
+        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
         GO_basic_obo = GO_basic_obo,
         UPK_obo = UPK_obo,
         RCTM_hierarchy = RCTM_hierarchy,
-        interpro_parent_2_child_tree = interpro_parent_2_child_tree
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+        fn_tree_STRING_clusters = fn_tree_STRING_clusters
     output:
-        AFC_KS_DIR = AFC_KS_DIR
+        AFC_KS_DIR = AFC_KS_DIR,
+        fn_out_sql = fn_out_sql
     params:
         verbose = verbose
     run:
-        cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_Taxid_2_acronym_table, input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
+        cst.AFC_KS_enrichment_terms_flat_files(input.Functions_table_STRING_reduced, input.Protein_shorthands, input.KEGG_Taxid_2_acronym_table, input.Function_2_ENSP_table_STRING_reduced,input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.fn_tree_STRING_clusters, output.AFC_KS_DIR, output.fn_out_sql, params.verbose)
 
 rule r_add_2_DF_file_dimensions_log:
     input:
