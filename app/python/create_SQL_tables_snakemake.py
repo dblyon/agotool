@@ -1845,6 +1845,7 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
 #     print("AFC_KS_enrichment_terms_flat_files done :)")
 
 def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, output_AFC_KS_DIR, fn_out_sql):
+    print("creating AFC_KS files")
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = get_lookup_arrays(functions_table, low_memory=False)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
     term_2_description_dict = {key: val for key, val in zip(functionalterm_arr, description_arr)}
@@ -2008,7 +2009,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     df_table3.loc[cond, "compact_term"] = df_table3.loc[cond, "compact_term"].apply(lambda x: x.split("_")[1])
     df_table3.loc[cond, "term"] = df_table3.loc[cond, "term"].apply(lambda x: ":".join(x.split("_")))
     table_3 = df_table3[["termEnum", "term", "compact_term", "description"]].to_csv(header=False, index=False, sep='\t')
-
+    print("writing sql file")
     with open(fn_out_sql, "w") as fh_out_sql:
         fh_out_sql.write(psql_1)
         fh_out_sql.write(table_1)
@@ -2022,8 +2023,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
         fh_out_sql.write(psql_4)
 
     subprocess.call("gzip {}".format(fn_out_sql), shell=True)
-
-
+    print("writing 3 files per taxid: members, descriptions, and children")
     termEnum_without_lineage_list = []
     ### create taxid.terms_members.tsv and taxid.terms_descriptions.tsv
     for taxid, df_taxid in df.groupby("taxid"):
@@ -2062,7 +2062,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
                     continue
                 number_of_children = len(childEnum_list)
                 fh_out_children.write("{}\t{}\t{}\n".format(termEnum, number_of_children, "\t".join(str(ele) for ele in childEnum_list)))
-
+    print("finished AFC KS :)")
 
 def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
     list_2_return = []
