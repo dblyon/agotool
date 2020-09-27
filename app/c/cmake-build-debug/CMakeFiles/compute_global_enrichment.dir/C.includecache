@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/dblyon/modules/cpr/agotool/app/c/compute_global_enrichment.c
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+string.h
+-
+limits.h
+-
+float.h
+-
+math.h
+-
+pthread.h
+-
+sys/file.h
+-
+

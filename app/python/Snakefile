@@ -27,7 +27,6 @@ verbose = variables.VERBOSE
 TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
 
 # ToDo
-# - tar and pbzip2, run on Aquarius
 # - profile code --> maybe change ast.literal_eval, and or flat file style from "{...}" to simple ";" as delimiter
 # - uWSGI zerg dance
 # - run PMID_autoupdates on Aquarius
@@ -37,8 +36,6 @@ TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
 ### nginx config aquarius
 # /etc/nginx/sites-available/agotool.org.conf
 # root@imlslnx-sagittarius:/etc/apache2/sites-enabled# cat agotool.meringlab.org
-
-
 
 ### Parameters
 max_len_description = 250
@@ -87,7 +84,7 @@ Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP
 Protein_2_Function_table_STRING_all = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all.txt")
 Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
 
-AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "afc_ks/"))
+AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "global_enrichment_data/"))
 fn_out_sql = os.path.join(TABLES_DIR, "populate_classification_schema_current.sql")
 
 ### pickled results

@@ -2014,8 +2014,8 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
         fh_out_sql.write(table_3)
         fh_out_sql.write(psql_intermittent_chars)
         fh_out_sql.write(psql_4)
-
     subprocess.call("gzip -k {}".format(fn_out_sql), shell=True)
+
     print("writing 3 files per taxid: members, descriptions, and children")
     termEnum_without_lineage_list = []
     ### create taxid.terms_members.tsv and taxid.terms_descriptions.tsv

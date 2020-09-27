@@ -13,8 +13,10 @@ check_exit_status () {
 # - push to Aquarius and Pisces, on San pull from Aquarius
 TAR_CURRENT=aGOtool_PMID_pickle_current.tar.gz
 TAR_BAK=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
-AFC_KS_CURRENT=AFC_KS_flat_files_current.tar.gz
-AFC_KS_BAK=bak_AFC_KS_flat_files_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
+global_enrichment_data_current=global_enrichment_data_current.tar.gz
+global_enrichment_data_bak=bak_global_enrichment_data_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
+populate_classification_schema_current=populate_classification_schema_current.sql.gz
+populate_classification_schema_bak=populate_classification_schema_$(date +"%Y_%m_%d_%I_%M_%p").sql.gz
 PYTHON_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python
 TABLES_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
 SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
@@ -59,12 +61,12 @@ check_exit_status
 ### AFC_KS file: tar and gzip current
 cd "$TABLES_DIR"
 check_exit_status
-tar -czf "$AFC_KS_CURRENT" ./afc_ks
+tar -czf "$global_enrichment_data_current" ./afc_ks
 check_exit_status
-rsync -av "$AFC_KS_CURRENT" "$AFC_KS_BAK"
+rsync -av "$global_enrichment_data_current" "$global_enrichment_data_bak"
 check_exit_status
-
-# ToDo AFC/KS rsync and python script translation
+rsync -av "$populate_classification_schema_current" "$populate_classification_schema_bak"
+check_exit_status
 
 #### copy files to production servers
 printf "\n### copy files to Aquarius (production server)\n"
@@ -76,6 +78,11 @@ printf "\n### copy files to Pisces (production server)\n"
 ### Pisces
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
+rsync -av "$TABLES_DIR"/"$global_enrichment_data_current" dblyon@pisces.meringlab.org:/home/mering/string/data/derived_v11/"$global_enrichment_data_current"
+check_exit_status
+rsync -av "$TABLES_DIR"/"$populate_classification_schema_current" dblyon@pisces.meringlab.org:/home/mering/string/data/derived_v11/"$populate_classification_schema_current"
+check_exit_status
+
 #### Production server, decompress files and restart service
 ### Aquarius
 echo "run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
