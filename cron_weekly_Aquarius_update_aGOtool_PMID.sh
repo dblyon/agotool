@@ -30,6 +30,7 @@ echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
 cd "$APP_DIR"
 echo c > master.fifo
 check_exit_status
+sleep 4m
 
 ### PyTest all sanity tests
 printf "\n### PyTest all sanity tests\n"

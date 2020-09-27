@@ -39,7 +39,7 @@ check_exit_status
 printf "\n###start uWSGI flask app and sleep for 3min\n"
 cd "$APP_DIR"
 "$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini
-sleep3
+sleep 3m
 
 ### PyTest all sanity tests
 printf "\n###PyTest all sanity tests\n"
