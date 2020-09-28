@@ -13,16 +13,22 @@ TABLES_DIR=/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
 PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
 TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
+TAR_GED_ALL_CURRENT=GED_all_current.tar
+GED_DIR=/home/dblyon/global_enrichment_v11
 
 echo "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 printf "\n### unpacking tar gz files\n"
 cd "$TABLES_DIR"
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
+cd "$GED_DIR"
+tar --overwrite -xkvf "$TAR_GED_ALL_CURRENT"
+check_exit_status
 
 ### PyTest file sizes and line numbers
 printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-"$PYTEST_EXT" "$TESTING_DIR"/test_flatfiles.py
+cd "$TESTING_DIR"
+"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
 check_exit_status
 
 ### chain-reload
@@ -35,7 +41,7 @@ sleep 4m
 ### PyTest all sanity tests
 printf "\n### PyTest all sanity tests\n"
 cd "$TESTING_DIR"
-"$PYTEST_EXT"
+"$PYTEST_EXE"
 check_exit_status
 
 

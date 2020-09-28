@@ -1,4 +1,5 @@
 import os, sys, subprocess
+from shlex import split
 import gzip
 import pandas as pd
 import numpy as np
@@ -1844,12 +1845,13 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
 #         fh_out_lineage.close()
 #     print("AFC_KS_enrichment_terms_flat_files done :)")
 
-def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, output_AFC_KS_DIR, fn_out_sql):
+def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, global_enrichment_data_current_tar_gz, populate_classification_schema_current_sql_gz):
     print("creating AFC_KS files")
+    global_enrichment_data_DIR = variables["global_enrichment_data_DIR"]
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = get_lookup_arrays(functions_table, low_memory=False)
     functionalterm_set = set(functionalterm_arr)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
-    term_2_description_dict = {key: val for key, val in zip(functionalterm_arr, description_arr)}
+    # term_2_description_dict = {key: val for key, val in zip(functionalterm_arr, description_arr)}
     ENSP_2_internalID_dict = {}
     with open(protein_shorthands, "r") as fh:
         for line in fh:
@@ -1944,11 +1946,6 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
             ENSP_list = an_array.strip()[1:-1].replace('"', "").split(",")
             if term not in functionalterm_set:
                 continue
-            # try:
-            #     description = term_2_description_dict[term]
-            # except KeyError:  # since removed due to e.g. blacklisting
-            #     term_without_description_list.append(term)
-            #     continue
             try:
                 termEnum = term_2_enum_dict[term]
             except KeyError:
@@ -1968,7 +1965,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
                     ENSP_without_protEnum_list.append(ENSP)
                     protEnum = -1
                 proteinEnum_list.append(protEnum)
-            proteinEnum_l += proteinEnum_list  # don't sort!!
+            proteinEnum_l += proteinEnum_list  # don't sort!! (should be sorted according to ProtName not ProtEnum)
 
     df = pd.DataFrame()
     df["termEnum"] = termEnum_l
@@ -1997,13 +1994,14 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     df_table3["term"] = functionalterm_arr
     df_table3["description"] = description_arr
     df_table3["etype"] = entitytype_arr
-    cond = df_table3["etype"] == -78
+    cond = df_table3["etype"] == -78 # STRING_clusters
     df_table3["compact_term"] = df_table3["term"]
     df_table3.loc[cond, "compact_term"] = df_table3.loc[cond, "compact_term"].apply(lambda x: x.split("_")[1])
     df_table3.loc[cond, "term"] = df_table3.loc[cond, "term"].apply(lambda x: ":".join(x.split("_")))
     table_3 = df_table3[["termEnum", "term", "compact_term", "description"]].to_csv(header=False, index=False, sep='\t')
     print("writing sql file")
-    with open(fn_out_sql, "w") as fh_out_sql:
+    fn_out_sql_temp = populate_classification_schema_current_sql_gz + "_temp"
+    with open(fn_out_sql_temp, "w") as fh_out_sql:
         fh_out_sql.write(psql_1)
         fh_out_sql.write(table_1)
         fh_out_sql.write(psql_intermittent_chars)
@@ -2014,15 +2012,18 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
         fh_out_sql.write(table_3)
         fh_out_sql.write(psql_intermittent_chars)
         fh_out_sql.write(psql_4)
-    subprocess.call("gzip -k {}".format(fn_out_sql), shell=True)
+    # subprocess.call("gzip -c {} > {}".format(fn_out_sql_temp, populate_classification_schema_current_sql_gz), shell=True)
+    process_gzip = subprocess.Popen(split("gzip -c {} > {}".format(fn_out_sql_temp, populate_classification_schema_current_sql_gz)))
 
     print("writing 3 files per taxid: members, descriptions, and children")
     termEnum_without_lineage_list = []
     ### create taxid.terms_members.tsv and taxid.terms_descriptions.tsv
+    if not os.path.exists(global_enrichment_data_DIR):
+        os.makedirs(global_enrichment_data_DIR)
     for taxid, df_taxid in df.groupby("taxid"):
-        fn_out_members = os.path.join(output_AFC_KS_DIR, "{}.terms_members.tsv".format(taxid))
-        fn_out_descriptions = os.path.join(output_AFC_KS_DIR, "{}.terms_descriptions.tsv".format(taxid))
-        fn_out_children = os.path.join(output_AFC_KS_DIR, "{}.terms_children.tsv".format(taxid))
+        fn_out_members = os.path.join(global_enrichment_data_DIR, "{}.terms_members.tsv".format(taxid))
+        fn_out_descriptions = os.path.join(global_enrichment_data_DIR, "{}.terms_descriptions.tsv".format(taxid))
+        fn_out_children = os.path.join(global_enrichment_data_DIR, "{}.terms_children.tsv".format(taxid))
         with open(fn_out_members, "w") as fh_out_members:
             for termEnum, df_termEnum in df_taxid.groupby("termEnum"):
                 etype = df_termEnum["etype"].iloc[0]
@@ -2056,9 +2057,12 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
                 number_of_children = len(childEnum_list)
                 if number_of_children > 0:
                     fh_out_children.write("{}\t{}\t{}\n".format(termEnum, number_of_children, "\t".join(str(ele) for ele in childEnum_list)))
-    print("finished AFC KS :)")
-
-
+    # tar -czf "$global_enrichment_data_current"./global_enrichment_data
+    process_tar_gz = subprocess.Popen(split("tar -czf {} {}".format(global_enrichment_data_current_tar_gz, variables.tables_dict["global_enrichment_data_DIR"])))
+    code_tar_gz = process_tar_gz.wait()
+    code_gzip = process_gzip.wait()
+    # os.remove(fn_out_sql_temp)
+    print("finished AFC KS global enrichment  :)")
 
 def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
     list_2_return = []
@@ -2184,7 +2188,7 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     # blacklisted_enum_terms = query.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms, FROM_PICKLE=False)
     # pickle.dump(blacklisted_enum_terms, open(blacklisted_enum_terms, "wb"))
 
-def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_proteome_count_dict):
+def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, taxid_2_proteome_count_dict):
     """
     read old log and add number of lines of flat files and bytes of data for binary files to log,
     write to disk
@@ -2220,9 +2224,42 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_proteome_count_
     df["version"] = max(df_old["version"]) + 1
     df["checksum"] = checksum_list
     df = pd.concat([df_old, df])
-
     df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)
 
+    ### Global enrichment follows
+    df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, sep="\t")
+    populate_classification_schema_current_sql_gz = variables.tables_dict["populate_classification_schema_current_sql_gz"]
+    global_enrichment_data_current_tar_gz = variables.tables_dict["global_enrichment_data_current_tar_gz"]
+    global_enrichment_data_DIR = variables.tables_dict["global_enrichment_data_DIR"]
+    fn_list_2_search = [populate_classification_schema_current_sql_gz, global_enrichment_data_current_tar_gz]
+    fn_list_2_search += os.listdir(global_enrichment_data_DIR)
+
+    fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
+    for fn in fn_list_2_search:
+        if fn.endswith(".gz"):
+            binary_list.append(True)
+            num_lines_list.append(np.nan)
+        elif fn.endswith(".tsv") or fn.endswith(".sql"):
+            binary_list.append(False)
+            num_lines_list.append(tools.line_numbers(fn))
+        else:
+            print(fn)
+            continue
+        size_list.append(os.path.getsize(fn))
+        timestamp = os.path.getmtime(fn)
+        date_list.append(datetime.datetime.fromtimestamp(timestamp))
+        md5_list.append(tools.md5(fn))
+        fn_list.append(os.path.basename(fn))
+    df = pd.DataFrame()
+    df["fn"] = fn_list
+    df["binary"] = binary_list
+    df["size"] = size_list
+    df["num_lines"] = num_lines_list
+    df["date"] = date_list
+    df["md5"] = md5_list
+    df["version"] = max(df_old["version"]) + 1
+    df = pd.concat([df_old, df])
+    df.to_csv(LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, sep="\t", header=True, index=False)
 
 
 if __name__ == "__main__":

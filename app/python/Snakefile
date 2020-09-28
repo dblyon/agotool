@@ -83,8 +83,10 @@ Function_2_ENSP_table_STRING_removed = os.path.join(TABLES_DIR, "Function_2_ENSP
 Protein_2_Function_table_STRING_all = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all.txt")
 Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_removed.txt")
 
-AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "global_enrichment_data/"))
-fn_out_sql = os.path.join(TABLES_DIR, "populate_classification_schema_current.sql")
+# AFC_KS_DIR = directory(os.path.join(TABLES_DIR, "global_enrichment_data/"))
+# global_enrichment_data_DIR = TABLES_DICT_SNAKEMAKE["global_enrichment_data_DIR"]
+global_enrichment_data_current_tar_gz = TABLES_DICT_SNAKEMAKE["global_enrichment_data_current_tar_gz"]
+populate_classification_schema_current_sql_gz = TABLES_DICT_SNAKEMAKE["populate_classification_schema_current_sql_gz"]
 
 ### pickled results
 taxid_2_proteome_count_dict = TABLES_DICT_SNAKEMAKE["taxid_2_proteome_count_dict"]
@@ -106,6 +108,7 @@ cond_etypes_with_ontology = TABLES_DICT_SNAKEMAKE["cond_etypes_with_ontology"]
 cond_etypes_rem_foreground_ids = TABLES_DICT_SNAKEMAKE["cond_etypes_rem_foreground_ids"]
 
 LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
+LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = variables.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT
 
 
 rule download_Protein_2_Function_PMID:
@@ -292,14 +295,15 @@ rule r_AFC_KS_enrichment_terms_flat_files: # functions_table, protein_shorthands
         interpro_parent_2_child_tree = interpro_parent_2_child_tree,
         fn_tree_STRING_clusters = fn_tree_STRING_clusters
     output:
-        AFC_KS_DIR = AFC_KS_DIR,
-        fn_out_sql = fn_out_sql
+        global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz
+        populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz,
     run:
-        cst.AFC_KS_enrichment_terms_flat_files(input.Functions_table_STRING_reduced, input.Protein_shorthands, input.KEGG_Taxid_2_acronym_table, input.Function_2_ENSP_table_STRING_reduced,input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.fn_tree_STRING_clusters, output.AFC_KS_DIR, output.fn_out_sql)
+        cst.AFC_KS_enrichment_terms_flat_files(input.Functions_table_STRING_reduced, input.Protein_shorthands, input.KEGG_Taxid_2_acronym_table, input.Function_2_ENSP_table_STRING_reduced,input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.fn_tree_STRING_clusters, output.global_enrichment_data_current_tar_gz, output.populate_classification_schema_current_sql_gz)
 
 rule r_add_2_DF_file_dimensions_log:
     input:
         LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
+        LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT,
         taxid_2_proteome_count_dict = taxid_2_proteome_count_dict
     run:
-        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_proteome_count_dict)
+        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, input.taxid_2_proteome_count_dict)

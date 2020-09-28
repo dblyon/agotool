@@ -121,7 +121,7 @@ LOG_FN_UPDATES = os.path.join(LOG_DIRECTORY, "updates_log.txt")
 LOG_FN_USERINPUT_DEBUG = os.path.join(LOG_DIRECTORY, "userinput_log_debug.txt")
 log_files = [LOG_FN_ACTIVITY, LOG_FN_UPDATES, LOG_FN_WARNINGS_ERRORS, LOG_FN_USERINPUT_DEBUG]
 LOG_DF_FILE_DIMENSIONS = os.path.join(TABLES_DIR_SNAKEMAKE, "DF_file_dimensions_log.txt")
-
+LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = os.path.join(TABLES_DIR_SNAKEMAKE, "DF_global_enrichment_file_stats_log.txt")
 
 def makedirs_():
     if not os.path.exists(LOG_DIRECTORY):
@@ -231,10 +231,13 @@ tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_
                "etype_cond_dict": os.path.join(TABLES_DIR, "etype_cond_dict_{}.p".format(appendix)),
                "cond_etypes_with_ontology": os.path.join(TABLES_DIR, "cond_etypes_with_ontology_{}.p".format(appendix)),
                "cond_etypes_rem_foreground_ids": os.path.join(TABLES_DIR, "cond_etypes_rem_foreground_ids_{}.p".format(appendix)),
+               "populate_classification_schema_current_sql_gz": os.path.join(TABLES_DIR, "populate_classification_schema_current.sql.gz"),
+               "global_enrichment_data_DIR": os.path.join(TABLES_DIR, "global_enrichment_data/"),
+               "global_enrichment_data_current_tar_gz": os.path.join(TABLES_DIR, "global_enrichment_data_current.tar.gz"),
+               }
                # "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix)),
                # "blacklisted_enum_terms": os.path.join(TABLES_DIR, "blacklisted_enum_terms_{}.p".format(appendix)),
                # os.path.join(TABLES_DIR, "Functions_table_STRING.txt") --> STS_FIN
-               }
 
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
 
