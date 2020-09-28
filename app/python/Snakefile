@@ -295,8 +295,8 @@ rule r_AFC_KS_enrichment_terms_flat_files: # functions_table, protein_shorthands
         interpro_parent_2_child_tree = interpro_parent_2_child_tree,
         fn_tree_STRING_clusters = fn_tree_STRING_clusters
     output:
-        global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz
-        populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz,
+        global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
+        populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Functions_table_STRING_reduced, input.Protein_shorthands, input.KEGG_Taxid_2_acronym_table, input.Function_2_ENSP_table_STRING_reduced,input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.fn_tree_STRING_clusters, output.global_enrichment_data_current_tar_gz, output.populate_classification_schema_current_sql_gz)
 
