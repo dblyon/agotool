@@ -68,7 +68,6 @@ Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt") # cr
 Lineage_table_STRING_hr = os.path.join(TABLES_DIR, "Lineage_table_STRING_hr.txt")
 Lineage_table_STRING_no_translation = os.path.join(TABLES_DIR, "Lineage_table_STRING_no_translation.txt")
 
-
 ### files to be created STRING final
 Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt") # final table
 Functions_table_STRING_reduced = os.path.join(TABLES_DIR, "Functions_table_STRING.txt") # final table

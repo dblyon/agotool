@@ -2058,6 +2058,8 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
                     fh_out_children.write("{}\t{}\t{}\n".format(termEnum, number_of_children, "\t".join(str(ele) for ele in childEnum_list)))
     print("finished AFC KS :)")
 
+
+
 def map_ENSPs_2_internalIDs(ENSPs, ENSP_2_internalID_dict):
     list_2_return = []
     for ENSP in ENSPs:

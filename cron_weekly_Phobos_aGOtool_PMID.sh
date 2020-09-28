@@ -78,9 +78,9 @@ printf "\n### copy files to Pisces (production server)\n"
 ### Pisces
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
-rsync -av "$TABLES_DIR"/"$global_enrichment_data_current" dblyon@pisces.meringlab.org:/home/mering/string/data/derived_v11/"$global_enrichment_data_current"
+rsync -av "$TABLES_DIR"/"$global_enrichment_data_current" dblyon@pisces.meringlab.org:/home/dblyon/global_enrichment_v11/"$global_enrichment_data_current"
 check_exit_status
-rsync -av "$TABLES_DIR"/"$populate_classification_schema_current" dblyon@pisces.meringlab.org:/home/mering/string/data/derived_v11/"$populate_classification_schema_current"
+rsync -av "$TABLES_DIR"/"$populate_classification_schema_current" dblyon@pisces.meringlab.org:/home/dblyon/global_enrichment_v11/"$populate_classification_schema_current"
 check_exit_status
 
 #### Production server, decompress files and restart service
