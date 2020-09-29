@@ -2238,7 +2238,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_
     global_enrichment_data_current_tar_gz = variables.tables_dict["global_enrichment_data_current_tar_gz"]
     global_enrichment_data_DIR = variables.tables_dict["global_enrichment_data_DIR"]
     fn_list_2_search = [populate_classification_schema_current_sql_gz, global_enrichment_data_current_tar_gz]
-    fn_list_2_search += os.listdir(global_enrichment_data_DIR)
+    fn_list_2_search += [os.path.join(global_enrichment_data_DIR, fn) for fn in os.listdir(global_enrichment_data_DIR)]
 
     fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
     for fn in fn_list_2_search:
