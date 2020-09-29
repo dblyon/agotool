@@ -1,4 +1,5 @@
 import os, sys, subprocess
+import gzip
 from shlex import split
 import gzip
 import pandas as pd
@@ -1847,7 +1848,7 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
 
 def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, global_enrichment_data_current_tar_gz, populate_classification_schema_current_sql_gz):
     print("creating AFC_KS files")
-    global_enrichment_data_DIR = variables["global_enrichment_data_DIR"]
+    global_enrichment_data_DIR = variables.tables_dict["global_enrichment_data_DIR"]
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = get_lookup_arrays(functions_table, low_memory=False)
     functionalterm_set = set(functionalterm_arr)
     term_2_enum_dict = {key: val for key, val in zip(functionalterm_arr, indices_arr)}
@@ -2000,8 +2001,9 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     df_table3.loc[cond, "term"] = df_table3.loc[cond, "term"].apply(lambda x: ":".join(x.split("_")))
     table_3 = df_table3[["termEnum", "term", "compact_term", "description"]].to_csv(header=False, index=False, sep='\t')
     print("writing sql file")
-    fn_out_sql_temp = populate_classification_schema_current_sql_gz + "_temp"
-    with open(fn_out_sql_temp, "w") as fh_out_sql:
+    # fn_out_sql_temp = populate_classification_schema_current_sql_gz + "_temp"
+    # with open(fn_out_sql_temp, "w") as fh_out_sql:
+    with gzip.open(populate_classification_schema_current_sql_gz, "wt") as fh_out_sql:
         fh_out_sql.write(psql_1)
         fh_out_sql.write(table_1)
         fh_out_sql.write(psql_intermittent_chars)
@@ -2013,7 +2015,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
         fh_out_sql.write(psql_intermittent_chars)
         fh_out_sql.write(psql_4)
     # subprocess.call("gzip -c {} > {}".format(fn_out_sql_temp, populate_classification_schema_current_sql_gz), shell=True)
-    process_gzip = subprocess.Popen(split("gzip -c {} > {}".format(fn_out_sql_temp, populate_classification_schema_current_sql_gz)))
+    # process_gzip = subprocess.Popen(split("gzip -c {} > {}".format(fn_out_sql_temp, populate_classification_schema_current_sql_gz)))
 
     print("writing 3 files per taxid: members, descriptions, and children")
     termEnum_without_lineage_list = []
@@ -2060,7 +2062,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     # tar -czf "$global_enrichment_data_current"./global_enrichment_data
     process_tar_gz = subprocess.Popen(split("tar -czf {} {}".format(global_enrichment_data_current_tar_gz, variables.tables_dict["global_enrichment_data_DIR"])))
     code_tar_gz = process_tar_gz.wait()
-    code_gzip = process_gzip.wait()
+    # code_gzip = process_gzip.wait()
     # os.remove(fn_out_sql_temp)
     print("finished AFC KS global enrichment  :)")
 
@@ -2188,13 +2190,16 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     # blacklisted_enum_terms = query.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms, FROM_PICKLE=False)
     # pickle.dump(blacklisted_enum_terms, open(blacklisted_enum_terms, "wb"))
 
-def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, taxid_2_proteome_count_dict):
+def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, taxid_2_proteome_count_dict, global_enrichment_data_current_tar_gz, populate_classification_schema_current_sql_gz):
     """
     read old log and add number of lines of flat files and bytes of data for binary files to log,
     write to disk
     :return: None
     """
     assert os.path.exists(taxid_2_proteome_count_dict)
+    assert os.path.exists(global_enrichment_data_current_tar_gz)
+    assert os.path.exists(populate_classification_schema_current_sql_gz)
+
     # read old table and add data to it
     df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
 
