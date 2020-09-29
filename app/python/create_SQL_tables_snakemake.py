@@ -1885,7 +1885,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
         parent_2_child_dict_ENUM[parent_enum] = sorted(child_enum_list)
     # len(parent_2_child_dict_ENUM), len(parent_2_child_dict)
 
-    psql_intermittent_chars = r"\.\n"
+    psql_intermittent_chars = "\.\n"
 
     psql_1 = """CREATE TABLE classification.terms_proteins_temp (
     \tterm_id integer,
@@ -1908,25 +1908,25 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     # table_1
     # psql_intermittent_chars
 
-    psql_2 = r"COPY classification.terms_counts_temp FROM stdin;\n"
+    psql_2 = "COPY classification.terms_counts_temp FROM stdin;\n"
     # table_2
     # psql_intermittent_chars
 
-    psql_3 = r"COPY classification.terms_temp FROM stdin;\n"
+    psql_3 = "COPY classification.terms_temp FROM stdin;\n"
     # table_3
     # psql_intermittent_chars
 
-    psql_4 = """CREATE INDEX pi_terms_term_id_temp ON classification.terms_temp (term_id);\n
-    CREATE INDEX si_terms_term_external_id_temp ON classification.terms_temp (term_external_id_full);\n
-    CLUSTER pi_terms_term_id_temp ON classification.terms_temp;\n
-    VACUUM ANALYZE classification.terms_temp;\n
+    psql_4 = """CREATE INDEX pi_terms_term_id_temp ON classification.terms_temp (term_id);
+    CREATE INDEX si_terms_term_external_id_temp ON classification.terms_temp (term_external_id_full);
+    CLUSTER pi_terms_term_id_temp ON classification.terms_temp;
+    VACUUM ANALYZE classification.terms_temp;
 
-    CREATE INDEX pi_terms_proteins_term_id_species_id_temp ON classification.terms_proteins_temp (term_id, species_id);\n
-    CLUSTER pi_terms_proteins_term_id_species_id_temp ON classification.terms_proteins_temp;\n
-    VACUUM ANALYZE classification.terms_proteins_temp;\n
+    CREATE INDEX pi_terms_proteins_term_id_species_id_temp ON classification.terms_proteins_temp (term_id, species_id);
+    CLUSTER pi_terms_proteins_term_id_species_id_temp ON classification.terms_proteins_temp;
+    VACUUM ANALYZE classification.terms_proteins_temp;
 
-    CREATE INDEX pi_terms_counts_term_id_species_id_temp ON classification.terms_counts_temp (term_id, species_id);\n
-    CLUSTER pi_terms_counts_term_id_species_id_temp ON classification.terms_counts_temp;\n
+    CREATE INDEX pi_terms_counts_term_id_species_id_temp ON classification.terms_counts_temp (term_id, species_id);
+    CLUSTER pi_terms_counts_term_id_species_id_temp ON classification.terms_counts_temp;
     VACUUM ANALYZE classification.terms_counts_temp;"""
 
     ### table_1 terms_proteins_temp  # sort order: termEnum, taxid, NOT proteinEnum but ENSP  # termEnum, taxid, proteinEnum
@@ -1978,13 +1978,13 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     df = df.drop_duplicates()
     print(df.shape)
     df = df.sort_values(["termEnum", "taxid", "ENSP"], ascending=[True, True, True]).reset_index(drop=True)
-    table_1 = df[["termEnum", "taxid", "proteinEnum"]].to_csv(header=False, index=False, sep='\t')
+    # table_1 = df[["termEnum", "taxid", "proteinEnum"]].to_csv(header=False, index=False, sep='\t')
 
     ### table_2 terms_counts_temp
     ### sort order: termEnum, taxon
     ### termEnum, taxid, num_of_proteins
     df_table2 = df[["termEnum", "taxid", "proteinEnum"]].groupby(["termEnum", "taxid"]).size().reset_index(name="num_proteins").sort_values(["termEnum", "taxid", "num_proteins"]).reset_index(drop=True)
-    table_2 = df_table2.to_csv(header=False, index=False, sep='\t')
+    # table_2 = df_table2.to_csv(header=False, index=False, sep='\t')
 
     ### table_3 terms_temp --> preloads
     ### sort order: termEnum
@@ -1999,19 +1999,19 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     df_table3["compact_term"] = df_table3["term"]
     df_table3.loc[cond, "compact_term"] = df_table3.loc[cond, "compact_term"].apply(lambda x: x.split("_")[1])
     df_table3.loc[cond, "term"] = df_table3.loc[cond, "term"].apply(lambda x: ":".join(x.split("_")))
-    table_3 = df_table3[["termEnum", "term", "compact_term", "description"]].to_csv(header=False, index=False, sep='\t')
+    # table_3 = df_table3[["termEnum", "term", "compact_term", "description"]].to_csv(header=False, index=False, sep='\t')
     print("writing sql file")
     # fn_out_sql_temp = populate_classification_schema_current_sql_gz + "_temp"
     # with open(fn_out_sql_temp, "w") as fh_out_sql:
     with gzip.open(populate_classification_schema_current_sql_gz, "wt") as fh_out_sql:
         fh_out_sql.write(psql_1)
-        fh_out_sql.write(table_1)
+        fh_out_sql.write(df[["termEnum", "taxid", "proteinEnum"]].to_csv(header=False, index=False, sep='\t'))
         fh_out_sql.write(psql_intermittent_chars)
         fh_out_sql.write(psql_2)
-        fh_out_sql.write(table_2)
+        fh_out_sql.write(df_table2.to_csv(header=False, index=False, sep='\t'))
         fh_out_sql.write(psql_intermittent_chars)
         fh_out_sql.write(psql_3)
-        fh_out_sql.write(table_3)
+        fh_out_sql.write(df_table3[["termEnum", "term", "compact_term", "description"]].to_csv(header=False, index=False, sep='\t'))
         fh_out_sql.write(psql_intermittent_chars)
         fh_out_sql.write(psql_4)
     # subprocess.call("gzip -c {} > {}".format(fn_out_sql_temp, populate_classification_schema_current_sql_gz), shell=True)
@@ -2060,8 +2060,9 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
                 if number_of_children > 0:
                     fh_out_children.write("{}\t{}\t{}\n".format(termEnum, number_of_children, "\t".join(str(ele) for ele in childEnum_list)))
     # tar -czf "$global_enrichment_data_current"./global_enrichment_data
-    process_tar_gz = subprocess.Popen(split("tar -czf {} {}".format(global_enrichment_data_current_tar_gz, variables.tables_dict["global_enrichment_data_DIR"])))
-    code_tar_gz = process_tar_gz.wait()
+    print("creating tar.gz")
+    process_tar_gz = subprocess.Popen(split("tar -czf {} {}".format(global_enrichment_data_current_tar_gz, global_enrichment_data_DIR)))
+    # code_tar_gz = process_tar_gz.wait() # don't need to wait since tar.gz not needed for Snakemake, will be needed for cronjob
     # code_gzip = process_gzip.wait()
     # os.remove(fn_out_sql_temp)
     print("finished AFC KS global enrichment  :)")
