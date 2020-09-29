@@ -2062,7 +2062,7 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
     # tar -czf "$global_enrichment_data_current"./global_enrichment_data
     print("creating tar.gz")
     process_tar_gz = subprocess.Popen(split("tar -czf {} {}".format(global_enrichment_data_current_tar_gz, global_enrichment_data_DIR)))
-    # code_tar_gz = process_tar_gz.wait() # don't need to wait since tar.gz not needed for Snakemake, will be needed for cronjob
+    code_tar_gz = process_tar_gz.wait()
     # code_gzip = process_gzip.wait()
     # os.remove(fn_out_sql_temp)
     print("finished AFC KS global enrichment  :)")

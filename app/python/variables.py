@@ -232,7 +232,7 @@ tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_
                "cond_etypes_with_ontology": os.path.join(TABLES_DIR, "cond_etypes_with_ontology_{}.p".format(appendix)),
                "cond_etypes_rem_foreground_ids": os.path.join(TABLES_DIR, "cond_etypes_rem_foreground_ids_{}.p".format(appendix)),
                "populate_classification_schema_current_sql_gz": os.path.join(TABLES_DIR, "populate_classification_schema_current.sql.gz"),
-               "global_enrichment_data_DIR": os.path.join(TABLES_DIR, "global_enrichment_data/"),
+               "global_enrichment_data_DIR": os.path.join(TABLES_DIR, "global_enrichment_data"),
                "global_enrichment_data_current_tar_gz": os.path.join(TABLES_DIR, "global_enrichment_data_current.tar.gz"),
                }
                # "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix)),
