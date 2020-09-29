@@ -10,6 +10,9 @@ env_file_Aquarius_bak
 # added to tar.gz !DF_file_dimensions_log.txt
 !Example_Yeast_acetylation_abundance_correction.txt
 !ExampleData_results_orig.txt
+!CPR_logo.png
+!SIB_logo.png
+!UZH_logo.png
 
 env_file
 *.nfs*
@@ -74,7 +77,7 @@ Thumbs.db
 *.upk
 static/data/session/
 logs/
-static/js/favicon/
+!static/js/favicon/
 ssl*
 *.p
 *.tmp
