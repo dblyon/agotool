@@ -22,7 +22,7 @@ cd "$TABLES_DIR"
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 cd "$GED_DIR"
-tar --overwrite -xkvf "$TAR_GED_ALL_CURRENT"
+tar --overwrite -xvf "$TAR_GED_ALL_CURRENT"
 check_exit_status
 
 ### PyTest file sizes and line numbers

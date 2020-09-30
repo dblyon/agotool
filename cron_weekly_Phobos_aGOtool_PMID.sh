@@ -14,11 +14,13 @@ check_exit_status () {
 TAR_CURRENT=aGOtool_PMID_pickle_current.tar.gz
 TAR_BAK=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 global_enrichment_data_current=global_enrichment_data_current.tar.gz
-global_enrichment_data_bak=bak_global_enrichment_data_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
+# global_enrichment_data_bak=bak_global_enrichment_data_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 populate_classification_schema_current=populate_classification_schema_current.sql.gz
-populate_classification_schema_bak=populate_classification_schema_$(date +"%Y_%m_%d_%I_%M_%p").sql.gz
+# populate_classification_schema_bak=populate_classification_schema_$(date +"%Y_%m_%d_%I_%M_%p").sql.gz
 TAR_GED_ALL_CURRENT=GED_all_current.tar
+TAR_GED_ALL_BAK=BAK_GED_all_$(date +"%Y_%m_%d_%I_%M_%p").tar
 GED_DIR=/home/dblyon/global_enrichment_v11
+APP_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app
 PYTHON_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python
 TABLES_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
 SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
@@ -43,7 +45,7 @@ check_exit_status
 printf "\n###start uWSGI flask app and sleep for 3min\n"
 cd "$APP_DIR"
 "$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini
-sleep 3m
+sleep 4m
 
 ### PyTest all sanity tests
 printf "\n###PyTest all sanity tests\n"
@@ -56,22 +58,16 @@ printf "\n### tar and compress new files for transfer and backup\n"
 cd "$TABLES_DIR"
 check_exit_status
 #### create tar.gz of relevant flat files
-find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" | xargs tar --overwrite -cvzf "$TAR_CURRENT"
+find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log"| xargs tar --overwrite -cvzf "$TAR_CURRENT"
 check_exit_status
 rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status
 ### AFC_KS file: tar and gzip current
 cd "$TABLES_DIR"
 check_exit_status
-# already done within Snakemake
-#tar -czf "$global_enrichment_data_current" ./afc_ks
-# tar -czf "$global_enrichment_data_current" ./global_enrichment_data
-#check_exit_status
-rsync -av "$global_enrichment_data_current" "$global_enrichment_data_bak"
-check_exit_status
-rsync -av "$populate_classification_schema_current" "$populate_classification_schema_bak"
-check_exit_status
 tar -cvf "$TAR_GED_ALL_CURRENT" "$global_enrichment_data_current" "$populate_classification_schema_current" "DF_global_enrichment_file_stats_log.txt"
+check_exit_status
+rsync -av "$TAR_GED_ALL_CURRENT" "$TAR_GED_ALL_BAK"
 check_exit_status
 
 #### copy files to production servers
@@ -80,12 +76,6 @@ printf "\n### copy files to Aquarius (production server)\n"
 ### Aquarius
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
-#rsync -av "$TABLES_DIR"/"$global_enrichment_data_current" dblyon@aquarius.meringlab.org:/home/dblyon/global_enrichment_v11/"$global_enrichment_data_current"
-#check_exit_status
-#rsync -av "$TABLES_DIR"/"$populate_classification_schema_current" dblyon@aquarius.meringlab.org:/home/dblyon/global_enrichment_v11/"$populate_classification_schema_current"
-#check_exit_status
-#rsync -av "$TABLES_DIR"/"DF_global_enrichment_file_stats_log.txt" dblyon@aquarius.meringlab.org:/home/dblyon/global_enrichment_v11/"DF_global_enrichment_file_stats_log.txt"
-#check_exit_status
 rsync -av "$TABLES_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@aquarius.meringlab.org:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
 check_exit_status
 
@@ -93,12 +83,6 @@ printf "\n### copy files to Pisces (production server)\n"
 ### Pisces
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
-#rsync -av "$TABLES_DIR"/"$global_enrichment_data_current" dblyon@pisces.meringlab.org:/home/dblyon/global_enrichment_v11/"$global_enrichment_data_current"
-#check_exit_status
-#rsync -av "$TABLES_DIR"/"$populate_classification_schema_current" dblyon@pisces.meringlab.org:/home/dblyon/global_enrichment_v11/"$populate_classification_schema_current"
-#check_exit_status
-#rsync -av "$TABLES_DIR"/"DF_global_enrichment_file_stats_log.txt" dblyon@pisces.meringlab.org:/home/dblyon/global_enrichment_v11/"DF_global_enrichment_file_stats_log.txt"
-#check_exit_status
 rsync -av "$TABLES_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@pisces.meringlab.org:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
 check_exit_status
 
