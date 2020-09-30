@@ -648,6 +648,6 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
         cond = df_2_return["etype"] == -52 # KEGG
         df_2_return.loc[cond, "term"] = df_2_return.loc[cond, "term"].apply(lambda s: s.replace("map", acronym))
 
-    cond_STRING_clusters = df_2_return["etype"] == -58 # STRING_cluters, remove taxid prefix
+    cond_STRING_clusters = df_2_return["etype"] == -78 # STRING_cluters, remove taxid prefix
     df_2_return.loc[cond_STRING_clusters, "term"] = df_2_return.loc[cond_STRING_clusters, "term"].apply(lambda s: s.split("_")[1])
     return df_2_return[variables.cols_sort_order_genome]
