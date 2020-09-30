@@ -21,27 +21,38 @@ cond_previous = df["version"] == version_previous
 cond_current = df["version"] == version_current
 cond_not_binary = df["binary"] == False
 
-def create_DF_2_compare_global_enrichment():
-    # only test on pisces, san, and aquarius
-    if HOSTNAME not in {"pisces", "san.embl.de", "aquarius.meringlab.org"}:
+def create_DF_2_compare_global_enrichment(df_GE):
+    """
+    only test on pisces, san, and aquarius
+    also on phobos
+    check these files
+        global_enrichment_data_current.tar.gz
+        populate_classification_schema_current.sql.gz
+        .terms_members.tsv
+        .terms_descriptions.tsv
+        .terms_children.tsv
+    """
+    if HOSTNAME not in {"pisces", "san.embl.de", "aquarius.meringlab.org", "phobos"}:
         return pd.DataFrame()
-    else:  # ToDo
+    else:
         if HOSTNAME == "san.embl.de":
             GLOBAL_ENRICHMENT_DIR = r"/san/DB/dblyon/global_enrichment_v11"
+        elif HOSTNAME == "phobos":
+            GLOBAL_ENRICHMENT_DIR = r"/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables"
         else:
             GLOBAL_ENRICHMENT_DIR = r"/home/dblyon/global_enrichment_v11"
     fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
-    fn_list_2_search = os.listdir(GLOBAL_ENRICHMENT_DIR)
-    fn_list_2_search += os.listdir(os.path.join(GLOBAL_ENRICHMENT_DIR, "global_enrichment_data"))
+    fn_list_2_search = [os.path.join(GLOBAL_ENRICHMENT_DIR, fn) for fn in os.listdir(GLOBAL_ENRICHMENT_DIR)]
+    DIR = os.path.join(GLOBAL_ENRICHMENT_DIR, "global_enrichment_data")
+    fn_list_2_search += [os.path.join(DIR, fn) for fn in os.listdir(DIR)]
     for fn in fn_list_2_search:
-        if fn.endswith(".gz"):
+        if fn.endswith("global_enrichment_data_current.tar.gz") or fn.endswith("populate_classification_schema_current.sql.gz"):
             binary_list.append(True)
             num_lines_list.append(np.nan)
-        elif fn.endswith(".tsv") or fn.endswith(".sql"):
+        elif fn.endswith(".terms_members.tsv") or fn.endswith(".terms_descriptions.tsv") or fn.endswith(".terms_children.tsv"):
             binary_list.append(False)
             num_lines_list.append(tools.line_numbers(fn))
         else:
-            print(fn)
             continue
         size_list.append(os.path.getsize(fn))
         timestamp = os.path.getmtime(fn)
@@ -57,24 +68,25 @@ def create_DF_2_compare_global_enrichment():
     dflocal["md5"] = md5_list
     dflocal["version"] = version_current_GE + 1
 
-    cond_checksum = df_GE["checksum"].notnull()
+    cond_checksum = df_GE["md5"].notnull()
     cond_latestVersion = df_GE["version"] == max(df_GE["version"])
-    df2compare = df_GE[cond_checksum & cond_latestVersion]
-    dfm = pd.concat([dflocal, df2compare])
+    df_GE = df_GE[cond_checksum & cond_latestVersion]
+    dfm = pd.concat([dflocal, df_GE])
     return dfm
-
 
 df_GE = pd.read_csv(LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, sep='\t')
 version_current_GE = max(df_GE["version"])
-version_local_GE = version_current_GE + 1
+df_GE = create_DF_2_compare_global_enrichment(df_GE)
+version_local_GE = max(df_GE["version"])
 cond_local_GE = df_GE["version"] == version_local_GE
 cond_current_GE = df_GE["version"] == version_current_GE
 cond_not_binary_GE = df_GE["binary"] == False
-dfm = create_DF_2_compare_global_enrichment()
-
 
 
 def test_flatfiles_number_of_lines_similar_or_larger():
+    """
+    check on files for agotool flask PMID_autoupdates
+    """
     # for every file, compare previous vs current number of lines
     for fn in sorted(df.loc[cond_not_binary, "fn"].unique()):
         cond_fn = df["fn"] == fn
@@ -89,6 +101,9 @@ def test_flatfiles_number_of_lines_similar_or_larger():
         assert num_lines_current >= num_lines_previous
 
 def test_compare_file_size():
+    """
+    check on files for agotool flask PMID_autoupdates
+    """
     # for every file, compare previous vs current size of file
     for fn in sorted(df["fn"].unique()):
         cond_fn = df["fn"] == fn
@@ -104,6 +119,7 @@ def test_compare_file_size():
 
 def test_checksum():
     """
+    check on files for agotool flask PMID_autoupdates
     compares previously recorded checksum (from Phobos) to currently created checksum (on e.g. Pisces)
     """
     cond_checksum = df["checksum"].notnull()
@@ -140,15 +156,28 @@ def test_checksum():
         assert checksum_arr.shape == (2,)
         assert checksum_arr[0] == checksum_arr[1]
 
+def test_versions_global_enrichment():
+    assert len(df_GE["version"].unique()) == 2
+    assert version_current_GE < version_local_GE
+
 def test_checksum_global_enrichment():
-    for fn, group in dfm.groupby("fn"):
-        checksum_arr = group["checksum"].values
+    """
+    check on files for global_enrichment
+    check these files
+        global_enrichment_data_current.tar.gz
+        populate_classification_schema_current.sql.gz
+        .terms_members.tsv
+        .terms_descriptions.tsv
+        .terms_children.tsv
+    """
+    for fn, group in df_GE.groupby("fn"):
+        checksum_arr = group["md5"].values
         assert checksum_arr.shape == (2,)
         assert checksum_arr[0] == checksum_arr[1]
 
 def test_flatfiles_number_of_lines_similar_or_larger_global_enrichment():
     # for every file, compare previous vs current number of lines
-    for fn in sorted(dfm.loc[cond_not_binary_GE, "fn"].unique()):
+    for fn in sorted(df_GE.loc[cond_not_binary_GE, "fn"].unique()):
         cond_fn = df_GE["fn"] == fn
         cond_fnl = cond_local_GE & cond_fn
         cond_fnc = cond_current_GE & cond_fn
@@ -173,6 +202,7 @@ def test_compare_file_size_global_enrichment():
         size_local = df_GE.loc[cond_fnl, "size"].values[0]
         size_current = df_GE.loc[cond_fnc, "size"].values[0]
         assert size_current == size_local
+
 
 
 ### create DF_file_dimensions_log.txt for the first time

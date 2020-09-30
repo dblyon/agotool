@@ -2242,14 +2242,13 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_
 
     fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
     for fn in fn_list_2_search:
-        if fn.endswith(".gz"):
+        if fn.endswith("global_enrichment_data_current.tar.gz") or fn.endswith("populate_classification_schema_current.sql.gz"):
             binary_list.append(True)
             num_lines_list.append(np.nan)
-        elif fn.endswith(".tsv") or fn.endswith(".sql"):
+        elif fn.endswith(".terms_members.tsv") or fn.endswith(".terms_descriptions.tsv") or fn.endswith(".terms_children.tsv"):
             binary_list.append(False)
             num_lines_list.append(tools.line_numbers(fn))
         else:
-            print(fn)
             continue
         size_list.append(os.path.getsize(fn))
         timestamp = os.path.getmtime(fn)
