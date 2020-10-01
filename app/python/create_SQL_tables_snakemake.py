@@ -1572,6 +1572,7 @@ def Protein_2_Function_table_STRING(fn_list, fn_in_Taxid_2_Proteins_table_STRING
     tools.concatenate_files(fn_list, fn_out_Protein_2_Function_table_STRING_temp)
     ### sort
     tools.sort_file(fn_out_Protein_2_Function_table_STRING_temp, fn_out_Protein_2_Function_table_STRING_temp, number_of_processes=number_of_processes)
+    print("reduce_Protein_2_Function_table_2_STRING_proteins")
     reduce_Protein_2_Function_table_2_STRING_proteins(
         fn_in_protein_2_function_temp=fn_out_Protein_2_Function_table_STRING_temp,
         fn_in_Taxid_2_Proteins_table_STRING=fn_in_Taxid_2_Proteins_table_STRING,
