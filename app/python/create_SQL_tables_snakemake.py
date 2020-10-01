@@ -2132,43 +2132,10 @@ def helper_clean_messy_string(string_):
     else:
         return string_
 
-
-# def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms):
-#     "| enum | etype | an | description | year | level |"
-#     blacklisted_enum_terms = []
-#     with open(fn_functions_table, "r") as fh:
-#         for line in fh:
-#             line_split = line.split("\t")
-#             enum = line_split[0]
-#             an = line_split[2]
-#             if an in blacklisted_terms:
-#                 blacklisted_enum_terms.append(int(enum))
-#     blacklisted_enum_terms = sorted(blacklisted_enum_terms)
-#     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
-
-# def get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms, FROM_PICKLE=True):
-#     """| enum | etype | an | description | year | level |"""
-#     if FROM_PICKLE:
-#         with open(variables.tables_dict["blacklisted_enum_terms"], "rb") as fh:
-#             blacklisted_enum_terms = pickle.load(fh)
-#         return blacklisted_enum_terms
-#     blacklisted_enum_terms = []
-#     with open(fn_functions_table, "r") as fh:
-#         for line in fh:
-#             line_split = line.split("\t")
-#             enum = line_split[0]
-#             an = line_split[2]
-#             if an in blacklisted_terms:
-#                 blacklisted_enum_terms.append(int(enum))
-#     blacklisted_enum_terms = sorted(blacklisted_enum_terms)
-#     return np.array(blacklisted_enum_terms, dtype=np.dtype("uint32"))
-
-def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_table_STRING, output_list): # Functions_table_STRING_reduced
-    # Taxid_2_Proteins_table_STRING, KEGG_Taxid_2_acronym_table, Functions_table_STRING_reduced, Lineage_table_STRING, Protein_2_FunctionEnum_table_STRING, Taxid_2_FunctionCountArray_table_STRING = input_list
+def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_table_STRING, output_list):
     assert os.path.exists(Lineage_table_STRING)
     assert os.path.exists(Taxid_2_FunctionCountArray_table_STRING)
     taxid_2_proteome_count_dict, kegg_taxid_2_acronym_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, lineage_dict_enum, blacklisted_terms_bool_arr, ENSP_2_functionEnumArray_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, etype_2_minmax_funcEnum, etype_cond_dict = output_list
-    # , cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, blacklisted_terms_bool_arr
     pqo = query.PersistentQueryObject_STRING(low_memory=False, read_from_flat_files=True, from_pickle=False)
     print("writing pickle dumps")
     pickle.dump(pqo.taxid_2_proteome_count_dict, open(taxid_2_proteome_count_dict, "wb"))
@@ -2187,10 +2154,6 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     pickle.dump(pqo.etype_2_minmax_funcEnum, open(etype_2_minmax_funcEnum, "wb"))
     pickle.dump(pqo.etype_cond_dict, open(etype_cond_dict, "wb"))
     print("done :)")
-    # pickle.dump(pqo.cond_etypes_with_ontology, open(cond_etypes_with_ontology, "wb"))
-    # pickle.dump(pqo.cond_etypes_rem_foreground_ids, open(cond_etypes_rem_foreground_ids, "wb"))
-    # blacklisted_enum_terms = query.get_blacklisted_enum_terms(Functions_table_STRING_reduced, variables.blacklisted_terms, FROM_PICKLE=False)
-    # pickle.dump(blacklisted_enum_terms, open(blacklisted_enum_terms, "wb"))
 
 def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, taxid_2_proteome_count_dict, global_enrichment_data_current_tar_gz, populate_classification_schema_current_sql_gz):
     """
@@ -2208,10 +2171,10 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_
     fn_list, binary_list, size_list, num_lines_list, date_list, checksum_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(TABLES_DIR)):
         fn_abs_path = os.path.join(TABLES_DIR, fn)
-        if fn.endswith("STS_FIN.txt"):
-            binary_list.append(False)
-            num_lines_list.append(tools.line_numbers(fn_abs_path))
-        elif fn.endswith("STS_FIN.p"):
+        # if fn.endswith("STS_FIN.txt"): ## not needed since only static file from STRING_v11 kegg_taxid_2_acronym_table_STS_FIN.txt
+        #     binary_list.append(False)
+        #     num_lines_list.append(tools.line_numbers(fn_abs_path))
+        if fn.endswith("STS_FIN.p"):
             binary_list.append(True)
             num_lines_list.append(np.nan)
         else:
