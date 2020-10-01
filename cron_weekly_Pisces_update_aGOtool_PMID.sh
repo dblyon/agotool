@@ -13,6 +13,7 @@ APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
 PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
 TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 TAR_GED_ALL_CURRENT=GED_all_current.tar
+global_enrichment_data_current=global_enrichment_data_current.tar.gz
 GED_DIR=/home/dblyon/global_enrichment_v11
 
 echo "--- running script cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
@@ -28,6 +29,8 @@ tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
 cd "$GED_DIR"
 tar --overwrite -xvf "$TAR_GED_ALL_CURRENT"
+check_exit_status
+tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
 ### PyTest file sizes and line numbers

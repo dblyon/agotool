@@ -2061,7 +2061,8 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
                     fh_out_children.write("{}\t{}\t{}\n".format(termEnum, number_of_children, "\t".join(str(ele) for ele in childEnum_list)))
     # tar -czf "$global_enrichment_data_current"./global_enrichment_data
     print("creating tar.gz")
-    process_tar_gz = subprocess.Popen(split("tar -czf {} {}".format(global_enrichment_data_current_tar_gz, global_enrichment_data_DIR)))
+    # process_tar_gz = subprocess.Popen(split("tar -czf {} {}".format(global_enrichment_data_current_tar_gz, global_enrichment_data_DIR)))
+    process_tar_gz = subprocess.Popen(split("tar -czf {} -C {} {}".format(global_enrichment_data_current_tar_gz, os.path.dirname(global_enrichment_data_DIR), os.path.basename(global_enrichment_data_DIR))))
     code_tar_gz = process_tar_gz.wait()
     # code_gzip = process_gzip.wait()
     # os.remove(fn_out_sql_temp)
