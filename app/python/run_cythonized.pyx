@@ -645,9 +645,9 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
         # cond_2_return & etype_cond_dict["cond_52"] --> cond_KEGG_2_change
         # get a copy of that data and change it and concatenate with remaining results
         acronym = kegg_taxid_2_acronym_dict[taxid]
-        cond = df_2_return["etype"] == -52 # KEGG
+        cond = df_2_return["etype"] == variables.functionType_2_entityType_dict["KEGG"] # KEGG -52
         df_2_return.loc[cond, "term"] = df_2_return.loc[cond, "term"].apply(lambda s: s.replace("map", acronym))
 
-    cond_STRING_clusters = df_2_return["etype"] == -78 # STRING_cluters, remove taxid prefix
+    cond_STRING_clusters = df_2_return["etype"] == variables.functionType_2_entityType_dict["STRING_clusters"] #-78 # STRING_cluters, remove taxid prefix
     df_2_return.loc[cond_STRING_clusters, "term"] = df_2_return.loc[cond_STRING_clusters, "term"].apply(lambda s: s.split("_")[1])
     return df_2_return[variables.cols_sort_order_genome]

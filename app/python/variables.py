@@ -37,14 +37,14 @@ entity_types_with_ontology = {-21, -22, -23, -51, -57, -78} # turn InterPro filt
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55}
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # all_etypes - PMID - ontologies
 enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}
-functionType_2_entityType_dict = {"Gene Ontology biological process": -21,
-                                  "Gene Ontology cellular component": -22,
-                                  "Gene Ontology molecular function": -23,
+functionType_2_entityType_dict = {"GOBP": -21, # Gene Ontology biological process
+                                  "GOCC": -22, # Gene Ontology cellular component
+                                  "GOMF": -23, # Gene Ontology molecular function
                                   "UniProt keywords": -51,
-                                  "KEGG (Kyoto Encyclopedia of Genes and Genomes)": -52,
-                                  "SMART (Simple Modular Architecture Research Tool)": -53,
+                                  "KEGG": -52, #  (Kyoto Encyclopedia of Genes and Genomes)
+                                  "SMART": -53, #  (Simple Modular Architecture Research Tool)
                                   "INTERPRO": -54,
-                                  "PFAM (Protein FAMilies)": -55,
+                                  "PFAM": -55, #  (Protein FAMilies)
                                   "PMID": -56,
                                   "Reactome": -57,
                                   "STRING_clusters": -78}
