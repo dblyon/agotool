@@ -1,6 +1,6 @@
 import os, sys, multiprocessing
-import numpy as np
-import pickle
+# import numpy as np
+# import pickle
 ############################
 ### settings
 PRELOAD = True  # set True in production for STRING_v11 (not for UniProt)
@@ -67,7 +67,7 @@ cols_sort_order_charcterize = ['foreground_count', 'foreground_ids', 'ratio_in_f
 # cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "year", "ratio_in_foreground", "ratio_in_background", "foreground_ids", "background_ids", "foreground_count", "background_count", "foreground_n", "background_n"]
 cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"] # should be the same as cols_sort_order_genome
 
-api_url = "http://0.0.0.0:5911/api" # local
+# api_url = "http://0.0.0.0:5911/api" # local
 pytest_url_local = r"http://127.0.0.1:12399/api" # PMID autoupdates SAN, Aquarius, Pisces
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
