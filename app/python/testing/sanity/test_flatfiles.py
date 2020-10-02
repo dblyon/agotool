@@ -1,10 +1,10 @@
-import sys, os
+import sys, os, datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get from API to python directory
 import pandas as pd
 import numpy as np
 
-import variables
+import variables, tools
 
 ### adding files to deprecated list
 # df["deprecated"] = False
@@ -14,7 +14,6 @@ import variables
 #                      "SparseMatrixCSC_ENSPencoding_vs_FuncEnum_UPS_FIN.npz"])
 # df.loc[cond, "deprecated"] = True
 # df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)
-
 
 # check if files are similar size of larger than previously
 # record status quo in table
@@ -58,4 +57,41 @@ def test_compare_file_size():
         size_current = df.loc[cond_fnc, "size"].values[0]
         assert size_current >= size_previous
 
-        
+def test_checksum():
+    """
+    check on files for agotool flask PMID_autoupdates
+    compares previously recorded checksum (from Phobos) to currently created checksum (on e.g. Pisces)
+    """
+    cond_checksum = df["md5"].notnull()
+    cond_latestVersion = df["version"] == max(df["version"])
+    df2compare = df[cond_checksum & cond_latestVersion]
+
+    fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
+    for fn in sorted(os.listdir(variables.TABLES_DIR)):
+        fn_abs_path = os.path.join(variables.TABLES_DIR, fn)
+        if fn.endswith("UPS_FIN.txt"):
+            binary_list.append(False)
+            num_lines_list.append(tools.line_numbers(fn_abs_path))
+        if fn.endswith("UPS_FIN.p") or fn.endswith(".npy"):
+            binary_list.append(True)
+            num_lines_list.append(np.nan)
+        else:
+            continue
+        fn_list.append(fn)
+        size_list.append(os.path.getsize(fn_abs_path))
+        timestamp = tools.creation_date(fn_abs_path)
+        date_list.append(datetime.datetime.fromtimestamp(timestamp))
+        md5_list.append(tools.md5(fn_abs_path))
+
+    dflocal = pd.DataFrame()
+    dflocal["fn"] = fn_list
+    dflocal["binary"] = binary_list
+    dflocal["size"] = size_list
+    dflocal["num_lines"] = num_lines_list
+    dflocal["date"] = date_list
+    dflocal["md5"] = md5_list
+    dfm = pd.concat([dflocal, df2compare])
+    for fn, group in dfm.groupby("fn"):
+        checksum_arr = group["md5"].values
+        assert checksum_arr.shape == (2,)
+        assert checksum_arr[0] == checksum_arr[1]

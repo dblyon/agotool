@@ -2485,6 +2485,7 @@ def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prote
                         else:
                             fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_UniProtIDs) + "\t" + str(num_UniProtIDs_total_for_taxid) + "\t" + arr_of_UniProtIDs + "\n")
     tools.sort_file(fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_reduced, number_of_processes=number_of_threads)
+    os.remove(Protein_2_Function_table_merged)
 
 def Functions_table_STRING(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
     """
@@ -4179,7 +4180,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
     # read old table and add data to it
     df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
 
-    fn_list, binary_list, size_list, num_lines_list, date_list = [], [], [], [], []
+    fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(TABLES_DIR)):
         fn_abs_path = os.path.join(TABLES_DIR, fn)
         if fn.endswith("UPS_FIN.txt"):
@@ -4194,6 +4195,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
         size_list.append(os.path.getsize(fn_abs_path))
         timestamp = tools.creation_date(fn_abs_path)
         date_list.append(datetime.datetime.fromtimestamp(timestamp))
+        md5_list.append(tools.md5(fn_abs_path))
 
     df = pd.DataFrame()
     df["fn"] = fn_list
@@ -4202,6 +4204,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
     df["num_lines"] = num_lines_list
     df["date"] = date_list
     df["version"] = max(df_old["version"]) + 1
+    df["md5"] = md5_list
     df = pd.concat([df_old, df])
 
     df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)

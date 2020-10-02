@@ -50,22 +50,36 @@ printf "\n### drop and rename PostgreSQL\n"
 psql -d agotool -f drop_and_rename.psql
 check_exit_status
 
-### start uWSGI flask app
-printf "\n###start uWSGI flask app and sleep for 3min\n"
+### PyTest start uWSGI-flask, test, and quit
+printf "\n###start uWSGI PyTest and sleep for 4min\n"
 cd "$APP_DIR"
-"$UWSGI_EXT" uwsgi_config_master.ini
-sleep3
-
-### PyTest all sanity tests
-printf "\n###PyTest all sanity tests\n"
+"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
+sleep 4m
+printf "\n###PyTest all\n"
 cd "$TESTING_DIR"
+check_exit_status
 "$PYTEST_EXE"
 check_exit_status
-
-### stop uWSGI flask app
-printf "\n###stop uWSGI flask app\n"
+printf "\n###stopping uWSGI PyTest"
 cd "$APP_DIR"
-echo q > master.fifo # also works: "$UWSGI_EXT" --stop uwsgi_aGOtool_master_PID.txt
+echo q > pytest_master.fifo
+
+#### start uWSGI flask app
+#printf "\n###start uWSGI flask app and sleep for 3min\n"
+#cd "$APP_DIR"
+#"$UWSGI_EXT" uwsgi_config_master.ini
+#sleep3
+#
+#### PyTest
+#printf "\n###PyTest everything\n"
+#cd "$TESTING_DIR"
+#"$PYTEST_EXE"
+#check_exit_status
+#
+#### stop uWSGI PyTest
+#printf "\n###stop uWSGI PyTest\n"
+#cd "$APP_DIR"
+#echo q > master.fifo # also works: "$UWSGI_EXT" --stop uwsgi_aGOtool_master_PID.txt
 
 ### copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
