@@ -30,7 +30,7 @@ max_len_description = 250
 min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID for a each functional_association
 ### static mapping_files
 damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
-Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING_v11.txt")
 protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 
 ################################################## URLs & Downloads
@@ -659,10 +659,11 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS:
         DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
     params:
         alpha = 0.5,
+        beta = 3,
         max_score = 5,
         GO_CC_textmining_additional_etype = True
     run:
-        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage, alpha=params.alpha, max_score=params.max_score, GO_CC_textmining_additional_etype=params.GO_CC_textmining_additional_etype)
+        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage, alpha=params.alpha, beta=params.beta, max_score=params.max_score, GO_CC_textmining_additional_etype=params.GO_CC_textmining_additional_etype)
 
 
 

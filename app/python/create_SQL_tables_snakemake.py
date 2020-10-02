@@ -3166,7 +3166,7 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
 
     return funcName_2_score_list_backtracked, set(without_lineage)
 
-def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, alpha=0.5, max_score=5, GO_CC_textmining_additional_etype=True):
+def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, alpha=0.5, beta=3, max_score=5, GO_CC_textmining_additional_etype=True):
     """
     discretize TextMining scores
     - reformat data --> DF
@@ -3201,6 +3201,15 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep='\t', names=["Taxid", "Etype", "ENSP", "funcName", "Score"])
     # discretize per genome, per etype
     df = rescale_scores(df, alpha=alpha, max_score=max_score)
+    ### rules with e.g. beta = 3
+    ## include Score == 5
+    ## exclude Score < 1.5
+    ## include things Rescaled_score <= beta
+    cond_score5 = df["Score"] == 5
+    cond_score1p5 = df["Score"] >= 1.5
+    cond_rescaled = df["Rescaled_score"] <= beta
+    cond_2_keep = (cond_score1p5 & cond_rescaled) | cond_score5
+    df = df[cond_2_keep]
     df.to_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep='\t', header=True, index=False)
 
     # - backtrack
@@ -3214,6 +3223,9 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     backtrack_funcNames(df, lineage_dict_all_parents, alternative_2_current_ID_dict, ENSP_2_UniProtID_dict, Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, GO_CC_textmining_additional_etype=GO_CC_textmining_additional_etype) # translate to GOCC
 
 def rescale_scores(df, alpha=0.5, max_score=5):
+    """
+    max_score: is not beta (cutoff), it's in case scores are transformed by e.g. 1e6 from float to int
+    """
     # df = df.sort_values(["funcName", "Score"], ascending=[True, True])
     df = df.sort_values(["Taxid", "Etype", "funcName", "Score"], ascending=[True, True, True, True]) # discretize per genome, per etype
     df = df.reset_index(drop=True)
@@ -4172,6 +4184,9 @@ def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_tabl
 
 def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN):    
     """
+    LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
+    taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = variables.tables_dict["taxid_2_tuple_funcEnum_index_2_associations_counts"]
+    add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
     read old log and add number of lines of flat files and bytes of data for binary files to log,
     write to disk
     :return: None
