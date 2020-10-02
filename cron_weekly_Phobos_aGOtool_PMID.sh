@@ -36,7 +36,7 @@ check_exit_status
 
 printf "\n###start uWSGI PyTest and sleep for 4min\n"
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini &>/dev/null &
+"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
 sleep 4m
 
 printf "\n###PyTest all sanity tests\n"

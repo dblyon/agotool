@@ -11,6 +11,7 @@ check_exit_status () {
 TABLES_DIR=/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
 APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
 PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
+UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 TAR_GED_ALL_CURRENT=GED_all_current.tar
 global_enrichment_data_current=global_enrichment_data_current.tar.gz
@@ -38,7 +39,7 @@ check_exit_status
 
 printf "\n###start uWSGI flask app for PyTest and sleep for 4min\n"
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini &>/dev/null &
+"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
 sleep 4m
 
 printf "\n### PyTest all sanity tests\n"

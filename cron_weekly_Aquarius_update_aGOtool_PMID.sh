@@ -16,6 +16,7 @@ APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
 TAR_GED_ALL_CURRENT=GED_all_current.tar
 global_enrichment_data_current=global_enrichment_data_current.tar.gz
 GED_DIR=/home/dblyon/global_enrichment_v11
+UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 
 
 echo "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
@@ -29,15 +30,9 @@ check_exit_status
 tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
-#### PyTest file sizes and line numbers
-#printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-#cd "$TESTING_DIR"
-#"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
-#check_exit_status
-
 printf "\n###start uWSGI flask app for PyTest and sleep for 4min\n"
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini &>/dev/null &
+"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
 sleep 4m
 
 printf "\n### PyTest all sanity tests\n"
