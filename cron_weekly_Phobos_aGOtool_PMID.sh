@@ -34,13 +34,9 @@ cd "$PYTHON_DIR"
 "$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
 check_exit_status
 
-#printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-#"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
-#check_exit_status
-
 printf "\n###start uWSGI PyTest and sleep for 4min\n"
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini
+"$UWSGI_EXE" uwsgi_config_pytest.ini &>/dev/null &
 sleep 4m
 
 printf "\n###PyTest all sanity tests\n"

@@ -38,7 +38,7 @@ check_exit_status
 
 printf "\n###start uWSGI flask app for PyTest and sleep for 4min\n"
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini
+"$UWSGI_EXE" uwsgi_config_pytest.ini &>/dev/null &
 sleep 4m
 
 printf "\n### PyTest all sanity tests\n"
