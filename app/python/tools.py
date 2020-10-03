@@ -1,4 +1,4 @@
-import datetime, time, os, sys, subprocess, platform
+import datetime, time, os, sys, subprocess, platform, hashlib
 PLATFORM = sys.platform
 
 

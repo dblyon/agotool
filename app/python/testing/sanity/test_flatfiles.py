@@ -62,9 +62,9 @@ def test_checksum():
     check on files for agotool flask PMID_autoupdates
     compares previously recorded checksum (from Phobos) to currently created checksum (on e.g. Pisces)
     """
-    cond_checksum = df["md5"].notnull()
+    cond_md5= df["md5"].notnull()
     cond_latestVersion = df["version"] == max(df["version"])
-    df2compare = df[cond_checksum & cond_latestVersion]
+    df2compare = df[cond_md5 & cond_latestVersion]
 
     fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(variables.TABLES_DIR)):
@@ -92,6 +92,6 @@ def test_checksum():
     dflocal["md5"] = md5_list
     dfm = pd.concat([dflocal, df2compare])
     for fn, group in dfm.groupby("fn"):
-        checksum_arr = group["md5"].values
-        assert checksum_arr.shape == (2,)
-        assert checksum_arr[0] == checksum_arr[1]
+        md5_arr = group["md5"].values
+        assert md5_arr.shape == (2,)
+        assert md5_arr[0] == md5_arr[1]
