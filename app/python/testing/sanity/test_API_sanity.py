@@ -181,7 +181,7 @@ def test_web_example_4():
     response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "characterize_foreground", "filter_foreground_count_one": False},
         data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert df.shape[0] > 730
+    assert df.shape[0] > 200
     assert df.groupby("category").count().shape[0] >= 9  # at least 11 categories with significant results, last time I checked (2020 04 01)
 
 def test_taxid_species_mapping_1():

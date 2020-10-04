@@ -4197,6 +4197,8 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
 
     fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(TABLES_DIR)):
+        if fn == "Entity_types_table_UPS_FIN.txt":
+            continue
         fn_abs_path = os.path.join(TABLES_DIR, fn)
         if fn.endswith("UPS_FIN.txt"):
             binary_list.append(False)

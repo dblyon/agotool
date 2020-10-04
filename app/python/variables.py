@@ -123,7 +123,7 @@ cols_2_return_sort_order = ['term', 'hierarchical_level', 'description', 'year',
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas
 api_url = "http://0.0.0.0:5911/api" # local
-pytest_url_local = r"http://127.0.0.1:5911/api"
+pytest_url_local = r"http://127.0.0.1:12399/api" # PMID autoupdates SAN, Aquarius, Pisces
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if DOCKER:

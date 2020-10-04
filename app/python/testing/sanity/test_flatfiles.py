@@ -21,7 +21,7 @@ import variables, tools
 # read old table and add data to it
 LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
 df = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
-df = df[df["deprecated"] == False] # skip TextMining Scores tables
+# df = df[df["deprecated"] == False] # skip TextMining Scores tables
 version_current = max(df["version"])
 version_previous = version_current - 1
 cond_previous = df["version"] == version_previous
@@ -62,17 +62,19 @@ def test_checksum():
     check on files for agotool flask PMID_autoupdates
     compares previously recorded checksum (from Phobos) to currently created checksum (on e.g. Pisces)
     """
-    cond_md5= df["md5"].notnull()
+    cond_md5 = df["md5"].notnull()
     cond_latestVersion = df["version"] == max(df["version"])
     df2compare = df[cond_md5 & cond_latestVersion]
 
     fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(variables.TABLES_DIR)):
+        if fn == "Entity_types_table_UPS_FIN.txt":
+            continue
         fn_abs_path = os.path.join(variables.TABLES_DIR, fn)
         if fn.endswith("UPS_FIN.txt"):
             binary_list.append(False)
             num_lines_list.append(tools.line_numbers(fn_abs_path))
-        if fn.endswith("UPS_FIN.p") or fn.endswith(".npy"):
+        elif fn.endswith("UPS_FIN.p") or fn.endswith(".npy"):
             binary_list.append(True)
             num_lines_list.append(np.nan)
         else:
