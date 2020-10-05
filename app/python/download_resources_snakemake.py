@@ -73,7 +73,7 @@ def download_GO_slim_subsets(url, download_dir, GO_slim_subsets_file):
             download_requests(url, file_name, verbose=False)
             fh_out.write("{}\n".format(basename))
 
-def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file):
+def download_WikiPathways(url, download_dir, Human_WikiPathways_gmt): #WikiPathways_not_a_gmt_file):
     """
     download flat files in GMT format
     Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
@@ -87,10 +87,13 @@ def download_WikiPathways(url, download_dir, WikiPathways_not_a_gmt_file):
     for url in files_2_download:
         # check if needed, rename?
         basename = os.path.basename(url)
-        file_name = os.path.join(download_dir, basename)
+        basename_split = basename.split("-")
+        basename_without_date = "-".join([basename_split[0]] + basename_split[3:])
+        file_name = os.path.join(download_dir, basename_without_date)
         download_requests(url, file_name, verbose=False)
-    with open(WikiPathways_not_a_gmt_file, "w") as fh_out:
-        fh_out.write("downloaded {} number of gmt files".format(len(files_2_download)))
+    # with open(WikiPathways_not_a_gmt_file, "w") as fh_out:
+    #     fh_out.write("downloaded {} number of gmt files".format(len(files_2_download)))
+    assert os.path.exists(Human_WikiPathways_gmt)
 
 def get_list_of_files_2_download_from_http(url, ext='', go_subset=False):
     page = requests.get(url).text

@@ -116,7 +116,8 @@ Functions_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Functions_table"] #Functions_ta
 Functions_table_UPS_removed = os.path.join(TABLES_DIR, "Functions_table_UPS_removed.txt")
 UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
 WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
-WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gmt_file.txt")
+# WikiPathways_not_a_gmt_file = os.path.join(DOWNLOADS_DIR, "WikiPathways_not_a_gmt_file.txt")
+Human_WikiPathways_gmt = os.path.join(DOWNLOADS_DIR, "wikipathways-Homo_sapiens.gmt")
 # STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz") # https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
 
 URL_interpro_parent_2_child_tree = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/ParentChildTreeFile.txt"
@@ -339,9 +340,10 @@ rule download_WikiPathways:
     params:
         URL_WikiPathways_GMT = URL_WikiPathways_GMT,
     output:
-        WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
+        # WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
+        Human_WikiPathways_gmt = Human_WikiPathways_gmt
     run:
-        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, output.WikiPathways_not_a_gmt_file)
+        drs.download_WikiPathways(params.URL_WikiPathways_GMT, input.DOWNLOADS_DIR, output.Human_WikiPathways_gmt)
 
 rule download_UniProt_ID_mapping:
     output:
@@ -589,12 +591,13 @@ rule r_Protein_2_Function__and__Functions_table_WikiPathways:
     input:
         WikiPathways_organisms_metadata = WikiPathways_organisms_metadata,
         EntrezGeneID_2_UniProtID = EntrezGeneID_2_UniProtID, # previously UniProt_ID_mapping
-        WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
+        # WikiPathways_not_a_gmt_file = WikiPathways_not_a_gmt_file
+        Human_WikiPathways_gmt = Human_WikiPathways_gmt
     output:
         Functions_table_WikiPathways = Functions_table_WikiPathways,
         Protein_2_Function_table_WikiPathways_UPS = Protein_2_Function_table_WikiPathways_UPS
     run:
-        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.EntrezGeneID_2_UniProtID, input.WikiPathways_not_a_gmt_file, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
+        cst.Protein_2_Function__and__Functions_table_WikiPathways(input.WikiPathways_organisms_metadata, input.EntrezGeneID_2_UniProtID, input.Human_WikiPathways_gmt, output.Functions_table_WikiPathways, output.Protein_2_Function_table_WikiPathways_UPS)
 
 rule r_Protein_2_Function_table_PMID_UPS:
     input:

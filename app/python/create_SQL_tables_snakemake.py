@@ -3487,7 +3487,7 @@ def helper_count_funcEnum_floats(funcEnum_count_background, funcEnum_2_count_lis
         funcEnum_count_background[funcEnum] += count
     return funcEnum_count_background
 
-def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_organisms_metadata, fn_in_EntrezGeneID_2_UniProtID, fn_in_WikiPathways_not_a_gmt_file, fn_out_Functions_table_WikiPathways, fn_out_Protein_2_Function_table_WikiPathways, verbose=True): # fn_in_STRING_EntrezGeneID_2_STRING, fn_in_Taxid_2_Proteins_table_STS
+def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_organisms_metadata, fn_in_EntrezGeneID_2_UniProtID, Human_WikiPathways_gmt, fn_out_Functions_table_WikiPathways, fn_out_Protein_2_Function_table_WikiPathways, verbose=True): # fn_in_STRING_EntrezGeneID_2_STRING, fn_in_Taxid_2_Proteins_table_STS
     """
     changed to output only UniProtID not AC (AN)
     removed/commented out ENSP output
@@ -3504,13 +3504,14 @@ def Protein_2_Function__and__Functions_table_WikiPathways(fn_in_WikiPathways_org
     year, level = "-1", "-1"
     etype = str(variables.functionType_2_entityType_dict["WikiPathways"])
     EntrezGeneID_2_UniProtID_dict = get_EntrezGeneID_2_UniProtID_dict_from_UniProtIDmapping(fn_in_EntrezGeneID_2_UniProtID) # previously fn_in_UniProt_ID_mapping
-    WikiPathways_dir = os.path.dirname(fn_in_WikiPathways_not_a_gmt_file)
+    WikiPathways_dir = os.path.dirname(Human_WikiPathways_gmt)
     fn_list = [os.path.join(WikiPathways_dir, fn) for fn in os.listdir(WikiPathways_dir) if fn.endswith(".gmt")]
     already_written = []
     with open(fn_out_Functions_table_WikiPathways, "w") as fh_out_functions:  # etype | an | description | year | level
         with open(fn_out_Protein_2_Function_table_WikiPathways, "w") as fh_out_protein_2_function:  # an | func_array | etype
             for fn_wiki in fn_list:
-                taxname = fn_wiki.split("-gmt-")[-1].replace(".gmt", "")
+                # taxname = fn_wiki.split("-gmt-")[-1].replace(".gmt", "")
+                taxname = fn_wiki.split("-")[-1].replace(".gmt", "")
                 try:
                     taxid = TaxName_2_Taxid_dict[taxname]  # taxid is an integer
                 except KeyError:
