@@ -58,7 +58,7 @@ echo q > pytest_master.fifo
 ### chain-reloading
 echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
 cd "$APP_DIR"
-echo c > master.fifo
+echo c > agotool_master.fifo
 check_exit_status
 
 #### PyTest all sanity tests
