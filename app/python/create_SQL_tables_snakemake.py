@@ -3188,7 +3188,8 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     max_score = 5
     """
     # - reformat data --> DF
-    with open(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, "w") as fh_out:
+    Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_all = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled.replace("_rescaled.txt", "_rescaled_all.txt")
+    with open(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_all, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
             etype = etype.strip()
@@ -3198,7 +3199,7 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
                 fh_out.write("{}\t{}\t{}\t{}\t{}\n".format(taxid, etype, ENSP, funcName, score))
 
     # - discretize scores
-    df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep='\t', names=["Taxid", "Etype", "ENSP", "funcName", "Score"])
+    df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_all, sep='\t', names=["Taxid", "Etype", "ENSP", "funcName", "Score"])
     # discretize per genome, per etype
     df = rescale_scores(df, alpha=alpha, max_score=max_score)
     ### rules with e.g. beta = 3
