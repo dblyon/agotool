@@ -57,22 +57,21 @@ def convert_assoc_dict_2_proteinGroupsAssocDict(assoc_dict, proteinGroups_list):
 def print_runtime(start_time):
     print("#" * 80, "\n", "--- runtime: {} ---".format(str(datetime.timedelta(seconds=int(time.time() - start_time)))))
 
-def sort_file(fn_in, fn_out, columns=None, fn_bash_script=None, number_of_processes=1, verbose=True):
+def sort_file(fn_in, fn_out, columns=None, fn_bash_script=None, number_of_processes=1, verbose=True, numeric_sort=False):
     if verbose:
         print("#sorting file\nfn_in:\n{}\nfn_out:\n{}".format(fn_in, fn_out))
-    temp_dir = os.path.join(os.path.dirname(fn_in), "temp_sort")
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
     if fn_bash_script is None:
         fn_bash_script = "bash_script_sort_{}.sh".format(os.path.basename(fn_in))
     with open(fn_bash_script, "w") as fh:
         fh.write("#!/usr/bin/env bash\n")
-        if columns is not None:
-            shellcmd = "LC_ALL=C sort -T {} --parallel {} -k {} {} -o {}".format(temp_dir, number_of_processes, columns, fn_in, fn_out)
+        if numeric_sort:
+            sort_ = "sort -n"
         else:
-            shellcmd = "LC_ALL=C sort -T {} --parallel {} {} -o {}".format(temp_dir, number_of_processes, fn_in, fn_out)
-        if PLATFORM != "linux":
-            shellcmd = shellcmd.replace("sort", "gsort")
+            sort_ = "sort"
+        if columns is not None:
+            shellcmd = "LC_ALL=C {} --parallel {} -k {} {} -o {}".format(sort_, number_of_processes, columns, fn_in, fn_out)
+        else:
+            shellcmd = "LC_ALL=C {} --parallel {} {} -o {}".format(sort_, number_of_processes, fn_in, fn_out)
         fh.write(shellcmd)
     if verbose:
         print(shellcmd)

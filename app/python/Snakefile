@@ -511,8 +511,9 @@ rule r_Taxid_2_Proteins_table_UPS_FIN:
     output:
         Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN
         # Taxid_without_mapping_2_species_rank = Taxid_without_mapping_2_species_rank
+    threads: NUMBER_OF_PROCESSES_sorting
     run:
-        cst.Taxid_2_Proteins_table_UPS(input.UniProt_background_proteomes_dir, output.Taxid_2_Proteins_table_UPS_FIN)
+        cst.Taxid_2_Proteins_table_UPS(input.UniProt_background_proteomes_dir, output.Taxid_2_Proteins_table_UPS_FIN, threads)
 
 rule r_Lineage_table_UPS_FIN:
     input:

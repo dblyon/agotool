@@ -43,23 +43,32 @@ check_exit_status
 psql -d agotool -p 8001 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO agotool;"
 check_exit_status
 
-printf "\n###start uWSGI PyTest and sleep for 4min\n"
+### restart uWSGI and PyTest
+printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
+echo c > agotool_master.fifo
 sleep 4m
-printf "\n###PyTest all\n"
 cd "$TESTING_DIR"
 "$PYTEST_EXE"
 check_exit_status
-printf "\n###stopping uWSGI PyTest"
-cd "$APP_DIR"
-echo q > pytest_master.fifo
 
-### chain-reloading
-echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
-cd "$APP_DIR"
-echo c > agotool_master.fifo
-check_exit_status
+#printf "\n###start uWSGI PyTest and sleep for 4min\n"
+#cd "$APP_DIR"
+#"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
+#sleep 4m
+#printf "\n###PyTest all\n"
+#cd "$TESTING_DIR"
+#"$PYTEST_EXE"
+#check_exit_status
+#printf "\n###stopping uWSGI PyTest"
+#cd "$APP_DIR"
+#echo q > pytest_master.fifo
+#
+#### chain-reloading
+#echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
+#cd "$APP_DIR"
+#echo c > agotool_master.fifo
+#check_exit_status
 
 #### PyTest all sanity tests
 #printf "\n### Sleep 3min and PyTest all sanity tests\n"

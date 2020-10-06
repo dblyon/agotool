@@ -106,6 +106,8 @@ class OBOReader:
             elif (line.startswith("is_obsolete:") and
                   after_colon(line) == "true"):
                 rec.is_obsolete = True
+            elif line.startswith("consider:"):
+                rec.consider.append(line.replace("consider: ", "").strip())
         return rec
 
     def replace_KW_with_UPK(self, id_):
@@ -175,6 +177,8 @@ class GOTerm:
         self.depth = None           # longest distance from root node
         self.is_obsolete = False    # is_obsolete
         self.alt_ids = []           # alternative identifiers
+        self.consider = []          # consider one of these terms instead
+
 
     def __repr__(self):
         return "GOTerm({})".format(self.id)

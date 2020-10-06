@@ -97,3 +97,8 @@ def test_checksum():
         md5_arr = group["md5"].values
         assert md5_arr.shape == (2,)
         assert md5_arr[0] == md5_arr[1]
+
+def test_new_version_was_created_no_later_than_x_days_ago(days=32):
+    date_time_str = max(df["date"])
+    date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S.%f')
+    assert date_time_obj > datetime.datetime.now() - datetime.timedelta(days)

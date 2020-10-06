@@ -50,19 +50,28 @@ printf "\n### drop and rename PostgreSQL\n"
 psql -d agotool -f drop_and_rename.psql
 check_exit_status
 
-### PyTest start uWSGI-flask, test, and quit
-printf "\n###start uWSGI PyTest and sleep for 4min\n"
+### restart uWSGI and PyTest
+printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
+echo c > agotool_master.fifo
 sleep 4m
-printf "\n###PyTest all\n"
 cd "$TESTING_DIR"
-check_exit_status
 "$PYTEST_EXE"
 check_exit_status
-printf "\n###stopping uWSGI PyTest"
-cd "$APP_DIR"
-echo q > pytest_master.fifo
+
+#### PyTest start uWSGI-flask, test, and quit
+#printf "\n###start uWSGI PyTest and sleep for 4min\n"
+#cd "$APP_DIR"
+#"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
+#sleep 4m
+#printf "\n###PyTest all\n"
+#cd "$TESTING_DIR"
+#check_exit_status
+#"$PYTEST_EXE"
+#check_exit_status
+#printf "\n###stopping uWSGI PyTest"
+#cd "$APP_DIR"
+#echo q > pytest_master.fifo
 
 #### start uWSGI flask app
 #printf "\n###start uWSGI flask app and sleep for 3min\n"
