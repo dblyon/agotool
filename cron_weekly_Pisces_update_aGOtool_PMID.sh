@@ -34,22 +34,31 @@ check_exit_status
 tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
-printf "\n###start uWSGI flask app for PyTest and sleep for 4min\n"
+### restart uWSGI and PyTest
 cd "$APP_DIR"
-"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
+echo c > PMID_master.fifo
 sleep 4m
-
-printf "\n### PyTest all sanity tests\n"
 cd "$TESTING_DIR"
 "$PYTEST_EXE"
 check_exit_status
 
-printf "\n###stopping uWSGI PyTest"
-cd "$APP_DIR"
-echo q > pytest_master.fifo
 
-### chain_reloading
-echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
-cd "$APP_DIR"
-echo c > PMID_master.fifo
-check_exit_status
+#printf "\n###start uWSGI flask app for PyTest and sleep for 4min\n"
+#cd "$APP_DIR"
+#"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
+#sleep 4m
+#
+#printf "\n### PyTest all sanity tests\n"
+#cd "$TESTING_DIR"
+#"$PYTEST_EXE"
+#check_exit_status
+#
+#printf "\n###stopping uWSGI PyTest"
+#cd "$APP_DIR"
+#echo q > pytest_master.fifo
+#
+#### chain_reloading
+#echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
+#cd "$APP_DIR"
+#echo c > PMID_master.fifo
+#check_exit_status

@@ -203,6 +203,10 @@ def test_compare_file_size_global_enrichment():
         size_current = df_GE.loc[cond_fnc, "size"].values[0]
         assert size_current == size_local
 
+def test_new_version_was_created_no_later_than_x_days_ago(days=7):
+    date_time_str = max(df["date"])
+    date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S.%f')
+    assert date_time_obj > datetime.datetime.now() - datetime.timedelta(days)
 
 
 ### create DF_file_dimensions_log.txt for the first time
