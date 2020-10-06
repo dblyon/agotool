@@ -1071,7 +1071,7 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
             # | 9606 | {"9606.ENSP00000000233","9606.ENSP00000000412","9606.ENSP00000001008","9606.ENSP00000001146", ...} | 19566 | -60 | --> add etype when merging with STRING ENSP space
             an_arr = format_list_of_string_2_postgres_array(sorted(set(uniprot_ans)))
             fh_out.write("{}\t{}\t{}\n".format(taxid, num_ans, an_arr))
-    tools.sort(Taxid_2_Proteins_table_UniProt, Taxid_2_Proteins_table_UniProt, number_of_processes=number_of_processes, numeric_sort=True)
+    tools.sort_file(Taxid_2_Proteins_table_UniProt, Taxid_2_Proteins_table_UniProt, number_of_processes=number_of_processes, numeric_sort=True)
 
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):
     # concatenate STRING ENSPs and UniProt AC
@@ -1189,7 +1189,7 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
                 # second funcCounts --> counts_arr
                 index_positions_arr_counts_arr_str = helper_format_funcEnum_reformatted(funcEnum_count_background)
                 fh_out.write(taxid + "\t" + background_n + "\t" + index_positions_arr_counts_arr_str + "\n")
-    tools.sort(fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, number_of_processes=number_of_processes, numeric_sort=True)
+    tools.sort_file(fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, number_of_processes=number_of_processes, numeric_sort=True)
 
 def yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN, taxid_whiteset):
     with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
