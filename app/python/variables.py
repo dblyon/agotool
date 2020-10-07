@@ -258,13 +258,11 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
     "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)), # if not low_mem
-    "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
     "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)), # if not low_mem
     "Taxid_2_FunctionCountArray_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_{}.txt".format(appendix)),
     "Taxid_2_FunctionEnum_2_Scores_table": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_{}.txt".format(appendix)),
     "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix)),
     "taxid_2_tuple_funcEnum_index_2_associations_counts": os.path.join(TABLES_DIR, "taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_{}.p".format(appendix)),
-    "CSC_ENSPencoding_2_FuncEnum": os.path.join(TABLES_DIR, "CSC_ENSPencoding_2_FuncEnum_{}.npz".format(appendix)),
     "ENSP_2_rowIndex_dict": os.path.join(TABLES_DIR, "ENSP_2_rowIndex_dict_{}.p".format(appendix)),
     "rowIndex_2_ENSP_dict": os.path.join(TABLES_DIR, "rowIndex_2_ENSP_dict_{}.p".format(appendix)),
     "year_arr": os.path.join(TABLES_DIR, "year_arr_{}.p".format(appendix)),
@@ -274,13 +272,15 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "indices_arr": os.path.join(TABLES_DIR, "indices_arr_{}.p".format(appendix)),
     "description_arr": os.path.join(TABLES_DIR, "description_arr_{}.p".format(appendix)),
     "category_arr": os.path.join(TABLES_DIR, "category_arr_{}.p".format(appendix)),
-    "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix)),
-    "Taxid_2_FuncEnum_2_Score_2_Rank_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_Score_2_Rank_dict_{}.p".format(appendix)),
-    # deprecated? "Taxid_2_FuncEnum_2_medianScore_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_medianScore_dict_{}.p".format(appendix)),
-    # deprecated? "Taxid_2_FuncEnum_2_numBGvals_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_numBGvals_dict_{}.p".format(appendix)),
     "TaxidSpecies_2_TaxidProteome_dict": os.path.join(TABLES_DIR, "TaxidSpecies_2_TaxidProteome_dict_{}.p".format(appendix)),
     "TaxidSpecies_2_multipleRefProtTaxid_dict": os.path.join(TABLES_DIR, "TaxidSpecies_2_multipleRefProtTaxid_dict_{}.p".format(appendix)),
-    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_{}.txt".format(appendix))
+    "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_{}.txt".format(appendix)),
+    # "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
+    # "CSC_ENSPencoding_2_FuncEnum": os.path.join(TABLES_DIR, "CSC_ENSPencoding_2_FuncEnum_{}.npz".format(appendix)),
+    # "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix)),
+    # "Taxid_2_FuncEnum_2_Score_2_Rank_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_Score_2_Rank_dict_{}.p".format(appendix)),
+    # deprecated? "Taxid_2_FuncEnum_2_medianScore_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_medianScore_dict_{}.p".format(appendix)),
+    # deprecated? "Taxid_2_FuncEnum_2_numBGvals_dict": os.path.join(TABLES_DIR, "Taxid_2_FuncEnum_2_numBGvals_dict_{}.p".format(appendix)),
                }
 TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.basename(fn)) for tablename, fn in tables_dict.items()}
 

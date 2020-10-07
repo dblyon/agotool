@@ -170,7 +170,7 @@ def test_web_example_3():
         data={"foreground": fg_string,
               "background": bg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert df.shape[0] > 500
+    assert df.shape[0] >= 200
     assert df.groupby("category").count().shape[0] >= 10  # at least 11 categories with significant results, last time I checked (2020 04 01)
     # changed after discretizing TM scores
     cond_FDR = df["p_value"] <= df["FDR"]

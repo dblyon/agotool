@@ -1118,7 +1118,7 @@ def Taxid_2_FunctionCountArray_table_FIN(Protein_2_FunctionEnum_table_STRING, Fu
             background_n = taxid_2_total_protein_count_dict[taxid]
             fh_out.write(taxid + "\t" + background_n + "\t" + index_backgroundCount_array_string + "\n")
 
-def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=1, verbose=True):
+def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, Functions_table_UPS_FIN, Taxid_2_Proteins_table_UPS_FIN, fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, Protein_2_FunctionEnum_table_UPS_for_Taxid_count, number_of_processes=1, verbose=True):
     """
     # - sort Protein_2_FunctionEnum_table_UPS_FIN.txt on Taxid and UniProtID
     # - create array of zeros of function_enumeration_length
@@ -1161,7 +1161,7 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
                 uniprotid_2_taxid_dict[prot] = taxid # taxid that it should be in the end
 
     with open(Protein_2_FunctionEnum_table_UPS_FIN, "r") as fh_in:
-        with open(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, "w") as fh_out_for_taxid_count:
+        with open(Protein_2_FunctionEnum_table_UPS_for_Taxid_count, "w") as fh_out_for_taxid_count:
             for line in fh_in:
                 taxid_not_2_use, UniProtID, funcEnum_set = line.split("\t")  # taxid on
                 if UniProtID in uniprotid_2_taxid_dict:  # filter for UniProtIDs that are in Reference Proteomes
@@ -1169,10 +1169,10 @@ def Taxid_2_FunctionCountArray_table_UPS(Protein_2_FunctionEnum_table_UPS_FIN, F
                     fh_out_for_taxid_count.write(taxid + "\t" + UniProtID + "\t" + funcEnum_set)
 
     # below is the previous code, above is filtering things and mapping to taxid of reference proteomes
-    tools.sort_file(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, number_of_processes=number_of_processes, verbose=verbose)
+    tools.sort_file(Protein_2_FunctionEnum_table_UPS_for_Taxid_count, Protein_2_FunctionEnum_table_UPS_for_Taxid_count, number_of_processes=number_of_processes, verbose=verbose)
     print("writing {}".format(fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN))
     with open(fn_out_Taxid_2_FunctionCountArray_table_UPS_FIN, "w") as fh_out:
-        for entry in yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count, taxid_whiteset):
+        for entry in yield_funcEnumList_per_taxid(Protein_2_FunctionEnum_table_UPS_for_Taxid_count, taxid_whiteset):
             taxid, UniProtID_list, funcEnumList_list = entry
             if taxid_2_total_protein_count_dict[taxid] != "-1":  # restrict to Reference Proteomes # with new file this breaks #!!! since
                 # UniProt ref prots are partially strain level, and Protein_2_FunctionEnum_table_UPS_FIN are species level
@@ -4008,7 +4008,7 @@ def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, Tax
 # Taxid_2_Proteins_table_UPS_FIN remains as is, which is UniProt space and their TaxIDs (which are partially on strain level).
 # Protein_2_Function_table_UPS has mixed mapping from UniProt ID to Taxid. --> Protein_2_Function_table_UPS_orig.txt and Protein_2_Function_table_UPS.txt.
 # Protein_2_FunctionEnum_table_UPS_FIN is on species rank.
-# --> Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count: is filtered by UniProt ID subset from UniProt reference proteomes, and taxid changed to match UniProt reference proteomes (from species to strain level, since mapping exists from Taxid_2_Proteins_table_UPS_FIN).
+# --> Protein_2_FunctionEnum_table_UPS_for_Taxid_count: is filtered by UniProt ID subset from UniProt reference proteomes, and taxid changed to match UniProt reference proteomes (from species to strain level, since mapping exists from Taxid_2_Proteins_table_UPS_FIN).
 # Taxid_2_FunctionCountArray_table_UPS_FIN is on UniProt ref prot level, since only needed for enrichment_method "genome".
 
 if __name__ == "__main__":
@@ -4042,7 +4042,7 @@ if __name__ == "__main__":
     # Protein_2_FunctionEnum_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_table"]
     # Functions_table_UPS_FIN = variables.tables_dict["Functions_table"] #Functions_table_UPS_reduced = os.path.join(TABLES_DIR, "Functions_table_UPS_reduced.txt") # synonymous ?replace?
     # Taxid_2_FunctionCountArray_table_UPS_FIN = variables.tables_dict["Taxid_2_FunctionCountArray_table"]
-    # Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_FIN_for_Taxid_count.txt")
+    # Protein_2_FunctionEnum_table_UPS_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_for_Taxid_count.txt")
 
     # run single rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
     Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
