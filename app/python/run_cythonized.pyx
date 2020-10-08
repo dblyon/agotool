@@ -241,7 +241,7 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     df_2_return["ratio_in_BG"] = df_2_return["BG_count"] / df_2_return["BG_n"] # ratio_in_background = funcEnum_count_background / background_n
     if args_dict["STRING_beta"]:
         df_2_return = df_2_return.rename(columns={"BG_count": 'background_count', "FG_count": 'foreground_count', "FG_IDs": 'foreground_ids'})
-        return df_2_return[variables.cols_sort_order_genome_STRING_beta + list(set(df_2_return.columns.tolist()) - set(variables.cols_sort_order_genome_STRING_beta))]
+        return df_2_return[variables.cols_sort_order_genome_STRING_beta] # + list(set(df_2_return.columns.tolist()) - set(variables.cols_sort_order_genome_STRING_beta))]
     return df_2_return[cols_2_return_sort_order]
 
 @boundscheck(False)

@@ -6,7 +6,7 @@ hostname = socket.gethostname()
 
 ############################
 ### settings
-PRELOAD = True # set True in production. Load necessary data via PQO
+PRELOAD = False # set True in production. Load necessary data via PQO
 # pre-load objects DB connection necessary, set to False while testing with pytest
 # skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 # skip_downloads_completely = True # don't download anything
@@ -115,10 +115,12 @@ goslims_subsets_dict = { # key: abbreviation val: description
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome_STRING_beta = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
-# cols_sort_order_charcterize = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
+cols_sort_order_compare_samples = cols_sort_order_genome_STRING_beta
 cols_sort_order_characterize_foreground = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category', "rank"]
-cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"] # should be the same as cols_sort_order_genome
 cols_2_return_sort_order = ['term', 'hierarchical_level', 'description', 'year', 'over_under', 'p_value', 'FDR', 'effectSize', 'ratio_in_FG', 'ratio_in_BG', 'FG_count', 'FG_n', 'BG_count', 'BG_n', 'FG_IDs', 'BG_IDs', 's_value', 'rank', 'funcEnum', 'category', 'etype']
+cols_sort_order_genome_STRING = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
+cols_sort_order_charcterize_STRING = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
+cols_sort_order_compare_samples_STRING = cols_sort_order_genome_STRING
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas
