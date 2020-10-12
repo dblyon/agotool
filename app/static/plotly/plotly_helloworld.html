@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Plotly hello world</title>
+    <script type="text/javascript" src="../js/plotly-latest.min.js"></script>
+</head>
+
+<body>
+<p>
+    testing one two
+</p>
+
+<div id="testerDBL" style="width:60%;height:60%;"></div>
+</body>
+
+<script>
+var trace1 = {
+  x: [1, 2, 3, 4],
+  y: [10, 15, 13, 17],
+  mode: 'markers',
+  type: 'scatter'
+};
+
+
+var trace2 = {
+  x: [2, 3, 4, 5],
+  y: [16, 5, 11, 9],
+  term: ["termA", "termB", "termC", "termD"],
+  description: ["Abla", "Bbla", "Cbla", "Dbla"],
+  FG_count: [123, 234, 333, 10],
+
+
+  mode: 'markers',
+  type: 'scatter',
+    hoverlabel: {
+      bgcolor: "whitesmoke",
+    bordercolor: "green",
+    font: {
+      color: "red"
+    }
+  },
+  hovertemplate: "<b>%{term}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>",
+
+
+};
+
+var trace3 = {
+  x: [1, 2, 3, 4],
+  y: [12, 9, 15, 12],
+  mode: 'markers',
+  type: 'scatter'
+};
+
+var data = [trace1, trace2, trace3];
+
+Plotly.newPlot('testerDBL', data);
+</script>
+
+</html>
