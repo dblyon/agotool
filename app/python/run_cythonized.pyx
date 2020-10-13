@@ -209,8 +209,6 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
                             "etype": entitytype_arr[cond_2_return].view(),
                             "description": description_arr[cond_2_return].view(),
                             "year": year_arr[cond_2_return].view(),
-#                             "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-#                             "ratio_in_BG": ratio_in_background[cond_2_return].view(),
                             "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
                             "FG_count": funcEnum_count_foreground[cond_2_return].view(),
                             "BG_count": funcEnum_count_background[cond_2_return].view(),
