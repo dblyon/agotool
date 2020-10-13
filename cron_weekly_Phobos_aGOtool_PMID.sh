@@ -34,26 +34,15 @@ cd "$PYTHON_DIR"
 "$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
 check_exit_status
 
-#printf "\n###start uWSGI PyTest and sleep for 4min\n"
-#cd "$APP_DIR"
-#"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
-#sleep 4m
-#
-#printf "\n###PyTest all sanity tests\n"
-#cd "$TESTING_DIR"
-#"$PYTEST_EXE"
-#check_exit_status
-#
-#printf "\n###stopping uWSGI PyTest"
-#cd "$APP_DIR"
-#echo q > pytest_master.fifo
-
-### restart uWSGI and PyTest
+### start uWSGI and PyTest
 cd "$APP_DIR"
-echo c > PMID_master.fifo
+# echo c > PMID_master.fifo
+"$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini
 sleep 4m
 cd "$TESTING_DIR"
 "$PYTEST_EXE"
+check_exit_status
+echo q > PMID_master.fifo
 check_exit_status
 
 #### tar and compress new files for transfer and backup
