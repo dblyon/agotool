@@ -339,39 +339,40 @@ def update_scatter(all_rows_data, slctd_row_indices, slct_rows_names, slctd_rows
 #     } for i in selected_columns]
 # # -------------------------------------------------------------------------------------
 
-
-def update_table_style(selectedData):
-    """
-    https://stackoverflow.com/questions/62516573/update-dash-table-by-selecting-points-on-scatter-plot?answertab=active#tab-top
-    """
-    table_style_conditions = [{'if': {'row_index': 'odd'},
-                               'backgroundColor': 'rgb(240, 240, 240)'}]
-
-    if selectedData is not None:
-        points_selected = []
-        for point in selectedData['points']:
-            points_selected.append(point['pointIndex'])
-        selected_styles = [{'if': {'row_index': i},
-                            'backgroundColor': 'gold'} for i in points_selected]
-        table_style_conditions.extend(selected_styles)
-
-    # table_style_conditions.extend([{'if': {'row_index': i},
-    #                                 'background-color': df.iloc[i]['COLOR'],
-    #                                 'color': df.iloc[i]['COLOR']} for i in range(df.shape[0])])
-
-    return table_style_conditions
-
-# CALLBACK DEFINITION
-@app.callback(Output('datatable-interactivity', 'style_data_conditional'),
-              [Input('scatter-container', 'selectedData')])
-def display_selected_data(selectedData):
-    table_style_conditions = update_table_style(selectedData)
-    return table_style_conditions
+### not working
+# def update_table_style(selectedData):
+#     """
+#     https://stackoverflow.com/questions/62516573/update-dash-table-by-selecting-points-on-scatter-plot?answertab=active#tab-top
+#     """
+#     table_style_conditions = [{'if': {'row_index': 'odd'},
+#                                'backgroundColor': 'rgb(240, 240, 240)'}]
+#
+#     if selectedData is not None:
+#         points_selected = []
+#         for point in selectedData['points']:
+#             points_selected.append(point['pointIndex'])
+#         selected_styles = [{'if': {'row_index': i},
+#                             'backgroundColor': 'gold'} for i in points_selected]
+#         table_style_conditions.extend(selected_styles)
+#
+#     # table_style_conditions.extend([{'if': {'row_index': i},
+#     #                                 'background-color': df.iloc[i]['COLOR'],
+#     #                                 'color': df.iloc[i]['COLOR']} for i in range(df.shape[0])])
+#
+#     return table_style_conditions
+#
+# # CALLBACK DEFINITION
+# @app.callback(Output('datatable-interactivity', 'style_data_conditional'),
+#               [Input('scatter-container', 'selectedData')])
+# def display_selected_data(selectedData):
+#     table_style_conditions = update_table_style(selectedData)
+#     return table_style_conditions
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host="127.0.0.1", port="5922")
+    app.run_server(debug=True, host="127.0.0.1", port=5922)
 
+    # select rows in the table --> highlights in the graph --> indices are not unique
 
 # ToDo
 # - Toggle columns button style --> CSS button "info" or something

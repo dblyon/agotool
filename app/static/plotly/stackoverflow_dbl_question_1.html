@@ -1,0 +1,53 @@
+<html>
+<head>
+    <title>Stackoverflow DBL question 1</title>
+    <meta charset="utf-8" />
+    <script type="text/javascript" src="../js/plotly-latest.min.js"></script>
+</head>
+
+<body>
+<p>
+    testing one two
+</p>
+
+<div id="dbl_plot" style="width:80%;height:60%;"></div>
+</body>
+
+
+<script>
+let trace0 = {
+x: [6, 7, 1],
+y: [0.047, -0.04, 0.025],
+mode: 'markers',
+name: 'GOCC',
+marker: {'color': '#d95f02', size: [31, 63, 410], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4}
+};
+let trace1 = {
+x: [3, 4, 5],
+y: [0.053, -0.049, 0.046],
+mode: 'markers',
+name: 'TM',
+marker: {'color': '#1b9e77', size: [370, 92, 126], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4}
+};
+let trace2 = {
+x: [8, 5, 2],
+y: [-0.027, -0.024, 0.025],
+mode: 'markers',
+name: 'UPK',
+marker: {'color': '#7570b3', size: [23, 9, 500], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4}
+};
+
+let data = [trace0, trace1, trace2];
+
+let layout = {
+    'dragmode': 'lasso', 'autosize': true, 'clickmode': 'event+select',
+    'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, 'tracegroupgap': 0},
+    'margin': {'t': 60}, 'plot_bgcolor': 'rgb(255, 255, 255)',
+    'xaxis': {'anchor': 'y', 'gridcolor': 'rgb(239, 239, 239)', 'gridwidth': 1, 'linecolor': 'rgb(42, 63, 95)', 'linewidth': 2, 'showgrid': true, 'showline': true, 'showticklabels': true, 'zeroline': false, "ticks": "outside", },
+    'yaxis': {'anchor': 'x', 'gridcolor': 'rgb(239, 239, 239)', 'gridwidth': 1, 'linecolor': 'rgb(42, 63, 95)', 'linewidth': 2, 'showgrid': true, 'showline': true, 'zeroline': true, 'zerolinecolor': 'rgb(239, 239, 239)', 'zerolinewidth': 3, "showticklabels": true, "ticks": "outside", },
+}
+
+Plotly.newPlot('dbl_plot', data, layout);
+    </script>
+
+</html>
