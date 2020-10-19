@@ -1301,10 +1301,8 @@ cdef int KolmogorovSmirnov_sparse_scipy(FunctionEnum_2_Scores_dict, unsigned int
 
 def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
     if not low_memory:
-        # ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
         ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
     else:  # missing: ENSP_2_functionEnumArray_dict
-        # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
     foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes, over_under_int_arr, over_under_arr_of_string = preloaded_objects_per_analysis
     em = ui.enrichment_method
@@ -1409,6 +1407,11 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     df_2_return["FG_n"] = foreground_n
     # rank everything correctly except PMIDs, "year"-column will only affect PMIDs
     df_2_return = df_2_return.sort_values(["etype", "year", "FG_count"], ascending=[True, False, False]).reset_index(drop=True)
+
+    if args_dict["STRING_beta"]:
+        df_2_return = df_2_return.rename(columns={"FG_count": 'foreground_count', "FG_IDs": 'foreground_ids'})
+        # cols_sort_order_charcterize_foreground_STRING = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
+        return df_2_return[variables.cols_sort_order_charcterize_foreground_STRING]
     cond_PMIDs = df_2_return["etype"] == -56
     df_2_return.loc[~cond_PMIDs, "rank"] = df_2_return[~cond_PMIDs].groupby("etype")["FG_count"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
     df_2_return.loc[cond_PMIDs, "rank"] = df_2_return[cond_PMIDs].groupby("etype")["year"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])

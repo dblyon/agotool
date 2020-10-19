@@ -119,7 +119,7 @@ cols_sort_order_compare_samples = cols_sort_order_genome_STRING_beta
 cols_sort_order_characterize_foreground = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category', "rank"]
 cols_2_return_sort_order = ['term', 'hierarchical_level', 'description', 'year', 'over_under', 'p_value', 'FDR', 'effectSize', 'ratio_in_FG', 'ratio_in_BG', 'FG_count', 'FG_n', 'BG_count', 'BG_n', 'FG_IDs', 'BG_IDs', 's_value', 'rank', 'funcEnum', 'category', 'etype']
 cols_sort_order_genome_STRING = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
-cols_sort_order_charcterize_STRING = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
+cols_sort_order_charcterize_foreground_STRING = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
 cols_sort_order_compare_samples_STRING = cols_sort_order_genome_STRING
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
