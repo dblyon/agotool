@@ -372,26 +372,26 @@ cdef int count_terms_cy(unsigned int[::1] funcEnum_associations,
         funcEnum_count[k] += 1
     return 0
 
-def collect_scores_per_term_characterize_foreground(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, score_cutoff=3):
-    funcEnum_2_scores_dict = defaultdict(lambda: [])
-    for protein_AN in protein_AN_list:
-        funcEnum_already_counted = set()
-        try:
-            funcEnum_score = ENSP_2_tuple_funcEnum_score_dict[protein_AN]
-        except KeyError:
-            continue
-        funcEnum_arr, score_arr = funcEnum_score
-        len_funcEnum_arr = len(funcEnum_arr)
-        for index_ in range(len_funcEnum_arr):
-            funcEnum = funcEnum_arr[index_]
-            if funcEnum in funcEnums_2_include_set:
-                score = score_arr[index_]
-                if score >= score_cutoff:
-                    if funcEnum not in funcEnum_already_counted:
-                        # in order to count a function only once per protein
-                        funcEnum_2_scores_dict[funcEnum].append(score)
-                        funcEnum_already_counted.update(set([funcEnum]))
-    return funcEnum_2_scores_dict
+# def collect_scores_per_term_characterize_foreground(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, score_cutoff=3):
+#     funcEnum_2_scores_dict = defaultdict(lambda: [])
+#     for protein_AN in protein_AN_list:
+#         funcEnum_already_counted = set()
+#         try:
+#             funcEnum_score = ENSP_2_tuple_funcEnum_score_dict[protein_AN]
+#         except KeyError:
+#             continue
+#         funcEnum_arr, score_arr = funcEnum_score
+#         len_funcEnum_arr = len(funcEnum_arr)
+#         for index_ in range(len_funcEnum_arr):
+#             funcEnum = funcEnum_arr[index_]
+#             if funcEnum in funcEnums_2_include_set:
+#                 score = score_arr[index_]
+#                 if score >= score_cutoff:
+#                     if funcEnum not in funcEnum_already_counted:
+#                         # in order to count a function only once per protein
+#                         funcEnum_2_scores_dict[funcEnum].append(score)
+#                         funcEnum_already_counted.update(set([funcEnum]))
+#     return funcEnum_2_scores_dict
 
 def collect_scores_per_term(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, list_2_array=False):
     """

@@ -306,7 +306,7 @@ try:
 except:
     pass
 
-jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
+# jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
 # 511145.b1260
 jensenlab_supported_taxids_species_translations_dict = {4932: 559292, 4896: 284812} # Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome
