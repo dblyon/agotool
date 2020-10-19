@@ -201,11 +201,7 @@ parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
 # parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
-# parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
-# parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
-# parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
 parser.add_argument("simplified_output", type=str, default="False")
-# parser.add_argument("do_KS", type=str, default="False")
 parser.add_argument("STRING_beta", type=str, default="False")
 
 
@@ -236,8 +232,8 @@ class API_STRING(Resource):
             for key, val in sorted(args_dict.items()):
                 print(key, val, type(val))
             print("-" * 80)
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         ui = userinput.REST_API_input(pqo, args_dict)
         args_dict = ui.args_dict

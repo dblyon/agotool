@@ -1409,7 +1409,7 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     df_2_return = df_2_return.sort_values(["etype", "year", "FG_count"], ascending=[True, False, False]).reset_index(drop=True)
 
     if args_dict["STRING_beta"]:
-        df_2_return = df_2_return.rename(columns={"FG_count": 'foreground_count', "FG_IDs": 'foreground_ids'})
+        df_2_return = df_2_return.rename(columns={"FG_count": 'foreground_count', "FG_IDs": 'foreground_ids', "ratio_in_FG": "ratio_in_foreground"})
         # cols_sort_order_charcterize_foreground_STRING = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
         return df_2_return[variables.cols_sort_order_charcterize_foreground_STRING]
     cond_PMIDs = df_2_return["etype"] == -56
