@@ -17,7 +17,7 @@ LOW_MEMORY = True # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect to local Postgres or dockerized-Postgres
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
 DEBUG = False # for flask and some internals for printing, set to False in production
-DEBUG_HTML = False # if True: always load example results on submit
+DEBUG_HTML = True # if True: always load example results on submit
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout
@@ -141,8 +141,6 @@ EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata")
 SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
 
-# temp
-fn_example = os.path.join(EXAMPLE_FOLDER, "Test_human_compare_samples.txt") #"Test_yeast_compare_samples_small.txt") #"Test_yeast_compare_samples.txt")
 
 # FLASK_DATA = APP_DIR
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(APP_DIR, 'static/templates')
@@ -157,6 +155,9 @@ FN_GO_BASIC = os.path.join(DATA_DIR, "PostgreSQL/downloads/go-basic.obo")
 
 # Flask app
 STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')
+
+# fn_example = os.path.join(EXAMPLE_FOLDER, "Test_human_compare_samples.txt") #"Test_yeast_compare_samples_small.txt") #"Test_yeast_compare_samples.txt")
+fn_example = os.path.join(STATIC_DIR_FLASK, "plotly/Yeast_acetylation_results_orig_20201012_Plotly.txt")
 
 # automatic updates
 POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")

@@ -1,0 +1,37 @@
+/* overwrite odd rows being grey with white*/
+.dash-header, .expanded-row--empty-cell {background-color: white !important;}
+
+/*.dbl_class {color: red;}*/
+.dash-filter input {
+    text-align: left !important;
+    padding-left: 5px !important;
+    background-color: white !important;
+}
+
+
+
+/* Dash data table START */
+
+/* hover color */
+.dash-spreadsheet-container table {
+    /*--accent: #00a355 !important;*/
+    --accent: black !important;
+    /*--selected-background: #00a35444 !important;*/
+    /*--selected-color: #3C3C3C !important;*/
+    }
+
+/*.svg-inline--fa {*/
+/*    padding: 1px;*/
+/*}*/
+
+
+
+/*Toggle columns button of dash data table*/
+/*.show-hide {*/
+/*    @extend .mr-1;*/
+/*    @extend .btn;*/
+/*    @extend .btn-info;*/
+/*    }*/
+/*.btn, .show-hide {}*/
+
+/* Dash data table STOP */

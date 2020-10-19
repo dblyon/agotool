@@ -13,6 +13,14 @@ from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
+
+import dash
+from dash.dependencies import Input, Output
+import dash_table
+import dash_core_components as dcc
+import dash_html_components as html
+import plotly.express as px
+
 sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy
 
@@ -164,7 +172,6 @@ parser.add_argument("taxid", type=int,help="NCBI taxon identifiers (e.g. Human i
 parser.add_argument("species", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
 parser.add_argument("organism", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
 parser.add_argument("output_format", type=str, help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}", default="tsv")
-
 ### Boolean arguments encoded as str on purpose
 parser.add_argument("filter_parents", type=str,
     help="Remove parent terms (keep GO terms and UniProt Keywords of lowest leaf) if they are associated with exactly the same foreground.",
@@ -172,12 +179,10 @@ parser.add_argument("filter_parents", type=str,
 parser.add_argument("filter_foreground_count_one", type=str, help="Keep only those terms with foreground_count > 1", default="True")
 parser.add_argument("privileged", type=str, default="False")
 parser.add_argument("multiple_testing_per_etype", type=str, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default="True")
-
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date.")
 parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
 parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)
 parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default=None) # -53 missing for UniProt version # "-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58"
-
 parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
@@ -202,12 +207,6 @@ parser.add_argument("num_bins", type=int, help="The number of bins created based
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 parser.add_argument("simplified_output", type=str, default="False") # #!!! necessary for what?
 parser.add_argument("STRING_beta", type=str, default="False")
-# parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
-# parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
-# parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
-# parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
-# parser.add_argument("do_KS", type=str, default="False")
-
 
 
 class API_STRING(Resource):
@@ -706,20 +705,20 @@ def results():
             for key, val in sorted(args_dict.items()):
                 print(key, val, type(val))
             print("-" * 80)
-        # if variables.DEBUG_HTML:
-        #     ui.check = True # ToDo comment #!!! DEBUG
+        if variables.DEBUG_HTML:
+            ui.check = True # ToDo comment #!!! DEBUG
         if ui.check:
             ip = request.environ['REMOTE_ADDR']
             string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
             string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\no_or_u_or_both: {}\np_value_cutoff: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.o_or_u_or_both.data, form.p_value_cutoff.data, form.FDR_cutoff.data, form.enrichment_method.data)
             if not app.debug:
                 log_activity(string2log)
-            ### DEBUG start
-            # if variables.DEBUG_HTML:
-            #     df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-            #     df_all_etypes = df_all_etypes.groupby("etype").head(20)
-            # else:
-            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)
+            ## DEBUG start
+            if variables.DEBUG_HTML:
+                df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+                df_all_etypes = df_all_etypes.groupby("etype").head(20)
+            else:
+                df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)
             ### DEBUG stop
         else:
             errors_dict, args_dict_minus_errors = helper_split_errors_from_dict(args_dict)

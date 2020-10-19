@@ -215,16 +215,3 @@ var submit_form = (function(form_id, action) {
     form.attr("action", action);
     form.submit();
 });
-
-
-// Plotting
-// Plotly
-// TESTER = document.getElementById('tester');
-//
-// Plotly.plot( TESTER, [{
-//     x: [1, 2, 3, 4, 5],
-//     y: [1, 2, 4, 8, 16] }], {
-//     margin: { t: 0 } }, {showSendToCloud:true} );
-
-/* Current Plotly.js version */
-// console.log( Plotly.BUILD );
