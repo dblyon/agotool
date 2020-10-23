@@ -10,44 +10,82 @@
     testing one two
 </p>
 
-<div id="dbl_plot" style="width:80%;height:60%;"></div>
+<div id="dbl_plot" style="width:70%;height:60%;"></div>
 </body>
 
 
 <script>
-let trace0 = {
-x: [6, 7, 1],
-y: [0.047, -0.04, 0.025],
-mode: 'markers',
-name: 'GOCC',
-marker: {'color': '#d95f02', size: [31, 63, 410], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4}
-};
-let trace1 = {
-x: [3, 4, 5],
-y: [0.053, -0.049, 0.046],
-mode: 'markers',
-name: 'TM',
-marker: {'color': '#1b9e77', size: [370, 92, 126], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4}
-};
-let trace2 = {
-x: [8, 5, 2],
-y: [-0.027, -0.024, 0.025],
-mode: 'markers',
-name: 'UPK',
-marker: {'color': '#7570b3', size: [23, 9, 500], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4}
-};
+let trace0 = {x: [6.0, 6.1, 8.0],y: [-0.047, -0.04, -0.027], mode: 'markers', name: 'GOCC', marker: {'color': '#d95f02', size: [31, 63, 23], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4, line: {width: [2, 3, 5], color: ['red', 'green', 'black']},}, row_ids: ['GO:0005730', 'GO:0005783', 'GO:0031410'], customdata: [['GO:0005730', 'nucleolus', 31], ['GO:0005783', 'endoplasmic reticulum', 63], ['GO:0031410', 'cytoplasmic vesicle', 23]], hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>'};
+let trace1 = {x: [3.0, 4.0, 5.0],y: [0.053, -0.049, 0.046], mode: 'markers', name: 'TM', marker: {'color': '#1b9e77', size: [370, 92, 126], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4, line: {width: [2, 3, 5], color: ['red', 'green', 'black']},}, row_ids: ['GOCC:0043229', 'GOCC:0098588', 'GOCC:0005730'], customdata: [['GOCC:0043229', 'Intracellular organelle', 370], ['GOCC:0098588', 'Bounding membrane of organelle', 92], ['GOCC:0005730', 'Nucleolus', 126]], hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>'};
+let trace2 = {x: [5.0, 1.0, 2.0],y: [-0.024, 0.025, 0.025], mode: 'markers', name: 'UPK', marker: {'color': '#7570b3', size: [9, 410, 500], sizemode: 'area', sizeref: 0.05, symbol: 'circle', sizemin: 4, line: {width: [2, 3, 5], color: ['red', 'green', 'black']},}, row_ids: ['KW-0732', 'KW-0156', 'KW-0010'], customdata: [['KW-0732', 'Signal', 9], ['KW-0156', 'Chromatin regulator', 410], ['KW-0010', 'Activator', 500]], hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>'};
+
+
+
+
+
+
 
 let data = [trace0, trace1, trace2];
 
 let layout = {
     'dragmode': 'lasso', 'autosize': true, 'clickmode': 'event+select',
-    'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, 'tracegroupgap': 0},
+    'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, 'tracegroupgap': 100},
     'margin': {'t': 60}, 'plot_bgcolor': 'rgb(255, 255, 255)',
     'xaxis': {'anchor': 'y', 'gridcolor': 'rgb(239, 239, 239)', 'gridwidth': 1, 'linecolor': 'rgb(42, 63, 95)', 'linewidth': 2, 'showgrid': true, 'showline': true, 'showticklabels': true, 'zeroline': false, "ticks": "outside", },
     'yaxis': {'anchor': 'x', 'gridcolor': 'rgb(239, 239, 239)', 'gridwidth': 1, 'linecolor': 'rgb(42, 63, 95)', 'linewidth': 2, 'showgrid': true, 'showline': true, 'zeroline': true, 'zerolinecolor': 'rgb(239, 239, 239)', 'zerolinewidth': 3, "showticklabels": true, "ticks": "outside", },
 }
 
 Plotly.newPlot('dbl_plot', data, layout);
-    </script>
+</script>
+
+<style  type="text/css" >
+#T_056d7d4a_13cf_11eb_9083_8c85908754c3row0_col0 {
+    width:  10em;
+    height:  80%;
+    background:  linear-gradient(90deg, #d65f5f 10.0%, transparent 10.0%);}
+#T_056d7d4a_13cf_11eb_9083_8c85908754c3row1_col0 {
+    width:  10em;
+    height:  80%;
+    background:  linear-gradient(90deg, transparent 5.0%, #d65f5f 5.0%, #d65f5f 10.0%, transparent 10.0%);}
+#T_056d7d4a_13cf_11eb_9083_8c85908754c3row2_col0 {
+    width:  10em;
+    height:  80%;}
+#T_056d7d4a_13cf_11eb_9083_8c85908754c3row3_col0 {
+    width:  10em;
+    height:  80%;
+    background:  linear-gradient(90deg, transparent 10.0%, #5fba7d 10.0%, #5fba7d 100.0%, transparent 100.0%);}
+
+#T_dbl_col0 {
+    width:  10em;
+    height:  80%;
+    background:  linear-gradient(90deg, transparent 10.0%, #5fba7d 10.0%, #5fba7d 65.0%, transparent 65.0%);}
+
+</style><table id="T_056d7d4a_13cf_11eb_9083_8c85908754c3" ><thead>
+<tr>        <th class="blank level0" ></th>        <th class="col_heading level0 col0" ></th>    </tr></thead>
+    <tbody>
+            <tr>
+                        <th id="T_056d7d4a_13cf_11eb_9083_8c85908754c3level0_row0" class="row_heading level0 row0" >0</th>
+                        <td id="T_056d7d4a_13cf_11eb_9083_8c85908754c3row0_col0" class="data row0 col0" >-10</td>
+            </tr>
+            <tr>
+                        <th id="T_056d7d4a_13cf_11eb_9083_8c85908754c3level0_row1" class="row_heading level0 row1" >1</th>
+                        <td id="T_056d7d4a_13cf_11eb_9083_8c85908754c3row1_col0" class="data row1 col0" >-5</td>
+            </tr>
+            <tr>
+                        <th id="T_056d7d4a_13cf_11eb_9083_8c85908754c3level0_row2" class="row_heading level0 row2" >2</th>
+                        <td id="T_056d7d4a_13cf_11eb_9083_8c85908754c3row2_col0" class="data row2 col0" >0</td>
+            </tr>
+            <tr>
+                        <th id="T_056d7d4a_13cf_11eb_9083_8c85908754c3level0_row3" class="row_heading level0 row3" >3</th>
+                        <td id="T_056d7d4a_13cf_11eb_9083_8c85908754c3row3_col0" class="data row3 col0" >90</td>
+            </tr>
+
+            <tr>
+                        <th id="T_056d7d4a_13cf_11eb_9083_8c85908754c3level0_row4" class="row_heading level0 row4" >4</th>
+                        <td id="T_dbl_col0" class="data row4 col0" >65</td>
+            </tr>
+
+    </tbody></table>
+
 
 </html>

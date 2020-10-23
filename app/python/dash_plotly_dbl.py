@@ -321,7 +321,7 @@ def update_scatter(all_rows_data, slctd_row_indices, slct_rows_names, slctd_rows
     dff.loc[slctd_row_indices, "marker_line_color"] = "black"
 
     print("slctd_row_indices {}".format(slctd_row_indices))
-
+    # 'selectedpoints': selected_row_indices,
     return [dcc.Graph(id='scatter-plot',
                  figure=px.scatter(data_frame=dff, x=logFDR, y=effectSize, color=category, size=FG_count, hover_data={term: True, description: True, FG_count: True, logFDR: False, effectSize: False, category: False, color: False, }, custom_data=[term, description, FG_count, color], color_discrete_map=color_discrete_map).update_traces(hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", mode='markers', marker={'sizemode': 'area', 'sizeref': sizeref, 'sizemin': 3, "line_width":dff["marker_line_width"], "line_color":dff["marker_line_color"]}).update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, orientation="h", yanchor="bottom", y=-0.5, xanchor="left", x=0))
                 )]
@@ -381,3 +381,7 @@ if __name__ == '__main__':
 # click table and highlight in plot --> problem that array of values given to all traces instead.
 # https://dash.plotly.com/datatable/interactivity
 # ### https://stackoverflow.com/questions/62516573/update-dash-table-by-selecting-points-on-scatter-plot?answertab=active#tab-top
+# https://github.com/Coding-with-Adam/Dash-by-Plotly/blob/master/Callbacks/Basic%20Callback/basic_callback.py
+
+# https://codeburst.io/notes-from-the-latest-plotly-js-release-b035a5b43e21 and below
+# https://github.com/plotly/dash-recipes/blob/46d8419b267020fdbd1644c31cbe2c3437b24c0b/dash-plotly-132-selected-attributes.py
