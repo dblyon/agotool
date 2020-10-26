@@ -285,7 +285,6 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(selected_ro
         # style_data_conditional_extension = [{'if': {'row_index': 'odd'}, 'backgroundColor': table_background_color}]
         # return style_data_conditional_extension + style_data_conditional_basic, scatter_plot_fig
 
-
 app.layout = html.Div(id='general_div', className="container-fluid",
     children=[
         dbc.Row([
@@ -294,26 +293,11 @@ app.layout = html.Div(id='general_div', className="container-fluid",
 
         html.Br(),
 
-        # dbc.Row(
-        #     dbc.Col(
-        #         html.Div(id="second_row",
-        #             children=[html.Div(data_table_dbl),],
-        #         ),
-        #         # xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},
-        #     ), className="d-flex justify-content-center col-md-auto",
-        # ),
-
         dbc.Row([
             dbc.Col(html.Div(data_table_dbl), xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},), # xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},
         ], justify="center", ),
 
-
         html.Br(),
-
-        # html.Div(id="third_row",
-        #     children=[html.Div(row_and_col_ids_table_temp),]
-        #     ),
-
         ],)
 
 
