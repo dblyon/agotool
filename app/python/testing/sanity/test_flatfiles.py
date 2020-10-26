@@ -98,7 +98,10 @@ def test_flatfiles_number_of_lines_similar_or_larger():
             print("{} not present in current version".format(fn))
         num_lines_previous = df.loc[cond_fnp, "num_lines"].values[0]
         num_lines_current = df.loc[cond_fnc, "num_lines"].values[0]
-        assert num_lines_current >= num_lines_previous
+        try:
+            assert num_lines_current >= num_lines_previous
+        except AssertionError: # at least 95% of previous
+            assert int(100 * num_lines_current / num_lines_previous) >= 95
 
 def test_compare_file_size():
     """
@@ -115,7 +118,10 @@ def test_compare_file_size():
             print("{} not present in current version".format(fn))
         size_previous = df.loc[cond_fnp, "size"].values[0]
         size_current = df.loc[cond_fnc, "size"].values[0]
-        assert size_current >= size_previous
+        try:
+            assert size_current >= size_previous
+        except AssertionError: # at least 95% of previous
+            assert int(100 * size_current / size_previous) >= 95
 
 def test_checksum():
     """
