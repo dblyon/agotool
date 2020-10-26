@@ -2,6 +2,7 @@
 !STRING_v11.3_MultipleProteins_example_*
 # DEPRECATED file in tables_dir and part of tar to rsync !DF_file_dimensions_log.txt
 
+*.fifo
 *.png
 data/plots/*
 # Compiled source #

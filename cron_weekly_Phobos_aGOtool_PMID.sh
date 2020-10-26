@@ -37,7 +37,7 @@ check_exit_status
 ### start uWSGI and PyTest
 cd "$APP_DIR"
 # echo c > PMID_master.fifo
-"$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini
+"$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini &
 sleep 4m
 cd "$TESTING_DIR"
 "$PYTEST_EXE"
