@@ -1,0 +1,34 @@
+name: cron
+channels:
+  - conda-forge
+  - anaconda
+  - bioconda
+  - defaults
+dependencies:
+  - python=3
+  - numpy
+  - cython
+  - pandas
+  - scipy
+  - jupyterlab
+  - ipython
+  - ipykernel
+  - libgcc
+  - fisher
+  - psycopg2
+  - line_profiler
+  - Werkzeug
+  - WTForms
+  - Flask
+  - flask-restful
+  - flask-markdown
+  - networkx
+  - lxml
+  - pytest
+  - pytest-cov
+  - markdown
+  - retrying
+  - requests
+  - beautifulsoup4
+  - uwsgi
+  - snakemake
