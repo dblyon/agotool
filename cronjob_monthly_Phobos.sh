@@ -8,10 +8,14 @@ check_exit_status () {
 }
 TAR_CURRENT=aGOtool_flatfiles_current.tar.gz
 TAR_BAK=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
-PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
-SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
-PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/python
-UWSGI_EXT=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/uwsgi
+# PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
+# SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
+# PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/python
+# UWSGI_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/uwsgi
+PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/pytest
+SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/snakemake
+PYTHON_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/python
+UWSGI_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/uwsgi
 TESTING_DIR=/scratch/dblyon/agotool/app/python/testing/sanity
 TABLES_DIR=/scratch/dblyon/agotool/data/PostgreSQL/tables
 PYTHON_DIR=/scratch/dblyon/agotool/app/python
@@ -39,14 +43,19 @@ check_exit_status
 printf "\n### drop and rename PostgreSQL\n"
 psql -d agotool -f drop_and_rename.psql
 check_exit_status
+
 ### restart uWSGI and PyTest
 printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
 cd "$APP_DIR"
-echo c > agotool_master.fifo
+# echo c > agotool_master.fifo
+"$UWSGI_EXE" uwsgi_config_master.ini &
 sleep 4m
 cd "$TESTING_DIR"
 "$PYTEST_EXE"
 check_exit_status
+echo q > agotool_master.fifo
+check_exit_status
+
 ### copy files to Aquarius (production server)
 echo "\n### copy files to Aquarius (production server)\n"
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"

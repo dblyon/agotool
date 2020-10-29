@@ -1,3 +1,4 @@
+*.fifo
 
 env_file_Aquarius_bak
 *.npy
