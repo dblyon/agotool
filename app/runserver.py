@@ -176,7 +176,7 @@ parser.add_argument("multiple_testing_per_etype", type=str, help="If True calcul
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date.")
 parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
 parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)
-parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default="-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58") # -53 missing for UniProt version
+parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default=None) # -53 missing for UniProt version # "-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58"
 
 parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
@@ -201,11 +201,7 @@ parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
 # parser.add_argument("fold_enrichment_for2background", type=float, help="Apply a filter for the minimum cutoff value of fold enrichment foreground/background.",default=0)
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
-parser.add_argument("score_cutoff", type=float, help="Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.", default=3)
-# parser.add_argument("foreground_replicates", type=int, help="'foreground_replicates' is an integer, defines the number of samples (replicates) of the foreground.", default=10)
-# parser.add_argument("background_replicates", type=int, help="'background_replicates' is an integer, defines the number of samples (replicates) of the background.", default=10)
 parser.add_argument("simplified_output", type=str, default="False")
-# parser.add_argument("do_KS", type=str, default="False")
 parser.add_argument("STRING_beta", type=str, default="False")
 
 
@@ -236,6 +232,9 @@ class API_STRING(Resource):
             for key, val in sorted(args_dict.items()):
                 print(key, val, type(val))
             print("-" * 80)
+        # import pdb
+        # pdb.set_trace()
+
         ui = userinput.REST_API_input(pqo, args_dict)
         args_dict = ui.args_dict
         if not ui.check:
@@ -246,12 +245,7 @@ class API_STRING(Resource):
             taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(args_dict["taxid"], pqo, args_dict)
             if is_taxid_valid:
                 args_dict["taxid"] = taxid
-            # background_n = pqo.get_proteome_count_from_taxid(args_dict["taxid"])
-            # if not background_n:
             else:
-                # args_dict["ERROR taxid"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) with 'Download one protein sequence per gene (FASTA)'."
-                # print("bubu was here!!!")
-                # print(args_dict)
                 return help_page(args_dict)
 
         ### DEBUG start
@@ -268,8 +262,6 @@ class API_STRING(Resource):
         else:
             return format_multiple_results(args_dict, results_all_function_types, pqo)
 
-
-# api.add_resource(API_STRING, "/api", "/api_string", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
 
@@ -569,7 +561,7 @@ characterize_foreground: Foreground only""")
     filter_parents = fields.BooleanField("Filter redundant parent terms", default="checked", description="Retain the most specific (deepest hierarchical level) and remove all parent terms if they share the exact same foreground proteins (default=checked)")
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier, please use the taxonomic rank of species e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
     multiple_testing_per_etype = fields.BooleanField("Multiple testing per category", default="checked", description="If True calculate multiple testing correction separately per functional category, in contrast to performing the correction together for all results (default=checked).")
-    score_cutoff = fields.FloatField("Text mining score cutoff", [validate_float_between_zero_and_five], default = 3.0, description="""Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.""")
+    # score_cutoff = fields.FloatField("Text mining score cutoff", [validate_float_between_zero_and_five], default = 3.0, description="""Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.""")
     foreground_replicates = fields.IntegerField("foreground replicates", [validate_integer], default=10, description="'Foreground replicates' is an integer, defines the number of samples (replicates) of the foreground. default=10.")
     background_replicates = fields.IntegerField("background replicates", [validate_integer], default=10, description="'Background replicates' is an integer, defines the number of samples (replicates) of the background. default=10.")
 
@@ -698,7 +690,8 @@ def results():
                      "output_format": "dataframe",
                      "enrichment_method": form.enrichment_method.data,
                      "multiple_testing_per_etype": form.multiple_testing_per_etype.data,
-                     "score_cutoff": form.score_cutoff.data}
+                     }
+                     # "score_cutoff": form.score_cutoff.data}
         ui = userinput.Userinput(pqo, fn=fileobject,
             foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
@@ -888,4 +881,15 @@ if __name__ == "__main__":
     else:
         app.run(processes=1, port=5911, debug=variables.DEBUG)
 
-# fix bug for abundance_correction and
+    # curl "https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    ### Corona example of 13 UniProt ENSPs
+    # import requests
+    # from io import StringIO
+    # import pandas as pd
+    # url_ = r"https://agotool.meringlab.org/api"
+    # ensps = ['9606.ENSP00000221566', '9606.ENSP00000252593', '9606.ENSP00000332973', '9606.ENSP00000349252', '9606.ENSP00000357470', '9606.ENSP00000370698', '9606.ENSP00000381588', '9606.ENSP00000385675', '9606.ENSP00000389326', '9606.ENSP00000438483', '9606.ENSP00000441875', '9606.ENSP00000479488', '9606.ENSP00000483552']
+    # fg = "%0d".join(ensps)
+    # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
+    # df = pd.read_csv(StringIO(result.text), sep='\t')
+    # print(df.groupby("etype")["term"].count())

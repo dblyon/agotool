@@ -103,10 +103,6 @@
                             {% endif %}
                         <tr title="{{ form.filter_foreground_count_one.description }}"><td>{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
                         <tr class="filter_parents" title="{{ form.filter_parents.description }}"><td>{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
-                        <tr class="score_cutoff" title="{{ form.score_cutoff.description }}"><td>{{ form.score_cutoff.label }}: </td><td>{{ form.score_cutoff() }}</td>
-                            {% if form.score_cutoff.errors %}
-                            <tr><td colspan="2"><ul class="errors"> {% for error in form.score_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
-                            {% endif %}
                     </table>
                 </div>
             </div>

@@ -17,7 +17,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/agotool.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plotly-latest.min.js') }}"></script>
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/plotly-latest.min.js') }}"></script>#}
     {#<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>#}
 
     <link type="text" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css.map')}}">
@@ -46,7 +46,7 @@
               {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock %}
 {#              {% block nav_DB_schema %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('db_schema') }}">DB_schema</a></li>{% endblock %}#}
               {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock %}
-              {% block nav_Plot %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('plot') }}">Plot</a></li>{% endblock %}
+{#              {% block nav_Plot %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('plot') }}">Plot</a></li>{% endblock %}#}
             </ul>
           </div>
         </nav>

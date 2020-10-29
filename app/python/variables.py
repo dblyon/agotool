@@ -115,10 +115,12 @@ goslims_subsets_dict = { # key: abbreviation val: description
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 cols_sort_order_genome_STRING_beta = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
-# cols_sort_order_charcterize = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
+cols_sort_order_compare_samples = cols_sort_order_genome_STRING_beta
 cols_sort_order_characterize_foreground = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category', "rank"]
-cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"] # should be the same as cols_sort_order_genome
 cols_2_return_sort_order = ['term', 'hierarchical_level', 'description', 'year', 'over_under', 'p_value', 'FDR', 'effectSize', 'ratio_in_FG', 'ratio_in_BG', 'FG_count', 'FG_n', 'BG_count', 'BG_n', 'FG_IDs', 'BG_IDs', 's_value', 'rank', 'funcEnum', 'category', 'etype']
+cols_sort_order_genome_STRING = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
+cols_sort_order_charcterize_foreground_STRING = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
+cols_sort_order_compare_samples_STRING = cols_sort_order_genome_STRING
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas
@@ -304,7 +306,7 @@ try:
 except:
     pass
 
-jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
+# jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
 # 511145.b1260
 jensenlab_supported_taxids_species_translations_dict = {4932: 559292, 4896: 284812} # Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome
