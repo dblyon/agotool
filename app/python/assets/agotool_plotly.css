@@ -18,6 +18,18 @@ svg.main-svg g.hoverlayer g.hovertext text{
     fill: #43464B !important;
 }
 
+/* When adding term labels (as interactive annotations) the text "Aa" is added in superscript to the legend. Remove this bug via code below */
+.pointtext {
+    display: none;
+}
+
+.button_dbl {
+    border: #43464B;
+    /*border-color: #43464B;*/
+    color: #43464B;
+    text-transform: none;
+}
+
 
 /* Dash data table START */
 
@@ -27,13 +39,13 @@ svg.main-svg g.hoverlayer g.hovertext text{
     --accent: black !important;
     /*--selected-background: #00a35444 !important;*/
     /*--selected-color: #3C3C3C !important;*/
+    /*margin: 3rem;*/
+    /*padding: 0 20px;*/
     }
 
-/*.svg-inline--fa {*/
-/*    padding: 1px;*/
-/*}*/
-
-
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-freeze-left, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-freeze-top, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-virtualized {
+    padding: 0 20px;
+}
 
 
 /*Toggle columns button of dash data table*/

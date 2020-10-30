@@ -56,4 +56,5 @@ dependencies:
   - python-kaleido
   - nodejs
   - dash-bootstrap-components
+  - dash_daq
 ### conda env create -n plotly -f conda_plotly.yml

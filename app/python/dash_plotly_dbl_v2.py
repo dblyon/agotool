@@ -211,7 +211,7 @@ data_table_dbl = dash_table.DataTable(
                          }, # 'minWidth': '90%'
             # page_current=0,              # page number that user is on
             # page_size=10,                # number of rows visible per page
-            style_header={'backgroundColor': 'white', 'borderBottom': '1px solid black', "fontSize": "13px", 'fontWeight': 'bold', 'whiteSpace': 'normal', 'height': 'auto', 'textAlign': 'left', "text-indent": "0.25em", },
+            style_header={'backgroundColor': 'white', 'borderBottom': '1px solid black', "fontSize": "13px", 'fontWeight': 'bold', 'whiteSpace': 'normal', 'height': 'auto', 'textAlign': 'center', "text-indent": "0.25em", },
             style_cell={                 # ensure adequate header width when text is shorter than cell's text
                 'minWidth': "10px", "width": "50px", "maxWidth": "400px", #'width': 60,
                 "fontSize": "12px",
@@ -231,7 +231,7 @@ data_table_dbl = dash_table.DataTable(
                 +
                 [{"if": {"column_id": FG_IDs}, "width": "120px"}] # 120
                 +
-                [{"if": {"column_id": colName}, "width": "110px"} for colName in [FDR, effectSize, s_value]], # 110
+                [{"if": {"column_id": colName}, "width": "110px"} for colName in [FDR, effectSize]], # 110
                 # +
                 # [{"if": {"column_id": s_value}, "backgroundColor": "black"}] ,
             style_data={ # overflow cells' content into multiple lines
@@ -285,7 +285,6 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(selected_ro
         # style_data_conditional_extension = [{'if': {'row_index': 'odd'}, 'backgroundColor': table_background_color}]
         # return style_data_conditional_extension + style_data_conditional_basic, scatter_plot_fig
 
-
 app.layout = html.Div(id='general_div', className="container-fluid",
     children=[
         dbc.Row([
@@ -294,25 +293,11 @@ app.layout = html.Div(id='general_div', className="container-fluid",
 
         html.Br(),
 
-        # dbc.Row(
-        #     dbc.Col(
-        #         html.Div(id="second_row",
-        #             children=[html.Div(data_table_dbl),],
-        #         ),
-        #         # xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},
-        #     ), className="d-flex justify-content-center col-md-auto",
-        # ),
-
         dbc.Row([
-            dbc.Col(html.Div(data_table_dbl), xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},), # xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},
+            dbc.Col(html.Div(data_table_dbl), xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},),
         ], justify="center", ),
 
-
         html.Br(),
-
-        # html.Div(id="third_row",
-        #     children=[html.Div(row_and_col_ids_table_temp),]
-        #     ),
 
         ],)
 
