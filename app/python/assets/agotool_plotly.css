@@ -23,12 +23,13 @@ svg.main-svg g.hoverlayer g.hovertext text{
     display: none;
 }
 
-.button_dbl {
-    border: #43464B;
-    /*border-color: #43464B;*/
-    color: #43464B;
-    text-transform: none;
-}
+/* potentially deprecated */
+/*.button_dbl {*/
+/*    border: #43464B;*/
+/*    !*border-color: #43464B;*!*/
+/*    color: #43464B;*/
+/*    text-transform: none;*/
+/*}*/
 
 
 /* Dash data table START */

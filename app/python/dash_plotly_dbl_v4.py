@@ -198,15 +198,14 @@ style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor":
                                 {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},] + data_bars_dbl(df, s_value)
 
 print("<<< restarting {} >>>".format(datetime.datetime.now()))
-bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/materia/bootstrap.min.css" # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/litera/bootstrap.min.css"
-app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[bs]) # dbc.themes.BOOTSTRAP
-
+# bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/materia/bootstrap.min.css" # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/litera/bootstrap.min.css"
+app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[dbc.themes.BOOTSTRAP]) # dbc.themes.BOOTSTRAP [bs]
 
 
 @app.callback(
-    [Output(component_id='main_datatable', component_property='selected_rows'),
-     Output(component_id='main_datatable', component_property='sort_by')],
-    [Input(component_id='button_reset_plot', component_property='n_clicks'),],)
+    [Output(component_id="main_datatable", component_property="selected_rows"),
+     Output(component_id="main_datatable", component_property="sort_by")],
+    [Input(component_id="button_reset_plot", component_property="n_clicks"),],)
 def select_deselect(button_reset_plot_n_clicks):
     """
     https://community.plotly.com/t/select-all-rows-in-dash-datatable/41466 # for de-selecting everything
@@ -217,11 +216,10 @@ def select_deselect(button_reset_plot_n_clicks):
         if trigger == "button_reset_plot":
             return [], []
 
-
 @app.callback([Output(component_id="main_datatable", component_property="style_data_conditional"),
                Output(component_id="scatter_container", component_property="children")],
               [Input(component_id="main_datatable", component_property="derived_virtual_data"),
-               Input(component_id="main_datatable", component_property='derived_virtual_selected_row_ids'),
+               Input(component_id="main_datatable", component_property="derived_virtual_selected_row_ids"),
                Input(component_id="toggle_point_labels", component_property="value")])
 def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, toggle_point_labels_value):
     if derived_virtual_data is None or len(derived_virtual_data) == 0:
@@ -331,40 +329,63 @@ data_table_dbl = create_DataTable(df)
 
 
 
+row1 = html.Tr([
+    html.Td([
+        daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', className="checkbox"),
+        dbc.Button('reset plot/table', id='button_reset_plot', n_clicks=0, color="secondary", outline=True, className="mr-1", size="sm"),
+        ], style=dict(valign="top nowrap"), ),
+    html.Td(
+        html.Div(id="scatter_container", children=[]),
+        ),
+    ])
+# row2 = html.Tr([
+#     html.Td([
+#         html.Div(data_table_dbl, ),
+#     ])
+# ])
+table_body = [html.Tbody([row1])]
 
+# table = dbc.Table(table_header + table_body, bordered=True)
+# Use col-{breakpoint}-auto classes to size columns based on the natural width of their content.
+# --> class="col-md-auto"
 ### app
 app.layout = html.Div(id='general_div', className="container",
-    children=[
-        html.Div(id="first_row", className="container", children=[
-            dbc.Row([
-                dbc.Col(html.Button('reset plot', id='button_reset_plot', n_clicks=0, title="Click the button to reset the plot to its initial state", className="btn btn-secondary btn-sm button_dbl"),),
-
-                daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='Label selected points', labelPosition='bottom', ),
-
-                dbc.Col(html.Div(id="scatter_container", children=[]), xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 8},),
-                ], justify="center",),
-                html.Div(id="testing_out", children=[]),
-        ]),
+    children=[html.Div(html.Tbody([row1])),
 
 
-        # html.Br(),
+
+        # html.Div(id="testing_row", className="", children=[
+        #     html.Tbody([row1])
+        # ]),
+
+
+
+
+        # html.Div(id="first_row", className="container", children=[
         #
-        # dbc.Row([
-        #     dbc.Col(html.Div(data_table_dbl), xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},),
-        # ], justify="center",),
-        # html.Button('reset plot', id='reset_plot_button', title="Click the button to reset the plot to its initial state",
-        #     className="btn btn-secondary btn-sm dbl_button"),
+        #     dbc.Row([
+        #         daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', className="checkbox"),
+        #     ]),
+        #
+        #     dbc.Row([
+        #         dbc.Col(dbc.Button('reset plot/table', id='button_reset_plot', n_clicks=0, color="secondary", outline=True, className="mr-1", size="sm"),),
+        #     ]),
+        #
+        #     dbc.Row([
+        #         dbc.Col(html.Div(id="scatter_container", children=[]), xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 8},),
+        #     ], justify="center",),
+        #
+        # ]),
+
 
         html.Div(id="second_row", className="dbl", children=[
             dbc.Row(children=[
                 dbc.Col(width=1),
                 dbc.Col(html.Div(data_table_dbl,), className="container", ), # className="d-flex justify-content-center" xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 10},
                 dbc.Col(width=1),
-                ],justify="center"), #  justify="center"
-            ], ), # className="d-flex justify-content-center"
+                ],justify="center"),
+            ], ),
 
-
-        # html.Br(),
 
         ],)
 
@@ -476,3 +497,72 @@ if __name__ == '__main__':
 #     print("sort_by: ids of rows that are selected via the UI: {}".format(sort_by))
 #     print()
 #     return "bubu"
+
+
+ #     dbc.Row(
+    #         [
+    #             dbc.Col(html.Div("A")),
+    #             dbc.Col(html.Div("B plot")),
+    #             dbc.Col(html.Div("C")),
+    #         ],
+    #         align="start",
+    #     ),
+    #     dbc.Row(
+    #         [
+    #             dbc.Col(html.Div("D label selected points")),
+    #             dbc.Col(html.Div("E")),
+    #             dbc.Col(html.Div("F")),
+    #         ],
+    #         align="center",
+    #     ),
+    #     dbc.Row(
+    #         [
+    #             dbc.Col(html.Div("G reset plot/table")),
+    #             dbc.Col(html.Div("H")),
+    #             dbc.Col(html.Div("I")),
+    #         ],
+    #         align="end",
+    #     ),
+    #     dbc.Row(
+    #         [
+    #             dbc.Col(html.Div("J"), align="start"),
+    #             dbc.Col(html.Div("K"), align="center"),
+    #             dbc.Col(html.Div("L"), align="end"),
+    #         ]
+    #     ),
+    # html.Br(),
+    # html.Br(),
+    # html.Br(),
+
+        # dbc.Row(
+        #     [dbc.Col(html.Div(id="scatter_container", children=[]), className="col align-self-start"),
+        #     ],
+        #     # align="start",
+        # ),
+        # dbc.Row(
+        #     [
+        #         dbc.Col(daq.ToggleSwitch(id='toggle_point_labels', value=False, size=28, label='label selected points', labelPosition='bottom', className="checkbox"),),
+        #         dbc.Col(html.Div()),
+        #         dbc.Col(html.Div()),
+        #     ],
+        #     align="center",
+        # ),
+        # dbc.Row(
+        #     [
+        #         dbc.Col(dbc.Button('reset plot/table', id='button_reset_plot', n_clicks=0, color="secondary", outline=True, className="mr-1", size="sm")),
+        #         dbc.Col(html.Div()),
+        #         dbc.Col(html.Div()),
+        #     ],
+        #     align="end",
+        # ),
+        # dbc.Row(
+        #     [
+        #         dbc.Col(html.Div(), align="start"),
+        #         dbc.Col(html.Div(), align="center"),
+        #         dbc.Col(html.Div(), align="end"),
+        #     ]
+        # ),
+        #     html.Br(), html.Br(), html.Br(),
+
+
+### dbc.Col(html.Button('reset plot & table', id='button_reset_plot', n_clicks=0, title="Click the button to reset the plot and the table to its initial state.", className="btn btn-secondary btn-sm button_dbl"),),
