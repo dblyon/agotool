@@ -5,7 +5,7 @@ import pandas as pd
 pd.set_option('display.max_colwidth', 300) # in order to prevent 50 character cutoff of to_html export / ellipsis
 # from plotly_tools import data_bars
 import dash
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_table
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
@@ -90,7 +90,9 @@ df = df.sort_values(["category", "rank"]).reset_index(drop=True)
 
 # df.sort_values(["rank"])
 # df = df.groupby("etype").head(3)
+# df["FG_IDs"] = ""
 df["id"] = df["term"]
+# print(df["term"].reset_index(drop=True))
 df.set_index("id", inplace=True, drop=False)
 # del df["id"]
 # del df["FG_IDs"]
@@ -192,84 +194,75 @@ def data_bars_dbl(df, column):
             styles.append({'if': {"column_id": "s value", "filter_query": "{id} = " + term, 'row_index': 'odd'}, "background": "linear-gradient(90deg, {} ) rgb(242, 242, 242) ".format(color_bar), "paddingBottom": 1, "paddingTop": 1})
     return styles
 
-style_data_conditional_basic = [
-                                {"if": {"state": "selected"}, "backgroundColor": highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
-                                {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},
-                                ] + data_bars_dbl(df, s_value)
+style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor": highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
+                                {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},] + data_bars_dbl(df, s_value)
 
-# print(">"*50)
 print("<<< restarting {} >>>".format(datetime.datetime.now()))
 bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/materia/bootstrap.min.css" # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/litera/bootstrap.min.css"
 app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[bs]) # dbc.themes.BOOTSTRAP
 
 
 
-# @app.callback([Output(component_id="main_datatable", component_property="derived_virtual_selected_row_ids")],
-#               [Input(component_id="button_reset_plot", component_property="n_clicks")])
-# def bubu(n_clicks):
-#     # global button_reset_plot_n_click
-#     # if n_clicks > button_reset_plot_n_click:
-#     if n_clicks is not None:
-#         print("bubu if")
-#         # button_reset_plot_n_click = n_clicks
-#         # derived_virtual_selected_row_ids = []
-#         return []
-
+@app.callback(
+    [Output(component_id='main_datatable', component_property='selected_rows'),
+     Output(component_id='main_datatable', component_property='sort_by')],
+    [Input(component_id='button_reset_plot', component_property='n_clicks'),],)
+def select_deselect(button_reset_plot_n_clicks):
+    """
+    https://community.plotly.com/t/select-all-rows-in-dash-datatable/41466 # for de-selecting everything
+    """
+    ctx = dash.callback_context
+    if ctx.triggered:
+        trigger = ctx.triggered[0]["prop_id"].split(".")[0]
+        if trigger == "button_reset_plot":
+            return [], []
 
 
 @app.callback([Output(component_id="main_datatable", component_property="style_data_conditional"),
-               Output(component_id="scatter_container", component_property="children"),
-               Output(component_id="main_datatable", component_property="selected_rows")],
+               Output(component_id="scatter_container", component_property="children")],
               [Input(component_id="main_datatable", component_property="derived_virtual_data"),
                Input(component_id="main_datatable", component_property='derived_virtual_selected_row_ids'),
-               Input(component_id="button_reset_plot", component_property="n_clicks")])
-def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, n_clicks):
-    global button_reset_plot_n_click
-    if n_clicks > button_reset_plot_n_click:
-        button_reset_plot_n_click = n_clicks
-        dff = pd.DataFrame(derived_virtual_data)
-        selected_term_list, derived_virtual_selected_row_ids, selected_rows = [], [], []
+               Input(component_id="toggle_point_labels", component_property="value")])
+def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, toggle_point_labels_value):
+    if derived_virtual_data is None or len(derived_virtual_data) == 0:
+        dff = df
     else:
-        if derived_virtual_data is None or len(derived_virtual_data) == 0:
-            dff = df
-        else:
-            dff = pd.DataFrame(derived_virtual_data)
-        selected_term_list = derived_virtual_selected_row_ids
+        dff = pd.DataFrame(derived_virtual_data)
 
-
-
-    if selected_term_list is not None and len(selected_term_list) > 0:
-        # ### draw order of selected points
-        # term_rank = list(set(dff[term].values) - set(selected_term_list)) + selected_term_list
-        # dff["term"] = pd.Categorical(dff["term"], term_rank)
-        # dff = dff.sort_values(["term", "rank"]).reset_index(drop=True)
-        cond_selected_terms = dff[term].isin(selected_term_list)
-        selected_rows = dff[cond_selected_terms].index.values  # Indices of selected rows regardless of filtering results
-
+    if derived_virtual_selected_row_ids is None or len(derived_virtual_selected_row_ids) == 0:
+        fig = go.Figure()
+        for category_name, group in dff.groupby(category):
+            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
+        fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), )
+        scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
+        return style_data_conditional_basic, scatter_plot_fig
+    else: ### modified plot
+        cond_selected_terms = dff[term].isin(derived_virtual_selected_row_ids)
         dff[marker_line_width] = 1
         dff[marker_line_color] = "white"
         dff.loc[cond_selected_terms, marker_line_width] = 3
         dff.loc[cond_selected_terms, marker_line_color] = hover_label_color
-        style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': highlight_color} for term_ in selected_term_list]
-        dff["label"] = ""
-        dff.loc[cond_selected_terms, "label"] = dff.loc[cond_selected_terms, term]
-        fig = go.Figure()
-        x_min, x_max = dff[logFDR].min(), dff[logFDR].max()
-        y_min, y_max = dff[effectSize].min(), dff[effectSize].max()
+        style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': highlight_color} for term_ in derived_virtual_selected_row_ids]
 
-        for category_name, group in dff.groupby(category):
-            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
-        fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle",), xaxis_range=[x_min*0.93, x_max*1.07], yaxis_range=[y_min*1.25, y_max*1.25])
-        scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
-        return style_data_conditional_extension + style_data_conditional_basic, scatter_plot_fig, selected_rows
-    else:
         fig = go.Figure()
-        for category_name, group in dff.groupby(category):
-            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>",))
-        fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle",),)
+        if toggle_point_labels_value:
+            dff["label"] = ""
+            dff.loc[cond_selected_terms, "label"] = dff.loc[cond_selected_terms, term]
+            x_min, x_max, y_min, y_max = dff[logFDR].min(), dff[logFDR].max(), dff[effectSize].min(), dff[effectSize].max()
+            for category_name, group in dff.groupby(category):
+                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
+            fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), xaxis_range=[x_min * 0.93, x_max * 1.07], yaxis_range=[y_min * 1.25, y_max * 1.25])
+
+        else:
+            for category_name, group in dff.groupby(category):
+                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
+            fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ),)
+
         scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
-        selected_rows = []
-        return style_data_conditional_basic, scatter_plot_fig, selected_rows
+        return style_data_conditional_extension + style_data_conditional_basic, scatter_plot_fig
+
+
+
 
 
 def create_DataTable(df):
@@ -344,14 +337,13 @@ app.layout = html.Div(id='general_div', className="container",
     children=[
         html.Div(id="first_row", className="container", children=[
             dbc.Row([
-                dbc.Col(html.Button('reset plot', id='button_reset_plot', n_clicks=0, title="Click the button to reset the plot to its initial state",
-                    className="btn btn-secondary btn-sm button_dbl"),),
-                # dbc.Col(html.Button('toggle labels', id='toggle_labels_button', title="Click to toggle - show/hide - the labels of points in the plot. Labels are only shown for points ",
-                #     className="btn btn-secondary btn-sm dbl_button"),),
-                daq.ToggleSwitch(id='toggle-switch-labels', value=False, size=30, label='Toggle labels', labelPosition='bottom', ), # Toggle show/hide labels if selected points in the plot
+                dbc.Col(html.Button('reset plot', id='button_reset_plot', n_clicks=0, title="Click the button to reset the plot to its initial state", className="btn btn-secondary btn-sm button_dbl"),),
+
+                daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='Label selected points', labelPosition='bottom', ),
 
                 dbc.Col(html.Div(id="scatter_container", children=[]), xs={"size": 12}, sm={"size": 12}, md={"size": 10}, lg={"size": 8},),
                 ], justify="center",),
+                html.Div(id="testing_out", children=[]),
         ]),
 
 
@@ -393,12 +385,94 @@ if __name__ == '__main__':
 # Buggy:
 # - svg layers ? row selection only triggers label on second click
 # - sort multiple columns --> hover over table or plot triggers slight change in size and grid of table visible
+# - sort "s_value" and select row --> plot highlight haywire infinite loop
 
 # missing features:
-# - button to reset plot
 # - export as SVG
 # - hierarchical network connections
 # - resize table upon adding columns
 # - button to toggle labels of selected terms
 # - remove unneccessary tools from Plotly toolbar
 # - filter data --> search with case insensitive input
+
+
+
+### works if table not sorted/filtered otherwise infinite loop
+# @app.callback([Output(component_id="main_datatable", component_property="style_data_conditional"),
+#                Output(component_id="scatter_container", component_property="children"),
+#                Output(component_id="main_datatable", component_property="selected_rows")], #*
+#               [Input(component_id="main_datatable", component_property="derived_virtual_data"),
+#                Input(component_id="main_datatable", component_property='derived_virtual_selected_row_ids'),
+#                Input(component_id="button_reset_plot", component_property="n_clicks")]) #*
+# def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, n_clicks):
+#     global button_reset_plot_n_click
+#     if n_clicks > button_reset_plot_n_click:
+#         button_reset_plot_n_click = n_clicks
+#         dff = pd.DataFrame(derived_virtual_data)
+#         selected_term_list, selected_rows = [], []
+#     else:
+#         if derived_virtual_data is None or len(derived_virtual_data) == 0:
+#             dff = df
+#         else:
+#             dff = pd.DataFrame(derived_virtual_data)
+#         selected_term_list = derived_virtual_selected_row_ids
+#
+#     if selected_term_list is not None and len(selected_term_list) > 0:
+#         # ### draw order of selected points
+#         # term_rank = list(set(dff[term].values) - set(selected_term_list)) + selected_term_list
+#         # dff["term"] = pd.Categorical(dff["term"], term_rank)
+#         # dff = dff.sort_values(["term", "rank"]).reset_index(drop=True)
+#         cond_selected_terms = dff[term].isin(selected_term_list)
+#         selected_rows = dff[cond_selected_terms].index.values  # Indices of selected rows regardless of filtering results
+#
+#         dff[marker_line_width] = 1
+#         dff[marker_line_color] = "white"
+#         dff.loc[cond_selected_terms, marker_line_width] = 3
+#         dff.loc[cond_selected_terms, marker_line_color] = hover_label_color
+#         style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': highlight_color} for term_ in selected_term_list]
+#         dff["label"] = ""
+#         dff.loc[cond_selected_terms, "label"] = dff.loc[cond_selected_terms, term]
+#         fig = go.Figure()
+#         x_min, x_max = dff[logFDR].min(), dff[logFDR].max()
+#         y_min, y_max = dff[effectSize].min(), dff[effectSize].max()
+#
+#         for category_name, group in dff.groupby(category):
+#             fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
+#         fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle",), xaxis_range=[x_min*0.93, x_max*1.07], yaxis_range=[y_min*1.25, y_max*1.25])
+#         scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
+#         return style_data_conditional_extension + style_data_conditional_basic, scatter_plot_fig, selected_rows
+#     else:
+#         fig = go.Figure()
+#         for category_name, group in dff.groupby(category):
+#             fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>",))
+#         fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle",),)
+#         scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
+#         selected_rows = []
+#         return style_data_conditional_basic, scatter_plot_fig, selected_rows
+
+
+### https://community.plotly.com/t/select-all-rows-in-dash-datatable/41466 # for de-selecting everything
+
+
+
+# @app.callback(
+#     Output(component_id='testing_out', component_property='children'),
+#     [Input(component_id='main_datatable', component_property="derived_virtual_data"),
+#      Input(component_id='main_datatable', component_property='derived_virtual_indices'),
+#      Input(component_id='main_datatable', component_property='derived_virtual_selected_rows'),
+#      Input(component_id='main_datatable', component_property='derived_virtual_selected_row_ids'),
+#      Input(component_id='main_datatable', component_property='selected_rows'),
+#      Input(component_id='main_datatable', component_property='selected_row_ids'),
+#      Input(component_id='main_datatable', component_property='sort_by'),])
+# def update_scatter(derived_virtual_data, derived_virtual_indices, derived_virtual_selected_rows, derived_virtual_selected_row_ids,
+#         selected_rows, selected_row_ids, sort_by):
+#     print('***************************************************************************')
+#     print('derived_virtual_data: Data across all pages pre or post filtering: {}'.format(len(derived_virtual_data)))
+#     print("derived_virtual_indices: Indices of selected rows if part of table after filtering:{}".format(derived_virtual_indices))
+#     print("derived_virtual_selected_rows: Names of selected rows if part of table after filtering: {}".format(derived_virtual_selected_rows))
+#     print("derived_virtual_selected_row_ids: IDs of the selected_rows as they appear after filtering and sorting, across all pages: {}".format(derived_virtual_selected_row_ids))
+#     print("selected_rows: Indices of selected rows regardless of filtering results: {}".format(selected_rows))
+#     print("selected_row_ids: ids of rows that are selected via the UI: {}".format(selected_row_ids))
+#     print("sort_by: ids of rows that are selected via the UI: {}".format(sort_by))
+#     print()
+#     return "bubu"

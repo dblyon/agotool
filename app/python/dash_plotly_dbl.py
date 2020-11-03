@@ -291,14 +291,14 @@ app.layout = html.Div([
      Input(component_id='datatable-interactivity', component_property='active_cell'),
      Input(component_id='datatable-interactivity', component_property='selected_cells')]
 )
-def update_scatter(all_rows_data, slctd_row_indices, slct_rows_names, slctd_rows,
+def update_scatter(derived_virtual_data, derived_virtual_selected_rows, derived_virtual_selected_row_ids, selected_rows,
                order_of_rows_indices, order_of_rows_names, actv_cell, slctd_cell):
     # print('***************************************************************************')
-    # print('Data across all pages pre or post filtering: {}'.format(len(all_rows_data))) # derived_virtual_data
+    print('Data across all pages pre or post filtering: {}'.format(len(derived_virtual_data))) # derived_virtual_data
     print('---------------------------------------------')
-    print("Indices of selected rows if part of table after filtering:{}".format(slctd_row_indices)) # derived_virtual_selected_rows
-    print("Names of selected rows if part of table after filtering: {}".format(slct_rows_names)) # derived_virtual_selected_row_ids
-    print("Indices of selected rows regardless of filtering results: {}".format(slctd_rows)) # selected_rows
+    print("Indices of selected rows if part of table after filtering:{}".format(derived_virtual_selected_rows)) # derived_virtual_selected_rows
+    print("Names of selected rows if part of table after filtering: {}".format(derived_virtual_selected_row_ids)) # derived_virtual_selected_row_ids
+    print("Indices of selected rows regardless of filtering results: {}".format(selected_rows)) # selected_rows
     print('---------------------------------------------')
     print("Indices of all rows pre or post filtering: {}".format(order_of_rows_indices)) # derived_virtual_indices
     print("Names of all rows pre or post filtering: {}".format(order_of_rows_names)) # derived_virtual_row_ids
@@ -306,7 +306,7 @@ def update_scatter(all_rows_data, slctd_row_indices, slct_rows_names, slctd_rows
     print("Complete data of active cell: {}".format(actv_cell)) # active_cell
     print("Complete data of all selected cells: {}".format(slctd_cell)) # selected_cells
 
-    dff = df if len(all_rows_data) == 0 else pd.DataFrame(all_rows_data)
+    dff = df if len(derived_virtual_data) == 0 else pd.DataFrame(derived_virtual_data)
     sizeref = 2.0 * max(dff[FG_count]) / (max_marker_size ** 2)
     ### DBL
     # line_dict = {}
