@@ -1,9 +1,10 @@
-import os, sys, json
+import os, sys, json, pickle
 import datetime
 import numpy as np
 import pandas as pd
 pd.set_option('display.max_colwidth', 300) # in order to prevent 50 character cutoff of to_html export / ellipsis
 # from plotly_tools import data_bars
+from collections import defaultdict
 import dash
 from dash.dependencies import Input, Output, State
 import dash_table
@@ -141,10 +142,24 @@ df = df[cols + list(df_cols_set - set(cols))]
 
 df[marker_line_width] = 1
 df[marker_line_color] = "white"
-max_marker_size = 40
+max_marker_size = 30
 min_marker_size = 4
 sizeref = 2.0 * max(df[FG_count]) / (max_marker_size ** 2)
 button_reset_plot_n_click = 0
+
+### Network edges based on relationship within Ontology
+### Dict: key=term val=[X_vals_list, Y_vals_list, Weights_list]
+# for every term:
+#   for every edge:
+#     e.g. between point A (Ax, Ay) and B (Bx, By) as well as A (Ax, Ay) and C (Cx, Cy)
+#     X_point_list += [Ax, Bx, None]
+#     Y_point_list += [Ay, By, None]
+#     X_point_list += [Ax, Cx, None]
+#     Y_point_list += [Ay, Cy, None]
+term_2_edges_dict = defaultdict(lambda: {"X_points": [], "Y_points": [], "Weights": []})
+term_2_edges_dict.update(pickle.load(open("term_2_edges_dict.p", "rb")))
+
+
 
 colName_attributes = []
 for colName in df.columns:
@@ -220,8 +235,9 @@ def select_deselect(button_reset_plot_n_clicks):
                Output(component_id="scatter_container", component_property="children")],
               [Input(component_id="main_datatable", component_property="derived_virtual_data"),
                Input(component_id="main_datatable", component_property="derived_virtual_selected_row_ids"),
-               Input(component_id="toggle_point_labels", component_property="value")])
-def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, toggle_point_labels_value):
+               Input(component_id="toggle_point_labels", component_property="value"),
+               Input(component_id="toggle_point_edges", component_property="value")])
+def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, toggle_point_labels_value, toggle_point_edges_value):
     if derived_virtual_data is None or len(derived_virtual_data) == 0:
         dff = df
     else:
@@ -232,6 +248,7 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
         for category_name, group in dff.groupby(category):
             fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
         fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), )
+        fig.update_layout(autosize=False, width=800, height=520, )
         scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
         return style_data_conditional_basic, scatter_plot_fig
     else: ### modified plot
@@ -243,6 +260,16 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
         style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': highlight_color} for term_ in derived_virtual_selected_row_ids]
 
         fig = go.Figure()
+
+        if toggle_point_edges_value:
+            X_points, Y_points, Weights = [], [], []
+            for term_ in derived_virtual_selected_row_ids:
+                edges_dict = term_2_edges_dict[term_]
+                X_points += edges_dict["X_points"]
+                Y_points += edges_dict["Y_points"]
+                Weights += edges_dict["Weights"]
+            fig.add_trace(go.Scatter(x=X_points, y=Y_points, mode='lines', showlegend=False, line=dict(color='rgb(210,210,210)', width=1), hoverinfo='none'))
+
         if toggle_point_labels_value:
             dff["label"] = ""
             dff.loc[cond_selected_terms, "label"] = dff.loc[cond_selected_terms, term]
@@ -256,11 +283,9 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
                 fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
             fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ),)
 
+        fig.update_layout(autosize=False, width=800, height=520, )
         scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
         return style_data_conditional_extension + style_data_conditional_basic, scatter_plot_fig
-
-
-
 
 
 def create_DataTable(df):
@@ -327,32 +352,27 @@ def create_DataTable(df):
 
 data_table_dbl = create_DataTable(df)
 
-
-
 row1 = html.Tr(
     [
 
     html.Td([
-        daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', style=dict(color="#6c757d", )), # halign="center", margin="0 auto"
+        daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', style=dict(color="#6c757d", )), # fontSize="4px"
+        daq.ToggleSwitch(id='toggle_point_edges', value=False, size=30, label='show edges of selected points', labelPosition='bottom', style=dict(color="#6c757d", )),
         html.P(),
         dbc.Button('reset plot/table', id='button_reset_plot', n_clicks=0, color="secondary", outline=True, className="mr-1", size="sm", style=dict(align_items="center", justify_content="center")),
         ], style=dict(valign="top nowrap", align_items="center", justify_content="center", ), ), # halign="center", margin="0 auto", align="center"
 
     html.Td([
         html.Div(id="scatter_container", children=[]),
-        ], style=dict(display="flex", align_items="center", justify_content="center")),
+        ], style=dict(align_items="center", justify_content="center")), # display="flex",
 
     ], ) # style=dict(display="flex")
-
-
 # row2 = html.Tr([
 #     html.Td([
 #         html.Div(data_table_dbl, ),
 #     ])
 # ])
-
 table_body = [html.Tbody([row1])]
-
 # table = dbc.Table(table_header + table_body, bordered=True)
 # Use col-{breakpoint}-auto classes to size columns based on the natural width of their content.
 # --> class="col-md-auto"
@@ -369,6 +389,7 @@ app.layout = html.Div(id='general_div', className="container",
                 ],justify="center"),
             ], ),
 
+        html.P(),
 
         ],)
 
