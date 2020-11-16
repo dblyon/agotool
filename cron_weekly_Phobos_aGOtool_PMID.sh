@@ -2,28 +2,18 @@
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
-### Overview of scripts and pipelines --> for PMID autoupdate part
-### Phobos
-# - run snakemake on Phobos /home/dblyon/agotool_PMID_autoupdate/agotool
-# - tar and gz compress new files for transfer and backup
-# - push to Aquarius and Pisces, on San pull from Aquarius
 TAR_CURRENT=aGOtool_PMID_pickle_current.tar.gz
 TAR_BAK=bak_aGOtool_PMID_pickle_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 global_enrichment_data_current=global_enrichment_data_current.tar.gz
-# global_enrichment_data_bak=bak_global_enrichment_data_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
 populate_classification_schema_current=populate_classification_schema_current.sql.gz
-# populate_classification_schema_bak=populate_classification_schema_$(date +"%Y_%m_%d_%I_%M_%p").sql.gz
 TAR_GED_ALL_CURRENT=GED_all_current.tar
 TAR_GED_ALL_BAK=bak_GED_all_$(date +"%Y_%m_%d_%I_%M_%p").tar
 GED_DIR=/home/dblyon/global_enrichment_v11
 APP_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app
 PYTHON_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python
 TABLES_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables
-# SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/snakemake
 SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/snakemake
-# PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/pytest
 PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/pytest
-# UWSGI_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/agotoolv2/bin/uwsgi
 UWSGI_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/uwsgi
 TESTING_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python/testing/sanity
 
@@ -34,6 +24,7 @@ cd "$PYTHON_DIR" || exit
 check_exit_status
 
 ### start uWSGI and PyTest
+printf "\n start uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
 "$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini &
 sleep 4m

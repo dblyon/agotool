@@ -1,8 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2038
-# shellcheck disable=SC2164
-# shellcheck disable=SC2028
-# shellcheck disable=SC2181
+
 ### crontab
 ### 1 13 * * 1 /home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh >> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_cron_weekly_San_update_aGOtool_PMID.txt 2>&1
 check_exit_status () {
@@ -11,7 +8,6 @@ check_exit_status () {
 TABLES_DIR=/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
 APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
 PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
-UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 TAR_GED_ALL_CURRENT=GED_all_current.tar
 global_enrichment_data_current=global_enrichment_data_current.tar.gz
@@ -27,10 +23,10 @@ check_exit_status
 
 ### decompress files
 echo "\n### unpacking tar.gz files\n"
-cd "$TABLES_DIR"
+cd "$TABLES_DIR" || exit
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
-cd "$GED_DIR"
+cd "$GED_DIR" || exit
 check_exit_status
 tar --overwrite -xvf "$TAR_GED_ALL_CURRENT"
 check_exit_status
@@ -38,53 +34,11 @@ tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
 ### restart uWSGI and PyTest
-cd "$APP_DIR"
+printf "\n restart uWSGI and PyTest \n"
+cd "$APP_DIR" || exit
 echo c > PMID_master.fifo
 sleep 4m
-cd "$TESTING_DIR"
+cd "$TESTING_DIR" || exit
 "$PYTEST_EXE"
 check_exit_status
-
-
-
-#printf "\n###start uWSGI flask app for PyTest and sleep for 4min\n"
-#cd "$APP_DIR"
-#"$UWSGI_EXE" uwsgi_config_pytest.ini &> uwsgi_pytest_log.txt &
-#sleep 4m
-#
-#printf "\n### PyTest all sanity tests\n"
-#cd "$TESTING_DIR"
-#"$PYTEST_EXE"
-#check_exit_status
-#
-#printf "\n###stopping uWSGI PyTest"
-#cd "$APP_DIR"
-#echo q > pytest_master.fifo
-#
-#### chain_reloading
-#echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
-#cd "$APP_DIR"
-#echo c > PMID_master.fifo
-#check_exit_status
-
-#### PyTest file sizes and line numbers
-#printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-#cd "$TESTING_DIR"
-#check_exit_status
-#"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
-#check_exit_status
-#
-#### chain_reloading
-#echo "\n### restarting service @ $(date +'%Y_%m_%d_%I_%M_%p')\n"
-#cd "$APP_DIR"
-#check_exit_status
-#echo c > master.fifo
-#check_exit_status
-#sleep 4m
-#
-#### PyTest all sanity tests
-#printf "\n### PyTest all sanity tests\n"
-#cd "$TESTING_DIR"
-#check_exit_status
-#"$PYTEST_EXE"
-#check_exit_status
+printf "--- done ---"
