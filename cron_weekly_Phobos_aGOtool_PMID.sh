@@ -14,7 +14,7 @@ global_enrichment_data_current=global_enrichment_data_current.tar.gz
 populate_classification_schema_current=populate_classification_schema_current.sql.gz
 # populate_classification_schema_bak=populate_classification_schema_$(date +"%Y_%m_%d_%I_%M_%p").sql.gz
 TAR_GED_ALL_CURRENT=GED_all_current.tar
-TAR_GED_ALL_BAK=BAK_GED_all_$(date +"%Y_%m_%d_%I_%M_%p").tar
+TAR_GED_ALL_BAK=bak_GED_all_$(date +"%Y_%m_%d_%I_%M_%p").tar
 GED_DIR=/home/dblyon/global_enrichment_v11
 APP_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app
 PYTHON_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python
@@ -29,32 +29,31 @@ TESTING_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python/testing/sani
 
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 printf "\n### run snakemake pipeline\n"
-cd "$PYTHON_DIR"
+cd "$PYTHON_DIR" || exit
 "$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
 check_exit_status
 
 ### start uWSGI and PyTest
-cd "$APP_DIR"
-# echo c > PMID_master.fifo
+cd "$APP_DIR" || exit
 "$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini &
 sleep 4m
-cd "$TESTING_DIR"
+cd "$TESTING_DIR" || exit
 "$PYTEST_EXE"
 check_exit_status
+cd "$APP_DIR" || exit
 echo q > PMID_master.fifo
 check_exit_status
 
 #### tar and compress new files for transfer and backup
 printf "\n### tar and compress new files for transfer and backup\n"
-cd "$TABLES_DIR"
-check_exit_status
+cd "$TABLES_DIR" || exit
 #### create tar.gz of relevant flat files
-find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt"| xargs tar --overwrite -cvzf "$TAR_CURRENT"
+find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt"| xargs -0 tar --overwrite -cvzf "$TAR_CURRENT"
 check_exit_status
 rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status
 ### AFC_KS file: tar and gzip current
-cd "$TABLES_DIR"
+cd "$TABLES_DIR" || exit
 check_exit_status
 tar -cvf "$TAR_GED_ALL_CURRENT" "$global_enrichment_data_current" "$populate_classification_schema_current" "DF_global_enrichment_file_stats_log.txt"
 check_exit_status

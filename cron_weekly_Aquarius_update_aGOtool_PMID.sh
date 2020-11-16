@@ -16,25 +16,25 @@ APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
 TAR_GED_ALL_CURRENT=GED_all_current.tar
 global_enrichment_data_current=global_enrichment_data_current.tar.gz
 GED_DIR=/home/dblyon/global_enrichment_v11
-UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
+# UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 
 
 echo "--- running script cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 printf "\n### unpacking tar gz files\n"
-cd "$TABLES_DIR"
+cd "$TABLES_DIR" || exit
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
-cd "$GED_DIR"
+cd "$GED_DIR" || exit
 tar --overwrite -xvf "$TAR_GED_ALL_CURRENT"
 check_exit_status
 tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
 ### restart uWSGI and PyTest
-cd "$APP_DIR"
+cd "$APP_DIR" || exit
 echo c > PMID_master.fifo
 sleep 4m
-cd "$TESTING_DIR"
+cd "$TESTING_DIR" || exit
 "$PYTEST_EXE"
 check_exit_status
 

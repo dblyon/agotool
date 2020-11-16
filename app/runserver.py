@@ -329,7 +329,10 @@ class API_STRING(Resource):
         if variables.VERBOSE:
             print("-"*80)
             for key, val in sorted(args_dict.items()):
-                print(key, val)
+                if key == "foreground":
+                    print(key, val[:80])
+                else:
+                    print(key, val)
             print("-"*80)
 
         # if variables.temp_dont_run_analysis:
