@@ -17,10 +17,31 @@ import plotly.graph_objects as go
 sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import variables
 
-# DarkSlateGrey
+### Colors
+# DarkSlateGrey # UniProt color #71b8d3
 table_background_color = "#f2f2f2" #ededed" #"#f1f1f1" ###  #f9f9f9 #F5F5F5 #a6b4cd #a8b5cf
-highlight_color = "#abd5ed" # "gold abd5ed a7d0e8
+table_highlight_color = "#b5d7eb" #"#abd5ed" # "gold abd5ed a7d0e8 # "#F6F8FA"
 hover_label_color = "#43464B" # in agotool_plotly.css
+plot_background_color = "#ffffff" #"rgb(255, 255, 255)" # white
+plot_grid_color = "#efefef" # grey # efefef
+plot_line_color = "#6C757D" #6d7787" #"#59667d" #"#4e5a6e" #"#7a7a7a" #"#2a3f5f" #"rgb(42, 63, 95)" # dark metal gray kind of blue
+plot_ticklabel_color = plot_line_color
+toggle_button_color = plot_line_color
+
+### scatter plot
+opacity_default = 0.7
+opacity_highlight = 1
+marker_line_width_default = 1 # invisible ring around points in scatter, white when points overlap
+marker_line_color_default = "white"
+marker_line_width_highlight = 3
+marker_line_color_highlight = "#344957" #"black"
+width_edges_line = 1.5
+color_edge_line = "#d2d2d2" #'rgb(210,210,210)'
+scatter_plot_width = 700
+scatter_plot_height = 400
+legend_y = -0.3
+
+
 palette_dict = dict()
 palette_dict[1] = ['#d95f02']
 palette_dict[2] = ['#1b9e77','#d95f02']
@@ -36,10 +57,6 @@ palette_dict[11] = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c',
 palette_dict[12] = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928']
 palette_dict[13] = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2']
 palette_dict[14] = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2']
-# UniProt color #71b8d3
-plot_background_color = "rgb(255, 255, 255)" # white
-plot_grid_color = "rgb(239, 239, 239)" # grey
-plot_line_color = "rgb(42, 63, 95)"
 etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
                               -21: "GO biological process",
                               -22: "GO cellular component",
@@ -77,12 +94,13 @@ def table_type(df_column):
 
 layout_template_DBL_v2 = dict(layout=go.Layout(
     {'dragmode': 'zoom', 'clickmode': 'event+select', # 'autosize': True
-     'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, }, # 'tracegroupgap': 6
+     'legend': {'font_size': 13, 'title': {'font': {'size': 12}}, }, # 'tracegroupgap': 6
+    # 'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, }, # 'tracegroupgap': 6
      'plot_bgcolor': plot_background_color,
      'margin': {'t': 30, "b": 0, "l": 0, "r": 0, }, #  "pad": 40
     # 'paper_bgcolor': 'lightgray',
-     'xaxis': {'automargin': True, 'anchor': 'y', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'showticklabels': True, 'zeroline': False, "ticks": "outside", "title_standoff": 15},
-     'yaxis': {'automargin': True, 'anchor': 'x', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'zeroline': True, 'zerolinecolor': plot_grid_color, 'zerolinewidth': 3, "showticklabels": True, "ticks": "outside", "title_standoff": 2}, }))
+     'xaxis': {'automargin': True, 'anchor': 'y', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'showticklabels': True, 'zeroline': False, "ticks": "outside", "ticklen": 3, "tickfont_color": plot_ticklabel_color, "title_standoff": 8, "title_font_size": 12, "tickcolor": plot_ticklabel_color, "tickfont_size": 10},
+     'yaxis': {'automargin': True, 'anchor': 'x', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'zeroline': True, 'zerolinecolor': plot_grid_color, 'zerolinewidth': 3, "showticklabels": True, "ticks": "outside", "ticklen": 3, "tickfont_color": plot_ticklabel_color, "title_standoff": 8, "title_font_size": 12, "tickcolor": plot_ticklabel_color, "tickfont_size": 10}, }))
 df = pd.read_csv(variables.fn_example, sep="\t")
 ### rename long category names
 category_renamed_list = []
@@ -155,22 +173,10 @@ cols_set_temp = set(cols_sort_order_comprehensive).intersection(df_cols_set)
 cols = [colName for colName in cols_sort_order_comprehensive if colName in cols_set_temp]
 df = df[cols + list(df_cols_set - set(cols))]
 
-opacity_default = 0.7
-opacity_highlight = 1
-marker_line_width_default = 1 # invisible ring around points in scatter, white when points overlap
-marker_line_color_default = "white"
-marker_line_width_highlight = 3
-marker_line_color_highlight = "black"
-width_edges_line = 1.5
-color_edge_line = 'rgb(210,210,210)'
-scatter_plot_width = 700
-scatter_plot_height = 400
-legend_y = -0.3
-
 ### config of "modebar" (plotly hover tools), https://github.com/plotly/plotly.js/blob/master/src/components/modebar/buttons.js
 config_scatter_plot = {'displaylogo': False,
           'scrollZoom': True,
-          "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian"], # resetViews autoScale2d resetScale2d
+          "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"], # resetViews autoScale2d resetScale2d
           'toImageButtonOptions': {
               'format': 'svg', # one of png, svg, jpeg, webp
               'filename': 'aGOtool_plot',
@@ -225,18 +231,18 @@ def data_bars_dbl(df, column):
             percentage = 50 * abs(value) / total
             if value > 0: # to the right.
                 width = percentage + starting_point_right_side
-                color_bar = "transparent 0%, transparent 49.75%, #000000 49.75%, #000000 50.25%, {} 50.25%, {} {}%, transparent {}%, transparent 100.0%".format(color_, color_, width, width)
+                color_bar = "transparent 0%, transparent 49.75%, #6C757D 49.75%, #6C757D 50.25%, {} 50.25%, {} {}%, transparent {}%, transparent 100.0%".format(color_, color_, width, width)
             elif value < 0: # to the left
                 empty_space_left = 50 - percentage
                 width = empty_space_left + percentage
-                color_bar = "transparent 0%, transparent {}%, {} {}%, {} {}%, #000000 49.75%, #000000 50.25%, transparent 50.25%, transparent 100.0%".format(empty_space_left,color_, empty_space_left, color_, width)
+                color_bar = "transparent 0%, transparent {}%, {} {}%, {} {}%, #6C757D 49.75%, #6C757D 50.25%, transparent 50.25%, transparent 100.0%".format(empty_space_left,color_, empty_space_left, color_, width)
             else: # value is 0 or NaN or ? actually shouldn't happen at all
                 color_bar = ""
             styles.append({"if": {"column_id": "s value", "filter_query": "{id} = " + term, 'row_index': 'even'}, "background": "linear-gradient(90deg, {} )".format(color_bar), "paddingBottom": 1, "paddingTop": 1})
             styles.append({'if': {"column_id": "s value", "filter_query": "{id} = " + term, 'row_index': 'odd'}, "background": "linear-gradient(90deg, {} ) rgb(242, 242, 242) ".format(color_bar), "paddingBottom": 1, "paddingTop": 1})
     return styles
 
-style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor": highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
+style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor": table_highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
                                 {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},] + data_bars_dbl(df, s_value)
 
 print("<<< restarting {} >>>".format(datetime.datetime.now()))
@@ -288,7 +294,7 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
         dff.loc[cond_selected_terms, marker_line_width] = marker_line_width_highlight
         dff.loc[cond_selected_terms, marker_line_color] = hover_label_color
         dff.loc[cond_selected_terms, opacity] = opacity_highlight
-        style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': highlight_color} for term_ in derived_virtual_selected_row_ids]
+        style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': table_highlight_color} for term_ in derived_virtual_selected_row_ids]
 
         fig = go.Figure()
 
@@ -339,7 +345,7 @@ def create_DataTable(df):
             selected_columns=[],         # ids of columns that user selects
             selected_rows=[],            # indices of rows that user selects
             page_action= "none", #"native",        # all data is passed to the table up-front or not ('none')
-            style_table={'height': '300px',
+            style_table={'height': '280px',
                          # "width": "1000px",
                          # "minWidth": "800px",
                          # "maxWidth": "1200px",
@@ -398,15 +404,14 @@ row1 = html.Tr(
 
     html.Div(dcc.Input(id='input-on-submit', type='text')),
     html.Button('Submit', id='submit-val', n_clicks=0, className="mr-1"), # className="checkbox checked data-toggle"),
-    html.Div(id='container-button-basic',
-             children='Enter a value and press submit'),
+    html.Div(id='container-button-basic', children='Enter a value and press submit'),
 
 
 
 
 
-        daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', style=dict(color="#6c757d", )), # fontSize="4px"
-        daq.ToggleSwitch(id='toggle_point_edges', value=False, size=30, label='related terms', labelPosition='bottom', style=dict(color="#6c757d", )),
+        daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', style=dict(color=toggle_button_color, )), # fontSize="4px"
+        daq.ToggleSwitch(id='toggle_point_edges', value=False, size=30, label='related terms', labelPosition='bottom', style=dict(color=toggle_button_color, )),
         html.P(),
         dbc.Button('reset plot/table', id='button_reset_plot', n_clicks=0, color="secondary", outline=True, className="mr-1", size="sm", style=dict(align_items="center", justify_content="center")),
         ], style=dict(valign="top nowrap", align_items="center", justify_content="center", ), ), # halign="center", margin="0 auto", align="center"
@@ -463,14 +468,19 @@ if __name__ == '__main__':
 # - svg layers ? row selection only triggers label on second click
 # - sort multiple columns --> hover over table or plot triggers slight change in size and grid of table visible
 # - copying text from the DataTable is only possible when table is editable
+# - lable of points in scatter overlapping
 
 # missing features:
 # - resize table upon adding columns
 # - filter data --> search with case insensitive input
 # - Toggle columns button style --> CSS button "info" or something
-
-# https://www.bootstraptoggle.com/ --> instead of plotly buttons
-
-# hide "opacity" and "etype" etc from DataTable
+# - reset plot/table button should reset hidden columns to default
+# - X-axis scroll bar not visible in table
+# - export image as png, jpeg as well (PNG, JPEG, SVG or PDF, EPS)
+# - export table including row for highlights
+# - flex containers for plot? table?
+# - hide "opacity" and "etype" etc from DataTable
+# - https://www.bootstraptoggle.com/ --> instead of plotly buttons (maybe possible via flask and classic JS)
 ### ? not sure ?
-# - columns with "related terms" (from edges)
+# - add a column with "related terms" (from edges)
+
