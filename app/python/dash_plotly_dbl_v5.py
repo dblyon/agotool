@@ -17,6 +17,7 @@ import plotly.graph_objects as go
 sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import variables
 
+# DarkSlateGrey
 table_background_color = "#f2f2f2" #ededed" #"#f1f1f1" ###  #f9f9f9 #F5F5F5 #a6b4cd #a8b5cf
 highlight_color = "#abd5ed" # "gold abd5ed a7d0e8
 hover_label_color = "#43464B" # in agotool_plotly.css
@@ -36,19 +37,21 @@ palette_dict[12] = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c',
 palette_dict[13] = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2']
 palette_dict[14] = ['#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2']
 # UniProt color #71b8d3
-
-entityType_2_functionType_dict = {-20: "Gene Ontology cellular component TEXTMINING",
-                              -21: "Gene Ontology biological process",
-                              -22: "Gene Ontology cellular component",
-                              -23: "Gene Ontology molecular function",
+plot_background_color = "rgb(255, 255, 255)" # white
+plot_grid_color = "rgb(239, 239, 239)" # grey
+plot_line_color = "rgb(42, 63, 95)"
+etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
+                              -21: "GO biological process",
+                              -22: "GO cellular component",
+                              -23: "GO molecular function",
                               -25: "Brenda Tissue Ontology",
                               -26: "Disease Ontology",
                               -51: "UniProt keywords",
-                              -52: "KEGG (Kyoto Encyclopedia of Genes and Genomes)",
-                              -53: "SMART (Simple Modular Architecture Research Tool)",
-                              -54: "INTERPRO",
-                              -55: "PFAM (Protein FAMilies)",
-                              -56: "PMID (PubMed IDentifier)",
+                              -52: "KEGG pathways",
+                              -53: "SMART domains",
+                              -54: "INTERPRO domains",
+                              -55: "PFAM domains",
+                              -56: "Publications (PubMed)",
                               -57: "Reactome",
                               -58: "WikiPathways"}
 
@@ -72,13 +75,25 @@ def table_type(df_column):
     else:
         return 'any'
 
-layout_template_DBL_v2 = dict(layout=go.Layout({'dragmode': 'lasso', 'clickmode': 'event+select', # 'autosize': True
-                                                'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, 'tracegroupgap': 6},
-                                                 'plot_bgcolor': 'rgb(255, 255, 255)', 'margin': {'t': 60},
-                                                'xaxis': {'anchor': 'y', 'gridcolor': 'rgb(239, 239, 239)', 'gridwidth': 1, 'linecolor': 'rgb(42, 63, 95)', 'linewidth': 2, 'showgrid': True, 'showline': True, 'showticklabels': True, 'zeroline': False, "ticks": "outside", "title_standoff": 15},
-                                                'yaxis': {'anchor': 'x', 'gridcolor': 'rgb(239, 239, 239)', 'gridwidth': 1, 'linecolor': 'rgb(42, 63, 95)', 'linewidth': 2, 'showgrid': True, 'showline': True, 'zeroline': True, 'zerolinecolor': 'rgb(239, 239, 239)', 'zerolinewidth': 3, "showticklabels": True, "ticks": "outside", "title_standoff": 2}, }))
+layout_template_DBL_v2 = dict(layout=go.Layout(
+    {'dragmode': 'zoom', 'clickmode': 'event+select', # 'autosize': True
+     'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, }, # 'tracegroupgap': 6
+     'plot_bgcolor': plot_background_color,
+     'margin': {'t': 30, "b": 0, "l": 0, "r": 0, }, #  "pad": 40
+    # 'paper_bgcolor': 'lightgray',
+     'xaxis': {'automargin': True, 'anchor': 'y', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'showticklabels': True, 'zeroline': False, "ticks": "outside", "title_standoff": 15},
+     'yaxis': {'automargin': True, 'anchor': 'x', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'zeroline': True, 'zerolinecolor': plot_grid_color, 'zerolinewidth': 3, "showticklabels": True, "ticks": "outside", "title_standoff": 2}, }))
 df = pd.read_csv(variables.fn_example, sep="\t")
-
+### rename long category names
+category_renamed_list = []
+value_counts_series = df["etype"].value_counts(sort=False)
+for etype, count in zip(value_counts_series.index, value_counts_series.values):
+    try:
+        categoryName = etype_2_categoryRenamed_dict[etype]
+    except KeyError:
+        categoryName = ""
+    category_renamed_list += [categoryName] * count
+df["category"] = category_renamed_list
 ### prioritize category with strongest signal
 if sum(df["over_under"] == "o") > 0:
     category_rank_arr = df.groupby("category")["s_value"].max().sort_values(ascending=False).index.values
@@ -88,7 +103,6 @@ df["category"] = pd.Categorical(df["category"], category_rank_arr)
 df = df.sort_values(["category", "rank"]).reset_index(drop=True)
 ### debug
 # df["category"] = df["category"].apply(lambda s: s[:4])
-
 # df.sort_values(["rank"])
 # df = df.groupby("etype").head(3)
 # df["FG_IDs"] = ""
@@ -124,6 +138,7 @@ effectSize = "effect size"
 marker_line_width = "marker_line_width"
 marker_line_color = "marker_line_color"
 id_ = "id"
+opacity = "opacity"
 
 all_terms_set = set(df[term].values)
 color_discrete_map = {category_: color_hex_val for category_, color_hex_val in zip(df[category].unique(), palette_dict[df.etype.unique().shape[0]])}
@@ -133,40 +148,52 @@ df = df.rename(columns={"over_under": over_under, "hierarchical_level": hierarch
 
 cols_compact = [rank, term, description, FDR, effect_size]
 cols_sort_order_comprehensive = [s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, p_value, logFDR, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, rank]
-hidden_columns = [p_value, ratio_in_FG, ratio_in_BG, FG_count, BG_count, FG_n, BG_n, FG_IDs, etype, logFDR, year, color, rank, category, hierarchical_level, over_under, marker_line_width, marker_line_color, id_]
+hidden_columns = [p_value, ratio_in_FG, ratio_in_BG, FG_count, BG_count, FG_n, BG_n, FG_IDs, etype, logFDR, year, color, rank, category, hierarchical_level, over_under, marker_line_width, marker_line_color, id_, opacity]
 # hidden_columns = [marker_line_width, marker_line_color, id_]
 df_cols_set = set(df.columns)
 cols_set_temp = set(cols_sort_order_comprehensive).intersection(df_cols_set)
 cols = [colName for colName in cols_sort_order_comprehensive if colName in cols_set_temp]
 df = df[cols + list(df_cols_set - set(cols))]
 
-df[marker_line_width] = 1
-df[marker_line_color] = "white"
-max_marker_size = 30
-min_marker_size = 4
+opacity_default = 0.7
+opacity_highlight = 1
+marker_line_width_default = 1 # invisible ring around points in scatter, white when points overlap
+marker_line_color_default = "white"
+marker_line_width_highlight = 3
+marker_line_color_highlight = "black"
+width_edges_line = 1.5
+color_edge_line = 'rgb(210,210,210)'
+scatter_plot_width = 700
+scatter_plot_height = 400
+legend_y = -0.3
+
+### config of "modebar" (plotly hover tools), https://github.com/plotly/plotly.js/blob/master/src/components/modebar/buttons.js
+config_scatter_plot = {'displaylogo': False,
+          'scrollZoom': True,
+          "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian"], # resetViews autoScale2d resetScale2d
+          'toImageButtonOptions': {
+              'format': 'svg', # one of png, svg, jpeg, webp
+              'filename': 'aGOtool_plot',
+              'width': scatter_plot_width,
+              'height': scatter_plot_height,
+              'scale': 1 # Multiply title/legend/axis/canvas sizes by this factor
+              },}
+
+df[marker_line_width] = marker_line_width_default
+df[marker_line_color] = marker_line_color_default
+df[opacity] = opacity_default
+max_marker_size, min_marker_size = 30, 4
 sizeref = 2.0 * max(df[FG_count]) / (max_marker_size ** 2)
 button_reset_plot_n_click = 0
-
 ### Network edges based on relationship within Ontology
-### Dict: key=term val=[X_vals_list, Y_vals_list, Weights_list]
-# for every term:
-#   for every edge:
-#     e.g. between point A (Ax, Ay) and B (Bx, By) as well as A (Ax, Ay) and C (Cx, Cy)
-#     X_point_list += [Ax, Bx, None]
-#     Y_point_list += [Ay, By, None]
-#     X_point_list += [Ax, Cx, None]
-#     Y_point_list += [Ay, Cy, None]
-term_2_edges_dict = defaultdict(lambda: {"X_points": [], "Y_points": [], "Weights": []})
+term_2_edges_dict = defaultdict(lambda: {"X_points": [], "Y_points": [], "Weights": [], "Nodes": []})
 term_2_edges_dict.update(pickle.load(open("term_2_edges_dict.p", "rb")))
-
-
 
 colName_attributes = []
 for colName in df.columns:
     if colName in {"term"}:
         colName_attributes.append({"name": colName, "id": colName, "hideable": False, "deletable": False, "type": table_type(df[colName])})
     elif colName in {p_value, FDR, logFDR}:
-        # colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": "numeric", "format": {"specifier": ".2e"}})
         colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".2e"}})
     elif colName in {effect_size, s_value, ratio_in_FG, ratio_in_BG}:
         colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".2f"}})
@@ -216,7 +243,6 @@ print("<<< restarting {} >>>".format(datetime.datetime.now()))
 # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/materia/bootstrap.min.css" # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/litera/bootstrap.min.css"
 app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[dbc.themes.BOOTSTRAP]) # dbc.themes.BOOTSTRAP [bs]
 
-
 @app.callback(
     [Output(component_id="main_datatable", component_property="selected_rows"),
      Output(component_id="main_datatable", component_property="sort_by")],
@@ -243,50 +269,60 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
     else:
         dff = pd.DataFrame(derived_virtual_data)
 
+    ### original unmodified plot
     if derived_virtual_selected_row_ids is None or len(derived_virtual_selected_row_ids) == 0:
         fig = go.Figure()
         for category_name, group in dff.groupby(category):
-            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
-        fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), )
-        fig.update_layout(autosize=False, width=800, height=520, )
-        scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
+            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
+        fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), )
+        fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, )
+        scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig, config=config_scatter_plot)
         return style_data_conditional_basic, scatter_plot_fig
-    else: ### modified plot
+
+    ### modified plot
+    else:
         cond_selected_terms = dff[term].isin(derived_virtual_selected_row_ids)
-        dff[marker_line_width] = 1
-        dff[marker_line_color] = "white"
-        dff.loc[cond_selected_terms, marker_line_width] = 3
+        dff[marker_line_width] = marker_line_width_default
+        dff[marker_line_color] = marker_line_color_default
+        dff[opacity] = opacity_default
+        dff.loc[cond_selected_terms, marker_line_width] = marker_line_width_highlight
         dff.loc[cond_selected_terms, marker_line_color] = hover_label_color
+        dff.loc[cond_selected_terms, opacity] = opacity_highlight
         style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': highlight_color} for term_ in derived_virtual_selected_row_ids]
 
         fig = go.Figure()
 
+        ### edges
         if toggle_point_edges_value:
-            X_points, Y_points, Weights = [], [], []
+            X_points, Y_points, Weights, Connected_node_terms = [], [], [], []
             for term_ in derived_virtual_selected_row_ids:
                 edges_dict = term_2_edges_dict[term_]
                 X_points += edges_dict["X_points"]
                 Y_points += edges_dict["Y_points"]
                 Weights += edges_dict["Weights"]
-            fig.add_trace(go.Scatter(x=X_points, y=Y_points, mode='lines', showlegend=False, line=dict(color='rgb(210,210,210)', width=1), hoverinfo='none'))
+                Connected_node_terms += edges_dict["Nodes"]
+            Connected_node_terms += derived_virtual_selected_row_ids
+            cond_connected_node_terms = dff[term].isin(Connected_node_terms)
+            dff.loc[cond_connected_node_terms, opacity] = opacity_highlight
+            fig.add_trace(go.Scatter(x=X_points, y=Y_points, mode='lines', showlegend=False, line=dict(color=color_edge_line, width=width_edges_line), hoverinfo='none'))
 
+        ### labels
         if toggle_point_labels_value:
             dff["label"] = ""
             dff.loc[cond_selected_terms, "label"] = dff.loc[cond_selected_terms, term]
             x_min, x_max, y_min, y_max = dff[logFDR].min(), dff[logFDR].max(), dff[effectSize].min(), dff[effectSize].max()
             for category_name, group in dff.groupby(category):
-                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
-            fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), xaxis_range=[x_min * 0.93, x_max * 1.07], yaxis_range=[y_min * 1.25, y_max * 1.25])
+                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
+            fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), xaxis_range=[x_min * 0.93, x_max * 1.07], yaxis_range=[y_min * 1.25, y_max * 1.25])
 
         else:
             for category_name, group in dff.groupby(category):
-                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
-            fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=-0.4, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ),)
+                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
+            fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ),)
 
-        fig.update_layout(autosize=False, width=800, height=520, )
-        scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig)
+        fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, ) # 800 x 520
+        scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig, config=config_scatter_plot)
         return style_data_conditional_extension + style_data_conditional_basic, scatter_plot_fig
-
 
 def create_DataTable(df):
     data_table_dbl = dash_table.DataTable(
@@ -352,12 +388,25 @@ def create_DataTable(df):
 
 data_table_dbl = create_DataTable(df)
 
+# <input type="checkbox" checked data-toggle="toggle" data-size="small">
+
 row1 = html.Tr(
     [
 
     html.Td([
+
+
+    html.Div(dcc.Input(id='input-on-submit', type='text')),
+    html.Button('Submit', id='submit-val', n_clicks=0, className="mr-1"), # className="checkbox checked data-toggle"),
+    html.Div(id='container-button-basic',
+             children='Enter a value and press submit'),
+
+
+
+
+
         daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', style=dict(color="#6c757d", )), # fontSize="4px"
-        daq.ToggleSwitch(id='toggle_point_edges', value=False, size=30, label='show edges of selected points', labelPosition='bottom', style=dict(color="#6c757d", )),
+        daq.ToggleSwitch(id='toggle_point_edges', value=False, size=30, label='related terms', labelPosition='bottom', style=dict(color="#6c757d", )),
         html.P(),
         dbc.Button('reset plot/table', id='button_reset_plot', n_clicks=0, color="secondary", outline=True, className="mr-1", size="sm", style=dict(align_items="center", justify_content="center")),
         ], style=dict(valign="top nowrap", align_items="center", justify_content="center", ), ), # halign="center", margin="0 auto", align="center"
@@ -380,7 +429,7 @@ table_body = [html.Tbody([row1])]
 app.layout = html.Div(id='general_div', className="container",
     children=[
         html.Div(html.Tbody([row1])),
-
+        html.P(),
         html.Div(id="second_row", className="dbl", children=[
             dbc.Row(children=[
                 dbc.Col(width=1),
@@ -393,6 +442,15 @@ app.layout = html.Div(id='general_div', className="container",
 
         ],)
 
+@app.callback(
+    dash.dependencies.Output('container-button-basic', 'children'),
+    [dash.dependencies.Input('submit-val', 'n_clicks')],
+    [dash.dependencies.State('input-on-submit', 'value')])
+def update_output(n_clicks, value):
+    return 'The input value was "{}" and the button has been clicked {} times'.format(
+        value,
+        n_clicks
+    )
 
 if __name__ == '__main__':
     app.run_server(debug=True, host="127.0.0.1", port=5922)
@@ -404,11 +462,15 @@ if __name__ == '__main__':
 # Buggy:
 # - svg layers ? row selection only triggers label on second click
 # - sort multiple columns --> hover over table or plot triggers slight change in size and grid of table visible
+# - copying text from the DataTable is only possible when table is editable
 
 # missing features:
-# - export as SVG
-# - toggle hierarchical network connections
 # - resize table upon adding columns
-# - remove unneccessary tools from Plotly toolbar
 # - filter data --> search with case insensitive input
 # - Toggle columns button style --> CSS button "info" or something
+
+# https://www.bootstraptoggle.com/ --> instead of plotly buttons
+
+# hide "opacity" and "etype" etc from DataTable
+### ? not sure ?
+# - columns with "related terms" (from edges)
