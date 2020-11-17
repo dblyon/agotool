@@ -339,7 +339,7 @@ def create_DataTable(df):
             editable=False,              # allow editing of data inside all cells
             filter_action="native",      # allow filtering of data by user ('native') or not ('none')
             sort_action="native",        # enables data to be sorted per-column by user or not ('none')
-            # sort_mode="multi",           # sort across 'multi' or 'single' columns
+            sort_mode="multi",           # sort across 'multi' or 'single' columns
             column_selectable="multi",   # allow users to select 'multi' or 'single' columns
             row_selectable="multi",      # allow users to select 'multi' or 'single' rows
             selected_columns=[],         # ids of columns that user selects
@@ -367,15 +367,15 @@ def create_DataTable(df):
             style_filter_conditional=[],
             style_filter={},
             style_header_conditional=[],
-            style_header={'backgroundColor': 'white', 'borderBottom': '1px solid black', "fontSize": "12px", 'fontWeight': 'bold', 'whiteSpace': 'normal', 'height': 'auto', 'textAlign': 'center', }, # "text-indent": "0.5em"
+            style_header={'backgroundColor': 'white', 'borderBottom': "1px solid {}".format(plot_line_color), "fontSize": "12px", 'fontWeight': 'bold', 'whiteSpace': 'normal', 'height': 'auto', 'textAlign': 'center', }, # "text-indent": "0.5em"
             style_cell_conditional=[{"if": {"column_id": s_value}, "width": "100px", }]  # 100
                                    + [{"if": {"column_id": term}, "textAlign": "left", "width": "100px", }]  # 120
                                    + [{"if": {"column_id": description}, "textAlign": "left", "width": "250px", }]  # 4000
-                                   + [{'if': {'column_id': category}, 'textAlign': 'left', "width": "80px"}]
+                                   + [{'if': {'column_id': category}, 'textAlign': 'left', "width": "100px"}]
                                    + [{"if": {"column_id": FG_IDs}, "width": "320px"}]  # 120
                                    + [{"if": {"column_id": colName}, "width": "100px"} for colName in [logFDR, FDR, effectSize]],  # 110
             style_cell={                 # ensure adequate header width when text is shorter than cell's text
-                "minWidth": "80px", "width": "80px", "maxWidth": "120px", #'width': 60,
+                "minWidth": "80px", "width": "80px", "maxWidth": "120px",
                 "fontSize": "12px",
                 "font-family": "sans-serif,roboto,Helvetica Neue,Arial,Noto Sans",
                 "text_align": "center",
@@ -402,9 +402,9 @@ row1 = html.Tr(
     html.Td([
 
 
-    html.Div(dcc.Input(id='input-on-submit', type='text')),
-    html.Button('Submit', id='submit-val', n_clicks=0, className="mr-1"), # className="checkbox checked data-toggle"),
-    html.Div(id='container-button-basic', children='Enter a value and press submit'),
+    # html.Div(dcc.Input(id='input-on-submit', type='text')),
+    # html.Button('Submit', id='submit-val', n_clicks=0, className="mr-1"), # className="checkbox checked data-toggle"),
+    # html.Div(id='container-button-basic', children='Enter a value and press submit'),
 
 
 
@@ -447,15 +447,15 @@ app.layout = html.Div(id='general_div', className="container",
 
         ],)
 
-@app.callback(
-    dash.dependencies.Output('container-button-basic', 'children'),
-    [dash.dependencies.Input('submit-val', 'n_clicks')],
-    [dash.dependencies.State('input-on-submit', 'value')])
-def update_output(n_clicks, value):
-    return 'The input value was "{}" and the button has been clicked {} times'.format(
-        value,
-        n_clicks
-    )
+# @app.callback(
+#     dash.dependencies.Output('container-button-basic', 'children'),
+#     [dash.dependencies.Input('submit-val', 'n_clicks')],
+#     [dash.dependencies.State('input-on-submit', 'value')])
+# def update_output(n_clicks, value):
+#     return 'The input value was "{}" and the button has been clicked {} times'.format(
+#         value,
+#         n_clicks
+#     )
 
 if __name__ == '__main__':
     app.run_server(debug=True, host="127.0.0.1", port=5922)
