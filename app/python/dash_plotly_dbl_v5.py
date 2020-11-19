@@ -41,7 +41,6 @@ scatter_plot_width = 700
 scatter_plot_height = 400
 legend_y = -0.3
 
-
 palette_dict = dict()
 palette_dict[1] = ['#d95f02']
 palette_dict[2] = ['#1b9e77','#d95f02']
@@ -72,6 +71,8 @@ etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
                               -57: "Reactome",
                               -58: "WikiPathways"}
 
+
+
 def table_type(df_column):
     if df_column.dtype in {np.dtype('float64'), np.dtype('float32')}:
         return "numeric"
@@ -93,14 +94,20 @@ def table_type(df_column):
         return 'any'
 
 layout_template_DBL_v2 = dict(layout=go.Layout(
-    {'dragmode': 'zoom', 'clickmode': 'event+select', # 'autosize': True
+    {'dragmode': 'pan', 'clickmode': 'event+select', # 'autosize': True
      'legend': {'font_size': 13, 'title': {'font': {'size': 12}}, }, # 'tracegroupgap': 6
     # 'legend': {'itemsizing': 'constant', 'font_size': 14, 'title': {'font': {'size': 12}}, }, # 'tracegroupgap': 6
      'plot_bgcolor': plot_background_color,
      'margin': {'t': 30, "b": 0, "l": 0, "r": 0, }, #  "pad": 40
     # 'paper_bgcolor': 'lightgray',
-     'xaxis': {'automargin': True, 'anchor': 'y', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'showticklabels': True, 'zeroline': False, "ticks": "outside", "ticklen": 3, "tickfont_color": plot_ticklabel_color, "title_standoff": 8, "title_font_size": 12, "tickcolor": plot_ticklabel_color, "tickfont_size": 10},
-     'yaxis': {'automargin': True, 'anchor': 'x', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2, 'showgrid': True, 'showline': True, 'zeroline': True, 'zerolinecolor': plot_grid_color, 'zerolinewidth': 3, "showticklabels": True, "ticks": "outside", "ticklen": 3, "tickfont_color": plot_ticklabel_color, "title_standoff": 8, "title_font_size": 12, "tickcolor": plot_ticklabel_color, "tickfont_size": 10}, }))
+     'xaxis': {'automargin': True, 'anchor': 'y', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2,
+               'showgrid': True, 'showline': True, 'showticklabels': True, "ticks": "outside", "ticklen": 3, "tickfont_color": plot_ticklabel_color,
+               "title_standoff": 8, "title_font_size": 12, "tickcolor": plot_ticklabel_color, "tickfont_size": 10,
+               'zeroline': False, },
+     'yaxis': {'automargin': True, 'anchor': 'x', 'gridcolor': plot_grid_color, 'gridwidth': 1, 'linecolor': plot_line_color, 'linewidth': 2,
+               'showgrid': True, 'showline': True, "showticklabels": True, "ticks": "outside", "ticklen": 3, "tickfont_color": plot_ticklabel_color,
+               "title_standoff": 12, "title_font_size": 12, "tickcolor": plot_ticklabel_color, "tickfont_size": 10,
+               'zeroline': True, 'zerolinecolor': plot_grid_color, 'zerolinewidth': 3,}, }))
 df = pd.read_csv(variables.fn_example, sep="\t")
 ### rename long category names
 category_renamed_list = []
@@ -138,12 +145,12 @@ hierarchical_level = "level"
 s_value = "s value"
 ratio_in_FG = "ratio in FG"
 ratio_in_BG = "ratio in BG"
-FG_IDs = "FG IDs"
-BG_IDs = "BG IDs"
-FG_count = "FG count"
-BG_count = "BG count"
-FG_n = "FG n"
-BG_n = "BG n"
+FG_IDs = "foreground identifiers"
+BG_IDs = "background identifiers"
+FG_count = "foreground count"
+BG_count = "background count"
+FG_n = "foreground n"
+BG_n = "background n"
 rank = "rank"
 etype = "etype"
 term = "term"
@@ -165,7 +172,7 @@ df[color] = df[category].apply(lambda x: color_discrete_map[x])
 df = df.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effect_size, "s_value": s_value, "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
 
 cols_compact = [rank, term, description, FDR, effect_size]
-cols_sort_order_comprehensive = [s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, p_value, logFDR, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, rank]
+cols_sort_order_comprehensive = [s_value, term, description, p_value, FDR, logFDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, rank]
 hidden_columns = [p_value, ratio_in_FG, ratio_in_BG, FG_count, BG_count, FG_n, BG_n, FG_IDs, etype, logFDR, year, color, rank, category, hierarchical_level, over_under, marker_line_width, marker_line_color, id_, opacity]
 # hidden_columns = [marker_line_width, marker_line_color, id_]
 df_cols_set = set(df.columns)
@@ -242,16 +249,22 @@ def data_bars_dbl(df, column):
             styles.append({'if': {"column_id": "s value", "filter_query": "{id} = " + term, 'row_index': 'odd'}, "background": "linear-gradient(90deg, {} ) rgb(242, 242, 242) ".format(color_bar), "paddingBottom": 1, "paddingTop": 1})
     return styles
 
-style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor": table_highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
-                                {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},] + data_bars_dbl(df, s_value)
+### after update of Dash and Plotly this leads to JS error, but seems to have same functionality without the code
+# style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor": table_highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
+#                                 {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},] + data_bars_dbl(df, s_value)
+style_data_conditional_basic = data_bars_dbl(df, s_value)
 
 print("<<< restarting {} >>>".format(datetime.datetime.now()))
-# bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/materia/bootstrap.min.css" # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/litera/bootstrap.min.css"
 app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[dbc.themes.BOOTSTRAP]) # dbc.themes.BOOTSTRAP [bs]
+# bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/materia/bootstrap.min.css"
+# app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[bs])
+
 
 @app.callback(
     [Output(component_id="main_datatable", component_property="selected_rows"),
-     Output(component_id="main_datatable", component_property="sort_by")],
+     Output(component_id="main_datatable", component_property="sort_by"),
+     Output(component_id="main_datatable", component_property="hidden_columns"),
+     ],
     [Input(component_id="button_reset_plot", component_property="n_clicks"),],)
 def select_deselect(button_reset_plot_n_clicks):
     """
@@ -261,7 +274,7 @@ def select_deselect(button_reset_plot_n_clicks):
     if ctx.triggered:
         trigger = ctx.triggered[0]["prop_id"].split(".")[0]
         if trigger == "button_reset_plot":
-            return [], []
+            return [], [], hidden_columns
 
 @app.callback([Output(component_id="main_datatable", component_property="style_data_conditional"),
                Output(component_id="scatter_container", component_property="children")],
@@ -270,6 +283,7 @@ def select_deselect(button_reset_plot_n_clicks):
                Input(component_id="toggle_point_labels", component_property="value"),
                Input(component_id="toggle_point_edges", component_property="value")])
 def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, toggle_point_labels_value, toggle_point_edges_value):
+    # active_cell not used BUT without it the filter_data cell doesn't get highlighted at the bottom
     if derived_virtual_data is None or len(derived_virtual_data) == 0:
         dff = df
     else:
@@ -337,7 +351,8 @@ def create_DataTable(df):
             hidden_columns=hidden_columns,
             data=df.to_dict('records'),  # the contents of the table # drop(columns=[color, marker_line_color, marker_line_width])
             editable=False,              # allow editing of data inside all cells
-            filter_action="native",      # allow filtering of data by user ('native') or not ('none')
+            # filter_action="native",      # allow filtering of data by user ('native') or not ('none')
+            filter_action='custom', filter_query='', # backend filtering in Python instead of front end JS --> case insensitive
             sort_action="native",        # enables data to be sorted per-column by user or not ('none')
             sort_mode="multi",           # sort across 'multi' or 'single' columns
             column_selectable="multi",   # allow users to select 'multi' or 'single' columns
@@ -346,41 +361,34 @@ def create_DataTable(df):
             selected_rows=[],            # indices of rows that user selects
             page_action= "none", #"native",        # all data is passed to the table up-front or not ('none')
             style_table={'height': '280px',
-                         # "width": "1000px",
-                         # "minWidth": "800px",
-                         # "maxWidth": "1200px",
-                         # "width": "800px",
-                         # "minWidth": "80%",
-                         # "maxWidth": "180%",
                          'overflowX': 'auto',
                          'overflowY': 'auto',
-                         }, # 'minWidth': '90%'
+             },
             style_data_conditional=[], # overwritten by JS callback
             style_data={ # overflow cells' content into multiple lines
-                'whiteSpace': 'normal',
-                "height": "14px",
-                'textOverflow': 'ellipsis',
-                # 'width': "80px",
-                # 'maxWidth': "80px",
-                'if': {'row_index': 'odd'}, 'backgroundColor': table_background_color,
+                # "whiteSpace": "normal",
+                # "height": "14px",
+                # "textOverflow": "ellipsis",
+                "if": {"row_index": "odd"}, "backgroundColor": table_background_color,
             },
             style_filter_conditional=[],
             style_filter={},
             style_header_conditional=[],
-            style_header={'backgroundColor': 'white', 'borderBottom': "1px solid {}".format(plot_line_color), "fontSize": "12px", 'fontWeight': 'bold', 'whiteSpace': 'normal', 'height': 'auto', 'textAlign': 'center', }, # "text-indent": "0.5em"
+            style_header={'backgroundColor': 'white', 'borderBottom': "1px solid {}".format(plot_line_color), "fontSize": "12px", 'fontWeight': 'bold', 'whiteSpace': 'normal', 'height': 'auto', 'textAlign': 'center', }, #"text-indent": "0.5em"},
             style_cell_conditional=[{"if": {"column_id": s_value}, "width": "100px", }]  # 100
                                    + [{"if": {"column_id": term}, "textAlign": "left", "width": "100px", }]  # 120
-                                   + [{"if": {"column_id": description}, "textAlign": "left", "width": "250px", }]  # 4000
-                                   + [{'if': {'column_id': category}, 'textAlign': 'left', "width": "100px"}]
+                                   + [{"if": {"column_id": description}, "textAlign": "left", "width": "320px", }]  # 4000
+                                   + [{'if': {'column_id': category}, 'textAlign': 'left', "width": "101px"}]
                                    + [{"if": {"column_id": FG_IDs}, "width": "320px"}]  # 120
                                    + [{"if": {"column_id": colName}, "width": "100px"} for colName in [logFDR, FDR, effectSize]],  # 110
-            style_cell={                 # ensure adequate header width when text is shorter than cell's text
-                "minWidth": "80px", "width": "80px", "maxWidth": "120px",
+            style_cell={ # ensure adequate header width when text is shorter than cell's text
+                "minWidth": "90px", "width": "100px",
                 "fontSize": "12px",
                 "font-family": "sans-serif,roboto,Helvetica Neue,Arial,Noto Sans",
                 "text_align": "center",
                 "border": "0px",
                 "boxShadow": "0 0",
+                "overflow": "hidden", "textOverflow": "ellipsis", "maxWidth": "120px",
             },
             tooltip_data=[{column: {'value': str(value), 'type': 'markdown'}
                 for column, value in row.items()} for row in df.to_dict('rows')
@@ -388,7 +396,6 @@ def create_DataTable(df):
             tooltip_duration=None,
             style_as_list_view=True,
             fixed_rows={'headers': True},
-            # fixed_columns={'data': 1 },
             )
     return data_table_dbl
 
@@ -405,10 +412,6 @@ row1 = html.Tr(
     # html.Div(dcc.Input(id='input-on-submit', type='text')),
     # html.Button('Submit', id='submit-val', n_clicks=0, className="mr-1"), # className="checkbox checked data-toggle"),
     # html.Div(id='container-button-basic', children='Enter a value and press submit'),
-
-
-
-
 
         daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', style=dict(color=toggle_button_color, )), # fontSize="4px"
         daq.ToggleSwitch(id='toggle_point_edges', value=False, size=30, label='related terms', labelPosition='bottom', style=dict(color=toggle_button_color, )),
@@ -457,6 +460,59 @@ app.layout = html.Div(id='general_div', className="container",
 #         n_clicks
 #     )
 
+
+### backend filtering for datatable ("filter data ...")
+operators = [['ge ', '>='],
+             ['le ', '<='],
+             ['lt ', '<'],
+             ['gt ', '>'],
+             ['ne ', '!='],
+             ['eq ', '='],
+             ['contains '],
+             ['datestartswith ']]
+
+def split_filter_part(filter_part):
+    for operator_type in operators:
+        for operator in operator_type:
+            if operator in filter_part:
+                name_part, value_part = filter_part.split(operator, 1)
+                name = name_part[name_part.find('{') + 1: name_part.rfind('}')]
+                value_part = value_part.strip()
+                v0 = value_part[0]
+                if (v0 == value_part[-1] and v0 in ("'", '"', '`')):
+                    value = value_part[1: -1].replace('\\' + v0, v0)
+                else:
+                    try:
+                        value = float(value_part)
+                    except ValueError:
+                        value = value_part
+                # word operators need spaces after them in the filter string,
+                # but we don't want these later
+                return name, operator_type[0].strip(), value
+    return [None] * 3
+
+@app.callback(
+    Output('main_datatable', "data"),
+    [Input('main_datatable', "filter_query")])
+def filter_data_in_data_table(filter_):
+    filtering_expressions = filter_.split(' && ')
+    dff = df
+    for filter_part in filtering_expressions:
+        col_name, operator, filter_value = split_filter_part(filter_part)
+        if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
+            # these operators match pandas series operator method names
+            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+        elif operator == 'contains':
+            # dff = dff.loc[dff[col_name].str.contains(filter_value)]
+            dff = dff.loc[dff[col_name].str.contains(f'(?i){filter_value}')]
+        elif operator == 'datestartswith':
+            # this is a simplification of the front-end filtering logic,
+            # only works with complete fields in standard format
+            dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+    return dff.to_dict('records')
+
+
+
 if __name__ == '__main__':
     app.run_server(debug=True, host="127.0.0.1", port=5922)
 # click plot and highlight in table
@@ -472,9 +528,6 @@ if __name__ == '__main__':
 
 # missing features:
 # - resize table upon adding columns
-# - filter data --> search with case insensitive input
-# - Toggle columns button style --> CSS button "info" or something
-# - reset plot/table button should reset hidden columns to default
 # - X-axis scroll bar not visible in table
 # - export image as png, jpeg as well (PNG, JPEG, SVG or PDF, EPS)
 # - export table including row for highlights
@@ -483,4 +536,3 @@ if __name__ == '__main__':
 # - https://www.bootstraptoggle.com/ --> instead of plotly buttons (maybe possible via flask and classic JS)
 ### ? not sure ?
 # - add a column with "related terms" (from edges)
-

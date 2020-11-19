@@ -194,8 +194,9 @@ def data_bars_dbl(df, column):
             styles.append({'if': {"column_id": "s value", "filter_query": "{id} = " + term, 'row_index': 'odd'}, "background": "linear-gradient(90deg, {} ) rgb(242, 242, 242) ".format(color_bar), "paddingBottom": 1, "paddingTop": 1})
     return styles
 
-style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor": highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
-                                {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},] + data_bars_dbl(df, s_value)
+# style_data_conditional_basic = [{"if": {"state": "selected"}, "backgroundColor": highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
+#                                 {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},] + data_bars_dbl(df, s_value)
+style_data_conditional_basic = data_bars_dbl(df, s_value)
 
 print("<<< restarting {} >>>".format(datetime.datetime.now()))
 # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/materia/bootstrap.min.css" # bs = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/litera/bootstrap.min.css"

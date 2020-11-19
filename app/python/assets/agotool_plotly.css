@@ -1,11 +1,19 @@
-/* overwrite odd rows being grey with white*/
-.dash-header, .expanded-row--empty-cell {background-color: white !important;}
+/* overwrite odd rows being grey with white */
+.dash-header, .expanded-row--empty-cell {
+    background-color: white !important;
+    --accent: black !important;
+}
 
 /*.dbl_class {color: red;}*/
 .dash-filter input {
     text-align: left !important;
     padding-left: 5px !important;
     background-color: white !important;
+}
+
+/* dash data table filter data box --> color of bottom border when cell is active*/
+input:focus:not([readonly]) {
+    border-bottom: 1px solid black !important;
 }
 
 /* Hover text in plot */
@@ -18,15 +26,23 @@ svg.main-svg g.hoverlayer g.hovertext text{
     fill: #43464B !important;
 }
 
-
+/* Toggle Columns button of dash data table*/
 .show-hide {
     font-size: 12px;
+    color: #6C757D;
+    background-color: white;
+    border-radius: .2rem;
+    border: 1px solid #6C757D;
+    /*padding: 0 20px;*/
 }
 
-/* When adding term labels (as interactive annotations) the text "Aa" is added in superscript to the legend. Remove this bug via code below */
+/* Scatter plot legend text. When adding term labels (as interactive annotations) the text "Aa" is added in superscript to the legend. Remove this bug via code below */
 .pointtext {
     display: none;
 }
+
+/*$(".umbrellaClass").addClass("baseClass1");*/
+
 
 /* potentially deprecated */
 /*.button_dbl {*/
@@ -39,19 +55,36 @@ svg.main-svg g.hoverlayer g.hovertext text{
 
 /* Dash data table START */
 
-/* hover color */
-.dash-spreadsheet-container table {
-    /*--accent: #00a355 !important;*/
-    --accent: black !important;
-    /*--selected-background: #00a35444 !important;*/
-    /*--selected-color: #3C3C3C !important;*/
-    /*margin: 3rem;*/
-    /*padding: 0 20px;*/
-    }
+/* hover color probably deprecated */
+/*.dash-spreadsheet-container table {*/
+/*    !*--accent: #00a355 !important;*!*/
+/*    --accent: black !important;*/
+/*    !*--selected-background: #00a35444 !important;*!*/
+/*    !*--selected-color: #3C3C3C !important;*!*/
+/*    !*margin: 3rem;*!*/
+/*    !*padding: 0 20px;*!*/
+/*    }*/
 
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-freeze-left, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-freeze-top, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-virtualized {
-    padding: 0 20px;
+/* seems to be fixed after update */
+/*.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-freeze-left, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-freeze-top, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner.dash-virtualized {*/
+/*    padding: 0 20px;*/
+/*}*/
+
+.dash-spreadsheet-container .dash-spreadsheet-inner table {
+        --accent: transparent !important;
+        --selected-background: transparent !important;
+        /*--border: transparent !important;*/
+        /*--text-color: transparent !important;*/
+        /*--hover: transparent !important;*/
+        /*--background-color-ellipses: transparent !important;*/
+        /*--faded-text: transparent !important;*/
+        /*--faded-text-header: transparent !important;*/
+        /*--border: transparent !important;*/
+        /*--faded-dropdown: transparent !important;*/
+        /*--muted: transparent !important;*/
 }
+
+
 
 
 /*Toggle columns button of dash data table*/

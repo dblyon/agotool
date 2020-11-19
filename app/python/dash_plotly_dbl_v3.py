@@ -188,10 +188,11 @@ def data_bars_dbl(df, column):
             styles.append({'if': {"column_id": "s value", "filter_query": "{id} = " + term, 'row_index': 'odd'}, "background": "linear-gradient(90deg, {} ) rgb(242, 242, 242) ".format(color_bar), "paddingBottom": 1, "paddingTop": 1})
     return styles
 
-style_data_conditional_basic = [
-                                {"if": {"state": "selected"}, "backgroundColor": highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
-                                {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},
-                                ] + data_bars_dbl(df, s_value)
+# style_data_conditional_basic = [
+#                                 {"if": {"state": "selected"}, "backgroundColor": highlight_color, "border": "inherit !important", "text_align": "inherit !important",},
+#                                 {"if": {"state": "active"}, "backgroundColor": "inherit !important", "border": "inherit !important", "text_align": "inherit !important",},
+#                                 ] + data_bars_dbl(df, s_value)
+style_data_conditional_basic = data_bars_dbl(df, s_value)
 
 # print(">"*50)
 print("<<< restarting {} >>>".format(datetime.datetime.now()))
@@ -207,19 +208,15 @@ data_table_dbl = dash_table.DataTable(
             editable=False,              # allow editing of data inside all cells
             filter_action="native",      # allow filtering of data by user ('native') or not ('none')
             sort_action="native",        # enables data to be sorted per-column by user or not ('none')
-            # sort_mode="multi",           # sort across 'multi' or 'single' columns
             column_selectable="multi",   # allow users to select 'multi' or 'single' columns
             row_selectable="multi",      # allow users to select 'multi' or 'single' rows
             selected_columns=[],         # ids of columns that user selects
             selected_rows=[],            # indices of rows that user selects
             page_action= "none", #"native",        # all data is passed to the table up-front or not ('none')
             style_table={'height': '400px',
-                         # "width": "1000px",
-                         # "minWidth": "800px",
-                         # "maxWidth": "1200px",
                          'overflowX': 'auto',
                          'overflowY': 'auto',
-                         }, # 'minWidth': '90%'
+                         },
             style_data_conditional=[], # overwritten by JS callback
             style_data={ # overflow cells' content into multiple lines
                 'whiteSpace': 'normal',
@@ -265,7 +262,11 @@ data_table_dbl = dash_table.DataTable(
                Input(component_id="main_datatable", component_property='selected_cells')])
 def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(selected_rows, derived_virtual_data, derived_virtual_selected_rows, derived_virtual_selected_row_ids, derived_virtual_indices, derived_virtual_row_ids, active_cell, selected_cells):
     # print("calling highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable")
-    dff = df if len(derived_virtual_data) == 0 else pd.DataFrame(derived_virtual_data)
+    if derived_virtual_data is None or len(derived_virtual_data) == 0:
+        dff = df
+    else:
+        dff = pd.DataFrame(derived_virtual_data)
+    # dff = df if len(derived_virtual_data) == 0 else pd.DataFrame(derived_virtual_data)
     dff[marker_line_width] = 1
     dff[marker_line_color] = "white"
     dff.loc[derived_virtual_selected_rows, marker_line_width] = 3
