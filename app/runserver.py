@@ -13,13 +13,13 @@ from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
-
-import dash
-from dash.dependencies import Input, Output
-import dash_table
-import dash_core_components as dcc
-import dash_html_components as html
-import plotly.express as px
+#
+# import dash
+# from dash.dependencies import Input, Output
+# import dash_table
+# import dash_core_components as dcc
+# import dash_html_components as html
+# import plotly.express as px
 
 sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy
@@ -110,11 +110,12 @@ def getitem(obj, item, default):
 def init_app():
     app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
     Markdown(app)
-    # Import Dash application
-    from .plotlydash.dashboard import create_dashboard
-    app = create_dashboard(app)
-
+    ### Import Dash application
+    from dash_within_flask_dbl_1 import init_dashboard
+    app = init_dashboard(app)
+    # dash_app = init_dashboard(app)
     return app
+    # return app, dash_app
 
 app = init_app()
 
@@ -664,6 +665,12 @@ def help():
 @app.route('/plot')
 def plot():
     return render_template('plot.html', form=Enrichment_Form())
+
+
+
+@app.route("/dash")
+def MyDashApp():
+    return app.index()
 
 ################################################################################
 # results.html

@@ -429,7 +429,7 @@ row1 = html.Tr(
 #         html.Div(data_table_dbl, ),
 #     ])
 # ])
-table_body = [html.Tbody([row1])]
+# table_body = [html.Tbody([row1])]
 # table = dbc.Table(table_header + table_body, bordered=True)
 # Use col-{breakpoint}-auto classes to size columns based on the natural width of their content.
 # --> class="col-md-auto"

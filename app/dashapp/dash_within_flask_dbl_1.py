@@ -224,9 +224,6 @@ def data_bars_dbl(df, column):
 style_data_conditional_basic = data_bars_dbl(df, s_value)
 
 
-# app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[dbc.themes.BOOTSTRAP]) # dbc.themes.BOOTSTRAP [bs]
-
-
 def create_DataTable(df):
     data_table_dbl = dash_table.DataTable(
             id='main_datatable',
@@ -291,43 +288,7 @@ def init_dashboard(server):
                                "rel": "stylesheet"}
                               ])
 
-        ### external CSS stylesheets
-        # external_stylesheets = [
-        #     'https://codepen.io/chriddyp/pen/bWLwgP.css',
-        #     {
-        #         'href': 'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css',
-        #         'rel': 'stylesheet',
-        #         'integrity': 'sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO',
-        #         'crossorigin': 'anonymous'
-        #     }
-        # ]
-
-
     data_table_dbl = create_DataTable(df)
-
-    ### Custom HTML layout
-    # dash_app.index_string = html_layout_dbl
-    # dash_app.index_string = '''
-    # <!DOCTYPE html>
-    # <html>
-    #     <head>
-    #         {%metas%}
-    #         <title>{%title%}</title>
-    #         {%favicon%}
-    #         {%css%}
-    #     </head>
-    #     <body>
-    #         <div>My Custom header</div>
-    #         {%app_entry%}
-    #         <footer>
-    #             {%config%}
-    #             {%scripts%}
-    #             {%renderer%}
-    #         </footer>
-    #         <div>My Custom footer</div>
-    #     </body>
-    # </html>
-    # '''
 
     row1 = html.Tr([
         html.Td([

@@ -15,7 +15,6 @@ CREATE TABLE protein_2_functionenum_temp (
     taxid integer,
     id text,
     functionenum integer ARRAY);
--- \copy protein_2_functionenum_temp FROM '/agotool_data/PostgreSQL/tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
 \copy protein_2_functionenum_temp FROM 'tables/Protein_2_FunctionEnum_table_UPS_FIN.txt';
 CREATE INDEX protein_2_functionenum_taxid_idx_temp ON protein_2_functionenum_temp (taxid);
 CREATE INDEX protein_2_functionenum_id_idx_temp ON protein_2_functionenum_temp (id);
@@ -48,25 +47,3 @@ CREATE TABLE taxid_2_protein_temp (
     an_array text ARRAY);
 \copy taxid_2_protein_temp FROM 'tables/Taxid_2_Proteins_table_UPS_FIN.txt';
 CREATE INDEX taxid_2_protein_taxid_idx_temp ON taxid_2_protein_temp (taxid);
-
-
-
--- DEPRECATED (too small for DB, loading in RAM)
--- CREATE TABLE lineage_temp (
---     func_enum integer,
---     func_enum_array integer ARRAY);
--- \copy lineage_temp FROM 'tables/Lineage_table_UPS_FIN.txt';
-
--- DEPRECATED
--- protein_2_functionenum_and_score_temp
-
--- DEPRECATED
--- CREATE TABLE protein_2_functionenum_and_score_temp (
---     taxid integer,
---     uniprotid text,
---     funcenum_arr integer ARRAY,
---     score_arr integer ARRAY);
--- \copy protein_2_functionenum_and_score_temp FROM '/agotool_data/PostgreSQL/tables/Protein_2_FunctionEnum_and_Score_table_UPS_FIN.txt';
--- CREATE INDEX protein_2_functionenum_and_score_taxid_idx_temp ON protein_2_functionenum_and_score_temp (taxid);
--- CREATE INDEX protein_2_functionenum_and_score_uniprotid_idx_temp ON protein_2_functionenum_and_score_temp (uniprotid);
--- CLUSTER protein_2_functionenum_and_score_temp USING protein_2_functionenum_and_score_taxid_idx_temp;

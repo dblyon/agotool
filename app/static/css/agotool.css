@@ -215,3 +215,6 @@ div.dataTables_wrapper {margin-bottom: 3em;}
 /*#E27D60  orange*/
 /*d95f0e*/
 
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table {
+        --accent: black !important;
+}
