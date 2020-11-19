@@ -24,9 +24,6 @@ VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the program
 temp_dont_run_analysis = False
-# if READ_FROM_FLAT_FILES and LOW_MEMORY:
-#     raise NotImplementedError
-
 ARGPARSE = False
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # SMART is missing in UniProt version

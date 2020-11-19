@@ -11,7 +11,7 @@ check_exit_status () {
 }
 TABLES_DIR=/home/dblyon/agotool/data/PostgreSQL/tables
 PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
-UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
+# UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 TESTING_DIR=/home/dblyon/agotool/app/python/testing/sanity
 APP_DIR=/home/dblyon/agotool/app
 POSTGRES_DIR=/home/dblyon/agotool/data/PostgreSQL

@@ -107,8 +107,16 @@ def getitem(obj, item, default):
         return obj[item]
 ###############################################################################
 ### Create the Flask application
-app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
-Markdown(app)
+def init_app():
+    app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
+    Markdown(app)
+    # Import Dash application
+    from .plotlydash.dashboard import create_dashboard
+    app = create_dashboard(app)
+
+    return app
+
+app = init_app()
 
 if PROFILING:
     # from werkzeug.contrib.profiler import ProfilerMiddleware
