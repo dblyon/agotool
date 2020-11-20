@@ -1,4 +1,4 @@
-import sys, os, datetime
+import sys, os, datetime, pytest
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get from API to python directory
 import pandas as pd
@@ -110,3 +110,7 @@ def test_new_version_was_created_no_later_than_x_days_ago(days=32):
     date_time_str = max(df["date"])
     date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S.%f')
     assert date_time_obj > datetime.datetime.now() - datetime.timedelta(days)
+
+# @pytest.mark.parametrize("test_input,expected", [("3+5", 8), ("2+4", 6), ("6*3", 18)])
+# def test_pytest_mark_parametrize(test_input, expected):
+#     assert eval(test_input) == expected

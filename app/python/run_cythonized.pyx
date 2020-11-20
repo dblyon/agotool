@@ -445,26 +445,26 @@ def collect_scores_per_term_limit_2_inclusionTerms(protein_AN_list, ENSP_2_tuple
     else:
         return funcEnum_2_scores_dict
 
-def collect_scores_per_term_abundance_corrected(ui, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=False):
-    funcEnum_2_scores_dict = defaultdict(lambda: [])
-    for proteinGroup_list, correction_factor in ui.iter_bins():
-        for proteinGroup in proteinGroup_list:
-            try:
-                funcEnum_score = ENSP_2_tuple_funcEnum_score_dict[proteinGroup]
-            except KeyError:
-                continue
-            funcEnum_arr, score_arr = funcEnum_score
-            len_funcEnum_arr = len(funcEnum_arr)
-            for index_ in range(len_funcEnum_arr):
-                funcEnum = funcEnum_arr[index_]
-                if funcEnum in funcEnums_2_include_set:
-                    score = score_arr[index_]
-                    funcEnum_2_scores_dict[funcEnum].append(score*correction_factor)
-    if list_2_array:
-        return {funcEnum: np.asarray(scores, dtype=np.dtype(variables.dtype_TM_score)) for funcEnum, scores in funcEnum_2_scores_dict.items()}
-        # since concatenating np.arrays later on (for filling with zeros) produces 64 bit array anyway
-    else:
-        return funcEnum_2_scores_dict
+# def collect_scores_per_term_abundance_corrected(ui, ENSP_2_tuple_funcEnum_score_dict, funcEnums_2_include_set, list_2_array=False):
+#     funcEnum_2_scores_dict = defaultdict(lambda: [])
+#     for proteinGroup_list, correction_factor in ui.iter_bins():
+#         for proteinGroup in proteinGroup_list:
+#             try:
+#                 funcEnum_score = ENSP_2_tuple_funcEnum_score_dict[proteinGroup]
+#             except KeyError:
+#                 continue
+#             funcEnum_arr, score_arr = funcEnum_score
+#             len_funcEnum_arr = len(funcEnum_arr)
+#             for index_ in range(len_funcEnum_arr):
+#                 funcEnum = funcEnum_arr[index_]
+#                 if funcEnum in funcEnums_2_include_set:
+#                     score = score_arr[index_]
+#                     funcEnum_2_scores_dict[funcEnum].append(score*correction_factor)
+#     if list_2_array:
+#         return {funcEnum: np.asarray(scores, dtype=np.dtype(variables.dtype_TM_score)) for funcEnum, scores in funcEnum_2_scores_dict.items()}
+#         # since concatenating np.arrays later on (for filling with zeros) produces 64 bit array anyway
+#     else:
+#         return funcEnum_2_scores_dict
 
 @boundscheck(False)
 @wraparound(False)

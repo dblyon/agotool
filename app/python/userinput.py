@@ -450,10 +450,14 @@ class Userinput:
         for group_fg, group_bg in zip(groups_fg, groups_bg):
             proteinGroups_foreground = group_fg[1][self.col_foreground]
             proteinGroups_background = group_bg[1][self.col_background]
-            len_proteinGroups_foreground = len(proteinGroups_foreground) # * 1.0 # python3
-            if len_proteinGroups_foreground == 0:
-                continue
-            len_proteinGroups_background = len(proteinGroups_background) # * 1.0 # python3
+            len_proteinGroups_foreground = len(proteinGroups_foreground)
+
+            # WHY ???
+            # if len_proteinGroups_foreground == 0:
+            #     # if there are no proteins in the foreground bin the background should still be counted
+            #     continue
+
+            len_proteinGroups_background = len(proteinGroups_background)
             try:
                 correction_factor = len_proteinGroups_foreground / len_proteinGroups_background
             except ZeroDivisionError:

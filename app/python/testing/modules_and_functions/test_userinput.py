@@ -17,7 +17,7 @@ DEFAULT_MISSING_BIN = -1
 foreground_empty = pd.Series(name="foreground", data={0: np.nan, 1: np.nan, 2: np.nan})
 background_empty = pd.DataFrame({"background": {0: np.nan, 1: np.nan, 2: np.nan},
                                  "intensity": {0: np.nan, 1: np.nan, 2: np.nan}})
-foreground_empty_1 = pd.Series()
+foreground_empty_1 = pd.Series(dtype="float64")
 background_empty_1 = pd.DataFrame()
 foreground_empty_2 = [[], []]
 background_empty_2 = [[], []]
@@ -145,10 +145,10 @@ fg_bg_iter_bins_ids = ["edge case, empty DFs with NaNs",
 @pytest.fixture(params=fg_bg_iter_bins_DFs, ids=fg_bg_iter_bins_ids)
 def fixture_fg_bg_iter_bins(request):
     return request.param
-
-# ToDo #!!!
-# def test_compare_file_2_copypaste_2_RestAPI():
-#     assert 1 == 2
+#
+# # ToDo #!!!
+# # def test_compare_file_2_copypaste_2_RestAPI():
+# #     assert 1 == 2
 
 def test_ui_API_check(pqo, fixture_fg_bg_meth_all):
     foreground, background, enrichment_method = fixture_fg_bg_meth_all
@@ -191,196 +191,138 @@ def test_check_parse_and_fail_cleanup_0(foreground, background, enrichment_metho
     assert ui.check_cleanup == False
     assert ui.check == False
 
-@pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_4, background_4, "abundance_correction")])
-def test_check_parse_and_fail_cleanup_1(foreground, background, enrichment_method, pqo):
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
-    in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
-    background_string = ""
-    for ele in zip(bg, in_):
-        an, in_ = ele
-        background_string += an + "\t" + in_ + "\n"
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    assert ui.check_parse == True
-    assert ui.check_cleanup == False
-    assert ui.check == False
-
-@pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_empty, background_1, "compare_samples"), (foreground_1, background_empty, "compare_samples")])
-def test_check_parse_and_fail_cleanup_2(foreground, background, enrichment_method, pqo):
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
-    in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
-    background_string = ""
-    for ele in zip(bg, in_):
-        an, in_ = ele
-        background_string += an + "\t" + in_ + "\n"
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    assert ui.check_parse == True
-    assert ui.check_cleanup == False
-    assert ui.check == False
-
-
-
-fg_bg_0 = [(foreground_1, background_1, "compare_samples"),
-           (foreground_1, background_1, "compare_groups"),
-           (foreground_1, background_1, "compare_samples")]
-
-# example_1: foreground is a proper subset of the background, everything has an abundance value, one row of NaNs
-# example_2: same as example_1 with "," instead of "." as decimal delimiter
-### FileName_EnrichmentMethod
-fn_em_0 = [(os.path.join(TEST_FN_DIR, "example_1.txt"), "compare_samples"),
-           (os.path.join(TEST_FN_DIR, "example_1.txt"), "compare_groups"),
-           (os.path.join(TEST_FN_DIR, "example_1.txt"), "characterize_foreground"),
-           pytest.mark.xfail((os.path.join(TEST_FN_DIR, "example_1.txt"), "unknown_method")),
-           (os.path.join(TEST_FN_DIR, "example_2.txt"), "compare_samples"),
-           (os.path.join(TEST_FN_DIR, "example_2.txt"), "compare_groups"),
-           (os.path.join(TEST_FN_DIR, "example_2.txt"), "characterize_foreground"),
-           pytest.mark.xfail((os.path.join(TEST_FN_DIR, "example_2.txt"), "unknown_method")),
-           pytest.mark.xfail((os.path.join(TEST_FN_DIR, "file_does_not_exist.txt"), "compare_samples"))]
-
-@pytest.mark.factory
-@pytest.mark.parametrize("fn, enrichment_method", fn_em_0)
-def test_factory(fn, enrichment_method, pqo):
-    ui_1 = get_ui_copy_and_paste(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
-    test_check_parse_cleanup_check(ui_1, check_parse=True, check_cleanup=True, check=True)
-    assert ui_1.foreground.shape == (10, 1)
-    if enrichment_method != "characterize_foreground":
-        assert ui_1.background.shape == (15, 1)
-
-    ui_2 = get_ui_fn(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
-    test_check_parse_cleanup_check(ui_2, check_parse=True, check_cleanup=True, check=True)
-    assert ui_2.foreground.shape == (10, 1)
-    if enrichment_method != "characterize_foreground":
-        assert ui_2.background.shape == (15, 1)
-
-    ui_3 = get_ui_fn(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
-    test_check_parse_cleanup_check(ui_3, check_parse=True, check_cleanup=True, check=True)
-    assert ui_3.foreground.shape == (10, 1)
-    if enrichment_method != "characterize_foreground":
-        assert ui_3.background.shape == (15, 1)
-
-    ### Check if the results are equal regardless if file, copy&paste, or REST-API
-    assert ui_1.foreground.equals(ui_2.foreground)
-    assert ui_2.foreground.equals(ui_3.foreground)
-    if enrichment_method == "characterize_foreground":
-        assert ui_1.background is None
-        assert ui_2.background is None
-        assert ui_3.background is None
-    else:
-        assert ui_1.background.equals(ui_2.background)
-        assert ui_2.background.equals(ui_3.background)
-
-
-fn_em_1 = [(os.path.join(TEST_FN_DIR, "example_1.txt"), "abundance_correction"),
-           (os.path.join(TEST_FN_DIR, "example_2.txt"), "abundance_correction"),
-           pytest.mark.xfail((os.path.join(TEST_FN_DIR, "file_does_not_exist.txt"), "compare_samples"))]
-# example_1: foreground is a proper subset of the background, everything has an abundance value, one row of NaNs
-# example_2: same as above with "," instead of "." as decimal delimiter
-
-@pytest.mark.factory
-@pytest.mark.parametrize("fn, enrichment_method", fn_em_1)
-def test_factory_abundance(fn, enrichment_method, pqo):
-    ui_1 = get_ui_copy_and_paste(pqo=pqo, fn=fn, enrichment_method=enrichment_method, with_abundance=True)
-    test_check_parse_cleanup_check(ui_1, check_parse=True, check_cleanup=True, check=True)
-    assert ui_1.foreground.shape == (10, 2)
-    assert ui_1.background.shape == (15, 2)
-
-    ui_2 = get_ui_fn(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
-    test_check_parse_cleanup_check(ui_2, check_parse=True, check_cleanup=True, check=True)
-    assert ui_2.foreground.shape == (10, 2)
-    assert ui_2.background.shape == (15, 2)
-
-    ui_3 = get_ui_rest_api(pqo=pqo, fn=fn, enrichment_method=enrichment_method, with_abundance=True)
-    test_check_parse_cleanup_check(ui_3, check_parse=True, check_cleanup=True, check=True)
-    assert ui_3.foreground.shape == (10, 2)
-    assert ui_3.background.shape == (15, 2)
-
-    ### Check if the results are equal regardless if file, copy&paste, or REST-API
-    assert ui_1.foreground.equals(ui_2.foreground)
-    assert ui_2.foreground.equals(ui_3.foreground)
-    if enrichment_method == "characterize_foreground":
-        assert ui_1.background is None
-        assert ui_2.background is None
-        assert ui_3.background is None
-    else:
-        assert ui_1.background.equals(ui_2.background)
-        assert ui_2.background.equals(ui_3.background)
-
-@pytest.mark.parametrize("fn, enrichment_method", [(os.path.join(TEST_FN_DIR, "example_5.txt"), "abundance_correction")])
-def test_protein_groups(fn, enrichment_method, pqo):
-    pass
-
-@pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_0)
-def test_check_parse_with_copy_and_paste_0(foreground, background, enrichment_method, pqo):
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    assert ui.check_parse == True
-    assert ui.foreground.shape == (10, 1)
-
-
-fg_bg_1 = [(foreground_1, background_1, "abundance_correction")]
-
-@pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_1)
-def test_check_parse_with_copy_and_paste_1(foreground, background, enrichment_method, pqo):
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = background.loc[background.background.notnull(), "background"].tolist()
-    in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
-    background_string = ""
-    for ele in zip_longest(bg, in_, fillvalue=np.nan):
-        an, in_ = ele
-        background_string += an + "\t" + str(in_) + "\n"
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    assert ui.check_parse == True
-    assert ui.foreground.shape == (10, 2)
-
-
-@pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_1, background_1, "compare_samples")])
-def test_check_parse_and_cleanup_copy_and_paste_2(foreground, background, enrichment_method, pqo):
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    assert ui.check_parse == True
-
-
-edge_cases_0 = [(foreground_empty, background_empty, "abundance_correction")] #,
-                # (foreground_empty_1, background_empty_1, "abundance_correction"),
-                # (foreground_empty_2, background_empty_2, "abundance_correction")]
-
-@pytest.mark.parametrize("foreground, background, enrichment_method", edge_cases_0)
-def test_check_parse_and_cleanup_copy_and_paste_0(foreground, background, enrichment_method, pqo):
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    assert ui.check_parse == False
-    assert ui.check_cleanup == False
-    assert ui.check == False
-
-fg_bg_meth_cp_abu = [pytest.mark.xfail((foreground_empty, background_empty, "abundance_correction"), strict=True),
-      pytest.mark.xfail((foreground_empty_2, background_empty_2, "abundance_correction")),
-      pytest.mark.xfail((foreground_empty_3, background_empty_3, "abundance_correction")),
-      pytest.mark.xfail((foreground_empty_4, background_empty_4, "abundance_correction")),
-      (foreground_nonsense, background_nonsense, "abundance_correction"),
-      (foreground_1, background_1, "abundance_correction"),
-      (foreground_2, background_2, "abundance_correction"),
-      (foreground_3, background_3, "abundance_correction")]
-
-@pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_meth_cp_abu)
-def test_check_parse_and_cleanup_copy_and_paste_1(foreground, background, enrichment_method, pqo):
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = background.loc[background.background.notnull(), "background"].tolist()
-    in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
-    background_string = ""
-    for ele in zip_longest(bg, in_, fillvalue=np.nan):
-        an, in_ = ele
-        background_string += an + "\t" + str(in_) + "\n"
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    assert ui.check_parse == True
-    assert ui.check_cleanup == True
-    assert ui.check == True
-
-# @pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_almost_empty, background_no_intensity, "compare_samples")])
-# def test_check_parse_and_cleanup_copy_and_paste_2(foreground, background, enrichment_method, pqo):
+# @pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_4, background_4, "abundance_correction")])
+# def test_check_parse_and_fail_cleanup_1(foreground, background, enrichment_method, pqo):
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
+#     in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
+#     background_string = ""
+#     for ele in zip(bg, in_):
+#         an, in_ = ele
+#         background_string += an + "\t" + in_ + "\n"
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     assert ui.check_parse == True
+#     assert ui.check_cleanup == False
+#     assert ui.check == False
+#
+# @pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_empty, background_1, "compare_samples"), (foreground_1, background_empty, "compare_samples")])
+# def test_check_parse_and_fail_cleanup_2(foreground, background, enrichment_method, pqo):
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
+#     in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
+#     background_string = ""
+#     for ele in zip(bg, in_):
+#         an, in_ = ele
+#         background_string += an + "\t" + in_ + "\n"
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     assert ui.check_parse == True
+#     assert ui.check_cleanup == False
+#     assert ui.check == False
+#
+#
+#
+# fg_bg_0 = [(foreground_1, background_1, "compare_samples"),
+#            (foreground_1, background_1, "compare_groups"),
+#            (foreground_1, background_1, "compare_samples")]
+#
+# # example_1: foreground is a proper subset of the background, everything has an abundance value, one row of NaNs
+# # example_2: same as example_1 with "," instead of "." as decimal delimiter
+# ### FileName_EnrichmentMethod
+# fn_em_0 = [(os.path.join(TEST_FN_DIR, "example_1.txt"), "compare_samples"),
+#            (os.path.join(TEST_FN_DIR, "example_1.txt"), "compare_groups"),
+#            (os.path.join(TEST_FN_DIR, "example_1.txt"), "characterize_foreground"),
+#            pytest.mark.xfail((os.path.join(TEST_FN_DIR, "example_1.txt"), "unknown_method")),
+#            (os.path.join(TEST_FN_DIR, "example_2.txt"), "compare_samples"),
+#            (os.path.join(TEST_FN_DIR, "example_2.txt"), "compare_groups"),
+#            (os.path.join(TEST_FN_DIR, "example_2.txt"), "characterize_foreground"),
+#            pytest.mark.xfail((os.path.join(TEST_FN_DIR, "example_2.txt"), "unknown_method")),
+#            pytest.mark.xfail((os.path.join(TEST_FN_DIR, "file_does_not_exist.txt"), "compare_samples"))]
+#
+# # @pytest.mark.factory
+# @pytest.mark.parametrize("fn, enrichment_method", fn_em_0)
+# def test_factory(fn, enrichment_method, pqo):
+#     ui_1 = get_ui_copy_and_paste(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
+#     test_check_parse_cleanup_check(ui_1, check_parse=True, check_cleanup=True, check=True)
+#     assert ui_1.foreground.shape == (10, 1)
+#     if enrichment_method != "characterize_foreground":
+#         assert ui_1.background.shape == (15, 1)
+#
+#     ui_2 = get_ui_fn(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
+#     test_check_parse_cleanup_check(ui_2, check_parse=True, check_cleanup=True, check=True)
+#     assert ui_2.foreground.shape == (10, 1)
+#     if enrichment_method != "characterize_foreground":
+#         assert ui_2.background.shape == (15, 1)
+#
+#     ui_3 = get_ui_fn(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
+#     test_check_parse_cleanup_check(ui_3, check_parse=True, check_cleanup=True, check=True)
+#     assert ui_3.foreground.shape == (10, 1)
+#     if enrichment_method != "characterize_foreground":
+#         assert ui_3.background.shape == (15, 1)
+#
+#     ### Check if the results are equal regardless if file, copy&paste, or REST-API
+#     assert ui_1.foreground.equals(ui_2.foreground)
+#     assert ui_2.foreground.equals(ui_3.foreground)
+#     if enrichment_method == "characterize_foreground":
+#         assert ui_1.background is None
+#         assert ui_2.background is None
+#         assert ui_3.background is None
+#     else:
+#         assert ui_1.background.equals(ui_2.background)
+#         assert ui_2.background.equals(ui_3.background)
+#
+#
+# fn_em_1 = [(os.path.join(TEST_FN_DIR, "example_1.txt"), "abundance_correction"),
+#            (os.path.join(TEST_FN_DIR, "example_2.txt"), "abundance_correction"),
+#            pytest.mark.xfail((os.path.join(TEST_FN_DIR, "file_does_not_exist.txt"), "compare_samples"))]
+# # example_1: foreground is a proper subset of the background, everything has an abundance value, one row of NaNs
+# # example_2: same as above with "," instead of "." as decimal delimiter
+#
+# # @pytest.mark.factory
+# @pytest.mark.parametrize("fn, enrichment_method", fn_em_1)
+# def test_factory_abundance(fn, enrichment_method, pqo):
+#     ui_1 = get_ui_copy_and_paste(pqo=pqo, fn=fn, enrichment_method=enrichment_method, with_abundance=True)
+#     test_check_parse_cleanup_check(ui_1, check_parse=True, check_cleanup=True, check=True)
+#     assert ui_1.foreground.shape == (10, 2)
+#     assert ui_1.background.shape == (15, 2)
+#
+#     ui_2 = get_ui_fn(pqo=pqo, fn=fn, enrichment_method=enrichment_method)
+#     test_check_parse_cleanup_check(ui_2, check_parse=True, check_cleanup=True, check=True)
+#     assert ui_2.foreground.shape == (10, 2)
+#     assert ui_2.background.shape == (15, 2)
+#
+#     ui_3 = get_ui_rest_api(pqo=pqo, fn=fn, enrichment_method=enrichment_method, with_abundance=True)
+#     test_check_parse_cleanup_check(ui_3, check_parse=True, check_cleanup=True, check=True)
+#     assert ui_3.foreground.shape == (10, 2)
+#     assert ui_3.background.shape == (15, 2)
+#
+#     ### Check if the results are equal regardless if file, copy&paste, or REST-API
+#     assert ui_1.foreground.equals(ui_2.foreground)
+#     assert ui_2.foreground.equals(ui_3.foreground)
+#     if enrichment_method == "characterize_foreground":
+#         assert ui_1.background is None
+#         assert ui_2.background is None
+#         assert ui_3.background is None
+#     else:
+#         assert ui_1.background.equals(ui_2.background)
+#         assert ui_2.background.equals(ui_3.background)
+#
+# @pytest.mark.parametrize("fn, enrichment_method", [(os.path.join(TEST_FN_DIR, "example_5.txt"), "abundance_correction")])
+# def test_protein_groups(fn, enrichment_method, pqo):
+#     pass
+#
+# @pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_0)
+# def test_check_parse_with_copy_and_paste_0(foreground, background, enrichment_method, pqo):
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     assert ui.check_parse == True
+#     assert ui.foreground.shape == (10, 1)
+#
+#
+# fg_bg_1 = [(foreground_1, background_1, "abundance_correction")]
+#
+# @pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_1)
+# def test_check_parse_with_copy_and_paste_1(foreground, background, enrichment_method, pqo):
 #     fg = "\n".join(foreground[foreground.notnull()].tolist())
 #     bg = background.loc[background.background.notnull(), "background"].tolist()
 #     in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
@@ -390,299 +332,357 @@ def test_check_parse_and_cleanup_copy_and_paste_1(foreground, background, enrich
 #         background_string += an + "\t" + str(in_) + "\n"
 #     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
 #     assert ui.check_parse == True
+#     assert ui.foreground.shape == (10, 2)
+#
+#
+# @pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_1, background_1, "compare_samples")])
+# def test_check_parse_and_cleanup_copy_and_paste_2(foreground, background, enrichment_method, pqo):
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     assert ui.check_parse == True
+#
+#
+# edge_cases_0 = [(foreground_empty, background_empty, "abundance_correction")] #,
+#                 # (foreground_empty_1, background_empty_1, "abundance_correction"),
+#                 # (foreground_empty_2, background_empty_2, "abundance_correction")]
+#
+# @pytest.mark.parametrize("foreground, background, enrichment_method", edge_cases_0)
+# def test_check_parse_and_cleanup_copy_and_paste_0(foreground, background, enrichment_method, pqo):
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     assert ui.check_parse == False
 #     assert ui.check_cleanup == False
 #     assert ui.check == False
-
-
-def test_iter_bins_API_input(pqo, fixture_fg_bg_iter_bins):
-    foreground, background, enrichment_method = fixture_fg_bg_iter_bins
-    fg = format_for_REST_API(foreground[foreground.notnull()])
-    bg = format_for_REST_API(background.loc[background.background.notnull(), "background"])
-    in_ = format_for_REST_API(background.loc[background.intensity.notnull(), "intensity"])
-
-    ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    counter = 0
-    for ans, weight_fac in ui.iter_bins():
-        # every weighting factor is a float
-        assert type(weight_fac) == float
-        counter += 1
-    number_of_bins_used = pd.cut(ui.foreground["intensity"], bins=100, retbins=False).drop_duplicates().shape[0]
-    assert counter == number_of_bins_used
-
-def test_iter_bins_API_input_missing_bin(pqo, fixture_fg_bg_iter_bins):
-    """
-    this test only works if ANs fall within separate bins,
-    e.g. for negative example:
-       background  intensity foreground
-    0           A        1.0          A
-    1           B        1.0          B
-    2           C        1.0          C
-    """
-    foreground, background, enrichment_method = fixture_fg_bg_iter_bins
-    fg = format_for_REST_API(foreground[foreground.notnull()])
-    bg = format_for_REST_API(background.loc[background.background.notnull(), "background"])
-    in_ = format_for_REST_API(background.loc[background.intensity.notnull(), "intensity"])
-
-    ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-    counter = 0
-    for ans, weight_fac in ui.iter_bins():
-        # every weighting factor is a float
-        assert type(weight_fac) == float
-        counter += 1
-    # since integers instead of floats are being used for test data, the number of unique bins can be determined by sets
-    num_iterations_expected = len({int(ele) for ele in ui.foreground["intensity"].tolist()})
-    assert counter == num_iterations_expected
-
-
-
-### test cleanup for analysis for all 4 different enrichment methods
-### via class REST_API_input
-def test_cleanupforanalysis_abundance_correction_REST_API(pqo, fixture_fg_bg_meth_expected_cases):
-    """
-    using fixture_fg_bg_meth_all
-    python/test_userinput.py::test_cleanupforanalysis_abundance_correction_REST_API[edge case, empty DFs with NaNs] XPASS
-    XPASS: should fail but passes.
-    --> should not be tested at all, but doesn't matter
-    """
-    foreground, background, _ = fixture_fg_bg_meth_expected_cases
-    enrichment_method = "abundance_correction"
-    foreground_n = None
-    background_n = None
-    fg = format_for_REST_API(foreground)
-    bg = format_for_REST_API(background["background"])
-    in_ = format_for_REST_API(background["intensity"])
-    ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
-        enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-    background = ui.background[ui.col_background]
-    assert sum(background.isnull()) == 0
-    assert sum(background.notnull()) > 0
-
-    # every AN has an abundance val
-    foreground_intensity = ui.foreground[ui.col_intensity]
-    assert sum(foreground_intensity.isnull()) == 0
-    assert sum(foreground_intensity.notnull()) > 0
-    background_intensity = ui.background[ui.col_intensity]
-    assert sum(background_intensity.isnull()) == 0
-    assert sum(background_intensity.notnull()) > 0
-
-    # foreground and background are strings and abundance values are floats
-    assert isinstance(foreground.iloc[0], str)
-    assert isinstance(background.iloc[0], str)
-    assert isinstance(foreground_intensity.iloc[0], float)
-    assert isinstance(background_intensity.iloc[0], float)
-
-    # no duplicates
-    assert foreground.duplicated().any() == False
-    assert background.duplicated().any() == False
-
-    # sorted abundance values
-    assert non_decreasing(foreground_intensity.tolist()) == True
-    assert non_decreasing(background_intensity.tolist()) == True
-
-def test_cleanupforanalysis_characterize_foreground_REST_API(pqo, fixture_fg_bg_meth_expected_cases):
-    """
-    python/test_userinput.py::test_cleanupforanalysis_characterize_foreground_REST_API[edge case, empty DFs with NaNs] XPASS
-    """
-    foreground, background, _ = fixture_fg_bg_meth_expected_cases
-    enrichment_method = "characterize_foreground"
-    foreground_n = None
-    background_n = None
-    fg = format_for_REST_API(foreground)
-    bg = None
-    in_ = None
-    ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
-        enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-
-    # foreground
-    assert isinstance(foreground.iloc[0], str)
-
-    # no duplicates
-    assert foreground.duplicated().any() == False
-
-def test_cleanupforanalysis_compare_samples_REST_API(pqo, fixture_fg_bg_meth_expected_cases):
-    """
-    python/test_userinput.py::test_cleanupforanalysis_compare_samples_REST_API[edge case, empty DFs with NaNs] XPASS
-    """
-    foreground, background, _ = fixture_fg_bg_meth_expected_cases
-    enrichment_method = "compare_samples"
-    foreground_n = None
-    background_n = None
-    fg = format_for_REST_API(foreground)
-    bg = format_for_REST_API(background["background"])
-    in_ = None
-    ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
-        enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-    background = ui.background[ui.col_background]
-    assert sum(background.isnull()) == 0
-    assert sum(background.notnull()) > 0
-
-    # foreground and background are strings
-    assert isinstance(foreground.iloc[0], str)
-    assert isinstance(background.iloc[0], str)
-
-    # no duplicates
-    assert foreground.duplicated().any() == False
-    assert background.duplicated().any() == False
-
-def test_cleanupforanalysis_compare_groups_REST_API(pqo, fixture_fg_bg_meth_all):
-    foreground, background, _ = fixture_fg_bg_meth_all
-    enrichment_method = "compare_groups"
-    foreground_n = None
-    background_n = None
-    fg = format_for_REST_API(foreground)
-    bg = "%0d".join(background.loc[:, "background"].tolist())
-    in_ = None
-    ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
-        enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-    background = ui.background[ui.col_background]
-    assert sum(background.isnull()) == 0
-    assert sum(background.notnull()) > 0
-
-    # foreground and background are strings
-    assert isinstance(foreground.iloc[0], str)
-    assert isinstance(background.iloc[0], str)
-
-    # if there were duplicates in the original input they should still be preserved in the cleaned up DF
-    # not equal because of splice variants
-    # remove NaNs from df_orig
-    foreground_df_orig = ui.df_orig[ui.col_foreground]
-    background_df_orig = ui.df_orig[ui.col_background]
-    assert foreground.duplicated().sum() >= foreground_df_orig[foreground_df_orig.notnull()].duplicated().sum()
-    assert background.duplicated().sum() >= background_df_orig[background_df_orig.notnull()].duplicated().sum()
-
-### via class Userinput
-def test_cleanupforanalysis_abundance_correction_Userinput(pqo, fixture_fg_bg_meth_all):
-    foreground, background, enrichment_method = fixture_fg_bg_meth_all
-    if enrichment_method != "abundance_correction":
-        # assert 1 == 1
-        return None
-
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = background.loc[background.background.notnull(), "background"].tolist()
-    in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
-    background_string = ""
-    for ele in zip(bg, in_):
-        an, in_ = ele
-        background_string += an + "\t" + in_ + "\n"
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-    background = ui.background[ui.col_background]
-    assert sum(background.isnull()) == 0
-    assert sum(background.notnull()) > 0
-
-    # every AN has an abundance val
-    foreground_intensity = ui.foreground[ui.col_intensity]
-    assert sum(foreground_intensity.isnull()) == 0
-    assert sum(foreground_intensity.notnull()) > 0
-    background_intensity = ui.background[ui.col_intensity]
-    assert sum(background_intensity.isnull()) == 0
-    assert sum(background_intensity.notnull()) > 0
-
-    # foreground and background are strings and abundance values are floats
-    assert isinstance(foreground.iloc[0], str)
-    assert isinstance(background.iloc[0], str)
-    assert isinstance(foreground_intensity.iloc[0], float)
-    assert isinstance(background_intensity.iloc[0], float)
-
-    # no duplicates
-    assert foreground.duplicated().any() == False
-    assert background.duplicated().any() == False
-
-    # sorted abundance values
-    assert non_decreasing(foreground_intensity.tolist()) == True
-    assert non_decreasing(background_intensity.tolist()) == True
-
-def test_cleanupforanalysis_characterize_foreground_Userinput(pqo, fixture_fg_bg_meth_all):
-    foreground, background, _ = fixture_fg_bg_meth_all
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    enrichment_method = "characterize_foreground"
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=None, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-
-    # foreground
-    assert isinstance(foreground.iloc[0], str)
-
-    # no duplicates
-    assert foreground.duplicated().any() == False
-
-def test_cleanupforanalysis_compare_samples_Userinput(pqo, fixture_fg_bg_meth_all):
-    enrichment_method = "compare_samples"
-    foreground, background, _ = fixture_fg_bg_meth_all
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-    background = ui.background[ui.col_background]
-    assert sum(background.isnull()) == 0
-    assert sum(background.notnull()) > 0
-
-    # foreground and background are strings
-    assert isinstance(foreground.iloc[0], str)
-    assert isinstance(background.iloc[0], str)
-
-    # no duplicates
-    assert foreground.duplicated().any() == False
-    assert background.duplicated().any() == False
-
-def test_cleanupforanalysis_compare_groups_Userinput(pqo, fixture_fg_bg_meth_all):
-    enrichment_method = "compare_groups"
-    foreground, background, _ = fixture_fg_bg_meth_all
-    fg = "\n".join(foreground[foreground.notnull()].tolist())
-    bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
-    ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
-
-    # no NaNs where ANs are expected
-    foreground = ui.foreground[ui.col_foreground]
-    assert sum(foreground.isnull()) == 0
-    assert sum(foreground.notnull()) > 0
-    background = ui.background[ui.col_background]
-    assert sum(background.isnull()) == 0
-    assert sum(background.notnull()) > 0
-
-    # foreground and background are strings
-    assert isinstance(foreground.iloc[0], str)
-    assert isinstance(background.iloc[0], str)
-
-    # if there were duplicates in the original input they should still be preserved in the cleaned up DF
-    # not equal because of splice variants
-    # remove NaNs from df_orig
-    foreground_df_orig = ui.df_orig[ui.col_foreground]
-    background_df_orig = ui.df_orig[ui.col_background]
-    assert foreground.duplicated().sum() >= foreground_df_orig[foreground_df_orig.notnull()].duplicated().sum()
-    assert background.duplicated().sum() >= background_df_orig[background_df_orig.notnull()].duplicated().sum()
-
+#
+# fg_bg_meth_cp_abu = [pytest.mark.xfail((foreground_empty, background_empty, "abundance_correction"), strict=True),
+#       pytest.mark.xfail((foreground_empty_2, background_empty_2, "abundance_correction")),
+#       pytest.mark.xfail((foreground_empty_3, background_empty_3, "abundance_correction")),
+#       pytest.mark.xfail((foreground_empty_4, background_empty_4, "abundance_correction")),
+#       (foreground_nonsense, background_nonsense, "abundance_correction"),
+#       (foreground_1, background_1, "abundance_correction"),
+#       (foreground_2, background_2, "abundance_correction"),
+#       (foreground_3, background_3, "abundance_correction")]
+#
+# @pytest.mark.parametrize("foreground, background, enrichment_method", fg_bg_meth_cp_abu)
+# def test_check_parse_and_cleanup_copy_and_paste_1(foreground, background, enrichment_method, pqo):
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = background.loc[background.background.notnull(), "background"].tolist()
+#     in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
+#     background_string = ""
+#     for ele in zip_longest(bg, in_, fillvalue=np.nan):
+#         an, in_ = ele
+#         background_string += an + "\t" + str(in_) + "\n"
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     assert ui.check_parse == True
+#     assert ui.check_cleanup == True
+#     assert ui.check == True
+#
+# # @pytest.mark.parametrize("foreground, background, enrichment_method", [(foreground_almost_empty, background_no_intensity, "compare_samples")])
+# # def test_check_parse_and_cleanup_copy_and_paste_2(foreground, background, enrichment_method, pqo):
+# #     fg = "\n".join(foreground[foreground.notnull()].tolist())
+# #     bg = background.loc[background.background.notnull(), "background"].tolist()
+# #     in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
+# #     background_string = ""
+# #     for ele in zip_longest(bg, in_, fillvalue=np.nan):
+# #         an, in_ = ele
+# #         background_string += an + "\t" + str(in_) + "\n"
+# #     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+# #     assert ui.check_parse == True
+# #     assert ui.check_cleanup == False
+# #     assert ui.check == False
+#
+#
+# def test_iter_bins_API_input(pqo, fixture_fg_bg_iter_bins):
+#     foreground, background, enrichment_method = fixture_fg_bg_iter_bins
+#     fg = format_for_REST_API(foreground[foreground.notnull()])
+#     bg = format_for_REST_API(background.loc[background.background.notnull(), "background"])
+#     in_ = format_for_REST_API(background.loc[background.intensity.notnull(), "intensity"])
+#
+#     ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     counter = 0
+#     for ans, weight_fac in ui.iter_bins():
+#         # every weighting factor is a float
+#         assert type(weight_fac) == float
+#         counter += 1
+#     number_of_bins_used = pd.cut(ui.foreground["intensity"], bins=100, retbins=False).drop_duplicates().shape[0]
+#     assert counter == number_of_bins_used
+#
+# def test_iter_bins_API_input_missing_bin(pqo, fixture_fg_bg_iter_bins):
+#     """
+#     this test only works if ANs fall within separate bins,
+#     e.g. for negative example:
+#        background  intensity foreground
+#     0           A        1.0          A
+#     1           B        1.0          B
+#     2           C        1.0          C
+#     """
+#     foreground, background, enrichment_method = fixture_fg_bg_iter_bins
+#     fg = format_for_REST_API(foreground[foreground.notnull()])
+#     bg = format_for_REST_API(background.loc[background.background.notnull(), "background"])
+#     in_ = format_for_REST_API(background.loc[background.intensity.notnull(), "intensity"])
+#
+#     ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#     counter = 0
+#     for ans, weight_fac in ui.iter_bins():
+#         # every weighting factor is a float
+#         assert type(weight_fac) == float
+#         counter += 1
+#     # since integers instead of floats are being used for test data, the number of unique bins can be determined by sets
+#     num_iterations_expected = len({int(ele) for ele in ui.foreground["intensity"].tolist()})
+#     assert counter == num_iterations_expected
+#
+#
+#
+# ### test cleanup for analysis for all 4 different enrichment methods
+# ### via class REST_API_input
+# def test_cleanupforanalysis_abundance_correction_REST_API(pqo, fixture_fg_bg_meth_expected_cases):
+#     """
+#     using fixture_fg_bg_meth_all
+#     python/test_userinput.py::test_cleanupforanalysis_abundance_correction_REST_API[edge case, empty DFs with NaNs] XPASS
+#     XPASS: should fail but passes.
+#     --> should not be tested at all, but doesn't matter
+#     """
+#     foreground, background, _ = fixture_fg_bg_meth_expected_cases
+#     enrichment_method = "abundance_correction"
+#     foreground_n = None
+#     background_n = None
+#     fg = format_for_REST_API(foreground)
+#     bg = format_for_REST_API(background["background"])
+#     in_ = format_for_REST_API(background["intensity"])
+#     ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
+#         enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#     background = ui.background[ui.col_background]
+#     assert sum(background.isnull()) == 0
+#     assert sum(background.notnull()) > 0
+#
+#     # every AN has an abundance val
+#     foreground_intensity = ui.foreground[ui.col_intensity]
+#     assert sum(foreground_intensity.isnull()) == 0
+#     assert sum(foreground_intensity.notnull()) > 0
+#     background_intensity = ui.background[ui.col_intensity]
+#     assert sum(background_intensity.isnull()) == 0
+#     assert sum(background_intensity.notnull()) > 0
+#
+#     # foreground and background are strings and abundance values are floats
+#     assert isinstance(foreground.iloc[0], str)
+#     assert isinstance(background.iloc[0], str)
+#     assert isinstance(foreground_intensity.iloc[0], float)
+#     assert isinstance(background_intensity.iloc[0], float)
+#
+#     # no duplicates
+#     assert foreground.duplicated().any() == False
+#     assert background.duplicated().any() == False
+#
+#     # sorted abundance values
+#     assert non_decreasing(foreground_intensity.tolist()) == True
+#     assert non_decreasing(background_intensity.tolist()) == True
+#
+# def test_cleanupforanalysis_characterize_foreground_REST_API(pqo, fixture_fg_bg_meth_expected_cases):
+#     """
+#     python/test_userinput.py::test_cleanupforanalysis_characterize_foreground_REST_API[edge case, empty DFs with NaNs] XPASS
+#     """
+#     foreground, background, _ = fixture_fg_bg_meth_expected_cases
+#     enrichment_method = "characterize_foreground"
+#     foreground_n = None
+#     background_n = None
+#     fg = format_for_REST_API(foreground)
+#     bg = None
+#     in_ = None
+#     ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
+#         enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#
+#     # foreground
+#     assert isinstance(foreground.iloc[0], str)
+#
+#     # no duplicates
+#     assert foreground.duplicated().any() == False
+#
+# def test_cleanupforanalysis_compare_samples_REST_API(pqo, fixture_fg_bg_meth_expected_cases):
+#     """
+#     python/test_userinput.py::test_cleanupforanalysis_compare_samples_REST_API[edge case, empty DFs with NaNs] XPASS
+#     """
+#     foreground, background, _ = fixture_fg_bg_meth_expected_cases
+#     enrichment_method = "compare_samples"
+#     foreground_n = None
+#     background_n = None
+#     fg = format_for_REST_API(foreground)
+#     bg = format_for_REST_API(background["background"])
+#     in_ = None
+#     ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
+#         enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#     background = ui.background[ui.col_background]
+#     assert sum(background.isnull()) == 0
+#     assert sum(background.notnull()) > 0
+#
+#     # foreground and background are strings
+#     assert isinstance(foreground.iloc[0], str)
+#     assert isinstance(background.iloc[0], str)
+#
+#     # no duplicates
+#     assert foreground.duplicated().any() == False
+#     assert background.duplicated().any() == False
+#
+# def test_cleanupforanalysis_compare_groups_REST_API(pqo, fixture_fg_bg_meth_all):
+#     foreground, background, _ = fixture_fg_bg_meth_all
+#     enrichment_method = "compare_groups"
+#     foreground_n = None
+#     background_n = None
+#     fg = format_for_REST_API(foreground)
+#     bg = "%0d".join(background.loc[:, "background"].tolist())
+#     in_ = None
+#     ui = userinput.REST_API_input(pqo=pqo, foreground_string=fg, background_string=bg, background_intensity=in_, num_bins=NUM_BINS,
+#         enrichment_method=enrichment_method, foreground_n=foreground_n, background_n=background_n)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#     background = ui.background[ui.col_background]
+#     assert sum(background.isnull()) == 0
+#     assert sum(background.notnull()) > 0
+#
+#     # foreground and background are strings
+#     assert isinstance(foreground.iloc[0], str)
+#     assert isinstance(background.iloc[0], str)
+#
+#     # if there were duplicates in the original input they should still be preserved in the cleaned up DF
+#     # not equal because of splice variants
+#     # remove NaNs from df_orig
+#     foreground_df_orig = ui.df_orig[ui.col_foreground]
+#     background_df_orig = ui.df_orig[ui.col_background]
+#     assert foreground.duplicated().sum() >= foreground_df_orig[foreground_df_orig.notnull()].duplicated().sum()
+#     assert background.duplicated().sum() >= background_df_orig[background_df_orig.notnull()].duplicated().sum()
+#
+# ### via class Userinput
+# def test_cleanupforanalysis_abundance_correction_Userinput(pqo, fixture_fg_bg_meth_all):
+#     foreground, background, enrichment_method = fixture_fg_bg_meth_all
+#     if enrichment_method != "abundance_correction":
+#         # assert 1 == 1
+#         return None
+#
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = background.loc[background.background.notnull(), "background"].tolist()
+#     in_ = [str(ele) for ele in background.loc[background.intensity.notnull(), "intensity"].tolist()]
+#     background_string = ""
+#     for ele in zip(bg, in_):
+#         an, in_ = ele
+#         background_string += an + "\t" + in_ + "\n"
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=background_string, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#     background = ui.background[ui.col_background]
+#     assert sum(background.isnull()) == 0
+#     assert sum(background.notnull()) > 0
+#
+#     # every AN has an abundance val
+#     foreground_intensity = ui.foreground[ui.col_intensity]
+#     assert sum(foreground_intensity.isnull()) == 0
+#     assert sum(foreground_intensity.notnull()) > 0
+#     background_intensity = ui.background[ui.col_intensity]
+#     assert sum(background_intensity.isnull()) == 0
+#     assert sum(background_intensity.notnull()) > 0
+#
+#     # foreground and background are strings and abundance values are floats
+#     assert isinstance(foreground.iloc[0], str)
+#     assert isinstance(background.iloc[0], str)
+#     assert isinstance(foreground_intensity.iloc[0], float)
+#     assert isinstance(background_intensity.iloc[0], float)
+#
+#     # no duplicates
+#     assert foreground.duplicated().any() == False
+#     assert background.duplicated().any() == False
+#
+#     # sorted abundance values
+#     assert non_decreasing(foreground_intensity.tolist()) == True
+#     assert non_decreasing(background_intensity.tolist()) == True
+#
+# def test_cleanupforanalysis_characterize_foreground_Userinput(pqo, fixture_fg_bg_meth_all):
+#     foreground, background, _ = fixture_fg_bg_meth_all
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     enrichment_method = "characterize_foreground"
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=None, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#
+#     # foreground
+#     assert isinstance(foreground.iloc[0], str)
+#
+#     # no duplicates
+#     assert foreground.duplicated().any() == False
+#
+# def test_cleanupforanalysis_compare_samples_Userinput(pqo, fixture_fg_bg_meth_all):
+#     enrichment_method = "compare_samples"
+#     foreground, background, _ = fixture_fg_bg_meth_all
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#     background = ui.background[ui.col_background]
+#     assert sum(background.isnull()) == 0
+#     assert sum(background.notnull()) > 0
+#
+#     # foreground and background are strings
+#     assert isinstance(foreground.iloc[0], str)
+#     assert isinstance(background.iloc[0], str)
+#
+#     # no duplicates
+#     assert foreground.duplicated().any() == False
+#     assert background.duplicated().any() == False
+#
+# def test_cleanupforanalysis_compare_groups_Userinput(pqo, fixture_fg_bg_meth_all):
+#     enrichment_method = "compare_groups"
+#     foreground, background, _ = fixture_fg_bg_meth_all
+#     fg = "\n".join(foreground[foreground.notnull()].tolist())
+#     bg = "\n".join(background.loc[background.background.notnull(), "background"].tolist())
+#     ui = userinput.Userinput(pqo=pqo, foreground_string=fg, background_string=bg, num_bins=NUM_BINS, enrichment_method=enrichment_method)
+#
+#     # no NaNs where ANs are expected
+#     foreground = ui.foreground[ui.col_foreground]
+#     assert sum(foreground.isnull()) == 0
+#     assert sum(foreground.notnull()) > 0
+#     background = ui.background[ui.col_background]
+#     assert sum(background.isnull()) == 0
+#     assert sum(background.notnull()) > 0
+#
+#     # foreground and background are strings
+#     assert isinstance(foreground.iloc[0], str)
+#     assert isinstance(background.iloc[0], str)
+#
+#     # if there were duplicates in the original input they should still be preserved in the cleaned up DF
+#     # not equal because of splice variants
+#     # remove NaNs from df_orig
+#     foreground_df_orig = ui.df_orig[ui.col_foreground]
+#     background_df_orig = ui.df_orig[ui.col_background]
+#     assert foreground.duplicated().sum() >= foreground_df_orig[foreground_df_orig.notnull()].duplicated().sum()
+#     assert background.duplicated().sum() >= background_df_orig[background_df_orig.notnull()].duplicated().sum()
+#
 ### helper functions
 def non_decreasing(L):
     """
