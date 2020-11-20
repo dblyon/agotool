@@ -42,6 +42,7 @@ class Userinput:
         self.enrichment_method = args_dict["enrichment_method"]
         self.foreground_n = None
         self.background_n = None
+        self.default_missing_bin = DEFAULT_MISSING_BIN
         self.args_dict = clean_args_dict(args_dict)
         self.args_dict = o_or_u_or_both_to_number(self.args_dict)
         self.check = False
@@ -127,7 +128,8 @@ class Userinput:
         if self.enrichment_method == "abundance_correction": # abundance_correction
             self.background = df[[col_background, col_intensity]]
             # set default missing value for NaNs
-            self.background.loc[pd.isnull(df[col_background]), col_intensity] = DEFAULT_MISSING_BIN
+            self.default_missing_bin = min(self.background[col_intensity]) - 1
+            self.background.loc[pd.isnull(df[col_background]), col_intensity] = self.default_missing_bin
         elif self.enrichment_method in {"compare_samples", "compare_groups"}:
             try:
                 self.background = df.loc[pd.notnull(df[col_background]), [col_background]]
@@ -164,8 +166,8 @@ class Userinput:
             self.background = self.map_proteinGroup_abundance_2_individual_protein(self.background)
             ### map abundance from background to foreground, set default missing value for NaNs
             cond = pd.isnull(self.background[col_intensity])
-            self.background.loc[cond, col_intensity] = DEFAULT_MISSING_BIN
-            an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]))
+            self.background.loc[cond, col_intensity] = self.default_missing_bin
+            an_2_intensity_dict = self.create_an_2_intensity_dict(zip(self.background[col_background], self.background[col_intensity]), self.default_missing_bin)
             self.foreground["intensity"] = self.map_intensities_2_foreground(self.foreground[col_foreground], an_2_intensity_dict)
 
         ### map obsolete Accessions to primary ANs, by replacing secondary ANs with primary ANs
@@ -179,7 +181,7 @@ class Userinput:
 
         ### sort values for iter bins
         if self.enrichment_method == "abundance_correction":
-            cond = self.foreground["intensity"] > DEFAULT_MISSING_BIN
+            cond = self.foreground["intensity"] > self.default_missing_bin
             if sum(cond) == 0:  # render info_check_input.html
                 check_cleanup = False
             self.foreground = self.foreground.sort_values(["intensity", "foreground"])
@@ -293,7 +295,7 @@ class Userinput:
     #     return ";".join(ans_2_return)
 
     @staticmethod
-    def create_an_2_intensity_dict(list_of_tuples):
+    def create_an_2_intensity_dict(list_of_tuples, default_missing_bin=DEFAULT_MISSING_BIN):
         """
         notnull values are assigned a default of -1, in order to count them in an extra bin
         e.g.
@@ -302,9 +304,10 @@ class Userinput:
          ...]
         --> an_2_intensity_dict["P02407"] = 10,64061061
         :param list_of_tuples: ListOfTuples(ANs_string, Intensity_float)
+        :param default_missing_bin: Float
         :return: Dict (key=AN, val=Float)
         """
-        an_2_intensity_dict = defaultdict(lambda: DEFAULT_MISSING_BIN)
+        an_2_intensity_dict = defaultdict(lambda: default_missing_bin)
         for ans, int_ in list_of_tuples:
             for an in ans.split(";"):
                 an_2_intensity_dict[an] = int_
@@ -437,10 +440,10 @@ class Userinput:
         :return: Tuple(ListOfString(';' sep ANs), correction factor)
         """
         # take subset of foreground with proper abundance values and create bins
-        cond = self.foreground[self.col_intensity] > DEFAULT_MISSING_BIN
+        cond = self.foreground[self.col_intensity] > self.default_missing_bin
         bins = pd.cut(self.foreground.loc[cond, self.col_intensity], bins=self.num_bins, retbins=True)[1]
         # add missing bin for the remainder of proteins
-        bins = np.insert(bins, 0, DEFAULT_MISSING_BIN - 1)  # bins = [DEFAULT_MISSING_BIN - 1] + list(bins)
+        bins = np.insert(bins, 0, min(bins) - 1)  # bins = [DEFAULT_MISSING_BIN - 1] + list(bins)
         # cut foreground and background into bins
         groups_fg = self.foreground.groupby(pd.cut(self.foreground[self.col_intensity], bins=bins))
         groups_bg = self.background.groupby(pd.cut(self.background[self.col_intensity], bins=bins))
@@ -469,9 +472,6 @@ class Userinput:
             return True
         else:
             return False
-
-
-
 
 
 class REST_API_input(Userinput):
@@ -503,51 +503,6 @@ class REST_API_input(Userinput):
             self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
         if self.check_parse and self.check_cleanup:
             self.check = True
-
-    # def parse_input_old(self):
-    #     check_parse = False
-    #     decimal = "."
-    #     df_orig = pd.DataFrame()
-    #
-    #     if self.enrichment_method != "genome": # ignore background if "genome"
-    #         if self.background_string is not None:
-    #             replaced = pd.Series(self._replace_and_split(self.background_string))
-    #             if replaced is not None:
-    #                 df_orig[self.col_background] = replaced
-    #             else:
-    #                 return df_orig, decimal, check_parse
-    #
-    #     if self.enrichment_method == "abundance_correction":
-    #         try:
-    #             if "." in self.background_intensity:
-    #                 pass
-    #             elif "," in self.background_intensity:
-    #                 decimal = ","
-    #                 # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
-    #                 self.background_intensity = self.background_intensity.replace(",", ".")
-    #         except TypeError: # self.background_intensity is None
-    #             self.args_dict["ERROR_abundance_correction"] = "ERROR: enrichment_method 'abundance_correction' selected but no 'background_intensity' provided"
-    #             return df_orig, decimal, check_parse
-    #         else: # other checks could be done, but is this really necessary?
-    #             pass
-    #         try:
-    #             replaced = pd.Series(self._replace_and_split(self.background_intensity), dtype=float)
-    #             if replaced is not None:
-    #                 df_orig[self.col_intensity] = replaced
-    #             else:
-    #                 return df_orig, decimal, check_parse
-    #         except ValueError:
-    #             return df_orig, decimal, check_parse
-    #     else:
-    #         df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
-    #     # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
-    #     replaced = pd.Series(self._replace_and_split(self.foreground_string))
-    #     if replaced is not None:
-    #         df_orig[self.col_foreground] = replaced
-    #     else:
-    #         return df_orig, decimal, check_parse
-    #     check_parse = True
-    #     return df_orig, decimal, check_parse
 
     def parse_input(self):
         check_parse = False
@@ -786,8 +741,8 @@ if __name__ == "__main__":
     # contiguous = False
     # foreground_n = 100
     # foreground_input = sorted(get_random_human_ENSP(foreground_n, joined_for_web=False, contiguous=contiguous))
-    enrichment_method = "compare_samples"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
-    fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1.1_Yeast_acetylation_without_abundance.txt"
+    enrichment_method = "abundance_correction"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
+    # fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1.1_Yeast_acetylation_without_abundance.txt"
         #Example_3_Niu_PlasmaCirrhosis_compare_samples.txt" #compare_groups_v2.txt" # ExampleData_for_testing.txt" # Example_Yeast_acetylation_abundance_correction.txt
     # fn_userinput = r"/Users/dblyon/Downloads/ExampleData.txt"
     from_file = False  # read user input from file
@@ -837,16 +792,25 @@ if __name__ == "__main__":
     # result.text
 
     ###
-    params = {'taxid': 559292, 'output_format': 'tsv', 'enrichment_method': 'genome', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
-    for key, val in params.items():
-        args_dict[key] = val
-    fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1_Yeast_acetylation_foreground_only.txt"
-    class Y:
-        def __init__(self):
-            pass
-    pqo = Y()
-    pqo.taxid_2_proteome_count = {559292: 1234}
-    ui = Userinput(pqo, fn=fn_userinput, foreground_string=None, background_string=None, args_dict=args_dict)
+    # params = {'taxid': 559292, 'output_format': 'tsv', 'enrichment_method': 'genome', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    # for key, val in params.items():
+    #     args_dict[key] = val
+    # fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1_Yeast_acetylation_foreground_only.txt"
+    # class Y:
+    #     def __init__(self):
+    #         pass
+    # pqo = Y()
+    # pqo.taxid_2_proteome_count = {559292: 1234}
+    # ui = Userinput(pqo, fn=fn_userinput, foreground_string=None, background_string=None, args_dict=args_dict)
     # import pdb
     # pdb.set_trace()
+    fn_userinput = r"/Users/dblyon/Downloads/agotoolquestions/ClpP2up_KEimputed_aGOtool.txt"
+    ui = Userinput(pqo, fn=fn_userinput, foreground_string=None, background_string=None, args_dict=args_dict)
+    # print(ui.background["intensity"].min())
+    # print(ui.foreground["intensity"].min())
+    # print(ui.df_orig.head())
+    for bin in ui.iter_bins():
+        print(bin)
+
+
 
