@@ -112,6 +112,8 @@ def args_dict():
                  'foreground': None,
                  'background': None,
                  'background_intensity': None,
+                 'population': None,
+                 'abundance_ratio': None,
                  'foreground_n': 10,
                  'background_n': 10,
                  'caller_identity': None,
@@ -120,7 +122,7 @@ def args_dict():
                  'go_slim_or_basic': 'basic',
                  'identifiers': None,
                  'indent': 'True',
-                 'limit_2_entity_type': '-21;-22;-23;-51;-52;-53;-54;-55',
+                 'limit_2_entity_type': None, #'-21;-22;-23;-51;-52;-53;-54;-55',
                  'multitest_method': 'benjamini_hochberg',
                  'num_bins': 100,
                  'o_or_u_or_both': 'overrepresented',
@@ -128,7 +130,11 @@ def args_dict():
                  'p_value_uncorrected': 0,
                  'organism': None,
                  'species': None,
-                 'taxid': None}
+                 'taxid': None,
+                 'filter_PMID_top_n': 100,
+                 'filter_foreground_count_one': False,
+                 'filter_parents': False,
+                 'go_slim_subset': None}
     return args_dict
 
 @pytest.fixture(scope="session")

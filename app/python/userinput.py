@@ -12,7 +12,6 @@ if variables.PD_WARNING_OFF:
     pd.options.mode.chained_assignment = None
 
 
-
 DEFAULT_MISSING_BIN = -1
 NUM_BINS = 100
 
@@ -27,6 +26,7 @@ class Userinput:
      - compare_samples: Foreground vs Background (no abundance correction)
      - compare_groups: Foreground(replicates) vs Background(replicates), --> foreground_n and background_n need to be set
      - characterize_foreground: Foreground only
+     #     ui = userinput.Userinput(pqo_STRING, foreground_string=fg, background_string=bg, enrichment_method=enrichment_method)
     """
     def __init__(self, pqo, fn=None, foreground_string=None, background_string=None,
             num_bins=NUM_BINS, decimal='.', args_dict=None): # foreground_n=None, background_n=None,
@@ -284,16 +284,6 @@ class Userinput:
                                        "sample_an": "foreground"}
         return df.rename(columns=potential_colnames_2_rename)
 
-    # @staticmethod
-    # def replace_secondary_with_primary_ANs(ans_string, secondary_2_primary_dict):
-    #     ans_2_return = []
-    #     for an in ans_string.split(";"): # if proteinGroup
-    #         if an in secondary_2_primary_dict:
-    #             ans_2_return.append(secondary_2_primary_dict[an])
-    #         else:
-    #             ans_2_return.append(an)
-    #     return ";".join(ans_2_return)
-
     @staticmethod
     def create_an_2_intensity_dict(list_of_tuples, default_missing_bin=DEFAULT_MISSING_BIN):
         """
@@ -442,7 +432,8 @@ class Userinput:
         # take subset of foreground with proper abundance values and create bins
         cond = self.foreground[self.col_intensity] > self.default_missing_bin
         bins = pd.cut(self.foreground.loc[cond, self.col_intensity], bins=self.num_bins, retbins=True)[1]
-        # add missing bin for the remainder of proteins
+        # missing bin was already added when cleaning up data, but cut foreground abundances into e.g. 100 bins
+        # and the missing abundance proteins into a separate bin
         bins = np.insert(bins, 0, min(bins) - 1)  # bins = [DEFAULT_MISSING_BIN - 1] + list(bins)
         # cut foreground and background into bins
         groups_fg = self.foreground.groupby(pd.cut(self.foreground[self.col_intensity], bins=bins))
@@ -451,12 +442,6 @@ class Userinput:
             proteinGroups_foreground = group_fg[1][self.col_foreground]
             proteinGroups_background = group_bg[1][self.col_background]
             len_proteinGroups_foreground = len(proteinGroups_foreground)
-
-            # WHY ???
-            # if len_proteinGroups_foreground == 0:
-            #     # if there are no proteins in the foreground bin the background should still be counted
-            #     continue
-
             len_proteinGroups_background = len(proteinGroups_background)
             try:
                 correction_factor = len_proteinGroups_foreground / len_proteinGroups_background
@@ -483,14 +468,21 @@ class REST_API_input(Userinput):
     def __init__(self, pqo, args_dict):
             # foreground_string=None, background_string=None, background_intensity=None,
             # num_bins=NUM_BINS, enrichment_method="abundance_correction", foreground_n=None, background_n=None):
+        # super().__init__(pqo, args_dict=args_dict)
         self.pqo = pqo
         self.df_orig = pd.DataFrame()
         self.args_dict = args_dict
         self.foreground_string = args_dict["foreground"]
         self.background_string = args_dict["background"]
         self.background_intensity = args_dict["background_intensity"]
-        self.population_string = args_dict["population"]
-        self.abundance_ratio = args_dict["abundance_ratio"]
+        try:
+            background_intensity = args_dict["intensity"]
+            if background_intensity is not None:
+                self.background_intensity = background_intensity
+        except KeyError:
+            pass # in case "intensity" instead of "background_intensity" is being used
+        self.population_string = args_dict["population"] # ? deprecated ?
+        self.abundance_ratio = args_dict["abundance_ratio"] # deprecated
         self.num_bins = args_dict["num_bins"]
         self.enrichment_method = args_dict["enrichment_method"]
         self.foreground_n = args_dict["foreground_n"]
@@ -542,34 +534,34 @@ class REST_API_input(Userinput):
                     return df_orig, decimal, check_parse
             except ValueError:
                 return df_orig, decimal, check_parse
-        elif self.enrichment_method == "rank_enrichment":
-            try:
-                if "." in self.abundance_ratio:
-                    pass
-                elif "," in self.abundance_ratio:
-                    decimal = ","
-                    # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
-                    self.abundance_ratio = self.abundance_ratio.replace(",", ".")
-            except TypeError: # self.background_intensity is None
-                self.args_dict["ERROR_rank_enrichment"] = "ERROR: 'rank_enrichment' selected but no 'abundance_ratio' provided"
-                return df_orig, decimal, check_parse
-            try:
-                replaced = pd.Series(self._replace_and_split(self.abundance_ratio), dtype=float)
-                if replaced is not None:
-                    df_orig[self.col_abundance_ratio] = replaced
-                else:
-                    return df_orig, decimal, check_parse
-            except ValueError:
-                return df_orig, decimal, check_parse
-
-            # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
-            replaced = pd.Series(self._replace_and_split(self.population_string))
-            if replaced is not None:
-                df_orig[self.col_population] = replaced
-            else:
-                return df_orig, decimal, check_parse
-            check_parse = True
-            return df_orig, decimal, check_parse
+        # elif self.enrichment_method == "rank_enrichment":
+        #     try:
+        #         if "." in self.abundance_ratio:
+        #             pass
+        #         elif "," in self.abundance_ratio:
+        #             decimal = ","
+        #             # replace comma with dot, work with consistently the same DF, but report the results to the user using the their settings
+        #             self.abundance_ratio = self.abundance_ratio.replace(",", ".")
+        #     except TypeError: # self.background_intensity is None
+        #         self.args_dict["ERROR_rank_enrichment"] = "ERROR: 'rank_enrichment' selected but no 'abundance_ratio' provided"
+        #         return df_orig, decimal, check_parse
+        #     try:
+        #         replaced = pd.Series(self._replace_and_split(self.abundance_ratio), dtype=float)
+        #         if replaced is not None:
+        #             df_orig[self.col_abundance_ratio] = replaced
+        #         else:
+        #             return df_orig, decimal, check_parse
+        #     except ValueError:
+        #         return df_orig, decimal, check_parse
+        #
+        #     # statement need to be here rather than at top of function in order to not cut off the Series at the length of the existing Series in the DF
+        #     replaced = pd.Series(self._replace_and_split(self.population_string))
+        #     if replaced is not None:
+        #         df_orig[self.col_population] = replaced
+        #     else:
+        #         return df_orig, decimal, check_parse
+        #     check_parse = True
+        #     return df_orig, decimal, check_parse
 
         else:
             df_orig[self.col_intensity] = DEFAULT_MISSING_BIN
@@ -745,76 +737,82 @@ if __name__ == "__main__":
     # contiguous = False
     # foreground_n = 100
     # foreground_input = sorted(get_random_human_ENSP(foreground_n, joined_for_web=False, contiguous=contiguous))
-    enrichment_method = "abundance_correction"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
+    # enrichment_method = "abundance_correction"  # "characterize_foreground" "abundance_correction" "compare_samples" "genome" "compare_groups"
     # fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1.1_Yeast_acetylation_without_abundance.txt"
         #Example_3_Niu_PlasmaCirrhosis_compare_samples.txt" #compare_groups_v2.txt" # ExampleData_for_testing.txt" # Example_Yeast_acetylation_abundance_correction.txt
     # fn_userinput = r"/Users/dblyon/Downloads/ExampleData.txt"
-    from_file = False  # read user input from file
-    args_dict = {}
-    args_dict["enrichment_method"] = enrichment_method
-    args_dict["taxid"] = 9606
-    args_dict["FDR_cutoff"] = 0.05
-    args_dict["p_value_cutoff"] = 0.01
-    args_dict["limit_2_entity_type"] = None  # "-20;-25;-26" #"-20;-25;-21" # "-20;-21;-22;-23;-25;-26" # None #"-21;-22;-23"
-    args_dict["filter_PMID_top_n"] = 100
-    args_dict["filter_foreground_count_one"] = True
-    args_dict["filter_parents"] = True
-    args_dict["go_slim_subset"] = None  # "generic"
-    args_dict["o_or_u_or_both"] = "overrepresented"  # "both" "underrepresented"
-    args_dict["multiple_testing_per_etype"] = True
-    args_dict["privileged"] = True
-    args_dict["score_cutoff"] = 0
-    args_dict["foreground_replicates"] = 10
-    args_dict["background_replicates"] = 10
-    taxid = args_dict["taxid"]
-    # pqo = query.PersistentQueryObject_STRING(low_memory=True)
+    # from_file = False  # read user input from file
+    # args_dict = {}
+    # args_dict["enrichment_method"] = enrichment_method
+    # args_dict["taxid"] = 9606
+    # args_dict["FDR_cutoff"] = 0.05
+    # args_dict["p_value_cutoff"] = 0.01
+    # args_dict["limit_2_entity_type"] = None  # "-20;-25;-26" #"-20;-25;-21" # "-20;-21;-22;-23;-25;-26" # None #"-21;-22;-23"
+    # args_dict["filter_PMID_top_n"] = 100
+    # args_dict["filter_foreground_count_one"] = True
+    # args_dict["filter_parents"] = True
+    # args_dict["go_slim_subset"] = None  # "generic"
+    # args_dict["o_or_u_or_both"] = "overrepresented"  # "both" "underrepresented"
+    # args_dict["multiple_testing_per_etype"] = True
+    # args_dict["privileged"] = True
+    # args_dict["score_cutoff"] = 0
+    # args_dict["foreground_replicates"] = 10
+    # args_dict["background_replicates"] = 10
+    # taxid = args_dict["taxid"]
+    # # pqo = query.PersistentQueryObject_STRING(low_memory=True)
     pqo = None
-    # background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
-    # ui = Userinput(pqo, fn=None, foreground_string=stringify_for_Userinput(foreground_input), background_string=stringify_for_Userinput(background_input), args_dict=args_dict)
-    # ui = Userinput(pqo, fn_userinput, args_dict=args_dict)
-    # import pdb
-    # pdb.set_trace()
-
-    # import requests
-    # from io import StringIO
-    # import pandas as pd
+    # # background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
+    # # ui = Userinput(pqo, fn=None, foreground_string=stringify_for_Userinput(foreground_input), background_string=stringify_for_Userinput(background_input), args_dict=args_dict)
+    # # ui = Userinput(pqo, fn_userinput, args_dict=args_dict)
+    # # import pdb
+    # # pdb.set_trace()
     #
-    # # url_ = r"https://agotool.org/api"
-    # # url_ = r"http://localhost:5911/api"
-    # # fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
-    # # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome",
-    # #                                      "taxid": "511145", "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'},
-    # #                        data={'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'})
-    # params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
-    # for key, val in params.items():
-    #     args_dict[key] = val
-    # data = {'foreground': "511145.b1261%0d511145.b1260%0d511145.b1263", 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
-    # ui = Userinput(pqo, fn=None, foreground_string=data["foreground"], background_string=data["background"], args_dict=args_dict)
-    # import pdb
-    # pdb.set_trace()
-    # result = requests.post(url_, params, data)
-    # result.text
-
-    ###
-    # params = {'taxid': 559292, 'output_format': 'tsv', 'enrichment_method': 'genome', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
-    # for key, val in params.items():
-    #     args_dict[key] = val
-    # fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1_Yeast_acetylation_foreground_only.txt"
-    # class Y:
-    #     def __init__(self):
-    #         pass
-    # pqo = Y()
-    # pqo.taxid_2_proteome_count = {559292: 1234}
+    # # import requests
+    # # from io import StringIO
+    # # import pandas as pd
+    # #
+    # # # url_ = r"https://agotool.org/api"
+    # # # url_ = r"http://localhost:5911/api"
+    # # # fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
+    # # # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome",
+    # # #                                      "taxid": "511145", "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'},
+    # # #                        data={'foreground': '511145.b1261%0d511145.b1260%0d511145.b1263%0d511145.b1262', 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'})
+    # # params = {'taxid': '511145', 'output_format': 'json', 'enrichment_method': 'compare_samples', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    # # for key, val in params.items():
+    # #     args_dict[key] = val
+    # # data = {'foreground': "511145.b1261%0d511145.b1260%0d511145.b1263", 'background': '511145.b1260%0d511145.b1263%0d511145.b1262%0d511145.b1812%0d511145.b1261'}
+    # # ui = Userinput(pqo, fn=None, foreground_string=data["foreground"], background_string=data["background"], args_dict=args_dict)
+    # # import pdb
+    # # pdb.set_trace()
+    # # result = requests.post(url_, params, data)
+    # # result.text
+    #
+    # ###
+    # # params = {'taxid': 559292, 'output_format': 'tsv', 'enrichment_method': 'genome', 'FDR_cutoff': '0.05', 'caller_identity': '11_0', 'STRING_beta': True}
+    # # for key, val in params.items():
+    # #     args_dict[key] = val
+    # # fn_userinput = r"/Users/dblyon/modules/cpr/agotool/data/exampledata/Example_1_Yeast_acetylation_foreground_only.txt"
+    # # class Y:
+    # #     def __init__(self):
+    # #         pass
+    # # pqo = Y()
+    # # pqo.taxid_2_proteome_count = {559292: 1234}
+    # # ui = Userinput(pqo, fn=fn_userinput, foreground_string=None, background_string=None, args_dict=args_dict)
+    # # import pdb
+    # # pdb.set_trace()
+    # fn_userinput = r"/Users/dblyon/Downloads/agotoolquestions/ClpP2up_KEimputed_aGOtool.txt"
     # ui = Userinput(pqo, fn=fn_userinput, foreground_string=None, background_string=None, args_dict=args_dict)
-    # import pdb
-    # pdb.set_trace()
-    fn_userinput = r"/Users/dblyon/Downloads/agotoolquestions/ClpP2up_KEimputed_aGOtool.txt"
-    ui = Userinput(pqo, fn=fn_userinput, foreground_string=None, background_string=None, args_dict=args_dict)
-    # print(ui.background["intensity"].min())
-    # print(ui.foreground["intensity"].min())
-    # print(ui.df_orig.head())
-    for bin in ui.iter_bins():
-        print(bin)
+    # # print(ui.background["intensity"].min())
+    # # print(ui.foreground["intensity"].min())
+    # # print(ui.df_orig.head())
+    # for bin in ui.iter_bins():
+    #     print(bin)
+    args_dict_temp = {'FDR_cutoff': None, 'alpha': 0.05, 'foreground': '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0dnan%0dnan%0dnan%0dnan', 'background': '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3360%0d511145.b3772%0d511145.b4388%0dnan', 'background_intensity': None, 'population': None, 'abundance_ratio': None, 'foreground_n': None, 'background_n': None, 'caller_identity': None, 'enrichment_method': 'abundance_correction', 'fold_enrichment_for2background': 0, 'go_slim_or_basic': 'basic', 'identifiers': None, 'indent': 'True', 'limit_2_entity_type': None, 'multitest_method': 'benjamini_hochberg', 'num_bins': 100, 'o_or_u_or_both': 'overrepresented', 'output_format': 'tsv', 'p_value_uncorrected': 0, 'organism': None, 'species': None, 'taxid': None, 'filter_PMID_top_n': 100, 'filter_foreground_count_one': False, 'filter_parents': False,
+     'go_slim_subset': None, 'intensity': '1.0%0d2.0%0d3.0%0d4.0%0d5.0%0d6.0%0d7.0%0d8.0%0d9.0%0d10.0%0d11.0%0dnan', 'ERROR_abundance_correction': "ERROR: enrichment_method 'abundance_correction' selected but no 'background_intensity' provided"}
+    ui = REST_API_input(pqo, args_dict=args_dict_temp)
+    print(ui.df_orig.head(3))
+    print(ui.check_parse, ui.check_cleanup)
+
 
 
 
