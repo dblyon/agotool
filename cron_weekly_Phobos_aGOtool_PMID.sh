@@ -39,7 +39,7 @@ check_exit_status
 printf "\n### tar and compress new files for transfer and backup\n"
 cd "$TABLES_DIR" || exit
 #### create tar.gz of relevant flat files
-find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt"| xargs -0 tar --overwrite -cvzf "$TAR_CURRENT"
+find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt"| xargs tar --overwrite -cvzf "$TAR_CURRENT"
 check_exit_status
 rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status
