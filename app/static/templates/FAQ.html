@@ -7,7 +7,9 @@
 {% endblock head %}
 
 
-{% block nav_FAQ %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ<span class="sr-only">(current)</span></a></li> {% endblock %}
+{% block nav_FAQ %}
+    <li class="nav-item active"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ<span class="sr-only">(current)</span></a></li>
+{% endblock nav_FAQ %}
 
 {% block content %}
 

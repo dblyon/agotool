@@ -9,25 +9,48 @@
 <meta name="author" content="David Lyon">
 <title>a GO tool</title>
 
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.3.1.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.buttons.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.colVis.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
+
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.colVis.min.js"></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.4/umd/popper.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-filestyle/2.1.0/bootstrap-filestyle.min.js"> </script>
+{#    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>#}
+{#    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>#}
+
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.3.1.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/dataTables.buttons.min.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/buttons.colVis.min.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>#}
+{#    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"> </script>#}
+
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/agotool.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/plotly-latest.min.js') }}"></script>
-    {#<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>#}
 
-    <link type="text" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css.map')}}">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}">
+    <link type="text/css" rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+{#    <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css">#}
+    <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">
+
+    <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.dataTables.css">
+{#    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css">#}
+{#    <link type="text" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css.map')}}">#}
+{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">#}
+{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}">#}
+{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">#}
+{#    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}">#}
+
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}">
 
-    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-filestyle.min.js') }}"> </script>
+
+
+
 
     {% block head %}
     {% endblock head %}
@@ -38,15 +61,13 @@
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="navbar-toggler-icon"></span> </button>
           <div class="collapse navbar-collapse" id="basicExampleNav">
             <ul class="navbar-nav mr-auto">
-              {% block nav_Enrichment %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment</a></li>{% endblock %}
-{#              {% block nav_Help %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('help') }}">Help</a></li>{% endblock %}#}
-              {% block nav_Parameters %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters</a></li>{% endblock %}
-              {% block nav_Example %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('example') }}">Example</a></li>{% endblock %}
-              {% block nav_API %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('api_help') }}">API</a></li>{% endblock %}
-              {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock %}
-{#              {% block nav_DB_schema %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('db_schema') }}">DB_schema</a></li>{% endblock %}#}
-              {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock %}
-              {% block nav_Plot %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('plot') }}">Plot</a></li>{% endblock %}
+              {% block nav_Enrichment %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment</a></li>{% endblock nav_Enrichment %}
+              {% block nav_Parameters %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters</a></li>{% endblock nav_Parameters %}
+              {% block nav_Example %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('example') }}">Example</a></li>{% endblock nav_Example %}
+              {% block nav_API %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('api_help') }}">API</a></li>{% endblock nav_API %}
+              {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock nav_FAQ %}
+              {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock nav_About %}
+              {% block nav_Plot %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('plot') }}">Plot</a></li>{% endblock nav_Plot %}
             </ul>
           </div>
         </nav>

@@ -45,6 +45,18 @@ svg.main-svg g.hoverlayer g.hovertext text{
         --selected-background: transparent !important;
 }
 
+/* hover color probably deprecated */
+.dash-spreadsheet-container table {
+    /*--accent: #00a355 !important;*/
+    --accent: black !important;
+    /*--selected-background: #00a35444 !important;*/
+    /*--selected-color: #3C3C3C !important;*/
+    /*margin: 3rem;*/
+    /*padding: 0 20px;*/
+    }
+
+
+
 
 /*$(".umbrellaClass").addClass("baseClass1");*/
 
@@ -61,15 +73,7 @@ svg.main-svg g.hoverlayer g.hovertext text{
 /* Dash data table START */
 
 
-/* hover color probably deprecated */
-.dash-spreadsheet-container table {
-    /*--accent: #00a355 !important;*/
-    --accent: black !important;
-    /*--selected-background: #00a35444 !important;*/
-    /*--selected-color: #3C3C3C !important;*/
-    /*margin: 3rem;*/
-    /*padding: 0 20px;*/
-    }
+
 /* use above or below but not both */
 /*.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table {*/
 /*        --accent: black !important;*/

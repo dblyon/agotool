@@ -135,15 +135,15 @@ var toggle_if = function(choice, tag){
 // RESTULS PAGE
 var results_page = (function () {
 
-    // Hide table if number of number of rows == 0
-    var tables = document.getElementsByClassName('div_table_etype');
-    for (i=0; i< tables.length; i++) {
-        var table = tables[i];
-        var attr = table.getAttribute('data-value');
-        if (attr == 0) {
-            table.style.display = 'none';
-        }
-    }
+    // // Hide table if number of number of rows == 0
+    // var tables = document.getElementsByClassName('div_table_etype');
+    // for (i=0; i< tables.length; i++) {
+    //     var table = tables[i];
+    //     var attr = table.getAttribute('data-value');
+    //     if (attr == 0) {
+    //         table.style.display = 'none';
+    //     }
+    // }
 
     jQuery.fn.dataTable.render.ellipsis = function ( cutoff, wordbreak, escapeHtml ) {
     var esc = function ( t ) {
@@ -153,6 +153,7 @@ var results_page = (function () {
             .replace( />/g, '&gt;' )
             .replace( /"/g, '&quot;' );
     };
+
     return function ( d, type, row ) {
         // Order, search and type get the original data
         if ( type !== 'display' ) {
@@ -179,7 +180,7 @@ var results_page = (function () {
     };
 });
 
-// RESTULS PAGE COMPACT
+// RESULTS PAGE COMPACT
 var results_page_compact = (function () {
     // add classes to specific columns
     $(document).ready(function() {
@@ -196,7 +197,7 @@ var results_page_compact = (function () {
     } );
 });
 
-// RESTULS PAGE COMPREHENSIVE
+// RESULTS PAGE COMPREHENSIVE
 var results_page_comprehensive = (function () {
     // add classes to specific columns
     $(document).ready(function() {
@@ -209,6 +210,31 @@ var results_page_comprehensive = (function () {
       });
     });
 });
+
+// RESULTS PAGE PLOTLY
+let results_page_plotly = (function () {
+    // add classes to specific columns
+    $(document).ready(function() {
+        $('table.display').DataTable({
+
+            /* SCROLLING */
+            scrollY: "500px",
+            scrollCollapse: true,
+            paging: false,
+            scrollX: true,
+            "language": {"info": "Showing _TOTAL_ entries",
+                         "infoFiltered":   "(filtered from _MAX_ total entries)",},
+            dom: 'Bfrtip',
+            select: true,
+            buttons: ['colvis'],
+            "columnDefs": [
+                { targets: '_all', render: $.fn.dataTable.render.ellipsis( 80, true ) }],
+            responsive: true,
+      });
+    });
+});
+
+
 
 var submit_form = (function(form_id, action) {
     var form = $("#" + form_id);

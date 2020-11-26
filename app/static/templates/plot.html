@@ -1,35 +1,50 @@
 {% extends "layout.html" %}
+
 {% block head %}
       <script type="text/javascript">
           $(document).ready( function() {
-              enrichment_page();
+              results_page();
+              results_page_plotly();
+              {#results_page_comprehensive();#}
           });
       </script>
 {% endblock head %}
 
-{% block nav_About %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('plot') }}">Plot<span class="sr-only">(current)</span></a></li> {% endblock %}
+{% block nav_Plot %}
+    <li class="nav-item active"> <a class="nav-link" href="{{ url_for('plot') }}">Plot<span class="sr-only">(current)</span></a></li>
+{% endblock nav_Plot %}
 
 {% block content %}
-    <div id="tester" style="width:600px;height:250px;"></div>
+<div class="chart d-flex justify-content-center col-md-10" id="plotly_scatter_plot">
+    <script>
+        let scatter_plot_width = 700;
+        let scatter_plot_height = 400;
+        let config = {'displaylogo': false,
+          'scrollZoom': true,
+          "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+          'toImageButtonOptions': {
+              'format': 'svg',
+              'filename': 'aGOtool_plot',
+              'width': scatter_plot_width,
+              'height': scatter_plot_height,
+              'scale': 1
+              },};
+        let data = {{plot_data | safe}};
+        let layout = {{plot_layout | safe}};
+        Plotly.plot('plotly_scatter_plot', data, layout, config);
+    </script>
+</div>
 
-
-
-
-
+<br>
 {% endblock content %}
 
+{% block table %}
+{#<div class="d-flex justify-content-center col-md-10">#}
+{#    <div class="row div_table_etype" data-value=123>#}
+{#        <div class="alert alert-info col-md-12 text-center" role="alert">The mother of tables</div>#}
+        <div id="table_id" class="table_etype table table-striped" style="width:100%"> {{ df_as_html_dict | safe }} </div>
+{#    style="width:100%" --> in pd.to_html#}
+{#    </div>#}
 
-{#<head>#}
-{#  <!-- Plotly.js -->#}
-{#  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>#}
-{#</head>#}
-{##}
-{#<p>#}
-{#    Here's a simple Plotly plot - #}
-{#    <a href="https://bit.ly/1Or9igj">plotly.js documentation</a>#}
-{#</p>#}
-{##}
-{#<!-- Plots go in blank <div> elements. #}
-{#    You can size them in the plot layout,#}
-{#    or give the div a size as shown here.#}
-{#-->#}
+{#</div>#}
+{% endblock table %}

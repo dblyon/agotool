@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 
-{% block nav_Parameters %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters<span class="sr-only">(current)</span></a></li> {% endblock %}
+{% block nav_Parameters %}
+    <li class="nav-item active"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters<span class="sr-only">(current)</span></a></li>
+{% endblock nav_Parameters %}
 
 {% block content %}
 <div class="container-fluid">

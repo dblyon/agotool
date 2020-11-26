@@ -71,8 +71,6 @@ etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
                               -57: "Reactome",
                               -58: "WikiPathways"}
 
-
-
 def table_type(df_column):
     if df_column.dtype in {np.dtype('float64'), np.dtype('float32')}:
         return "numeric"
@@ -197,7 +195,7 @@ df[marker_line_color] = marker_line_color_default
 df[opacity] = opacity_default
 max_marker_size, min_marker_size = 30, 4
 sizeref = 2.0 * max(df[FG_count]) / (max_marker_size ** 2)
-button_reset_plot_n_click = 0
+# button_reset_plot_n_click = 0
 ### Network edges based on relationship within Ontology
 term_2_edges_dict = defaultdict(lambda: {"X_points": [], "Y_points": [], "Weights": [], "Nodes": []})
 term_2_edges_dict.update(pickle.load(open("term_2_edges_dict.p", "rb")))

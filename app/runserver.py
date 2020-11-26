@@ -111,8 +111,8 @@ def init_app():
     app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
     Markdown(app)
     ### Import Dash application
-    from dash_within_flask_dbl_1 import init_dashboard
-    app = init_dashboard(app)
+    # from dash_within_flask_dbl_1 import init_dashboard
+    # app = init_dashboard(app)
     return app
 
 app = init_app()
@@ -657,13 +657,18 @@ def temp():
     return render_template('temp.html', form=Enrichment_Form())
 
 @app.route('/help')
-def help():
+def help_():
     return render_template('help.html', form=Enrichment_Form())
 
 @app.route('/plot')
 def plot():
-    return render_template('plot.html', form=Enrichment_Form())
+    fig_data_as_json, layout_as_json = run.create_plotly_scatter()
+    df_as_html_dict = run.df_2_html_table(generate_session_id(), SESSION_FOLDER_ABSOLUTE)
+    return render_template('plot.html', form=Enrichment_Form(), plot_data=fig_data_as_json, plot_layout=layout_as_json, df_as_html_dict=df_as_html_dict)
 
+# @app.route('/plot_v2')
+# def plot_v2():
+#     return render_template('plot_v2.html', form=Enrichment_Form())
 
 
 # @app.route("/dash")
