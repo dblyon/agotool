@@ -1461,12 +1461,13 @@ def get_funcName_2_funcEnum_dict():
     return funcName_2_funcEnum_dict
 
 
-def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dict={}):
+def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dict=dict()):
     """
     figure out if given taxid is part of UniProt Reference Proteomes
     if not try to map it via static dictionary (from variables.py) or via NCBI (from lower than species to species rank)
     :param taxid: Integer
     :param pqo: Persistent Query Object
+    :param args_dict: Dictionary with parameters
     :return: (Integer, Bool)
     """
     if taxid in pqo.taxid_2_proteome_count:
@@ -1491,15 +1492,6 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dic
                         return taxid, True
     args_dict["ERROR TaxID"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) that is suitable for your data.".format(taxid)
     return taxid, False
-                # taxid_corrected = int(pqo.ncbi.get_genus_or_higher(taxid, "species")) # provided taxid is below species rank
-                # if taxid_corrected in pqo.taxid_2_proteome_count:
-                #     return taxid_corrected, True
-                # else:
-                #     try:
-                #         taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_corrected]
-                #         return taxid_mapped, True  # taxid can easily be mapped because it's known
-                #     except KeyError:
-                #         return taxid, False
 
 if __name__ == "__main__":
     # pass

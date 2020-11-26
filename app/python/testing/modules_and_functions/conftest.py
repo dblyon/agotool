@@ -3,7 +3,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get to python directory
 import random
 import pandas as pd
-# import numpy as np
+import numpy as np
 
 import pytest
 
@@ -48,6 +48,15 @@ def random_foreground_background(): # used TaxIDs fixture previously, but now it
         foreground = random.sample(background, 200)
         return foreground, background, taxid
 
+@pytest.fixture(scope="session")
+def random_abundance_correction_foreground_background():
+    for _ in range(10):
+        taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
+        background = query.get_proteins_of_taxid(taxid)
+        foreground = random.sample(background, 200)
+        intensity = [str(ele) for ele in np.random.normal(size=len(background))]
+        return foreground, background, intensity, taxid
+
 # @pytest.fixture(scope="session")
 # def ui_genome(random_foreground_background):
 #     foreground, background = random_foreground_background
@@ -85,6 +94,7 @@ def from_file_2_df(fn):
     else:
         background = df[["background"]]
     return foreground, background
+
 
 
 

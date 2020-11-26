@@ -11,6 +11,8 @@ import conftest
 
 import variables, query
 
+PYTEST_FN_DIR = variables.PYTEST_FN_DIR
+
 
 # argparse_parser = argparse.ArgumentParser()
 # argparse_parser.add_argument("IP", help="IP address without port, e.g. '127.0.0.1' (is also the default)", type=str, default="127.0.0.1", nargs='?')
@@ -149,7 +151,9 @@ def test_web_example_1():
               "background_intensity": bg_abundance_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 50
-    assert df.groupby("category").count().shape[0] >= 5 # at least 5 categories with significant results, last time I checked (2020 04 01)
+    # at least 5 categories with significant results, last time I checked (2020 04 01)
+    # at least 4 categories with significant results, last time I checked (2020 11 24)
+    assert df.groupby("category").count().shape[0] >= 4
     cond_FDR = df["p_value"] <= df["FDR"]
     assert sum(cond_FDR) == len(cond_FDR)
 
@@ -274,7 +278,83 @@ def test_compare_funEnum_consistency(i):
     Randomly select Protein ID. query associated functions from file, compare with API
     """
     UniProtID = random.sample(conftest.UniProt_IDs_human_list, 1)[0]
-    response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "characterize_foreground", "filter_foreground_count_one": False}, data={"foreground": UniProtID})
+    response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "characterize_foreground", "filter_foreground_count_one": False},
+        data={"foreground": UniProtID})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     for funcEnum, term in zip(df["funcEnum"], df["term"]):
         assert conftest.funcEnum_2_funcName_dict[funcEnum] == term
+
+### abundance correction tests
+def test_abundance_correction_with_intensity_instead_of_background_intensity(random_abundance_correction_foreground_background):
+    foreground, background, intensity, taxid = random_abundance_correction_foreground_background
+    params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction', 'FDR_cutoff': '1.0'}
+    # should be "background_intensity" instead of "intensity" but nonetheless this should work
+    data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(background), "intensity": "%0d".join(intensity)}
+    response = requests.post(url_local, params=params, data=data)
+    df = pd.read_csv(StringIO(response.text), sep='\t')
+    assert (df["FG_n"] == df["BG_n"]).all()
+    assert (df["FG_count"] <= df["FG_n"]).all()
+    assert (df["BG_count"] <= df["BG_n"]).all()
+
+def test_random_abundance_correction(random_abundance_correction_foreground_background):
+    """
+    fg_n == bg_n
+    fg_count == bg_count
+
+    this can't be guaranteed because of the correction factor
+    assert (df["FG_count"] <= df["BG_count"]).all()
+    """
+    foreground, background, intensity, taxid = random_abundance_correction_foreground_background
+    params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction', 'FDR_cutoff': '1.0'}
+    # should be "background_intensity" instead of "intensity" but nonetheless this should work
+    data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(background), "intensity": "%0d".join(intensity)}
+    # addiontally testing that "intensity" maps to "background_intensity"
+    response = requests.post(url_local, params=params, data=data)
+    df = pd.read_csv(StringIO(response.text), sep='\t')
+    assert (df["FG_n"] == df["BG_n"]).all()
+    assert (df["FG_count"] <= df["FG_n"]).all()
+    assert (df["BG_count"] <= df["BG_n"]).all()
+
+def test_abundance_correction_fg_equals_bg(random_abundance_correction_foreground_background):
+    """
+    no enrichment expected, but counts should be equal for
+    fg_n == bg_n
+    fg_count == bg_count
+    """
+    _, background, intensity, taxid = random_abundance_correction_foreground_background
+    params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction', 'FDR_cutoff': '1.0'}
+    ### use background as foreground on purpose
+    data = {'foreground': "%0d".join(background), 'background': "%0d".join(background), "background_intensity": "%0d".join(intensity)}
+    response = requests.post(url_local, params=params, data=data)
+    df = pd.read_csv(StringIO(response.text), sep='\t')
+    assert (df["FG_count"] == df["BG_count"]).all()
+    assert (df["FG_n"] == df["BG_n"]).all()
+    assert (df["FG_count"] <= df["FG_n"]).all()
+    assert (df["BG_count"] <= df["BG_n"]).all()
+
+def test_abundance_correction_impute_values(random_abundance_correction_foreground_background):
+    foreground, background, intensity, taxid = random_abundance_correction_foreground_background
+    params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction',
+              'FDR_cutoff': 1, 'p_value': 1,
+              "filter_foreground_count_one": False, "filter_parents": False}
+
+    ### background a bit bigger than foreground
+    bg_1 = foreground + background[:100]
+    in_1 = intensity[:len(bg_1)] #[str(ele) for ele in np.random.normal(size=len(bg_1))]
+    data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(bg_1), "background_intensity": "%0d".join(in_1)}
+    response = requests.post(url_local, params=params, data=data)
+    df_1 = pd.read_csv(StringIO(response.text), sep='\t').sort_values(["term", "description"]).reset_index(drop=True)
+
+    ### add genome with imputed values (the same for all)
+    bg_2 = bg_1 + list(set(background) - set(bg_1))
+    value_2_impute = min([float(ele) for ele in in_1]) - 1
+    in_2 = in_1 + [str(value_2_impute)]*(len(bg_2) - len(bg_1))
+    data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(bg_2), "background_intensity": "%0d".join(in_2)}
+    response = requests.post(url_local, params=params, data=data)
+    df_2 = pd.read_csv(StringIO(response.text), sep='\t')
+    df_2_sub = df_2[df_2["term"].isin(df_1["term"])].sort_values(["term", "description"]).reset_index(drop=True)
+    assert df_1.shape[0] == df_2_sub.shape[0]
+    assert (df_1["FG_count"] == df_2_sub["FG_count"]).all()
+    assert (df_1["BG_n"] == df_2_sub["BG_n"]).all()
+    # since imputed values don't affect correction_factor, the BG counts should only increase
+    assert (df_1["BG_count"] <= df_2_sub["BG_count"]).all()

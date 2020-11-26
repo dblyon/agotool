@@ -30,12 +30,21 @@ def get_something():
 #     return request.param
 
 @pytest.fixture(scope="session")
-def random_foreground_background(): # used TaxIDs fixture previously, but now it it random on TaxID level as well
+def random_foreground_background(): # used TaxIDs fixture previously, but now it is random on TaxID level as well
     for _ in range(10):
         taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
         background = query.get_proteins_of_taxid(taxid)
         foreground = random.sample(background, 200)
         return foreground, background, taxid
+
+@pytest.fixture(scope="session")
+def random_abundance_correction_foreground_background():
+    for _ in range(10):
+        taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
+        background = query.get_proteins_of_taxid(taxid)
+        foreground = random.sample(background, 200)
+        intensity = [str(ele) for ele in np.random.normal(size=len(background))]
+        return foreground, background, intensity, taxid
 
 
 ### STRING examples

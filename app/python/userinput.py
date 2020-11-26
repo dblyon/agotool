@@ -62,18 +62,18 @@ class Userinput:
         if self.enrichment_method not in variables.enrichment_methods:
             return False, False, False
         if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
+            # adds error message if is_taxid_valid is False
             taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(self.args_dict["taxid"], self.pqo, self.args_dict)
-
             if is_taxid_valid:
                 self.args_dict["taxid"] = taxid
-            else: # error messages added here --> check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise
+            else:
                 return False, False, False
 
         is_copypaste = self.check_if_copy_and_paste()
         if is_copypaste: # copy&paste field
             self.fn = StringIO()
             self.foreground_string = self.remove_header_if_present(self.foreground_string.replace("\r\n", "\n"), self.col_foreground)
-            if self.enrichment_method != "characterize_foreground":
+            if self.enrichment_method not in {"characterize_foreground", "genome"}:
                 self.background_string = self.remove_header_if_present(self.background_string.replace("\r\n", "\n"), self.col_background)
             if self.enrichment_method == "abundance_correction":
                 is_abundance_correction = self.fast_check_is_abundance_correction(self.background_string)
@@ -97,7 +97,7 @@ class Userinput:
         try: # use file
             df_orig, decimal, check_parse = self.check_decimal(self.fn)
         except:
-            print("userinput 107 something wrong")
+            print("userinput line 100 something wrong")
             return False, False, False
         return df_orig, decimal, check_parse
 
@@ -481,8 +481,14 @@ class REST_API_input(Userinput):
                 self.background_intensity = background_intensity
         except KeyError:
             pass # in case "intensity" instead of "background_intensity" is being used
-        self.population_string = args_dict["population"] # ? deprecated ?
-        self.abundance_ratio = args_dict["abundance_ratio"] # deprecated
+        try:
+            self.population_string = args_dict["population"] # ? deprecated ?
+        except KeyError:
+            self.population_string = None
+        try:
+            self.abundance_ratio = args_dict["abundance_ratio"] # deprecated
+        except KeyError:
+            self.abundance_ratio = None
         self.num_bins = args_dict["num_bins"]
         self.enrichment_method = args_dict["enrichment_method"]
         self.foreground_n = args_dict["foreground_n"]
@@ -494,6 +500,7 @@ class REST_API_input(Userinput):
         self.col_abundance_ratio = "abundance_ratio"
         self.check = False
         self.check_cleanup = False
+        self.args_dict = o_or_u_or_both_to_number(self.args_dict)
         self.df_orig, self.decimal, self.check_parse = self.parse_input()
         if self.check_parse:
             self.foreground, self.background, self.check_cleanup = self.cleanupforanalysis(self.df_orig, self.col_foreground, self.col_background, self.col_intensity)
@@ -504,6 +511,17 @@ class REST_API_input(Userinput):
         check_parse = False
         decimal = "."
         df_orig = pd.DataFrame()
+
+        if self.enrichment_method not in variables.enrichment_methods:
+            return False, False, False
+        if self.enrichment_method == "genome": # check if user provided Taxid is available as Reference Proteome
+            # adds error message if is_taxid_valid is False
+            taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(self.args_dict["taxid"], self.pqo, self.args_dict)
+            if is_taxid_valid:
+                self.args_dict["taxid"] = taxid
+            else:
+                return False, False, False
+
 
         if self.enrichment_method != "genome": # ignore background if "genome"
             if self.background_string is not None:
@@ -623,12 +641,6 @@ def o_or_u_or_both_to_number(args_dict):
 
 def clean_args_dict(args_dict):
     dict_2_return = defaultdict(lambda: None)
-
-    # # args_dict["privileged"] = string_2_bool(args_dict["privileged"])
-    #         # args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
-    #         # args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
-    #         # args_dict = clean_args_dict(args_dict)
-
     for key, val in args_dict.items():
         if type(val) == str:
             dict_2_return[key] = string_2_properType(val)
@@ -660,12 +672,6 @@ def zero_one_or_None_to_1(FDR_cutoff):
     else:
         return FDR_cutoff, True
 
-# def translate_NoneStr_2_None(args_dict):
-#     for key, val in args_dict.items():
-#         if val == "None":
-#             args_dict[key] = None
-#     return args_dict
-
 def string_2_properType(string_):
     string_ = string_.strip().lower()
     if string_.lower() == "true" or string_ == "1":
@@ -676,7 +682,6 @@ def string_2_properType(string_):
         return None
     else:
         return string_
-
 
 if __name__ == "__main__":
     # # fn = r'/Users/dblyon/modules/cpr/metaprot/Perio_vs_CH_Bacteria.txt'
@@ -760,7 +765,7 @@ if __name__ == "__main__":
     # args_dict["background_replicates"] = 10
     # taxid = args_dict["taxid"]
     # # pqo = query.PersistentQueryObject_STRING(low_memory=True)
-    pqo = None
+    # pqo = None
     # # background_input = query.get_proteins_of_taxid(taxid, read_from_flat_files=True)
     # # ui = Userinput(pqo, fn=None, foreground_string=stringify_for_Userinput(foreground_input), background_string=stringify_for_Userinput(background_input), args_dict=args_dict)
     # # ui = Userinput(pqo, fn_userinput, args_dict=args_dict)
@@ -807,6 +812,7 @@ if __name__ == "__main__":
     # # print(ui.df_orig.head())
     # for bin in ui.iter_bins():
     #     print(bin)
+    pqo = None
     args_dict_temp = {'FDR_cutoff': None, 'alpha': 0.05, 'foreground': '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0dnan%0dnan%0dnan%0dnan', 'background': '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3360%0d511145.b3772%0d511145.b4388%0dnan', 'background_intensity': None, 'population': None, 'abundance_ratio': None, 'foreground_n': None, 'background_n': None, 'caller_identity': None, 'enrichment_method': 'abundance_correction', 'fold_enrichment_for2background': 0, 'go_slim_or_basic': 'basic', 'identifiers': None, 'indent': 'True', 'limit_2_entity_type': None, 'multitest_method': 'benjamini_hochberg', 'num_bins': 100, 'o_or_u_or_both': 'overrepresented', 'output_format': 'tsv', 'p_value_uncorrected': 0, 'organism': None, 'species': None, 'taxid': None, 'filter_PMID_top_n': 100, 'filter_foreground_count_one': False, 'filter_parents': False,
      'go_slim_subset': None, 'intensity': '1.0%0d2.0%0d3.0%0d4.0%0d5.0%0d6.0%0d7.0%0d8.0%0d9.0%0d10.0%0d11.0%0dnan', 'ERROR_abundance_correction': "ERROR: enrichment_method 'abundance_correction' selected but no 'background_intensity' provided"}
     ui = REST_API_input(pqo, args_dict=args_dict_temp)

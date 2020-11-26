@@ -66,7 +66,6 @@ background_4 = pd.DataFrame({'background': {0: 'ABC123', 1: 'BCD234', 2: 'CDE345
                              'intensity': {0: 1.0, 1: 2.0, 2: 3.0}})
 
 
-
 fg_bg_meth_all = [pytest.mark.xfail((foreground_empty, background_empty, "abundance_correction"), strict=True),
                   pytest.mark.xfail((foreground_empty_2, background_empty_2, "abundance_correction")),
                   pytest.mark.xfail((foreground_empty_3, background_empty_3, "abundance_correction")),

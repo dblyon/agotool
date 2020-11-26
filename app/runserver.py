@@ -190,6 +190,9 @@ parser.add_argument("background_intensity", type=str,
          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
          "e.g. '12.3%0d3.4' ",
     default=None)
+parser.add_argument("intensity", type=str,
+    help="Deprecated. Please use 'background_intensity' instead.",
+    default=None)
 parser.add_argument("enrichment_method", type=str,
     help="""'genome': provided foreground vs genome;
     'compare_samples': Foreground vs Background (no abundance correction); 
@@ -203,7 +206,6 @@ parser.add_argument("num_bins", type=int, help="The number of bins created based
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 parser.add_argument("simplified_output", type=str, default="False")
 parser.add_argument("STRING_beta", type=str, default="False")
-
 
 
 class API_STRING(Resource):
@@ -675,6 +677,9 @@ def results():
     if request.method == 'POST':
         try:
             fileobject = request.files['userinput_file']
+            import pdb
+            pdb.set_trace()
+            # <class 'werkzeug.datastructures.FileStorage'>
         except KeyError:
             fileobject = None
         # filename = secure_filename(fileobject.filename) # necessary if saving the file to disk
