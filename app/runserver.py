@@ -113,9 +113,7 @@ def init_app():
     ### Import Dash application
     from dash_within_flask_dbl_1 import init_dashboard
     app = init_dashboard(app)
-    # dash_app = init_dashboard(app)
     return app
-    # return app, dash_app
 
 app = init_app()
 
@@ -668,9 +666,9 @@ def plot():
 
 
 
-@app.route("/dash")
-def MyDashApp():
-    return app.index()
+# @app.route("/dash")
+# def MyDashApp():
+#     return app
 
 ################################################################################
 # results.html

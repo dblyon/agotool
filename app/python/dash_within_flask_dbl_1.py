@@ -172,7 +172,8 @@ button_reset_plot_n_click = 0
 ### Network edges based on relationship within Ontology
 term_2_edges_dict = defaultdict(lambda: {"X_points": [], "Y_points": [], "Weights": [], "Nodes": []})
 #term_2_edges_dict.update(pickle.load(open("term_2_edges_dict.p", "rb")))
-term_2_edges_dict.update(pickle.load(open("/Users/davidl/modules/cpr/agotool/app/python/term_2_edges_dict.p", "rb")))
+# term_2_edges_dict.update(pickle.load(open("/Users/davidl/modules/cpr/agotool/app/python/term_2_edges_dict.p", "rb")))
+term_2_edges_dict.update(pickle.load(open(os.path.join(variables.PYTHON_DIR, "term_2_edges_dict.p"), "rb")))
 
 colName_attributes = []
 for colName in df.columns:
@@ -283,6 +284,7 @@ def init_dashboard(server):
     """Create a Plotly Dash dashboard."""
     dash_app = dash.Dash(
         server=server,
+        # sharing=True,
         routes_pathname_prefix='/dashapp/',
         prevent_initial_callbacks=True,
         external_stylesheets=[dbc.themes.BOOTSTRAP,
