@@ -421,7 +421,8 @@ def create_plotly_scatter(dff=df):
     for category_name, group in dff.groupby(category):
         fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
     fig.update_layout(hoverlabel=dict(font_size=12), template=plotly_scatter_layout_template, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, ), ) # , itemclick="toggleothers", itemdoubleclick="toggle"
-    fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, )
+    # fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, )
+    fig.update_layout(autosize=False)
     fig_data_as_json = json.dumps(fig.data, cls=plotly.utils.PlotlyJSONEncoder)
     fig_layout_as_json = json.dumps(fig.layout, cls=plotly.utils.PlotlyJSONEncoder)
     return fig_data_as_json, fig_layout_as_json
@@ -464,7 +465,7 @@ def df_2_html_table(session_id, session_folder_absolute, df=df):
     cols_sort_order_rest = ['rank', 'term', 'description', over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
 
     def helper_format_to_html(df):
-        return df.to_html(index=False, border=0, classes=["table table_etype dataTable display table-striped data_table_plotly"], table_id="table_etype", justify="left",
+        return df.to_html(index=False, border=0, classes=["display table dataTable_DBL dataTable table-striped"], table_id="dataTable_DBL_id", justify="left",
             formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x), p_value: lambda x: "{:.2E}".format(x), s_value: lambda x: "{:.2f}".format(x),
                         ratio_in_FG: lambda x: "{:.2f}".format(x), ratio_in_BG: lambda x: "{:.2f}".format(x), FG_count: lambda x: "{:.0f}".format(x)})
 
@@ -496,6 +497,7 @@ def df_2_html_table(session_id, session_folder_absolute, df=df):
     #             etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_rest])
 
     # return render_template('results_comprehensive.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict)
+    print(df.shape)
     df_as_html_dict = helper_format_to_html(df)
     return df_as_html_dict
 

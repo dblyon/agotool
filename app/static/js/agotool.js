@@ -215,8 +215,7 @@ var results_page_comprehensive = (function () {
 let results_page_plotly = (function () {
     // add classes to specific columns
     $(document).ready(function() {
-        $('table.display').DataTable({
-
+        let table_dbl =  $('table.display').DataTable({
             /* SCROLLING */
             scrollY: "500px",
             scrollCollapse: true,
@@ -225,14 +224,83 @@ let results_page_plotly = (function () {
             "language": {"info": "Showing _TOTAL_ entries",
                          "infoFiltered":   "(filtered from _MAX_ total entries)",},
             dom: 'Bfrtip',
-            select: true,
+            // select: true,
             buttons: ['colvis'],
-            "columnDefs": [
-                { targets: '_all', render: $.fn.dataTable.render.ellipsis( 80, true ) }],
+            // buttons: ['colvis', 'copy', 'excel', 'pdf'],
+            "columnDefs": [{ targets: '_all', render: $.fn.dataTable.render.ellipsis( 80, true ) }],
             responsive: true,
+
+            // select multiple rows (via dataTables.select.min.js
+            select: { style: 'multi'},
+            "order": [[ 7, "desc" ], [18, "asc"]], // ["category", "rank"]
+            "autoWidth": false,
+            "columns": [
+                        { "visible": true, "width": "80px" }, // s value
+                        { "visible": true, "width": "100px" }, // term
+                        { "visible": true, "width": "200px" }, // description
+                        { "visible": false }, // p value
+                        { "visible": true }, // FDR
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                        { "visible": false },
+                      ],
       });
+
+    table_dbl.on('select', function ( e, dt, type, indexes ) {
+        if ( type === 'row' ) {
+            // console.log("on select")
+            // console.log(table_dbl.rows());
+            // console.log(indexes);
+            // let row_ids = table_dbl.rows( indexes ).data().pluck( 'id' );
+
+            // do something with the ID of the selected items
+            // console.log("row_ids will be printed to console.log");
+            // console.log(table_dbl.rows( indexes ).data()[0]);
+            let selected_term = table_dbl.rows( indexes ).data()[0][1];
+            console.log("select: ", selected_term);
+        }
+    } );
+
+    table_dbl.on('deselect', function ( e, dt, type, indexes ) {
+        if ( type === 'row' ) {
+            // console.log("on deselect")
+            // console.log(table_dbl.rows());
+            // console.log(indexes);
+            // let row_ids = table_dbl.rows( indexes ).data().pluck( 'id' );
+
+            // do something with the ID of the selected items
+            // console.log("row_ids will be printed to console.log");
+            // console.log(table_dbl.rows( indexes ).data()[0]);
+            let selected_term = table_dbl.rows( indexes ).data()[0][1];
+            console.log("deselected: ", selected_term);
+        }
+     } );
+
     });
+
 });
+
+
+
+
+
 
 
 

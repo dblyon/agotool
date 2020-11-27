@@ -1,28 +1,30 @@
-.errors {color:red;
-    font-weight: bold;}
+.errors {
+    color:red;
+    font-weight: bold;
+}
 
-body {background-color:#fff;}
+body { background-color:#fff; }
 
 .navbar-default, .primary-color {
     background-color:#d95f0e !important;
     border-color:#d95f0e;
-    border-radius: 0;}
+    border-radius: 0;
+}
 
 .page-footer {
     background-color:#d95f0e !important;
     border-color:#d95f0e;
-    border-radius: 0;}
+    border-radius: 0;
+}
 
 .navbar-header{
     padding: 10px;
-    width: 140px;}
-
-.navbar-nav{padding: 10px;}
-
-.cpr_logo {
-    /*float: right;*/
-    padding: 20px 35px;
+    width: 140px;
 }
+
+.navbar-nav{ padding: 10px; }
+
+.cpr_logo { padding: 20px 35px; }
 
 .example {
     font-size: 12px;
@@ -31,45 +33,37 @@ body {background-color:#fff;}
 
 .example_header {
     font-size: 12px;
-    color: grey;}
+    color: grey;
+}
 
 .grey_underline {
     color: grey;
-    text-decoration: underline;}
+    text-decoration: underline;
+}
 
 .NCBI_TaxID {
     color: black;
-    text-decoration: underline;}
-
+    text-decoration: underline;
+}
 
 /*https://css-tricks.com/snippets/css/sticky-footer/*/
-* {
-  margin: 0;
-}
-html, body {
-  height: 100%;
-}
+* { margin: 0; }
+
+html, body { height: 100%; }
+
 .page-wrap {
   min-height: 100%;
   /* equal to footer height */
   margin-bottom: -92px;
 }
+
 .page-wrap:after {
   content: "";
   display: block;
 }
-.site-footer, .page-wrap:after {
-  height: 92px;
-}
 
+.site-footer, .page-wrap:after { height: 92px;}
 
-
-
-/* TABLES*/
-
-/*.ellipsis {*/
-/*  text-overflow: ellipsis;*/
-/*  overflow: hidden;}*/
 
 .col_heading {white-space: normal;}
 
@@ -85,20 +79,6 @@ html, body {
 
 thead {font-size: 14px;}
 
-table tbody tr:hover {background-color: #b5d7eb !important;}
-
-/*.table_etype.tr:hover {background-color: gold !important;}*/
-
-/*table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {background-color: gold; }*/
-/*table.dataTable.hover tbody tr:hover.selected, table.dataTable.display tbody tr:hover.selected {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover > .sorting_1, table.dataTable.order-column.hover tbody tr:hover > .sorting_1 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover > .sorting_2, table.dataTable.order-column.hover tbody tr:hover > .sorting_2 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover > .sorting_3, table.dataTable.order-column.hover tbody tr:hover > .sorting_3 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover.selected > .sorting_1, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_1 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover.selected > .sorting_2, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_2 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover.selected > .sorting_3, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_3 {background-color: gold; }*/
-
-
 .dataTables_info {font-size: 0.8rem;}
 
 .table_etype {
@@ -106,7 +86,8 @@ table tbody tr:hover {background-color: #b5d7eb !important;}
     /*padding: 0.5rem;*/
     margin-top: 4px;
     margin-bottom: 1px !important;
-    border-top: none;}
+    border-top: none;
+}
 
 .full-width-div {
     position: absolute;
@@ -114,175 +95,51 @@ table tbody tr:hover {background-color: #b5d7eb !important;}
     left: 0;
 }
 
-.results{
-    /*color: white !important;*/
-    font-size: 1.1em !important;
-    }
+.results{ font-size: 1.1em !important; }
 
-
-/*.table td, .table th {*/
-/*    padding: 0.5rem;*/
-/*}*/
-
-
-.pagination {font-size: 0.8rem;}
+.pagination { font-size: 0.8rem; }
 
 .dt-nowrap { white-space: nowrap; }
 
 .dt-noellipsis {
     text-overflow: clip !important;
     /*overflow: hidden;*/
-    white-space: initial !important;}
+    white-space: initial !important;
+}
 
-/*#table_etype {*/
-/*    display: table;*/
-/*    font-size: 13px;*/
-/*    text-overflow: ellipsis;*/
-/*    overflow: hidden;*/
-/*    white-space: normal;*/
-/*    !*padding: 5px;*!*/
-/*    border-top: none;*/
-/*    border-bottom: none;*/
-/*    margin-left: auto;*/
-/*    margin-right: auto;*/
-/*    border-spacing: 0px;*/
-/*    margin-top: -5px;*/
-/*    width: 100%;}*/
+div.dataTables_wrapper { margin-bottom: 3em; }
 
-div.dataTables_wrapper {margin-bottom: 3em;}
-
-
-/*table.dataTable tbody td {*/
-/*    word-break: break-word;*/
-/*    vertical-align: top;*/
-/*}*/
-
-
-
-
-/*.col8, .col2  */
-
-
-/*#table_56 .col2 {white-space: normal;}*/
-    /*max-width: 30px;}*/
-    /*word-wrap: break-word;*/
-    /*white-space: nowrap;}*/
-
-
-/*.left {text-align: left;}*/
-/*.center {text-align: center;}*/
-/*.right {text-align: right;}*/
-/*    !*!*margin-right: 20px*!}*!*/
-
-/*.somename {padding-right: 10px;}*/
-
-/* formatting unordered list with long row  */
-
-
-/*body {background-color:#64a1b8;}*/
-/*UniProt colours*/
-/*#71b8d3*/
-/*#1d5c74*/
-/*Darker version of UniProt blue*/
-/*#64a1b8*/
-/*#9d4a4d*/
-/* navbar */
-/*.navbar-default{*/
-/*    background-color:#64a1b8;*/
-/*    border-color:#64a1b8;*/
-/*    border-radius: 0;*/
-/*}*/
-/*.navbar-default a, .navbar-default a:active, .navbar-default a:visited{*/
-/*    color: #FFF !important;*/
-/*}*/
-/*.navbar-default a:hover{*/
-/*    font-weight: bold;*/
-/*    color: black !important;*/
-/*}*/
-/*.navbar-collapse > ul > li {*/
-    /*width: 110px !important;*/
-/*}*/
-
-/*.navbar-custom{*/
-/*    background-color:#64a1b8;*/
-/*    border-color:#64a1b8;*/
-/*    border-radius: 0;*/
-/*}*/
-
-/*#41B3A3 greenisch*/
-/*#C38D9E*/
-/*#F13C20 knalliges orange*/
-/*f03b20 auch knalliges orange*/
-/*#E27D60  orange*/
-/*d95f0e*/
-
-
-
-/* PLOTLY styling from assets folder START */
-/* overwrite odd rows being grey with white */
-/*.dash-header, .expanded-row--empty-cell {*/
-/*    background-color: white !important;*/
-/*    --accent: black !important;*/
-/*}*/
-
-/*!*.dbl_class {color: red;}*!*/
-/*.dash-filter input {*/
-/*    text-align: left !important;*/
-/*    padding-left: 5px !important;*/
-/*    background-color: white !important;*/
-/*}*/
-
-/*!* dash data table filter data box --> color of bottom border when cell is active*!*/
-/*input:focus:not([readonly]) {*/
-/*    border-bottom: 1px solid black !important;*/
-/*}*/
-
-/* Hover text in plot */
-svg.main-svg g.hoverlayer g.hovertext path{
+/* Hover text in plotly scatter plot */
+svg.main-svg g.hoverlayer g.hovertext path {
     fill-opacity: 0.5;
     stroke: white !important;
 }
-svg.main-svg g.hoverlayer g.hovertext text{
+svg.main-svg g.hoverlayer g.hovertext text {
     fill: #43464B !important;
 }
 
-/*!* Toggle Columns button of dash data table*!*/
-/*.show-hide {*/
-/*    font-size: 12px;*/
-/*    color: #6C757D;*/
-/*    background-color: white;*/
-/*    border-radius: .2rem;*/
-/*    border: 1px solid #6C757D;*/
-/*    !*padding: 0 20px;*!*/
+
+/* Data Table highlight color on hover over rows but not over header */
+table tbody tr:hover { background-color: goldenrod !important; }
+/* Data Table highlight color on selection */
+.even.selected td { background-color: #b5d7eb !important; }
+.odd.selected td { background-color: #b5d7eb !important; }
+
+.dataTable_DBL {
+    font-size: 12px;
+    margin-top: 4px;
+    margin-bottom: 1px !important;
+    border-top: none;
+}
+
+
+/* TEMP start */
+/*.row {*/
+/*  display: flex;*/
 /*}*/
-
-/*!* Scatter plot legend text. When adding term labels (as interactive annotations) the text "Aa" is added in superscript to the legend. Remove this bug via code below *!*/
-/*.pointtext {*/
-/*    display: none;*/
+/*.row > div {*/
+/*  flex: 1;*/
+  /*background: cadetblue;*/
+  /*border: 1px solid black;*/
 /*}*/
-
-/*.dash-spreadsheet-container .dash-spreadsheet-inner table {*/
-/*        --accent: transparent !important;*/
-/*        --selected-background: transparent !important;*/
-/*}*/
-
-/*!* hover color probably deprecated *!*/
-/*.dash-spreadsheet-container table {*/
-/*    --accent: black !important;*/
-/*    }*/
-
-/* PLOTLY styling from assets folder STOP */
-
-
-/* jquery data table new for plotly*/
-/*.buttons-colvis {*/
-/*    font-size: 12px !important;*/
-/*    color: #6C757D !important;*/
-/*    background-color: white !important;*/
-/*    border-radius: .2rem !important;*/
-/*    border: 1px solid #6C757D !important;*/
-/*}*/
-
-/*div.container {*/
-/*        width: 80%;*/
-/*    }*/
+/* TEMP stop */

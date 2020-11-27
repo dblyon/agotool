@@ -5,7 +5,6 @@
           $(document).ready( function() {
               results_page();
               results_page_plotly();
-              {#results_page_comprehensive();#}
           });
       </script>
 {% endblock head %}
@@ -15,36 +14,34 @@
 {% endblock nav_Plot %}
 
 {% block content %}
-<div class="chart d-flex justify-content-center col-md-10" id="plotly_scatter_plot">
-    <script>
-        let scatter_plot_width = 700;
-        let scatter_plot_height = 400;
-        let config = {'displaylogo': false,
-          'scrollZoom': true,
-          "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-          'toImageButtonOptions': {
-              'format': 'svg',
-              'filename': 'aGOtool_plot',
-              'width': scatter_plot_width,
-              'height': scatter_plot_height,
-              'scale': 1
-              },};
-        let data = {{plot_data | safe}};
-        let layout = {{plot_layout | safe}};
-        Plotly.plot('plotly_scatter_plot', data, layout, config);
-    </script>
-</div>
-
+{#    col-md-12#}
+{#<div class="row">#}
+    <div class="d-flex justify-content-center" id="plotly_scatter_plot">
+        <script>
+            {#let scatter_plot_width = 700;#}
+            {#let scatter_plot_height = 400;#}
+            let config = {'displaylogo': false,
+              'scrollZoom': true,
+              "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+              'toImageButtonOptions': {
+                  'format': 'svg',
+                  'filename': 'aGOtool_plot',
+                  {#'width': scatter_plot_width,#}
+                  {#'height': scatter_plot_height,#}
+                  'scale': 1
+                  },};
+            let data = {{plot_data | safe}};
+            let layout = {{plot_layout | safe}};
+            Plotly.plot('plotly_scatter_plot', data, layout, config);
+        </script>
+    </div>
+{#</div>#}
 <br>
+
+
 {% endblock content %}
 
-{% block table %}
-{#<div class="d-flex justify-content-center col-md-10">#}
-{#    <div class="row div_table_etype" data-value=123>#}
-{#        <div class="alert alert-info col-md-12 text-center" role="alert">The mother of tables</div>#}
-        <div id="table_id" class="table_etype table table-striped" style="width:100%"> {{ df_as_html_dict | safe }} </div>
-{#    style="width:100%" --> in pd.to_html#}
-{#    </div>#}
 
-{#</div>#}
+{% block table %}
+    <div id="dataTable_DBL_id" class="dataTable_DBL table table-striped" style="width:100%"> {{ df_as_html_dict | safe }} </div>
 {% endblock table %}
