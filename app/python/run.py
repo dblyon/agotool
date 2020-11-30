@@ -305,6 +305,7 @@ def table_type(df_column):
         return 'datetime'
     else:
         return 'any'
+# rect.nsewdrag.drag
 
 plotly_scatter_layout_template = dict(layout=go.Layout(
     {'dragmode': 'pan', 'clickmode': 'event+select',
@@ -422,7 +423,7 @@ def create_plotly_scatter(dff=df):
         fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
     fig.update_layout(hoverlabel=dict(font_size=12), template=plotly_scatter_layout_template, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, ), ) # , itemclick="toggleothers", itemdoubleclick="toggle"
     # fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, )
-    fig.update_layout(autosize=False)
+    fig.update_layout(autosize=True)
     fig_data_as_json = json.dumps(fig.data, cls=plotly.utils.PlotlyJSONEncoder)
     fig_layout_as_json = json.dumps(fig.layout, cls=plotly.utils.PlotlyJSONEncoder)
     return fig_data_as_json, fig_layout_as_json

@@ -114,10 +114,10 @@ svg.main-svg g.hoverlayer g.hovertext path {
     fill-opacity: 0.5;
     stroke: white !important;
 }
+
 svg.main-svg g.hoverlayer g.hovertext text {
     fill: #43464B !important;
 }
-
 
 /* Data Table highlight color on hover over rows but not over header */
 table tbody tr:hover { background-color: goldenrod !important; }
@@ -127,13 +127,20 @@ table tbody tr:hover { background-color: goldenrod !important; }
 
 .dataTable_DBL {
     font-size: 12px;
-    margin-top: 4px;
+    margin-top: 3px;
     margin-bottom: 1px !important;
     border-top: none;
 }
 
 
 /* TEMP start */
+.center_dbl {
+  margin: auto;
+  width: 50%;
+  border: 3px solid green;
+  padding: 10px;
+  text-align: center;
+}
 /*.row {*/
 /*  display: flex;*/
 /*}*/

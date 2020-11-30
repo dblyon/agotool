@@ -16,26 +16,49 @@
 {% block content %}
 {#    col-md-12#}
 {#<div class="row">#}
-    <div class="d-flex justify-content-center" id="plotly_scatter_plot">
-        <script>
+{#    <div class="center_dbl">I</div>#}
+{# working example START #}
+{#    <div class="d-flex" id="plotly_scatter_plot" style="display: flex;flex-direction: column;">#}
+{#        <script>#}
             {#let scatter_plot_width = 700;#}
             {#let scatter_plot_height = 400;#}
-            let config = {'displaylogo': false,
-              'scrollZoom': true,
-              "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-              'toImageButtonOptions': {
-                  'format': 'svg',
-                  'filename': 'aGOtool_plot',
+{#            let config = {'displaylogo': false,#}
+{#              'scrollZoom': true,#}
+{#              "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],#}
+{#              'toImageButtonOptions': {#}
+{#                  'format': 'svg',#}
+{#                  'filename': 'aGOtool_plot',#}
                   {#'width': scatter_plot_width,#}
                   {#'height': scatter_plot_height,#}
-                  'scale': 1
-                  },};
+{#                  'scale': 1#}
+{#                  },#}
+{#            "responsive": true,#}
+{#            };#}
+{#            let data = {{plot_data | safe}};#}
+{#            let layout = {{plot_layout | safe}};#}
+{#            Plotly.plot('plotly_scatter_plot', data, layout, config);#}
+{#        </script>#}
+{#    </div>#}
+{#</div>#}
+{# working example STOP #}
+
+    <div class="d-flex" id="plotly_scatter_plot" style="display: flex;flex-direction: column;">
+        <script>
+            let myPlot = document.getElementById("plotly_scatter_plot");
+            let config = {"displaylogo": false,
+              "scrollZoom": true,
+              "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+              "toImageButtonOptions": {'format': 'svg','filename': 'aGOtool_plot','scale': 1},
+              "responsive": true,
+            };
             let data = {{plot_data | safe}};
             let layout = {{plot_layout | safe}};
             Plotly.plot('plotly_scatter_plot', data, layout, config);
         </script>
     </div>
-{#</div>#}
+
+
+
 <br>
 
 
