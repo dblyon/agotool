@@ -333,6 +333,7 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
                 fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
             fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), xaxis_range=[x_min * 0.93, x_max * 1.07], yaxis_range=[y_min * 1.25, y_max * 1.25])
 
+        ### only change circle highlighting
         else:
             for category_name, group in dff.groupby(category):
                 fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
@@ -399,17 +400,10 @@ def create_DataTable(df):
 
 data_table_dbl = create_DataTable(df)
 
-# <input type="checkbox" checked data-toggle="toggle" data-size="small">
-
 row1 = html.Tr(
     [
 
     html.Td([
-
-
-    # html.Div(dcc.Input(id='input-on-submit', type='text')),
-    # html.Button('Submit', id='submit-val', n_clicks=0, className="mr-1"), # className="checkbox checked data-toggle"),
-    # html.Div(id='container-button-basic', children='Enter a value and press submit'),
 
         daq.ToggleSwitch(id='toggle_point_labels', value=False, size=30, label='label selected points', labelPosition='bottom', style=dict(color=toggle_button_color, )), # fontSize="4px"
         daq.ToggleSwitch(id='toggle_point_edges', value=False, size=30, label='related terms', labelPosition='bottom', style=dict(color=toggle_button_color, )),
@@ -421,16 +415,8 @@ row1 = html.Tr(
         html.Div(id="scatter_container", children=[]),
         ], style=dict(align_items="center", justify_content="center")), # display="flex",
 
-    ], ) # style=dict(display="flex")
-# row2 = html.Tr([
-#     html.Td([
-#         html.Div(data_table_dbl, ),
-#     ])
-# ])
-# table_body = [html.Tbody([row1])]
-# table = dbc.Table(table_header + table_body, bordered=True)
-# Use col-{breakpoint}-auto classes to size columns based on the natural width of their content.
-# --> class="col-md-auto"
+    ], )
+
 ### app
 app.layout = html.Div(id='general_div', className="container",
     children=[
@@ -447,17 +433,6 @@ app.layout = html.Div(id='general_div', className="container",
         html.P(),
 
         ],)
-
-# @app.callback(
-#     dash.dependencies.Output('container-button-basic', 'children'),
-#     [dash.dependencies.Input('submit-val', 'n_clicks')],
-#     [dash.dependencies.State('input-on-submit', 'value')])
-# def update_output(n_clicks, value):
-#     return 'The input value was "{}" and the button has been clicked {} times'.format(
-#         value,
-#         n_clicks
-#     )
-
 
 ### backend filtering for datatable ("filter data ...")
 operators = [['ge ', '>='],

@@ -42,22 +42,158 @@
 {#</div>#}
 {# working example STOP #}
 
-    <div class="d-flex" id="plotly_scatter_plot" style="display: flex;flex-direction: column;">
-        <script>
-            let myPlot = document.getElementById("plotly_scatter_plot");
-            let config = {"displaylogo": false,
-              "scrollZoom": true,
-              "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-              "toImageButtonOptions": {'format': 'svg','filename': 'aGOtool_plot','scale': 1},
-              "responsive": true,
-            };
-            let data = {{plot_data | safe}};
-            let layout = {{plot_layout | safe}};
-            Plotly.plot('plotly_scatter_plot', data, layout, config);
-        </script>
+<div class="container container_dbl">
+    <div class="row row_dbl">
+        <div class="col-md-1 col_dbl align-self-center">
+            <div class="checkbox enabled">
+              <label>
+                <input class="toggle_button_dbl" checked type="checkbox" data-toggle="toggle" id="toggle_point_labels_id"
+                       data-size="sm" data-on="labels" data-off="labels" data-onstyle="info toggle_dbl">
+              </label>
+            </div>
+            <div class="checkbox enabled">
+              <label>
+                <input class="toggle_button_dbl" checked type="checkbox" data-toggle="toggle" id="toggle_point_edges_id"
+                       data-size="sm" data-on="edges" data-off="edges" data-onstyle="info toggle_dbl">
+              </label>
+            </div>
+
+            <div>
+                <button type="button" class="btn btn-outline-secondary btn-sm dbl_reset_button" id="dbl_reset_button_id" data-size="sm">reset</button>
+            </div>
+        </div>
+        <div class="col col_dbl">
+            <div class="d-flex" id="plotly_scatter_plot" style="display: flex;flex-direction: column;">
+                <script>
+                    let myPlot = document.getElementById("plotly_scatter_plot");
+                    let plot_config = {"displaylogo": false,  "scrollZoom": true, "responsive": true,
+                      "modeBarButtonsToRemove": ["lasso2d", "autoScale2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+                      "toImageButtonOptions": {'format': 'svg','filename': 'aGOtool_plot','scale': 1},};
+                    let plot_layout_orig = {"template":
+                            {"data":
+                                    {"scatter": [{"type": "scatter", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}]},
+                                "layout": {"clickmode": "event+select", "dragmode": "pan",
+                                "legend": {"font": {"size": 13}, "title": {"font": {"size": 12}}},
+                                "margin": {"b": 0, "l": 0, "r": 0, "t": 30},
+                                "plot_bgcolor": "#ffffff",
+                                "xaxis": {"anchor": "y", "automargin": true, "gridcolor": "#efefef", "gridwidth": 1, "linecolor": "#6C757D",
+                                    "linewidth": 2, "showgrid": true, "showline": true, "showticklabels": true, "tickcolor": "#6C757D",
+                                    "tickfont": {"color": "#6C757D", "size": 10}, "ticklen": 3, "ticks": "outside",
+                                    "title": {"font": {"size": 12}, "standoff": 12}, "zeroline": false},
+                                "yaxis": {"anchor": "x", "automargin": true, "gridcolor": "#efefef", "gridwidth": 1, "linecolor": "#6C757D",
+                                    "linewidth": 2, "showgrid": true, "showline": true, "showticklabels": true, "tickcolor": "#6C757D",
+                                    "tickfont": {"color": "#6C757D", "size": 10}, "ticklen": 3, "ticks": "outside",
+                                    "title": {"font": {"size": 12}, "standoff": 12}, "zeroline": true, "zerolinecolor": "#efefef", "zerolinewidth": 3}}
+                                },
+                        "hoverlabel": {"font": {"size": 12}},
+                        "legend": {"font": {"size": 12}, "title": {}},
+                        "title": {},
+                        "xaxis": {"title": {"text": "-log(false discovery rate)"}},
+                        "yaxis": {"title": {"text": "effect size"}},
+                        "autosize": true}
+                    let trace_for_edges_template = {
+                        'hoverinfo': [],
+                        'line': {'color': '#d2d2d2', 'width': 1.5},
+                        'mode': 'lines',
+                        'showlegend': 'False',
+                        'x': [],
+                        'y': [],
+                        'type': 'scatter'}
+                    let term_2_edges_dict_json = {{term_2_edges_dict_json | safe}};
+                    {#let plot_data_orig = {{fig_data_orig_as_json | safe}};#}
+                    {#let layout_orig_as_json_old = {{layout_orig_as_json_old | safe}};#}
+                    {#function get_traces_orig() {#}
+                    {#    return {{traces_list_of_json | tojson | safe}};#}
+                    {# #}
+                    {#let traces_list_of_json = get_traces_orig();#}
+                    {#const term_2_traceNum_dict = {{term_2_traceNum_dict | safe}};#}
+                    const term_2_positionInArr_dict = {{term_2_positionInArr_dict | safe}};
+                    {#Plotly.plot('plotly_scatter_plot', traces_list_of_json, plot_layout_orig, plot_config);#}
+
+                    {# https://gmousse.gitbooks.io/dataframe-js/content/doc/BASIC_USAGE.html#import-the-library #}
+                    {#var DataFrame = dfjs.DataFrame;#}
+                    {#let df = DataFrame.fromJSON(plot_layout_orig).then(df => df);#}
+
+                    {#var text = '{ "employees" : [' +#}
+                    {#    '{ "firstName":"John" , "lastName":"Doe" },' +#}
+                    {#    '{ "firstName":"Anna" , "lastName":"Smith" },' +#}
+                    {#    '{ "firstName":"Peter" , "lastName":"Jones" } ]}';#}
+                    {#var obj = JSON.parse(text);#}
+                    {##}
+                    {#const df = dataForge.fromJSON(obj);#}
+                    {#console.log(df);#}
+                    {#const dfd = require("danfojs-node")#}
+                    {#  DANFO JS #}
+                    {#const json_data = [{ A: 0.4612, B: 4.28283, C: -1.509, D: -1.1352 },#}
+                    {#                { A: 0.5112, B: -0.22863, C: -3.39059, D: 1.1632 },#}
+                    {#                { A: 0.6911, B: -0.82863, C: -1.5059, D: 2.1352 },#}
+                    {#                { A: 0.4692, B: -1.28863, C: 4.5059, D: 4.1632 }]#}
+                    {#const json_data = JSON.parse('{"category":{"0":"Gene Ontology cellular component TEXTMINING","1":"Gene Ontology cellular component TEXTMINING","2":"Gene Ontology cellular component TEXTMINING"},"term":{"0":"GOCC:0005634","1":"GOCC:0070013","2":"GOCC:0043233"},"description":{"0":"Nucleus","1":"Intracellular organelle lumen","2":"Organelle lumen"},"FG_count":{"0":605,"1":452,"2":453},"logFDR":{"0":4.6714705869,"1":4.6714705869,"2":4.6714705869},"effectSize":{"0":0.1337359793,"1":0.1251078516,"2":0.1251078516}}')#}
+                    {#df = new dfd.DataFrame(json_data)#}
+                    // Adding to series object, can use sub, mul, div, and pow
+                    {#df['A'].add(df['B']).print()#}
+                    {#df['A'].pow(2).print()#}
+                    {#// Maximum value of C#}
+                    {#console.log(df['C'].max()) // 4.505899#}
+                    {#let dict_for_danfo = {{ dict_for_danfo | safe }};#}
+                    {#df = new dfd.DataFrame(dict_for_danfo);#}
+                    {#console.log(df.head().print());#}
+                    {#s = new dfd.Series([1, 3, 5, undefined, 6, 8])#}
+
+
+
+                    let dict_per_category = {{ dict_per_category | safe }};
+                    let sizeref = {{ sizeref | safe }};
+
+                    let opacity_default = 0.7;
+                    let opacity_highlight = 1;
+                    let marker_line_width_default = 1;
+                    let marker_line_color_default = "white";
+                    let marker_line_width_highlight = 3;
+                    let marker_line_color_highlight = "#344957";
+                    let width_edges_line = 1.5;
+                    let color_edge_line = "#d2d2d2";
+                    let scatter_plot_width = 700;
+                    let scatter_plot_height = 400;
+                    let legend_y = -0.3;
+                    let text_font_size = 10;
+                    let min_marker_size = 4;
+                    let max_marker_size = 30;
+
+
+                    function df_2_traces_orig(dict_per_category) {
+                        let traces_list_of_arr = [];
+                        for (let category_name in dict_per_category) {
+                            let dict_of_category = dict_per_category[category_name];
+                            let num_vals = dict_of_category["logFDR"].length;
+                            let trace_temp = {'customdata': _.zip(dict_of_category["term"], dict_of_category["description"], dict_of_category["FG_count"]),
+                         'hovertemplate': '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>',
+                         'ids': dict_of_category["term"],
+                         'legendgroup': category_name,
+                         'marker': {'color': dict_of_category["color"][0],
+                                    'line': {'color': dict_of_category["marker_line_color"],
+                                        'width': dict_of_category["marker_line_width"]},
+                                    'opacity': dict_of_category["opacity"],
+                             'size': dict_of_category["FG_count"],
+                                    'sizemin': min_marker_size, 'sizemode': 'area', 'sizeref': sizeref, 'symbol': 'circle'},
+                         'mode': 'markers+text', 'name': category_name,
+                                'text': dict_of_category["text_label"],
+                         'textfont': {'size': text_font_size}, 'textposition': 'top right',
+                                'x': dict_of_category["logFDR"],
+                                'y': dict_of_category["effectSize"],
+                                'type': 'scatter'}
+                            traces_list_of_arr.push(trace_temp);
+                        }
+                        return traces_list_of_arr;
+                    }
+
+                    Plotly.plot('plotly_scatter_plot', df_2_traces_orig(dict_per_category), plot_layout_orig, plot_config);
+
+                </script>
+            </div>
+        </div>
     </div>
-
-
+</div>
 
 <br>
 
@@ -68,3 +204,221 @@
 {% block table %}
     <div id="dataTable_DBL_id" class="dataTable_DBL table table-striped" style="width:100%"> {{ df_as_html_dict | safe }} </div>
 {% endblock table %}
+
+
+
+{# DEAD CODE#}
+{#let temp_trace_for_edges_deprecated_v0 = {'hoverinfo': 'none',#}
+{#  'line': {'color': '#d2d2d2', 'width': 1.5},#}
+{#  'mode': 'lines',#}
+{#  'showlegend': 'False',#}
+{#  'x': [6.976356147652155,#}
+{#   6.976356147652155,#}
+{#   'null',#}
+{#   6.976356147652155,#}
+{#   6.976356147652155,#}
+{#   'null',#}
+{#   6.976356147652155,#}
+{#   6.976356147652155,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   3.3214844487423347,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   3.641454669022876,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   3.641454669022876,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   3.641454669022876,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null',#}
+{#   4.671470586861855,#}
+{#   4.671470586861855,#}
+{#   'null'],#}
+{#  'y': [-0.08714408973252805,#}
+{#   -0.07075064710957724,#}
+{#   'null',#}
+{#   -0.08714408973252805,#}
+{#   -0.07161345987920623,#}
+{#   'null',#}
+{#   0.07592752372735116,#}
+{#   0.0733390854184642,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.053494391716997436,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.12510785159620366,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.05953408110440035,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.04400345125107852,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.04918032786885247,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.057808455565142365,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.0457290767903365,#}
+{#   'null',#}
+{#   0.13373597929249353,#}
+{#   0.06816220880069024,#}
+{#   'null',#}
+{#   0.12510785159620366,#}
+{#   0.05953408110440035,#}
+{#   'null',#}
+{#   0.12510785159620366,#}
+{#   0.12510785159620366,#}
+{#   'null',#}
+{#   0.12510785159620366,#}
+{#   0.0457290767903365,#}
+{#   'null',#}
+{#   0.12510785159620366,#}
+{#   0.12510785159620366,#}
+{#   'null',#}
+{#   0.12510785159620366,#}
+{#   0.04918032786885247,#}
+{#   'null',#}
+{#   0.12510785159620366,#}
+{#   0.057808455565142365,#}
+{#   'null'],#}
+{#  'type': 'scatter'}#}
+{#                    let trace_for_edges_deprecated_v1 = {'hoverinfo': 'none',#}
+{#                                  'line': {'color': '#d2d2d2', 'width': 1.5},#}
+{#                                  'mode': 'lines',#}
+{#                                  'showlegend': 'False',#}
+{#                                  'x': [6.976356147652155,#}
+{#                                   6.976356147652155,#}
+{#                                   'null',#}
+{#                                   6.976356147652155,#}
+{#                                   6.976356147652155,#}
+{#                                   'null',#}
+{#                                   6.976356147652155,#}
+{#                                   6.976356147652155,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   3.3214844487423347,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   3.641454669022876,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   3.641454669022876,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   3.641454669022876,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null',#}
+{#                                   4.671470586861855,#}
+{#                                   4.671470586861855,#}
+{#                                   'null'],#}
+{#                                  'y': [-0.08714408973252805,#}
+{#                                   -0.07075064710957724,#}
+{#                                   'null',#}
+{#                                   -0.08714408973252805,#}
+{#                                   -0.07161345987920623,#}
+{#                                   'null',#}
+{#                                   0.07592752372735116,#}
+{#                                   0.0733390854184642,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.053494391716997436,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.12510785159620366,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.05953408110440035,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.04400345125107852,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.04918032786885247,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.057808455565142365,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.0457290767903365,#}
+{#                                   'null',#}
+{#                                   0.13373597929249353,#}
+{#                                   0.06816220880069024,#}
+{#                                   'null',#}
+{#                                   0.12510785159620366,#}
+{#                                   0.05953408110440035,#}
+{#                                   'null',#}
+{#                                   0.12510785159620366,#}
+{#                                   0.12510785159620366,#}
+{#                                   'null',#}
+{#                                   0.12510785159620366,#}
+{#                                   0.0457290767903365,#}
+{#                                   'null',#}
+{#                                   0.12510785159620366,#}
+{#                                   0.12510785159620366,#}
+{#                                   'null',#}
+{#                                   0.12510785159620366,#}
+{#                                   0.04918032786885247,#}
+{#                                   'null',#}
+{#                                   0.12510785159620366,#}
+{#                                   0.057808455565142365,#}
+{#                                   'null'],#}
+{#                                  'type': 'scatter'}#}

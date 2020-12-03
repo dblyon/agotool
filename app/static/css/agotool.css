@@ -131,7 +131,48 @@ table tbody tr:hover { background-color: goldenrod !important; }
     margin-bottom: 1px !important;
     border-top: none;
 }
+/* remove border between rows of data table */
+.table td, .table th { border-top: none; }
 
+/* Scatter plot legend text. When adding term labels (as interactive annotations) the text "Aa" is added in superscript to the legend. Remove this bug via code below */
+.pointtext {
+    display: none;
+}
+
+.dbl_reset_button {
+    /*font-size: 12px;*/
+    /*padding: 4px 16px*/
+    /*padding: 4px 16px 4px 8px;*/
+    padding: 4px 4px 4px 4px;
+    /*padding-top: 0.25rem;*/
+    /*padding-right: 0.5rem;*/
+    /*padding-bottom: 0.25rem;*/
+    /*padding-left: none;*/
+
+    /*margin: 0;*/
+    /*position: absolute;*/
+    /*top: 50%;*/
+    /*left: 50%;*/
+    /*-ms-transform: translate(-50%, -50%);*/
+    /*transform: translate(-50%, -50%);*/
+    transform: translate(-20px); /* Equal to: translateX(10px) or translate(10px, 0) */
+    width: 65px;
+
+
+}
+
+
+/* not working */
+.tr { height: 10px; }
+#dataTable_DBL_id tbody > tr > td {
+    white-space: nowrap;
+}
+
+
+/*.toggle-handle {*/
+/*    border-width: 0 1px;*/
+/*    color: black;*/
+/*}*/
 
 /* TEMP start */
 .center_dbl {
@@ -141,6 +182,15 @@ table tbody tr:hover { background-color: goldenrod !important; }
   padding: 10px;
   text-align: center;
 }
+
+
+
+
+
+/*table, th, td {*/
+/*  border: 0px;*/
+/*}*/
+
 /*.row {*/
 /*  display: flex;*/
 /*}*/
