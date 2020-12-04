@@ -2,17 +2,17 @@ import os, sys
 import pandas as pd
 import numpy as np
 from lxml import etree
-import json
+# import json
 
 sys.path.insert(0, os.path.abspath(os.path.realpath(__file__)))
 import run_cythonized
-import tools, variables
+# import tools, variables
 
 #### plotly libs
-import pickle
-from collections import defaultdict
+# import pickle
+# from collections import defaultdict
 import plotly
-import plotly.graph_objects as go
+# import plotly.graph_objects as go
 
 
 def run_UniProt_enrichment(pqo, ui, args_dict, api_call=False):
@@ -446,10 +446,9 @@ def debug_json(dff=df, derived_virtual_selected_row_ids=["KW-0472", "KW-0804", "
     return fig_data_as_json, fig_layout_as_json
 
 
-
-
 def df_2_html_table(session_id, session_folder_absolute, df=df):
     df_all_etypes = df
+    print(df.shape)
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(session_folder_absolute, file_name)
     df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
@@ -490,6 +489,7 @@ def df_2_dict_for_danfo_datatable(df=df):
 
 def df_2_dict_per_category(df=df):
     dict_per_category, term_2_positionInArr_dict = {}, {}
+    term_2_category_dict = {term_: category_ for term_, category_ in zip(df[term], df[category])}
     for category_name, group in df.groupby(category):
         term_2_positionInArr_dict.update({term_: pos for pos, term_ in enumerate(group[term])})
         dict_per_category[category_name] = {term: group[term].tolist(),
@@ -503,7 +503,7 @@ def df_2_dict_per_category(df=df):
                                             marker_line_color: group[marker_line_color].tolist(),
                                             text_label: group[text_label].tolist(),
                                             }
-    return dict_per_category, term_2_positionInArr_dict
+    return dict_per_category, term_2_positionInArr_dict, term_2_category_dict
 
 def get_sizeref(df=df):
     return 2.0 * max(df[FG_count]) / (max_marker_size ** 2)
@@ -513,12 +513,13 @@ if __name__ == "__main__":
     # print(term_2_edges_dict["KW-0472"])
     # {'X_points': [6.976356147652155, 6.976356147652155, None, 6.976356147652155, 6.976356147652155, None], 'Y_points': [-0.08714408973252805, -0.07075064710957724, None, -0.08714408973252805, -0.07161345987920623, None], 'Weights': [1, 1], 'Nodes': ['KW-1133', 'KW-0812']}
     # create_plotly_scatter()
-    # session_id = "bubu123"
-    # session_folder_absolute = variables.SESSION_FOLDER_ABSOLUTE
-    # df_2_html_table(session_id, session_folder_absolute)
+    session_id = "bubu123"
+    session_folder_absolute = variables.SESSION_FOLDER_ABSOLUTE
+    df_as_html_dict, term_2_edges_dict_json = df_2_html_table(session_id, session_folder_absolute)
     # fig_data_as_json, fig_layout_as_json = create_plotly_scatter()
-    # print(fig_data_as_json)
+    # print(df_as_html_dict)
     # print("#"*50)
+    # print(term_2_edges_dict_json)
     # traces_list_of_json, term_2_traceNum_dict, term_2_positionInArr_dict = df_2_traces_and_housekeeping_dicts(dfx)
     # print(traces_list_of_json)
     # , term_2_traceNum_dict, term_2_positionInArr_dict)
