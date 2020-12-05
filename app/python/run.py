@@ -322,12 +322,12 @@ df["id"] = df["term"]
 df.set_index("id", inplace=True, drop=False)
 df = df.drop(columns=["rank_2_transparency", "FG_count_2_circle_size", "funcEnum"]) # "id",
 p_value = "p value"
-FDR = "false discovery rate"
+FDR = "FDR" #"false discovery rate"
 # effect_size = "effectSize"
 effectSize = "effectSize"
 over_under = "over under"
 hierarchical_level = "level"
-s_value = "s value"
+s_value = "s_value"
 ratio_in_FG = "ratio in ForeGround"
 ratio_in_BG = "ratio in BackGround"
 FG_IDs = "ForeGround IDentifiers"
@@ -355,7 +355,7 @@ color_discrete_map = {category_: color_hex_val for category_, color_hex_val in z
 df[color] = df[category].apply(lambda x: color_discrete_map[x])
 df[text_label] = ""
 # print(df.columns.tolist())
-df = df.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effectSize, "s_value": s_value, "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
+# df = df.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effectSize, "s_value": s_value, "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
 # print(df.columns.tolist())
 
 cols_sort_order_comprehensive = [s_value, term, description, FDR, p_value, logFDR, effectSize, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, rank]
@@ -373,91 +373,18 @@ sizeref = 2.0 * max(df[FG_count]) / (max_marker_size ** 2)
 term_2_edges_dict = defaultdict(lambda: {"X_points": [], "Y_points": [], "Weights": [], "Nodes": []})
 term_2_edges_dict.update(pickle.load(open(os.path.join(variables.PYTHON_DIR, "term_2_edges_dict.p"), "rb")))
 
-colName_attributes = []
-for colName in df.columns:
-    if colName in {"term"}:
-        colName_attributes.append({"name": colName, "id": colName, "hideable": False, "deletable": False, "type": table_type(df[colName])})
-    elif colName in {p_value, FDR, logFDR}:
-        colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".2e"}})
-    elif colName in {effectSize, s_value, ratio_in_FG, ratio_in_BG}:
-        colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".2f"}})
-    elif colName in {FG_count, BG_count, FG_n, BG_n, etype}:
-        colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".0f"}})
-    else:
-        colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName])})
-
-def create_plotly_scatter(dff=df):
-    fig = go.Figure()
-    for category_name, group in dff.groupby(category):
-        fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
-    fig.update_layout(hoverlabel=dict(font_size=12), template=plotly_scatter_layout_template, title=None, xaxis_title="-log(false discovery rate)", yaxis_title="effect size", legend=dict(title=None, font_size=12,), ) # , itemclick="toggleothers", itemdoubleclick="toggle"
-    # fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, )
-    # , legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, )
-    fig.update_layout(autosize=True)
-    fig_data_as_json = json.dumps(fig.data, cls=plotly.utils.PlotlyJSONEncoder)
-    fig_layout_as_json = json.dumps(fig.layout, cls=plotly.utils.PlotlyJSONEncoder)
-    return fig_data_as_json, fig_layout_as_json
-
-def debug_json(dff=df, derived_virtual_selected_row_ids=["KW-0472", "KW-0804", "GOCC:0005634", "GOCC:0043233"], toggle_point_edges_value=True, toggle_point_labels_value=True):
-    cond_selected_terms = dff[term].isin(derived_virtual_selected_row_ids)
-    dff[marker_line_width] = marker_line_width_default
-    dff[marker_line_color] = marker_line_color_default
-    dff[opacity] = opacity_default
-    dff.loc[cond_selected_terms, marker_line_width] = marker_line_width_highlight
-    dff.loc[cond_selected_terms, marker_line_color] = hover_label_color
-    dff.loc[cond_selected_terms, opacity] = opacity_highlight
-    style_data_conditional_extension = [{'if': {'filter_query': '{term}=' + "{}".format(term_)}, 'backgroundColor': table_highlight_color} for term_ in derived_virtual_selected_row_ids]
-
-    fig = go.Figure()
-
-    ### edges
-    if toggle_point_edges_value:
-        X_points, Y_points, Weights, Connected_node_terms = [], [], [], []
-        for term_ in derived_virtual_selected_row_ids:
-            edges_dict = term_2_edges_dict[term_]
-            X_points += edges_dict["X_points"]
-            Y_points += edges_dict["Y_points"]
-            Weights += edges_dict["Weights"]
-            Connected_node_terms += edges_dict["Nodes"]
-        Connected_node_terms += derived_virtual_selected_row_ids
-        cond_connected_node_terms = dff[term].isin(Connected_node_terms)
-        dff.loc[cond_connected_node_terms, opacity] = opacity_highlight
-        fig.add_trace(go.Scatter(x=X_points, y=Y_points, mode='lines', showlegend=False, line=dict(color=color_edge_line, width=width_edges_line), hoverinfo='none'))
-
-    ### labels
-    if toggle_point_labels_value:
-        dff["label"] = ""
-        dff.loc[cond_selected_terms, "label"] = dff.loc[cond_selected_terms, term]
-        x_min, x_max, y_min, y_max = dff[logFDR].min(), dff[logFDR].max(), dff[effectSize].min(), dff[effectSize].max()
-        for category_name, group in dff.groupby(category):
-            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
-        fig.update_layout(hoverlabel=dict(font_size=12), template=plotly_scatter_layout_template, title=None, xaxis_title="-log(false discovery rate)", yaxis_title="effect size", legend=dict(title=None, font_size=12, ), xaxis_range=[x_min * 0.93, x_max * 1.07], yaxis_range=[y_min * 1.25, y_max * 1.25])
-
-    ### only change circle highlighting
-    else:
-        for category_name, group in dff.groupby(category):
-            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
-        fig.update_layout(hoverlabel=dict(font_size=12), template=plotly_scatter_layout_template, title=None, xaxis_title="-log(false discovery rate)", yaxis_title="effect size", legend=dict(title=None, font_size=12, ), )
-
-
-    fig.update_layout(autosize=True)
-    fig_data_as_json = json.dumps(fig.data, cls=plotly.utils.PlotlyJSONEncoder)
-    fig_layout_as_json = json.dumps(fig.layout, cls=plotly.utils.PlotlyJSONEncoder)
-    return fig_data_as_json, fig_layout_as_json
-
-
-def df_2_html_table(session_id, session_folder_absolute, df=df):
-    df_all_etypes = df
-    print(df.shape)
-    file_name = "results_orig" + session_id + ".tsv"
-    fn_results_orig_absolute = os.path.join(session_folder_absolute, file_name)
-    df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
-    df_as_html_dict = df.to_html(index=False, border=0, classes=["display table dataTable_DBL dataTable table-striped"], table_id="dataTable_DBL_id", justify="left",
-            formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x), p_value: lambda x: "{:.2E}".format(x), s_value: lambda x: "{:.2f}".format(x),
-                        ratio_in_FG: lambda x: "{:.2f}".format(x), ratio_in_BG: lambda x: "{:.2f}".format(x), FG_count: lambda x: "{:.0f}".format(x)})
-    # print(term_2_edges_dict["KW-0472"])
-    term_2_edges_dict_json = json.dumps(term_2_edges_dict)
-    return df_as_html_dict, term_2_edges_dict_json
+# colName_attributes = []
+# for colName in df.columns:
+#     if colName in {"term"}:
+#         colName_attributes.append({"name": colName, "id": colName, "hideable": False, "deletable": False, "type": table_type(df[colName])})
+#     elif colName in {p_value, FDR, logFDR}:
+#         colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".2e"}})
+#     elif colName in {effectSize, s_value, ratio_in_FG, ratio_in_BG}:
+#         colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".2f"}})
+#     elif colName in {FG_count, BG_count, FG_n, BG_n, etype}:
+#         colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName]), "format": {"specifier": ".0f"}})
+#     else:
+#         colName_attributes.append({"name": colName, "id": colName, "hideable": True, "type": table_type(df[colName])})
 
 def df_2_traces_and_housekeeping_dicts(df=df):
     traces_list_of_json, term_2_traceNum_dict, term_2_positionInArr_dict = [], {}, {}
@@ -479,13 +406,11 @@ def df_2_traces_and_housekeeping_dicts(df=df):
         counter += 1
     return traces_list_of_json, term_2_traceNum_dict, term_2_positionInArr_dict
 
-def df_2_dict_for_danfo_datatable(df=df):
-    return {category: df[category].tolist(),
-     term: df[term].tolist(),
-     description: df[description].tolist(),
-     FG_count: df[FG_count].tolist(),
-     logFDR: df[logFDR].tolist(),
-     effectSize: df[effectSize].tolist(),}
+def get_sorted_colNames_if_exist_in_DF(df, cols_sort_order_comprehensive=[s_value, term, description, FDR, p_value, logFDR, effectSize, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, rank]):
+    df_cols_set = set(df.columns)
+    cols_set_temp = set(cols_sort_order_comprehensive).intersection(df_cols_set)
+    return [colName for colName in cols_sort_order_comprehensive if colName in cols_set_temp]
+
 
 def df_2_dict_per_category(df=df):
     dict_per_category, term_2_positionInArr_dict = {}, {}
@@ -508,23 +433,111 @@ def df_2_dict_per_category(df=df):
 def get_sizeref(df=df):
     return 2.0 * max(df[FG_count]) / (max_marker_size ** 2)
 
+def get_data_bars_dict(df, column):
+    """
+    css style s_value column with horizontal bars,
+     the length of the bar depends on s_value,
+     the direction of the sign (positive or negative value),
+     the color corresponds to the category and should be identical to the plot
+    magnitude calculated for the whole dataset
+    depends on 'row_id' to exist in dash_table --> generated via 'id' column in pd.DataFrame
+    {'if': {'filter_query': '{s value} >= -0.4632684138910674 && {s value} < -0.4509838870118037', 'column_id': 's value'}, 'background': 'linear-gradient(90deg, #0074D9 0%, #0074D9 1.0%, white 1.0%, white 100%)', 'paddingBottom': 2, 'paddingTop': 2}
+    {'if': {'filter_query': 'row_id' == 'KW-0539' && 'column_id' == 's value', 'background': 'linear-gradient(90deg, #0074D9 0%, #0074D9 1.0%, white 1.0%, white 100%)', 'paddingBottom': 2, 'paddingTop': 2}
+    if column_id == 's value' && row_id == 'KW-0539' -->
+    'row_id' is not a valid attribute for whatever reason
+    """
+    term_2_style_dict = {}
+    starting_point_right_side = 100 - 50 + 0.5/2 # left_and_right_side_delimiter_width = 0.5
+    min_, max_ = df[column].min(), df[column].max()
+    total = abs(max_) + abs(min_)
+    for category_, group in df.groupby(category):
+        for term, value in group[column].iteritems():
+            color_ = group[color].iloc[0]
+            percentage = 50 * abs(value) / total
+            if value > 0: # to the right.
+                width = percentage + starting_point_right_side
+                color_bar = "transparent 0%, transparent 49.75%, #6C757D 49.75%, #6C757D 50.25%, {} 50.25%, {} {}%, transparent {}%, transparent 100.0%".format(color_, color_, width, width)
+            elif value < 0: # to the left
+                empty_space_left = 50 - percentage
+                width = empty_space_left + percentage
+                color_bar = "transparent 0%, transparent {}%, {} {}%, {} {}%, #6C757D 49.75%, #6C757D 50.25%, transparent 50.25%, transparent 100.0%".format(empty_space_left,color_, empty_space_left, color_, width)
+            else: # value is 0 or NaN or ? actually shouldn't happen at all
+                color_bar = ""
+            term_2_style_dict[term] = "{background: linear-gradient(90deg, " + color_bar + "); text-align: center;}"
+    return term_2_style_dict
+
+def df_2_html_table(session_id, session_folder_absolute, df=df):
+    df = df.groupby("category").head(3)
+    df_all_etypes = df
+    file_name = "results_orig" + session_id + ".tsv"
+    fn_results_orig_absolute = os.path.join(session_folder_absolute, file_name)
+    df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
+    df_as_html_dict = df.to_html(index=False, border=0, classes=["display table dataTable_DBL dataTable table-striped"], table_id="dataTable_DBL_id", justify="left",
+            formatters={"effect size": lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x), p_value: lambda x: "{:.2E}".format(x),
+                        s_value: lambda x: "{:.2f}".format(x), ratio_in_FG: lambda x: "{:.2f}".format(x), ratio_in_BG: lambda x: "{:.2f}".format(x), FG_count: lambda x: "{:.0f}".format(x)})
+    term_2_edges_dict_json = json.dumps(term_2_edges_dict)
+    return df_as_html_dict, term_2_edges_dict_json
+
+def df_2_html_table_with_data_bars(session_id, session_folder_absolute, df=df):
+    # df = df.groupby("category").head(3)
+    cols_sort_order_v1 = [s_value, term, description, FDR] #, p_value, logFDR, effectSize, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, rank]
+    colNames_sorted = get_sorted_colNames_if_exist_in_DF(df, cols_sort_order_v1)
+    file_name = "results_orig" + session_id + ".tsv"
+    fn_results_orig_absolute = os.path.join(session_folder_absolute, file_name)
+    df.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
+    term_2_style_dict = get_data_bars_dict(df, s_value)
+
+    table_as_text = '''<table border="0" class="dataframe display table dataTable_DBL dataTable table-striped" id="dataTable_DBL_id"> <thead> <tr style="text-align: left;">'''
+    for colname in colNames_sorted:
+        # print(colname)
+        table_as_text += " <th>{}</th> ".format(colname)
+    table_as_text += '''</tr> </thead> <tbody> '''
+
+    for row in df.itertuples(index=False):
+        term_name = row.term
+        term_id = term_name.replace(":", "").replace("-", "")
+        try:
+            style = term_2_style_dict[term_name]
+        except KeyError:
+            style = "{}"
+        table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
+        table_as_text += '''<td id="{}">{:.2f}</td>'''.format(term_id, row.s_value)
+        table_as_text += '''<td>{}</td>'''.format(row.term)
+        table_as_text += '''<td>{}</td>'''.format(row.description)
+        table_as_text += '''<td>{:.2E}</td>'''.format(row.FDR)
+        # table_as_text += '''<td>{:.2E}</td>'''.format(row.p_value)
+        # table_as_text += '''<td>{}</td>'''.format(row.logFDR)
+        # table_as_text += '''<td>{:.2f}</td>'''.format(row.effectSize)
+        # table_as_text += '''<td>{}</td>'''.format(row.category)
+        # table_as_text += '''<td>{}</td>'''.format(row.over_under)
+        # table_as_text += '''<td>{}</td>'''.format(row.hierarchical_level)
+        # table_as_text += '''<td>{}</td>'''.format(row.year)
+        # table_as_text += '''<td>{}</td>'''.format(row.FG_IDs)
+        # table_as_text += '''<td>{}</td>'''.format(row.FG_count)
+        # table_as_text += '''<td>{}</td>'''.format(row.FG_n)
+        # table_as_text += '''<td>{}</td>'''.format(row.BG_count)
+        # table_as_text += '''<td>{}</td>'''.format(row.BG_n)
+        # table_as_text += '''<td>{}</td>'''.format(row.ratio_in_FG)
+        # table_as_text += '''<td>{}</td>'''.format(row.ratio_in_BG)
+        # table_as_text += '''<td>{}</td>'''.format(row.rank)
+        ''' </tr> '''
+
+    table_as_text += ''' </tbody> </table> '''
+    # print(table_as_text)
+    term_2_edges_dict_json = json.dumps(term_2_edges_dict)
+    return table_as_text, term_2_edges_dict_json
+
+
+
 if __name__ == "__main__":
-    pass
-    # print(term_2_edges_dict["KW-0472"])
-    # {'X_points': [6.976356147652155, 6.976356147652155, None, 6.976356147652155, 6.976356147652155, None], 'Y_points': [-0.08714408973252805, -0.07075064710957724, None, -0.08714408973252805, -0.07161345987920623, None], 'Weights': [1, 1], 'Nodes': ['KW-1133', 'KW-0812']}
-    # create_plotly_scatter()
     session_id = "bubu123"
     session_folder_absolute = variables.SESSION_FOLDER_ABSOLUTE
     df_as_html_dict, term_2_edges_dict_json = df_2_html_table(session_id, session_folder_absolute)
+    print(df_as_html_dict)
+    # {'background': 'linear-gradient(90deg, transparent 0%, transparent 49.75%, #6C757D 49.75%, #6C757D 50.25%, #1b9e77 50.25%, #1b9e77 81.39423052494332%, transparent 81.39423052494332%, transparent 100.0% )', 'paddingBottom': 1, 'paddingTop': 1}
     # fig_data_as_json, fig_layout_as_json = create_plotly_scatter()
     # print(df_as_html_dict)
     # print("#"*50)
     # print(term_2_edges_dict_json)
     # traces_list_of_json, term_2_traceNum_dict, term_2_positionInArr_dict = df_2_traces_and_housekeeping_dicts(dfx)
     # print(traces_list_of_json)
-    # , term_2_traceNum_dict, term_2_positionInArr_dict)
-    # debug_json()
-
-
-    ### layout orig as py json
-    # json.dumps({"scatter": [{"type": "scatter", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}],  #  "layout": {"clickmode": "event+select", "dragmode": "pan", "legend": {"font": {"size": 13}, "title": {"font": {"size": 12}}},   #      "margin": {"b": 0, "l": 0, "r": 0, "t": 30},   #      "plot_bgcolor": "#ffffff",   #      "xaxis": {"anchor": "y", "automargin": True, "gridcolor": "#efefef", "gridwidth": 1, "linecolor": "#6C757D",   #      "linewidth": 2, "showgrid": True, "showline": True, "showticklabels": True, "tickcolor": "#6C757D",   #      "tickfont": {"color": "#6C757D", "size": 10}, "ticklen": 3, "ticks": "outside",   #      "title": {"font": {"size": 12}, "standoff": 12}, "zeroline": False},   #      "yaxis": {"anchor": "x", "automargin": True, "gridcolor": "#efefef", "gridwidth": 1, "linecolor": "#6C757D",   #      "linewidth": 2, "showgrid": True, "showline": True, "showticklabels": True, "tickcolor": "#6C757D",   #      "tickfont": {"color": "#6C757D", "size": 10}, "ticklen": 3, "ticks": "outside",   #      "title": {"font": {"size": 12}, "standoff": 12},   #      "zeroline": True, "zerolinecolor": "#efefef", "zerolinewidth": 3}},   #  "hoverlabel": {"font": {"size": 12}},   #  "legend": {"font": {"size": 12}, "title": {}},   #  "title": {},   #  "xaxis": {"title": {"text": "-log(false discovery rate)"}},   #  "yaxis": {"title": {"text": "effect size"}},   #  "autosize": True})

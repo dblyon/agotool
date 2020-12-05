@@ -157,9 +157,21 @@ table tbody tr:hover { background-color: goldenrod !important; }
     /*transform: translate(-50%, -50%);*/
     transform: translate(-20px); /* Equal to: translateX(10px) or translate(10px, 0) */
     width: 65px;
-
-
 }
+
+/*#KW0539 {*/
+/*    background: linear-gradient(90deg, transparent 0%, transparent 49.75%, #6C757D 49.75%, #6C757D 50.25%, #1b9e77 50.25%, #1b9e77 81.39423052494332%, transparent 81.39423052494332%, transparent 100.0% );*/
+/*    text-align: center;*/
+/*    padding-bottom: 1px;*/
+/*    padding-top: 1px;*/
+/*}*/
+
+/*#GOCC0005634 {*/
+/*    background: linear-gradient(90deg, transparent 0%, transparent 49.75%, #6C757D 49.75%, #6C757D 50.25%, #d95f02 50.25%, #d95f02 79.40567727504194%, transparent 79.40567727504194%, transparent 100.0% );*/
+/*    text-align: center;*/
+/*    padding-bottom: 1px;*/
+/*    padding-top: 1px;*/
+/*}*/
 
 
 /* not working */

@@ -662,20 +662,13 @@ def help_():
 
 @app.route('/plot')
 def plot():
-    # fig_data_orig_as_json, layout_orig_as_json_old = run.create_plotly_scatter()
-    # traces_list_of_json, term_2_traceNum_dict, term_2_positionInArr_dict = run.df_2_traces_and_housekeeping_dicts()
-    df_as_html_dict, term_2_edges_dict_json = run.df_2_html_table(generate_session_id(), SESSION_FOLDER_ABSOLUTE)
-    # return render_template('plot.html', form=Enrichment_Form(), plot_data_orig=fig_data_orig_as_json, plot_layout_orig=layout_orig_as_json, df_as_html_dict=df_as_html_dict, term_2_edges_dict_json=term_2_edges_dict_json)
-    # dict_for_danfo = run.df_2_dict_for_danfo_datatable()
+    # df_as_html_dict, term_2_edges_dict_json = run.df_2_html_table(generate_session_id(), SESSION_FOLDER_ABSOLUTE)
+    table_as_text, term_2_edges_dict_json = run.df_2_html_table_with_data_bars(generate_session_id(), SESSION_FOLDER_ABSOLUTE)
     dict_per_category, term_2_positionInArr_dict, term_2_category_dict = run.df_2_dict_per_category()
-    # sizeref = 2.0 * max(df[FG_count]) / (max_marker_size ** 2)
     sizeref = run.get_sizeref()
     return render_template('plot.html', form=Enrichment_Form(),
-        df_as_html_dict=df_as_html_dict, term_2_edges_dict_json=term_2_edges_dict_json,
+        df_as_html_dict=table_as_text, term_2_edges_dict_json=term_2_edges_dict_json,
         dict_per_category=dict_per_category, sizeref=sizeref, term_2_positionInArr_dict=term_2_positionInArr_dict, term_2_category_dict=term_2_category_dict)
-        # traces_list_of_json=traces_list_of_json, term_2_traceNum_dict=term_2_traceNum_dict, term_2_positionInArr_dict=term_2_positionInArr_dict,
-        # fig_data_orig_as_json=fig_data_orig_as_json, layout_orig_as_json_old=layout_orig_as_json_old,
-    # dict_for_danfo=dict_for_danfo,
 
 
 ################################################################################

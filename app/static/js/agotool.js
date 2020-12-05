@@ -236,74 +236,7 @@ let results_page_plotly = (function () {
         $("[data-toggle='tooltip']").tooltip();
     });
 
-    // add classes to specific columns
-    $(document).ready(function() {
-        let table_dbl = $('table.display').DataTable({
-            /* SCROLLING */
-            scrollY: "500px",
-            scrollCollapse: true,
-            paging: false,
-            scrollX: true,
-            "language": {
-                "info": "Showing _TOTAL_ entries",
-                "infoFiltered": "(filtered from _MAX_ total entries)",
-            },
-            dom: 'Bfrtip',
-            buttons: ['colvis'],
-            // buttons: ['colvis', 'copy', 'excel', 'pdf'],
-            "columnDefs": [{targets: '_all', render: $.fn.dataTable.render.ellipsis(80, true)}],
-            responsive: true,
-
-            // select multiple rows (via dataTables.select.min.js
-            // select: true,
-            select: {style: 'multi'},
-            "order": [[7, "desc"], [18, "asc"]], // ["category", "rank"]
-            "autoWidth": false,
-            "columns": [
-                {"visible": true, "width": "80px"}, // s value
-                {"visible": true, "width": "100px"}, // term
-                {"visible": true, "width": "200px"}, // description
-                {"visible": true}, // FDR
-                {"visible": false}, // p value
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-                {"visible": false},
-            ],
-        });
-
-        let selected_indices_set = new Set();
-        table_dbl.on('select', function (e, dt, type, indexes) {
-            if (type === 'row') {
-                let selected_term = table_dbl.rows(indexes).data()[0][1];
-                selected_indices_set.add(selected_term);
-                update_scatter_plot(); }
-        });
-        table_dbl.on('deselect', function (e, dt, type, indexes) {
-            if (type === 'row') {
-                let deselected_term = table_dbl.rows(indexes).data()[0][1];
-                selected_indices_set.delete(deselected_term);
-                update_scatter_plot(); }
-        });
-
-        function get_individual_trace(category_name, dict_of_category) {
+    function get_individual_trace(category_name, dict_of_category) {
             return {'customdata': _.zip(dict_of_category["term"], dict_of_category["description"], dict_of_category["FG_count"]),
                     'hovertemplate': '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>',
                     'ids': dict_of_category["term"],
@@ -325,16 +258,85 @@ let results_page_plotly = (function () {
                     'type': 'scatter'}
         }
 
-        function get_all_traces(dict_per_category) {
-            let traces_list_of_arr = [];
-            let trace_temp = {};
-            for (let category_name in dict_per_category) {
-                let dict_of_category = dict_per_category[category_name];
-                trace_temp = get_individual_trace(category_name, dict_of_category)
-                traces_list_of_arr.push(trace_temp);
-            }
-            return traces_list_of_arr;
+    function get_all_traces(dict_per_category) {
+        let traces_list_of_arr = [];
+        let trace_temp = {};
+        for (let category_name in dict_per_category) {
+            let dict_of_category = dict_per_category[category_name];
+            trace_temp = get_individual_trace(category_name, dict_of_category)
+            traces_list_of_arr.push(trace_temp);
         }
+        return traces_list_of_arr;
+    }
+
+    // add classes to specific columns
+    $(document).ready(function() {
+        let table_dbl = $('table.display').DataTable({
+            /* SCROLLING */
+            scrollY: "500px",
+            scrollCollapse: true,
+            paging: false,
+            scrollX: true,
+            "language": {
+                "info": "Showing _TOTAL_ entries",
+                "infoFiltered": "(filtered from _MAX_ total entries)",
+            },
+            dom: 'Bfrtip',
+            buttons: ['colvis'],
+            // buttons: ['colvis', 'copy', 'excel', 'pdf'],
+            "columnDefs": [{targets: '_all', render: $.fn.dataTable.render.ellipsis(80, true)}],
+            responsive: true,
+
+            // select multiple rows (via dataTables.select.min.js
+            // select: true,
+            select: {style: 'multi'},
+            // "order": [[7, "desc"], [18, "asc"]], // ["category", "rank"] // ToDo
+            "autoWidth": false,
+            "columns": [
+                {"visible": true, "width": "80px"}, // s value
+                {"visible": true, "width": "100px"}, // term
+                {"visible": true, "width": "200px"}, // description
+                {"visible": true}, // FDR
+                // {"visible": false}, // p value
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+                // {"visible": false},
+            ],
+        });
+
+        let selected_indices_set = new Set();
+        table_dbl.on('select', function (e, dt, type, indexes) {
+            if (type === 'row') {
+                let selected_term = table_dbl.rows(indexes).data()[0][1];
+                selected_indices_set.add(selected_term);
+                update_scatter_plot(); }
+        });
+        table_dbl.on('deselect', function (e, dt, type, indexes) {
+            if (type === 'row') {
+                let deselected_term = table_dbl.rows(indexes).data()[0][1];
+                selected_indices_set.delete(deselected_term);
+                update_scatter_plot(); }
+        });
+
+        // 2 funcs were here before
 
         function reset_data_dict_per_category(dict_per_category) {
             for (let category_name in dict_per_category) {
@@ -352,25 +354,10 @@ let results_page_plotly = (function () {
             Plotly.newPlot('plotly_scatter_plot', get_all_traces(dict_per_category), plot_layout_orig, plot_config);
         }
 
-        $("#dbl_reset_button_id").click(function () {
-            if (toggle_point_edges_button.is(':checked')) {
-            } else {
-                toggle_point_edges_button.click();
-            }
-
-            if (toggle_point_labels_button.is(':checked')) {
-            } else {
-                toggle_point_labels_button.click();
-            }
-
-            selected_indices_set.clear();
-            table_dbl.$('tr.selected').removeClass('selected');
-            redraw_original_plot();
-
-        });
-
         let toggle_point_edges_button = $("#toggle_point_edges_id")
+
         let toggle_point_labels_button = $("#toggle_point_labels_id")
+
         toggle_point_edges_button.on('change', function () {
             if (toggle_point_edges_button.is(':checked')) {
                 update_scatter_plot();
@@ -378,6 +365,7 @@ let results_page_plotly = (function () {
                 update_scatter_plot();
             }
         });
+
         toggle_point_labels_button.on('change', function () {
             if (toggle_point_labels_button.is(':checked')) {
                 update_scatter_plot();
@@ -385,6 +373,28 @@ let results_page_plotly = (function () {
                 update_scatter_plot();
             }
         });
+
+        $("#dbl_reset_button_id").click(function () {
+
+            if (toggle_point_edges_button.is(':checked')) {
+            } else {
+                toggle_point_edges_button.bootstrapToggle('on');
+            }
+
+            if (toggle_point_labels_button.is(':checked')) {
+            } else {
+                toggle_point_labels_button.bootstrapToggle('on');
+            }
+
+            selected_indices_set.clear();
+            table_dbl.$('tr.selected').removeClass('selected');
+            redraw_original_plot();
+            console.log("dbl_reset_button_id bottom");
+
+        });
+
+
+
 
         let edges_plotted = false;
         let traces_for_modified_plot = [];
