@@ -14,6 +14,7 @@ env_file_Aquarius_bak
 !CPR_logo.png
 !SIB_logo.png
 !UZH_logo.png
+!9606_proteins_ENSPs_STRINGv11.txt
 
 env_file
 *.nfs*

@@ -240,7 +240,7 @@ class PersistentQueryObject:
     @staticmethod
     def get_secondary_2_primary_an_dict():
         secondary_2_primary_dict = {}
-        result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.pri FROM secondary_2_primary_id;")
+        result = get_results_of_statement("SELECT secondary_2_primary_id.sec, secondary_2_primary_id.prim FROM secondary_2_primary_id;")
         for res in result:
             secondary = res[0]
             primary = res[1]
@@ -1461,12 +1461,13 @@ def get_funcName_2_funcEnum_dict():
     return funcName_2_funcEnum_dict
 
 
-def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dict={}):
+def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dict=dict()):
     """
     figure out if given taxid is part of UniProt Reference Proteomes
     if not try to map it via static dictionary (from variables.py) or via NCBI (from lower than species to species rank)
     :param taxid: Integer
     :param pqo: Persistent Query Object
+    :param args_dict: Dictionary with parameters
     :return: (Integer, Bool)
     """
     if taxid in pqo.taxid_2_proteome_count:
@@ -1491,19 +1492,11 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dic
                         return taxid, True
     args_dict["ERROR TaxID"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) that is suitable for your data.".format(taxid)
     return taxid, False
-                # taxid_corrected = int(pqo.ncbi.get_genus_or_higher(taxid, "species")) # provided taxid is below species rank
-                # if taxid_corrected in pqo.taxid_2_proteome_count:
-                #     return taxid_corrected, True
-                # else:
-                #     try:
-                #         taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_corrected]
-                #         return taxid_mapped, True  # taxid can easily be mapped because it's known
-                #     except KeyError:
-                #         return taxid, False
 
 if __name__ == "__main__":
-    pass
-    # pqo = PersistentQueryObject_STRING()
+    # pass
+    pqo = PersistentQueryObject()
+    pqos = PersistentQueryObject_STRING()
     #
     # ENSP_2_functionEnumArray_dict = get_functionEnumArray_from_proteins(ensp_list, dict_2_array=True)
     # pqo = PersistentQueryObject_STRING(low_memory=True, read_from_flat_files=True)
