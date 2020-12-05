@@ -13,33 +13,10 @@ TABLES_DIR=/scratch/dblyon/agotool/data/PostgreSQL/tables
 PYTHON_DIR=/scratch/dblyon/agotool/app/python
 POSTGRES_DIR=/scratch/dblyon/agotool/data/PostgreSQL
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-### run snakemake pipeline
-printf "\n### run snakemake pipeline\n"
-cd "$PYTHON_DIR" || exit
-check_exit_status
-"$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
-check_exit_status
-### tar and compress new files for transfer and backup
-printf "\n### tar.gz new files for transfer and backup\n"
-cd "$TABLES_DIR" || exit
-find . -maxdepth 1 -name '*.npy' -o -name '*_UPS_FIN*' -o -name "DF_file_dimensions_log.txt" | xargs tar -cvzf "$TAR_CURRENT"
-check_exit_status
-rsync -av "$TAR_CURRENT" "$TAR_BAK"
-check_exit_status
-### populate local PostgreSQL
-echo "\n### copying to PostgreSQL\n"
-cd "$POSTGRES_DIR" || exit
-check_exit_status
-psql -d agotool -f copy_from_file_and_index.psql
-check_exit_status
-printf "\n### drop and rename PostgreSQL\n"
-psql -d agotool -f drop_and_rename.psql
-check_exit_status
 
 ### restart uWSGI and PyTest
 printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
 cd "$APP_DIR" || exit
-# echo c > agotool_master.fifo
 "$UWSGI_EXE" uwsgi_config_master.ini &
 sleep 4m
 cd "$TESTING_DIR" || exit
