@@ -65,10 +65,12 @@ $('#enrichment_method').change(function() {
         let enrichment_method = $('#enrichment_method').val();
         let choice = enrichment_method !== "genome";
         toggle_if(choice, ".taxid", "");
+
         choice = enrichment_method === "characterize_foreground";
-        if (choice === true) {
-            document.getElementById("filter_foreground_count_one").checked = false;
-        }
+        // if (choice === true) {
+        //     document.getElementById("filter_foreground_count_one").checked = false;
+        // }
+
         toggle_if(choice, ".filter_parents", "");
         toggle_if(choice, ".p_value", "");
     });
@@ -144,8 +146,8 @@ let toggle_if = function(choice, tag){
 };
 
 // enrichment page
-var submit_form = (function(form_id, action) {
-    var form = $("#" + form_id);
+let submit_form = (function(form_id, action) {
+    let form = $("#" + form_id);
     form.attr("action", action);
     form.submit();
 });
@@ -237,7 +239,7 @@ let results_page_plotly = (function () {
     });
 
     function get_individual_trace(category_name, dict_of_category) {
-            return {'customdata': _.zip(dict_of_category["term"], dict_of_category["description"], dict_of_category["FG_count"]),
+            return {'customdata': _.zip(dict_of_category["term"], dict_of_category["description"], dict_of_category["foreground_count"]),
                     'hovertemplate': '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>',
                     'ids': dict_of_category["term"],
                     'legendgroup': category_name,
@@ -247,14 +249,14 @@ let results_page_plotly = (function () {
                             'width': dict_of_category["marker_line_width"]
                         },
                         'opacity': dict_of_category["opacity"],
-                        'size': dict_of_category["FG_count"],
+                        'size': dict_of_category["foreground_count"],
                         'sizemin': min_marker_size, 'sizemode': 'area', 'sizeref': sizeref, 'symbol': 'circle'
                     },
                     'mode': 'markers+text', 'name': category_name,
                     'text': dict_of_category["text_label"],
                     'textfont': {'size': text_font_size}, 'textposition': 'top right',
                     'x': dict_of_category["logFDR"],
-                    'y': dict_of_category["effectSize"],
+                    'y': dict_of_category["effect_size"],
                     'type': 'scatter'}
         }
 
@@ -268,6 +270,99 @@ let results_page_plotly = (function () {
         }
         return traces_list_of_arr;
     }
+
+    function get_columns_visible_and_width_formatting(enrichment_method) {
+        let cols;
+        switch (enrichment_method) {
+            case "genome":
+            case "abundance_correction":
+                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
+                cols = [
+                    {"visible": true, "width": "80px"}, // s value
+                    {"visible": true, "width": "100px"}, // term
+                    {"visible": true, "width": "200px"}, // description
+                    {"visible": true}, // FDR
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},];
+                break;
+            case "compare_samples":
+                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
+                cols = [
+                    {"visible": true, "width": "80px"}, // s value
+                    {"visible": true, "width": "100px"}, // term
+                    {"visible": true, "width": "200px"}, // description
+                    {"visible": true}, // FDR
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},];
+                break;
+            case "characterize_foreground":
+                // [ratio_in_FG, term, description, category, hierarchical_level, year, FG_IDs, FG_count, FG_n, rank]
+                cols = [
+                    {"visible": true, "width": "80px"}, // ratio_in_FG
+                    {"visible": true, "width": "100px"}, // term
+                    {"visible": true, "width": "200px"}, // description
+                    {"visible": true}, // category
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": false},
+                    {"visible": true},
+                    {"visible": false},
+                    {"visible": false},];
+                break;
+            default:
+                cols = [];
+        }
+        return cols
+    }
+
+    function get_order_formatting(enrichment_method) {
+        let order;
+        switch (enrichment_method) {
+            case "genome":
+            case "abundance_correction":
+                order = [[5, "desc"], [18, "asc"]]; // ["category", "rank"]
+                break;
+            case "compare_samples":
+                order = [[5, "desc"], [19, "asc"]]; // ["category", "rank"]
+                break;
+            case "characterize_foreground":
+                order = [[3, "desc"], [0, "desc"]]; // ["category", "ratio_in_FG"]
+                break;
+            default:
+                order = [];
+        }
+        return order
+    }
+
+
+
 
     // add classes to specific columns
     $(document).ready(function() {
@@ -286,40 +381,10 @@ let results_page_plotly = (function () {
             // buttons: ['colvis', 'copy', 'excel', 'pdf'],
             "columnDefs": [{targets: '_all', render: $.fn.dataTable.render.ellipsis(80, true)}],
             responsive: true,
-
-            // select multiple rows (via dataTables.select.min.js
-            // select: true,
             select: {style: 'multi'},
-            // "order": [[7, "desc"], [18, "asc"]], // ["category", "rank"] // ToDo
+            "order": get_order_formatting(enrichment_method),
             "autoWidth": false,
-            "columns": [
-                {"visible": true, "width": "80px"}, // s value
-                {"visible": true, "width": "100px"}, // term
-                {"visible": true, "width": "200px"}, // description
-                {"visible": true}, // FDR
-                // {"visible": false}, // p value
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-                // {"visible": false},
-            ],
+            "columns": get_columns_visible_and_width_formatting(enrichment_method),
         });
 
         let selected_indices_set = new Set();
@@ -336,7 +401,6 @@ let results_page_plotly = (function () {
                 update_scatter_plot(); }
         });
 
-        // 2 funcs were here before
 
         function reset_data_dict_per_category(dict_per_category) {
             for (let category_name in dict_per_category) {
@@ -389,12 +453,7 @@ let results_page_plotly = (function () {
             selected_indices_set.clear();
             table_dbl.$('tr.selected').removeClass('selected');
             redraw_original_plot();
-            console.log("dbl_reset_button_id bottom");
-
         });
-
-
-
 
         let edges_plotted = false;
         let traces_for_modified_plot = [];
@@ -417,6 +476,7 @@ let results_page_plotly = (function () {
                 if (toggle_point_edges_button.is(':checked')) {
                     trace_for_edges_template["x"] = [];
                     trace_for_edges_template["y"] = [];
+                    // trace_for_edges_template["marker"]["line"]["width"] = [];
                     for (let term_name of selected_indices_set) {
                         edges = term_2_edges_dict_json[term_name];
                         category_name = term_2_category_dict[term_name];
@@ -427,6 +487,7 @@ let results_page_plotly = (function () {
                         if (typeof edges !== "undefined") {
                             trace_for_edges_template["x"] = trace_for_edges_template["x"].concat(edges["X_points"]);
                             trace_for_edges_template["y"] = trace_for_edges_template["y"].concat(edges["Y_points"]);
+                            // trace_for_edges_template["marker"]["line"]["width"] = trace_for_edges_template["marker"]["line"]["width"].concat(edges["Weights"]);
                             let i=0;
                             while (edges["Nodes"].length > i) {
                                 edge_name = edges["Nodes"][i];

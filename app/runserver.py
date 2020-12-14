@@ -13,16 +13,10 @@ from wtforms import fields
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
-#
-# import dash
-# from dash.dependencies import Input, Output
-# import dash_table
-# import dash_core_components as dcc
-# import dash_html_components as html
-# import plotly.express as px
 
 sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
-import query, userinput, run, variables, taxonomy
+import query, userinput, run, variables, taxonomy, plot_and_table
+import colnames as cn
 
 
 ###############################################################################
@@ -40,7 +34,6 @@ FN_GO_BASIC = variables.FN_GO_BASIC
 DEBUG = variables.DEBUG
 PRELOAD = variables.PRELOAD
 PROFILING = variables.PROFILING
-# MAX_TIMEOUT = variables.MAX_TIMEOUT # Maximum Time for MCL clustering
 functionType_2_entityType_dict = variables.functionType_2_entityType_dict
 ARGPARSE = variables.ARGPARSE
 ###############################################################################
@@ -61,24 +54,23 @@ if ARGPARSE:
     if args.verbose == "verbose" or args.verbose == "v":
         variables.VERBOSE = True
 ###############################################################################
-
-# Covid 19 example ?
-# TMPS2_HUMAN
-# FURIN_HUMAN
-# DDX1_HUMAN
-# ACE2_HUMAN
-
 # ToDo
+# - download results button
+# - filter_parents for "genome" not working for InterPro --> discussion point with Chritian/Damian
+# - code REST API analogous to STRING --> also adapt column names accordingly
+# - linkouts for term names
+# - fix PyTest colnames
+# - fix javascript colnames
+# - export parameters (args_dict) to file
+# - update example page
+# - "map" KEGG --> species specific names
 # - check if "Filter foreground count one button" works, doesn't work on agotool.org but does work in local version
 # - DF_file_dimensions_log.txt --> check that it is part of git repo (exception in .gitignore), and that new entries get added with each auto-update
 # characterize_foreground --> cap at 100 PMIDs with checkbox
-
-# ad Snakemake: Function_2_Protein_table_UPS missing etypes for GOCC, BTO, DOID
-
 # - add example to API with abundance correction method --> input fg_string with abundance values
 # - add check to size of downloads. e.g. documents_protein2function.tsv.gz == URL_protein_2_function_PMID
 #    --> to be >= previous size
-# - checkboxes for limi_2_entity_types instead of drop_down_list
+# - checkboxes for limit_2_entity_types instead of drop_down_list
 # add poster from ASMS
 # single help page with FAQ section
 # - buy goliath domain?
@@ -92,8 +84,6 @@ if ARGPARSE:
 # - offer option to omit testing GO-terms with few associations (e.g. 10)
 # - offer to user Pax-DB background proteomes
 # - offer example to be set automatically
-# - graphical output of enrichment
-# - update bootstrap version
 # - update documentation specifically about foreground and background
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
 # - version of tool/ dates of files downloaded
@@ -146,8 +136,6 @@ if not app.debug:
     file_handler.setFormatter(logging.Formatter("#"*80 + "\n" + '%(asctime)s %(levelname)s: %(message)s'))
     file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(file_handler)
-    #########################
-    # log activity
     log_activity_fh = open(LOG_FN_ACTIVITY, "a")
 
 def log_activity(string2log):
@@ -156,18 +144,24 @@ def log_activity(string2log):
     log_activity_fh.write(string2log)
     log_activity_fh.flush()
 
-
 ################################################################################
 # pre-load objects
 ################################################################################
 if PRELOAD:
     if variables.VERSION_ == "STRING" or variables.VERSION_ == "UniProt":
         pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
+        import create_SQL_tables_snakemake as cst
+        print("getting lineage_dict")
+        # lineage_dict = cst.get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents="direct")
+        import pickle
+        lineage_dict = pickle.load(open("/Users/davidl/modules/cpr/agotool/data/PostgreSQL/tables/lineage_dict_direct.p", "rb"))
+        print("done with lineage_dict")
     else:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
 else:
     pqo = None # just for mocking
+    lineage_dict = {}
 
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API
@@ -212,7 +206,7 @@ parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic
 parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="both")
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
-parser.add_argument("simplified_output", type=str, default="False") # #!!! necessary for what?
+# parser.add_argument("simplified_output", type=str, default="False") # #!!! necessary for what?
 parser.add_argument("STRING_beta", type=str, default="False")
 
 
@@ -223,7 +217,6 @@ class API_STRING(Resource):
     def get(self): #, output_format="json"):
         return self.post() #output_format)
 
-    # @profile
     def post(self): #, output_format="json"):
         """
         watch out for difference between passing parameter through
@@ -231,7 +224,7 @@ class API_STRING(Resource):
         - or parameters of form
         """
         args_dict = defaultdict(lambda: None)
-        args_dict["foreground"] = request.form.get("foreground")
+        args_dict["foreground"] = request.form.get("foreground") # ? what about the background ?
         args_dict["output_format"] = request.form.get("output_format")
         args_dict["enrichment_method"] = request.form.get("enrichment_method")
         args_dict["taxid"] = request.form.get("taxid")
@@ -242,8 +235,8 @@ class API_STRING(Resource):
             for key, val in sorted(args_dict.items()):
                 print(key, val, type(val))
             print("-" * 80)
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         ui = userinput.REST_API_input(pqo, args_dict)
         args_dict = ui.args_dict
@@ -261,7 +254,7 @@ class API_STRING(Resource):
         ### DEBUG start
         if variables.DEBUG_HTML:
             df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-            results_all_function_types = df_all_etypes.groupby("etype").head(20)
+            results_all_function_types = df_all_etypes.groupby(cn.etype).head(20)
         # debug stop
         else:
             results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict, api_call=True)
@@ -273,7 +266,6 @@ class API_STRING(Resource):
             return format_multiple_results(args_dict, results_all_function_types, pqo)
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
-
 
 def PMID_description_to_year(string_):
     try:
@@ -328,7 +320,7 @@ class API_STRING_HELP(Resource):
     get enrichment for all available functional associations not 'just' one category
     """
     @staticmethod
-    def get(): # output_format="json"
+    def get():
         args_dict = defaultdict(lambda: None)
         args_dict.update(parser.parse_args())
         args_dict = parser.parse_args()
@@ -342,7 +334,6 @@ class API_STRING_HELP(Resource):
 
 api.add_resource(API_STRING_HELP, "/api_help", "/api_string_help")
 
-
 def help_page(args_dict):
     try:
         del args_dict["privileged"]
@@ -353,26 +344,13 @@ def help_page(args_dict):
 def format_multiple_results(args_dict, results_all_entity_types, pqo):
     output_format = args_dict["output_format"]
     if output_format in {"tsv", "tsv_no_header", "tsv-no-header"}:
-        # print("format_multiple_results", type(results_all_entity_types))
         return Response(results_all_entity_types, mimetype='text')
     elif output_format == "json":
-        # return jsonify(results_all_entity_types)
-        # return results_all_entity_types.to_json(orient="records")
-        # return results_all_entity_types
         return app.response_class(response=results_all_entity_types, status=200, mimetype='application/json')
     elif output_format == "xml":
-        # dict_2_return = {}
-        # for etype, results in results_all_entity_types.items():
-        # # for etype, df_of_etype in results_all_entity_types.groupby("etype"):
-        #     results = df_of_etype.to_csv(sep="\t", header=True, index=False) # convert DatFrame to string
-        #     header, rows = results.split("\n", 1) # is df in tsv format
-        #     xml_string = create_xml_tree(header, rows.split("\n"))
-        #     dict_2_return[etype] = xml_string.decode()
-        # return jsonify(dict_2_return)
         return results_all_entity_types
     else:
         raise NotImplementedError
-
 
 ################################################################################
 # index.html
@@ -421,9 +399,6 @@ def page_not_found(e):
 ################################################################################
 @app.route('/example')
 def example():
-    # with open(variables.FN_HELP_ENTITY_TYPES, "r") as fh:
-    #     content = fh.read()
-    #     content_entity_types = format_markdown(content)
     return render_template('example.html', **locals())
 
 @app.route('/example/<path:filename>', methods=['GET', 'POST'])
@@ -460,14 +435,12 @@ def FAQ():
 def api_help():
     return render_template('API_Help.html')
 
-
 ################################################################################
 # helper functions
 ################################################################################
 def format_markdown(content):
     content = content.replace("{", "\{").replace("}", "\}")
     content = markdown.markdown(content, extensions=['extra', 'smarty'], output_format='html5')
-    # return content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover">').replace("<thead>", '<thead class="table_header">')
     return content.replace(r"<table>", r'<table id="table_id" class="table table-striped hover text-center">').replace("<thead>", '<thead class="table_header">')
 
 ##### validation of user inputs
@@ -480,7 +453,7 @@ def validate_float_between_zero_and_one(form, field):
         print("validation failed what's next?")
         raise wtforms.ValidationError(" number must be: 0 <= number <= 1")
     else:
-        print('bubu')
+        print("couldn't validate float between zero and one")
 
 def validate_float_between_zero_and_five(form, field):
     if not 0 <= field.data <= 5:
@@ -562,7 +535,7 @@ characterize_foreground: Foreground only""")
                                                      ("synapse", "Synapse GO slim SynGO"),
                                                      ("yeast", "Yeast subset Saccharomyces Genome Database")),
                                           description="""Choose between the full Gene Ontology or GO slim subset a subset of GO terms that are less fine grained.""")
-    o_or_u_or_both = fields.SelectField("Over-, under-represented or both", choices = (("overrepresented", "overrepresented"), ("underrepresented", "underrepresented"), ("both", "both")), description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
+    o_or_u_or_both = fields.SelectField("Over-, under-represented or both", choices = (("both", "both"), ("overrepresented", "overrepresented"), ("underrepresented", "underrepresented")), description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
     # num_bins = fields.IntegerField("Number of bins", [validate_integer], default = 100, description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
     # fold_enrichment_for2background = fields.FloatField("fold enrichment foreground/background", [validate_number], default = 0, description="""Minimum cutoff value of "fold_enrichment_foreground_2_background".""")
     p_value_cutoff = fields.FloatField("p value cutoff", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum cutoff value of uncorrected p value.""")
@@ -571,10 +544,6 @@ characterize_foreground: Foreground only""")
     filter_parents = fields.BooleanField("Filter redundant parent terms", default="checked", description="Retain the most specific (deepest hierarchical level) and remove all parent terms if they share the exact same foreground proteins (default=checked)")
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier, please use the taxonomic rank of species e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
     multiple_testing_per_etype = fields.BooleanField("Multiple testing per category", default="checked", description="If True calculate multiple testing correction separately per functional category, in contrast to performing the correction together for all results (default=checked).")
-    # score_cutoff = fields.FloatField("Text mining score cutoff", [validate_float_between_zero_and_five], default = 3.0, description="""Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.""")
-    foreground_replicates = fields.IntegerField("foreground replicates", [validate_integer], default=10, description="'Foreground replicates' is an integer, defines the number of samples (replicates) of the foreground. default=10.")
-    background_replicates = fields.IntegerField("background replicates", [validate_integer], default=10, description="'Background replicates' is an integer, defines the number of samples (replicates) of the background. default=10.")
-
 
 class Example_1(Enrichment_Form):
     """
@@ -631,7 +600,6 @@ class Example_4(Enrichment_Form):
     characterize_foreground: Foreground only""")
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606 for Homo sapiens)")
 
-
 @app.route('/example_1')
 def example_1():
     return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak", example_description="""characterize the foreground: SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak (from https://covid-19.uniprot.org).""")
@@ -660,25 +628,28 @@ def temp():
 def help_():
     return render_template('help.html', form=Enrichment_Form())
 
-@app.route('/plot')
-def plot():
-    # df_as_html_dict, term_2_edges_dict_json = run.df_2_html_table(generate_session_id(), SESSION_FOLDER_ABSOLUTE)
-    table_as_text, term_2_edges_dict_json = run.df_2_html_table_with_data_bars(generate_session_id(), SESSION_FOLDER_ABSOLUTE)
-    dict_per_category, term_2_positionInArr_dict, term_2_category_dict = run.df_2_dict_per_category()
-    sizeref = run.get_sizeref()
-    return render_template('plot.html', form=Enrichment_Form(),
-        df_as_html_dict=table_as_text, term_2_edges_dict_json=term_2_edges_dict_json,
-        dict_per_category=dict_per_category, sizeref=sizeref, term_2_positionInArr_dict=term_2_positionInArr_dict, term_2_category_dict=term_2_category_dict)
+# @app.route('/plot')
+@app.route('/results')
+def generate_interactive_result_page(df, args_dict, session_id, form, errors=()):
+    file_name = "results_orig" + session_id + ".tsv"
+    fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
+    df.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
+    enrichment_method = args_dict["enrichment_method"]
+    cols_sort_order = cn.enrichmentMethod_2_colsSortOrder_dict[enrichment_method]
+    df, term_2_edges_dict_json, sizeref = plot_and_table.ready_df_for_plot(df, lineage_dict, enrichment_method)
+    dict_per_category, term_2_positionInArr_dict, term_2_category_dict = plot_and_table.df_2_dict_per_category_for_traces(df, enrichment_method)
+    table_as_text = plot_and_table.df_2_html_table_with_data_bars(df, cols_sort_order, enrichment_method, session_id, SESSION_FOLDER_ABSOLUTE)
 
+    return render_template('results_interactive.html', form=Enrichment_Form(),
+        term_2_edges_dict_json=term_2_edges_dict_json, sizeref=sizeref,
+        dict_per_category=dict_per_category, term_2_positionInArr_dict=term_2_positionInArr_dict, term_2_category_dict=term_2_category_dict,
+        df_as_html_dict=table_as_text, enrichment_method=enrichment_method,
+        file_path=file_name)
 
 ################################################################################
 # results.html
 ################################################################################
 class Results_Form(wtforms.Form):
-#     inflation_factor = fields.FloatField("inflation factor", [validate_inflation_factor], default = 2.0, description="""Enter a number higher than 1.
-# Usually a number between 1.1 and 10 is chosen.
-# Increasing the value will increase cluster granularity (produce more clusters).
-# Certain combinations of data and inflation factor can take very long to process. Please be patient.""")
     pass
 
 @app.route('/results', methods=["GET", "POST"])
@@ -708,15 +679,15 @@ def results():
                      "enrichment_method": form.enrichment_method.data,
                      "multiple_testing_per_etype": form.multiple_testing_per_etype.data,
                      }
-                     # "score_cutoff": form.score_cutoff.data}
         ui = userinput.Userinput(pqo, fn=fileobject,
-            foreground_string=form.foreground_textarea.data, background_string=form.background_textarea.data,
+            foreground_string=form.foreground_textarea.data,
+            background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
         args_dict = dict(ui.args_dict) # since args_dict was copied
-        # ui.args_dict = args_dict
         if variables.VERBOSE:
             print("-" * 80)
-            for key, val in sorted(args_dict.items()):
+            for key, val in args_dict.items():
+                # if key not in {""}
                 print(key, val, type(val))
             print("-" * 80)
         if variables.DEBUG_HTML:
@@ -730,7 +701,8 @@ def results():
             ## DEBUG start
             if variables.DEBUG_HTML:
                 df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-                df_all_etypes = df_all_etypes.groupby("etype").head(20)
+                df_all_etypes = df_all_etypes.groupby(cn.etype).head(20)
+                args_dict["enrichment_method"] = "genome"
             else:
                 df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)
             ### DEBUG stop
@@ -743,7 +715,9 @@ def results():
         elif len(df_all_etypes) == 0:
             return render_template('results_zero.html')
         else:
-            return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
+            ### old version with compact and comprehensive results
+            # return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
+            return generate_interactive_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
     return render_template('enrichment.html', form=form)
 
 def helper_split_errors_from_dict(args_dict):
@@ -755,12 +729,12 @@ def helper_split_errors_from_dict(args_dict):
             args_dict_minus_errors[key] = val
     return errors_dict, args_dict_minus_errors
 
-def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), compact_or_comprehensive="compact"):
+def generate_result_page_table_only(df_all_etypes, args_dict, session_id, form, errors=(), compact_or_comprehensive="compact"):
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     df_all_etypes.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
     if args_dict["enrichment_method"] != "characterize_foreground":
-        df_all_etypes = df_all_etypes.sort_values(["etype", "rank"])
+        df_all_etypes = df_all_etypes.sort_values([cn.etype, cn.rank])
     etype_2_rowsCount_dict, etype_2_df_as_html_dict = {}, {}
     p_value = "p value"
     FDR = "p value corrected"
@@ -800,14 +774,12 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
                 if num_rows > 0:
                     etype_2_rowsCount_dict[etype] = num_rows
                     etype_2_df_as_html_dict[etype] = group[cols_compact].to_html(index=False, border=0, classes=["table table_etype dataTable display"], table_id="table_etype", justify="left", formatters={effect_size: lambda x: "{:.2f}".format(x), FDR: lambda x: "{:.2E}".format(x)})
-        return render_template('results_compact.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict, df_all_etypes=df_all_etypes)
+        return render_template('results_compact_table.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict, df_all_etypes=df_all_etypes)
 
     ### comprehensive results
     elif compact_or_comprehensive == "comprehensive":
         # show year, not hierarchy
         cols_sort_order_PMID = ['rank', 'term', 'description', 'year', over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
-        # entity_types_with_scores
-        # cols_sort_order_entity_types_with_scores = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value]
         # show hierarchy, not year
         cols_sort_order_hierarchy = ['rank', 'term', 'description', hierarchical_level, over_under, p_value, FDR, effect_size, s_value, ratio_in_FG, ratio_in_BG, FG_count, FG_n, BG_count, BG_n, FG_IDs, BG_IDs]
         # not hiearachy, not year
@@ -820,7 +792,6 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
 
         if args_dict["o_or_u_or_both"] != "both": # don't hide "over under"
             cols_sort_order_PMID.remove(over_under)
-            # cols_sort_order_entity_types_with_scores.remove(over_under)
             cols_sort_order_hierarchy.remove(over_under)
             cols_sort_order_rest.remove(over_under)
 
@@ -832,7 +803,6 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
         if args_dict["enrichment_method"] == "characterize_foreground":
             cols_2_remove = (BG_IDs, BG_n, BG_count, ratio_in_BG, over_under, p_value, FDR, effect_size, s_value, rank)
             cols_sort_order_PMID = [ele for ele in cols_sort_order_PMID if ele not in cols_2_remove]
-            # cols_sort_order_entity_types_with_scores = [ele for ele in cols_sort_order_entity_types_with_scores if ele not in cols_2_remove]
             cols_sort_order_hierarchy = [ele for ele in cols_sort_order_hierarchy if ele not in cols_2_remove]
             cols_sort_order_rest = [ele for ele in cols_sort_order_rest if ele not in cols_2_remove]
 
@@ -842,29 +812,24 @@ def generate_result_page(df_all_etypes, args_dict, session_id, form, errors=(), 
                 etype_2_rowsCount_dict[etype] = num_rows
                 if etype in variables.PMID: # -56 is the only one with "year"
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_PMID])
-                # elif etype in variables.entity_types_with_scores: # in case Forground_IDs are NOT queried and not to be displayed
-                #     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_entity_types_with_scores])
-                # elif etype in variables.entity_types_with_scores:
-                #     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
                 elif etype in variables.entity_types_with_ontology:
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_hierarchy])
                 else:
                     etype_2_df_as_html_dict[etype] = helper_format_to_html(group[cols_sort_order_rest])
 
-        return render_template('results_comprehensive.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict)
+        return render_template('results_comprehensive_table.html', etype_2_rowsCount_dict=etype_2_rowsCount_dict, etype_2_df_as_html_dict=etype_2_df_as_html_dict, errors=errors, file_path=file_name, session_id=session_id, form=form, args_dict=args_dict)
     else:
         print("compact_or_comprehensive is '{}' {}, which is not understood".format(compact_or_comprehensive, type(compact_or_comprehensive)))
 
-@app.route('/results_comprehensive', methods=["GET", "POST"])
+@app.route('/results_comprehensive_table', methods=["GET", "POST"])
 def results_comprehensive():
     file_path = request.form['file_path']
     df_all_etypes = pd.read_csv(os.path.join(SESSION_FOLDER_ABSOLUTE, file_path), sep='\t')
     args_dict = request.form['args_dict'] # cast to dict from defaultdict
     args_dict = literal_eval(args_dict)
-    # print(args_dict, type(args_dict))
     session_id = request.form['session_id']
     compact_or_comprehensive = request.form['compact_or_comprehensive']
-    return generate_result_page(df_all_etypes, args_dict, session_id, Results_Form(), errors=(), compact_or_comprehensive=compact_or_comprehensive)
+    return generate_result_page_table_only(df_all_etypes, args_dict, session_id, Results_Form(), errors=(), compact_or_comprehensive=compact_or_comprehensive)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
     file_name = "results_" + suffix + session_id + ".tsv"
@@ -900,6 +865,7 @@ if __name__ == "__main__":
 
     # curl "https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     ### Corona example of 13 UniProt ENSPs
     # import requests
     # from io import StringIO

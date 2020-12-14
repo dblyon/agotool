@@ -137,7 +137,7 @@ df.set_index("id", inplace=True, drop=False)
 df = df.drop(columns=["rank_2_transparency", "FG_count_2_circle_size", "funcEnum"]) # "id",
 p_value = "p value"
 FDR = "false discovery rate"
-effect_size = "effect size"
+effect_size = "effect_size"
 over_under = "over under"
 hierarchical_level = "level"
 s_value = "s value"
@@ -145,7 +145,7 @@ ratio_in_FG = "ratio in FG"
 ratio_in_BG = "ratio in BG"
 FG_IDs = "foreground identifiers"
 BG_IDs = "background identifiers"
-FG_count = "foreground count"
+FG_count = "foreground_count"
 BG_count = "background count"
 FG_n = "foreground n"
 BG_n = "background n"
@@ -157,7 +157,6 @@ logFDR = "logFDR"
 year = "year"
 category = "category"
 color = "color"
-effectSize = "effect size"
 marker_line_width = "marker_line_width"
 marker_line_color = "marker_line_color"
 id_ = "id"
@@ -166,7 +165,6 @@ opacity = "opacity"
 all_terms_set = set(df[term].values)
 color_discrete_map = {category_: color_hex_val for category_, color_hex_val in zip(df[category].unique(), palette_dict[df.etype.unique().shape[0]])}
 df[color] = df[category].apply(lambda x: color_discrete_map[x])
-
 df = df.rename(columns={"over_under": over_under, "hierarchical_level": hierarchical_level, "p_value": p_value, "FDR": FDR, "effectSize": effect_size, "s_value": s_value, "ratio_in_FG": ratio_in_FG, "ratio_in_BG": ratio_in_BG, "FG_IDs": FG_IDs, "BG_IDs": BG_IDs, "FG_count": FG_count, "BG_count": BG_count, "FG_n": FG_n, "BG_n": BG_n})
 
 cols_compact = [rank, term, description, FDR, effect_size]
@@ -291,7 +289,7 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
     if derived_virtual_selected_row_ids is None or len(derived_virtual_selected_row_ids) == 0:
         fig = go.Figure()
         for category_name, group in dff.groupby(category):
-            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
+            fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effect_size].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", ))
         fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), )
         fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, )
         scatter_plot_fig = dcc.Graph(id='scatter_plot', figure=fig, config=config_scatter_plot)
@@ -328,15 +326,15 @@ def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_vir
         if toggle_point_labels_value:
             dff["label"] = ""
             dff.loc[cond_selected_terms, "label"] = dff.loc[cond_selected_terms, term]
-            x_min, x_max, y_min, y_max = dff[logFDR].min(), dff[logFDR].max(), dff[effectSize].min(), dff[effectSize].max()
+            x_min, x_max, y_min, y_max = dff[logFDR].min(), dff[logFDR].max(), dff[effect_size].min(), dff[effect_size].max()
             for category_name, group in dff.groupby(category):
-                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
+                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effect_size].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers+text", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>", text=group["label"].tolist(), textposition="top right", textfont_size=10))
             fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ), xaxis_range=[x_min * 0.93, x_max * 1.07], yaxis_range=[y_min * 1.25, y_max * 1.25])
 
         ### only change circle highlighting
         else:
             for category_name, group in dff.groupby(category):
-                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effectSize].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
+                fig.add_trace(go.Scatter(name=category_name, x=group[logFDR].tolist(), y=group[effect_size].tolist(), ids=group[term].tolist(), legendgroup=category_name, mode="markers", marker_symbol="circle", marker_color=group[color].iloc[0], marker_size=group[FG_count], marker_opacity=group[opacity], marker_sizemin=min_marker_size, marker_sizemode="area", marker_sizeref=sizeref, marker_line_width=group[marker_line_width], marker_line_color=group[marker_line_color], customdata=[list(ele) for ele in zip(group[term], group[description], group[FG_count])], hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>"))
             fig.update_layout(hoverlabel=dict(font_size=12), template=layout_template_DBL_v2, title=None, xaxis_title="-log(FDR)", yaxis_title="effect size", legend=dict(title=None, font_size=12, orientation="h", yanchor="bottom", y=legend_y, xanchor="left", x=0, itemclick="toggleothers", itemdoubleclick="toggle", ),)
 
         fig.update_layout(autosize=False, width=scatter_plot_width, height=scatter_plot_height, ) # 800 x 520
@@ -379,7 +377,7 @@ def create_DataTable(df):
                                    + [{"if": {"column_id": description}, "textAlign": "left", "width": "320px", }]  # 4000
                                    + [{'if': {'column_id': category}, 'textAlign': 'left', "width": "101px"}]
                                    + [{"if": {"column_id": FG_IDs}, "width": "320px"}]  # 120
-                                   + [{"if": {"column_id": colName}, "width": "100px"} for colName in [logFDR, FDR, effectSize]],  # 110
+                                   + [{"if": {"column_id": colName}, "width": "100px"} for colName in [logFDR, FDR, effect_size]],  # 110
             style_cell={ # ensure adequate header width when text is shorter than cell's text
                 "minWidth": "90px", "width": "100px",
                 "fontSize": "12px",

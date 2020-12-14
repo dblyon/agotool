@@ -7,6 +7,7 @@ from itertools import zip_longest # from itertools import izip_longest
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 
 import tools, variables, query
+import colnames as cn
 
 if variables.PD_WARNING_OFF:
     pd.options.mode.chained_assignment = None
@@ -200,10 +201,10 @@ class Userinput:
 
     def translate_primary_back_to_secondary(self, df):
         if len(self.Secondary_2_Primary_IDs_dict_fg) > 0:
-            df["FG_IDs"] = df["FG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, True))
+            df[cn.FG_IDs] = df[cn.FG_IDs].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_fg, True))
         if self.enrichment_method == "compare_samples" and len(self.Secondary_2_Primary_IDs_dict_bg) > 0:
-            cond = df["BG_IDs"].notnull()
-            df.loc[cond, "BG_IDs"] = df.loc[cond, "BG_IDs"].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
+            cond = df[cn.BG_IDs].notnull()
+            df.loc[cond, cn.BG_IDs] = df.loc[cond, cn.BG_IDs].apply(replace_secondary_and_primary_IDs, args=(self.Secondary_2_Primary_IDs_dict_bg, True))
         return df
 
     def check_decimal(self, fn):

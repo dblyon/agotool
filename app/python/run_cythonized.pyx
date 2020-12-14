@@ -29,6 +29,32 @@ from collections import defaultdict
 from fisher import pvalue
 from scipy import stats
 import variables, query
+import colnames as cn
+
+### debug for merge conflict --> this stems from 'plotly' branch
+
+### only used at the end of run_enrichment_cy and run_charcterize_foreground
+# etype = colnames.etype
+# term = colnames.term
+# funcEnum = colnames.funcEnum
+# description = colnames.description
+# p_value = colnames.p_value
+# FDR = colnames.FDR
+# effect_size = colnames.effect_size
+# over_under = colnames.over_under
+# hierarchical_level = colnames.hierarchical_level
+# s_value = colnames.s_value
+# ratio_in_FG = colnames.ratio_in_FG
+# ratio_in_BG = colnames.ratio_in_BG
+# FG_IDs = colnames.FG_IDs
+# BG_IDs = colnames.BG_IDs
+# FG_count = colnames.FG_count
+# BG_count = colnames.BG_count
+# FG_n = colnames.FG_n
+# BG_n = colnames.BG_n
+# rank = colnames.rank
+# year = colnames.year
+# category = colnames.category
 
 
 def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False):
@@ -40,13 +66,11 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     em = ui.enrichment_method
     foreground_n = ui.get_foreground_n()
     args_dict = ui.args_dict
-    simplified_output = args_dict["simplified_output"]
     background_n = ui.get_background_n()
     protein_ans_fg = ui.get_foreground_an_set()
     taxid = args_dict["taxid"]
     filter_foreground_count_one = args_dict["filter_foreground_count_one"]
     p_value_cutoff = args_dict["p_value_cutoff"]
-    cols_2_return_sort_order = variables.cols_2_return_sort_order[:]
 
     if ui.enrichment_method in {"abundance_correction", "compare_samples"}: # , "compare_groups"
         protein_ans_bg = ui.get_background_an_set()
@@ -187,59 +211,58 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     ### concatenate filtered results
     cond_2_return = cond_PMIDs | cond_terms_reduced_with_ontology | cond_etypes_rem_foreground_ids_filtered
 
-    if simplified_output:
-        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                                "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                                "p_value": p_values[cond_2_return].view(),
-                                "FDR": p_values_corrected[cond_2_return].view(),
-                                "category": category_arr[cond_2_return].view(),
-                                "etype": entitytype_arr[cond_2_return].view(),
-                                "description": description_arr[cond_2_return].view(),
-                                "year": year_arr[cond_2_return].view(),
-                                "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
-                                "FG_count": funcEnum_count_foreground[cond_2_return].view(),
-                                "BG_count": funcEnum_count_background[cond_2_return].view()})
-        return df_2_return[['term', 'hierarchical_level', 'p_value', 'FDR', 'category', 'etype', 'description', 'FG_count', 'BG_count', 'FG_IDs', 'year']]
+    # df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
+    #                         "hierarchical_level": hierlevel_arr[cond_2_return].view(),
+    #                         "p_value": p_values[cond_2_return].view(),
+    #                         "FDR": p_values_corrected[cond_2_return].view(),
+    #                         "category": category_arr[cond_2_return].view(),
+    #                         "etype": entitytype_arr[cond_2_return].view(),
+    #                         "description": description_arr[cond_2_return].view(),
+    #                         "year": year_arr[cond_2_return].view(),
+    #                         "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
+    #                         "FG_count": funcEnum_count_foreground[cond_2_return].view(),
+    #                         "BG_count": funcEnum_count_background[cond_2_return].view(),
+    #                         "effectSize": effectSizes[cond_2_return].view(),
+    #                         "over_under": over_under_arr_of_string[cond_2_return].view(),
+    #                         "funcEnum": indices_arr[cond_2_return].view()})
+    df_2_return = pd.DataFrame({cn.term: functionalterm_arr[cond_2_return].view(),
+                            cn.hierarchical_level: hierlevel_arr[cond_2_return].view(),
+                            cn.p_value: p_values[cond_2_return].view(),
+                            cn.FDR: p_values_corrected[cond_2_return].view(),
+                            cn.category: category_arr[cond_2_return].view(),
+                            cn.etype: entitytype_arr[cond_2_return].view(),
+                            cn.description: description_arr[cond_2_return].view(),
+                            cn.year: year_arr[cond_2_return].view(),
+                            cn.FG_IDs: foreground_ids_arr_of_string[cond_2_return].view(),
+                            cn.FG_count: funcEnum_count_foreground[cond_2_return].view(),
+                            cn.BG_count: funcEnum_count_background[cond_2_return].view(),
+                            cn.effect_size: effectSizes[cond_2_return].view(),
+                            cn.over_under: over_under_arr_of_string[cond_2_return].view(),
+                            cn.funcEnum: indices_arr[cond_2_return].view()})
 
-    df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                            "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                            "p_value": p_values[cond_2_return].view(),
-                            "FDR": p_values_corrected[cond_2_return].view(),
-                            "category": category_arr[cond_2_return].view(),
-                            "etype": entitytype_arr[cond_2_return].view(),
-                            "description": description_arr[cond_2_return].view(),
-                            "year": year_arr[cond_2_return].view(),
-                            "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
-                            "FG_count": funcEnum_count_foreground[cond_2_return].view(),
-                            "BG_count": funcEnum_count_background[cond_2_return].view(),
-                            "effectSize": effectSizes[cond_2_return].view(),
-                            "over_under": over_under_arr_of_string[cond_2_return].view(),
-                            "funcEnum": indices_arr[cond_2_return].view()})
-
-    if em in {"compare_samples"}: # , "compare_groups"
-        df_2_return["BG_IDs"] = background_ids_arr_of_string[cond_2_return].view()
+    cols_2_return_sort_order = cn.cols_2_return_run_enrichment_cy[:]
+    if em in {"compare_samples"}:
+        df_2_return[cn.BG_IDs] = background_ids_arr_of_string[cond_2_return].view()
     else:
-        cols_2_return_sort_order.remove("BG_IDs")
-    df_2_return = s_value(df_2_return)
-    df_2_return["s_value_abs"] = df_2_return["s_value"].apply(lambda x: abs(x))
-    df_2_return = df_2_return.sort_values(["etype", "s_value_abs", "hierarchical_level", "year"], ascending=[False, False, False, False])
-    df_2_return["rank"] = df_2_return.groupby("etype")["s_value_abs"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0]).astype(int)
+        cols_2_return_sort_order.remove(cn.BG_IDs)
+    df_2_return["s_value"] = get_s_value(df_2_return)
+    # df_2_return["s_value_abs"] = df_2_return["s_value"].apply(lambda x: abs(x))
+    df_2_return["s_value_abs"] = np.abs(df_2_return["s_value"])
+    df_2_return = df_2_return.sort_values([cn.etype, "s_value_abs", cn.hierarchical_level, cn.year], ascending=[False, False, False, False])
+    df_2_return[cn.rank] = df_2_return.groupby(cn.etype)["s_value_abs"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0]).astype(int)
     if debug:
             return protein_ans_bg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, background_ids_arr_of_string, df_2_return
     df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
-    df_2_return["FG_n"] = foreground_n
-    df_2_return["BG_n"] = background_n
-#     if em == "abundance_correction":
-#         cond_KS_etypes_temp = df_2_return["etype"].isin(variables.entity_types_with_scores)
-#         df_2_return.loc[cond_KS_etypes_temp, "BG_n"] = ui.background.shape[0]
-    # #!!! DEBUG uncomment for production #     df_2_return.loc[df_2_return["etype"].isin([-20, -25, -26]), ["ratio_in_FG", "ratio_in_BG", "FG_count", "BG_count"]] = np.nan
+    df_2_return[cn.FG_n] = foreground_n
+    df_2_return[cn.BG_n] = background_n
 
     ### calc ratio in foreground, count foreground / len(protein_ans)
-    df_2_return["ratio_in_FG"] = df_2_return["FG_count"] / df_2_return["FG_n"] # ratio_in_foreground = funcEnum_count_foreground / foreground_n
-    df_2_return["ratio_in_BG"] = df_2_return["BG_count"] / df_2_return["BG_n"] # ratio_in_background = funcEnum_count_background / background_n
+    df_2_return[cn.ratio_in_FG] = df_2_return[cn.FG_count] / df_2_return[cn.FG_n]
+    df_2_return[cn.ratio_in_BG] = df_2_return[cn.BG_count] / df_2_return[cn.BG_n]
     if args_dict["STRING_beta"]:
-        df_2_return = df_2_return.rename(columns={"BG_count": 'background_count', "FG_count": 'foreground_count', "FG_IDs": 'foreground_ids'})
-        return df_2_return[variables.cols_sort_order_genome_STRING_beta] # + list(set(df_2_return.columns.tolist()) - set(variables.cols_sort_order_genome_STRING_beta))]
+        # df_2_return = df_2_return.rename(columns={"BG_count": 'background_count', "FG_count": 'foreground_count', "FG_IDs": 'foreground_ids'})
+        # return df_2_return[variables.cols_sort_order_STRING_API]
+        return df_2_return[cn.cols_sort_order_STRING_API].rename(columns=cn.colnames_2_rename_dict_STRING)
     return df_2_return[cols_2_return_sort_order]
 
 @boundscheck(False)
@@ -839,7 +862,7 @@ def multiple_testing_per_entity_type(cond_etype, cond_multitest, p_values, p_val
     indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
     BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
 
-def s_value(df, p_value_cutoff=0.05, KS_stat_cutoff=0.1, diff_proportions_cutoff=0.1):
+def get_s_value(df, p_value_cutoff=0.05, KS_stat_cutoff=0.1, diff_proportions_cutoff=0.1):
     """
     calculate 's-value' type statistic in order to rank based on a combination of p-value and effect size
     for etypes -20, -25, and -26 (GOCC, BTO, and DOID) --> Common Language Effect Size
@@ -848,14 +871,14 @@ def s_value(df, p_value_cutoff=0.05, KS_stat_cutoff=0.1, diff_proportions_cutoff
     justification for diff_proportions_cutoff --> unsure how to justify from lit. need be smaller than cles_cutoff
     --> changed from cles to KS_stat
     """
-    min_pval = df["p_value"][df["p_value"] > 0].min()
-    df["p_value_minlog"] = df["p_value"].apply(log_take_min_if_zero, args=(min_pval, ))
-    df["s_value"] = 0.0
-    cond_scores = df["etype"].isin([-20, -25, -26])
-    p_value_cutoff = -1 * math.log10(p_value_cutoff) # test for values smaller than 0
-    df["s_value"] = df["p_value_minlog"] * df["effectSize"]
-    df = df.drop(columns=["p_value_minlog"])
-    return df
+    min_pval = df[cn.p_value][df[cn.p_value] > 0].min()
+    df["p_value_minlog"] = df[cn.p_value].apply(log_take_min_if_zero, args=(min_pval, ))
+    df[cn.s_value] = 0.0
+    # cond_scores = df[cn.etype].isin([-20, -25, -26])
+    # p_value_cutoff = -1 * math.log10(p_value_cutoff) # test for values smaller than 0
+    df[cn.s_value] = df["p_value_minlog"] * df[cn.effect_size]
+    # df = df.drop(columns=["p_value_minlog"])
+    return df[cn.s_value]
 
 def log_take_min_if_zero(val, min_pval):
     try:
@@ -1299,17 +1322,14 @@ cdef int KolmogorovSmirnov_sparse_scipy(FunctionEnum_2_Scores_dict, unsigned int
 
 def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False):
     if not low_memory:
-        # ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
         ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
     else:  # missing: ENSP_2_functionEnumArray_dict
-        # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict, ENSP_2_rowIndex_dict, rowIndex_2_ENSP_dict, CSC_ENSPencoding_2_FuncEnum, CSR_ENSPencoding_2_FuncEnum, Taxid_2_FunctionEnum_2_Scores_dict = static_preloaded_objects
         year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
     foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs, effectSizes, over_under_int_arr, over_under_arr_of_string = preloaded_objects_per_analysis
     em = ui.enrichment_method
     foreground_n = ui.get_foreground_n()
     args_dict = ui.args_dict
     filter_foreground_count_one = args_dict["filter_foreground_count_one"]
-    cols_2_return_sort_order = variables.cols_sort_order_characterize_foreground[:]
 
     protein_ans_fg = ui.get_foreground_an_set()
     if low_memory:
@@ -1363,11 +1383,7 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
         cond_2_return[etype_cond_dict["cond_56"]] = False
         for index_ in indices_PMID:
             cond_2_return[index_] = True
-    ### exclude blacklisted terms
-#     print(len(cond_2_return), sum(cond_2_return))
     cond_2_return[blacklisted_terms_bool_arr > 0] = False
-#     print(blacklisted_terms_bool_arr)
-#     print(len(cond_2_return), sum(cond_2_return))
 
     try:
         privileged = args_dict["privileged"]
@@ -1381,34 +1397,39 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     funcEnum_indices_for_IDs = indices_arr[cond_2_return]
     foreground_ids_arr_of_string = map_funcEnum_2_ENSPs(protein_ans_fg, ENSP_2_functionEnumArray_dict, funcEnum_indices_for_IDs, foreground_ids_arr_of_string)
     if not low_memory:
-        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                                    "category": category_arr[cond_2_return].view(),
-                                    "etype": entitytype_arr[cond_2_return].view(),
-                                    "description": description_arr[cond_2_return].view(),
-                                    "year": year_arr[cond_2_return].view(),
-                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                                    "FG_ids": foreground_ids_arr_of_string[cond_2_return].view(),
-                                    "FG_count": funcEnum_count_foreground[cond_2_return].view()})
+        df_2_return = pd.DataFrame({cn.term: functionalterm_arr[cond_2_return].view(),
+                                    cn.hierarchical_level: hierlevel_arr[cond_2_return].view(),
+                                    cn.category: category_arr[cond_2_return].view(),
+                                    cn.etype: entitytype_arr[cond_2_return].view(),
+                                    cn.description: description_arr[cond_2_return].view(),
+                                    cn.year: year_arr[cond_2_return].view(),
+                                    cn.ratio_in_FG: ratio_in_foreground[cond_2_return].view(),
+                                    cn.FG_IDs: foreground_ids_arr_of_string[cond_2_return].view(),
+                                    cn.FG_count: funcEnum_count_foreground[cond_2_return].view()})
     else:
-        df_2_return = pd.DataFrame({"term": functionalterm_arr[cond_2_return].view(),
-                                    "hierarchical_level": hierlevel_arr[cond_2_return].view(),
-                                    "etype": entitytype_arr[cond_2_return].view(),
-                                    "year": year_arr[cond_2_return].view(),
-                                    "ratio_in_FG": ratio_in_foreground[cond_2_return].view(),
-                                    "FG_IDs": foreground_ids_arr_of_string[cond_2_return].view(),
-                                    "FG_count": funcEnum_count_foreground[cond_2_return].view(),
-                                    "funcEnum": indices_arr[cond_2_return].view()})
-        df_2_return["category"] = df_2_return["etype"].apply(lambda etype: variables.entityType_2_functionType_dict[etype])
+        df_2_return = pd.DataFrame({cn.term: functionalterm_arr[cond_2_return].view(),
+                                    cn.hierarchical_level: hierlevel_arr[cond_2_return].view(),
+                                    cn.etype: entitytype_arr[cond_2_return].view(),
+                                    cn.year: year_arr[cond_2_return].view(),
+                                    cn.ratio_in_FG: ratio_in_foreground[cond_2_return].view(),
+                                    cn.FG_IDs: foreground_ids_arr_of_string[cond_2_return].view(),
+                                    cn.FG_count: funcEnum_count_foreground[cond_2_return].view(),
+                                    cn.funcEnum: indices_arr[cond_2_return].view()})
+        df_2_return[cn.category] = df_2_return[cn.etype].apply(lambda etype: variables.entityType_2_functionType_dict[etype])
         funcEnum_2_description_dict = query.get_function_description_from_funcEnum(indices_arr[cond_2_return].tolist())
-        df_2_return["description"] = df_2_return["funcEnum"].apply(lambda funcEnum: funcEnum_2_description_dict[funcEnum])
-    #cols_2_return_sort_order = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category']
+        df_2_return[cn.description] = df_2_return[cn.funcEnum].apply(lambda funcEnum: funcEnum_2_description_dict[funcEnum])
     df_2_return = ui.translate_primary_back_to_secondary(df_2_return)
-    df_2_return["FG_n"] = foreground_n
-    # rank everything correctly except PMIDs, "year"-column will only affect PMIDs
-    df_2_return = df_2_return.sort_values(["etype", "year", "FG_count"], ascending=[True, False, False]).reset_index(drop=True)
-    cond_PMIDs = df_2_return["etype"] == -56
-    df_2_return.loc[~cond_PMIDs, "rank"] = df_2_return[~cond_PMIDs].groupby("etype")["FG_count"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
-    df_2_return.loc[cond_PMIDs, "rank"] = df_2_return[cond_PMIDs].groupby("etype")["year"].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
-    df_2_return["rank"] = df_2_return["rank"].astype(int)
+    df_2_return[cn.FG_n] = foreground_n
+    ### rank everything correctly except PMIDs, "year"-column will only affect PMIDs
+    df_2_return = df_2_return.sort_values([cn.etype, cn.year, cn.FG_count], ascending=[True, False, False]).reset_index(drop=True)
+
+    if args_dict["STRING_beta"]:
+        # df_2_return = df_2_return.rename(columns={"FG_count": 'foreground_count', "FG_IDs": 'foreground_ids', "ratio_in_FG": "ratio_in_foreground"})
+        # return df_2_return[variables.cols_sort_order_characterize_foreground_STRING_API]df_2_return = df_2_return.rename(columns={"FG_count": 'foreground_count', "FG_IDs": 'foreground_ids', "ratio_in_FG": "ratio_in_foreground"})
+        return df_2_return[variables.cols_sort_order_characterize_foreground_STRING_API].rename(columns=cn.cols_sort_order_characterize_foreground_STRING_API)
+    cond_PMIDs = df_2_return[cn.etype] == -56
+    df_2_return.loc[~cond_PMIDs, cn.rank] = df_2_return[~cond_PMIDs].groupby(cn.etype)[cn.FG_count].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
+    df_2_return.loc[cond_PMIDs, cn.rank] = df_2_return[cond_PMIDs].groupby(cn.etype)[cn.year].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
+    df_2_return[cn.rank] = df_2_return[cn.rank].astype(int)
+    cols_2_return_sort_order = cn.cols_2_return_run_characterize_foreground_cy[:]
     return df_2_return[cols_2_return_sort_order]
