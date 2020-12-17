@@ -2,25 +2,16 @@ from __future__ import print_function
 import pickle
 import numpy as np
 import pandas as pd
-import os, sys
+import os, sys, datetime
 from collections import defaultdict
 import psycopg2
-from scipy import sparse
 import socket
 hostname = socket.gethostname()
-# import math
-# from contextlib import contextmanager
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-# from pyt import variables, obo_parser, taxonomy
-import variables, obo_parser, taxonomy
-# print(os.getcwd())
-# print(sorted(os.listdir()))
-# print(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-# print(sorted(os.listdir(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))))
+import variables, obo_parser, taxonomy, tools
 import run_cythonized
-
 
 # UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
 FN_KEYWORDS = variables.FN_KEYWORDS
@@ -50,21 +41,7 @@ humanName_2_functionAN_dict = {u"BP": u"GO:0008150",
 functionType_term_2_an_dict = {"UPK": upkTerm_2_functionAN_dict,
                                "GO": humanName_2_functionAN_dict}
 
-# id_2_entityTypeNumber_dict = {'GO:0003674': "-23",  # 'Molecular Function',
-#                               'GO:0005575': "-22",  # 'Cellular Component',
-#                               'GO:0008150': "-21",  # 'Biological Process',
-#                               'UPK:9990': "-51",  # 'Technical term',
-#                               'UPK:9991': "-51",  # 'PTM',
-#                               'UPK:9992': "-51",  # 'Molecular function',
-#                               'UPK:9993': "-51",  # 'Ligand',
-#                               'UPK:9994': "-51",  # 'Domain',
-#                               'UPK:9995': "-51",  # 'Disease',
-#                               'UPK:9996': "-51",  # 'Developmental stage',
-#                               'UPK:9997': "-51",  # 'Coding sequence diversity',
-#                               'UPK:9998': "-51",  # 'Cellular component',
-#                               'UPK:9999': "-51",  # 'Biological process'
-#                               'KEGG': "-52"}
-id_2_entityTypeNumber_dict = variables.id_2_entityTypeNumber_dict
+# id_2_entityTypeNumber_dict = variables.id_2_entityTypeNumber_dict
 
 
 def get_cursor(env_dict=None):
@@ -1492,6 +1469,13 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dic
                         return taxid, True
     args_dict["ERROR TaxID"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) that is suitable for your data.".format(taxid)
     return taxid, False
+
+def get_last_updated_text():
+    fn = os.path.join(variables.TABLES_DIR, "aGOtool_flatfiles_current.tar.gz")
+    time_ = tools.creation_date(fn)
+    return datetime.datetime.fromtimestamp(time_).strftime("%d %B %Y")
+
+
 
 if __name__ == "__main__":
     # pass

@@ -29,17 +29,18 @@
 <h2>Python 3 examples</h2>
     <pre><code class="language-python">
 import requests
-from io import StringIO
-import pandas as pd
+
 # call api_help for help and argument defaults
 response = requests.get(r"https://agotool.org/api_help")
 print(response.json())
-url_ = r"https://agotool.org/api"
     </code></pre>
 
-    <h4>Example #1 from STRING</h4>
+    <h4>Example #1</h4>
 <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
         <pre><code class="language-python">
+import requests
+
+url_ = r"https://agotool.org/api"
 ENSPs = ['511145.b1260', '511145.b1261', '511145.b1262', '511145.b1263', '511145.b1264', '511145.b1812',
      '511145.b2551', '511145.b3117', '511145.b3360', '511145.b3772', '511145.b4388']
 fg = "%0d".join(ENSPs)
@@ -49,13 +50,19 @@ result = requests.post(url_,
                            "taxid": 83333}, # UniProt reference proteomes uses "Escherichia coli (strain K12)" with Taxid 83333 as a pan proteome instead of 511145 (TaxID on taxonomic rank of species).
                    data={"foreground": fg})
 result_json = result.json()
-print("Enrichment results for the following entity types was calculated: \n", result_json.keys()) # See the parameters page for more detais on entity types.
+print("Enrichment results for {} number of terms".format(len(result_json)))
+print(result_json[0])
             </code></pre><br>
 
-    <h4>Example #2 from STRING</h4>
+    <h4>Example #2</h4>
     Use iPython or Jupyter notebook to interactively view results as a pandas data frame.<br>
         <p><b>Protein name: CDC15; Organism: Saccharomyces cerevisiae</b></p>
         <pre><code class="language-python">
+import requests
+from io import StringIO
+import pandas as pd
+
+url_ = r"https://agotool.org/api"
 ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W',
      '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
 fg = "%0d".join(ENSPs)
@@ -68,9 +75,12 @@ result = result.text
 df = pd.read_csv(StringIO(result), sep='\t')
 print(df.head())
         </code></pre><br>
-    <h4>Example #3 from STRING</h4>
+    <h4>Example #3</h4>
 <p><b>Protein name: trpA; Organism: Escherichia coli K12_MG1655</b></p>
         <pre><code class="language-python">
+import requests
+
+url_ = r"https://agotool.org/api"
 ENSPs = ['10090.ENSMUSP00000001812', '10090.ENSMUSP00000002708', '10090.ENSMUSP00000021921',
      '10090.ENSMUSP00000025791', '10090.ENSMUSP00000026474', '10090.ENSMUSP00000030443',
      '10090.ENSMUSP00000054837', '10090.ENSMUSP00000084430', '10090.ENSMUSP00000099623',
@@ -80,18 +90,25 @@ result = requests.post(url_,
                    params={"output_format": "json",
                            "enrichment_method": "compare_samples",
                            "limit_2_entity_type": "-56;-51;-57", # comma separate desired entity_types (e.g. PMIDs, UniProt Keywords, and Reactome).
+                           "p_value_cutoff": 1,
+                           "FDR_cutoff": 1,
                            "taxid": 10090},
                    data={"foreground": fg,
                          "background": fg})
 # since the foreground equals the background completely no significant enrichment will result from this analysis
 # it is meant to show how to show how to use the method call, and to apply a sanity check in case you get no results (try using p value or FDR cutoff of 1)
 result_json = result.json()
-print(result_json.keys())
+print(result_json[0])
           </code></pre><br>
 
     <h4>Example #4</h4>
 <p><b>Characterize foreground, get functional information </b></p>
         <pre><code class="language-python">
+from io import StringIO
+import pandas as pd
+import requests
+
+url_ = r"https://agotool.org/api"
 ENSPs = ["9606.ENSP00000266970"]
 fg = "%0d".join(ENSPs)
 result = requests.post(url_,
@@ -132,9 +149,9 @@ print(df.head())
                 <li class="bulletpoints_li"><b>num_bins</b>: The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected. Default = 100.</li>
                 <li class="bulletpoints_li"><b>p_value_cutoff</b>: Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction). Default = 1</li>
                 <li class="bulletpoints_li"><b>multiple_testing_per_etype</b>: If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results. Default = True</li>
-                <li class="bulletpoints_li"><b>score_cutoff</b>: Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.</li>
-                <li class="bulletpoints_li"><b>foreground_replicates</b>: Provide an integer, defines the number of samples (replicates) of the foreground. Default = 10</li>
-                <li class="bulletpoints_li"><b>background_replicates</b>: Analogous to foreground_replicates, defines the number of samples (replicates) of the background. Default = 10</li>
+{#                <li class="bulletpoints_li"><b>score_cutoff</b>: Apply a filter for the minimum cutoff value of the textmining score. This cutoff is only applied to the 'characterize_foreground' method, and does not affect p values. Default = 3.</li>#}
+{#                <li class="bulletpoints_li"><b>foreground_replicates</b>: Provide an integer, defines the number of samples (replicates) of the foreground. Default = 10</li>#}
+{#                <li class="bulletpoints_li"><b>background_replicates</b>: Analogous to foreground_replicates, defines the number of samples (replicates) of the background. Default = 10</li>#}
             </ul>
 
 

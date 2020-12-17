@@ -1,0 +1,215 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{#      <script type="text/javascript">#}
+          {#$(document).ready( function() {#}
+          {#    results_page();#}
+          {#    results_page_plotly();#}
+          {#});#}
+{#      </script>#}
+{% endblock head %}
+
+{#{% block nav_Results_interactive %}#}
+{#    <li class="nav-item active"> <a class="nav-link" href="{{ url_for('results_interactive') }}">Interactive results<span class="sr-only">(current)</span></a></li>#}
+{#{% endblock nav_Results_interactive %}#}
+
+
+{% block navbar %}
+       <nav class="navbar navbar-custom navbar-expand-lg navbar-dark primary-color">
+          <a class="navbar-brand" href="{{ url_for('enrichment') }}">a GO tool</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#basicExampleNav" aria-controls="basicExampleNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="navbar-toggler-icon"></span> </button>
+          <div class="collapse navbar-collapse" id="basicExampleNav">
+            <ul class="navbar-nav mr-auto">
+              {% block nav_Enrichment %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment</a></li>{% endblock nav_Enrichment %}
+              {% block nav_Example %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('example') }}">Example</a></li>{% endblock nav_Example %}
+              {% block nav_Parameters %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters</a></li>{% endblock nav_Parameters %}
+              {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock nav_FAQ %}
+              {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock nav_About %}
+              {% block nav_API %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('api_help') }}">API</a></li>{% endblock nav_API %}
+              {% block nav_Results_interactive %}<li class="nav-item active"> <a class="nav-link" name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}">interactive Results<span class="sr-only">(current)</span></a></li>{% endblock %}
+
+{#          {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link results" name="file_path" onclick="submit_form('form', 'results_comprehensive')">Results comprehensive</a></li>{% endblock %}#}
+{#            <form id="form" method="Post" action="results_comprehensive" enctype="multipart/form-data">#}
+{#                <input type="hidden" style="display: none;" name="file_path" value="{{ file_path }}">#}
+{#                <input type="hidden" style="display: none;" name="session_id" value="{{ session_id }}">#}
+{#                <input type="hidden" style="display: none;" name="args_dict" value="{{ args_dict }}">#}
+{#                <input type="hidden" style="display: none;" name="df_all_etypes" value="{{ df_all_etypes }}">#}
+{#                <input type="hidden" style="display: none;" name="compact_or_comprehensive" value="comprehensive">#}
+{#            </form>#}
+
+            </ul>
+
+          </div>
+        </nav>
+{% endblock navbar %}
+
+
+
+
+
+{% block content %}
+
+<div class="container container_dbl" id="container_dbl_id">
+    <div class="row row_dbl_plot">
+        <div class="col-md-1 col_dbl align-self-center">
+            <div class="checkbox enabled">
+              <label>
+                <input class="toggle_button_dbl" checked type="checkbox" data-toggle="toggle" id="toggle_point_labels_id"
+                       data-size="sm" data-on="labels" data-off="labels" data-onstyle="info toggle_dbl">
+              </label>
+            </div>
+            <div class="checkbox enabled">
+              <label>
+                <input class="toggle_button_dbl" checked type="checkbox" data-toggle="toggle" id="toggle_point_edges_id"
+                       data-size="sm" data-on="edges" data-off="edges" data-onstyle="info toggle_dbl">
+              </label>
+            </div>
+{#            <div>#}
+{#                <button type="button" class="btn btn-outline-secondary btn-sm dbl_reset_button" id="dbl_reset_button_id" data-size="sm">reset</button>#}
+{#            </div>#}
+        </div>
+
+        <div class="col col_dbl">
+            <div class="d-flex" id="plotly_scatter_plot" style="display: flex;flex-direction: column;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const term_2_edges_dict_json = {{term_2_edges_dict_json | safe}};
+    const term_2_positionInArr_dict = {{term_2_positionInArr_dict | safe}};
+    const dict_per_category = {{ dict_per_category | safe }};
+    const term_2_category_dict = {{ term_2_category_dict | safe }};
+    const sizeref = {{ sizeref | safe }};
+    const enrichment_method = "{{ enrichment_method | safe }}";
+    {#const x_range_start = 0; // {{ x_range_start | safe }};#}
+    {#const x_range_stop = 10; // {{ x_range_stop | safe }};#}
+    {#const y_range_start = {{ y_range_start | safe }};#}
+    {#const y_range_stop = {{ y_range_stop | safe }};#}
+    const x_range_with_labels = [ {{ x_range_start | safe }}, {{ x_range_stop | safe }} ];
+    const y_range_with_labels = [ {{ y_range_start | safe }}, {{ y_range_stop | safe }} ];
+    const hover_label_color = "#43464B";
+    const plot_background_color = "#ffffff";
+    const plot_grid_color = "#efefef";
+    const plot_line_color = "#6C757D";
+    const plot_ticklabel_color = plot_line_color
+    const toggle_button_color = plot_line_color
+    const opacity_default = 0.7;
+    const opacity_highlight = 1;
+    const marker_line_width_default = 1;
+    const marker_line_color_default = plot_background_color; //  "white";
+    const marker_line_width_highlight = 2;
+    const marker_line_color_highlight = "#344957";
+    const color_edge_line = "#d2d2d2";
+    const width_edges_line = 1.5;
+    const scatter_plot_width = 700;
+    const scatter_plot_height = 400;
+    const legend_y = -0.3;
+    const text_font_size = 10;
+    const min_marker_size = 4;
+    const max_marker_size = 30;
+
+    let myPlot = document.getElementById("plotly_scatter_plot");
+    let plot_config = {"displaylogo": false,  "scrollZoom": true, "responsive": true,
+      "modeBarButtonsToRemove": ["lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines", "resetScale2d"],
+      "toImageButtonOptions": {'format': 'svg','filename': 'aGOtool_plot','scale': 1},};
+    function get_plot_layout_orig() {
+        return {"template":
+                    {"data": {"scatter": [{"type": "scatter", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}]},
+                    "layout": {"clickmode": "event", "dragmode": "pan", "hovermode": "closest",
+                        "legend": {"font": {"size": 13}, "title": {"font": {"size": 12}}},
+                        "margin": {"b": 0, "l": 0, "r": 0, "t": 30},
+                        "plot_bgcolor": plot_background_color,
+                        "xaxis": {"anchor": "y", "automargin": true, "gridcolor": plot_grid_color, "gridwidth": 1, "linecolor": plot_line_color,
+                            "linewidth": 2, "showgrid": true, "showline": true, "showticklabels": true, "tickcolor": plot_line_color,
+                            "tickfont": {"color": plot_line_color, "size": 10}, "ticklen": 3, "ticks": "outside",
+                            "title": {"font": {"size": 12}, "standoff": 12}, "zeroline": false,},
+                        "yaxis": {"anchor": "x", "automargin": true, "gridcolor": plot_grid_color, "gridwidth": 1, "linecolor": plot_line_color,
+                            "linewidth": 2, "showgrid": true, "showline": true, "showticklabels": true, "tickcolor": plot_line_color,
+                            "tickfont": {"color": plot_line_color, "size": 10}, "ticklen": 3, "ticks": "outside",
+                            "title": {"font": {"size": 12}, "standoff": 12}, "zeroline": true, "zerolinecolor": plot_grid_color, "zerolinewidth": 3,},}
+                    },
+            "hoverlabel": {"font": {"size": 12}},
+            "legend": {"font": {"size": 13}, "title": {}, "itemsizing": "constant"},
+            "title": {},
+            "xaxis": {"title": {"text": "-log(false discovery rate)"}, "range": []},
+            "yaxis": {"title": {"text": "effect size"}, "range": []},
+            "autosize": true};
+    }
+
+    let trace_for_edges_template = {
+        'hoverinfo': 'skip',
+        'line': {'color': color_edge_line,
+            'width': 1.5},
+        'mode': 'lines',
+        'showlegend': false,
+        'x': [],
+        'y': [],
+        'type': 'scatter'};
+
+    function get_individual_trace(category_name, dict_of_category) {
+            return {
+                'customdata': _.zip(dict_of_category["term"], dict_of_category["description"], dict_of_category["foreground_count"]),
+                'hovertemplate': '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Size: %{customdata[2]}<extra></extra>',
+                'ids': dict_of_category["term"],
+                'legendgroup': category_name,
+                'marker': {
+                    'color': dict_of_category["color"][0],
+                    'line': {
+                        'color': dict_of_category["marker_line_color"],
+                        'width': dict_of_category["marker_line_width"]
+                    },
+                    'opacity': dict_of_category["opacity"],
+                    'size': dict_of_category["foreground_count"],
+                    'sizemin': min_marker_size, 'sizemode': 'area', 'sizeref': sizeref, 'symbol': 'circle'
+                },
+                'mode': 'markers+text', 'name': category_name,
+                'text': dict_of_category["text_label"],
+                'textfont': {'size': text_font_size}, 'textposition': 'top right',
+                'x': dict_of_category["logFDR"],
+                'y': dict_of_category["effect_size"],
+                'type': 'scatter'
+            };
+    }
+
+    function get_all_traces(dict_per_category) {
+        let traces_list_of_arr = [];
+        let trace_temp = {};
+        for (let category_name in dict_per_category) {
+            let dict_of_category = dict_per_category[category_name];
+            trace_temp = get_individual_trace(category_name, dict_of_category)
+            traces_list_of_arr.push(trace_temp);
+        }
+        return traces_list_of_arr; }
+
+    if (enrichment_method === "characterize_foreground")
+    {
+        document.getElementById('container_dbl_id').style.display = "none";
+    } else {
+        Plotly.plot('plotly_scatter_plot', get_all_traces(dict_per_category), get_plot_layout_orig(), plot_config);
+    }
+
+$(document).ready( function() {
+  results_page();
+  results_page_plotly();
+});
+
+</script>
+
+<br>
+
+
+{% endblock content %}
+
+
+{% block table %}
+
+    <div class="d-flex flex-row-reverse">
+        <a name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}" class="btn btn-outline-secondary btn-sm dbl_download_table_button">download table</a>
+        <button type="button" class="btn btn-outline-secondary btn-sm dbl_reset_button" id="dbl_reset_button_id" data-size="sm">reset</button>
+    </div>
+
+    <div class="dataTable_DBL table table-striped" id="dataTable_DBL_id" style="width:100%"> {{ df_as_html_dict | safe }} </div>
+
+{% endblock table %}

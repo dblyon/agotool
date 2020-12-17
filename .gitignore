@@ -8,6 +8,9 @@ env_file_Aquarius_bak
 ###################
 !.gitlab-ci.yml
 !.gitignore
+!sort_both.svg
+!sort_up.svg
+!sort_down.svg
 # added to tar.gz !DF_file_dimensions_log.txt
 !Example_Yeast_acetylation_abundance_correction.txt
 !ExampleData_results_orig.txt

@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 
-{% block nav_About %} <li class="nav-item active"> <a class="nav-link" href="{{ url_for('about') }}">About<span class="sr-only">(current)</span></a></li> {% endblock %}
+{% block nav_About %}
+    <li class="nav-item active"> <a class="nav-link" href="{{ url_for('about') }}">About<span class="sr-only">(current)</span></a></li>
+{% endblock nav_About %}
 
 {% block content %}
     <br><br>
@@ -34,6 +36,17 @@
     </div>
     <br><br>
 
+    <div class="row"><h3>Resources</h3></div>
+    <div class="row">
+        <div class="col-md-12">
+            The resources used for this web-service are automatically updated on a monthly basis.<br>
+            <b>Last updated on {{ last_updated_text | safe }}</b><br>
+            Functional associations for the following categories are retrieved from <a href="https://www.uniprot.org">UniProt</a>: GO terms, UniProt Keywords, KEGG, Interpro, Pfam, and Reactome. Since these associations can simply be counted we apply a Fisher's exact test to find significantly enriched terms.
+            <a href="https://diseases.jensenlab.org">Diseases</a>, Brenda <a href="https://tissues.jensenlab.org">Tissues</a>, Gene Ontology Cellular Component (<a href="https://compartments.jensenlab.org">Compartments</a>), and PubMed publications stem from <a href="https://jensenlab.org">Jensenlab</a> textming results. Since these protein to function associations are not binary, but result in a score between 0 and 5, we apply a Kolmogorov Smirnov test.
+{#            GO basic and slims subsets are retrieved from <a href="http://purl.obolibrary.org">obolibrary</a>.<br>#}
+        </div>
+    </div>
+
     <div class="row"><h3>Publication</h3></div>
         <div class="row">
             <div class="col-md-12">Please cite the following article when applying this method or using this service:<br>
@@ -49,15 +62,7 @@
     <br><br>
 
 
-    <div class="row"><h3>Resources</h3></div>
-    <div class="row">
-        <div class="col-md-12">
-            <b>The resources used for this web-service are automatically updated on a monthly basis.</b><br>
-            Functional associations for the following categories are retrieved from <a href="https://www.uniprot.org">UniProt</a>: GO terms, UniProt Keywords, KEGG, Interpro, Pfam, and Reactome. Since these associations can simply be counted we apply a Fisher's exact test to find significantly enriched terms.
-            <a href="https://diseases.jensenlab.org">Diseases</a>, Brenda <a href="https://tissues.jensenlab.org">Tissues</a>, Gene Ontology Cellular Component (<a href="https://compartments.jensenlab.org">Compartments</a>), and PubMed publications stem from <a href="https://jensenlab.org">Jensenlab</a> textming results. Since these protein to function associations are not binary, but result in a score between 0 and 5, we apply a Kolmogorov Smirnov test.
-{#            GO basic and slims subsets are retrieved from <a href="http://purl.obolibrary.org">obolibrary</a>.<br>#}
-        </div>
-    </div>
+
 
 <br><br><br><br><br>
 {% endblock content %}

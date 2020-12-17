@@ -1,75 +1,69 @@
-.errors {color:red;
-    font-weight: bold;}
+.errors {
+    color:red;
+    font-weight: bold;
+}
 
-body {background-color:#fff;}
+body { background-color:#fff; }
 
 .navbar-default, .primary-color {
     background-color:#d95f0e !important;
     border-color:#d95f0e;
-    border-radius: 0;}
+    border-radius: 0;
+}
 
 .page-footer {
     background-color:#d95f0e !important;
     border-color:#d95f0e;
-    border-radius: 0;}
+    border-radius: 0;
+}
 
 .navbar-header{
     padding: 10px;
-    width: 140px;}
-
-.navbar-nav{padding: 10px;}
-
-.cpr_logo {
-    /*float: right;*/
-    padding: 20px 35px;
+    width: 140px;
 }
 
+.navbar-nav{ padding: 10px; }
+
+.cpr_logo { padding: 20px 35px; }
+
 .example {
-    font-size: 12px;
+    font-size: 13px;
     color: grey;
     text-decoration: underline;}
 
 .example_header {
-    font-size: 12px;
-    color: grey;}
+    font-size: 13px;
+    color: grey;
+}
 
 .grey_underline {
     color: grey;
-    text-decoration: underline;}
+    text-decoration: underline;
+}
 
 .NCBI_TaxID {
     color: black;
-    text-decoration: underline;}
-
+    text-decoration: underline;
+}
 
 /*https://css-tricks.com/snippets/css/sticky-footer/*/
-* {
-  margin: 0;
-}
-html, body {
-  height: 100%;
-}
+* { margin: 0; }
+
+html, body { height: 100%; }
+
 .page-wrap {
   min-height: 100%;
   /* equal to footer height */
   margin-bottom: -92px;
 }
+
 .page-wrap:after {
   content: "";
   display: block;
 }
-.site-footer, .page-wrap:after {
-  height: 92px;
-}
 
+.site-footer, .page-wrap:after { height: 92px;}
 
-
-
-/* TABLES*/
-
-/*.ellipsis {*/
-/*  text-overflow: ellipsis;*/
-/*  overflow: hidden;}*/
 
 .col_heading {white-space: normal;}
 
@@ -85,19 +79,6 @@ html, body {
 
 thead {font-size: 14px;}
 
-tr:hover {background-color: gold !important;}
-/*.table_etype.tr:hover {background-color: gold !important;}*/
-
-/*table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {background-color: gold; }*/
-/*table.dataTable.hover tbody tr:hover.selected, table.dataTable.display tbody tr:hover.selected {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover > .sorting_1, table.dataTable.order-column.hover tbody tr:hover > .sorting_1 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover > .sorting_2, table.dataTable.order-column.hover tbody tr:hover > .sorting_2 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover > .sorting_3, table.dataTable.order-column.hover tbody tr:hover > .sorting_3 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover.selected > .sorting_1, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_1 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover.selected > .sorting_2, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_2 {background-color: gold; }*/
-/*table.dataTable.display tbody tr:hover.selected > .sorting_3, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_3 {background-color: gold; }*/
-
-
 .dataTables_info {font-size: 0.8rem;}
 
 .table_etype {
@@ -105,7 +86,8 @@ tr:hover {background-color: gold !important;}
     /*padding: 0.5rem;*/
     margin-top: 4px;
     margin-bottom: 1px !important;
-    border-top: none;}
+    border-top: none;
+}
 
 .full-width-div {
     position: absolute;
@@ -113,105 +95,160 @@ tr:hover {background-color: gold !important;}
     left: 0;
 }
 
-.results{
-    /*color: white !important;*/
-    font-size: 1.1em !important;
-    }
+.results{ font-size: 1.1em !important; }
 
-
-/*.table td, .table th {*/
-/*    padding: 0.5rem;*/
-/*}*/
-
-
-.pagination {font-size: 0.8rem;}
+.pagination { font-size: 0.8rem; }
 
 .dt-nowrap { white-space: nowrap; }
 
 .dt-noellipsis {
     text-overflow: clip !important;
     /*overflow: hidden;*/
-    white-space: initial !important;}
+    white-space: initial !important;
+}
 
-/*#table_etype {*/
-/*    display: table;*/
-/*    font-size: 13px;*/
-/*    text-overflow: ellipsis;*/
-/*    overflow: hidden;*/
-/*    white-space: normal;*/
-/*    !*padding: 5px;*!*/
-/*    border-top: none;*/
-/*    border-bottom: none;*/
-/*    margin-left: auto;*/
-/*    margin-right: auto;*/
-/*    border-spacing: 0px;*/
-/*    margin-top: -5px;*/
-/*    width: 100%;}*/
+div.dataTables_wrapper { margin-bottom: 3em; }
 
-div.dataTables_wrapper {margin-bottom: 3em;}
+/* Hover text in plotly scatter plot */
+svg.main-svg g.hoverlayer g.hovertext path {
+    fill-opacity: 0.5;
+    stroke: white !important;
+}
 
+svg.main-svg g.hoverlayer g.hovertext text {
+    fill: #43464B !important;
+}
 
-/*table.dataTable tbody td {*/
-/*    word-break: break-word;*/
-/*    vertical-align: top;*/
+/* Data Table highlight color on hover over rows but not over header */
+/* goldenrod #d9b14c #ecd28f */
+/*table tbody tr:hover { background-color: #ecd28f !important; }*/
+#dataTable_DBL_id tbody tr:hover { background-color: #ecd28f !important; }
+/* Data Table highlight color on selection */
+/* #b5d7eb #daa520 #e1b74c */
+.even.selected td { background-color: #e1b74c !important; }
+.odd.selected td { background-color: #e1b74c !important; }
+
+.dataTable_DBL {
+    font-size: 12px;
+    margin-top: 3px;
+    margin-bottom: 1px !important;
+    border-top: none;
+}
+
+/* remove border between rows of data table */
+.table td, .table th { border-top: none; }
+
+table.dataTable tbody th, table.dataTable tbody td {
+    padding: 10px; /* e.g. change 8x to 4px here */
+}
+
+    /*linkout_style = """#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:active { color:#0000EE; } #linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; } """*/
+#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal}
+#linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal}
+#linkout_dbl a:active { color:#0000EE; }
+#linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; }
+
+/* Scatter plot legend text. When adding term labels (as interactive annotations) the text "Aa" is added in superscript to the legend. Remove this bug via code below */
+.pointtext {
+    display: none;
+}
+
+#last_updated_id {
+    font-size: 11px;
+}
+/*.dbl_reset_button {*/
+/*    padding: 4px 4px 4px 4px;*/
+/*    transform: translate(-20px); !* Equal to: translateX(10px) or translate(10px, 0) *!*/
+/*    width: 65px;*/
 /*}*/
 
-
-
-
-/*.col8, .col2  */
-
-
-/*#table_56 .col2 {white-space: normal;}*/
-    /*max-width: 30px;}*/
-    /*word-wrap: break-word;*/
-    /*white-space: nowrap;}*/
-
-
-/*.left {text-align: left;}*/
-/*.center {text-align: center;}*/
-/*.right {text-align: right;}*/
-/*    !*!*margin-right: 20px*!}*!*/
-
-/*.somename {padding-right: 10px;}*/
-
-/* formatting unordered list with long row  */
-
-
-/*body {background-color:#64a1b8;}*/
-/*UniProt colours*/
-/*#71b8d3*/
-/*#1d5c74*/
-/*Darker version of UniProt blue*/
-/*#64a1b8*/
-/*#9d4a4d*/
-/* navbar */
-/*.navbar-default{*/
-/*    background-color:#64a1b8;*/
-/*    border-color:#64a1b8;*/
-/*    border-radius: 0;*/
-/*}*/
-/*.navbar-default a, .navbar-default a:active, .navbar-default a:visited{*/
-/*    color: #FFF !important;*/
-/*}*/
-/*.navbar-default a:hover{*/
-/*    font-weight: bold;*/
-/*    color: black !important;*/
-/*}*/
-/*.navbar-collapse > ul > li {*/
-    /*width: 110px !important;*/
+/*.button-colvis {*/
+/*    color: red !important;*/
 /*}*/
 
-/*.navbar-custom{*/
-/*    background-color:#64a1b8;*/
-/*    border-color:#64a1b8;*/
-/*    border-radius: 0;*/
+/*button.dt-button.active {*/
+/*    background: #cccccc !important;*/
 /*}*/
 
-/*#41B3A3 greenisch*/
-/*#C38D9E*/
-/*#F13C20 knalliges orange*/
-/*f03b20 auch knalliges orange*/
-/*#E27D60  orange*/
-/*d95f0e*/
+/*button.dt-button.buttons-collection.button-colvis {*/
+/*    background: green !important;*/
+/*}*/
 
+/*.dt-buttons {*/
+/*    background: green !important;*/
+/*}*/
+
+/*="text-decoration:underline;text-decoration-color:#C0C0C0"*/
+
+.buttons-colvis {
+    background: white !important;
+    color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+    font-size: .875rem !important;
+    /*#6c757d*/
+    /*padding: .25rem .5rem !important;*/
+    /*border-radius: .2rem !important;*/
+    /*padding: 4px 4px 4px 4px;*/
+    /*transform: translate(-20px); !* Equal to: translateX(10px) or translate(10px, 0) *!*/
+    /*width: 125px;*/
+    /*line-height: 1.5;*/
+    /*float: right !important;*/
+}
+
+.dataTables_wrapper .dt-buttons {
+  float: right;
+}
+
+.dataTables_filter {
+   float: left !important;
+   border-color: black !important;
+}
+
+.dbl_download_table_button {
+    margin: 0 0 0 5px;
+}
+
+.legible_text_shadow {
+    font-weight: 450;
+}
+
+/*.legible_text_shadow {*/
+/*    text-shadow: white 0 0 10px;*/
+/*}*/
+
+/* enrichment_page hide analysis and report options*/
+.collapse_options_dbl {
+    color: black;
+}
+
+
+/* datatable sort arrow keys */
+table.dataTable thead .sorting::before,
+table.dataTable thead .sorting::after,
+table.dataTable thead .sorting_asc::before,
+table.dataTable thead .sorting_asc::after,
+table.dataTable thead .sorting_desc::before,
+table.dataTable thead .sorting_desc::after {
+    display:none;
+}
+
+table.dataTable thead .sorting {
+    background-image: url("../images/sort_both.svg");
+    background-repeat: no-repeat;
+    background-position: center left;
+    background-size: 12px 14px;
+}
+
+table.dataTable thead .sorting_asc {
+   background-image: url("../images/sort_up.svg");
+   background-repeat: no-repeat;
+   background-position: center left;
+   background-size: 12px 14px;
+}
+
+table.dataTable thead .sorting_desc {
+   background-image: url("../images/sort_down.svg");
+   background-repeat: no-repeat;
+   background-position: center left;
+   background-size: 12px 14px;
+}

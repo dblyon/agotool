@@ -3,7 +3,6 @@ import numpy as np
 import socket
 hostname = socket.gethostname()
 
-
 ############################
 ### settings
 PRELOAD = True # set True in production. Load necessary data via PQO
@@ -25,9 +24,6 @@ VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the program
 temp_dont_run_analysis = False
-# if READ_FROM_FLAT_FILES and LOW_MEMORY:
-#     raise NotImplementedError
-
 ARGPARSE = False
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # SMART is missing in UniProt version
@@ -110,17 +106,9 @@ goslims_subsets_dict = { # key: abbreviation val: description
     "plant": "The Arabidopsis Information Resource",
     "pombe": "Schizosaccharomyces pombe subset PomBase",
     "synapse": "Synapse GO slim SynGO",
-    "yeast": "Yeast subset Saccharomyces Genome Database"
-}
+    "yeast": "Yeast subset Saccharomyces Genome Database"}
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
-cols_sort_order_genome_STRING_beta = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
-cols_sort_order_compare_samples = cols_sort_order_genome_STRING_beta
-cols_sort_order_characterize_foreground = ['etype', 'term', 'hierarchical_level', 'description', 'year','ratio_in_FG', 'FG_count', 'FG_n', 'FG_IDs', 'funcEnum', 'category', "rank"]
-cols_2_return_sort_order = ['term', 'hierarchical_level', 'description', 'year', 'over_under', 'p_value', 'FDR', 'effectSize', 'ratio_in_FG', 'ratio_in_BG', 'FG_count', 'FG_n', 'BG_count', 'BG_n', 'FG_IDs', 'BG_IDs', 's_value', 'rank', 'funcEnum', 'category', 'etype']
-cols_sort_order_genome_STRING = ["term", "hierarchical_level", "p_value", "FDR", "category", "etype", "description", "foreground_count", "background_count", "foreground_ids", "year"]
-cols_sort_order_charcterize_foreground_STRING = ['foreground_count', 'foreground_ids', 'ratio_in_foreground', 'term', 'etype', 'category', 'hierarchical_level', 'description', 'year']
-cols_sort_order_compare_samples_STRING = cols_sort_order_genome_STRING
 
 # api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
 # api_url = r"http://agotool.meringlab.org/api"  # atlas
@@ -137,28 +125,19 @@ else: # relative path on host
 
 APP_DIR_SNAKEMAKE = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../')))
 DATA_DIR_SNAKEMAKE = os.path.abspath(os.path.realpath(os.path.join(PYTHON_DIR, '../../data')))
-
 EXAMPLE_FOLDER = os.path.join(DATA_DIR, "exampledata")
 SESSION_FOLDER_ABSOLUTE = os.path.join(DATA_DIR, 'session')
 SESSION_FOLDER_RELATIVE = 'data/session'
-
-# temp
-fn_example = os.path.join(EXAMPLE_FOLDER, "Test_human_compare_samples.txt") #"Test_yeast_compare_samples_small.txt") #"Test_yeast_compare_samples.txt")
-
-# FLASK_DATA = APP_DIR
 TEMPLATES_FOLDER_ABSOLUTE = os.path.join(APP_DIR, 'static/templates')
-
-# obo files for PRELOAD/persistent objects
+### obo files for PRELOAD/persistent objects
 FN_KEYWORDS = os.path.join(DATA_DIR, "PostgreSQL/downloads/keywords-all.obo")
 FN_GO_SLIM = os.path.join(DATA_DIR, "PostgreSQL/downloads/goslim_generic.obo")
 FN_GO_BASIC = os.path.join(DATA_DIR, "PostgreSQL/downloads/go-basic.obo")
 
-##### Maximum Time for MCL clustering
-# MAX_TIMEOUT = 5 # minutes
-
 # Flask app
 STATIC_DIR_FLASK = os.path.join(APP_DIR, 'static')
-
+# fn_example = os.path.join(EXAMPLE_FOLDER, "Test_human_compare_samples.txt") #"Test_yeast_compare_samples_small.txt") #"Test_yeast_compare_samples.txt")
+fn_example = os.path.join(STATIC_DIR_FLASK, "plotly/Yeast_acetylation_results_orig_20201012_Plotly_colnamesRenamed.txt")
 # automatic updates
 POSTGRESQL_DIR = os.path.join(DATA_DIR, "PostgreSQL")
 POSTGRESQL_DIR_SNAKEMAKE = os.path.join(DATA_DIR_SNAKEMAKE, "PostgreSQL")
@@ -179,8 +158,7 @@ DIRECTORIES_LIST = [os.path.join(DATA_DIR, 'PostgreSQL/downloads'),
                     os.path.join(DATA_DIR, 'logs'),
                     os.path.join(DATA_DIR, 'session')]
 FILES_NOT_2_DELETE = [os.path.join(DOWNLOADS_DIR + fn) for fn in ["keywords-all.obo", "goslim_generic.obo", "go-basic.obo"]]
-
-# log files
+### log files
 LOG_DIRECTORY = os.path.join(DATA_DIR, "logs")
 LOG_DF_FILE_DIMENSIONS = os.path.join(TABLES_DIR_SNAKEMAKE, "DF_file_dimensions_log.txt")
 LOG_DIRECTORY_SNAKEMAKE = os.path.join(DATA_DIR_SNAKEMAKE, "logs")
@@ -306,7 +284,7 @@ try:
 except:
     pass
 
-# jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
+jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
 # 511145.b1260
 jensenlab_supported_taxids_species_translations_dict = {4932: 559292, 4896: 284812} # Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome
@@ -343,8 +321,6 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 # 4932 species 4932 Saccharomyces cerevisiae
 # 6239 species 6239 Caenorhabditis elegans
 # 7227 species 7227 Drosophila melanogaster
-
-
 
 
 ### time temp.sh on mnemo5
@@ -415,10 +391,6 @@ def parse_env_file(fn):
                     pass
     return param_2_val_dict
 
-# if DB_DOCKER:
-#     param_2_val_dict = parse_env_file(os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file")))
-# else:
-#     param_2_val_dict = parse_env_file(os.path.join(APP_DIR, "env_file"))
 fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
 try:
     param_2_val_dict = parse_env_file(fn)

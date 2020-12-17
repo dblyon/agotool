@@ -1,0 +1,60 @@
+# single environment including snakemake
+name: plotly
+channels:
+  - conda-forge
+  - anaconda
+  - bioconda
+  - defaults
+  - plotly
+dependencies:
+  - python=3
+  - snakemake
+  - cython
+  - fisher
+  - numpy
+  - pandas
+  - scipy
+  - beautifulsoup4
+  - curl
+  - flask
+  - flask-restful
+  - flask-markdown
+  - ipdb
+  - ipython
+  - ipykernel
+  - jupyterlab
+  - jinja2
+  - json5
+  - libblas
+  - libclang
+  - libcurl
+  - libgfortran-ng
+  - libopenblas
+  - libgcc
+  - lxml
+  - openssl
+  - pip
+  - psycopg2
+  - requests
+  - tqdm
+  - urllib3
+  - Werkzeug
+  - WTForms
+  - wheel
+  - xlrd
+  - networkx
+  - pytest
+  - pytest-cov
+  - markdown
+  - retrying
+  - uwsgi
+  - matplotlib
+  - seaborn
+  - dash
+  - plotly
+  - jupyter_nbextensions_configurator
+  - python-kaleido
+  - nodejs
+  - dash-bootstrap-components
+  - dash_daq
+### conda env create -n plotly -f conda_plotly.yml
