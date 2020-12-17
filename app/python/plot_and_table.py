@@ -8,46 +8,6 @@ sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import variables
 import colnames as cn
 
-# etype = colnames.etype
-# term = colnames.term
-# funcEnum = colnames.funcEnum
-# description = colnames.description
-# p_value = colnames.p_value
-# FDR = colnames.FDR
-# effect_size = colnames.effect_size
-# over_under = colnames.over_under
-# hierarchical_level = colnames.hierarchical_level
-# s_value = colnames.s_value
-# ratio_in_FG = colnames.ratio_in_FG
-# ratio_in_BG = colnames.ratio_in_BG
-# FG_IDs = colnames.FG_IDs
-# BG_IDs = colnames.BG_IDs
-# FG_count = colnames.FG_count
-# BG_count = colnames.BG_count
-# FG_n = colnames.FG_n
-# BG_n = colnames.BG_n
-# rank = colnames.rank
-# year = colnames.year
-# category = colnames.category
-# color = colnames.color
-# marker_line_width = colnames.marker_line_width
-# marker_line_color = colnames.marker_line_color
-# # id_ = colnames.id_
-# opacity = colnames.opacity
-# text_label = colnames.text_label
-# logFDR = colnames.logFDR
-
-
-### Colors
-# DarkSlateGrey # UniProt color #71b8d3
-# table_background_color = "#f2f2f2" #ededed" #"#f1f1f1" ###  #f9f9f9 #F5F5F5 #a6b4cd #a8b5cf
-# table_highlight_color = "#b5d7eb" #"#abd5ed" # "gold abd5ed a7d0e8 # "#F6F8FA"
-# hover_label_color = "#43464B" # in agotool_plotly.css
-# plot_background_color = "#ffffff" #"rgb(255, 255, 255)" # white
-# plot_grid_color = "#efefef" # grey # efefef
-# plot_line_color = "#6C757D" #6d7787" #"#59667d" #"#4e5a6e" #"#7a7a7a" #"#2a3f5f" #"rgb(42, 63, 95)" # dark metal gray kind of blue
-# plot_ticklabel_color = plot_line_color
-# toggle_button_color = plot_line_color
 
 ### scatter plot
 opacity_default = 0.7
@@ -75,9 +35,9 @@ etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
                               -51: "UniProt keywords",
                               -52: "KEGG pathways",
                               -53: "SMART domains",
-                              -54: "INTERPRO domains",
-                              -55: "PFAM domains",
-                              -56: "Publications (PubMed)",
+                              -54: "InterPro domains",
+                              -55: "Pfam domains",
+                              -56: "Publications",
                               -57: "Reactome",
                               -58: "WikiPathways"}
 
@@ -122,7 +82,6 @@ def ready_df_for_plot(df, lineage_dict, enrichment_method):
     df[cn.opacity] = opacity_default
 
     term_2_edges_dict = get_term_2_edges_dict(df, lineage_dict, enrichment_method)
-
     term_2_edges_dict_json = json.dumps(term_2_edges_dict)
     return df, term_2_edges_dict_json, sizeref
 
@@ -209,10 +168,7 @@ def get_data_bars_dict_characterizeFG(df, colName):
 
 
 def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, session_id, session_folder_absolute):
-
-    # <div class='enrichment_table_content'><a style='text-decoration:underline;text-decoration-color:#C0C0C0' onclick='event.stopPropagation();' target='_blank' href='http://amigo.geneontology.org/amigo/term/GO:0006566'>GO:0006566</a></div>
-
-
+    # linkout_style = """#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:active { color:#0000EE; } #linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; } """
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(session_folder_absolute, file_name)
     # remaining columns are omitted for csv file, but needed for plot
@@ -229,52 +185,86 @@ def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, s
             table_as_text += " <th>{}</th> ".format(colname)
         table_as_text += '''</tr> </thead> <tbody> '''
         # cols_sort_order_genome = [s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
-        for row in df.itertuples(index=False):
-            s_value_ = row[0]
-            term_name = row[1]
-            description = row[2]
-            fdr = row[3]
-            effectsize = row[4]
-            category = row[5]
-            overunder = row[6]
-            hierarchicallevel = row[7]
-            year = row[8]
-            fgids = row[9]
-            fgcount = row[10]
-            fgn = row[11]
-            bgcount = row[12]
-            bgn = row[13]
-            ratioinfg = row[14]
-            ratioinbg = row[15]
-            pvalue = row[16]
-            logfdr = row[17]
-            rank = row[18]
-            term_id = term_name.replace(":", "").replace("-", "")
-            try:
-                style = term_2_style_dict[term_name]
-            except KeyError:
-                style = "{}"
-            table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
-            table_as_text += '''<td class="legible_text_shadow" id="{}">{:.2f}</td>'''.format(term_id, s_value_)
-            table_as_text += '''<td>{}</td>'''.format(term_name)
-            table_as_text += '''<td>{}</td>'''.format(description)
-            table_as_text += '''<td>{:.2E}</td>'''.format(fdr)
-            table_as_text += '''<td>{:.2f}</td>'''.format(effectsize)
-            table_as_text += '''<td>{}</td>'''.format(category)
-            table_as_text += '''<td>{}</td>'''.format(overunder)
-            table_as_text += '''<td>{}</td>'''.format(hierarchicallevel)
-            table_as_text += '''<td>{}</td>'''.format(year)
-            table_as_text += '''<td>{}</td>'''.format(fgids)
-            table_as_text += '''<td>{}</td>'''.format(fgcount)
-            table_as_text += '''<td>{}</td>'''.format(fgn)
-            table_as_text += '''<td>{}</td>'''.format(bgcount)
-            table_as_text += '''<td>{}</td>'''.format(bgn)
-            table_as_text += '''<td>{:.3f}</td>'''.format(ratioinfg)
-            table_as_text += '''<td>{:.3f}</td>'''.format(ratioinbg)
-            table_as_text += '''<td>{:.2E}</td>'''.format(pvalue)
-            table_as_text += '''<td>{:.2E}</td>'''.format(logfdr)
-            table_as_text += '''<td>{}</td>'''.format(rank)
-            table_as_text += ''' </tr> '''
+        for category_name, group in df.groupby(cn.category):
+            if category_name in {"GO cellular component TextMining", "GO cellular component", "GO biological process", "GO molecular function"}:
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
+            elif category_name == "UniProt keywords":
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.uniprot.org/keywords/{}">{}</a></td>'''
+            elif category_name in {"Brenda Tissue Ontology", "Disease Ontology"}:
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
+            elif category_name == "KEGG pathways": # https://www.genome.jp/dbget-bin/www_bget?pathway:map04914
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.genome.jp/dbget-bin/www_bget?pathway:{}">{}</a></td>'''
+            elif category_name == "InterPro domains": # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR002471/
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/interpro/entry/InterPro/{}">{}</a></td>'''
+            elif category_name == "Pfam domains": # http://pfam.xfam.org/family/PF00017
+                linkout_template = r'''<td id="linkout_dbl"><a href="http://pfam.xfam.org/family/{}">{}</a></td>'''
+            elif category_name == "Publications": # https://pubmed.ncbi.nlm.nih.gov/21072307/
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://pubmed.ncbi.nlm.nih.gov/{}">{}</a></td>'''
+            elif category_name == "Reactome": # https://reactome.org/content/detail/R-BTA-9034793
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://reactome.org/content/detail/{}">{}</a></td>'''
+            elif category_name == "WikiPathways": # https://www.wikipathways.org/index.php/Pathway:WP78
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.wikipathways.org/index.php/Pathway:/{}">{}</a></td>'''
+            else:
+                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
+            for row in group.itertuples(index=False):
+                s_value_ = row[0]
+                term_name = row[1]
+                description = row[2]
+                fdr = row[3]
+                effectsize = row[4]
+                category = row[5]
+                overunder = row[6]
+                hierarchicallevel = row[7]
+                year = row[8]
+                fgids = row[9]
+                fgcount = row[10]
+                fgn = row[11]
+                bgcount = row[12]
+                bgn = row[13]
+                ratioinfg = row[14]
+                ratioinbg = row[15]
+                pvalue = row[16]
+                logfdr = row[17]
+                rank = row[18]
+                term_id = term_name.replace(":", "").replace("-", "")
+                try:
+                    style = term_2_style_dict[term_name]
+                except KeyError:
+                    style = "{}"
+                # table_as_text += '''<tr> <style type="text/css"> #{}{} {}</style>'''.format(term_id, style, linkout_style)
+                table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
+                table_as_text += '''<td class="legible_text_shadow" id="{}">{:.2f}</td>'''.format(term_id, s_value_)
+                # table_as_text += r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''.format(term_name, term_name)
+                if category_name == "GO cellular component TextMining":
+                    table_as_text += linkout_template.format(term_name.replace("GOCC:", "GO:"), term_name)
+                elif category_name == "Brenda Tissue Ontology":
+                    table_as_text += linkout_template.format(term_name.replace("BTO:", "BTO_"), term_name)
+                elif category_name == "Disease Ontology":
+                    table_as_text += linkout_template.format(term_name.replace("DOID:", "DOID_"), term_name)
+                elif category_name == "Publications":
+                    table_as_text += linkout_template.format(term_name.replace("PMID:", ""), term_name)
+                elif category_name == "Reactome":
+                    table_as_text += linkout_template.format("R-" + term_name, term_name)
+                else:
+                    table_as_text += linkout_template.format(term_name, term_name)
+                table_as_text += '''<td>{}</td>'''.format(description)
+                table_as_text += '''<td>{:.2E}</td>'''.format(fdr)
+                table_as_text += '''<td>{:.2f}</td>'''.format(effectsize)
+                table_as_text += '''<td>{}</td>'''.format(category)
+                table_as_text += '''<td>{}</td>'''.format(overunder)
+                table_as_text += '''<td>{}</td>'''.format(hierarchicallevel)
+                table_as_text += '''<td>{}</td>'''.format(year)
+                table_as_text += '''<td>{}</td>'''.format(fgids)
+                table_as_text += '''<td>{}</td>'''.format(fgcount)
+                table_as_text += '''<td>{}</td>'''.format(fgn)
+                table_as_text += '''<td>{}</td>'''.format(bgcount)
+                table_as_text += '''<td>{}</td>'''.format(bgn)
+                table_as_text += '''<td>{:.3f}</td>'''.format(ratioinfg)
+                table_as_text += '''<td>{:.3f}</td>'''.format(ratioinbg)
+                table_as_text += '''<td>{:.2E}</td>'''.format(pvalue)
+                table_as_text += '''<td>{:.2E}</td>'''.format(logfdr)
+                table_as_text += '''<td>{}</td>'''.format(rank)
+                table_as_text += ''' </tr> '''
         table_as_text += ''' </tbody> </table> '''
 
     elif enrichment_method == "characterize_foreground":
@@ -470,7 +460,6 @@ def get_edge_positions_and_weight_as_list_characterizeFG(df):
         jaccard_index = 1
     return df[cn.ratio_in_FG].tolist() + [None], df[cn.FG_count].tolist() + [None], jaccard_index
 
-
 def yield_direct_parents(terms, lineage_dict):
     """
     generator: to return all direct parents of given terms
@@ -500,11 +489,18 @@ def yield_direct_parents(terms, lineage_dict):
 
 
 if __name__ == "__main__":
-    # pass
+    pass
     # - Table cell height could be smaller/lower
     # - hide options in enrichment page --> cleaner look
     # - plot / results page toggle button to show tipps
-    df = pd.read_csv(variables.fn_example, sep="\t")
-    term_2_style_dict = get_data_bars_dict(df, cn.s_value)
-    term = "KW-0472"
-    print(term_2_style_dict[term])
+    # df = pd.read_csv(variables.fn_example, sep="\t")
+    # term_2_style_dict = get_data_bars_dict(df, cn.s_value)
+    # term = "KW-0472"
+    # print(term_2_style_dict[term])
+
+    # df = pd.read_csv(variables.fn_example, sep="\t")
+    # df = df.groupby(cn.etype).head(20)
+    # import pickle
+    # lineage_dict_direct = pickle.load(open(os.path.join(variables.PYTHON_DIR, "term_2_edges_dict.p"), "rb"))
+    # print("lineage_dict", lineage_dict_direct["GOCC:0005634"])
+    # term_2_edges_dict = get_term_2_edges_dict(df, lineage_dict_direct, "abundance_correction")

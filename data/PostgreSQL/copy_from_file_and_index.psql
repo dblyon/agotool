@@ -47,3 +47,5 @@ CREATE TABLE taxid_2_protein_temp (
     an_array text ARRAY);
 \copy taxid_2_protein_temp FROM 'tables/Taxid_2_Proteins_table_UPS_FIN.txt';
 CREATE INDEX taxid_2_protein_taxid_idx_temp ON taxid_2_protein_temp (taxid);
+
+VACUUM(FULL, ANALYZE);

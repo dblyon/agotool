@@ -10,6 +10,7 @@ from flask_restful import reqparse, Api, Resource
 from werkzeug.wrappers import Response
 import wtforms
 from wtforms import fields
+from wtforms import widgets, SelectMultipleField
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
@@ -55,15 +56,13 @@ if ARGPARSE:
         variables.VERBOSE = True
 ###############################################################################
 # ToDo
-# - download results button
-# - filter_parents for "genome" not working for InterPro --> discussion point with Chritian/Damian
-# - code REST API analogous to STRING --> also adapt column names accordingly
-# - linkouts for term names
 # - fix PyTest colnames
+# - code REST API analogous to STRING --> also adapt column names accordingly
 # - fix javascript colnames
+# - create compare_samples_with_values --> KS test method
+# - filter_parents for "genome" not working for InterPro --> discussion point with Christian/Damian
 # - export parameters (args_dict) to file
 # - update example page
-# - "map" KEGG --> species specific names
 # - check if "Filter foreground count one button" works, doesn't work on agotool.org but does work in local version
 # - DF_file_dimensions_log.txt --> check that it is part of git repo (exception in .gitignore), and that new entries get added with each auto-update
 # characterize_foreground --> cap at 100 PMIDs with checkbox
@@ -73,7 +72,6 @@ if ARGPARSE:
 # - checkboxes for limit_2_entity_types instead of drop_down_list
 # add poster from ASMS
 # single help page with FAQ section
-# - buy goliath domain?
 # - report userinput 2 mapped ID and make available as download
 # - return unused identifiers
 # - multiple entity type results to be displayed
@@ -97,15 +95,14 @@ def getitem(obj, item, default):
         return obj[item]
 ###############################################################################
 ### Create the Flask application
+# SECRET_KEY = 'development'
 def init_app():
     app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
     Markdown(app)
-    ### Import Dash application
-    # from dash_within_flask_dbl_1 import init_dashboard
-    # app = init_dashboard(app)
     return app
 
 app = init_app()
+# app.config.from_object(__name__)
 
 if PROFILING:
     # from werkzeug.contrib.profiler import ProfilerMiddleware
@@ -149,19 +146,23 @@ def log_activity(string2log):
 ################################################################################
 if PRELOAD:
     if variables.VERSION_ == "STRING" or variables.VERSION_ == "UniProt":
-        pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
-        import create_SQL_tables_snakemake as cst
-        print("getting lineage_dict")
-        # lineage_dict = cst.get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents="direct")
         import pickle
-        lineage_dict = pickle.load(open("/Users/davidl/modules/cpr/agotool/data/PostgreSQL/tables/lineage_dict_direct.p", "rb"))
+        lineage_dict = pickle.load(open(os.path.join(variables.TABLES_DIR, "lineage_dict_direct.p"), "rb"))
         print("done with lineage_dict")
+        # import create_SQL_tables_snakemake as cst
+        # print("getting lineage_dict")
+        # lineage_dict = cst.get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents="direct")
+        pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
+        last_updated_text = query.get_last_updated_text()
     else:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
         raise NotImplementedError
 else:
     pqo = None # just for mocking
-    lineage_dict = {}
+    import pickle
+    lineage_dict = pickle.load(open(os.path.join(variables.TABLES_DIR, "lineage_dict_direct.p"), "rb"))
+    last_updated_text = "April 1, 1982"
+
 
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API
@@ -364,7 +365,7 @@ def index():
 ################################################################################
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html', last_updated_text=last_updated_text)
 
 @app.route('/doro')
 def doro():
@@ -487,7 +488,6 @@ def read_results_file(fn):
 ################################################################################
 # enrichment.html
 ################################################################################
-
 class Enrichment_Form(wtforms.Form):
     userinput_file = fields.FileField('Expects a tab-delimited text-file',
                                       description="""see 'Parameters' page for details""")
@@ -511,6 +511,23 @@ class Enrichment_Form(wtforms.Form):
                                               ("-54", "InterPro domains"),
                                               ("-55", "PFAM domains")),
                                    description="""Select either a functional category, one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, KEGG pathways, etc.""")
+    # limit_2_entity_type_v2 = fields.SelectMultipleField("Category of functional associations", # # ("-53", "SMART domains"), # not available in UniProt version
+    #                                choices = (("-51", "UniProt keywords"),
+    #                                           ("-57", "Reactome"),
+    #                                           ("-52", "KEGG pathways"),
+    #                                           ("-21", "GO Biological Process"),
+    #                                           ("-23", "GO Molecular Function"),
+    #                                           ("-22", "GO Celluar Compartment"),
+    #                                           ("-20", "GOCC from Textmining"),
+    #                                           ("-25", "Brenda Tissue Ontology (BTO)"),
+    #                                           ("-26", "Disease Ontology IDs (DOIDs)"),
+    #                                           ("-56", "PMID (PubMed IDs)"),
+    #                                           ("-54", "InterPro domains"),
+    #                                           ("-55", "PFAM domains"),
+    #                                           ("-58", "Wiki pathways")),
+    #                                description="""Select either a functional category, one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, KEGG pathways, etc.""", widget=widgets.Select(multiple=True), option_widget=widgets.CheckboxInput() )
+    #
+
     enrichment_method = fields.SelectField("Enrichment method",
                                    choices = (("abundance_correction", "abundance_correction"),
                                               ("characterize_foreground", "characterize_foreground"),
@@ -602,35 +619,38 @@ class Example_4(Enrichment_Form):
 
 @app.route('/example_1')
 def example_1():
-    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak", example_description="""characterize the foreground: SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak (from https://covid-19.uniprot.org).""")
+    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak", example_description="""characterize the foreground: SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak (from https://covid-19.uniprot.org).""", last_updated_text=last_updated_text)
 
 @app.route('/example_2')
 def example_2():
-    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""comparing human haemoglobin proteins to the UniProt reference genome. When using the 'genome' method a specific NCBI taxonomic identifier (TaxID) has to be provided. In this case it is '9606' for Homo sapiens. In case don't know the TaxID of your organism of choice, please search at NCBI (link provided below).""")
+    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""comparing human haemoglobin proteins to the UniProt reference genome. When using the 'genome' method a specific NCBI taxonomic identifier (TaxID) has to be provided. In this case it is '9606' for Homo sapiens. In case don't know the TaxID of your organism of choice, please search at NCBI (link provided below).""", last_updated_text=last_updated_text)
 
 @app.route('/example_3')
 def example_3():
-    return render_template('enrichment.html', form=Example_3(), example_status="example_1", example_title="Yeast acetylation", example_description="""comparing acetylated yeast (Saccharomyces cerevisiae) proteins to the experimentally observed proteome using the 'abundance_correction' method. Data was taken from the original publication (see 'About' page).""")
+    return render_template('enrichment.html', form=Example_3(), example_status="example_1", example_title="Yeast acetylation", example_description="""comparing acetylated yeast (Saccharomyces cerevisiae) proteins to the experimentally observed proteome using the 'abundance_correction' method. Data was taken from the original publication (see 'About' page).""", last_updated_text=last_updated_text)
 
 @app.route('/example_4')
 def example_4():
-    return render_template('enrichment.html', form=Example_4(), example_status="example_4", example_title="Mouse interferon", example_description="""comparing a couple of mouse interferons to the reference proteome, applying the 'compare_samples' method.""")
+    return render_template('enrichment.html', form=Example_4(), example_status="example_4", example_title="Mouse interferon", example_description="""comparing a couple of mouse interferons to the reference proteome, applying the 'compare_samples' method.""", last_updated_text=last_updated_text)
 
 @app.route('/')
 def enrichment():
-    return render_template('enrichment.html', form=Enrichment_Form(), example_status="example_None")
-
-@app.route('/temp')
-def temp():
-    return render_template('temp.html', form=Enrichment_Form())
+    return render_template('enrichment.html', form=Enrichment_Form(), example_status="example_None", last_updated_text=last_updated_text)
 
 @app.route('/help')
 def help_():
     return render_template('help.html', form=Enrichment_Form())
 
-# @app.route('/plot')
-@app.route('/results')
 def generate_interactive_result_page(df, args_dict, session_id, form, errors=()):
+    """
+    /plot
+    :param df:
+    :param args_dict:
+    :param session_id:
+    :param form:
+    :param errors:
+    :return:
+    """
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     df.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
@@ -639,12 +659,14 @@ def generate_interactive_result_page(df, args_dict, session_id, form, errors=())
     df, term_2_edges_dict_json, sizeref = plot_and_table.ready_df_for_plot(df, lineage_dict, enrichment_method)
     dict_per_category, term_2_positionInArr_dict, term_2_category_dict = plot_and_table.df_2_dict_per_category_for_traces(df, enrichment_method)
     table_as_text = plot_and_table.df_2_html_table_with_data_bars(df, cols_sort_order, enrichment_method, session_id, SESSION_FOLDER_ABSOLUTE)
-
+    x_min, x_max, y_min, y_max = df[cn.logFDR].min(), df[cn.logFDR].max(), df[cn.effect_size].min(), df[cn.effect_size].max()
+    x_range_start, x_range_stop, y_range_start, y_range_stop = x_min * 0.93, x_max * 1.085, y_min * 1.25, y_max * 1.25
     return render_template('results_interactive.html', form=Enrichment_Form(),
         term_2_edges_dict_json=term_2_edges_dict_json, sizeref=sizeref,
         dict_per_category=dict_per_category, term_2_positionInArr_dict=term_2_positionInArr_dict, term_2_category_dict=term_2_category_dict,
         df_as_html_dict=table_as_text, enrichment_method=enrichment_method,
-        file_path=file_name)
+        file_path=file_name,
+        x_range_start=x_range_start, x_range_stop=x_range_stop, y_range_start=y_range_start, y_range_stop=y_range_stop)
 
 ################################################################################
 # results.html
@@ -718,7 +740,7 @@ def results():
             ### old version with compact and comprehensive results
             # return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
             return generate_interactive_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
-    return render_template('enrichment.html', form=form)
+    return render_template('enrichment.html', form=form, last_updated_text=last_updated_text)
 
 def helper_split_errors_from_dict(args_dict):
     errors_dict, args_dict_minus_errors = {}, {}

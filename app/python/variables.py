@@ -5,7 +5,7 @@ hostname = socket.gethostname()
 
 ############################
 ### settings
-PRELOAD = False # set True in production. Load necessary data via PQO
+PRELOAD = True # set True in production. Load necessary data via PQO
 # pre-load objects DB connection necessary, set to False while testing with pytest
 # skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 # skip_downloads_completely = True # don't download anything
@@ -16,8 +16,8 @@ DOCKER = False # app and data directory, within image or shared with local host,
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect to local Postgres or dockerized-Postgres
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
-DEBUG = True # for flask and some internals for printing, set to False in production
-DEBUG_HTML = True # if True: always load example results on submit
+DEBUG = False # for flask and some internals for printing, set to False in production
+DEBUG_HTML = False # if True: always load example results on submit
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout

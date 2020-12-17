@@ -121,7 +121,8 @@ svg.main-svg g.hoverlayer g.hovertext text {
 
 /* Data Table highlight color on hover over rows but not over header */
 /* goldenrod #d9b14c #ecd28f */
-table tbody tr:hover { background-color: #ecd28f !important; }
+/*table tbody tr:hover { background-color: #ecd28f !important; }*/
+#dataTable_DBL_id tbody tr:hover { background-color: #ecd28f !important; }
 /* Data Table highlight color on selection */
 /* #b5d7eb #daa520 #e1b74c */
 .even.selected td { background-color: #e1b74c !important; }
@@ -137,11 +138,24 @@ table tbody tr:hover { background-color: #ecd28f !important; }
 /* remove border between rows of data table */
 .table td, .table th { border-top: none; }
 
+table.dataTable tbody th, table.dataTable tbody td {
+    padding: 10px; /* e.g. change 8x to 4px here */
+}
+
+    /*linkout_style = """#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:active { color:#0000EE; } #linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; } """*/
+#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal}
+#linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal}
+#linkout_dbl a:active { color:#0000EE; }
+#linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; }
+
 /* Scatter plot legend text. When adding term labels (as interactive annotations) the text "Aa" is added in superscript to the legend. Remove this bug via code below */
 .pointtext {
     display: none;
 }
 
+#last_updated_id {
+    font-size: 11px;
+}
 /*.dbl_reset_button {*/
 /*    padding: 4px 4px 4px 4px;*/
 /*    transform: translate(-20px); !* Equal to: translateX(10px) or translate(10px, 0) *!*/
@@ -152,9 +166,9 @@ table tbody tr:hover { background-color: #ecd28f !important; }
 /*    color: red !important;*/
 /*}*/
 
-button.dt-button.active {
-    background: #cccccc !important;
-}
+/*button.dt-button.active {*/
+/*    background: #cccccc !important;*/
+/*}*/
 
 /*button.dt-button.buttons-collection.button-colvis {*/
 /*    background: green !important;*/
@@ -163,18 +177,21 @@ button.dt-button.active {
 /*.dt-buttons {*/
 /*    background: green !important;*/
 /*}*/
+
+/*="text-decoration:underline;text-decoration-color:#C0C0C0"*/
+
 .buttons-colvis {
     background: white !important;
-    /*padding: 4px 4px 4px 4px;*/
-    /*transform: translate(-20px); !* Equal to: translateX(10px) or translate(10px, 0) *!*/
-    width: 125px;
     color: #17a2b8 !important;
     border-color: #17a2b8 !important;
-    /*#6c757d*/
-    padding: .25rem .5rem !important;
     font-size: .875rem !important;
-    line-height: 1.5;
-    border-radius: .2rem !important;
+    /*#6c757d*/
+    /*padding: .25rem .5rem !important;*/
+    /*border-radius: .2rem !important;*/
+    /*padding: 4px 4px 4px 4px;*/
+    /*transform: translate(-20px); !* Equal to: translateX(10px) or translate(10px, 0) *!*/
+    /*width: 125px;*/
+    /*line-height: 1.5;*/
     /*float: right !important;*/
 }
 
@@ -187,9 +204,9 @@ button.dt-button.active {
    border-color: black !important;
 }
 
-/*.dbl_download_table_button {*/
-/*    margin: 0 5px;*/
-/*}*/
+.dbl_download_table_button {
+    margin: 0 0 0 5px;
+}
 
 .legible_text_shadow {
     font-weight: 450;

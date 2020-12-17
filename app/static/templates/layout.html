@@ -8,44 +8,44 @@
 <meta name="description" content="protein centric functional enrichment with automactic updates">
 <meta name="author" content="David Lyon">
 <title>a GO tool</title>
-
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.colVis.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/fixedcolumns/3.3.2/js/dataTables.fixedColumns.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.1/js/dataTables.select.min.js"></script>
-{# for production #}
-    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.4/umd/popper.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-filestyle/2.1.0/bootstrap-filestyle.min.js"> </script>
-{#    <script type="text/javascript" src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>#}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
-    {# https://gitbrent.github.io/bootstrap4-toggle/ --> WORKS #}
-
-
-{# for development #}
-{#    <script type="text/javascript" src="https://gmousse.github.io/dataframe-js/dist/dataframe.js"></script>#}
-{#    <script type="text/javascript" src="https://gmousse.github.io/dataframe-js/dist/dataframe.min.js"></script> #}
-{#    <script type="text/javascript" src="{{ url_for('static', filename='js/data_forge.js') }}"></script>#}
-{#    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/danfojs@0.1.2/dist/index.min.js"></script>#}
-{#    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/underscore@1.12.0/underscore-min.js"></script>#}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
-
-
-
-    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/agotool.js') }}"></script>
-
+    {# CSS #}
     <link type="text/css" rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">
-    <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.dataTables.css">
+    <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.5/css/buttons.bootstrap4.min.css">
     <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/3.3.2/css/fixedColumns.dataTables.min.css">
     <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/select/1.3.1/css/select.dataTables.min.css">
-{#    <link type="text/css" rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">#}
     <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css">
 
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/agotool.css') }}">
+
+
+    {# JS #}
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-filestyle/2.1.0/bootstrap-filestyle.min.js"> </script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.colVis.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/fixedcolumns/3.3.2/js/dataTables.fixedColumns.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.1/js/dataTables.select.min.js"></script>
+{# experimental#}
+{#    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.flash.min.js"></script>#}
+{#    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.print.min.js"></script>#}
+
+
+
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.4/umd/popper.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/agotool.js') }}"></script>
+
+
 
 
 {#    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.22/b-1.6.5/b-colvis-1.6.5/b-html5-1.6.5/cr-1.5.2/fc-3.3.1/fh-3.1.7/r-2.2.6/sl-1.3.1/datatables.min.js"></script>#}
@@ -82,12 +82,11 @@
           <div class="collapse navbar-collapse" id="basicExampleNav">
             <ul class="navbar-nav mr-auto">
               {% block nav_Enrichment %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('enrichment') }}">Enrichment</a></li>{% endblock nav_Enrichment %}
-              {% block nav_Parameters %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters</a></li>{% endblock nav_Parameters %}
               {% block nav_Example %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('example') }}">Example</a></li>{% endblock nav_Example %}
-              {% block nav_API %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('api_help') }}">API</a></li>{% endblock nav_API %}
+              {% block nav_Parameters %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('parameters') }}">Parameters</a></li>{% endblock nav_Parameters %}
               {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock nav_FAQ %}
               {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock nav_About %}
-{#              {% block nav_Plot %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('plot') }}">Plot</a></li>{% endblock nav_Plot %}#}
+              {% block nav_API %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('api_help') }}">API</a></li>{% endblock nav_API %}
             </ul>
           </div>
         </nav>

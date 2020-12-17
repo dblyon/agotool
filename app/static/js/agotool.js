@@ -76,6 +76,8 @@ $('#enrichment_method').change(function() {
     });
 $("#enrichment_method").change();
 
+
+
 // old code pertinent for "characterize_foreground
 // // show score_cutoff only when "characterize_foreground" is selected
 //     $('#enrichment_method').change(function() {
@@ -134,6 +136,15 @@ if (hide_true === true) {
 }
 //     document.getElementsByClassName('example_status').value="newValue_DBL"; --> where can I see this value in the HMTL ???
 //     document.getElementsByClassName('example_status').bubu="this doesn't make sense";
+
+//     $('#checkbox_limit_2_entity_type_all_ID').change(function(e) {
+//         if (e.currentTarget.checked) {
+//             $('.rows').find('input[type="checkbox"]').prop('checked', true);
+//         } else {
+//             $('.rows').find('input[type="checkbox"]').prop('checked', false);
+//             }
+//         });
+
 });
 
 // show or hide selectors/tags depending on choice
@@ -166,7 +177,7 @@ var results_page = (function () {
     // }
 
     jQuery.fn.dataTable.render.ellipsis = function ( cutoff, wordbreak, escapeHtml ) {
-    var esc = function ( t ) {
+    let esc = function ( t ) {
         return t
             .replace( /&/g, '&amp;' )
             .replace( /</g, '&lt;' )
@@ -186,7 +197,7 @@ var results_page = (function () {
         if ( d.length <= cutoff ) {
             return d;
         }
-        var shortened = d.substr(0, cutoff-1);
+        let shortened = d.substr(0, cutoff-1);
         // Find the last white space character in the string
         if ( wordbreak ) {
             shortened = shortened.replace(/\s([^\s]*)$/, '');
@@ -201,35 +212,35 @@ var results_page = (function () {
 });
 
 // RESULTS PAGE COMPACT
-var results_page_compact = (function () {
-    // add classes to specific columns
-    $(document).ready(function() {
-        $('table.display').DataTable({
-            "columnDefs": [{ className: "dt-nowrap", "targets": [ 1 ] }],
-            "autoWidth": false,
-            "columns": [
-                { "width": "5%" },
-                { "width": "10%" },
-                { "width": "65%" },
-                { "width": "10%" },
-                { "width": "10%" }]
-      } );
-    } );
-});
+// let results_page_compact = (function () {
+//     // add classes to specific columns
+//     $(document).ready(function() {
+//         $('table.display').DataTable({
+//             "columnDefs": [{ className: "dt-nowrap", "targets": [ 1 ] }],
+//             "autoWidth": false,
+//             "columns": [
+//                 { "width": "5%" },
+//                 { "width": "10%" },
+//                 { "width": "65%" },
+//                 { "width": "10%" },
+//                 { "width": "10%" }]
+//       } );
+//     } );
+// });
 
 // RESULTS PAGE COMPREHENSIVE
-var results_page_comprehensive = (function () {
-    // add classes to specific columns
-    $(document).ready(function() {
-        $('table.display').DataTable({
-            "autoWidth": true,
-            dom: 'Bfrtip',
-            buttons: ['colvis'],
-            "columnDefs": [
-                { targets: '_all', render: $.fn.dataTable.render.ellipsis( 60, true ) }]
-      });
-    });
-});
+// let results_page_comprehensive = (function () {
+//     // add classes to specific columns
+//     $(document).ready(function() {
+//         $('table.display').DataTable({
+//             "autoWidth": true,
+//             dom: 'Bfrtip',
+//             buttons: ['colvis'],
+//             "columnDefs": [
+//                 { targets: '_all', render: $.fn.dataTable.render.ellipsis( 60, true ) }]
+//       });
+//     });
+// });
 
 // RESULTS PAGE PLOTLY
 let results_page_plotly = (function () {
@@ -281,7 +292,7 @@ let results_page_plotly = (function () {
                     {"visible": true, "width": "80px"}, // s value
                     {"visible": true, "width": "100px"}, // term
                     {"visible": true, "width": "200px"}, // description
-                    {"visible": true}, // FDR
+                    {"visible": true, "width": "136px"}, // FDR
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
@@ -304,7 +315,7 @@ let results_page_plotly = (function () {
                     {"visible": true, "width": "80px"}, // s value
                     {"visible": true, "width": "100px"}, // term
                     {"visible": true, "width": "200px"}, // description
-                    {"visible": true}, // FDR
+                    {"visible": true, "width": "136px"}, // FDR
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
@@ -339,8 +350,32 @@ let results_page_plotly = (function () {
             default:
                 cols = [];
         }
-        return cols
+        return cols;
     }
+
+    function get_column_reset_visible_info(enrichment_method) {
+        let hidden_columns_index_arr;
+        let visible_columns_index_arr;
+        switch (enrichment_method) {
+            case "genome":
+            case "abundance_correction":
+                hidden_columns_index_arr = Array.from(new Array(19), (x, i) => i);
+                visible_columns_index_arr = [0, 1, 2, 3];
+                break;
+            case "compare_samples":
+                hidden_columns_index_arr = Array.from(new Array(20), (x, i) => i);
+                visible_columns_index_arr = [0, 1, 2, 3];
+                break;
+            case "characterize_foreground":
+                hidden_columns_index_arr = Array.from(new Array(10), (x, i) => i);
+                visible_columns_index_arr = [0, 1, 2, 3, 7];
+                break;
+            default:
+                hidden_columns_index_arr = [];
+                visible_columns_index_arr = [];
+        }
+        return [hidden_columns_index_arr, visible_columns_index_arr];
+        }
 
     function get_order_formatting(enrichment_method) {
         let order;
@@ -361,46 +396,70 @@ let results_page_plotly = (function () {
         return order
     }
 
-
-
+    function get_columns_for_ellipsis(enrichment_method) {
+        // only foreground_ids and background_ids
+        let cols;
+        switch (enrichment_method) {
+            case "genome":
+            case "abundance_correction":
+                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
+                cols = [9]; // foreground_ids
+                break;
+            case "compare_samples":
+                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
+                cols = [9, 10]; // foreground_ids, background_ids
+                break;
+            case "characterize_foreground":
+                // [ratio_in_FG, term, description, category, hierarchical_level, year, FG_IDs, FG_count, FG_n, rank]
+                cols = [6]; // foreground_ids
+                break;
+            default:
+                cols = [];
+        }
+        return cols;
+    }
 
     // add classes to specific columns
     $(document).ready(function() {
         let table_dbl = $('table.display').DataTable({
-            /* SCROLLING */
-            scrollY: "500px",
+            // always display scrollbar
             scrollCollapse: true,
             paging: false,
             scrollX: true,
+            scrollY: "500px",
+            "autoWidth": false,
             "language": {
                 "info": "Showing _TOTAL_ entries",
                 "infoFiltered": "(filtered from _MAX_ total entries)",
             },
             dom: 'Bfrtip',
-            buttons: ['colvis'],
-            // buttons: ['colvis', 'copy', 'excel', 'pdf'],
-            "columnDefs": [{targets: '_all', render: $.fn.dataTable.render.ellipsis(80, true)}],
+            buttons: [ {extend: 'colvis', text: 'column visibility',}, ],
+            // "columnDefs": [{targets: '_all', render: $.fn.dataTable.render.ellipsis(80, true)}],
+            "columnDefs": [{targets: get_columns_for_ellipsis(enrichment_method), render: $.fn.dataTable.render.ellipsis(80, true)}],
             responsive: true,
             select: {style: 'multi'},
             "order": get_order_formatting(enrichment_method),
-            "autoWidth": false,
             "columns": get_columns_visible_and_width_formatting(enrichment_method),
         });
 
+
         let selected_indices_set = new Set();
+
         table_dbl.on('select', function (e, dt, type, indexes) {
             if (type === 'row') {
-                let selected_term = table_dbl.rows(indexes).data()[0][1];
+                // let selected_term = table_dbl.rows(indexes).data()[0][1];
+                let selected_term = table_dbl.rows(indexes).data()[0][1].split(">")[1].split("</a")[0];
                 selected_indices_set.add(selected_term);
                 update_scatter_plot(); }
         });
+
         table_dbl.on('deselect', function (e, dt, type, indexes) {
             if (type === 'row') {
-                let deselected_term = table_dbl.rows(indexes).data()[0][1];
+                // let deselected_term = table_dbl.rows(indexes).data()[0][1];
+                let deselected_term = table_dbl.rows(indexes).data()[0][1].split(">")[1].split("</a")[0];
                 selected_indices_set.delete(deselected_term);
                 update_scatter_plot(); }
         });
-
 
         function reset_data_dict_per_category(dict_per_category) {
             for (let category_name in dict_per_category) {
@@ -415,7 +474,18 @@ let results_page_plotly = (function () {
 
         function redraw_original_plot() {
             reset_data_dict_per_category(dict_per_category);
-            Plotly.newPlot('plotly_scatter_plot', get_all_traces(dict_per_category), plot_layout_orig, plot_config);
+            Plotly.newPlot('plotly_scatter_plot', get_all_traces(dict_per_category), get_plot_layout_orig(), plot_config);
+        }
+
+        let hidden_columns_index_arr;
+        let visible_columns_index_arr;
+
+        function reset_table() {
+            table_dbl.order( get_order_formatting(enrichment_method) ).draw();
+            [hidden_columns_index_arr, visible_columns_index_arr] = get_column_reset_visible_info(enrichment_method);
+            table_dbl.columns( hidden_columns_index_arr ).visible( false, false );
+            table_dbl.columns( visible_columns_index_arr ).visible( true, false );
+            table_dbl.columns.adjust().draw( false );
         }
 
         let toggle_point_edges_button = $("#toggle_point_edges_id")
@@ -453,6 +523,7 @@ let results_page_plotly = (function () {
             selected_indices_set.clear();
             table_dbl.$('tr.selected').removeClass('selected');
             redraw_original_plot();
+            reset_table();
         });
 
         let edges_plotted = false;
@@ -472,6 +543,7 @@ let results_page_plotly = (function () {
                 traces_for_modified_plot = [];
                 edges_plotted = false;
                 reset_data_dict_per_category(dict_per_category);
+                let plot_layout_orig = get_plot_layout_orig();
                 // add edges
                 if (toggle_point_edges_button.is(':checked')) {
                     trace_for_edges_template["x"] = [];
@@ -482,7 +554,11 @@ let results_page_plotly = (function () {
                         category_name = term_2_category_dict[term_name];
                         dict_of_category = dict_per_category[category_name];
                         index_position = term_2_positionInArr_dict[term_name];
-                        dict_of_category["opacity"][index_position] = opacity_highlight;
+                        try {
+                            dict_of_category["opacity"][index_position] = opacity_highlight;
+                        } catch {
+                            console.log("type error for ", term_name, category_name, index_position);
+                        }
                         // if edges exists
                         if (typeof edges !== "undefined") {
                             trace_for_edges_template["x"] = trace_for_edges_template["x"].concat(edges["X_points"]);
@@ -519,6 +595,8 @@ let results_page_plotly = (function () {
                 }
 
                 if (toggle_point_labels_button.is(':checked')) {
+                    plot_layout_orig["xaxis"]["range"] = x_range_with_labels;
+                    plot_layout_orig["yaxis"]["range"] = y_range_with_labels;
                     for (let term_name of selected_indices_set) {
                         category_name = term_2_category_dict[term_name];
                         dict_of_category = dict_per_category[category_name];
@@ -529,9 +607,6 @@ let results_page_plotly = (function () {
                         dict_of_category["marker_line_width"][index_position] = marker_line_width_highlight;
                         dict_of_category["opacity"][index_position] = opacity_highlight;
                     }
-
-                    // xaxis_range=[x_min * 0.93, x_max * 1.07], yaxis_range=[y_min * 1.25, y_max * 1.25]
-
                 } else {
                     // reset labels, but highlight with less opacity and line around point
                     for (let term_name of selected_indices_set) {
@@ -542,6 +617,8 @@ let results_page_plotly = (function () {
                         dict_of_category["marker_line_width"][index_position] = marker_line_width_highlight;
                         dict_of_category["opacity"][index_position] = opacity_highlight;
                     }
+                    plot_layout_orig["xaxis"]["range"] = [];
+                    plot_layout_orig["yaxis"]["range"] = [];
                 }
 
                 for (let category_name in dict_per_category) {
@@ -553,7 +630,26 @@ let results_page_plotly = (function () {
             } else {
                 redraw_original_plot();
             }
+        // let myPlot = document.getElementById("plotly_scatter_plot");
         }
+
+    // let term_temp = "";
+    // myPlot.on('plotly_click', function(data_){
+    //     console.log("dbl clicking on plot");
+    //     console.log(data_);
+    //     for(let i=0; i < data_.points.length; i++){
+    //         term_temp = data_.points[i].id;
+    //         // toggle selection
+    //         if (selected_indices_set.has(term_temp)) {
+    //             selected_indices_set.delete(term_temp);
+    //         } else {
+    //             selected_indices_set.add(term_temp);
+    //         }
+    //     }
+    //     update_scatter_plot();
+    //     console.log(selected_indices_set);
+    // });
+
 
     })
 });
@@ -562,7 +658,6 @@ let results_page_plotly = (function () {
 // - draw edges then hide a trace --> edges persist
 
 // ToDo
-// - Plot deselect trace in legend --> filter in table ?
+// - deselect a trace in legend of the plot --> filter corresponding rows in the datatable
 // - select point in plot --> highlight in table
-// - reset --> activate buttons
 

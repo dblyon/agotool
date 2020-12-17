@@ -15,13 +15,11 @@
 
 {% block content %}
 <div class="tab-content container page-wrap">
-
-{#{% block content %}#}
-{#<div class="container-fluid">#}
     <form id="main_form" method="Post" action="results" enctype="multipart/form-data">
-    <br><br>
-{#    <h1 class="row text-center">ENRICHMENT</h1>#}
-{#    <br>#}
+
+    <br>
+    <div class="row" id="last_updated_id">Last updated on {{ last_updated_text | safe }}</div>
+        <br>
         <div class="row"><h4>Drag & drop or click to upload a file</h4></div>
         <div class="col-md-10">Please see the <a class="grey_underline" href="{{ url_for('example') }}">Example</a> page or try one of the examples below.</div>
             <div class="col-md-8">
@@ -30,7 +28,7 @@
                     <ul class="errors"> {% for error in form.userinput_file.errors %} <b> {{ error }} </b> {% endfor %} </ul>
                     {% endif %}
             <br>
-            <div class="row"> <h5>or alternatively use copy & paste fields</h5></div>
+            <div class="row"> <h5>or alternatively use the copy & paste fields</h5></div>
             <div class="row">
                 <div class="col-md-10 example_header">examples: <a class="example" href="{{ url_for('example_1') }}">#1</a>  <a class="example" href="{{ url_for('example_2') }}">#2</a> <a class="example" href="{{ url_for('example_3') }}">#3</a> <a class="example" href="{{ url_for('example_4') }}">#4</a></div>
 
@@ -67,36 +65,6 @@
                         {% endif %}
                   </div>
 
-{#        <div class="row">#}
-{#            <h3>Analysis options</h3>#}
-{#                <div class="col-md-10">#}
-{#                    <div title="{{ form.limit_2_entity_type.description }}"> {{ form.limit_2_entity_type.label }}: {{ form.limit_2_entity_type() }} <br> </div>#}
-{#                    <div class="p_value" title="{{ form.o_or_u_or_both.description }}"> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }}</div>#}
-{#                    <div title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}</div>#}
-{#                    <div class="p_value" title="{{ form.multiple_testing_per_etype.description }}"> {{ form.multiple_testing_per_etype.label }}: {{ form.multiple_testing_per_etype() }}</div>#}
-{#                </div>#}
-{#        </div>#}
-{#        <div class="row">#}
-{#            <h3>Report options</h3>#}
-{#        </div>#}
-{#            <div class="row">#}
-{#                <div class="col-md-8">#}
-{#                    <table>#}
-{#                        <tr class="p_value" title="{{ form.p_value_cutoff.description }}"><td class="p_value">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>#}
-{#                            {% if form.p_value_cutoff.errors %}#}
-{#                                <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>#}
-{#                            {% endif %}#}
-{#                        <tr class="p_value" title="{{ form.FDR_cutoff.description }}"><td class="p_value">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>#}
-{#                            {% if form.FDR_cutoff.errors %}#}
-{#                        <tr>#}
-{#                            <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>#}
-{#                            {% endif %}#}
-{#                        <tr title="{{ form.filter_foreground_count_one.description }}"><td>{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>#}
-{#                        <tr class="filter_parents" title="{{ form.filter_parents.description }}"><td>{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>#}
-{#                    </table>#}
-{#                </div>#}
-{#            </div>#}
-
 <div class="row">
     <div class="panel-group">
       <div class="panel panel-default">
@@ -108,6 +76,94 @@
         <div id="collapse_analysis_options" class="panel-collapse collapse">
                 <div class="col-md-10">
                     <div title="{{ form.limit_2_entity_type.description }}"> {{ form.limit_2_entity_type.label }}: {{ form.limit_2_entity_type() }} <br> </div>
+
+{#                    <div class="form-check">#}
+{#                      <input class="form-check-input" type="checkbox" value="-21;-22;-23" id="defaultCheck2" name="limit_2_entity_type" checked>#}
+{#                      <label class="form-check-label" for="defaultCheck2">#}
+{#                        all Gene Ontology categories#}
+{#                      </label>#}
+{#                    </div>#}
+{#                    <div>Category of functional associations#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-51" id="defaultCheck3" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            UniProt keywords#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-57" id="defaultCheck4" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            Reactome#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-52" id="defaultCheck5" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            KEGG pathways#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-21" id="defaultCheck6" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            GO Biological Process#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-22" id="defaultCheck7" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            GO Molecular Function#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-23" id="defaultCheck8" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            GO Celluar Compartment#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-20" id="defaultCheck9" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            GO Celluar Compartment from Textmining#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-25" id="defaultCheck10" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            Brenda Tissue Ontology (BTO)#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-26" id="defaultCheck11" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            Disease Ontology IDs (DOIDs)#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-56" id="defaultCheck12" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            PubMed Publications#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-54" id="defaultCheck13" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            InterPro domains#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-55" id="defaultCheck14" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            Pfam domains#}
+{#                          </label>#}
+{#                        </div>#}
+{#                        <div class="form-check">#}
+{#                          <input class="form-check-input" type="checkbox" value="-58" id="defaultCheck15" name="limit_2_entity_type" checked>#}
+{#                          <label class="form-check-label" for="defaultCheck2">#}
+{#                            Wiki pathways#}
+{#                          </label>#}
+{#                        </div>#}
+{#                    </div>#}
+
                     <div class="p_value" title="{{ form.o_or_u_or_both.description }}"> {{ form.o_or_u_or_both.label }}: {{ form.o_or_u_or_both() }}</div>
                     <div title="{{ form.go_slim_or_basic.description }}"> {{ form.go_slim_or_basic.label }}: {{ form.go_slim_or_basic() }}</div>
                     <div class="p_value" title="{{ form.multiple_testing_per_etype.description }}"> {{ form.multiple_testing_per_etype.label }}: {{ form.multiple_testing_per_etype() }}</div>

@@ -2,7 +2,7 @@ from __future__ import print_function
 import pickle
 import numpy as np
 import pandas as pd
-import os, sys
+import os, sys, datetime
 from collections import defaultdict
 import psycopg2
 import socket
@@ -10,7 +10,7 @@ hostname = socket.gethostname()
 
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
-import variables, obo_parser, taxonomy
+import variables, obo_parser, taxonomy, tools
 import run_cythonized
 
 # UNSIGNED_2_SIGNED_CONSTANT = int(math.pow(2, 63))
@@ -1477,6 +1477,13 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dic
                 #         return taxid_mapped, True  # taxid can easily be mapped because it's known
                 #     except KeyError:
                 #         return taxid, False
+
+def get_last_updated_text():
+    fn = os.path.join(variables.TABLES_DIR, "aGOtool_flatfiles_current.tar.gz")
+    time_ = tools.creation_date(fn)
+    return datetime.datetime.fromtimestamp(time_).strftime("%d %B %Y")
+
+
 
 if __name__ == "__main__":
     pass
