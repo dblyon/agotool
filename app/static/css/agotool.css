@@ -10,6 +10,8 @@ body { background-color:#fff; }
     border-color:#d95f0e;
     border-radius: 0;
 }
+/* previously d95f0e*/
+
 
 .page-footer {
     background-color:#d95f0e !important;
@@ -251,4 +253,15 @@ table.dataTable thead .sorting_desc {
    background-repeat: no-repeat;
    background-position: center left;
    background-size: 12px 14px;
+}
+
+
+/* jquery autocomplete input field for NCBI taxonomy */
+.ui-autocomplete.ui-widget {
+  /*font-family: Verdana,Arial,sans-serif;*/
+    font-size: 13px;
+    max-height: 200px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
 }

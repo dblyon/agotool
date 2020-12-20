@@ -702,3 +702,10 @@ def test_check_parse_cleanup_check(ui, check_parse=True, check_cleanup=True, che
     assert ui.check_parse == check_parse
     assert ui.check_cleanup == check_cleanup
     assert ui.check == check
+
+def test_ui_rest_api_abundance_correction():
+    pass
+    # taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
+#         background = query.get_proteins_of_taxid(taxid)
+#         foreground = random.sample(background, 200)
+#         intensity = [str(ele) for ele in np.random.normal(size=len(background))]

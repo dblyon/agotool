@@ -1,11 +1,33 @@
 {% extends "layout.html" %}
 
 {% block head %}
+
       <script type="text/javascript">
           $(document).ready( function() {
               enrichment_page();
           });
       </script>
+
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+{#      <link rel="stylesheet" href="/resources/demos/style.css">#}
+{#      <script src="https://code.jquery.com/jquery-1.12.4.js"></script>#}
+      <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+      <script>
+        let availableTags = [];
+        {% for item in NCBI_autocomplete_list %}
+            availableTags.push( {{ item | tojson | safe }} );
+        {% endfor %}
+          $( function() {
+            $( "#NCBI_TaxID" ).autocomplete({
+              source: availableTags,
+              minLength: 3,
+              delay: 300,
+              autoFocus: true,
+            });
+          } );
+      </script>
+
 {% endblock head %}
 
 {% block nav_Enrichment %}
@@ -58,11 +80,22 @@
                   <div class="row col-md-10">
                       <span title="{{ form.enrichment_method.description }}"> {{ form.enrichment_method.label }}: {{ form.enrichment_method() }} <br> </span>
                   </div>
-                  <div class="row col-md-10 taxid">
-                      <span><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI TaxID:</a> {{ form.taxid}} <br> </span>
-                        {% if form.taxid.errors %}
-                        <ul class="errors"> {% for error in form.taxid.errors %} <b> {{ error }} </b> {% endfor %} </ul>
-                        {% endif %}
+                  <div class="row col-md-8 taxid">
+                      <p>We support all <a class="NCBI_TaxID" href="https://www.uniprot.org/proteomes/"> UniProt reference proteomes</a>. Please provide an organism name, an NCBI taxon identifier, or a UniProt proteome ID in the field below to select the respective proteins as the 'background'.</p>
+                      <div class="ui-widget">
+                          <label for="NCBI_TaxID"><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">Name, NCBI taxonomy ID</a>, or UniProt proteome ID:</label>
+                          <input name="NCBI_TaxID" id="NCBI_TaxID">
+                       </div>
+{#                      <span><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI TaxID:</a> {{ form.taxid}} <br> </span>#}
+{#                        {% if form.taxid.errors %}#}
+{#                        <ul class="errors"> {% for error in form.taxid.errors %} <b> {{ error }} </b> {% endfor %} </ul>#}
+{#                        {% endif %}#}
+                      <script>
+                          let taxid_example = "{{ taxid | safe }}";
+                          if (taxid_example) {
+                            document.getElementById("NCBI_TaxID").value = taxid_example;
+                          }
+                      </script>
                   </div>
 
 <div class="row">
@@ -186,19 +219,47 @@
         <div id="collapse_report_options" class="panel-collapse collapse">
             <div class="row">
                 <div class="col-md-8">
+
                     <table>
-                        <tr class="p_value" title="{{ form.p_value_cutoff.description }}"><td class="p_value">{{ form.p_value_cutoff.label }}: </td><td>{{ form.p_value_cutoff() }}</td>
+
+                        <tr class="p_value" title="{{ form.p_value_cutoff.description }}">
+                            <td class="p_value">{{ form.p_value_cutoff.label }}: </td>
+                            <td>{{ form.p_value_cutoff() }}</td>
                             {% if form.p_value_cutoff.errors %}
-                                <tr><td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                                <tr>
+                                    <td colspan="2"><ul class="errors"> {% for error in form.p_value_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td>
+                                </tr>
                             {% endif %}
-                        <tr class="p_value" title="{{ form.FDR_cutoff.description }}"><td class="p_value">{{ form.FDR_cutoff.label }}: </td><td>{{ form.FDR_cutoff() }}</td>
+
+                        <tr class="p_value" title="{{ form.FDR_cutoff.description }}">
+                            <td class="p_value">{{ form.FDR_cutoff.label }}: </td>
+                            <td>{{ form.FDR_cutoff() }}</td>
                             {% if form.FDR_cutoff.errors %}
-                        <tr>
-                            <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td></tr>
+                                <tr>
+                                    <td colspan="2"><ul class="errors"> {% for error in form.FDR_cutoff.errors %} <b> {{ error }} </b> {% endfor %} </ul></td>
+                                </tr>
                             {% endif %}
-                        <tr title="{{ form.filter_foreground_count_one.description }}"><td>{{ form.filter_foreground_count_one.label }}: </td><td>{{ form.filter_foreground_count_one() }}</td>
-                        <tr class="filter_parents" title="{{ form.filter_parents.description }}"><td>{{ form.filter_parents.label }}: </td><td>{{ form.filter_parents() }}</td>
+
+                        <tr title="{{ form.filter_foreground_count_one.description }}">
+                            <td>{{ form.filter_foreground_count_one.label }}: </td>
+                            <td>{{ form.filter_foreground_count_one() }}</td>
+                        </tr>
+
+                        <tr class="filter_parents" title="{{ form.filter_parents.description }}">
+                            <td>{{ form.filter_parents.label }}: </td>
+                            <td>{{ form.filter_parents() }}</td>
+
+                        <tr class="filter_PMID_top_n" title="{{ form.filter_PMID_top_n.description }}">
+                            <td class="filter_PMID_top_n">{{ form.filter_PMID_top_n.label }}: </td>
+                            <td>{{ form.filter_PMID_top_n() }}</td>
+                            {% if form.filter_PMID_top_n.errors %}
+                                <tr>
+                                    <td colspan="2"><ul class="errors"> {% for error in form.filter_PMID_top_n.errors %} <b> {{ error }} </b> {% endfor %} </ul></td>
+                                </tr>
+                            {% endif %}
+
                     </table>
+
                 </div>
             </div>
         </div>

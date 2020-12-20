@@ -16,7 +16,7 @@ DOCKER = False # app and data directory, within image or shared with local host,
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect to local Postgres or dockerized-Postgres
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
-DEBUG = False # for flask and some internals for printing, set to False in production
+DEBUG = True # for flask and some internals for printing, set to False in production
 DEBUG_HTML = False # if True: always load example results on submit
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
@@ -255,6 +255,7 @@ tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_tabl
     "TaxidSpecies_2_TaxidProteome_dict": os.path.join(TABLES_DIR, "TaxidSpecies_2_TaxidProteome_dict_{}.p".format(appendix)),
     "TaxidSpecies_2_multipleRefProtTaxid_dict": os.path.join(TABLES_DIR, "TaxidSpecies_2_multipleRefProtTaxid_dict_{}.p".format(appendix)),
     "goslim_subsets_file": os.path.join(TABLES_DIR, "goslim_subsets_file_{}.txt".format(appendix)),
+    "UniProt_NCBI_TaxID_and_TaxName_for_autocomplete": os.path.join(TABLES_DIR, "UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_{}.txt".format(appendix)),
     # "Protein_2_FunctionEnum_and_Score_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_and_Score_table_{}.txt".format(appendix)),
     # "CSC_ENSPencoding_2_FuncEnum": os.path.join(TABLES_DIR, "CSC_ENSPencoding_2_FuncEnum_{}.npz".format(appendix)),
     # "Taxid_2_FunctionEnum_2_Scores_dict": os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_dict_{}.p".format(appendix)),
@@ -284,7 +285,6 @@ try:
 except:
     pass
 
-jensenlab_score_cutoff_list = [4.0, 3.0, 2.0, 1.0, 0.0]
 jensenlab_supported_taxids = [9606, 10090, 10116, 3702, 7227, 6239, 4932, 4896] #559292, 284812]
 # 511145.b1260
 jensenlab_supported_taxids_species_translations_dict = {4932: 559292, 4896: 284812} # Lars TextMining data has e.g. 4932 but UniProt has 559292 as a reference proteome

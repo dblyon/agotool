@@ -44,10 +44,9 @@ etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
 
 def ready_df_for_plot(df, lineage_dict, enrichment_method):
     sizeref = 2.0 * max(df[cn.FG_count]) / (max_marker_size ** 2)
-
     ### rename categories
     category_renamed_list = []
-    value_counts_series = df[cn.etype].value_counts(sort=False)
+    value_counts_series = df[cn.etype].value_counts(sort=False) # this depends on row sort order of run_cythonized df, if etype is sorted in ascending True instead of False --> wrong category assignments
     for etype_, count in zip(value_counts_series.index, value_counts_series.values):
         try:
             categoryName = etype_2_categoryRenamed_dict[etype_]
@@ -69,8 +68,8 @@ def ready_df_for_plot(df, lineage_dict, enrichment_method):
         print("plot_and_table.py: enrichment_method '{}' not implemented".format(enrichment_method))
         category_rank_arr = []
 
-
     df[cn.category] = pd.Categorical(df[cn.category], category_rank_arr)
+    df[cn.category_rank] = df[cn.category].cat.codes
     df = df.sort_values([cn.category, cn.rank]).reset_index(drop=True)
 
     color_discrete_map = {category_: color_hex_val for category_, color_hex_val in zip(df[cn.category].unique(), palette_dict[df.etype.unique().shape[0]])}
@@ -166,6 +165,46 @@ def get_data_bars_dict_characterizeFG(df, colName):
             term_2_style_dict[term] = "{background: linear-gradient(90deg, " + color_bar + "); text-align: center;}"
     return term_2_style_dict
 
+def get_linkout_template(category_name):
+    if category_name in {"GO cellular component TextMining", "GO cellular component", "GO biological process", "GO molecular function"}:
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
+    elif category_name == "UniProt keywords":
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.uniprot.org/keywords/{}">{}</a></td>'''
+    # alternative: https://www.ebi.ac.uk/ols/ontologies/doid/terms?DOID_863
+    elif category_name == "Brenda Tissue Ontology":
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
+    elif category_name == "Disease Ontology": # https://www.ebi.ac.uk/ols/ontologies/doid/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FDOID_863
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/doid/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
+    elif category_name == "KEGG pathways":  # https://www.genome.jp/dbget-bin/www_bget?pathway:map04914
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.genome.jp/dbget-bin/www_bget?pathway:{}">{}</a></td>'''
+    elif category_name == "InterPro domains":  # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR002471/
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/interpro/entry/InterPro/{}">{}</a></td>'''
+    elif category_name == "Pfam domains":  # http://pfam.xfam.org/family/PF00017
+        linkout_template = r'''<td id="linkout_dbl"><a href="http://pfam.xfam.org/family/{}">{}</a></td>'''
+    elif category_name == "Publications":  # https://pubmed.ncbi.nlm.nih.gov/21072307/
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://pubmed.ncbi.nlm.nih.gov/{}">{}</a></td>'''
+    elif category_name == "Reactome":  # https://reactome.org/content/detail/R-BTA-9034793
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://reactome.org/content/detail/{}">{}</a></td>'''
+    elif category_name == "WikiPathways":  # https://www.wikipathways.org/index.php/Pathway:WP78
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.wikipathways.org/index.php/Pathway:/{}">{}</a></td>'''
+    else:
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
+    return linkout_template
+
+def format_term_for_linkout(category_name, linkout_template, term_name):
+    if category_name == "GO cellular component TextMining":
+        table_as_text = linkout_template.format(term_name.replace("GOCC:", "GO:"), term_name)
+    elif category_name == "Brenda Tissue Ontology":
+        table_as_text = linkout_template.format(term_name.replace("BTO:", "BTO_"), term_name)
+    elif category_name == "Disease Ontology":
+        table_as_text = linkout_template.format(term_name.replace("DOID:", "DOID_"), term_name)
+    elif category_name == "Publications":
+        table_as_text = linkout_template.format(term_name.replace("PMID:", ""), term_name)
+    elif category_name == "Reactome":
+        table_as_text = linkout_template.format("R-" + term_name, term_name)
+    else:
+        table_as_text = linkout_template.format(term_name, term_name)
+    return table_as_text
 
 def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, session_id, session_folder_absolute):
     # linkout_style = """#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:active { color:#0000EE; } #linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; } """
@@ -184,28 +223,8 @@ def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, s
         for colname in df.columns.tolist():
             table_as_text += " <th>{}</th> ".format(colname)
         table_as_text += '''</tr> </thead> <tbody> '''
-        # cols_sort_order_genome = [s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
         for category_name, group in df.groupby(cn.category):
-            if category_name in {"GO cellular component TextMining", "GO cellular component", "GO biological process", "GO molecular function"}:
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
-            elif category_name == "UniProt keywords":
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.uniprot.org/keywords/{}">{}</a></td>'''
-            elif category_name in {"Brenda Tissue Ontology", "Disease Ontology"}:
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
-            elif category_name == "KEGG pathways": # https://www.genome.jp/dbget-bin/www_bget?pathway:map04914
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.genome.jp/dbget-bin/www_bget?pathway:{}">{}</a></td>'''
-            elif category_name == "InterPro domains": # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR002471/
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/interpro/entry/InterPro/{}">{}</a></td>'''
-            elif category_name == "Pfam domains": # http://pfam.xfam.org/family/PF00017
-                linkout_template = r'''<td id="linkout_dbl"><a href="http://pfam.xfam.org/family/{}">{}</a></td>'''
-            elif category_name == "Publications": # https://pubmed.ncbi.nlm.nih.gov/21072307/
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://pubmed.ncbi.nlm.nih.gov/{}">{}</a></td>'''
-            elif category_name == "Reactome": # https://reactome.org/content/detail/R-BTA-9034793
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://reactome.org/content/detail/{}">{}</a></td>'''
-            elif category_name == "WikiPathways": # https://www.wikipathways.org/index.php/Pathway:WP78
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.wikipathways.org/index.php/Pathway:/{}">{}</a></td>'''
-            else:
-                linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
+            linkout_template = get_linkout_template(category_name)
             for row in group.itertuples(index=False):
                 s_value_ = row[0]
                 term_name = row[1]
@@ -226,27 +245,15 @@ def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, s
                 pvalue = row[16]
                 logfdr = row[17]
                 rank = row[18]
+                category_rank = row[19]
                 term_id = term_name.replace(":", "").replace("-", "")
                 try:
                     style = term_2_style_dict[term_name]
                 except KeyError:
                     style = "{}"
-                # table_as_text += '''<tr> <style type="text/css"> #{}{} {}</style>'''.format(term_id, style, linkout_style)
                 table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
                 table_as_text += '''<td class="legible_text_shadow" id="{}">{:.2f}</td>'''.format(term_id, s_value_)
-                # table_as_text += r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''.format(term_name, term_name)
-                if category_name == "GO cellular component TextMining":
-                    table_as_text += linkout_template.format(term_name.replace("GOCC:", "GO:"), term_name)
-                elif category_name == "Brenda Tissue Ontology":
-                    table_as_text += linkout_template.format(term_name.replace("BTO:", "BTO_"), term_name)
-                elif category_name == "Disease Ontology":
-                    table_as_text += linkout_template.format(term_name.replace("DOID:", "DOID_"), term_name)
-                elif category_name == "Publications":
-                    table_as_text += linkout_template.format(term_name.replace("PMID:", ""), term_name)
-                elif category_name == "Reactome":
-                    table_as_text += linkout_template.format("R-" + term_name, term_name)
-                else:
-                    table_as_text += linkout_template.format(term_name, term_name)
+                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name)
                 table_as_text += '''<td>{}</td>'''.format(description)
                 table_as_text += '''<td>{:.2E}</td>'''.format(fdr)
                 table_as_text += '''<td>{:.2f}</td>'''.format(effectsize)
@@ -264,98 +271,105 @@ def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, s
                 table_as_text += '''<td>{:.2E}</td>'''.format(pvalue)
                 table_as_text += '''<td>{:.2E}</td>'''.format(logfdr)
                 table_as_text += '''<td>{}</td>'''.format(rank)
+                table_as_text += '''<td>{}</td>'''.format(category_rank)
                 table_as_text += ''' </tr> '''
         table_as_text += ''' </tbody> </table> '''
 
     elif enrichment_method == "characterize_foreground":
-        # cols_sort_order_characterize_foreground = [ratio_in_FG, term, description, category, hierarchical_level, year, FG_IDs, FG_count, FG_n, rank]
         for colname in df.columns.tolist():
             table_as_text += " <th>{}</th> ".format(colname)
         table_as_text += '''</tr> </thead> <tbody> '''
 
-        for row in df.itertuples(index=False):
-            ratioinfg = row[0]
-            term_name = row[1]
-            description = row[2]
-            category = row[3]
-            hierarchicallevel = row[4]
-            year = row[5]
-            fgids = row[6]
-            fgcount = row[7]
-            fgn = row[8]
-            rank = row[9]
-            term_id = term_name.replace(":", "").replace("-", "")
-            try:
-                style = term_2_style_dict[term_name]
-            except KeyError:
-                style = "{}"
-            table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
-            table_as_text += '''<td class="legible_text_shadow" id="{}">{:.3f}</td>'''.format(term_id, ratioinfg)
-            table_as_text += '''<td>{}</td>'''.format(term_name)
-            table_as_text += '''<td>{}</td>'''.format(description)
-            table_as_text += '''<td>{}</td>'''.format(category)
-            table_as_text += '''<td>{}</td>'''.format(hierarchicallevel)
-            table_as_text += '''<td>{}</td>'''.format(year)
-            table_as_text += '''<td>{}</td>'''.format(fgids)
-            table_as_text += '''<td>{}</td>'''.format(fgcount)
-            table_as_text += '''<td>{}</td>'''.format(fgn)
-            table_as_text += '''<td>{}</td>'''.format(rank)
-            table_as_text += ''' </tr> '''
+        for category_name, group in df.groupby(cn.category):
+            linkout_template = get_linkout_template(category_name)
+            for row in group.itertuples(index=False):
+                ratioinfg = row[0]
+                term_name = row[1]
+                description = row[2]
+                category = row[3]
+                hierarchicallevel = row[4]
+                year = row[5]
+                fgids = row[6]
+                fgcount = row[7]
+                fgn = row[8]
+                rank = row[9]
+                category_rank = row[10]
+                term_id = term_name.replace(":", "").replace("-", "")
+                try:
+                    style = term_2_style_dict[term_name]
+                except KeyError:
+                    style = "{}"
+                table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
+                table_as_text += '''<td class="legible_text_shadow" id="{}">{:.3f}</td>'''.format(term_id, ratioinfg)
+                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name)
+                table_as_text += '''<td>{}</td>'''.format(description)
+                table_as_text += '''<td>{}</td>'''.format(category)
+                table_as_text += '''<td>{}</td>'''.format(hierarchicallevel)
+                table_as_text += '''<td>{}</td>'''.format(year)
+                table_as_text += '''<td>{}</td>'''.format(fgids)
+                table_as_text += '''<td>{}</td>'''.format(fgcount)
+                table_as_text += '''<td>{}</td>'''.format(fgn)
+                table_as_text += '''<td>{}</td>'''.format(rank)
+                table_as_text += '''<td>{}</td>'''.format(category_rank)
+                table_as_text += ''' </tr> '''
         table_as_text += ''' </tbody> </table> '''
 
     elif enrichment_method == "compare_samples":
-        # cols_sort_order_compare_samples = [s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
         for colname in df.columns.tolist():
             table_as_text += " <th>{}</th> ".format(colname)
         table_as_text += '''</tr> </thead> <tbody> '''
 
-        for row in df.itertuples(index=False):
-            s_value_ = row[0]
-            term_name = row[1]
-            description = row[2]
-            fdr = row[3]
-            effectsize = row[4]
-            category = row[5]
-            overunder = row[6]
-            hierarchicallevel = row[7]
-            year = row[8]
-            fgids = row[9]
-            bgids = row[10]
-            fgcount = row[11]
-            fgn = row[12]
-            bgcount = row[13]
-            bgn = row[14]
-            ratioinfg = row[15]
-            ratioinbg = row[16]
-            pvalue = row[17]
-            logfdr = row[18]
-            rank = row[19]
-            term_id = term_name.replace(":", "").replace("-", "")
-            try:
-                style = term_2_style_dict[term_name]
-            except KeyError:
-                style = "{}"
-            table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
-            table_as_text += '''<td class="legible_text_shadow" id="{}">{:.2f}</td>'''.format(term_id, s_value_)
-            table_as_text += '''<td>{}</td>'''.format(term_name)
-            table_as_text += '''<td>{}</td>'''.format(description)
-            table_as_text += '''<td>{:.2E}</td>'''.format(fdr)
-            table_as_text += '''<td>{:.2f}</td>'''.format(effectsize)
-            table_as_text += '''<td>{}</td>'''.format(category)
-            table_as_text += '''<td>{}</td>'''.format(overunder)
-            table_as_text += '''<td>{}</td>'''.format(hierarchicallevel)
-            table_as_text += '''<td>{}</td>'''.format(year)
-            table_as_text += '''<td>{}</td>'''.format(fgids)
-            table_as_text += '''<td>{}</td>'''.format(bgids)
-            table_as_text += '''<td>{}</td>'''.format(fgcount)
-            table_as_text += '''<td>{}</td>'''.format(fgn)
-            table_as_text += '''<td>{}</td>'''.format(bgcount)
-            table_as_text += '''<td>{}</td>'''.format(bgn)
-            table_as_text += '''<td>{:.3f}</td>'''.format(ratioinfg)
-            table_as_text += '''<td>{:.3f}</td>'''.format(ratioinbg)
-            table_as_text += '''<td>{:.2E}</td>'''.format(pvalue)
-            table_as_text += '''<td>{:.2E}</td>'''.format(logfdr)
-            table_as_text += '''<td>{}</td>'''.format(rank)
+        for category_name, group in df.groupby(cn.category):
+            linkout_template = get_linkout_template(category_name)
+            for row in group.itertuples(index=False):
+                s_value_ = row[0]
+                term_name = row[1]
+                description = row[2]
+                fdr = row[3]
+                effectsize = row[4]
+                category = row[5]
+                overunder = row[6]
+                hierarchicallevel = row[7]
+                year = row[8]
+                fgids = row[9]
+                bgids = row[10]
+                fgcount = row[11]
+                fgn = row[12]
+                bgcount = row[13]
+                bgn = row[14]
+                ratioinfg = row[15]
+                ratioinbg = row[16]
+                pvalue = row[17]
+                logfdr = row[18]
+                rank = row[19]
+                category_rank = row[20]
+                term_id = term_name.replace(":", "").replace("-", "")
+                try:
+                    style = term_2_style_dict[term_name]
+                except KeyError:
+                    style = "{}"
+                table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
+                table_as_text += '''<td class="legible_text_shadow" id="{}">{:.2f}</td>'''.format(term_id, s_value_)
+                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name)
+                table_as_text += '''<td>{}</td>'''.format(description)
+                table_as_text += '''<td>{:.2E}</td>'''.format(fdr)
+                table_as_text += '''<td>{:.2f}</td>'''.format(effectsize)
+                table_as_text += '''<td>{}</td>'''.format(category)
+                table_as_text += '''<td>{}</td>'''.format(overunder)
+                table_as_text += '''<td>{}</td>'''.format(hierarchicallevel)
+                table_as_text += '''<td>{}</td>'''.format(year)
+                table_as_text += '''<td>{}</td>'''.format(fgids)
+                table_as_text += '''<td>{}</td>'''.format(bgids)
+                table_as_text += '''<td>{}</td>'''.format(fgcount)
+                table_as_text += '''<td>{}</td>'''.format(fgn)
+                table_as_text += '''<td>{}</td>'''.format(bgcount)
+                table_as_text += '''<td>{}</td>'''.format(bgn)
+                table_as_text += '''<td>{:.3f}</td>'''.format(ratioinfg)
+                table_as_text += '''<td>{:.3f}</td>'''.format(ratioinbg)
+                table_as_text += '''<td>{:.2E}</td>'''.format(pvalue)
+                table_as_text += '''<td>{:.2E}</td>'''.format(logfdr)
+                table_as_text += '''<td>{}</td>'''.format(rank)
+                table_as_text += '''<td>{}</td>'''.format(category_rank)
         table_as_text += ''' </tbody> </table> '''
     else:
         print("enrichment_method: '{}' not defined".format(enrichment_method))
@@ -489,7 +503,7 @@ def yield_direct_parents(terms, lineage_dict):
 
 
 if __name__ == "__main__":
-    pass
+    # pass
     # - Table cell height could be smaller/lower
     # - hide options in enrichment page --> cleaner look
     # - plot / results page toggle button to show tipps
@@ -498,7 +512,8 @@ if __name__ == "__main__":
     # term = "KW-0472"
     # print(term_2_style_dict[term])
 
-    # df = pd.read_csv(variables.fn_example, sep="\t")
+    df = pd.read_csv(variables.fn_example, sep="\t")
+    df = ready_df_for_plot(df, lineage_dict=None, enrichment_method="genome")
     # df = df.groupby(cn.etype).head(20)
     # import pickle
     # lineage_dict_direct = pickle.load(open(os.path.join(variables.PYTHON_DIR, "term_2_edges_dict.p"), "rb"))

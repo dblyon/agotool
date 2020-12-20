@@ -1073,6 +1073,25 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
             fh_out.write("{}\t{}\t{}\n".format(taxid, num_ans, an_arr))
     tools.sort_file(Taxid_2_Proteins_table_UniProt, Taxid_2_Proteins_table_UniProt, number_of_processes=number_of_processes, numeric_sort=True)
 
+def UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN(fn_in, fn_out):
+    strings_2_write_list = []
+    curated_and_sorted = ["Homo sapiens (Human), 9606, UP000005640", "Caenorhabditis elegans, 6239, UP000001940", "Drosophila melanogaster (Fruit fly), 7227, UP000000803", "Escherichia coli (strain K12), 83333, UP000000625", "Mus musculus (Mouse), 10090, UP000000589", "Rattus norvegicus (Rat), 10116, UP000002494", "Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast), 559292, UP000002311",  # 4932
+        "Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast), 284812, UP000002485",  # 4896
+        "Arabidopsis thaliana (Mouse-ear cress), 3702, UP000006548"]
+    with open(fn_in, "r") as fh_in:
+        for line in fh_in:
+            if line.strip() == "Proteome_ID	Tax_ID	OSCODE	SUPERREGNUM	#(1)	#(2)	#(3)	Species Name":
+                break
+        for line in fh_in:
+            if line.startswith("UP"):
+                Proteome_ID, Tax_ID, OSCODE, SUPERREGNUM, num_1, num_2, num_3, SpeciesName = line.split("\t")
+                strings_2_write_list.append("{}, {}, {}".format(SpeciesName.strip(), Tax_ID, Proteome_ID))
+    with open(fn_out, "w") as fh_out:
+        strings_2_write_list = sorted(strings_2_write_list)
+        strings_2_write_list = curated_and_sorted + sorted(set(strings_2_write_list) - set(curated_and_sorted))
+        for ele in strings_2_write_list:
+            fh_out.write(ele + "\n")
+
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):
     # concatenate STRING ENSPs and UniProt AC
     # add etype

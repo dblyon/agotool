@@ -1475,6 +1475,13 @@ def get_last_updated_text():
     time_ = tools.creation_date(fn)
     return datetime.datetime.fromtimestamp(time_).strftime("%d %B %Y")
 
+def get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list():
+    fn = variables.tables_dict["UniProt_NCBI_TaxID_and_TaxName_for_autocomplete"]
+    list_of_autocomplete_tags = []
+    with open(fn, "r") as fh:
+        for line in fh:
+            list_of_autocomplete_tags.append(line.strip())
+    return list_of_autocomplete_tags
 
 
 if __name__ == "__main__":

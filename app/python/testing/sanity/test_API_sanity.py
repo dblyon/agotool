@@ -10,6 +10,7 @@ import requests
 import conftest
 
 import variables, query
+import colnames as cn
 
 PYTEST_FN_DIR = variables.PYTEST_FN_DIR
 
@@ -46,7 +47,7 @@ def test_FG_count_not_larger_than_FG_n():
         data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 0
-    cond = df["FG_count"] <= df["FG_n"]
+    cond = df[cn.FG_count] <= df[cn.FG_n]
     assert cond.all()
 
 def test_FG_count_not_larger_than_BG_count():
@@ -55,7 +56,7 @@ def test_FG_count_not_larger_than_BG_count():
         data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 0
-    cond = df["FG_count"] <= df["BG_count"]
+    cond = df[cn.FG_count] <= df[cn.BG_count]
     assert cond.all()
 
 # genome and compare_samples should yield the same results if given the same input
@@ -72,13 +73,13 @@ def test_genome_same_as_compare_samples():
 
     assert df_compare_samples.shape[0] == df_genome.shape[0] # same number of rows but additional column of BG_IDs for compare_samples
 
-    cond_FG_count = df_compare_samples["FG_count"] == df_genome["FG_count"]
+    cond_FG_count = df_compare_samples[cn.FG_count] == df_genome[cn.FG_count]
     assert cond_FG_count.all()
 
-    cond_BG_count = df_compare_samples["BG_count"] == df_genome["BG_count"]
+    cond_BG_count = df_compare_samples[cn.BG_count] == df_genome[cn.BG_count]
     assert cond_BG_count.all()
 
-    cond_BG_n = df_compare_samples["BG_n"] == df_genome["BG_n"]
+    cond_BG_n = df_compare_samples[cn.BG_n] == df_genome[cn.BG_n]
     assert cond_BG_n.all()
 
 @pytest.mark.parametrize("i", range(25, 425, 25))
@@ -90,13 +91,13 @@ def test_genome_random_inputs(i):
     response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 0
-    cond = df["FG_count"] <= df["BG_count"]
+    cond = df[cn.FG_count] <= df[cn.BG_count]
     assert cond.all()
-    cond = df["FG_count"] <= df["FG_n"]
+    cond = df[cn.FG_count] <= df[cn.FG_n]
     assert cond.all()
-    cond = df["BG_count"] <= df["BG_n"]
+    cond = df[cn.BG_count] <= df[cn.BG_n]
     assert cond.all()
-    cond = df["FG_n"] <= df["BG_n"]
+    cond = df[cn.FG_n] <= df[cn.BG_n]
     assert cond.all()
 
 def test_expected_terms_in_output():
@@ -114,7 +115,7 @@ def test_expected_terms_in_output():
     response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     expected_terms = ["KW-0561", "KW-0349", "GO:0005344", "GO:0019825", "GO:0020037", "GO:0005833"]
-    cond = df["term"].isin(expected_terms)
+    cond = df[cn.term].isin(expected_terms)
     assert len(expected_terms) == sum(cond)
 
 @pytest.mark.parametrize("i", range(50, 250, 50))
@@ -134,8 +135,8 @@ def test_ENSP_vs_UniProtID(i):
 
     assert df_UP.shape[0] == df_ENSP.shape[0]
 
-    df_UP = df_UP.drop(columns=["FG_IDs"])
-    df_ENSP = df_ENSP.drop(columns=["FG_IDs"])
+    df_UP = df_UP.drop(columns=[cn.FG_IDs])
+    df_ENSP = df_ENSP.drop(columns=[cn.FG_IDs])
     pd_testing.assert_frame_equal(df_UP, df_ENSP)
 
 # examples from webpage need to work
@@ -153,8 +154,8 @@ def test_web_example_1():
     assert df.shape[0] > 50
     # at least 5 categories with significant results, last time I checked (2020 04 01)
     # at least 4 categories with significant results, last time I checked (2020 11 24)
-    assert df.groupby("category").count().shape[0] >= 4
-    cond_FDR = df["p_value"] <= df["FDR"]
+    assert df.groupby(cn.category).count().shape[0] >= 4
+    cond_FDR = df[cn.p_value] <= df[cn.FDR]
     assert sum(cond_FDR) == len(cond_FDR)
 
 def test_web_example_2():
@@ -163,8 +164,8 @@ def test_web_example_2():
         data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 100
-    assert df.groupby("category").count().shape[0] >= 9 # at least 9 categories with significant results, last time I checked (2020 04 01)
-    cond_FDR = df["p_value"] <= df["FDR"]
+    assert df.groupby(cn.category).count().shape[0] >= 9 # at least 9 categories with significant results, last time I checked (2020 04 01)
+    cond_FDR = df[cn.p_value] <= df[cn.FDR]
     assert sum(cond_FDR) == len(cond_FDR)
 
 def test_web_example_3():
@@ -175,9 +176,9 @@ def test_web_example_3():
               "background": bg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] >= 200
-    assert df.groupby("category").count().shape[0] >= 10  # at least 11 categories with significant results, last time I checked (2020 04 01)
+    assert df.groupby(cn.category).count().shape[0] >= 10  # at least 11 categories with significant results, last time I checked (2020 04 01)
     # changed after discretizing TM scores
-    cond_FDR = df["p_value"] <= df["FDR"]
+    cond_FDR = df[cn.p_value] <= df[cn.FDR]
     assert sum(cond_FDR) == len(cond_FDR)
 
 def test_web_example_4():
@@ -186,7 +187,7 @@ def test_web_example_4():
         data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 200
-    assert df.groupby("category").count().shape[0] >= 9  # at least 11 categories with significant results, last time I checked (2020 04 01)
+    assert df.groupby(cn.category).count().shape[0] >= 9  # at least 11 categories with significant results, last time I checked (2020 04 01)
 
 def test_taxid_species_mapping_1():
     """
@@ -245,7 +246,7 @@ def test_taxid_species_mapping_3():
     assert df_1.shape[0] > 0
 
     # check that PMID "background_count" is larger than 0
-    ser = df_1.loc[df_1["etype"] == -56, "background_count"]
+    ser = df_1.loc[df_1[cn.etype] == -56, "background_count"]
     assert ser.shape[0] == ser[ser > 0].shape[0]
 
     result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 83333, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg, "background": bg})
@@ -281,7 +282,7 @@ def test_compare_funEnum_consistency(i):
     response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "characterize_foreground", "filter_foreground_count_one": False},
         data={"foreground": UniProtID})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    for funcEnum, term in zip(df["funcEnum"], df["term"]):
+    for funcEnum, term in zip(df[cn.funcEnum], df[cn.term]):
         assert conftest.funcEnum_2_funcName_dict[funcEnum] == term
 
 ### abundance correction tests
@@ -292,9 +293,9 @@ def test_abundance_correction_with_intensity_instead_of_background_intensity(ran
     data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(background), "intensity": "%0d".join(intensity)}
     response = requests.post(url_local, params=params, data=data)
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert (df["FG_n"] == df["BG_n"]).all()
-    assert (df["FG_count"] <= df["FG_n"]).all()
-    assert (df["BG_count"] <= df["BG_n"]).all()
+    assert (df[cn.FG_n] == df[cn.BG_n]).all()
+    assert (df[cn.FG_count] <= df[cn.FG_n]).all()
+    assert (df[cn.BG_count] <= df[cn.BG_n]).all()
 
 def test_random_abundance_correction(random_abundance_correction_foreground_background):
     """
@@ -302,7 +303,7 @@ def test_random_abundance_correction(random_abundance_correction_foreground_back
     fg_count == bg_count
 
     this can't be guaranteed because of the correction factor
-    assert (df["FG_count"] <= df["BG_count"]).all()
+    assert (df[cn.FG_count] <= df[cn.BG_count]).all()
     """
     foreground, background, intensity, taxid = random_abundance_correction_foreground_background
     params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction', 'FDR_cutoff': '1.0'}
@@ -311,9 +312,9 @@ def test_random_abundance_correction(random_abundance_correction_foreground_back
     # addiontally testing that "intensity" maps to "background_intensity"
     response = requests.post(url_local, params=params, data=data)
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert (df["FG_n"] == df["BG_n"]).all()
-    assert (df["FG_count"] <= df["FG_n"]).all()
-    assert (df["BG_count"] <= df["BG_n"]).all()
+    assert (df[cn.FG_n] == df[cn.BG_n]).all()
+    assert (df[cn.FG_count] <= df[cn.FG_n]).all()
+    assert (df[cn.BG_count] <= df[cn.BG_n]).all()
 
 def test_abundance_correction_fg_equals_bg(random_abundance_correction_foreground_background):
     """
@@ -327,10 +328,10 @@ def test_abundance_correction_fg_equals_bg(random_abundance_correction_foregroun
     data = {'foreground': "%0d".join(background), 'background': "%0d".join(background), "background_intensity": "%0d".join(intensity)}
     response = requests.post(url_local, params=params, data=data)
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert (df["FG_count"] == df["BG_count"]).all()
-    assert (df["FG_n"] == df["BG_n"]).all()
-    assert (df["FG_count"] <= df["FG_n"]).all()
-    assert (df["BG_count"] <= df["BG_n"]).all()
+    assert (df[cn.FG_count] == df[cn.BG_count]).all()
+    assert (df[cn.FG_n] == df[cn.BG_n]).all()
+    assert (df[cn.FG_count] <= df[cn.FG_n]).all()
+    assert (df[cn.BG_count] <= df[cn.BG_n]).all()
 
 def test_abundance_correction_impute_values(random_abundance_correction_foreground_background):
     foreground, background, intensity, taxid = random_abundance_correction_foreground_background
@@ -343,7 +344,7 @@ def test_abundance_correction_impute_values(random_abundance_correction_foregrou
     in_1 = intensity[:len(bg_1)] #[str(ele) for ele in np.random.normal(size=len(bg_1))]
     data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(bg_1), "background_intensity": "%0d".join(in_1)}
     response = requests.post(url_local, params=params, data=data)
-    df_1 = pd.read_csv(StringIO(response.text), sep='\t').sort_values(["term", "description"]).reset_index(drop=True)
+    df_1 = pd.read_csv(StringIO(response.text), sep='\t').sort_values([cn.term, "description"]).reset_index(drop=True)
 
     ### add genome with imputed values (the same for all)
     bg_2 = bg_1 + list(set(background) - set(bg_1))
@@ -352,9 +353,20 @@ def test_abundance_correction_impute_values(random_abundance_correction_foregrou
     data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(bg_2), "background_intensity": "%0d".join(in_2)}
     response = requests.post(url_local, params=params, data=data)
     df_2 = pd.read_csv(StringIO(response.text), sep='\t')
-    df_2_sub = df_2[df_2["term"].isin(df_1["term"])].sort_values(["term", "description"]).reset_index(drop=True)
+    df_2_sub = df_2[df_2[cn.term].isin(df_1[cn.term])].sort_values([cn.term, "description"]).reset_index(drop=True)
     assert df_1.shape[0] == df_2_sub.shape[0]
-    assert (df_1["FG_count"] == df_2_sub["FG_count"]).all()
-    assert (df_1["BG_n"] == df_2_sub["BG_n"]).all()
+    assert (df_1[cn.FG_count] == df_2_sub[cn.FG_count]).all()
+    assert (df_1[cn.BG_n] == df_2_sub[cn.BG_n]).all()
     # since imputed values don't affect correction_factor, the BG counts should only increase
-    assert (df_1["BG_count"] <= df_2_sub["BG_count"]).all()
+    assert (df_1[cn.BG_count] <= df_2_sub[cn.BG_count]).all()
+
+# if __name__ == "__main__":
+    # foreground, background, intensity, taxid = random_abundance_correction_foreground_background
+    # params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction', 'FDR_cutoff': '1.0'}
+    # # should be "background_intensity" instead of "intensity" but nonetheless this should work
+    # data = {'foreground': "%0d".join(foreground), 'background': "%0d".join(background), "intensity": "%0d".join(intensity)}
+    # response = requests.post(url_local, params=params, data=data)
+    # df = pd.read_csv(StringIO(response.text), sep='\t')
+    # assert (df[cn.FG_n] == df[cn.BG_n]).all()
+    # assert (df[cn.FG_count] <= df[cn.FG_n]).all()
+    # assert (df[cn.BG_count] <= df[cn.BG_n]).all()

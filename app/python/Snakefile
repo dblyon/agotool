@@ -43,6 +43,8 @@ URL_SwissProt_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/kn
 URL_TrEMBL_dump = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz"
 URL_UniProt_sec_2_prim_AC = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/complete/docs/sec_ac.txt"
 URL_UniProt_ID_mapping = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz" # monthly
+URL_UniProt_NCBI_TaxID_and_TaxName = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/reference_proteomes/README"
+
 SwissProt_dump = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat.gz")
 TrEMBL_dump = os.path.join(DOWNLOADS_DIR, "uniprot_trembl.dat.gz")
 UniProt_sec_2_prim_AC = os.path.join(DOWNLOADS_DIR, "UniProt_sec_2_prim_AC.txt")
@@ -140,6 +142,8 @@ URL_WikiPathways_GMT = r"http://data.wikipathways.org/current/gmt" # monthly on 
 URL_interpro_AN_2_name = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/entry.list"
 URL_interpro_parent_2_child_tree = r"ftp://ftp.ebi.ac.uk/pub/databases/interpro/ParentChildTreeFile.txt"
 UniProt_ID_mapping = os.path.join(DOWNLOADS_DIR, "UniProt_ID_mapping.tab.gz")
+UniProt_NCBI_TaxID_and_TaxName = os.path.join(DOWNLOADS_DIR, "UniProt_NCBI_TaxID_and_TaxName_not_clean.txt")
+UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN = os.path.join(DOWNLOADS_DIR, "UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN.txt")
 UniProt_background_proteomes_dir = os.path.join(DOWNLOADS_DIR, "UniProt_background_prots")
 WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # static
 category_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["category_arr"]
@@ -334,6 +338,15 @@ rule download_UniProt_ID_mapping:
     run:
         drs.download_gzip_file(params.URL_UniProt_ID_mapping, output.UniProt_ID_mapping, params.verbose)
 
+rule download_UniProt_NCBI_TaxID_and_TaxName:
+    output:
+        UniProt_NCBI_TaxID_and_TaxName = UniProt_NCBI_TaxID_and_TaxName
+    params:
+        URL_UniProt_NCBI_TaxID_and_TaxName = URL_UniProt_NCBI_TaxID_and_TaxName,
+        verbose = verbose
+    run:
+        drs.download_gzip_file(params.URL_UniProt_NCBI_TaxID_and_TaxName, output.UniProt_NCBI_TaxID_and_TaxName, params.verbose)
+
 rule download_descriptions_Interpro:
     output:
         interpro_AN_2_name = interpro_AN_2_name
@@ -494,6 +507,14 @@ rule r_Taxid_2_Proteins_table_UPS_FIN:
     threads: NUMBER_OF_PROCESSES_sorting
     run:
         cst.Taxid_2_Proteins_table_UPS(input.UniProt_background_proteomes_dir, output.Taxid_2_Proteins_table_UPS_FIN, threads)
+
+rule r_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN:
+    input:
+        UniProt_NCBI_TaxID_and_TaxName = UniProt_NCBI_TaxID_and_TaxName
+    output:
+        UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN = UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN
+    run:
+        cst.UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN(input.UniProt_NCBI_TaxID_and_TaxName, output.UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN)
 
 rule r_Lineage_table_UPS_FIN:
     input:

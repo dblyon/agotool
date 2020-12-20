@@ -107,7 +107,7 @@ def download_UniProt_reference_proteomes(download_dir, verbose=True):
     # UniProt_reference_proteomes_partial_link = r"ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/reference_proteomes"
     site = "ftp.expasy.org"
     files_2_download = []
-    for domain in ["Eukaryota", "Bacteria", "Archaea"]:
+    for domain in ["Eukaryota", "Bacteria", "Archaea", "Viruses"]:
         workdir = "databases/uniprot/current_release/knowledgebase/reference_proteomes/{}".format(domain)
         ftp = FTP(site)
         ftp.login()

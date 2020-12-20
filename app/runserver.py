@@ -1,4 +1,4 @@
-import os, sys, logging, time, argparse
+import os, sys, logging, time, argparse, json
 from collections import defaultdict
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from flask_restful import reqparse, Api, Resource
 from werkzeug.wrappers import Response
 import wtforms
 from wtforms import fields
-from wtforms import widgets, SelectMultipleField
+# from wtforms import widgets, SelectMultipleField
 import markdown
 from flaskext.markdown import Markdown
 from ast import literal_eval
@@ -18,7 +18,6 @@ from ast import literal_eval
 sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy, plot_and_table
 import colnames as cn
-
 
 ###############################################################################
 variables.makedirs_()
@@ -57,6 +56,9 @@ if ARGPARSE:
 ###############################################################################
 # ToDo
 # - fix PyTest colnames
+# - update help and examples, fix Ufuk comments on math formulas, parameters page
+# - add symbol/icon to expand menu options
+# - add minimum count for foreground --> replace with minimum count, but make backwards compatible with REST API
 # - code REST API analogous to STRING --> also adapt column names accordingly
 # - fix javascript colnames
 # - create compare_samples_with_values --> KS test method
@@ -80,8 +82,6 @@ if ARGPARSE:
 # - replace example file
 # - update "info_check_input.html" with REST API usage infos
 # - offer option to omit testing GO-terms with few associations (e.g. 10)
-# - offer to user Pax-DB background proteomes
-# - offer example to be set automatically
 # - update documentation specifically about foreground and background
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
 # - version of tool/ dates of files downloaded
@@ -161,8 +161,9 @@ else:
     pqo = None # just for mocking
     import pickle
     lineage_dict = pickle.load(open(os.path.join(variables.TABLES_DIR, "lineage_dict_direct.p"), "rb"))
-    last_updated_text = "April 1, 1982"
+    last_updated_text = "you're in debug mode baby, so stop bugging"
 
+NCBI_autocomplete_list = query.get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list()
 
 ### from http://flask-restful.readthedocs.io/en/latest/quickstart.html#a-minimal-api
 ### API
@@ -197,6 +198,9 @@ parser.add_argument("background_intensity", type=str,
          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
          "e.g. '12.3%0d3.4' ",
     default=None)
+parser.add_argument("intensity", type=str,
+    help="This argument is deprecated. Please use 'background_intensity' or 'foreground_intensity' instead to be specific.",
+    default=None)
 parser.add_argument("enrichment_method", type=str,
     help="""'genome': provided foreground vs genome;
     'compare_samples': Foreground vs Background (no abundance correction); 
@@ -226,6 +230,7 @@ class API_STRING(Resource):
         """
         args_dict = defaultdict(lambda: None)
         args_dict["foreground"] = request.form.get("foreground") # ? what about the background ?
+        args_dict["background"] = request.form.get("background")
         args_dict["output_format"] = request.form.get("output_format")
         args_dict["enrichment_method"] = request.form.get("enrichment_method")
         args_dict["taxid"] = request.form.get("taxid")
@@ -497,37 +502,20 @@ class Enrichment_Form(wtforms.Form):
     limit_2_entity_type = fields.SelectField("Category of functional associations", # # ("-53", "SMART domains"), # not available in UniProt version
                                    choices = ((None, "all available"),
                                               ("-21;-22;-23", "all GO categories"),
+                                              ("-25", "Brenda Tissue Ontology"),
+                                              ("-26", "Disease Ontology IDs"),
                                               ("-51", "UniProt keywords"),
                                               ("-57", "Reactome"),
+                                              ("-56", "Publications"),
                                               ("-52", "KEGG pathways"),
-                                              ("-58", "Wiki pathways"),
                                               ("-21", "GO Biological Process"),
                                               ("-23", "GO Molecular Function"),
                                               ("-22", "GO Celluar Compartment"),
-                                              ("-20", "GOCC from Textmining"),
-                                              ("-25", "Brenda Tissue Ontology (BTO)"),
-                                              ("-26", "Disease Ontology IDs (DOIDs)"),
-                                              ("-56", "PMID (PubMed IDs)"),
+                                              ("-20", "GO Cellular Compartment from Textmining"),
+                                              ("-58", "Wiki pathways"),
                                               ("-54", "InterPro domains"),
-                                              ("-55", "PFAM domains")),
+                                              ("-55", "Pfam domains")),
                                    description="""Select either a functional category, one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, KEGG pathways, etc.""")
-    # limit_2_entity_type_v2 = fields.SelectMultipleField("Category of functional associations", # # ("-53", "SMART domains"), # not available in UniProt version
-    #                                choices = (("-51", "UniProt keywords"),
-    #                                           ("-57", "Reactome"),
-    #                                           ("-52", "KEGG pathways"),
-    #                                           ("-21", "GO Biological Process"),
-    #                                           ("-23", "GO Molecular Function"),
-    #                                           ("-22", "GO Celluar Compartment"),
-    #                                           ("-20", "GOCC from Textmining"),
-    #                                           ("-25", "Brenda Tissue Ontology (BTO)"),
-    #                                           ("-26", "Disease Ontology IDs (DOIDs)"),
-    #                                           ("-56", "PMID (PubMed IDs)"),
-    #                                           ("-54", "InterPro domains"),
-    #                                           ("-55", "PFAM domains"),
-    #                                           ("-58", "Wiki pathways")),
-    #                                description="""Select either a functional category, one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, KEGG pathways, etc.""", widget=widgets.Select(multiple=True), option_widget=widgets.CheckboxInput() )
-    #
-
     enrichment_method = fields.SelectField("Enrichment method",
                                    choices = (("abundance_correction", "abundance_correction"),
                                               ("characterize_foreground", "characterize_foreground"),
@@ -558,6 +546,9 @@ characterize_foreground: Foreground only""")
     p_value_cutoff = fields.FloatField("p value cutoff", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum cutoff value of uncorrected p value.""")
     FDR_cutoff = fields.FloatField("p value corrected (FDR) cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p values) cutoff value (1 meaning no cutoff)""")
     filter_foreground_count_one = fields.BooleanField("Filter foreground count one", default="checked", description="Remove all functional terms if they have only a single protein association in the foreground (default=checked)")
+    filter_PMID_top_n = fields.IntegerField("Filter top n publications", [validate_integer], default=20, description="""Reduce the number of publications to be reported to the given number (default 20). The publications are sorted as follows and the top n selected: 
+    'characterize_foreground': foreground_count and year. 
+    all other methods: FDR, year, and foreground_count""")
     filter_parents = fields.BooleanField("Filter redundant parent terms", default="checked", description="Retain the most specific (deepest hierarchical level) and remove all parent terms if they share the exact same foreground proteins (default=checked)")
     taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier, please use the taxonomic rank of species e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
     multiple_testing_per_etype = fields.BooleanField("Multiple testing per category", default="checked", description="If True calculate multiple testing correction separately per functional category, in contrast to performing the correction together for all results (default=checked).")
@@ -586,7 +577,8 @@ class Example_2(Enrichment_Form):
     enrichment_method = fields.SelectField("Enrichment method", choices=(("genome", "genome"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
     characterize_foreground: Foreground only""") # ("compare_groups", "compare_groups"),
-    taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
+    # taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606)")
+    # taxid = 9606
 
 class Example_3(Enrichment_Form):
     """
@@ -619,48 +611,42 @@ class Example_4(Enrichment_Form):
 
 @app.route('/example_1')
 def example_1():
-    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak", example_description="""characterize the foreground: SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak (from https://covid-19.uniprot.org).""", last_updated_text=last_updated_text)
+    return render_template('enrichment.html', form=Example_1(), example_status="example_1", example_title="SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak", example_description="""characterize the foreground: SARS-CoV-2 coronavirus and other entries relating to the COVID-19 outbreak (from https://covid-19.uniprot.org).""", last_updated_text=last_updated_text, NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="")
 
 @app.route('/example_2')
 def example_2():
-    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""comparing human haemoglobin proteins to the UniProt reference genome. When using the 'genome' method a specific NCBI taxonomic identifier (TaxID) has to be provided. In this case it is '9606' for Homo sapiens. In case don't know the TaxID of your organism of choice, please search at NCBI (link provided below).""", last_updated_text=last_updated_text)
+    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""comparing human haemoglobin proteins to the UniProt reference proteome. When using the 'genome' method a specific NCBI taxonomic identifier (TaxID) has to be provided. In this case it is '9606' for Homo sapiens. In case don't know the TaxID of your organism of choice, please search at NCBI (link provided below).""", last_updated_text=last_updated_text,  NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="Homo sapiens (Human), 9606, UP000005640")
 
 @app.route('/example_3')
 def example_3():
-    return render_template('enrichment.html', form=Example_3(), example_status="example_1", example_title="Yeast acetylation", example_description="""comparing acetylated yeast (Saccharomyces cerevisiae) proteins to the experimentally observed proteome using the 'abundance_correction' method. Data was taken from the original publication (see 'About' page).""", last_updated_text=last_updated_text)
+    return render_template('enrichment.html', form=Example_3(), example_status="example_3", example_title="Yeast acetylation", example_description="""comparing acetylated yeast (Saccharomyces cerevisiae) proteins to the experimentally observed proteome using the 'abundance_correction' method. Data was taken from the original publication (see 'About' page).""", last_updated_text=last_updated_text,  NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="")
 
 @app.route('/example_4')
 def example_4():
-    return render_template('enrichment.html', form=Example_4(), example_status="example_4", example_title="Mouse interferon", example_description="""comparing a couple of mouse interferons to the reference proteome, applying the 'compare_samples' method.""", last_updated_text=last_updated_text)
+    return render_template('enrichment.html', form=Example_4(), example_status="example_4", example_title="Mouse interferon", example_description="""comparing a couple of mouse interferons to the reference proteome, applying the 'compare_samples' method.""", last_updated_text=last_updated_text,  NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="")
 
 @app.route('/')
 def enrichment():
-    return render_template('enrichment.html', form=Enrichment_Form(), example_status="example_None", last_updated_text=last_updated_text)
+    return render_template('enrichment.html', form=Enrichment_Form(), example_status="example_None", last_updated_text=last_updated_text, NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="")
 
 @app.route('/help')
 def help_():
     return render_template('help.html', form=Enrichment_Form())
 
 def generate_interactive_result_page(df, args_dict, session_id, form, errors=()):
-    """
-    /plot
-    :param df:
-    :param args_dict:
-    :param session_id:
-    :param form:
-    :param errors:
-    :return:
-    """
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
     df.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
     enrichment_method = args_dict["enrichment_method"]
-    cols_sort_order = cn.enrichmentMethod_2_colsSortOrder_dict[enrichment_method]
     df, term_2_edges_dict_json, sizeref = plot_and_table.ready_df_for_plot(df, lineage_dict, enrichment_method)
     dict_per_category, term_2_positionInArr_dict, term_2_category_dict = plot_and_table.df_2_dict_per_category_for_traces(df, enrichment_method)
+    cols_sort_order = cn.enrichmentMethod_2_colsSortOrder_dict[enrichment_method]
     table_as_text = plot_and_table.df_2_html_table_with_data_bars(df, cols_sort_order, enrichment_method, session_id, SESSION_FOLDER_ABSOLUTE)
-    x_min, x_max, y_min, y_max = df[cn.logFDR].min(), df[cn.logFDR].max(), df[cn.effect_size].min(), df[cn.effect_size].max()
-    x_range_start, x_range_stop, y_range_start, y_range_stop = x_min * 0.93, x_max * 1.085, y_min * 1.25, y_max * 1.25
+    if enrichment_method != "characterize_foreground":
+        x_min, x_max, y_min, y_max = df[cn.logFDR].min(), df[cn.logFDR].max(), df[cn.effect_size].min(), df[cn.effect_size].max()
+        x_range_start, x_range_stop, y_range_start, y_range_stop = x_min * 0.93, x_max * 1.085, y_min * 0.9 - 0.1, y_max * 1.1 + 0.1
+    else:
+        x_range_start, x_range_stop, y_range_start, y_range_stop = -1, -1, -1, -1
     return render_template('results_interactive.html', form=Enrichment_Form(),
         term_2_edges_dict_json=term_2_edges_dict_json, sizeref=sizeref,
         dict_per_category=dict_per_category, term_2_positionInArr_dict=term_2_positionInArr_dict, term_2_category_dict=term_2_category_dict,
@@ -693,14 +679,26 @@ def results():
                      "p_value_cutoff": form.p_value_cutoff.data,
                      "FDR_cutoff": form.FDR_cutoff.data,
                      "o_or_u_or_both": form.o_or_u_or_both.data,
-                     "filter_PMID_top_n": 100,
+                     "filter_PMID_top_n": form.filter_PMID_top_n.data,
                      "filter_foreground_count_one": form.filter_foreground_count_one.data,
                      "filter_parents": form.filter_parents.data,
-                     "taxid": form.taxid.data,
+                     # "taxid": form.taxid.data,
+                     # "taxid": request.form["NCBI_TaxID"],
                      "output_format": "dataframe",
                      "enrichment_method": form.enrichment_method.data,
                      "multiple_testing_per_etype": form.multiple_testing_per_etype.data,
                      }
+        try:
+            taxid = request.form["NCBI_TaxID"]
+            taxid_split = taxid.split(", ")
+            if len(taxid_split) == 3: # user selected from suggestion
+                taxid = int(taxid_split[1])
+            else: # hopefully only NCBI taxid entered
+                taxid = int(taxid)
+            args_dict["taxid"] = taxid
+        except:
+            args_dict["ERROR_taxid"] = "We're having issues parsing your NCBI taxonomy input '{}'. Please select an entry from the autocomplete suggestions or enter a valid NCBI taxonomy ID that has a UniProt reference proteome.".format(request.form["NCBI_TaxID"])
+
         ui = userinput.Userinput(pqo, fn=fileobject,
             foreground_string=form.foreground_textarea.data,
             background_string=form.background_textarea.data,
@@ -709,7 +707,6 @@ def results():
         if variables.VERBOSE:
             print("-" * 80)
             for key, val in args_dict.items():
-                # if key not in {""}
                 print(key, val, type(val))
             print("-" * 80)
         if variables.DEBUG_HTML:
@@ -740,7 +737,7 @@ def results():
             ### old version with compact and comprehensive results
             # return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
             return generate_interactive_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
-    return render_template('enrichment.html', form=form, last_updated_text=last_updated_text)
+    return render_template('enrichment.html', form=form, last_updated_text=last_updated_text,  NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="")
 
 def helper_split_errors_from_dict(args_dict):
     errors_dict, args_dict_minus_errors = {}, {}

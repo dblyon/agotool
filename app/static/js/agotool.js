@@ -1,5 +1,5 @@
 // ENRICHMENT PAGE
-var enrichment_page = (function() {
+let enrichment_page = (function() {
 // hide GO-term specific options if UniProt-keywords selected
 //     $("#copy_paste_field textarea").keypress(function (event) {
 //         $("#userinput_file").filestyle('clear');
@@ -63,6 +63,8 @@ var enrichment_page = (function() {
 // try single method to change everything dependent on enrichment_method
 $('#enrichment_method').change(function() {
         let enrichment_method = $('#enrichment_method').val();
+
+        // show NCBI TaxID selection only when "genome" is selected
         let choice = enrichment_method !== "genome";
         toggle_if(choice, ".taxid", "");
 
@@ -287,7 +289,7 @@ let results_page_plotly = (function () {
         switch (enrichment_method) {
             case "genome":
             case "abundance_correction":
-                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
+                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank, category_rank]
                 cols = [
                     {"visible": true, "width": "80px"}, // s value
                     {"visible": true, "width": "100px"}, // term
@@ -307,10 +309,11 @@ let results_page_plotly = (function () {
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
-                    {"visible": false},];
+                    {"visible": false},
+                    {"visible": false},]; // category_rank
                 break;
             case "compare_samples":
-                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank]
+                //[s_value, term, description, FDR, effect_size, category, over_under, hierarchical_level, year, FG_IDs, BG_IDs, FG_count, FG_n, BG_count, BG_n, ratio_in_FG, ratio_in_BG, p_value, logFDR, rank, category_rank]
                 cols = [
                     {"visible": true, "width": "80px"}, // s value
                     {"visible": true, "width": "100px"}, // term
@@ -331,21 +334,23 @@ let results_page_plotly = (function () {
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
-                    {"visible": false},];
+                    {"visible": false},
+                    {"visible": false},]; // category_rank
                 break;
             case "characterize_foreground":
-                // [ratio_in_FG, term, description, category, hierarchical_level, year, FG_IDs, FG_count, FG_n, rank]
+                // [ratio_in_FG, term, description, category, hierarchical_level, year, FG_IDs, FG_count, FG_n, rank, category_rank]
                 cols = [
                     {"visible": true, "width": "80px"}, // ratio_in_FG
                     {"visible": true, "width": "100px"}, // term
                     {"visible": true, "width": "200px"}, // description
                     {"visible": true}, // category
+                    {"visible": true}, // hierarchical_level
                     {"visible": false},
                     {"visible": false},
+                    {"visible": true}, // foreground_count
                     {"visible": false},
-                    {"visible": true},
                     {"visible": false},
-                    {"visible": false},];
+                    {"visible": false},]; // category_rank
                 break;
             default:
                 cols = [];
@@ -359,15 +364,15 @@ let results_page_plotly = (function () {
         switch (enrichment_method) {
             case "genome":
             case "abundance_correction":
-                hidden_columns_index_arr = Array.from(new Array(19), (x, i) => i);
-                visible_columns_index_arr = [0, 1, 2, 3];
-                break;
-            case "compare_samples":
                 hidden_columns_index_arr = Array.from(new Array(20), (x, i) => i);
                 visible_columns_index_arr = [0, 1, 2, 3];
                 break;
+            case "compare_samples":
+                hidden_columns_index_arr = Array.from(new Array(21), (x, i) => i);
+                visible_columns_index_arr = [0, 1, 2, 3];
+                break;
             case "characterize_foreground":
-                hidden_columns_index_arr = Array.from(new Array(10), (x, i) => i);
+                hidden_columns_index_arr = Array.from(new Array(11), (x, i) => i);
                 visible_columns_index_arr = [0, 1, 2, 3, 7];
                 break;
             default:
@@ -377,18 +382,18 @@ let results_page_plotly = (function () {
         return [hidden_columns_index_arr, visible_columns_index_arr];
         }
 
-    function get_order_formatting(enrichment_method) {
+    function get_column_sort_order(enrichment_method) {
         let order;
         switch (enrichment_method) {
             case "genome":
             case "abundance_correction":
-                order = [[5, "desc"], [18, "asc"]]; // ["category", "rank"]
+                order = [[19, "asc"], [18, "asc"]]; // ["category_rank", "rank"]
                 break;
             case "compare_samples":
-                order = [[5, "desc"], [19, "asc"]]; // ["category", "rank"]
+                order = [[20, "asc"], [19, "asc"]]; // ["category_rank", "rank"]
                 break;
             case "characterize_foreground":
-                order = [[3, "desc"], [0, "desc"]]; // ["category", "ratio_in_FG"]
+                order = [[10, "asc"], [0, "desc"]]; // ["category_rank", "ratio_in_FG"]
                 break;
             default:
                 order = [];
@@ -419,6 +424,24 @@ let results_page_plotly = (function () {
         return cols;
     }
 
+    function get_scrollY(enrichment_method) {
+        let scrollY_pixels;
+        switch (enrichment_method) {
+            case "genome":
+            case "abundance_correction":
+            case "compare_samples":
+                scrollY_pixels = "500px";
+                break;
+            case "characterize_foreground":
+                scrollY_pixels = "750px";
+                break;
+            default:
+                scrollY_pixels = "500px";
+                break;
+        }
+        return scrollY_pixels;
+    }
+
     // add classes to specific columns
     $(document).ready(function() {
         let table_dbl = $('table.display').DataTable({
@@ -426,7 +449,7 @@ let results_page_plotly = (function () {
             scrollCollapse: true,
             paging: false,
             scrollX: true,
-            scrollY: "500px",
+            scrollY: get_scrollY(enrichment_method),
             "autoWidth": false,
             "language": {
                 "info": "Showing _TOTAL_ entries",
@@ -438,10 +461,9 @@ let results_page_plotly = (function () {
             "columnDefs": [{targets: get_columns_for_ellipsis(enrichment_method), render: $.fn.dataTable.render.ellipsis(80, true)}],
             responsive: true,
             select: {style: 'multi'},
-            "order": get_order_formatting(enrichment_method),
+            "order": get_column_sort_order(enrichment_method),
             "columns": get_columns_visible_and_width_formatting(enrichment_method),
         });
-
 
         let selected_indices_set = new Set();
 
@@ -481,7 +503,7 @@ let results_page_plotly = (function () {
         let visible_columns_index_arr;
 
         function reset_table() {
-            table_dbl.order( get_order_formatting(enrichment_method) ).draw();
+            table_dbl.order( get_column_sort_order(enrichment_method) ).draw();
             [hidden_columns_index_arr, visible_columns_index_arr] = get_column_reset_visible_info(enrichment_method);
             table_dbl.columns( hidden_columns_index_arr ).visible( false, false );
             table_dbl.columns( visible_columns_index_arr ).visible( true, false );

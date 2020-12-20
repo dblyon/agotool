@@ -26,7 +26,7 @@
               {% block nav_FAQ %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('FAQ') }}">FAQ</a></li>{% endblock nav_FAQ %}
               {% block nav_About %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('about') }}">About</a></li>{% endblock nav_About %}
               {% block nav_API %}<li class="nav-item"> <a class="nav-link" href="{{ url_for('api_help') }}">API</a></li>{% endblock nav_API %}
-              {% block nav_Results_interactive %}<li class="nav-item active"> <a class="nav-link" name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}">interactive Results<span class="sr-only">(current)</span></a></li>{% endblock %}
+              {% block nav_Results_interactive %}<li class="nav-item active"> <a class="nav-link" name="file_path" href="{{ url_for('download_results_data', filename=file_path) }}">Results<span class="sr-only">(current)</span></a></li>{% endblock %}
 
 {#          {% block nav_Results_comprehensive %}<li class="nav-item"> <a class="nav-link results" name="file_path" onclick="submit_form('form', 'results_comprehensive')">Results comprehensive</a></li>{% endblock %}#}
 {#            <form id="form" method="Post" action="results_comprehensive" enctype="multipart/form-data">#}
