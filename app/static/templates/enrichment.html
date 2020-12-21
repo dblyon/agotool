@@ -81,9 +81,9 @@
                       <span title="{{ form.enrichment_method.description }}"> {{ form.enrichment_method.label }}: {{ form.enrichment_method() }} <br> </span>
                   </div>
                   <div class="row col-md-8 taxid">
-                      <p>We support all <a class="NCBI_TaxID" href="https://www.uniprot.org/proteomes/"> UniProt reference proteomes</a>. Please provide an organism name, an NCBI taxon identifier, or a UniProt proteome ID in the field below to select the respective proteins as the 'background'.</p>
+                      <p>We support all UniProt reference proteomes. Please provide an organism name, an NCBI taxon identifier, or a UniProt proteome ID in the field below to select the respective proteins as the 'background'.</p>
                       <div class="ui-widget">
-                          <label for="NCBI_TaxID"><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI taxonomy ID, Name</a>, or UniProt proteome ID:</label><br>
+                          <label for="NCBI_TaxID">Organism name, <a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI taxon identifier</a>, or <a class="NCBI_TaxID" href="https://www.uniprot.org/proteomes/">UniProt proteome ID</a>:</label><br>
                           <input name="NCBI_TaxID" id="NCBI_TaxID" size="80px">
                        </div>
 {#                      <span><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI TaxID:</a> {{ form.taxid}} <br> </span>#}
