@@ -5,7 +5,7 @@ hostname = socket.gethostname()
 
 ############################
 ### settings
-PRELOAD = False # set True in production. Load necessary data via PQO
+PRELOAD = True # set True in production. Load necessary data via PQO
 # pre-load objects DB connection necessary, set to False while testing with pytest
 # skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 # skip_downloads_completely = True # don't download anything
