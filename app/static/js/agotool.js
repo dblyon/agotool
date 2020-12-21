@@ -79,7 +79,6 @@ $('#enrichment_method').change(function() {
 $("#enrichment_method").change();
 
 
-
 // old code pertinent for "characterize_foreground
 // // show score_cutoff only when "characterize_foreground" is selected
 //     $('#enrichment_method').change(function() {

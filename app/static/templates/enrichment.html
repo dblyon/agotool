@@ -83,8 +83,8 @@
                   <div class="row col-md-8 taxid">
                       <p>We support all <a class="NCBI_TaxID" href="https://www.uniprot.org/proteomes/"> UniProt reference proteomes</a>. Please provide an organism name, an NCBI taxon identifier, or a UniProt proteome ID in the field below to select the respective proteins as the 'background'.</p>
                       <div class="ui-widget">
-                          <label for="NCBI_TaxID"><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">Name, NCBI taxonomy ID</a>, or UniProt proteome ID:</label>
-                          <input name="NCBI_TaxID" id="NCBI_TaxID">
+                          <label for="NCBI_TaxID"><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI taxonomy ID, Name</a>, or UniProt proteome ID:</label><br>
+                          <input name="NCBI_TaxID" id="NCBI_TaxID" size="80px">
                        </div>
 {#                      <span><a class="NCBI_TaxID" href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI TaxID:</a> {{ form.taxid}} <br> </span>#}
 {#                        {% if form.taxid.errors %}#}
@@ -103,7 +103,7 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <h4 class="panel-title">
-            <a class="collapse_options_dbl" data-toggle="collapse" href="#collapse_analysis_options">Analysis options</a>
+            <a class="collapse_options_dbl" data-toggle="collapse" href="#collapse_analysis_options">Analysis options &blacktriangledown;</a>
           </h4>
         </div>
         <div id="collapse_analysis_options" class="panel-collapse collapse">
@@ -212,7 +212,7 @@
         <div class="panel-heading">
           <h4 class="panel-title">
               <div class="row">
-                  <a class="collapse_options_dbl" data-toggle="collapse" href="#collapse_report_options">Report options</a>
+                  <a class="collapse_options_dbl" data-toggle="collapse" href="#collapse_report_options">Report options &blacktriangledown;</a>
           </h4>
         </div>
       </div>

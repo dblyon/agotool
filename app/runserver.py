@@ -55,10 +55,11 @@ if ARGPARSE:
         variables.VERBOSE = True
 ###############################################################################
 # ToDo
-# - fix PyTest colnames
 # - update help and examples, fix Ufuk comments on math formulas, parameters page
 # - add symbol/icon to expand menu options
 # - add minimum count for foreground --> replace with minimum count, but make backwards compatible with REST API
+# - lineage_dict_direct.p --> in Snakemake pipeline?
+# - sticky footer Firefox
 # - code REST API analogous to STRING --> also adapt column names accordingly
 # - fix javascript colnames
 # - create compare_samples_with_values --> KS test method
@@ -644,7 +645,7 @@ def generate_interactive_result_page(df, args_dict, session_id, form, errors=())
     table_as_text = plot_and_table.df_2_html_table_with_data_bars(df, cols_sort_order, enrichment_method, session_id, SESSION_FOLDER_ABSOLUTE)
     if enrichment_method != "characterize_foreground":
         x_min, x_max, y_min, y_max = df[cn.logFDR].min(), df[cn.logFDR].max(), df[cn.effect_size].min(), df[cn.effect_size].max()
-        x_range_start, x_range_stop, y_range_start, y_range_stop = x_min * 0.93, x_max * 1.085, y_min * 0.9 - 0.1, y_max * 1.1 + 0.1
+        x_range_start, x_range_stop, y_range_start, y_range_stop = x_min * 0.93, x_max * 1.085, y_min * 0.9, y_max * 1.1
     else:
         x_range_start, x_range_stop, y_range_start, y_range_stop = -1, -1, -1, -1
     return render_template('results_interactive.html', form=Enrichment_Form(),

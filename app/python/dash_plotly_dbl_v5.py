@@ -278,8 +278,8 @@ def select_deselect(button_reset_plot_n_clicks):
                Input(component_id="main_datatable", component_property="derived_virtual_selected_row_ids"),
                Input(component_id="toggle_point_labels", component_property="value"),
                Input(component_id="toggle_point_edges", component_property="value")])
-def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data, derived_virtual_selected_row_ids, toggle_point_labels_value, toggle_point_edges_value):
-    # active_cell not used BUT without it the filter_data cell doesn't get highlighted at the bottom
+def highlight_dataTableRows_and_pointsInScatter_on_selectInDataTable(derived_virtual_data,
+        derived_virtual_selected_row_ids, toggle_point_labels_value, toggle_point_edges_value):
     if derived_virtual_data is None or len(derived_virtual_data) == 0:
         dff = df
     else:
