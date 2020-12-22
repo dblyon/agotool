@@ -633,6 +633,13 @@ def enrichment():
 def help_():
     return render_template('help.html', form=Enrichment_Form())
 
+
+from flask import render_template
+
+@app.route(“/some_other_html_file”)
+def generate_other_html_file:
+    return render_template("some_other_html_file.html")
+
 def generate_interactive_result_page(df, args_dict, session_id, form, errors=()):
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)

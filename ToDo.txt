@@ -1,0 +1,17 @@
+I would make a filtering option for the foreground size (slider), and also visualize the larger terms as even
+more transparent, because they are less informative and therefore less interesting to see than the small terms
+
+sort order of plotting the dots, should start with large terms then small ones so they overlay properly
+
+browser testing service
+ask Christian for password
+
+mouse zoom epilepsy fix
+
+click on plot and highlight in table
+
+don't resize plot on edges
+
+same color for each for each category
+
+Linkouts should be underlined
