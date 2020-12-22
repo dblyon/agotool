@@ -145,7 +145,7 @@ table.dataTable tbody th, table.dataTable tbody td {
 }
 
     /*linkout_style = """#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:active { color:#0000EE; } #linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; } """*/
-#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal}
+#linkout_dbl a:link { color:#000000; TEXT-DECORATION: underline; font-weight: normal}
 #linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal}
 #linkout_dbl a:active { color:#0000EE; }
 #linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; }

@@ -616,8 +616,8 @@ let results_page_plotly = (function () {
                 }
 
                 if (toggle_point_labels_button.is(':checked')) {
-                    plot_layout_orig["xaxis"]["range"] = x_range_with_labels;
-                    plot_layout_orig["yaxis"]["range"] = y_range_with_labels;
+                    // plot_layout_orig["xaxis"]["range"] = x_range_with_labels;
+                    // plot_layout_orig["yaxis"]["range"] = y_range_with_labels;
                     for (let term_name of selected_indices_set) {
                         category_name = term_2_category_dict[term_name];
                         dict_of_category = dict_per_category[category_name];
@@ -638,8 +638,8 @@ let results_page_plotly = (function () {
                         dict_of_category["marker_line_width"][index_position] = marker_line_width_highlight;
                         dict_of_category["opacity"][index_position] = opacity_highlight;
                     }
-                    plot_layout_orig["xaxis"]["range"] = [];
-                    plot_layout_orig["yaxis"]["range"] = [];
+                    // plot_layout_orig["xaxis"]["range"] = [];
+                    // plot_layout_orig["yaxis"]["range"] = [];
                 }
 
                 for (let category_name in dict_per_category) {

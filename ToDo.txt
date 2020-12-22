@@ -1,17 +1,26 @@
 I would make a filtering option for the foreground size (slider), and also visualize the larger terms as even
 more transparent, because they are less informative and therefore less interesting to see than the small terms
 
-sort order of plotting the dots, should start with large terms then small ones so they overlay properly
-
 browser testing service
 ask Christian for password
 
-mouse zoom epilepsy fix
 
-click on plot and highlight in table
+Difficult:
+- click on plot and highlight in table
+- mouse zoom epilepsy fix
 
-don't resize plot on edges
 
-same color for each for each category
 
-Linkouts should be underlined
+Not sure what to do:
+? same color for each for each category ?
+ --> then it might happen that similar colors appear in a plot even though there are few categories and the color could be more
+     distinct
+- on click of legend plot --> hide edges, remove them from the set
+
+Done:
+- don't resize plot on edges
+- Linkouts should be underlined
+- zoom per default not pan
+- sort order of plotting the dots, should start with large terms then small ones so they overlay properly
+
+

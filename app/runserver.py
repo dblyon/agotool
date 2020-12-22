@@ -633,13 +633,6 @@ def enrichment():
 def help_():
     return render_template('help.html', form=Enrichment_Form())
 
-
-from flask import render_template
-
-@app.route(“/some_other_html_file”)
-def generate_other_html_file:
-    return render_template("some_other_html_file.html")
-
 def generate_interactive_result_page(df, args_dict, session_id, form, errors=()):
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
@@ -649,17 +642,17 @@ def generate_interactive_result_page(df, args_dict, session_id, form, errors=())
     dict_per_category, term_2_positionInArr_dict, term_2_category_dict = plot_and_table.df_2_dict_per_category_for_traces(df, enrichment_method)
     cols_sort_order = cn.enrichmentMethod_2_colsSortOrder_dict[enrichment_method]
     table_as_text = plot_and_table.df_2_html_table_with_data_bars(df, cols_sort_order, enrichment_method, session_id, SESSION_FOLDER_ABSOLUTE)
-    if enrichment_method != "characterize_foreground":
-        x_min, x_max, y_min, y_max = df[cn.logFDR].min(), df[cn.logFDR].max(), df[cn.effect_size].min(), df[cn.effect_size].max()
-        x_range_start, x_range_stop, y_range_start, y_range_stop = x_min * 0.93, x_max * 1.085, y_min * 0.9, y_max * 1.1
-    else:
-        x_range_start, x_range_stop, y_range_start, y_range_stop = -1, -1, -1, -1
+    # if enrichment_method != "characterize_foreground":
+        # x_min, x_max, y_min, y_max = df[cn.logFDR].min(), df[cn.logFDR].max(), df[cn.effect_size].min(), df[cn.effect_size].max()
+        # x_range_start, x_range_stop, y_range_start, y_range_stop = x_min * 0.93, x_max * 1.085, y_min * 0.9, y_max * 1.1
+    # else:
+    #     x_range_start, x_range_stop, y_range_start, y_range_stop = -1, -1, -1, -1
     return render_template('results_interactive.html', form=Enrichment_Form(),
         term_2_edges_dict_json=term_2_edges_dict_json, sizeref=sizeref,
         dict_per_category=dict_per_category, term_2_positionInArr_dict=term_2_positionInArr_dict, term_2_category_dict=term_2_category_dict,
         df_as_html_dict=table_as_text, enrichment_method=enrichment_method,
-        file_path=file_name,
-        x_range_start=x_range_start, x_range_stop=x_range_stop, y_range_start=y_range_start, y_range_stop=y_range_stop)
+        file_path=file_name) #,
+        # x_range_start=x_range_start, x_range_stop=x_range_stop, y_range_start=y_range_start, y_range_stop=y_range_stop)
 
 ################################################################################
 # results.html

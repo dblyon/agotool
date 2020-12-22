@@ -87,8 +87,8 @@
     {#const x_range_stop = 10; // {{ x_range_stop | safe }};#}
     {#const y_range_start = {{ y_range_start | safe }};#}
     {#const y_range_stop = {{ y_range_stop | safe }};#}
-    const x_range_with_labels = [ {{ x_range_start | safe }}, {{ x_range_stop | safe }} ];
-    const y_range_with_labels = [ {{ y_range_start | safe }}, {{ y_range_stop | safe }} ];
+    {#const x_range_with_labels = [ {{ x_range_start | safe }}, {{ x_range_stop | safe }} ];#}
+    {#const y_range_with_labels = [ {{ y_range_start | safe }}, {{ y_range_stop | safe }} ];#}
     const hover_label_color = "#43464B";
     const plot_background_color = "#ffffff";
     const plot_grid_color = "#efefef";
@@ -110,14 +110,28 @@
     const min_marker_size = 4;
     const max_marker_size = 30;
 
+    {#scrollZoom: {
+    {#        valType: 'flaglist',
+    {#        flags: ['cartesian', 'gl3d', 'geo', 'mapbox'],
+    {#        extras: [true, false],
+    {#        dflt: 'gl3d+geo+mapbox',
+    {#        description: [
+    {#            'Determines whether mouse wheel or two-finger scroll zooms is enable.',
+    {#            'Turned on by default for gl3d, geo and mapbox subplots',
+    {#            '(as these subplot types do not have zoombox via pan),',
+    {#            'but turned off by default for cartesian subplots.',
+    {#            'Set `scrollZoom` to *false* to disable scrolling for all subplots.'
+    {#        ].join(' ')
+    {#    },#}
+
     let myPlot = document.getElementById("plotly_scatter_plot");
-    let plot_config = {"displaylogo": false,  "scrollZoom": true, "responsive": true,
+    let plot_config = {"displaylogo": false,  "scrollZoom": true, "responsive": true, "doubleClickDelay": 1000,
       "modeBarButtonsToRemove": ["lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines", "resetScale2d"],
-      "toImageButtonOptions": {'format': 'svg','filename': 'aGOtool_plot','scale': 1},};
+      "toImageButtonOptions": {'format': 'svg','filename': 'aGOtool_plot', 'scale': 1},};
     function get_plot_layout_orig() {
         return {"template":
                     {"data": {"scatter": [{"type": "scatter", "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}}]},
-                    "layout": {"clickmode": "event", "dragmode": "pan", "hovermode": "closest",
+                    "layout": {"clickmode": "event", "dragmode": "zoom", "hovermode": "closest",
                         "legend": {"font": {"size": 13}, "title": {"font": {"size": 12}}},
                         "margin": {"b": 0, "l": 0, "r": 0, "t": 30},
                         "plot_bgcolor": plot_background_color,

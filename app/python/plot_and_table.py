@@ -41,7 +41,6 @@ etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
                               -57: "Reactome",
                               -58: "WikiPathways"}
 
-
 def ready_df_for_plot(df, lineage_dict, enrichment_method):
     sizeref = 2.0 * max(df[cn.FG_count]) / (max_marker_size ** 2)
     ### rename categories
@@ -90,10 +89,15 @@ def get_sorted_colNames_if_exist_in_DF(df, cols_sort_order):
     return [colName for colName in cols_sort_order if colName in cols_set_temp]
 
 def df_2_dict_per_category_for_traces(df, enrichment_method):
+    """
+    sort rows per category so that large points are plotted first (in the background) and small points are in the foreground.
+    maybe even opacity should be different (with some sort of gradient)
+    """
     dict_per_category, term_2_positionInArr_dict = {}, {}
     term_2_category_dict = {term_: category_ for term_, category_ in zip(df[cn.term], df[cn.category])}
     if enrichment_method != "characterize_foreground":
         for category_name, group in df.groupby(cn.category):
+            group = group.sort_values([cn.FG_count], ascending=False)
             term_2_positionInArr_dict.update({term_: pos for pos, term_ in enumerate(group[cn.term])})
             dict_per_category[category_name] = {cn.term: group[cn.term].tolist(),
                                                 cn.description: group[cn.description].tolist(),
@@ -108,6 +112,7 @@ def df_2_dict_per_category_for_traces(df, enrichment_method):
                                                 }
     else:
         for category_name, group in df.groupby(cn.category):
+            group = group.sort_values([cn.FG_count], ascending=False)
             term_2_positionInArr_dict.update({term_: pos for pos, term_ in enumerate(group[cn.term])})
             dict_per_category[category_name] = {cn.term: group[cn.term].tolist(),
                                                 cn.description: group[cn.description].tolist(),
