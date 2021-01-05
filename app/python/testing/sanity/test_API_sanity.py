@@ -154,7 +154,8 @@ def test_web_example_1():
     assert df.shape[0] > 50
     # at least 5 categories with significant results, last time I checked (2020 04 01)
     # at least 4 categories with significant results, last time I checked (2020 11 24)
-    assert df.groupby(cn.category).count().shape[0] >= 4
+    # 4 categories with significant results, last time I checked (2021 01 05) locally != phobos with only 3 (which has the updated
+    assert df.groupby(cn.category).count().shape[0] >= 3
     cond_FDR = df[cn.p_value] <= df[cn.FDR]
     assert sum(cond_FDR) == len(cond_FDR)
 

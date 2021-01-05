@@ -84,7 +84,8 @@ elif hostname in {"atlas", "gaia", "phobos", "deimos"}:
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms")
     KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, r"genes/misc/taxonomic_rank")
     KEGG_pathway = os.path.join(KEGG_dir, "pathway/pathway.list")
-
+else:
+    raise StopIteration
 DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_lineage.txt")
 DOID_GO_BTO_an_without_lineage = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_lineage.txt")
 DOID_GO_BTO_an_without_translation = os.path.join(TABLES_DIR, "DOID_GO_BTO_an_without_translation.txt")

@@ -41,10 +41,14 @@ printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
 cd "$APP_DIR" || exit
 # echo c > agotool_master.fifo
 "$UWSGI_EXE" uwsgi_config_master.ini &
+printf "sleeping for 4min\n"
 sleep 4m
+printf "done sleeping\n"
 cd "$TESTING_DIR" || exit
 "$PYTEST_EXE"
 check_exit_status
+printf "shutting down aGOtool workers"
+cd "$APP_DIR" || exit
 echo q > agotool_master.fifo
 check_exit_status
 
