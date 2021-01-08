@@ -191,10 +191,6 @@ parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
     default=None) # ? do I need default value ?
 
-parser.add_argument("FDR_cutoff", type=float,
-    help="False Discovery Rate cutoff (threshold for multiple testing corrected p-values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.",
-    default=0.05)
-
 # parser.add_argument("filter_PMID", type=float,
 #     help="Filter the top n PMID (PubMed IDs) sorted by lowest FDR and newest publication date; e.g. 100, default=100.",
 #     default=100)
@@ -284,7 +280,11 @@ parser.add_argument("fold_enrichment_for2background", type=float,
     help="Apply a filter for the minimum threshold value of fold enrichment foreground/background.",
     default=0)
 
-parser.add_argument("p_value_uncorrected", type=float,
+parser.add_argument("FDR_cutoff", type=float,
+    help="False Discovery Rate cutoff (threshold for multiple testing corrected p-values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.",
+    default=0.05)
+
+parser.add_argument("p_value_uncorrected", type=float, # #!!! not called p_value_cutoff here only in master branch
     help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
     default=0)
 
