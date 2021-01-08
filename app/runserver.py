@@ -587,6 +587,7 @@ class Example_2(Enrichment_Form):
     enrichment_method = fields.SelectField("Enrichment method", choices=(("genome", "genome"), ("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
     characterize_foreground: Foreground only""")
+    taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606 for Homo sapiens)")
 
 class Example_3(Enrichment_Form):
     """
@@ -600,7 +601,6 @@ class Example_3(Enrichment_Form):
     enrichment_method = fields.SelectField("Enrichment method", choices=(("compare_samples", "compare_samples"), ("abundance_correction", "abundance_correction"), ("genome", "genome"),  ("characterize_foreground", "characterize_foreground")), description="""abundance_correction: Foreground vs Background abundance corrected
     compare_samples: Foreground vs Background (no abundance correction)
     characterize_foreground: Foreground only""")
-    taxid = fields.IntegerField("NCBI TaxID", [validate_integer], default=9606, description="NCBI Taxonomy IDentifier e.g. '9606' for Homo sapiens. Only relevant if 'enrichment_method' is 'genome' (default=9606 for Homo sapiens)")
 
 class Example_4(Enrichment_Form):
     """
@@ -692,16 +692,17 @@ def results():
                      "enrichment_method": form.enrichment_method.data,
                      "multiple_testing_per_etype": form.multiple_testing_per_etype.data,
                      }
-        try:
-            taxid = request.form["NCBI_TaxID"]
-            taxid_split = taxid.split(", ")
-            if len(taxid_split) == 3: # user selected from suggestion
-                taxid = int(taxid_split[1])
-            else: # hopefully only NCBI taxid entered
-                taxid = int(taxid)
-            args_dict["taxid"] = taxid
-        except:
-            args_dict["ERROR_taxid"] = "We're having issues parsing your NCBI taxonomy input '{}'. Please select an entry from the autocomplete suggestions or enter a valid NCBI taxonomy ID that has a UniProt reference proteome.".format(request.form["NCBI_TaxID"])
+        if args_dict["enrichment_method"] == "genome":
+            try:
+                taxid = request.form["NCBI_TaxID"]
+                taxid_split = taxid.split(", ")
+                if len(taxid_split) == 3: # user selected from suggestion
+                    taxid = int(taxid_split[1])
+                else: # hopefully only NCBI taxid entered
+                    taxid = int(taxid)
+                args_dict["taxid"] = taxid
+            except:
+                args_dict["ERROR_taxid"] = "We're having issues parsing your NCBI taxonomy input '{}'. Please select an entry from the autocomplete suggestions or enter a valid NCBI taxonomy ID that has a UniProt reference proteome.".format(request.form["NCBI_TaxID"])
 
         ui = userinput.Userinput(pqo, fn=fileobject,
             foreground_string=form.foreground_textarea.data,

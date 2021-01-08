@@ -354,7 +354,7 @@ def test_abundance_correction_fg_equals_bg(random_abundance_correction_foregroun
 def test_abundance_correction_impute_values(random_abundance_correction_foreground_background):
     foreground, background, intensity, taxid = random_abundance_correction_foreground_background
     params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction',
-              'FDR_cutoff': 1, 'p_value': 1,
+              'FDR_cutoff': 1, 'p_value_cutoff': 1,
               "filter_foreground_count_one": False, "filter_parents": False}
 
     ### background a bit bigger than foreground
