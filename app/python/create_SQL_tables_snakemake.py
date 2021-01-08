@@ -814,6 +814,13 @@ def Lineage_table_FIN(fn_in_GO_obo_Jensenlab, fn_in_GO_obo, fn_in_keywords, fn_i
         for key, value in lineage_dict.items():
             fh_out_hr.write(str(key) + "\t" + "{" + str(sorted(set(value)))[1:-1].replace("'", '"') + "}\n")
 
+def lineage_dict_direct_funcName_UPS_FIN(GO_obo, direct_or_allParents, lineage_dict_direct_fn):
+    if not os.path.exists(GO_obo):
+        raise StopIteration
+    lineage_dict = get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents)
+    with open(lineage_dict_direct_fn, "wb") as fh_out:
+        pickle.dump(lineage_dict, fh_out)
+
 def get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents, *args, **kwags):
     """
 

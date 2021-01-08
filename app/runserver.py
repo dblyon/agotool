@@ -55,6 +55,9 @@ if ARGPARSE:
         variables.VERBOSE = True
 ###############################################################################
 # ToDo
+# - pytest of flatfiles, only for big files (remove all the small AFC/KS files)
+# - zerg mode
+# - emperor mode?
 # - update help and examples, fix Ufuk comments on math formulas, parameters page
 # - add symbol/icon to expand menu options
 # - add minimum count for foreground --> replace with minimum count, but make backwards compatible with REST API
@@ -147,13 +150,14 @@ def log_activity(string2log):
 ################################################################################
 if PRELOAD:
     if variables.VERSION_ == "STRING" or variables.VERSION_ == "UniProt":
-        import pickle
-        lineage_dict = pickle.load(open(os.path.join(variables.TABLES_DIR, "lineage_dict_direct.p"), "rb"))
-        print("done with lineage_dict")
+        # import pickle
+        # lineage_dict = pickle.load(open(os.path.join(variables.TABLES_DIR, "lineage_dict_direct.p"), "rb"))
+        # print("done with lineage_dict")
         # import create_SQL_tables_snakemake as cst
-        # print("getting lineage_dict")
+        print("getting lineage_dict")
         # lineage_dict = cst.get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents="direct")
         pqo = query.PersistentQueryObject_STRING(low_memory=variables.LOW_MEMORY, read_from_flat_files=variables.READ_FROM_FLAT_FILES)
+        lineage_dict = pqo.lineage_dict
         last_updated_text = query.get_last_updated_text()
     else:
         print("VERSION_ {} not implemented".format(variables.VERSION_))
@@ -161,7 +165,7 @@ if PRELOAD:
 else:
     pqo = None # just for mocking
     import pickle
-    lineage_dict = pickle.load(open(os.path.join(variables.TABLES_DIR, "lineage_dict_direct.p"), "rb"))
+    lineage_dict = pickle.load(open(variables.tables_dict["lineage_dict_direct"], "rb"))
     last_updated_text = "you're in debug mode baby, so stop bugging"
 
 NCBI_autocomplete_list = query.get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list()
@@ -186,6 +190,7 @@ parser.add_argument("multiple_testing_per_etype", type=str, help="If True calcul
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date.")
 parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
 parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)
+parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default=None) # -53 missing for UniProt version # "-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58"
 parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
@@ -211,7 +216,6 @@ parser.add_argument("enrichment_method", type=str,
 parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)", default="basic")
 parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="both")
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
-parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 # parser.add_argument("simplified_output", type=str, default="False") # #!!! necessary for what?
 parser.add_argument("STRING_beta", type=str, default="False")
 
@@ -885,6 +889,8 @@ if __name__ == "__main__":
     # curl "https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "127.0.0.1:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "0.0.0.0:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     ### Corona example of 13 UniProt ENSPs
     # import requests
     # from io import StringIO

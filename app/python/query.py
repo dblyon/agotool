@@ -486,6 +486,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         if variables.VERBOSE:
             print("getting lineage dict")
         self.lineage_dict_enum = get_lineage_dict_enum(False, read_from_flat_files) # default is a set not array, check if this is necessary later
+        self.lineage_dict = pickle.load(open(variables.tables_dict["lineage_dict_direct"], "rb"))
+
         if variables.VERBOSE:
             print("getting blacklisted terms")
         self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr()

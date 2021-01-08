@@ -117,6 +117,7 @@ KEGG_Taxid_2_acronym_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["KEGG_Taxid_2_acronym
 KEGG_entry_no_pathway_annotation = os.path.join(TABLES_DIR, "KEGG_entry_no_pathway_annotation.txt")
 LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
 Lineage_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Lineage_table"]
+lineage_dict_direct = TABLES_DICT_SNAKEMAKE["lineage_dict_direct"]
 Lineage_table_UPS_hr = os.path.join(TABLES_DIR, "Lineage_table_UPS_hr.txt") # Human Readable
 Lineage_table_UPS_no_translation = os.path.join(TABLES_DIR, "Lineage_table_UPS_no_translation.txt")
 PFAM_clans = os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv")
@@ -536,6 +537,17 @@ rule r_Lineage_table_UPS_FIN:
     run:
         cst.Lineage_table_FIN(input.GO_obo_Jensenlab, input.GO_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_UPS_FIN, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, output.Lineage_table_UPS_FIN, output.Lineage_table_UPS_no_translation, output.Lineage_table_UPS_hr, params.GO_CC_textmining_additional_etype)
 
+rule r_lineage_dict_direct_funcName_UPS_FIN:
+    input:
+        GO_obo = GO_obo
+    output:
+        lineage_dict_direct = lineage_dict_direct
+    params:
+        direct_or_allParents = "direct"
+    run:
+        cst.lineage_dict_direct_funcName_UPS_FIN(input.GO_obo, params.direct_or_allParents, output.lineage_dict_direct)
+        # lineage_dict = cst.get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents="direct")
+
 rule r_KEGG_Taxid_2_acronym_table_UPS_FIN:
     input:
         KEGG_taxonomic_rank_file = KEGG_taxonomic_rank_file
@@ -757,89 +769,6 @@ rule r_add_2_DF_file_dimensions_log:
     run:
         cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
 
-# rule Protein_2_Function_table_UniProtDump_UPS_parallel: # doens't work properly, regex parsing
-#     input:
-#         # Functions_table_UPK = Functions_table_UPK,
-#         # GO_obo = GO_obo, # not Jensenlab obo
-#         # UPK_obo = UPK_obo,
-#         SwissProt_dump_dat = os.path.join(DOWNLOADS_DIR, "uniprot_sprot.dat"),
-#         # TrEMBL_dump = TrEMBL_dump,
-#         # interpro_parent_2_child_tree = interpro_parent_2_child_tree,
-#         # RCTM_hierarchy = RCTM_hierarchy,
-#         parallel_parse_UniProt_dump = os.path.join(PYTHON_DIR, "parallel_parse_UniProt_dump.py")
-#     output:
-#         temp_dir = directory(os.path.join(TABLES_DIR, "temp")),
-#         Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp = os.path.join(TABLES_DIR, "Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp.txt"), # Protein_2_Function_table_UniProtDump_UPS, Taxid_UniProtID_2_ENSPs_2_KEGGs, Taxid_UniProt_AC_2_ID
-#     threads: NUMBER_OF_PROCESSES
-#     shell:
-#         """python -c 'import parallel_parse; parallel_parse.parallel_script(r"{input.SwissProt_dump_dat}", r"{input.parallel_parse_UniProt_dump}", r"{output.Protein_2_Function_table_UniProtDump_UPS_and_2_mappings_temp}", temp_dir=r"{output.temp_dir}", cpu_number={threads}, recstart=r"^ID", recend=r"\/\/", KB_MB_GB="M", split_size="100")'"""
-
-### DEPRECATED
-# rule r_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS:
-#     input:
-#         GO_obo_Jensenlab = GO_obo_Jensenlab,
-#         DOID_obo_Jensenlab = DOID_obo_Jensenlab,
-#         BTO_obo_Jensenlab = BTO_obo_Jensenlab,
-#         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
-#         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
-#     output:
-#         Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
-#         DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
-#     run:
-#         cst.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage)
-
-# rule r_SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN:
-#     input:
-#         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN
-#     output:
-#         CSC_ENSPencoding_2_FuncEnum_UPS_FIN = CSC_ENSPencoding_2_FuncEnum_UPS_FIN,
-#         ENSP_2_rowIndex_dict_UPS_FIN = ENSP_2_rowIndex_dict_UPS_FIN,
-#         rowIndex_2_ENSP_dict_UPS_FIN = rowIndex_2_ENSP_dict_UPS_FIN
-#     run:
-#         cst.SparseMatrix_ENSPencoding_2_FuncEnum_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.CSC_ENSPencoding_2_FuncEnum_UPS_FIN, output.ENSP_2_rowIndex_dict_UPS_FIN, output.rowIndex_2_ENSP_dict_UPS_FIN)
-# rule r_Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN: # restricted to reference proteome via Taxid_2_Proteins_table_UPS_FIN.txt (get_proteins_of_taxid)
-#     input:
-#         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN
-#     output:
-#         Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
-#     run:
-#         cst.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN(input.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
-#rule r_cleanup_scratch_drive:
-#    input:
-#        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
-#    run:
-#        cst.cleanup_scratch_drive(input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
-#
-# rule r_Pickle_Taxid_2_FunctionEnum_2_Scores_dict: # NOT deprecated since performance improvement lacking --> maybe in C++ version of dicts are implemented, but doesn't seem worth it since KS testing < 300ms
-#     input:
-#         Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
-#     output:
-#         Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN = Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN,
-#         # Taxid_2_FuncEnum_2_Score_2_Rank_dict = Taxid_2_FuncEnum_2_Score_2_Rank_dict,
-#         # Taxid_2_FuncEnum_2_medianScore_dict = Taxid_2_FuncEnum_2_medianScore_dict,
-#         # Taxid_2_FuncEnum_2_numBGvals_dict = Taxid_2_FuncEnum_2_numBGvals_dict
-#     run:
-#         cst.Pickle_Taxid_2_FunctionEnum_2_Scores_dict(input.Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN, output.Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN)
-#         #, output.Taxid_2_FuncEnum_2_Score_2_Rank_dict, output.Taxid_2_FuncEnum_2_medianScore_dict, output.Taxid_2_FuncEnum_2_numBGvals_dict)
-
-# rule r_Protein_2_FunctionEnum_and_Score_table_UPS_FIN:
-#     input:
-#         GO_obo_Jensenlab = GO_obo_Jensenlab,
-#         DOID_obo_Jensenlab = DOID_obo_Jensenlab,
-#         BTO_obo_Jensenlab = BTO_obo_Jensenlab,
-#         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
-#         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
-#         Functions_table_UPS_FIN = Functions_table_UPS_FIN # ToDo: restrict output for Protein_2_FunctionEnum_and_Score_table_UPS_FIN
-#     output:
-#         Protein_2_FunctionEnum_and_Score_table_UPS_FIN = Protein_2_FunctionEnum_and_Score_table_UPS_FIN,
-#         DOID_GO_BTO_an_without_translation = DOID_GO_BTO_an_without_translation,
-#         ENSP_2_UniProtID_without_translation_2 = ENSP_2_UniProtID_without_translation_2,
-#         DOID_GO_BTO_an_without_lineage = DOID_GO_BTO_an_without_lineage
-#     params:
-#         GO_CC_textmining_additional_etype = True
-#     run:
-#         cst.Protein_2_FunctionEnum_and_Score_table_UPS(input.GO_obo_Jensenlab, input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, input.Functions_table_UPS_FIN, output.Protein_2_FunctionEnum_and_Score_table_UPS_FIN, output.DOID_GO_BTO_an_without_translation, output.ENSP_2_UniProtID_without_translation_2, output.DOID_GO_BTO_an_without_lineage, params.GO_CC_textmining_additional_etype)
-
 
 # background proteomes
 # E. coli is 562 but UniProt ref prot is 83333
@@ -853,9 +782,7 @@ rule r_add_2_DF_file_dimensions_log:
 # ToDo: some UniProtIDs not translated to ENSPs since not in Secondary to primary file, but they are in ENSP_2_UniProt_all file, why not include them in the DB?
 # - ToDo fix API and adapt to Damian STRING API
 # - preload most commong model organisms even for low memory
-# - add Jensenlab Scores data to "characterize_foreground" method --> these 3 etypes don't show up yet --> using user defined cutoff
 # - alignment of table in enrichment
-# - create link outs
 # - fix form validation of wtforms or flask-wtf
 
 # examples for Lars for missing PMID descriptions
@@ -883,12 +810,6 @@ rule r_add_2_DF_file_dimensions_log:
 # - check compare_samples vs genome --> background_counts are off
 # - update prism
 
-
-# CSS Gregor questions
-# - Bootstrap vs Jquery styles
-# - create link outs
-# - change GOCC to GO
-
 # documentation
 # examples --> temp fix
 # REST API
@@ -902,10 +823,8 @@ rule r_add_2_DF_file_dimensions_log:
 # add description and link to sources of slim terms
 # results_comprehensive and results_compact names in URL are not displayed correctly when switching back and forth
 
-# - linkouts
 # - enrichment page alignments
 # - enrichment page footer
-
 
 # changes to the last version of aGOtool:
 # - MCL clustering is no longer supported

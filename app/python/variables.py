@@ -233,7 +233,8 @@ else:
 
 tables_dict = {"Entity_types_table": os.path.join(TABLES_DIR, "Entity_types_table_{}.txt".format(appendix)),
     "KEGG_Taxid_2_acronym_table": os.path.join(TABLES_DIR, "KEGG_Taxid_2_acronym_table_{}.txt".format(appendix)),
-    "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)),
+    "Lineage_table": os.path.join(TABLES_DIR, "Lineage_table_{}.txt".format(appendix)), # whole lineage of funcEnum
+    "lineage_dict_direct": os.path.join(TABLES_DIR, "lineage_dict_direct_funcName_{}.p".format(appendix)), # direct lineage of funcName
     "Functions_table": os.path.join(TABLES_DIR, "Functions_table_{}.txt".format(appendix)), # Functions_table_UPS_reduced
     "Protein_2_FunctionEnum_table": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_{}.txt".format(appendix)), # if not low_mem
     "Secondary_2_Primary_ID_table": os.path.join(TABLES_DIR, "Secondary_2_Primary_ID_{}.txt".format(appendix)), # if not low_mem
