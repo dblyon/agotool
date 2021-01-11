@@ -1,4 +1,5 @@
 *.fifo
+*.pid
 
 env_file_Aquarius_bak
 *.npy

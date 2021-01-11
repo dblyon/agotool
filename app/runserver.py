@@ -711,10 +711,10 @@ def results():
         args_dict = dict(ui.args_dict) # since args_dict was copied
         if variables.VERBOSE:
             print("-" * 80)
-            print("Version G still forking baby")
-            for key, val in args_dict.items():
-                print(key, val, type(val))
-            print("-" * 80)
+            print("Version D preload True")
+            # for key, val in args_dict.items():
+            #     print(key, val, type(val))
+            # print("-" * 80)
         if variables.DEBUG_HTML:
             ui.check = True # ToDo comment #!!! DEBUG
         if ui.check:

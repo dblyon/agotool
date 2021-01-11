@@ -49,3 +49,10 @@ dependencies:
   - uwsgi
   - matplotlib
   - seaborn
+  - plotly
+
+# conda env create -n agotool -f conda_agotool.yml
+# conda activate agotool && python -m ipykernel install --user --name agotool --display-name "Python agotool"
+
+# jupyter kernelspec list
+# jupyter kernelspec remove bubu_env
