@@ -1,6 +1,9 @@
 import sys, os, subprocess, datetime
+import numpy as np
 
+sys.path.insert(0, '../..')
 import variables
+
 if variables.VERSION_ == "UniProt":
     fn_species = "species_UniProt.txt"
 elif variables.VERSION_ == "STRING":
@@ -35,6 +38,7 @@ FNULL = open(os.devnull, 'w')
 
 # url_ = "http://localhost:5911/api"
 
+desired_pvalue = 4.905584053470992e-06
 ##### sequential processing (with 2 parallel calls for each iteration) using 1.
 def sequential_requests(url, prefix, sequential_iterations, log_file_name, verbose):
     FNULL = open(os.devnull, 'w')
@@ -78,8 +82,12 @@ def sequential_requests(url, prefix, sequential_iterations, log_file_name, verbo
                             # if l[7] == 'heart development':
                             if l[0] == "GO:0001102":  # RNA polymerase II activating transcription factor binding
                                 expected_term_found = True
-                                #if l[3] != "7.489216012376792e-06": # check p_value
-                                if l[5] != "4.905584053470846e-06": # check p_value
+                                # if l[3] != "7.489216012376792e-06": # check p_value --> former STRING_v11 version
+                                # if l[5] != "4.905584053470846e-06": # check p_value --> current UniProt version Jan 2021
+                                actual_pvalue = float(l[5])
+                                try:
+                                    np.testing.assert_almost_equal(actual_pvalue, desired_pvalue, decimal=5)
+                                except AssertionError:
                                     if verbose:
                                         print("WARNING! 1", "CallerID:", caller_id_human, "FILE:", file_human,  str(datetime.datetime.now()))
                                     fh_log.write("WARNING! 1 CallerID: {} FILE: {} {}\n".format(caller_id_human, file_human, str(datetime.datetime.now())))
