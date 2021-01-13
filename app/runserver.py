@@ -19,6 +19,17 @@ sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy, plot_and_table
 import colnames as cn
 
+try:
+    with open("version_temp.txt", "r") as fh:
+        for line in fh:
+            version_temp = str( int(line.strip()) + 1 )
+except:
+    version_temp = "0"
+
+with open("version_temp.txt", "w") as fh:
+    fh.write(version_temp)
+print("loading version ", version_temp)
+
 ###############################################################################
 variables.makedirs_()
 EXAMPLE_FOLDER = variables.EXAMPLE_FOLDER
@@ -277,7 +288,10 @@ class API_STRING(Resource):
             return help_page(args_dict)
         else:
             if variables.VERBOSE:
-                print(results_all_function_types[:500])
+                # print(results_all_function_types[:500])
+                print("-" * 50)
+                print("Version: ", version_temp)
+                print("-" * 50)
             return format_multiple_results(args_dict, results_all_function_types, pqo)
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
