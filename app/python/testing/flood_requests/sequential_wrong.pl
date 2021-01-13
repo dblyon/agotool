@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use LWP::UserAgent;
 
-
 my $caller_id = $ARGV[0];
 my $taxon = $ARGV[1];
 my $url = $ARGV[2];  #  "http://127.0.0.1:10110/api";
@@ -39,7 +38,6 @@ unless (defined $response_text) {
     return undef;
 }
 
-
 my $header = 1;
 my @response_lines = split("\n", $response_text);
 my $number_of_lines = scalar @response_lines;
@@ -48,5 +46,3 @@ my $print_this = 0;
 foreach my $response_line (split "\n", $response_text) {
     print "$caller_id\t$response_line\n";
 }
-
-

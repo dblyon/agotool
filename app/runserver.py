@@ -58,6 +58,8 @@ if ARGPARSE:
 # - pytest of flatfiles, only for big files (remove all the small AFC/KS files)
 # - zerg mode
 # - emperor mode?
+# - create log of usage
+# - cast to lower caps for all parameters passed via API
 # - update help and examples, fix Ufuk comments on math formulas, parameters page
 # - add symbol/icon to expand menu options
 # - add minimum count for foreground --> replace with minimum count, but make backwards compatible with REST API
@@ -216,7 +218,6 @@ parser.add_argument("enrichment_method", type=str,
 parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)", default="basic")
 parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="both")
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
-# parser.add_argument("simplified_output", type=str, default="False") # #!!! necessary for what?
 parser.add_argument("STRING_beta", type=str, default="False")
 
 
@@ -224,10 +225,11 @@ class API_STRING(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
     """
-    def get(self): #, output_format="json"):
-        return self.post() #output_format)
+    def get(self):
+        return self.post()
 
-    def post(self): #, output_format="json"):
+    @staticmethod
+    def post():
         """
         watch out for difference between passing parameter through
         - part of the path (url) is variable in resource
@@ -241,11 +243,11 @@ class API_STRING(Resource):
         args_dict["taxid"] = request.form.get("taxid")
         args_dict.update(parser.parse_args())
         args_dict = convert_string_2_bool(args_dict)
-        if variables.VERBOSE:
-            print("-" * 80)
-            for key, val in sorted(args_dict.items()):
-                print(key, val, type(val))
-            print("-" * 80)
+        # if variables.VERBOSE:
+            # print("-" * 80)
+            # for key, val in sorted(args_dict.items()):
+            #     print(key, val, type(val))
+            # print("-" * 80)
         # import pdb
         # pdb.set_trace()
 
@@ -274,6 +276,8 @@ class API_STRING(Resource):
             print("returning help page")
             return help_page(args_dict)
         else:
+            if variables.VERBOSE:
+                print(results_all_function_types[:500])
             return format_multiple_results(args_dict, results_all_function_types, pqo)
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
@@ -709,9 +713,9 @@ def results():
             background_string=form.background_textarea.data,
             decimal='.', args_dict=args_dict)
         args_dict = dict(ui.args_dict) # since args_dict was copied
-        if variables.VERBOSE:
-            print("-" * 80)
-            print("Version D preload True")
+        # if variables.VERBOSE:
+        #     print("-" * 80)
+        #     print("Version A preload True")
             # for key, val in args_dict.items():
             #     print(key, val, type(val))
             # print("-" * 80)
@@ -893,8 +897,10 @@ if __name__ == "__main__":
     # curl "https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
-    # curl "127.0.0.1:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
-    # curl "0.0.0.0:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "127.0.0.1:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "0.0.0.0:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "localhost:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "http://localhost:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     ### Corona example of 13 UniProt ENSPs
     # import requests
     # from io import StringIO
