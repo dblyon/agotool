@@ -19,13 +19,13 @@ sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy, plot_and_table
 import colnames as cn
 
+version_temp = "0"
 try:
     with open("version_temp.txt", "r") as fh:
         for line in fh:
             version_temp = str( int(line.strip()) + 1 )
 except:
-    version_temp = "0"
-
+    pass
 with open("version_temp.txt", "w") as fh:
     fh.write(version_temp)
 print("loading version ", version_temp)

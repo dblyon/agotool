@@ -28,6 +28,7 @@ cond_previous = df["version"] == version_previous
 cond_current = df["version"] == version_current
 cond_not_binary = df["binary"] == False
 
+df["num_lines"] = df["num_lines"].astype("float")
 
 def test_flatfiles_number_of_lines_similar_or_larger():
     # for every file, compare previous vs current number of lines
