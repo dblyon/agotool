@@ -76,7 +76,7 @@ with open(log_fn_settings, "a") as fh_log:
     fh_log.write("# {} # {}\n".format(cmd, str(datetime.datetime.now())))
     flood = subprocess.Popen(cmd, shell=True, stderr=FNULL)
 
-    time.sleep(60) # wait one hour and then flood again
+    time.sleep(60) # wait and then flood again
 
     file_start_count = parallel_iterations # since files would otherwise be overwritten
     cmd = "python parallel_requests.py {} {} {} {} {} {} {}".format(url, prefix, parallel_processes, parallel_iterations, log_fn_requests, file_start_count, verbose)

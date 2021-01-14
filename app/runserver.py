@@ -70,6 +70,8 @@ if ARGPARSE:
 # - zerg mode
 # - emperor mode?
 # - create log of usage
+# - test if there is any downtime between reload of vassals
+# - check if Viruses work for UniProt Reference Proteomes
 # - cast to lower caps for all parameters passed via API
 # - update help and examples, fix Ufuk comments on math formulas, parameters page
 # - add symbol/icon to expand menu options
