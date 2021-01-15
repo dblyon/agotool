@@ -196,8 +196,8 @@ parser.add_argument("caller_identity", type=str,
 #     default=100)
 
 parser.add_argument("limit_2_entity_type", type=str,
-    help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords",
-    default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57;-78")
+    help="Limit the enrichment analysis to a specific or multiple entity types. e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords). default is 'None' for all available types.",
+    default=None) # default="-21;-22;-23;-51;-52;-53;-54;-55;-56;-57;-78")
 
 parser.add_argument("privileged", type=str,
     default="False")
