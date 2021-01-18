@@ -11,6 +11,7 @@ TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 TAR_GED_ALL_CURRENT=GED_all_current.tar
 global_enrichment_data_current=global_enrichment_data_current.tar.gz
 GED_DIR=/home/dblyon/global_enrichment_v11
+UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 
 echo "--- running script cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 
@@ -28,9 +29,10 @@ check_exit_status
 ### restart uWSGI and PyTest
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-echo c > PMID_master.fifo
+# echo c > PMID_master.fifo # deprecated
+"$UWSGI_EXE" vassal_agotool_STRING.ini
 sleep 4m
 cd "$TESTING_DIR" || exit
 "$PYTEST_EXE"
 check_exit_status
-printf "--- done ---"
+printf " --- done --- "
