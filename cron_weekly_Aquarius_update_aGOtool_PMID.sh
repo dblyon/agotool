@@ -6,6 +6,7 @@ check_exit_status () {
 }
 TABLES_DIR=/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables
 PYTEST_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/pytest
+UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 TESTING_DIR=/home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
 APP_DIR=/home/dblyon/PMID_autoupdate/agotool/app
 TAR_GED_ALL_CURRENT=GED_all_current.tar
@@ -26,9 +27,10 @@ check_exit_status
 ### restart uWSGI and PyTest
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-echo c > PMID_master.fifo
+# echo c > PMID_master.fifo
+"$UWSGI_EXE" vassal_agotool_STRING.ini
 sleep 4m
 cd "$TESTING_DIR" || exit
 "$PYTEST_EXE"
 check_exit_status
-printf "--- done ---"
+printf " --- done --- "

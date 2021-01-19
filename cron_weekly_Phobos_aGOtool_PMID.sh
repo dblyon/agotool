@@ -23,7 +23,7 @@ cd "$PYTHON_DIR" || exit
 "$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
 check_exit_status
 
-### start uWSGI and PyTest
+### start uWSGI and PyTest (agotool not running by default)
 printf "\n start uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
 "$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini &
