@@ -40,7 +40,7 @@ check_exit_status
 printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
 cd "$APP_DIR" || exit
 # echo c > agotool_master.fifo
-"$UWSGI_EXE" uwsgi_config_master.ini &
+"$UWSGI_EXE" agotool_pytest.ini &
 printf "sleeping for 4min\n"
 sleep 4m
 printf "done sleeping\n"
@@ -49,7 +49,7 @@ cd "$TESTING_DIR" || exit
 check_exit_status
 printf "shutting down aGOtool workers"
 cd "$APP_DIR" || exit
-echo q > agotool_master.fifo
+echo q > pytest.fifo
 check_exit_status
 
 ### copy files to Aquarius (production server)
@@ -60,4 +60,4 @@ check_exit_status
 echo "now attempting to run script on production server cronjob_update_aGOtool_Aquarius.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@aquarius.meringlab.org '/home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
-echo "\n--- finished Cronjob ---\n"
+printf "\n--- finished Cronjob ---\n"

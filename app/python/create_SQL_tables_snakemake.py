@@ -3947,8 +3947,8 @@ def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_tabl
 def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN):    
     """
     LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
-    taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = variables.tables_dict["taxid_2_tuple_funcEnum_index_2_associations_counts"]
-    add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+    taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
+    cst.add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
     read old log and add number of lines of flat files and bytes of data for binary files to log,
     write to disk
     :return: None
