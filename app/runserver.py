@@ -754,8 +754,6 @@ def results():
         else:
             errors_dict, args_dict_minus_errors = helper_split_errors_from_dict(args_dict)
             return render_template('info_check_input.html', args_dict=args_dict_minus_errors, errors_dict=errors_dict)
-        if variables.VERBOSE:
-            print("DF shape {}".format(df_all_etypes.shape))
         if type(df_all_etypes) == bool:
             errors_dict, args_dict_minus_errors = helper_split_errors_from_dict(args_dict)
             return render_template('info_check_input.html', args_dict=args_dict_minus_errors, errors_dict=errors_dict)
