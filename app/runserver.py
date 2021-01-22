@@ -294,14 +294,11 @@ class API_STRING(Resource):
     get enrichment for all available functional associations not 'just' one category
     """
 
-    def get(self): #, output_format="json"):
-        return self.post() #output_format)
-
-    def post(self):
+    def get(self):
         return self.post()
 
-    # @profile
-    def post(self): #, output_format="json"):
+    @staticmethod
+    def post():
         """
         watch out for difference between passing parameter through
         - part of the path (url) is variable in resource
@@ -444,6 +441,24 @@ class API_STRING_HELP(Resource):
         return self.get(output_format)
 
 api.add_resource(API_STRING_HELP, "/api_help", "/api_string_help")
+
+resources_last_updated_time = query.get_last_updated_text()
+current_time_and_date_nicely_formatted = query.get_current_time_and_date()
+status_dict = {"flat files last updated": resources_last_updated_time,
+               "uWSGI instance last updated": current_time_and_date_nicely_formatted}
+
+class API_status(Resource):
+    """
+    get information about the timestamp of files used, when were the resources updated and when was the uWSGI instance last updated
+    """
+    @staticmethod
+    def get():
+        jsonify(status_dict)
+
+    def post(self):
+        return self.get()
+
+api.add_resource(API_status, "/status", "/info")
 
 
 def string_2_bool(string_):
@@ -722,6 +737,7 @@ Usually a number between 1.1 and 10 is chosen.
 Increasing the value will increase cluster granularity (produce more clusters).
 Certain combinations of data and inflation factor can take very long to process. Please be patient.""")
 
+
 @app.route('/results', methods=["GET", "POST"])
 def results():
     """
@@ -783,22 +799,12 @@ p_value_uncorrected: {}\np_value_mulitpletesting: {}\n""".format(
 
         else:
             return render_template('info_check_input.html')
-        # print("_"*50)
-        # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
-        # print("form.limit_2_entity_type.data", type(limit_2_entity_type), limit_2_entity_type)
-        # print("#%$^")
-        # print(form.values)
-        # print("_"*50)
         if len(results_all_function_types) == 0:
             return render_template('results_zero.html')
         elif len(results_all_function_types.keys()) == 1:
-            # entity_type = next(iter(limit_2_entity_type)) # single element in set
             return generate_result_page(results_all_function_types[entity_type], limit_2_entity_type,
                 form.indent.data, generate_session_id(), form=Results_Form())
         elif len(results_all_function_types.keys()) > 1:
-            # print("results_all_function_types", type(results_all_function_types), results_all_function_types.keys())
-            # print("form.limit_2_entity_type.data", type(form.limit_2_entity_type.data), form.limit_2_entity_type.data)
-            # ToDo create multiple results display method a la clustered results
             entity_type = int(form.limit_2_entity_type.data.split(";")[0]) # REPLACE WITH PROPER METHOD later, picked first entry as placeholder
             return generate_result_page(results_all_function_types[entity_type], entity_type,
                 form.indent.data, generate_session_id(), form=Results_Form())

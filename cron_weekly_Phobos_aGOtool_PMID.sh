@@ -26,20 +26,22 @@ check_exit_status
 ### start uWSGI and PyTest (agotool not running by default)
 printf "\n start uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-"$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini &
+# "$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini &
+"$UWSGI_EXE" agotool_pytest.ini &
 sleep 4m
 cd "$TESTING_DIR" || exit
 "$PYTEST_EXE"
 check_exit_status
 cd "$APP_DIR" || exit
-echo q > PMID_master.fifo
+# echo q > PMID_master.fifo
+echo q > pytest.fifo
 check_exit_status
 
 #### tar and compress new files for transfer and backup
 printf "\n### tar and compress new files for transfer and backup\n"
 cd "$TABLES_DIR" || exit
 #### create tar.gz of relevant flat files
-find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt"| xargs tar --overwrite -cvzf "$TAR_CURRENT"
+find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt" | xargs tar --overwrite -cvzf "$TAR_CURRENT"
 check_exit_status
 rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status

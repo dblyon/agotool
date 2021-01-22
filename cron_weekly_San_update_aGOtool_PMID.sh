@@ -36,6 +36,8 @@ tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
 ### restart uWSGI and PyTest
+# things are configured to run on port 10115 to test things out, and can
+# be reconfigured later once automated updates shown to work flawlessly with Zerg mode
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
 #echo c > PMID_master.fifo

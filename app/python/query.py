@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import pandas as pd
+import datetime, time
 import os, sys
 from collections import defaultdict
 import psycopg2
@@ -10,6 +11,7 @@ import pickle
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import variables #, obo_parser
+import tools
 # print(os.getcwd())
 # print(sorted(os.listdir()))
 # print(os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
@@ -1212,6 +1214,15 @@ def get_proteins_of_human(fn=None):
         for line in fh:
             ENSPs_human.append(line.strip())
     return sorted(ENSPs_human)
+
+def get_last_updated_text():
+    fn = os.path.join(variables.TABLES_DIR, "aGOtool_PMID_pickle_current.tar.gz")
+    time_ = tools.creation_date(fn)
+    return datetime.datetime.fromtimestamp(time_).strftime("%d %B %Y")
+
+def get_current_time_and_date():
+    return time.strftime('%l:%M%p %Z on %b %d, %Y') # ' 1:36PM EDT on Oct 18, 2010'
+
 
 if __name__ == "__main__":
     pqo = PersistentQueryObject_STRING(low_memory=True)
