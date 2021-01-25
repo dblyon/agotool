@@ -1,7 +1,5 @@
 import os, sys
 sys.path.insert(0, os.path.join(os.getcwd(), "python"))
-# import variables_snakemake as variables
-from importlib import reload
 import variables
 import create_SQL_tables_snakemake as cst
 import download_resources_snakemake as drs
@@ -26,19 +24,13 @@ else:
 verbose = variables.VERBOSE
 TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
 
+log_snakemake = os.path.join(variables.LOG_DIRECTORY, "log_snakemake.log")
+
 # ToDo
 # - check global_enrichment_lineage /hierarchy --> that lineage still exists also for terms that were obsolete
-# - check \n raw formatting of SQL.GZ file
-
 # - profile code --> maybe change ast.literal_eval, and or flat file style from "{...}" to simple ";" as delimiter
-# - uWSGI zerg dance
 # - run PMID_autoupdates on Aquarius
-# - set up pytests --> DF with file sizes
 # - fix bug: after running pipeline DF should be updated and also transferred to where pytest runs
-# - create Crontab for PMID_updates on Atlas
-### nginx config aquarius
-# /etc/nginx/sites-available/agotool.org.conf
-# root@imlslnx-sagittarius:/etc/apache2/sites-enabled# cat agotool.meringlab.org
 
 ### Parameters
 max_len_description = 250
@@ -121,6 +113,7 @@ rule download_Protein_2_Function_PMID:
     params:
         URL_protein_2_function_PMID = URL_protein_2_function_PMID,
         verbose = verbose
+    log: log_snakemake
     run:
         drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_STS_gz, params.verbose)
         tools.gunzip_file(output.Protein_2_Function_table_PMID_STS_gz, output.Protein_2_Function_table_PMID)
@@ -131,6 +124,7 @@ rule download_Functions_2_Descriptions_PMID:
     params:
         URL_Function_2_Description_PMID = URL_Function_2_Description_PMID,
         verbose = verbose
+    log: log_snakemake
     run:
         drs.download_requests(params.URL_Function_2_Description_PMID, output.Functions_table_PMID_all, params.verbose)
 
@@ -141,6 +135,7 @@ rule r_Functions_table_PMID_cleanup:
         max_len_description = max_len_description
     output:
         Functions_table_PMID = Functions_table_PMID
+    log: log_snakemake
     run:
         cst.Functions_table_PMID_cleanup(input.Functions_table_PMID_all, params.max_len_description, output.Functions_table_PMID)
 
@@ -151,6 +146,7 @@ rule r_Functions_table_STRING_all:
     output:
         Functions_table_STRING_all = Functions_table_STRING_all
     threads: NUMBER_OF_PROCESSES_sorting
+    log: log_snakemake
     run:
         cst.concatenate_Functions_tables(input, output.Functions_table_STRING_all, threads)
 
@@ -162,6 +158,7 @@ rule r_Protein_2_Function_table_STRING_all:
     output:
         Protein_2_Function_table_STRING_all = Protein_2_Function_table_STRING_all
     threads: NUMBER_OF_PROCESSES_sorting
+    log: log_snakemake
     run:
         cst.Protein_2_Function_table_STRING(input.fn_list_str, input.Taxid_2_Proteins_table_STRING, output.Protein_2_Function_table_STRING_all, threads)
 
@@ -177,6 +174,7 @@ rule r_Function_2_ENSP_table:
     params:
         min_count = min_count,
         verbose = verbose
+    log: log_snakemake
     run:
         cst.Function_2_ENSP_table(input.Protein_2_Function_table_STRING_all, input.Taxid_2_Proteins_table_STRING, input.Functions_table_STRING_all, output.Function_2_ENSP_table_STRING_all, output.Function_2_ENSP_table_STRING_reduced, output.Function_2_ENSP_table_STRING_removed, min_count=params.min_count, verbose=params.verbose)
 
@@ -187,6 +185,7 @@ rule r_Functions_table_STRING: # reduce to relevant part
     output:
         Functions_table_STRING_removed = Functions_table_STRING_removed,
         Functions_table_STRING_reduced = Functions_table_STRING_reduced
+    log: log_snakemake
     run:
         cst.Functions_table_STRING_reduced(input.Functions_table_STRING_all, input.Function_2_ENSP_table_STRING_reduced, output.Functions_table_STRING_removed, output.Functions_table_STRING_reduced)
 
@@ -198,6 +197,7 @@ rule r_Protein_2_Function_table_reduced:
     output:
         Protein_2_Function_table_STRING_reduced = Protein_2_Function_table_STRING_reduced,
         Protein_2_Function_table_STRING_removed = Protein_2_Function_table_STRING_removed
+    log: log_snakemake
     run:
         cst.reduce_Protein_2_Function_table(input.Protein_2_Function_table_STRING_all, input.Function_2_ENSP_table_STRING_removed, input.Functions_table_STRING_reduced, output.Protein_2_Function_table_STRING_reduced, output.Protein_2_Function_table_STRING_removed)
 
@@ -208,6 +208,7 @@ rule r_Protein_2_FunctionEnum_table_STRING:
     output:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
+    log: log_snakemake
     run:
         cst.Protein_2_FunctionEnum_table_STRING(input.Functions_table_STRING_reduced, input.Protein_2_Function_table_STRING_reduced, output.Protein_2_FunctionEnum_table_STRING, threads)
 
@@ -221,6 +222,7 @@ rule r_Taxid_2_FunctionCountArray_table_STRING:
     threads: NUMBER_OF_PROCESSES_sorting
     params:
         verbose = verbose
+    log: log_snakemake
     run:
         cst.Taxid_2_FunctionCountArray_table_STRING(input.Protein_2_FunctionEnum_table_STRING, input.Functions_table_STRING_reduced, input.Taxid_2_Proteins_table_STRING, output.Taxid_2_FunctionCountArray_table_STRING, threads)
 
@@ -236,15 +238,12 @@ rule r_Lineage_table_STRING:
         Lineage_table_STRING = Lineage_table_STRING,
         Lineage_table_STRING_hr = Lineage_table_STRING_hr,
         Lineage_table_STRING_no_translation = Lineage_table_STRING_no_translation
+    log: log_snakemake
     run:
         cst.Lineage_table_STRING_v2_STRING_clusters(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced, input.fn_tree_STRING_clusters, output.Lineage_table_STRING, output.Lineage_table_STRING_hr, output.Lineage_table_STRING_no_translation)
 
 rule r_pickle_final_results:
     input:
-        # Taxid_2_Proteins_table_STRING = Taxid_2_Proteins_table_STRING,
-        # KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
-        # Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        # Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING,
         Lineage_table_STRING = Lineage_table_STRING,
         Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
     output:
@@ -263,30 +262,11 @@ rule r_pickle_final_results:
         taxid_2_tuple_funcEnum_index_2_associations_counts = taxid_2_tuple_funcEnum_index_2_associations_counts,
         etype_2_minmax_funcEnum = etype_2_minmax_funcEnum,
         etype_cond_dict = etype_cond_dict,
-        # blacklisted_enum_terms = blacklisted_enum_terms
-        # cond_etypes_with_ontology = cond_etypes_with_ontology,
-        # cond_etypes_rem_foreground_ids = cond_etypes_rem_foreground_ids
+    log: log_snakemake
     run:
         cst.pickle_PMID_autoupdates(input.Lineage_table_STRING, input.Taxid_2_FunctionCountArray_table_STRING, output)
 
-# rule r_AFC_KS_enrichment_terms_flat_files_old:
-#     input:
-#         Protein_shorthands = Protein_shorthands,
-#         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-#         Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
-#         KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
-#         GO_basic_obo = GO_basic_obo,
-#         UPK_obo = UPK_obo,
-#         RCTM_hierarchy = RCTM_hierarchy,
-#         interpro_parent_2_child_tree = interpro_parent_2_child_tree
-#     output:
-#         AFC_KS_DIR = AFC_KS_DIR
-#     params:
-#         verbose = verbose
-#     run:
-#         cst.AFC_KS_enrichment_terms_flat_files(input.Protein_shorthands, input.Functions_table_STRING_reduced, input.Function_2_ENSP_table_STRING_reduced, input.KEGG_Taxid_2_acronym_table, input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, output.AFC_KS_DIR, params.verbose)
-
-rule r_AFC_KS_enrichment_terms_flat_files: # functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, output_AFC_KS_DIR, fn_out_sql
+rule r_AFC_KS_enrichment_terms_flat_files:
     input:
         Functions_table_STRING_reduced = Functions_table_STRING_reduced,
         Protein_shorthands = Protein_shorthands,
@@ -300,6 +280,7 @@ rule r_AFC_KS_enrichment_terms_flat_files: # functions_table, protein_shorthands
     output:
         global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
         populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz
+    log: log_snakemake
     run:
         cst.AFC_KS_enrichment_terms_flat_files(input.Functions_table_STRING_reduced, input.Protein_shorthands, input.KEGG_Taxid_2_acronym_table, input.Function_2_ENSP_table_STRING_reduced,input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.fn_tree_STRING_clusters, output.global_enrichment_data_current_tar_gz, output.populate_classification_schema_current_sql_gz)
 
@@ -310,5 +291,6 @@ rule r_add_2_DF_file_dimensions_log:
         taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
         global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
         populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz
+    log: log_snakemake
     run:
         cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, input.taxid_2_proteome_count_dict, input.global_enrichment_data_current_tar_gz, input.populate_classification_schema_current_sql_gz)
