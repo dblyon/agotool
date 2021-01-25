@@ -26,7 +26,7 @@ check_exit_status
 ### start uWSGI and PyTest (agotool not running by default)
 printf "\n start uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-# "$UWSGI_EXE" uwsgi_config_PMID_autoupdates.ini &
+# "$UWSGI_EXE" bak_uwsgi_config_PMID_autoupdates.ini &
 "$UWSGI_EXE" pytest_agotool_STRING.ini &
 sleep 4m
 cd "$TESTING_DIR" || exit
