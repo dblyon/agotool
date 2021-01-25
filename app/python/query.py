@@ -7,7 +7,7 @@ from collections import defaultdict
 import psycopg2
 import socket
 hostname = socket.gethostname()
-
+import time
 ### import user modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import variables, obo_parser, taxonomy, tools
@@ -1477,6 +1477,9 @@ def get_last_updated_text():
     time_ = tools.creation_date(fn)
     return datetime.datetime.fromtimestamp(time_).strftime("%d %B %Y")
 
+def get_current_time_and_date():
+    return time.strftime('%l:%M%p %Z on %b %d, %Y') # ' 1:36PM EDT on Oct 18, 2010'
+
 def get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list():
     fn = variables.tables_dict["UniProt_NCBI_TaxID_and_TaxName_for_autocomplete"]
     list_of_autocomplete_tags = []
@@ -1484,6 +1487,7 @@ def get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list():
         for line in fh:
             list_of_autocomplete_tags.append(line.strip())
     return list_of_autocomplete_tags
+
 
 
 if __name__ == "__main__":

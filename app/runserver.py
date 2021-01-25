@@ -298,6 +298,25 @@ class API_STRING(Resource):
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
 
+resources_last_updated_time = query.get_last_updated_text()
+current_time_and_date_nicely_formatted = query.get_current_time_and_date()
+status_dict = {"flat files last updated": resources_last_updated_time,
+               "uWSGI instance last updated": current_time_and_date_nicely_formatted}
+
+class API_status(Resource):
+    """
+    get information about the timestamp of files used, when were the resources updated and when was the uWSGI instance last updated
+    """
+    @staticmethod
+    def get():
+        return jsonify(status_dict)
+
+    def post(self):
+        return self.get()
+
+api.add_resource(API_status, "/status", "/info")
+
+
 def PMID_description_to_year(string_):
     try:
         return int(string_[1:5])
