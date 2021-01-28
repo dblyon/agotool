@@ -50,6 +50,7 @@ dependencies:
   - matplotlib
   - seaborn
   - plotly
+  - line_profiler
 
 # conda env create -n agotool -f conda_agotool.yml
 # conda activate agotool && python -m ipykernel install --user --name agotool --display-name "Python agotool"

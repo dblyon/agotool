@@ -57,6 +57,172 @@ import colnames as cn
 # category = colnames.category
 
 
+### profiling of calc_pvalues_v4 vs calc_pvalues needed
+# @cdivision(True) # doesn't work as expected
+@boundscheck(False)
+@wraparound(False)
+cdef calc_pvalues_v4(unsigned int[::1] funcEnum_count_foreground,
+                  unsigned int[::1] funcEnum_count_background,
+                  unsigned int foreground_n,
+                  unsigned int background_n,
+                  double[::1] p_values,
+                  cond_multitest,
+                  double[::1] effectSizes,
+                  unsigned int[::1] over_under_int_arr,
+                  unsigned int o_or_u_or_both_encoding):
+    cdef:
+        int index_, foreground_count, background_count, a, b, c, d, zero_division_check
+        unsigned int is_greater
+        int len_functions = funcEnum_count_foreground.shape[0]
+        dict fisher_dict = {}
+        double p_val_uncorrected, odds_ratio, fg_ratio, bg_ratio
+
+    for index_ in range(len_functions):
+        foreground_count = funcEnum_count_foreground[index_]
+        if foreground_count > 0:
+            cond_multitest[index_] = True
+            over_under_int_arr[index_] = 3 # meaningless encoding in order not to filter out things later if p_value_cutoff == 1
+            if foreground_count == 1: # leave p-value set to 1, BUT DO multiple testing
+                continue
+            background_count = funcEnum_count_background[index_]
+            a = foreground_count # number of proteins associated with given GO-term
+            b = foreground_n - foreground_count # number of proteins not associated with GO-term
+            c = background_count
+            d = background_n - background_count
+            if c > 0 or d > 0: # a already checked above, hence (a > 0 or b > 0) is True
+                zero_division_check = 1 # True
+                fg_ratio = a / (a + b)
+                bg_ratio = c / (c + d)
+            else:
+                zero_division_check = 0 # False
+            p_val_uncorrected = fisher_dict.get((a, b, c, d), -1)
+            if p_val_uncorrected == -1:
+                if o_or_u_or_both_encoding == 1: # overrepresented
+                    p_val_uncorrected = pvalue(a, b, c, d).right_tail
+                    over_under_int_arr[index_] = 1
+                elif o_or_u_or_both_encoding == 0: # both
+                    p_val_uncorrected = pvalue(a, b, c, d).two_tail
+                    if zero_division_check == 1:
+                        if fg_ratio > bg_ratio:
+                            is_greater = 1
+                        else:
+                            is_greater = 2
+                    else:
+                        is_greater = 0 # np.nan
+                    over_under_int_arr[index_] = is_greater
+                elif o_or_u_or_both_encoding == 2: # underrepresented
+                    p_val_uncorrected = pvalue(a, b, c, d).left_tail
+                    over_under_int_arr[index_] = 2
+                else:
+                    p_val_uncorrected = 1
+                    over_under_int_arr[index_] = 3
+                fisher_dict[(a, b, c, d)] = p_val_uncorrected
+            else: # write over_under but don't calc pvalue
+                if o_or_u_or_both_encoding == 1: # overrepresented
+                    over_under_int_arr[index_] = 1
+                elif o_or_u_or_both_encoding == 0: # both
+                    if zero_division_check == 1:
+                        is_greater = fg_ratio > bg_ratio
+                    else:
+                        is_greater = 0 # np.nan
+                    over_under_int_arr[index_] = is_greater
+                elif o_or_u_or_both_encoding == 2: # underrepresented
+                    over_under_int_arr[index_] = 2
+                else:
+                    over_under_int_arr[index_] = 3 # which caser is this supposed to be?
+            p_values[index_] = p_val_uncorrected
+            if zero_division_check == 1: # not applicable
+                odds_ratio = fg_ratio - bg_ratio # difference in proportions DBL
+            ### correct only for "genome" method, since c (bg_count) could be empty in other methods
+            # if b > 0 and (c > 0 and d > 0)
+            else:
+                odds_ratio = 123 # np.nan
+            effectSizes[index_] = odds_ratio
+            # try:
+            #     odds_ratio = (a / (a + b)) - (c / (c + d)) # difference in proportions DBL
+            # except ZeroDivisionError:
+            #     odds_ratio = 123 # np.nan
+            # effectSizes[index_] = odds_ratio
+    return 0
+
+@boundscheck(False)
+@wraparound(False)
+cdef calc_pvalues(unsigned int[::1] funcEnum_count_foreground,
+                  unsigned int[::1] funcEnum_count_background,
+                  unsigned int foreground_n,
+                  unsigned int background_n,
+                  double[::1] p_values,
+                  cond_multitest,
+                  double[::1] effectSizes,
+                  unsigned int[::1] over_under_int_arr,
+                  unsigned int o_or_u_or_both_encoding):
+    cdef:
+        int index_, foreground_count, background_count, a, b, c, d
+        int len_functions = funcEnum_count_foreground.shape[0]
+        dict fisher_dict = {}
+        double p_val_uncorrected
+        double odds_ratio
+
+    for index_ in range(len_functions):
+        foreground_count = funcEnum_count_foreground[index_]
+        if foreground_count > 0:
+            cond_multitest[index_] = True
+            over_under_int_arr[index_] = 3 # meaningless encoding in order not to filter out things later if p_value_cutoff == 1
+            if foreground_count == 1: # leave p-value set to 1, BUT DO multiple testing
+                continue
+            background_count = funcEnum_count_background[index_]
+            a = foreground_count # number of proteins associated with given GO-term
+            b = foreground_n - foreground_count # number of proteins not associated with GO-term
+            c = background_count
+            d = background_n - background_count
+            p_val_uncorrected = fisher_dict.get((a, b, c, d), -1)
+            if p_val_uncorrected == -1:
+                if o_or_u_or_both_encoding == 1: # overrepresented
+                    p_val_uncorrected = pvalue(a, b, c, d).right_tail
+                    over_under_int_arr[index_] = 1
+                elif o_or_u_or_both_encoding == 0: # both
+                    p_val_uncorrected = pvalue(a, b, c, d).two_tail
+                    try:
+                        is_greater = (a / (a + b)) > (c / (c + d))
+                        if is_greater:
+                            is_greater = 1
+                        else:
+                            is_greater = 2
+                    except ZeroDivisionError:
+                        is_greater = 0 # np.nan
+                    over_under_int_arr[index_] = is_greater
+                elif o_or_u_or_both_encoding == 2: # underrepresented
+                    p_val_uncorrected = pvalue(a, b, c, d).left_tail
+                    over_under_int_arr[index_] = 2
+                else:
+                    p_val_uncorrected = 1
+                    over_under_int_arr[index_] = 3
+                fisher_dict[(a, b, c, d)] = p_val_uncorrected
+            else: # write over_under but don't calc pvalue
+                if o_or_u_or_both_encoding == 1: # overrepresented
+                    over_under_int_arr[index_] = 1
+                elif o_or_u_or_both_encoding == 0: # both
+                    try:
+                        is_greater = (a / (a + b)) > (c / (c + d))
+                    except ZeroDivisionError:
+                        is_greater = np.nan # ??? shouldn't this be 0 instead of np.nan ???
+                    over_under_int_arr[index_] = is_greater
+                elif o_or_u_or_both_encoding == 2: # underrepresented
+                    over_under_int_arr[index_] = 2
+                else:
+                    over_under_int_arr[index_] = 3 # which caser is this supposed to be?
+            p_values[index_] = p_val_uncorrected
+            try:
+                # https://stats.stackexchange.com/questions/22508/effect-size-for-fishers-exact-test
+                # odds_ratio = (a * d) / (b * c) # true odds ratio
+                # odds_ratio = (d / (c + d)) - (a / (a + b)) # difference in proportions
+                odds_ratio = (a / (a + b)) - (c / (c + d)) # difference in proportions DBL
+                # odds_ratio = (a / (a + b)) / (c / (c + d)) # from old agotool, ratio of percent in fg to percent in bg
+            except ZeroDivisionError:
+                odds_ratio = np.nan
+            effectSizes[index_] = odds_ratio
+    return 0
+
 def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded_objects, low_memory=False, debug=False):
     if not low_memory:
         ENSP_2_functionEnumArray_dict, year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, etype_2_num_functions_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, goslimtype_2_cond_dict = static_preloaded_objects
@@ -101,6 +267,7 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     o_or_u_or_both_encoding = args_dict["o_or_u_or_both_encoding"]
 
     ### calculate Fisher p-values and get bool array for multiple testing
+
     calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest, effectSizes, over_under_int_arr, o_or_u_or_both_encoding)
 
     ######################################################################################################################################################
@@ -567,83 +734,7 @@ cdef int calc_pvalues_orig(unsigned int[::1] funcEnum_count_foreground,
             effectSizes[index_] = odds_ratio
     return 0
 
-@boundscheck(False)
-@wraparound(False)
-cdef calc_pvalues(unsigned int[::1] funcEnum_count_foreground,
-                  unsigned int[::1] funcEnum_count_background,
-                  unsigned int foreground_n,
-                  unsigned int background_n,
-                  double[::1] p_values,
-                  cond_multitest,
-                  double[::1] effectSizes,
-                  unsigned int[::1] over_under_int_arr,
-                  unsigned int o_or_u_or_both_encoding):
-    cdef:
-        int index_, foreground_count, background_count, a, b, c, d
-        int len_functions = funcEnum_count_foreground.shape[0]
-        dict fisher_dict = {}
-        double p_val_uncorrected
-        double odds_ratio
 
-    for index_ in range(len_functions):
-        foreground_count = funcEnum_count_foreground[index_]
-        if foreground_count > 0:
-            cond_multitest[index_] = True
-            over_under_int_arr[index_] = 3 # meaningless encoding in order not to filter out things later if p_value_cutoff == 1
-            if foreground_count == 1: # leave p-value set to 1, BUT DO multiple testing
-                continue
-            background_count = funcEnum_count_background[index_]
-            a = foreground_count # number of proteins associated with given GO-term
-            b = foreground_n - foreground_count # number of proteins not associated with GO-term
-            c = background_count
-            d = background_n - background_count
-            p_val_uncorrected = fisher_dict.get((a, b, c, d), -1)
-            if p_val_uncorrected == -1:
-                if o_or_u_or_both_encoding == 1: # overrepresented
-                    p_val_uncorrected = pvalue(a, b, c, d).right_tail
-                    over_under_int_arr[index_] = 1
-                elif o_or_u_or_both_encoding == 0: # both
-                    p_val_uncorrected = pvalue(a, b, c, d).two_tail
-                    try:
-                        is_greater = (a / (a + b)) > (c / (c + d))
-                        if is_greater:
-                            is_greater = 1
-                        else:
-                            is_greater = 2
-                    except ZeroDivisionError:
-                        is_greater = 0 # np.nan
-                    over_under_int_arr[index_] = is_greater
-                elif o_or_u_or_both_encoding == 2: # underrepresented
-                    p_val_uncorrected = pvalue(a, b, c, d).left_tail
-                    over_under_int_arr[index_] = 2
-                else:
-                    p_val_uncorrected = 1
-                    over_under_int_arr[index_] = 3
-                fisher_dict[(a, b, c, d)] = p_val_uncorrected
-            else: # write over_under but don't calc pvalue
-                if o_or_u_or_both_encoding == 1: # overrepresented
-                    over_under_int_arr[index_] = 1
-                elif o_or_u_or_both_encoding == 0: # both
-                    try:
-                        is_greater = (a / (a + b)) > (c / (c + d))
-                    except ZeroDivisionError:
-                        is_greater = np.nan
-                    over_under_int_arr[index_] = is_greater
-                elif o_or_u_or_both_encoding == 2: # underrepresented
-                    over_under_int_arr[index_] = 2
-                else:
-                    over_under_int_arr[index_] = 3 # which caser is this supposed to be?
-            p_values[index_] = p_val_uncorrected
-            try:
-                # https://stats.stackexchange.com/questions/22508/effect-size-for-fishers-exact-test
-                # odds_ratio = (a * d) / (b * c) # true odds ratio
-                # odds_ratio = (d / (c + d)) - (a / (a + b)) # difference in proportions
-                odds_ratio = (a / (a + b)) - (c / (c + d)) # difference in proportions DBL
-                # odds_ratio = (a / (a + b)) / (c / (c + d)) # from old agotool, ratio of percent in fg to percent in bg
-            except ZeroDivisionError:
-                odds_ratio = np.nan
-            effectSizes[index_] = odds_ratio
-    return 0
 
 @boundscheck(False)
 @wraparound(False)

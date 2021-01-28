@@ -1478,7 +1478,7 @@ def get_last_updated_text():
     return datetime.datetime.fromtimestamp(time_).strftime("%d %B %Y")
 
 def get_current_time_and_date():
-    return time.strftime('%l:%M%p %Z on %b %d, %Y') # ' 1:36PM EDT on Oct 18, 2010'
+    return time.strftime('%l:%M%p %Z on %b %d, %Y') # '1:36PM EDT on Oct 18, 2010'
 
 def get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list():
     fn = variables.tables_dict["UniProt_NCBI_TaxID_and_TaxName_for_autocomplete"]
