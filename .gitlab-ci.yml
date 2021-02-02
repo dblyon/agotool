@@ -1,25 +1,24 @@
 stages:
   - test
-  - deploy
 
 variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
-  # SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
+  SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
   PYTEST: "/home/dblyon/anaconda3/envs/agotool/bin/pytest"
 
 before_script:
-    - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
+    - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")    
     - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
 
 test:
   stage: test
   tags:
-    - aquarius
+    - pisces
   script:
     - echo "$(date)"
     - echo $DATE
     - $PYTHON -V
-    # - $SNAKEMAKE --version
+    - $SNAKEMAKE --version
     - $PYTEST --version
     - echo "$USER"
     - echo $HOSTNAME    
@@ -28,47 +27,3 @@ test:
     ## PyTest
     - cd /home/dblyon/agotool/app/python/testing/sanity
     - /home/dblyon/anaconda3/envs/agotool/bin/pytest
-  
-# deploy:
-#   stage: deploy
-#   tags:
-#     - aquarius
-#   script:
-#     - echo "$(date)"
-#     - echo $DATE
-#     - $PYTHON -V
-#     - echo "$USER"
-#     - echo $HOSTNAME    
-#     - echo $TAR_FILE_NAME
-  
-#     ## re-start uWSGI workers
-#     - cd /home/dblyon/agotool/app
-#     - echo c > master.fifo
-      
-
-job:on-schedule:
-  only:
-    - schedules
-  stage: test
-  tags:
-    - aquarius
-  script:
-    - echo "$(date)"
-    - $PYTHON -V
-    - $PYTEST --version
-    - echo "$USER"
-    - echo $HOSTNAME
-    - echo $DATE
-    
-    ## PyTest
-    - cd /home/dblyon/agotool/app/python/testing/sanity
-    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
-
- 
-    # ### compile Cython
-    # - cd /home/dblyon/agotool/app/python
-    # - $PYTHON setup.py build_ext --inplace -f
-
-    # ### restart uWSGI
-    # - cd /home/dblyon/agotool/app
-    # - /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
