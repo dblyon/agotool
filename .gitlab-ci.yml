@@ -1,29 +1,72 @@
 stages:
-  - test
+  - test_flat_files
+  # check if update should be performed, 
+  # test_new_version_was_created_no_later_than_x_days_ago will fail if files were not updated
+  - deploy
+  # load new version
+  - test_API
+  # sanity check
 
 variables:
-  PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
-  SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
+  PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"  
   PYTEST: "/home/dblyon/anaconda3/envs/agotool/bin/pytest"
+  # SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
 
 before_script:
     - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")    
-    - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
+    - export TAR_FILE_NAME="aGOtool_flatfiles_current.tar.gz"
+    - export APP_DIR="/home/dblyon/agotool/app"
+    - export UWSGI_EXE="/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi"
 
-test:
-  stage: test
+test_flat_files:
+  stage: test_flat_files
   tags:
     - pisces
   script:
-    - echo "$(date)"
+    - echo $USER
+    - echo $HOSTNAME
+    - echo $DATE
+    - ls -lah $TAR_FILE_NAME
+    - $PYTHON -V
+    - $PYTEST --version 
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py
+
+test_API:
+  stage: test_API
+  tags:
+    - pisces
+  script:
+    - echo $USER
+    - echo $HOSTNAME
+    - echo $DATE
+    - ls -lah $TAR_FILE_NAME
+    - $PYTHON -V
+    - $PYTEST --version 
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
+  
+deploy:
+  stage: deploy
+  tags:
+    - pisces
+  script:
+    - echo $USER
+    - echo $HOSTNAME
     - echo $DATE
     - $PYTHON -V
-    - $SNAKEMAKE --version
+    - ls -lah $TAR_FILE_NAME
+    - cd $APP_DIR
+    - $UWSGI_EXE vassal_agotool.ini
+
+job:on-schedule:
+  only:
+    - schedules
+  stage: test_API
+  tags:
+    - pisces
+  script:
+    - echo $USER
+    - echo $HOSTNAME
+    - echo $DATE
+    - $PYTHON -V
     - $PYTEST --version
-    - echo "$USER"
-    - echo $HOSTNAME    
-    - echo $TAR_FILE_NAME
-  
-    ## PyTest
-    - cd /home/dblyon/agotool/app/python/testing/sanity
-    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
