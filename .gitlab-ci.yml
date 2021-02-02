@@ -1,7 +1,5 @@
 stages:
   - test_flat_files
-  # check if update should be performed, 
-  # test_new_version_was_created_no_later_than_x_days_ago will fail if files were not updated
   - deploy
   # load new version
   - test_API
@@ -55,6 +53,7 @@ deploy:
     - $PYTHON -V
     - ls -lah $TAR_FILE_NAME
     - cd $APP_DIR
+    - echo $UWSGI_EXE
     - $UWSGI_EXE vassal_agotool.ini
 
 job:on-schedule:
