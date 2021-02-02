@@ -1,11 +1,12 @@
 name: snake
 channels:
-  - bioconda
   - conda-forge
+  - anaconda
   - defaults
+  - bioconda
 dependencies:
-  - python=3.6
-  - snakemake=5.7.4
+  - python
+  - snakemake
   - numpy
   - scipy
   - pandas

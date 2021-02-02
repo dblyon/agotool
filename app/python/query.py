@@ -53,7 +53,7 @@ def get_cursor(env_dict=None):
     #     HOST = 'db'
     #     return get_cursor_connect(host=HOST, dbname=DBNAME, user=USER, port=PORT, password=PWD)
 
-    if hostname in {"aquarius.meringlab.org", "atlas", "gaia", "phobos", "deimos"}: # use agotool/app/env_file, which isn't in git repo for security, using local Postgres
+    if hostname in {"aquarius.meringlab.org", "atlas", "gaia", "phobos", "deimos", "pisces"}: # use agotool/app/env_file, which isn't in git repo for security, using local Postgres
         env_dict = variables.param_2_val_dict
         USER = env_dict['POSTGRES_USER']
         PWD = env_dict['POSTGRES_PASSWORD']
