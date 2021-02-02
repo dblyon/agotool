@@ -1,6 +1,6 @@
 stages:
   - test_flat_files
-  - deploy
+  # - deploy
   # load new version
   - test_API
   # sanity check
@@ -9,25 +9,25 @@ variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"  
   PYTEST: "/home/dblyon/anaconda3/envs/agotool/bin/pytest"
   # SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
-  UWSGI_EXE: "/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi"
+  # UWSGI_EXE: "/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi"
 
 before_script:
     - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")    
     - export TAR_FILE_NAME="/home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.gz"
     - export APP_DIR="/home/dblyon/agotool/app"
 
-# test_flat_files:
-#   stage: test_flat_files
-#   tags:
-#     - pisces
-#   script:
-#     - echo $USER
-#     - echo $HOSTNAME
-#     - echo $DATE
-#     - ls -lah $TAR_FILE_NAME
-#     - $PYTHON -V
-#     - $PYTEST --version 
-#     - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py
+test_flat_files:
+  stage: test_flat_files
+  tags:
+    - pisces
+  script:
+    - echo $USER
+    - echo $HOSTNAME
+    - echo $DATE
+    - ls -lah $TAR_FILE_NAME
+    - $PYTHON -V
+    - $PYTEST --version 
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py
 
 test_API:
   stage: test_API
@@ -42,19 +42,19 @@ test_API:
     - $PYTEST --version 
     - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
   
-deploy:
-  stage: deploy
-  tags:
-    - pisces
-  script:
-    - echo $USER
-    - echo $HOSTNAME
-    - echo $DATE
-    - $PYTHON -V
-    - ls -lah $TAR_FILE_NAME
-    - cd $APP_DIR
-    - echo $UWSGI_EXE
-    - $UWSGI_EXE vassal_agotool.ini
+# deploy: # permissions issue, not sure these should be given due to security
+#   stage: deploy
+#   tags:
+#     - pisces
+#   script:
+#     - echo $USER
+#     - echo $HOSTNAME
+#     - echo $DATE
+#     - $PYTHON -V
+#     - ls -lah $TAR_FILE_NAME
+#     - cd $APP_DIR
+#     - echo $UWSGI_EXE
+#     - $UWSGI_EXE vassal_agotool.ini
 
 job:on-schedule:
   only:
