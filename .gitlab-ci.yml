@@ -1,74 +1,71 @@
 stages:
-  - test
-  - deploy
+  - test_flat_files
+  # - deploy
+  # load new version
+  - test_API
+  # sanity check
 
 variables:
-  PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
-  # SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
+  PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"  
   PYTEST: "/home/dblyon/anaconda3/envs/agotool/bin/pytest"
+  # SNAKEMAKE: "/home/gitlab-runner/anaconda3/envs/snake/bin/snakemake"
+  # UWSGI_EXE: "/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi"
 
 before_script:
-    - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
-    - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
+    - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")    
+    - export TAR_FILE_NAME="/home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.gz"
+    - export APP_DIR="/home/dblyon/agotool/app"
 
-test:
-  stage: test
+test_flat_files:
+  stage: test_flat_files
   tags:
-    - aquarius
+    - pisces
   script:
-    - echo "$(date)"
+    - echo $USER
+    - echo $HOSTNAME
     - echo $DATE
+    - ls -lah $TAR_FILE_NAME
     - $PYTHON -V
-    # - $SNAKEMAKE --version
-    - $PYTEST --version
-    - echo "$USER"
-    - echo $HOSTNAME    
-    - echo $TAR_FILE_NAME
+    - $PYTEST --version 
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py
+
+test_API:
+  stage: test_API
+  tags:
+    - pisces
+  script:
+    - echo $USER
+    - echo $HOSTNAME
+    - echo $DATE
+    - ls -lah $TAR_FILE_NAME
+    - $PYTHON -V
+    - $PYTEST --version 
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
   
-    ## PyTest
-    - cd /home/dblyon/agotool/app/python/testing/sanity
-    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
-  
-# deploy:
+# deploy: # permissions issue, not sure these should be given due to security
 #   stage: deploy
 #   tags:
-#     - aquarius
+#     - pisces
 #   script:
-#     - echo "$(date)"
+#     - echo $USER
+#     - echo $HOSTNAME
 #     - echo $DATE
 #     - $PYTHON -V
-#     - echo "$USER"
-#     - echo $HOSTNAME    
-#     - echo $TAR_FILE_NAME
-  
-#     ## re-start uWSGI workers
-#     - cd /home/dblyon/agotool/app
-#     - echo c > master.fifo
-      
+#     - ls -lah $TAR_FILE_NAME
+#     - cd $APP_DIR
+#     - echo $UWSGI_EXE
+#     - $UWSGI_EXE vassal_agotool.ini
 
 job:on-schedule:
   only:
     - schedules
-  stage: test
+  stage: test_API
   tags:
-    - aquarius
+    - pisces
   script:
-    - echo "$(date)"
-    - $PYTHON -V
-    - $PYTEST --version
-    - echo "$USER"
+    - echo $USER
     - echo $HOSTNAME
     - echo $DATE
-    
-    ## PyTest
-    - cd /home/dblyon/agotool/app/python/testing/sanity
-    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
-
- 
-    # ### compile Cython
-    # - cd /home/dblyon/agotool/app/python
-    # - $PYTHON setup.py build_ext --inplace -f
-
-    # ### restart uWSGI
-    # - cd /home/dblyon/agotool/app
-    # - /home/dblyon/anaconda3/envs/agotool/bin/uwsgi --reload uwsgi_aGOtool_master_PID.txt
+    - $PYTHON -V
+    - $PYTEST --version
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
