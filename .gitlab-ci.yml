@@ -1,9 +1,7 @@
 stages:
   - test_flat_files
   # - deploy
-  # load new version
   - test_API
-  # sanity check
 
 variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"  
