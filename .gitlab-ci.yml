@@ -16,18 +16,18 @@ before_script:
     - export TAR_FILE_NAME="/home/dblyon/agotool/data/PostgreSQL/tables/aGOtool_flatfiles_current.tar.gz"
     - export APP_DIR="/home/dblyon/agotool/app"
 
-test_flat_files:
-  stage: test_flat_files
-  tags:
-    - pisces
-  script:
-    - echo $USER
-    - echo $HOSTNAME
-    - echo $DATE
-    - ls -lah $TAR_FILE_NAME
-    - $PYTHON -V
-    - $PYTEST --version 
-    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py
+# test_flat_files:
+#   stage: test_flat_files
+#   tags:
+#     - pisces
+#   script:
+#     - echo $USER
+#     - echo $HOSTNAME
+#     - echo $DATE
+#     - ls -lah $TAR_FILE_NAME
+#     - $PYTHON -V
+#     - $PYTEST --version 
+#     - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py
 
 test_API:
   stage: test_API
