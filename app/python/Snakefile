@@ -68,6 +68,7 @@ URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aG
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
 Protein_2_Function_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_UPS.txt")
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled.txt")
+Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked.txt")
 Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked.txt")
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
@@ -672,26 +673,25 @@ rule r_Protein_2_FunctionEnum_table_UPS_FIN:
     run:
         cst.Protein_2_FunctionEnum_table_UPS_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, output.Protein_2_FunctionEnum_table_UPS_removed, threads)
 
-rule r_Protein_2_Function_DOID_BTO_GOCC_UPS:
+rule r_Protein_2_Function_DOID_BTO_GOCC_UPS: #!!!
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
         DOID_obo_current = DOID_obo_current,
         BTO_obo_Jensenlab = BTO_obo_Jensenlab,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
-        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
+        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
     output:
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked,
         Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked,
-        Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS,
-        DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
+        Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS
     params:
         alpha = 0.5,
         beta = 3,
-        max_score = 5, #!!! remove
         GO_CC_textmining_additional_etype = True
     log: log_snakemake
     run:
-        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, output.DOID_BTO_GOCC_without_lineage, alpha=params.alpha, beta=params.beta, max_score=params.max_score, GO_CC_textmining_additional_etype=params.GO_CC_textmining_additional_etype)
+        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, alpha=params.alpha, beta=params.beta, GO_CC_textmining_additional_etype=params.GO_CC_textmining_additional_etype)
 
 rule r_Functions_table_UPS_FIN:
     input:
@@ -706,7 +706,7 @@ rule r_Functions_table_UPS_FIN:
         # cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
         cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
-rule r_Create_goslimtype_2_cond_arrays: # ToDo make sure executed to be executed AFTER Functions_table_UPS_FIN
+rule r_Create_goslimtype_2_cond_arrays:
     input:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         goslim_subsets_file = goslim_subsets_file
