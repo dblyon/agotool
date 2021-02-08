@@ -40,21 +40,7 @@ test_API:
     - ls -lah $TAR_FILE_NAME
     - $PYTHON -V
     - $PYTEST --version 
-    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
-  
-# deploy: # permissions issue, not sure these should be given due to security
-#   stage: deploy
-#   tags:
-#     - pisces
-#   script:
-#     - echo $USER
-#     - echo $HOSTNAME
-#     - echo $DATE
-#     - $PYTHON -V
-#     - ls -lah $TAR_FILE_NAME
-#     - cd $APP_DIR
-#     - echo $UWSGI_EXE
-#     - $UWSGI_EXE vassal_agotool.ini
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py  
 
 job:on-schedule:
   only:
@@ -69,3 +55,17 @@ job:on-schedule:
     - $PYTHON -V
     - $PYTEST --version
     - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
+
+# deploy: # permissions issue, not sure these should be given due to security
+#   stage: deploy
+#   tags:
+#     - pisces
+#   script:
+#     - echo $USER
+#     - echo $HOSTNAME
+#     - echo $DATE
+#     - $PYTHON -V
+#     - ls -lah $TAR_FILE_NAME
+#     - cd $APP_DIR
+#     - echo $UWSGI_EXE
+#     - $UWSGI_EXE vassal_agotool.ini    
