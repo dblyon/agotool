@@ -289,11 +289,11 @@ class API_STRING(Resource):
             print("returning help page")
             return help_page(args_dict)
         else:
-            if variables.VERBOSE:
+            # if variables.VERBOSE:
                 # print(results_all_function_types[:500])
-                print("-" * 50)
-                print("Version: ", version_temp)
-                print("-" * 50)
+                # print("-" * 50)
+                # print("Version: ", version_temp)
+                # print("-" * 50)
             return format_multiple_results(args_dict, results_all_function_types, pqo)
 
 api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
@@ -587,8 +587,8 @@ characterize_foreground: Foreground only""")
     o_or_u_or_both = fields.SelectField("Over-, under-represented or both", choices = (("both", "both"), ("overrepresented", "overrepresented"), ("underrepresented", "underrepresented")), description="""Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.""")
     # num_bins = fields.IntegerField("Number of bins", [validate_integer], default = 100, description="""The number of bins created based on the abundance values provided. Only relevant if "Abundance correction" is selected.""")
     # fold_enrichment_for2background = fields.FloatField("fold enrichment foreground/background", [validate_number], default = 0, description="""Minimum cutoff value of "fold_enrichment_foreground_2_background".""")
-    p_value_cutoff = fields.FloatField("p value cutoff", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum cutoff value of uncorrected p value.""")
-    FDR_cutoff = fields.FloatField("p value corrected (FDR) cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p values) cutoff value (1 meaning no cutoff)""")
+    p_value_cutoff = fields.FloatField("p value cutoff", [validate_float_between_zero_and_one], default = 0.01, description="""Maximum cutoff value of uncorrected p value. Default is 1%""")
+    FDR_cutoff = fields.FloatField("corrected p value (FDR) cutoff", [validate_float_between_zero_and_one], default = 0.05, description="""Maximum False Discovery Rate (Benjamini-Hochberg corrected p values) cutoff value (1 means no cutoff). Default is 5%""")
     filter_foreground_count_one = fields.BooleanField("Filter foreground count one", default="checked", description="Remove all functional terms if they have only a single protein association in the foreground (default=checked)")
     filter_PMID_top_n = fields.IntegerField("Filter top n publications", [validate_integer], default=20, description="""Reduce the number of publications to be reported to the given number (default 20). The publications are sorted as follows and the top n selected: 
     'characterize_foreground': foreground_count and year. 

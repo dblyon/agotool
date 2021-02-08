@@ -2346,7 +2346,8 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
     if verbose:
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table, fn_out_Function_2_ENSP_table_reduced))
 
-def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_in_Taxid_2_Proteins_table_UPS_FIN, fn_in_Functions_table_all, fn_out_Function_2_Protein_table_UPS, fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_removed, number_of_threads, min_count=1):
+# def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, fn_in_Taxid_2_Proteins_table_UPS_FIN, fn_in_Functions_table_all, fn_out_Function_2_Protein_table_UPS, fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_removed, number_of_threads, min_count=1):
+def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Taxid_2_Proteins_table_UPS_FIN, fn_in_Functions_table_all, fn_out_Function_2_Protein_table_UPS, fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_removed, number_of_threads, min_count=1):
     """
     merge fn_in_Protein_2_Function_table_UPS and fn_in_Protein_2_Function_and_Score_DOID_BTO_GOCC_UPS
     then sort based on Taxid and UniProtID
@@ -2355,15 +2356,17 @@ def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Prote
     sort fn_in_Protein_2_Function_table_UPS by Taxid and UnFunctions_table_RCTMProtID
     sort fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPSby Taxid and UniProtID
     """
-    Protein_2_Function_table_merged = fn_in_Protein_2_Function_table_UPS + ".concat_temp"
-    tools.concatenate_files([fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS], Protein_2_Function_table_merged)
-    tools.sort_file(Protein_2_Function_table_merged, Protein_2_Function_table_merged, number_of_processes=number_of_threads)
-    print("done sorting, creating Function_2_Protein_table_UPS and removed, reduced files")
+    # Protein_2_Function_table_merged = fn_in_Protein_2_Function_table_UPS + ".concat_temp"
+    # tools.concatenate_files([fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS], Protein_2_Function_table_merged)
+    # tools.sort_file(Protein_2_Function_table_merged, Protein_2_Function_table_merged, number_of_processes=number_of_threads)
+    # tools.sort_file(fn_in_Protein_2_Function_table_UPS, fn_in_Protein_2_Function_table_UPS, number_of_processes=number_of_threads)
+    # print("done sorting, creating Function_2_Protein_table_UPS and removed, reduced files")
     function_2_UniProtID_dict = defaultdict(list)
     taxid_2_total_protein_count_dict = _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table_UPS_FIN)
     # taxid_2_total_protein_count_dict defaults to -1 for taxids without reference proteomes --> use number of all proteins for given taxid instead?
     function_2_etype_dict = _helper_get_function_2_etype_dict(fn_in_Functions_table_all) # funcenum not correct at this stage therefore not present
-    with open(Protein_2_Function_table_merged, "r") as fh_in:
+    # with open(Protein_2_Function_table_merged, "r") as fh_in:
+    with open(fn_in_Protein_2_Function_table_UPS, "r") as fh_in:
         taxid_last, UniProtID, etype_dont_use, function_an_set = _helper_parse_line_prot_2_func_UPS(fh_in.readline())
         fh_in.seek(0)
         with open(fn_out_Function_2_Protein_table_UPS, "w") as fh_out:
@@ -3440,7 +3443,8 @@ def collect_scores_per_term(protein_AN_list, ENSP_2_tuple_funcEnum_score_dict, l
     else:
         return funcEnum_2_scores_dict
 
-def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Functions_table_UPS_FIN, Functions_table_UPS_removed):
+# def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, Functions_table_UPS_FIN, Functions_table_UPS_removed):
+def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_reduced, Functions_table_UPS_FIN, Functions_table_UPS_removed):
     """
     Functions_table_all is the superset
     Function_2_Protein_table_UPS_reduced use all these prefiltered functions
@@ -3455,10 +3459,10 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_re
         for line in fh_in:
             functions_2_include.update({line.split("\t")[2]})
 
-    with open(Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "r") as fh_in:
-        for line in fh_in:
-            taxid, uniprotid, etype, function_name_set = _helper_parse_line_prot_2_func_UPS(line)
-            functions_2_include.update(function_name_set)
+    # with open(Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS, "r") as fh_in:
+    #     for line in fh_in:
+    #         taxid, uniprotid, etype, function_name_set = _helper_parse_line_prot_2_func_UPS(line)
+    #         functions_2_include.update(function_name_set)
 
     enum = 0
     # prevent redundant entries

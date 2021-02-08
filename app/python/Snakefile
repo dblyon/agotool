@@ -514,11 +514,10 @@ rule r_Functions_table_all:
     run:
         cst.concatenate_Functions_tables(input.fn_list_str, output.Functions_table_all, threads)
 
-rule r_Function_2_Protein_table_UPS:
+rule r_Function_2_Protein_table_UPS: #!!!
     input:
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS,
-        # Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS,
-        Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS,
+        # Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS, #!!! ? this is not necessary since already in Protein_2_Function_table_UPS ???
         Taxid_2_Proteins_table_UPS_FIN = Taxid_2_Proteins_table_UPS_FIN, # for background_counts, but not to restrict by reference proteome
         Functions_table_all = Functions_table_all
     output:
@@ -528,7 +527,8 @@ rule r_Function_2_Protein_table_UPS:
     threads: NUMBER_OF_PROCESSES_sorting
     log: log_snakemake
     run: # helper_convert_str_arr_2_nested_list
-        cst.Function_2_Protein_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Protein_table_UPS, output.Function_2_Protein_table_UPS_reduced, output.Function_2_Protein_table_UPS_removed, threads)
+        # cst.Function_2_Protein_table_UPS(input.Protein_2_Function_table_UPS, input.Protein_2_Function_DOID_BTO_GOCC_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Protein_table_UPS, output.Function_2_Protein_table_UPS_reduced, output.Function_2_Protein_table_UPS_removed, threads)
+        cst.Function_2_Protein_table_UPS(input.Protein_2_Function_table_UPS, input.Taxid_2_Proteins_table_UPS_FIN, input.Functions_table_all, output.Function_2_Protein_table_UPS, output.Function_2_Protein_table_UPS_reduced, output.Function_2_Protein_table_UPS_removed, threads)
 
 rule r_Taxid_2_Proteins_table_UPS_FIN:
     input:
@@ -654,7 +654,7 @@ rule r_Protein_2_Function_table_UPS:
                        Protein_2_Function_DOID_BTO_GOCC_UPS]
     output:
         Protein_2_Function_table_UPS_orig = Protein_2_Function_table_UPS_orig, # sorted at the end
-        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # taxids merged
+        Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # taxids merged, sorted at the end
     threads: NUMBER_OF_PROCESSES_sorting
     log: log_snakemake
     run:
@@ -687,7 +687,7 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS:
     params:
         alpha = 0.5,
         beta = 3,
-        max_score = 5,
+        max_score = 5, #!!! remove
         GO_CC_textmining_additional_etype = True
     log: log_snakemake
     run:
@@ -697,14 +697,14 @@ rule r_Functions_table_UPS_FIN:
     input:
         Functions_table_all = Functions_table_all, # superset
         Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced, # include all prefiltered functions
-        # Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS
-        Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS
+        # Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS #!!! not needed ???
     output:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         Functions_table_UPS_removed = Functions_table_UPS_removed # removed if description, hierarchy, etc. but not associated with more than 1 protein per function per taxid (in any taxid)
     log: log_snakemake
     run:
-        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
+        # cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
+        cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
 rule r_Create_goslimtype_2_cond_arrays: # ToDo make sure executed to be executed AFTER Functions_table_UPS_FIN
     input:
