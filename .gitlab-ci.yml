@@ -1,47 +1,53 @@
 stages:
-  - test
-  - deploy
-
+  - test_flat_files
+  - test_API
+  -
 variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
   PYTEST: "/home/dblyon/anaconda3/envs/agotool/bin/pytest"
+  APP_DIR: "/home/dblyon/PMID_autoupdate/agotool/app"
 
 before_script:
     - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
     - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
 
-test:
-  stage: test
+
+test_flat_files:
+  stage: test_flat_files
   tags:
-    - aquarius
+    - pisces
   script:
-    - echo "$(date)"
+    - echo $USER
+    - echo $HOSTNAME
     - echo $DATE
+    - ls -lah $TAR_FILE_NAME
     - $PYTHON -V
     - $PYTEST --version
-    - echo "$USER"
-    - echo $HOSTNAME
-    - echo $TAR_FILE_NAME
+    - $PYTEST /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity/test_flatfiles.py
 
-    ## PyTest
-    - cd /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
-    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
+test_API:
+  stage: test_API
+  tags:
+    - pisces
+  script:
+    - echo $USER
+    - echo $HOSTNAME
+    - echo $DATE
+    - ls -lah $TAR_FILE_NAME
+    - $PYTHON -V
+    - $PYTEST --version
+    - $PYTEST /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity/test_API_sanity.py
 
 job:on-schedule:
   only:
     - schedules
-  stage: test
+  stage: test_API
   tags:
-    - aquarius
+    - pisces
   script:
-    - echo "$(date)"
+    - echo $USER
+    - echo $HOSTNAME
     - echo $DATE
     - $PYTHON -V
     - $PYTEST --version
-    - echo "$USER"
-    - echo $HOSTNAME
-    - echo $TAR_FILE_NAME
-
-    ## PyTest
-    - cd /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity
-    - /home/dblyon/anaconda3/envs/agotool/bin/pytest
+    - $PYTEST /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity/test_API_sanity.py
