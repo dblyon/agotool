@@ -80,6 +80,14 @@ ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekl
 check_exit_status
 printf "\n--- finished Cronjob ---\n"
 ############################################################
+### Overview
+# cronjob on Phobos
+# rsync files to Aquarius (only for Gitlab) and Pisces
+# run update script on Aquarius (only for Gitlab) and Pisces
+# Pisces script will push data to Digamma and run update script (if tests pass)
+
+
+############################################################
 ##### Cronjob OVERVIEW
 
 ### Crontab Atlas
