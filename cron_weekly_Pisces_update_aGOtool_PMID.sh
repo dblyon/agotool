@@ -38,8 +38,8 @@ check_exit_status
 
 ### push files to Digamma
 printf "\n rsync push files from Pisces to Digamma"
-rsync -a "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz dblyon@digamma.embl.de:"$TABLES_DIR_Digamma"/aGOtool_PMID_pickle_current.tar.gz
-rsync -a "$GED_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@digamma.embl.de:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
+rsync -av "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz dblyon@digamma.embl.de:"$TABLES_DIR_Digamma"/aGOtool_PMID_pickle_current.tar.gz
+rsync -av "$GED_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@digamma.embl.de:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
 
 echo "now attempting to run update script on Digamma cron_weekly_Digamma_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@digamma.embl.de '/home/dblyon/agotool/cron_weekly_Digamma_update_aGOtool_PMID.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'

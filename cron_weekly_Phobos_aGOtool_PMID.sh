@@ -86,6 +86,18 @@ printf "\n--- finished Cronjob ---\n"
 # run update script on Aquarius (only for Gitlab) and Pisces
 # Pisces script will push data to Digamma and run update script (if tests pass)
 
+#I've set up things on Digamma. They should work as expected in the exact same way as on San (port 10114).Quick check you can do on Pisces or on Digammacurl "localhost:10114/status" --> returns json of when files were last updated and when the app was last instantiated.
+#The updated Global Enrichment files are here (same location as on San): /home/dblyon/global_enrichment_v11
+#
+#Generally, the update process works as follows:Weekly Cronjob on Phobos: snakemake pipeline to produce new filestest (flat files and REST API)push new files to Piscesssh to Pisces and run script on Pisces to updatePisces update script:decompress filesrestart app and test (flat files and REST API)push new files to Digammassh to Digamma and run script on Digamma to updateDigamma update script:decompress filesrestart app and test (flat files and REST API)
+#Pisces is connected to GitLab which runs tests on a daily basis to check the REST API and notifies me via email should something fail. Additional tests are triggered via GitHub hooks (changing code in the GitHub repo will trigger tests). 
+#
+#Update schedule and git branchesaGOtool for STRING is on the "PMID_autoupdate" branch (updates PMIDs every week)https://github.com/dblyon/agotool/tree/PMID_autoupdate
+#curl "localhost:10114/status" # on Pisces
+#while aGOtool.org is on the "master" branch. (this is the UniProt version that updates all resources every month)https://github.com/dblyon/agotool/tree/master
+#curl "localhost:5911/status" # on Pisces
+
+
 
 ############################################################
 ##### Cronjob OVERVIEW
@@ -114,8 +126,3 @@ printf "\n--- finished Cronjob ---\n"
 #| ----------- Hour (0 - 23)
 #------------- Minute (0 - 59)
 ############################################################
-### DEPRECATED since --> built into Snakemake
-### add file dimensions to log for testing and debugging
-#cd "$PYTHON_DIR"
-#"$PYTHON_EXE"  -c 'import create_SQL_tables_snakemake; create_SQL_tables_snakemake.add_2_DF_file_dimensions_log()'
-#check_exit_status

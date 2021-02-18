@@ -32,13 +32,17 @@ def create_DF_2_compare_global_enrichment(df_GE):
         .terms_descriptions.tsv
         .terms_children.tsv
     """
-    if HOSTNAME not in {"pisces", "san.embl.de", "aquarius.meringlab.org", "phobos"}:
+    if HOSTNAME not in {"pisces", "san.embl.de", "aquarius.meringlab.org", "phobos", 'digamma.embl.de'}:
+        print("HOSTNAME {} not recognized".format(HOSTNAME))
+        raise StopIteration
         return pd.DataFrame()
     else:
         if HOSTNAME == "san.embl.de":
             GLOBAL_ENRICHMENT_DIR = r"/san/DB/dblyon/global_enrichment_v11"
         elif HOSTNAME == "phobos":
             GLOBAL_ENRICHMENT_DIR = r"/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables"
+        elif HOSTNAME == "digamma.embl.de":
+            GLOBAL_ENRICHMENT_DIR = r"/home/dblyon/global_enrichment_v11"
         else:
             GLOBAL_ENRICHMENT_DIR = r"/home/dblyon/global_enrichment_v11"
     fn_list, binary_list, size_list, num_lines_list, date_list, md5_list = [], [], [], [], [], []
@@ -76,7 +80,7 @@ def create_DF_2_compare_global_enrichment(df_GE):
 
 df_GE = pd.read_csv(LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, sep='\t')
 version_current_GE = max(df_GE["version"])
-df_GE = create_DF_2_compare_global_enrichment(df_GE)
+df_GE = create_DF_2_compare_global_enrichment(df_GE) # version disappears
 version_local_GE = max(df_GE["version"])
 cond_local_GE = df_GE["version"] == version_local_GE
 cond_current_GE = df_GE["version"] == version_current_GE
