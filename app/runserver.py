@@ -232,7 +232,8 @@ parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic
 parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="both")
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
 parser.add_argument("STRING_beta", type=str, default="False")
-
+parser.add_argument("translate", type=str, help="""Map/Translate one of: ENSP_2_UniProtAC, ENSP_2_UniProtEntryName, UniProtAC_2_ENSP, UniProtEntryName_2_ENSP, UniProtAC_2_UniProtEntryName, UniProtEntryName_2_UniProtAC""", default="ENSP_2_UniProtAC")
+# parser.add_argument("IDs_2_translate", type=str, help="identifiers to translate/map. Separate the list of e.g. ENSPs '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'", default=None)
 
 class API_STRING(Resource):
     """
@@ -315,6 +316,46 @@ class API_status(Resource):
         return self.get()
 
 api.add_resource(API_status, "/status", "/info")
+
+
+# class API_translate(Resource):
+#     """
+#     translate one of:
+#     ENSP_2_UniProtAC
+#     ENSP_2_UniProtEntryName
+#     UniProtAC_2_ENSP
+#     UniProtEntryName_2_ENSP
+#     UniProtAC_2_UniProtEntryName
+#     UniProtEntryName_2_UniProtAC
+#     """
+#     def get(self):
+#         return self.post()
+#
+#     def post(self):
+#         args_dict = defaultdict(lambda: None)
+#         args_dict.update(parser.parse_args())
+#         args_dict = convert_string_2_bool(args_dict)
+#         args_dict["foreground"] = request.form.get("foreground") # ? what about the background ?
+#         IDs_2_translate = args_dict["foreground"]
+#         translate = args_dict["translate"]
+#
+#         if translate == "ENSP_2_UniProtEntryName":
+#             dict_2_return = query.map_secondary_2_primary_ANs(ids_2_map=IDs_2_translate)
+#         elif translate == "UniProtEntryName_2_UniProtAC":
+#             dict_2_return = query.map_primary_2_secondary_ANs(ids_2_map=IDs_2_translate, no_ENSPs=True)
+#         elif translate == "UniProtEntryName_2_ENSP":
+#             dict_2_return = query.map_primary_2_secondary_ANs(ids_2_map=IDs_2_translate, ENSPs_only=True)
+#
+#         elif translate == "UniProtAC_2_ENSP":
+#             # dict_2_return = query.
+#             pass
+#         elif translate == "ENSP_2_UniProtAC":
+#             tempDict_ENSP_2_UniProtEntryName = query.map_secondary_2_primary_ANs(ids_2_map=IDs_2_translate)
+#             tempDict_UniProtEntryName_2_UniProtAC_and_ENSP = query.map_primary_2_secondary_ANs(ids_2_map=tempDict_ENSP_2_UniProtEntryName.values())
+#
+#         return jsonify(dict_2_return)
+#
+# api.add_resource(API_translate, "/translate")
 
 
 def PMID_description_to_year(string_):
@@ -944,3 +985,7 @@ if __name__ == "__main__":
     # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
     # df = pd.read_csv(StringIO(result.text), sep='\t')
     # print(df.groupby("etype")["term"].count())
+
+### PyTest on Pisces --> could fix permissions
+# -o cache_dir=/home/dblyon/pytest_cache
+# -p no:cacheprovider

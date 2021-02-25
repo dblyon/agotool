@@ -1197,7 +1197,7 @@ def map_secondary_2_primary_ANs(ids_2_map, Secondary_2_Primary_IDs_dict=None, re
             Secondary_2_Primary_IDs_dict_userquery[id_] = prim
     return Secondary_2_Primary_IDs_dict_userquery
 
-def map_primary_2_secondary_ANs(ids_2_map, Primary_2_Secondary_IDs_dict=None, read_from_flat_files=False, ENSPs_only=False):
+def map_primary_2_secondary_ANs(ids_2_map, Primary_2_Secondary_IDs_dict=None, read_from_flat_files=False, ENSPs_only=False, no_ENSPs=False):
     """
     only maps UniProtID to UniProtAC
     """
@@ -1215,6 +1215,13 @@ def map_primary_2_secondary_ANs(ids_2_map, Primary_2_Secondary_IDs_dict=None, re
                 for sec_id in sec:
                     try:
                         if int(sec_id.split(".")[0]) > 1:
+                            Primary_2_Secondary_IDs_dict_userquery[id_] = sec_id
+                    except:
+                        pass
+            elif no_ENSPs:
+                for sec_id in sec:
+                    try:
+                        if not int(sec_id.split(".")[0]) > 1:
                             Primary_2_Secondary_IDs_dict_userquery[id_] = sec_id
                     except:
                         pass

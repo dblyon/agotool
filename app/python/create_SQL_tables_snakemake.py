@@ -3105,7 +3105,7 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs)
     with open(Protein_2_Function_DOID_BTO_GOCC_UPS, "w") as fh_out_UniProtID:
         for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
-            taxid, etyp, ENSP = taxid_etype_ENSP
+            taxid, etype, ENSP = taxid_etype_ENSP
             funcName_list_backtracked = group.funcName.values
             UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
             for UniProtID in UniProtID_list:
