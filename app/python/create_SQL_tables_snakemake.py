@@ -3044,8 +3044,8 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked,
         Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked,
-        Protein_2_Function_DOID_BTO_GOCC_UPS,
-        alpha=0.5, beta=3, GO_CC_textmining_additional_etype=True):
+        Protein_2_Function_DOID_BTO_GOCC_UPS, GO_CC_textmining_additional_etype=True,
+        alpha_22=0.5, beta_22=3, alpha_25=0.5, beta_25=3, alpha_26=0.5, beta_26=3):
     """
     discretize TextMining scores
     - reformat data --> DF
@@ -3077,7 +3077,13 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
 
     df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep='\t', names=["Taxid", "Etype", "ENSP", "funcName", "Score"])
     ### rescale Score per genome, per etype
-    df = rescale_scores(df, alpha=alpha)
+    df_22 = df[df["Etype"] == -22]
+    df_25 = df[df["Etype"] == -25]
+    df_26 = df[df["Etype"] == -26]
+    df_22 = rescale_scores(df_22, alpha=alpha_22)
+    df_25 = rescale_scores(df_25, alpha=alpha_25)
+    df_26 = rescale_scores(df_26, alpha=alpha_26)
+    df = pd.concat([df_22, df_25, df_26])
     df.to_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep="\t", header=True, index=False)
 
     ### rescaled and backtracked
@@ -3094,11 +3100,13 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
 
     ### rescaled, backtracked, and filtered
     df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked, sep="\t")
-    cond_score5 = df["Score"] == 5 # include Score == 5
-    cond_score1p5 = df["Score"] >= 1.5 # exclude Score < 1.5
-    cond_rescaled = df["Rescaled_score"] <= beta # include things Rescaled_score <= beta
-    cond_2_keep = (cond_score1p5 & cond_rescaled) | cond_score5
-    df = df[cond_2_keep]
+    df_22 = df[df["Etype"] == -22]
+    df_25 = df[df["Etype"] == -25]
+    df_26 = df[df["Etype"] == -26]
+    df_22 = df_22[(df_22["Score"] >= 1.5) & (df_22["Rescaled_score"] <= beta_22)]
+    df_25 = df_25[(df_25["Score"] >= 1.5) & (df_25["Rescaled_score"] <= beta_25)]
+    df_26 = df_26[(df_26["Score"] >= 1.5) & (df_26["Rescaled_score"] <= beta_26)]
+    df = pd.concat([df_22, df_25, df_26])
     df = df[["Taxid", "Etype", "ENSP", "funcName"]]
     df.to_csv(Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, sep='\t', header=True, index=False)
 
