@@ -27,7 +27,7 @@ test_flat_files:
     - ls -lah $TAR_FILE_NAME
     - $PYTHON -V
     - $PYTEST --version 
-    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_flatfiles.py -p no:cacheprovider
 
 test_API:
   stage: test_API
@@ -40,7 +40,7 @@ test_API:
     - ls -lah $TAR_FILE_NAME
     - $PYTHON -V
     - $PYTEST --version 
-    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py  
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py -p no:cacheprovider
 
 job:on-schedule:
   only:
@@ -54,7 +54,7 @@ job:on-schedule:
     - echo $DATE
     - $PYTHON -V
     - $PYTEST --version
-    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py
+    - $PYTEST /home/dblyon/agotool/app/python/testing/sanity/test_API_sanity.py -p no:cacheprovider
 
 # deploy: # permissions issue, not sure these should be given due to security
 #   stage: deploy
