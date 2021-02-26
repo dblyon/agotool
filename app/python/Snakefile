@@ -67,9 +67,9 @@ Protein_2_Function_table_PMID_UPS = os.path.join(TABLES_DIR, "Protein_2_Function
 URL_integrated_protein_2_function_Jensenlab = r"http://download.jensenlab.org/aGOtool/integrated_protein2function.tsv.gz"
 Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
 Protein_2_Function_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_UPS.txt")
-Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled.txt")
-Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked.txt")
-Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked.txt")
+Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked.txt")
+Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled.txt")
+Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized.txt")
 Blacklisted_terms_Jensenlab = os.path.join(DOWNLOADS_DIR, "blacklisted_terms_Jensenlab.txt")
 GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
@@ -651,8 +651,7 @@ rule r_Protein_2_Function_table_UPS:
         fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
                        Protein_2_Function_table_KEGG_UPS,
                        Protein_2_Function_table_WikiPathways_UPS,
-                       Protein_2_Function_table_PMID_UPS,
-                       Protein_2_Function_DOID_BTO_GOCC_UPS]
+                       Protein_2_Function_table_PMID_UPS]
     output:
         Protein_2_Function_table_UPS_orig = Protein_2_Function_table_UPS_orig, # sorted at the end
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # taxids merged, sorted at the end
@@ -681,21 +680,21 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS: #!!!
         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS
     output:
-        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked,
-        Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled = Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled,
+        Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized = Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized,
         Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS
     params:
         alpha_22 = 0.2,
-        alpha_25 = 0.2,
-        alpha_26 = 0.2,
+        alpha_25 = 0.3,
+        alpha_26 = 0.3,
         beta_22 = 0.7,
         beta_25 = 1.2,
         beta_26 = 1.4,
         GO_CC_textmining_additional_etype = True
     log: log_snakemake
     run:
-        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, output.Protein_2_Function_DOID_BTO_GOCC_UPS, GO_CC_textmining_additional_etype=params.GO_CC_textmining_additional_etype, alpha_22=params.alpha_22, beta_22=params.beta_22, alpha_25=params.alpha_25, beta_25=params.beta_25, alpha_26=params.alpha_26, beta_26=params.beta_26)
+        cst.Protein_2_Function_DOID_BTO_GOCC_UPS(input.GO_obo_Jensenlab, input.DOID_obo_current, input.BTO_obo_Jensenlab, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, input.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked, output.Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled, output.Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized, output.Protein_2_Function_DOID_BTO_GOCC_UPS, GO_CC_textmining_additional_etype=params.GO_CC_textmining_additional_etype, alpha_22=params.alpha_22, beta_22=params.beta_22, alpha_25=params.alpha_25, beta_25=params.beta_25, alpha_26=params.alpha_26, beta_26=params.beta_26)
 
 rule r_Functions_table_UPS_FIN:
     input:

@@ -3041,9 +3041,9 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
 
 def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled,
-        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked,
-        Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked,
+        Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled,
+        Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized,
         Protein_2_Function_DOID_BTO_GOCC_UPS, GO_CC_textmining_additional_etype=True,
         alpha_22=0.5, beta_22=3, alpha_25=0.5, beta_25=3, alpha_26=0.5, beta_26=3):
     """
@@ -3055,18 +3055,18 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     ( - map Function to FuncEnum elsewhere )
 
     GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
-    DOID_obo_current = os.path.join(DOWNLOADS_DIR, "doid.obo") # http://purl.obolibrary.org/obo/doid.obo
+    DOID_obo_current = os.path.join(DOWNLOADS_DIR, "DOID_obo_current.obo") # http://purl.obolibrary.org/obo/doid.obo
     BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo")  # static file
     Taxid_UniProtID_2_ENSPs_2_KEGGs = os.path.join(TABLES_DIR, "Taxid_UniProtID_2_ENSPs_2_KEGGs.txt")
     Protein_2_Function_and_Score_DOID_BTO_GOCC_STS = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS.txt.gz")
-    Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled.txt")
-    Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked.txt")
+    Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked = os.path.join(TABLES_DIR, "Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked.txt")
+    Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized.txt")
     Protein_2_Function_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_DOID_BTO_GOCC_UPS.txt")
     alpha = 0.5
     max_score = 5
     """
     ### reformat data --> DF
-    with open(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, "w") as fh_out:
+    with open(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked, "w") as fh_out:
         for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS):
             ENSP, funcName_2_score_arr_str, etype = line.split("\t")
             etype = etype.strip()
@@ -3074,19 +3074,8 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
             funcName_2_score_list_temp = helper_convert_str_arr_2_nested_list(funcName_2_score_arr_str)
             for funcName, score in funcName_2_score_list_temp:
                 fh_out.write("{}\t{}\t{}\t{}\t{}\n".format(taxid, etype, ENSP, funcName, score))
-
-    df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep='\t', names=["Taxid", "Etype", "ENSP", "funcName", "Score"])
-    ### rescale Score per genome, per etype
-    df_22 = df[df["Etype"] == -22]
-    df_25 = df[df["Etype"] == -25]
-    df_26 = df[df["Etype"] == -26]
-    df_22 = rescale_scores(df_22, alpha=alpha_22)
-    df_25 = rescale_scores(df_25, alpha=alpha_25)
-    df_26 = rescale_scores(df_26, alpha=alpha_26)
-    df = pd.concat([df_22, df_25, df_26])
-    df.to_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled, sep="\t", header=True, index=False)
-
-    ### rescaled and backtracked
+    df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked, sep='\t', names=["Taxid", "Etype", "ENSP", "funcName", "Score"])
+    ### backtracking
     alternative_2_current_ID_dict = {}
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(GO_obo_Jensenlab, upk=False))
     # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
@@ -3096,10 +3085,20 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     DAG.load_obo_file(obo_file=DOID_obo_current, upk=True)
     DAG.load_obo_file(obo_file=BTO_obo_Jensenlab, upk=True)
     lineage_dict_direct_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=GO_CC_textmining_additional_etype, direct_parents_only=True)
-    backtrack_scores(df, lineage_dict_direct_parents, alternative_2_current_ID_dict, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked)
+    backtrack_scores(df, lineage_dict_direct_parents, alternative_2_current_ID_dict, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked)
+
+    ### rescale Score per genome, per etype
+    df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked, sep="\t")
+    df_22 = df[df["Etype"] == -22] # Lars' etype is -22, David changes it to -20 (GOCC TextMining to distinguish it from GOCC)
+    df_25 = df[df["Etype"] == -25]
+    df_26 = df[df["Etype"] == -26]
+    df_22 = rescale_scores(df_22, alpha=alpha_22)
+    df_25 = rescale_scores(df_25, alpha=alpha_25)
+    df_26 = rescale_scores(df_26, alpha=alpha_26)
+    df = pd.concat([df_22, df_25, df_26])
+    df.to_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled, sep="\t", header=True, index=False)
 
     ### rescaled, backtracked, and filtered
-    df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_rescaled_backtracked, sep="\t")
     df_22 = df[df["Etype"] == -22]
     df_25 = df[df["Etype"] == -25]
     df_26 = df[df["Etype"] == -26]
@@ -3108,7 +3107,7 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     df_26 = df_26[(df_26["Score"] >= 1.5) & (df_26["Rescaled_score"] <= beta_26)]
     df = pd.concat([df_22, df_25, df_26])
     df = df[["Taxid", "Etype", "ENSP", "funcName"]]
-    df.to_csv(Protein_2_Function_DOID_BTO_GOCC_STS_discretized_backtracked, sep='\t', header=True, index=False)
+    df.to_csv(Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized, sep='\t', header=True, index=False)
 
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs)
     with open(Protein_2_Function_DOID_BTO_GOCC_UPS, "w") as fh_out_UniProtID:
