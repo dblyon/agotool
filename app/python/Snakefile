@@ -651,7 +651,8 @@ rule r_Protein_2_Function_table_UPS:
         fn_list_str = [Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, PFam
                        Protein_2_Function_table_KEGG_UPS,
                        Protein_2_Function_table_WikiPathways_UPS,
-                       Protein_2_Function_table_PMID_UPS]
+                       Protein_2_Function_table_PMID_UPS,
+                       Protein_2_Function_DOID_BTO_GOCC_UPS]
     output:
         Protein_2_Function_table_UPS_orig = Protein_2_Function_table_UPS_orig, # sorted at the end
         Protein_2_Function_table_UPS = Protein_2_Function_table_UPS # taxids merged, sorted at the end
