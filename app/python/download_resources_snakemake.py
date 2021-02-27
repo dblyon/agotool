@@ -112,15 +112,21 @@ def download_UniProt_reference_proteomes(download_dir, verbose=True):
         ftp = FTP(site)
         ftp.login()
         ftp.cwd(workdir)
-        for filename in ftp.nlst():
-            if filename.startswith("UP"): # taxid, fasta, gz = "UP000002654_768679.fasta.gz".split("_")[-1].split(".")
-                taxid, fasta, gz = filename.split("_")[-1].split(".")
-                try:
-                    _ = int(taxid)
-                except ValueError:
-                    continue
-                if fasta == "fasta" and gz == "gz":
-                    files_2_download.append("https://{}/{}/{}".format(site, workdir, filename))
+        subdir_list = ftp.nlst()
+        for subdir in subdir_list:  # e.g. UP000054539
+            sub_workdir = "databases/uniprot/current_release/knowledgebase/reference_proteomes/{}/{}".format(domain, subdir)
+            ftp = FTP(site)
+            ftp.login()
+            ftp.cwd(sub_workdir)
+            for filename in ftp.nlst():
+                if filename.startswith("UP"):# taxid, fasta, gz = "UP000002654_768679.fasta.gz".split("_")[-1].split(".")
+                    taxid, fasta, gz = filename.split("_")[-1].split(".")
+                    try:
+                        _ = int(taxid)
+                    except ValueError:
+                        continue
+                    if fasta == "fasta" and gz == "gz":
+                        files_2_download.append("https://{}/{}/{}".format(site, workdir, filename))
     files_2_download = sorted(set(files_2_download))
     if verbose:
         print("Found {} number of reference proteome fasta files to download".format(len(files_2_download)))
