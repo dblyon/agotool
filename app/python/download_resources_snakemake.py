@@ -126,7 +126,7 @@ def download_UniProt_reference_proteomes(download_dir, verbose=True):
                     except ValueError:
                         continue
                     if fasta == "fasta" and gz == "gz":
-                        files_2_download.append("https://{}/{}/{}".format(site, workdir, filename))
+                        files_2_download.append("https://{}/{}/{}".format(site, sub_workdir, filename))
     files_2_download = sorted(set(files_2_download))
     if verbose:
         print("Found {} number of reference proteome fasta files to download".format(len(files_2_download)))
