@@ -43,7 +43,8 @@ check_exit_status
 ### restart uWSGI and PyTest
 printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
 cd "$APP_DIR" || exit
-"$UWSGI_EXE" vassal_agotool.ini
+# "$UWSGI_EXE" vassal_agotool.ini
+echo c > agotool_UniProt_master.fifo
 sleep 4m
 cd "$TESTING_DIR" || exit
 "$PYTEST_EXE" "$TESTING_DIR"/test_API_sanity.py

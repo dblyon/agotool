@@ -66,6 +66,8 @@ if ARGPARSE:
         variables.VERBOSE = True
 ###############################################################################
 # ToDo
+# - change to chain reloading for ago_UP
+# - change uwsgi.ini files --> to ago_STRINGv11 in PMID_autoupdate
 # - pytest of flatfiles, only for big files (remove all the small AFC/KS files)
 # - zerg mode
 # - emperor mode?
