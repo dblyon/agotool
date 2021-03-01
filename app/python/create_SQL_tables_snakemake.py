@@ -1081,23 +1081,44 @@ def Taxid_2_Proteins_table_UPS(UniProt_reference_proteomes_dir, Taxid_2_Proteins
     tools.sort_file(Taxid_2_Proteins_table_UniProt, Taxid_2_Proteins_table_UniProt, number_of_processes=number_of_processes, numeric_sort=True)
 
 def UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_UPS_FIN(fn_in, fn_out):
-    strings_2_write_list = []
-    curated_and_sorted = ["Homo sapiens (Human), 9606, UP000005640", "Caenorhabditis elegans, 6239, UP000001940", "Drosophila melanogaster (Fruit fly), 7227, UP000000803", "Escherichia coli (strain K12), 83333, UP000000625", "Mus musculus (Mouse), 10090, UP000000589", "Rattus norvegicus (Rat), 10116, UP000002494", "Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast), 559292, UP000002311",  # 4932
-        "Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast), 284812, UP000002485",  # 4896
-        "Arabidopsis thaliana (Mouse-ear cress), 3702, UP000006548"]
+    """
+    e.g. of input file
+    UP000464341     1408252 None    bacteria        270     0       270     Escherichia coli R178
+    UP000000558     83334   ECO57   bacteria        5060    4       9234    Escherichia coli O157:H7
+    priority taxa since often used/queried
+    ["Homo sapiens (Human), 9606, UP000005640", "Caenorhabditis elegans, 6239, UP000001940", "Drosophila melanogaster (Fruit fly), 7227, UP000000803", "Escherichia coli (strain K12), 83333, UP000000625", "Mus musculus (Mouse), 10090, UP000000589", "Rattus norvegicus (Rat), 10116, UP000002494", "Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast), 559292, UP000002311",  # 4932
+    #     "Schizosaccharomyces pombe (strain 972 / ATCC 24843) (Fission yeast), 284812, UP000002485",  # 4896
+    #     "Arabidopsis thaliana (Mouse-ear cress), 3702, UP000006548"]
+    """
+    proteomeid_l, taxid_l, oscode_l, superregnum_l, num_prots_l, organism_name_l = [], [], [], [], [], []
     with open(fn_in, "r") as fh_in:
         for line in fh_in:
             if line.strip() == "Proteome_ID	Tax_ID	OSCODE	SUPERREGNUM	#(1)	#(2)	#(3)	Species Name":
                 break
         for line in fh_in:
             if line.startswith("UP"):
-                Proteome_ID, Tax_ID, OSCODE, SUPERREGNUM, num_1, num_2, num_3, SpeciesName = line.split("\t")
-                strings_2_write_list.append("{}, {}, {}".format(SpeciesName.strip(), Tax_ID, Proteome_ID))
-    with open(fn_out, "w") as fh_out:
-        strings_2_write_list = sorted(strings_2_write_list)
-        strings_2_write_list = curated_and_sorted + sorted(set(strings_2_write_list) - set(curated_and_sorted))
-        for ele in strings_2_write_list:
-            fh_out.write(ele + "\n")
+                Proteome_ID, Tax_ID, OSCODE, SUPERREGNUM, num_proteins_in_reference_proteome, num_2, num_3, OrganismName = line.split("\t")
+                # strings_2_write_list.append("{}, {}, {}".format(OrganismName.strip(), Tax_ID, Proteome_ID))
+                proteomeid_l.append(Proteome_ID)
+                taxid_l.append(Tax_ID)
+                superregnum_l.append(SUPERREGNUM)
+                num_prots_l.append(num_proteins_in_reference_proteome)
+                organism_name_l.append(OrganismName.strip())
+    df = pd.DataFrame()
+    df["proteome_ID"] = proteomeid_l
+    df["taxid"] = taxid_l
+    df["superregnum"] = superregnum_l
+    df["num_proteins"] = num_prots_l
+    df["organism_name"] = organism_name_l
+    sort_order_superregnum = ('eukaryota', 'bacteria', 'archaea', 'viruses')
+    d = dict(zip(sort_order_superregnum, range(len(sort_order_superregnum))))
+    df["sort"] = df["superregnum"].apply(lambda x: d[x])
+    df = df.sort_values(["sort", "organism_name", "num_proteins"], ascending=[True, True, False])
+    priority_proteomes_list = ["UP000005640", "UP000001940", "UP000000803", "UP000000625", "UP000000589", "UP000002494", "UP000002311", "UP000002485", "UP000006548"]
+    cond = df["proteome_ID"].isin(priority_proteomes_list)
+    df = pd.concat([df[cond], df[~cond]]).reset_index(drop=True)
+    df[["organism_name", "taxid", "proteome_ID", "num_proteins"]].to_csv(fn_out, sep="\t", header=False, index=False)
+    return df
 
 def Taxid_2_Proteins_table_FIN(fn_in_Taxid_2_Proteins_table_STRING, fn_in_Taxid_2_Proteins_table_UniProt, fn_out_Taxid_2_Proteins_table_FIN, number_of_processes, verbose=True):
     # concatenate STRING ENSPs and UniProt AC

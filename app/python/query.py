@@ -1488,11 +1488,14 @@ def get_current_time_and_date():
     return time.strftime('%l:%M%p %Z on %b %d, %Y') # '1:36PM EDT on Oct 18, 2010'
 
 def get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list():
+    '''
+    "organism_name", "taxid", "proteome_ID", "num_proteins"
+    '''
     fn = variables.tables_dict["UniProt_NCBI_TaxID_and_TaxName_for_autocomplete"]
     list_of_autocomplete_tags = []
     with open(fn, "r") as fh:
         for line in fh:
-            list_of_autocomplete_tags.append(line.strip())
+            list_of_autocomplete_tags.append(line.strip().split("\t"))
     return list_of_autocomplete_tags
 
 

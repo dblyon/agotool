@@ -174,7 +174,7 @@ def test_web_example_1():
               "background_intensity": bg_abundance_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 35
-    assert df.groupby(cn.category).count().shape[0] >= 3
+    assert df.groupby(cn.category).count().shape[0] >= 2 # GOCC from TM no longer gives hits
     cond_FDR = df[cn.p_value] <= df[cn.FDR]
     assert sum(cond_FDR) == len(cond_FDR)
 
@@ -273,12 +273,41 @@ def test_taxid_species_mapping_3():
     df_2 = pd.read_csv(StringIO(result.text), sep="\t")
     pd_testing.assert_frame_equal(df_1, df_2)
 
-def test_wrong_Taxid():
+def test_wrong_Taxid_1():
+    """
+    561 --> Escherichia --> shouldn't work
+    562 --> Escherichia coli --> works
+    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works
+    """
     fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
-    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 561, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
     results_json = json.loads(result.text)
     keys_lower = [ele.lower() for ele in results_json.keys()]
     assert "error taxid" in keys_lower
+
+def test_wrong_Taxid_2():
+    """
+    561 --> Escherichia --> shouldn't work
+    562 --> Escherichia coli --> works
+    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works
+    """
+    fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
+    df_json = pd.read_json(result.text)
+    assert df_json.shape[0] > 10
+
+def test_wrong_Taxid_3():
+    """
+    561 --> Escherichia --> shouldn't work
+    562 --> Escherichia coli --> works
+    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works
+    """
+    fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
+    df_json_1 = pd.read_json(result.text)
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 511145, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
+    df_json_2 = pd.read_json(result.text)
+    pd_testing.assert_frame_equal(df_json_1, df_json_2)
 
 def test_compare_samples_works_without_error():
     """
@@ -379,6 +408,25 @@ def test_abundance_correction_impute_values(random_abundance_correction_foregrou
     assert (df_1[cn.BG_n] == df_2_sub[cn.BG_n]).all()
     # since imputed values don't affect correction_factor, the BG counts should only increase
     assert (df_1[cn.BG_count] <= df_2_sub[cn.BG_count]).all()
+
+def test_tsv_and_json_results_are_equal():
+    ENSP_list = ["511145.b1260", "511145.b1261", "511145.b1262", "511145.b1263"]
+    fg = "%0d".join(ENSP_list)
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 511145}, data={"foreground": fg})
+    df_tsv = pd.read_csv(StringIO(result.text), sep='\t')
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 511145}, data={"foreground": fg})
+    df_json = pd.read_json(result.text)
+    pd_testing.assert_frame_equal(df_tsv, df_json)
+
+def test_json_precision():
+    fg = "9606.ENSP00000228682%0d9606.ENSP00000332353%0d9606.ENSP00000297261%0d9606.ENSP00000379258%0d9606.ENSP00000296575%0d9606.ENSP00000249373"
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
+    term = "GO:0007224"
+    df = pd.read_json(result.text)
+    p_value = df.loc[df["term"] == term, "p_value"].values[0]
+    assert p_value > 0
+    assert p_value <= 9.9388e-7
+
 
 # if __name__ == "__main__":
     # foreground, background, intensity, taxid = random_abundance_correction_foreground_background

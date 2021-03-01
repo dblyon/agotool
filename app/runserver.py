@@ -137,7 +137,7 @@ if PROFILING:
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
 ALLOWED_EXTENSIONS = {'txt', 'tsv'}
-app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20 #* 100
+app.config['MAX_CONTENT_LENGTH'] = 100 * 2 ** 20
 
 logger = logging.getLogger()
 logger.level = logging.DEBUG
@@ -257,14 +257,10 @@ class API_STRING(Resource):
         args_dict["taxid"] = request.form.get("taxid")
         args_dict.update(parser.parse_args())
         args_dict = convert_string_2_bool(args_dict)
-        # if variables.VERBOSE:
-            # print("-" * 80)
-            # for key, val in sorted(args_dict.items()):
-            #     print(key, val, type(val))
-            # print("-" * 80)
-        # import pdb
-        # pdb.set_trace()
-
+        if variables.VERBOSE:
+            print("-" * 50)
+            for key, val in sorted(args_dict.items()):
+                print(key, val, type(val))
         ui = userinput.REST_API_input(pqo, args_dict)
         args_dict = ui.args_dict
         if not ui.check:
@@ -272,9 +268,16 @@ class API_STRING(Resource):
             return help_page(args_dict)
 
         if args_dict["enrichment_method"] == "genome":
+            taxid_orig = args_dict["taxid"]
             taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(args_dict["taxid"], pqo, args_dict)
             if is_taxid_valid:
                 args_dict["taxid"] = taxid
+                if variables.VERBOSE:
+                    if taxid_orig != taxid:
+                        print("taxid changed from {} to {}".format(taxid_orig, taxid))
+                    else:
+                        print("valid taxid {}".format(taxid))
+                    print("-" * 50)
             else:
                 return help_page(args_dict)
 
