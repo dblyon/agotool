@@ -173,10 +173,7 @@ def test_web_example_1():
               "background": bg_id_string,
               "background_intensity": bg_abundance_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert df.shape[0] > 50
-    # at least 5 categories with significant results, last time I checked (2020 04 01)
-    # at least 4 categories with significant results, last time I checked (2020 11 24)
-    # 4 categories with significant results, last time I checked (2021 01 05) locally != phobos with only 3 (which has the updated
+    assert df.shape[0] > 35
     assert df.groupby(cn.category).count().shape[0] >= 3
     cond_FDR = df[cn.p_value] <= df[cn.FDR]
     assert sum(cond_FDR) == len(cond_FDR)
@@ -198,8 +195,8 @@ def test_web_example_3():
         data={"foreground": fg_string,
               "background": bg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    assert df.shape[0] >= 200
-    assert df.groupby(cn.category).count().shape[0] >= 10  # at least 11 categories with significant results, last time I checked (2020 04 01)
+    assert df.shape[0] >= 190 # changed due to altering TextMining discretization hyperparameters
+    assert df.groupby(cn.category).count().shape[0] >= 10  # at least 11 categories with significant results, last time I checked (2021 03 01)
     # changed after discretizing TM scores
     cond_FDR = df[cn.p_value] <= df[cn.FDR]
     assert sum(cond_FDR) == len(cond_FDR)

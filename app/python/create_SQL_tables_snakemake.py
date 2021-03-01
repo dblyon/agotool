@@ -2401,7 +2401,7 @@ def Function_2_Protein_table_UPS(fn_in_Protein_2_Function_table_UPS, fn_in_Taxid
                         else:
                             fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_UniProtIDs) + "\t" + str(num_UniProtIDs_total_for_taxid) + "\t" + arr_of_UniProtIDs + "\n")
     tools.sort_file(fn_out_Function_2_Protein_table_UPS_reduced, fn_out_Function_2_Protein_table_UPS_reduced, number_of_processes=number_of_threads)
-    os.remove(Protein_2_Function_table_merged)
+    # os.remove(Protein_2_Function_table_merged)
 
 def Functions_table_STRING(fn_in_Functions_table, fn_in_Function_2_ENSP_table_reduced, fn_out_Functions_table_STRING_removed, fn_out_Functions_table_STRING_reduced):
     """
