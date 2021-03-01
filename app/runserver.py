@@ -779,7 +779,7 @@ def results():
             try:
                 taxid = request.form["NCBI_TaxID"]
                 taxid_split = taxid.split(", ")
-                if len(taxid_split) == 3: # user selected from suggestion
+                if len(taxid_split) == 4: # user selected from suggestion
                     taxid = int(taxid_split[1])
                 else: # hopefully only NCBI taxid entered
                     taxid = int(taxid)

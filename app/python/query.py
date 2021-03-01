@@ -1495,7 +1495,7 @@ def get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list():
     list_of_autocomplete_tags = []
     with open(fn, "r") as fh:
         for line in fh:
-            list_of_autocomplete_tags.append(line.strip().split("\t"))
+            list_of_autocomplete_tags.append(", ".join(line.strip().split("\t")))
     return list_of_autocomplete_tags
 
 
