@@ -702,7 +702,7 @@ def example_1():
 
 @app.route('/example_2')
 def example_2():
-    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""comparing human haemoglobin proteins to the UniProt reference proteome. When using the 'genome' method a specific NCBI taxonomic identifier (TaxID) has to be provided. In this case it is '9606' for Homo sapiens. In case don't know the TaxID of your organism of choice, please search at NCBI (link provided below).""", last_updated_text=last_updated_text,  NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="Homo sapiens (Human), 9606, UP000005640")
+    return render_template('enrichment.html', form=Example_2(), example_status="example_2", example_title="Human haemoglobin", example_description="""comparing human haemoglobin proteins to the UniProt reference proteome. When using the 'genome' method a specific NCBI taxonomic identifier (TaxID) has to be provided. In this case it is '9606' for Homo sapiens. In case don't know the TaxID of your organism of choice, please search at NCBI (link provided below).""", last_updated_text=last_updated_text,  NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="Homo sapiens (Human), 9606, UP000005640, 20610")
 
 @app.route('/example_3')
 def example_3():
