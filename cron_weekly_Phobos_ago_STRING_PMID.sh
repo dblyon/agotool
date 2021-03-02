@@ -39,6 +39,7 @@ sleep 4m
 printf "\n PyTest REST API \n"
 cd "$TESTING_DIR" || exit
 "$PYTEST_EXE" test_API_sanity.py
+# -p no:cacheprovider
 check_exit_status
 
 ## shutdown uWSGI flask app
