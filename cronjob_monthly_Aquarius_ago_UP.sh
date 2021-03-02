@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### called from Phobos
-### /home/dblyon/agotool/cronjob_update_aGOtool_Aquarius.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown
+### /home/dblyon/agotool/cronjob_monthly_Aquarius_ago_UP.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
@@ -22,7 +22,7 @@ check_exit_status
 
 ### PyTest file sizes and line numbers
 printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
+"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py -p no:cacheprovider
 check_exit_status
 
 ### copy from file to PostgreSQL
@@ -45,6 +45,8 @@ cd "$APP_DIR" || exit
 # echo c > agotool_master.fifo
 "$UWSGI_EXE" vassal_agotool.ini
 sleep 4m
+
+### test REST API
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE"
+"$PYTEST_EXE" "$TESTING_DIR"/test_API_sanity.py -p no:cacheprovider
 check_exit_status

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### called from Phobos
-### /home/dblyon/agotool/cronjob_update_aGOtool_master_Pisces.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown
+### /home/dblyon/agotool/cronjob_update_Pisces_ago_UP.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
@@ -14,7 +14,7 @@ POSTGRES_DIR=/home/dblyon/agotool/data/PostgreSQL
 
 
 ### decompress files
-echo "running script on production server cronjob_update_aGOtool_Pisces.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+echo "running script on production server cronjob_montly_Pisces_ago_UP.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 printf "\n### unpacking tar.gz files\n"
 cd "$TABLES_DIR" || exit
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_flatfiles_current.tar.gz
@@ -22,11 +22,11 @@ check_exit_status
 
 ### PyTest file sizes and line numbers
 printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
-"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py
+"$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py -p no:cacheprovider
 check_exit_status
 
-### copy from file to PostgreSQL
-echo "\n### copying to PostgreSQL\n"
+### populate PostgreSQL
+echo "\n### populate PostgreSQL\n"
 cd "$POSTGRES_DIR" || exit
 check_exit_status
 psql -d agotool -p 8001 -f copy_from_file_and_index.psql
@@ -47,5 +47,5 @@ cd "$APP_DIR" || exit
 echo c > agotool_UniProt_master.fifo
 sleep 4m
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE" "$TESTING_DIR"/test_API_sanity.py
+"$PYTEST_EXE" "$TESTING_DIR"/test_API_sanity.py -p no:cacheprovider
 check_exit_status
