@@ -1,6 +1,6 @@
 #!/bin/bash
 ### called from Phobos
-### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
+### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_ago_STRING_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
@@ -27,13 +27,22 @@ check_exit_status
 tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
-### restart uWSGI and PyTest
+### test flat files
+printf "\n PyTest flat files \n"
+cd "$TESTING_DIR" || exit
+"$PYTEST_EXE" test_flatfiles.py
+check_exit_status
+
+### restart uWSGI
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
 "$UWSGI_EXE" vassal_agotool_STRING.ini
 sleep 4m
+
+## test API
+printf "\n PyTest REST API \n"
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE"
+"$PYTEST_EXE" test_API_sanity.py
 check_exit_status
 
 ### push files to Digamma
@@ -42,7 +51,7 @@ rsync -av "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz dblyon@digamma.embl.d
 rsync -av "$GED_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@digamma.embl.de:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
 
 echo "now attempting to run update script on Digamma cron_weekly_Digamma_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-ssh dblyon@digamma.embl.de '/home/dblyon/agotool/cron_weekly_Digamma_update_aGOtool_PMID.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
+ssh dblyon@digamma.embl.de '/home/dblyon/agotool/cron_weekly_Digamma_ago_STRING_PMID.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
 
 printf " --- done --- "

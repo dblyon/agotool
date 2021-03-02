@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### crontab
-### 1 13 * * 1 /home/dblyon/agotool/cron_weekly_Digamma_update_aGOtool_PMID.sh >> /home/dblyon/agotool/data/logs/log_cron_weekly_Digamma_update_aGOtool_PMID.txt 2>&1
+### 1 13 * * 1 /home/dblyon/agotool/cron_weekly_Digamma_ago_STRING_PMID.sh >> /home/dblyon/agotool/data/logs/log_cron_weekly_Digamma_update_aGOtool_PMID.txt 2>&1
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
@@ -28,14 +28,22 @@ check_exit_status
 tar --overwrite -xzf "$global_enrichment_data_current"
 check_exit_status
 
-### restart uWSGI and PyTest
-## things are configured to run on port 10114
-## test with curl "localhost:10114/status"
+### test flat files
+printf "\n PyTest flat files \n"
+cd "$TESTING_DIR" || exit
+"$PYTEST_EXE" test_flatfiles.py
+check_exit_status
+
+### restart uWSGI
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
 "$UWSGI_EXE" vassal_agotool_STRING.ini
 sleep 4m
+
+## test API
+printf "\n PyTest REST API \n"
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE"
+"$PYTEST_EXE" test_API_sanity.py
 check_exit_status
+
 printf " --- done --- "

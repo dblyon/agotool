@@ -18,27 +18,36 @@ UWSGI_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/uwsgi
 TESTING_DIR=/home/dblyon/agotool_PMID_autoupdate/agotool/app/python/testing/sanity
 
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-printf "\n### run snakemake pipeline\n"
+printf "\n ### run snakemake pipeline \n"
 cd "$PYTHON_DIR" || exit
 "$SNAKEMAKE_EXE" -l | tr '\n' ' ' | xargs "$SNAKEMAKE_EXE" -j 10 -F
+check_exit_status
+
+### test flat files
+printf "\n PyTest flat files \n"
+cd "$TESTING_DIR" || exit
+"$PYTEST_EXE" test_flatfiles.py
 check_exit_status
 
 ### start uWSGI and PyTest (agotool not running by default)
 printf "\n start uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-# "$UWSGI_EXE" bak_uwsgi_config_PMID_autoupdates.ini &
 "$UWSGI_EXE" pytest_agotool_STRING.ini &
 sleep 4m
+
+## test API
+printf "\n PyTest REST API \n"
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE"
+"$PYTEST_EXE" test_API_sanity.py
 check_exit_status
+
+## shutdown uWSGI flask app
 cd "$APP_DIR" || exit
-# echo q > PMID_master.fifo
 echo q > pytest.fifo
 check_exit_status
 
 #### tar and compress new files for transfer and backup
-printf "\n### tar and compress new files for transfer and backup\n"
+printf "\n ### tar and compress new files for transfer and backup \n"
 cd "$TABLES_DIR" || exit
 #### create tar.gz of relevant flat files
 find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt" | xargs tar --overwrite -cvzf "$TAR_CURRENT"
@@ -53,7 +62,7 @@ check_exit_status
 rsync -av "$TAR_GED_ALL_CURRENT" "$TAR_GED_ALL_BAK"
 check_exit_status
 
-#### copy files to production servers
+### copy files to production servers
 printf "\n### copy files to Aquarius (production server)\n"
 ### San --> does pull instead of push via cronjob, data on Aquarius
 ### Aquarius
@@ -70,13 +79,13 @@ rsync -av "$TABLES_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@pisces.meringlab.org:"$GED
 check_exit_status
 
 #### Production server, decompress files and restart service
-### Aquarius
-echo "run script on production server cron_weekly_Aquarius_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
-check_exit_status
+#### Aquarius
+#echo "run script on production server cron_weekly_Aquarius_ago_STRING_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+#ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_ago_STRING_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+#check_exit_status
 ### Pisces
-echo "run script on Pisces production server cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
+echo "run script on Pisces production server cron_weekly_Pisces_ago_STRING_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_ago_STRING_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
 printf "\n--- finished Cronjob ---\n"
 ############################################################
@@ -106,11 +115,11 @@ printf "\n--- finished Cronjob ---\n"
 ## at 01:01 (1 AM) 1st day of every month
 # 1 1 1 * * /mnt/mnemo5/dblyon/agotool/cronjob_monthly_Atlas.sh >> /mnt/mnemo5/dblyon/agotool/log_cron_monthly_snakemake.txt 2>&1
 ## at 20:01 (8 PM) every Sunday
-# 1 20 * * 0 /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/cron_weekly_Phobos_aGOtool_PMID.sh >> /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/log_cron_weekly_snakemake.txt 2>&1
+# 1 20 * * 0 /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/cron_weekly_Phobos_ago_STRING_PMID.sh >> /mnt/mnemo5/dblyon/agotool_PMID_autoupdate/agotool/log_cron_weekly_snakemake.txt 2>&1
 
 ### Crontab San
 ## at 01:01 (1 PM) every Monday
-# 1 13 * * 1 /home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_update_aGOtool_PMID.sh >> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_cron_weekly_San_update_aGOtool_PMID.txt 2>&1
+# 1 13 * * 1 /home/dblyon/PMID_autoupdate/agotool/cron_weekly_San_ago_STRING_PMID.sh >> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_cron_weekly_San_update_aGOtool_PMID.txt 2>&1
 
 ### GitLab.com
 ## at 07:01 (7 AM) every Monday

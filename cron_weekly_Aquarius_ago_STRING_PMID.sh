@@ -1,6 +1,6 @@
 #!/bin/bash
 ### called from Phobos
-### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_update_aGOtool_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
+### /home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_ago_STRING_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown
 check_exit_status () {
   if [ ! $? = 0 ]; then exit; fi
 }
