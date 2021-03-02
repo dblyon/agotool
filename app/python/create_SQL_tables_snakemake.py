@@ -4042,7 +4042,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
     df = pd.concat([df_old, df])
     df.to_csv(LOG_DF_FILE_DIMENSIONS, sep="\t", header=True, index=False)
 
-def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_multipleRefProtTaxid_dict_p, update_NCBI=True):
+def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_TaxidProteome_dict, update_NCBI=True):
     """
     Taxid_2_Proteins_table_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table"]
     TaxidSpecies_2_TaxidProteome_dict_p = variables.TABLES_DICT_SNAKEMAKE["TaxidSpecies_2_TaxidProteome_dict"]
@@ -4050,40 +4050,42 @@ def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, Tax
     create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, TaxidSpecies_2_TaxidProteome_dict_p, TaxidSpecies_2_TaxidProteome_dict_json)
     """
     ncbi = taxonomy.NCBI_taxonomy(taxdump_directory=variables.DOWNLOADS_DIR, for_SQL=False, update=update_NCBI)
-    taxid_proteome_list = []  # exist as UniProt Ref Prots
+    taxid_proteome_list, num_proteins_list = [], []  # exist as UniProt Ref Prots
     with open(Taxid_2_Proteins_table_UPS_FIN, "r") as fh:
         for line in fh:
-            taxid_proteome_list.append(int(line.split()[0].strip()))
-    taxid_proteome_list = sorted(taxid_proteome_list)
+            ls = line.split("\t")
+            taxid = ls[0]
+            num_proteins = ls[1]
+            taxid_proteome_list.append(int(taxid))  # taxid, num_proteins, array_of_proteins
+            num_proteins_list.append(int(num_proteins))
+    df_UP_proteomes = pd.DataFrame()
+    df_UP_proteomes["taxid_ref_prot"] = taxid_proteome_list
+    df_UP_proteomes["num_proteins"] = num_proteins_list
 
-    speciesTaxid_2_proteomeTaxid_dict = {}
-    speciesTaxid_2_multipleRefProtTaxid_dict = defaultdict(lambda: set())
-    for taxid in taxid_proteome_list:
+    rank_of_species_list, taxon_2_map_2_list = [], []
+    for taxid in df_UP_proteomes["taxid_ref_prot"]:
         rank = ncbi.get_rank(taxid)
-        if rank == "species":  # nothing needs to be done
-            continue
+        if rank == "species":
+            rank_of_species_list.append(taxid)
         else:
             taxid_mapped = ncbi.get_genus_or_higher(taxid, "species")
             rank = ncbi.get_rank(taxid_mapped)
             if rank != "species":
-                print(taxid, taxid_mapped, rank)
+                rank_of_species_list.append(np.nan)
             else:
-                if not taxid_mapped in speciesTaxid_2_proteomeTaxid_dict:
-                    speciesTaxid_2_proteomeTaxid_dict[taxid_mapped] = taxid
-                else:
-                    # print("speciesTaxid_2_proteomeTaxid_dict with double assignment {} and {} both map to {}".format(speciesTaxid_2_proteomeTaxid_dict[taxid_mapped], taxid_mapped, taxid))
-                    speciesTaxid_2_multipleRefProtTaxid_dict[taxid_mapped].update((taxid, ))
-                    speciesTaxid_2_multipleRefProtTaxid_dict[taxid_mapped].update((speciesTaxid_2_proteomeTaxid_dict[taxid_mapped], ))
-                    speciesTaxid_2_proteomeTaxid_dict.pop(taxid_mapped, None)
+                rank_of_species_list.append(taxid_mapped)
+
+    df_UP_proteomes["species_rank"] = rank_of_species_list
+
+    ### for each species select the reference proteome with the largest proteome count, this will be used to automatically map to
+    df_UP_proteomes = df_UP_proteomes.sort_values(["species_rank", "num_proteins"], ascending=[True, False]).reset_index(drop=True)
+    cond_2_ignore = df_UP_proteomes["species_rank"].isnull()
+    dfx = df_UP_proteomes[~cond_2_ignore].drop_duplicates(subset=["species_rank"], keep="first")
+    dfx["species_rank"] = dfx["species_rank"].astype(int)
+    speciesTaxid_2_proteomeTaxid_dict = dict(zip(dfx["species_rank"], dfx["taxid_ref_prot"]))
 
     pickle.dump(speciesTaxid_2_proteomeTaxid_dict, open(TaxidSpecies_2_TaxidProteome_dict_p, "wb"))
-    pickle.dump(dict(speciesTaxid_2_multipleRefProtTaxid_dict), open(TaxidSpecies_2_multipleRefProtTaxid_dict_p, "wb"))
-    # with open(TaxidSpecies_2_TaxidProteome_dict_json, "w") as fh_json:
-    #     fh_json.write(json.dumps(speciesTaxid_2_proteomeTaxid_dict))
-    #
-    return speciesTaxid_2_proteomeTaxid_dict, speciesTaxid_2_multipleRefProtTaxid_dict
-
-
+    df_UP_proteomes.to_csv(TaxidSpecies_2_TaxidProteome_dict, sep='\t', header=True, index=False)
 
 ##### Taxonomy mapping explanation, for UniProt version
 # Taxid_2_Proteins_table_UPS_FIN remains as is, which is UniProt space and their TaxIDs (which are partially on strain level).

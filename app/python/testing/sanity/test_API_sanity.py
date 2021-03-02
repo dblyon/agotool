@@ -275,9 +275,9 @@ def test_taxid_species_mapping_3():
 
 def test_wrong_Taxid_1():
     """
-    561 --> Escherichia --> shouldn't work
-    562 --> Escherichia coli --> works
-    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works
+    561 --> Escherichia --> shouldn't work since not on species level
+    562 --> Escherichia coli --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
+    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
     """
     fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
     result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 561, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
@@ -287,9 +287,9 @@ def test_wrong_Taxid_1():
 
 def test_wrong_Taxid_2():
     """
-    561 --> Escherichia --> shouldn't work
-    562 --> Escherichia coli --> works
-    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works
+    561 --> Escherichia --> shouldn't work since not on species level
+    562 --> Escherichia coli --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
+    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
     """
     fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
     result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
@@ -298,9 +298,22 @@ def test_wrong_Taxid_2():
 
 def test_wrong_Taxid_3():
     """
-    561 --> Escherichia --> shouldn't work
-    562 --> Escherichia coli --> works
-    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works
+    561 --> Escherichia --> shouldn't work since not on species level
+    562 --> Escherichia coli --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
+    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
+    """
+    fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 511145, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
+    df_json = pd.read_json(result.text)
+    assert df_json.shape[0] > 10
+
+def test_wrong_Taxid_4():
+    """
+    561 --> Escherichia --> shouldn't work since not on species level
+    562 --> Escherichia coli --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
+    511145 --> Escherichia coli str. K-12 substr. MG1655 --> works since it get's mapped to a UniProt Reference Proteome via TaxidSpecies_2_TaxidProteome_dict
+    562 and 511145 should both map 83334 (max num proteins) (not to 83333 (the one used in STRING? or somehow preferrably used))
+    if taxid
     """
     fg = '511145.b1260%0d511145.b1261%0d511145.b1262%0d511145.b1263%0d511145.b1264%0d511145.b1812%0d511145.b2551%0d511145.b3117%0d511145.b3772%0d511145.b1015%0d511145.b2585'
     result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 562, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
@@ -308,6 +321,9 @@ def test_wrong_Taxid_3():
     result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 511145, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
     df_json_2 = pd.read_json(result.text)
     pd_testing.assert_frame_equal(df_json_1, df_json_2)
+    result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 83334, "caller_identity": "11_0", "STRING_beta": True, 'FDR_cutoff': '0.05'}, data={"foreground": fg})
+    df_json_3 = pd.read_json(result.text)
+    pd_testing.assert_frame_equal(df_json_1, df_json_3)
 
 def test_compare_samples_works_without_error():
     """

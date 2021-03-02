@@ -438,8 +438,8 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         with open(variables.tables_dict["TaxidSpecies_2_TaxidProteome_dict"], "rb") as fh_TaxidSpecies_2_TaxidProteome_dict:
             self.TaxidSpecies_2_TaxidProteome_dict = pickle.load(fh_TaxidSpecies_2_TaxidProteome_dict)
 
-        with open(variables.tables_dict["TaxidSpecies_2_multipleRefProtTaxid_dict"], "rb") as fh_TaxidSpecies_2_multipleRefProtTaxid_dict:
-            self.TaxidSpecies_2_multipleRefProtTaxid_dict = pickle.load(fh_TaxidSpecies_2_multipleRefProtTaxid_dict)
+        # with open(variables.tables_dict["TaxidSpecies_2_multipleRefProtTaxid_dict"], "rb") as fh_TaxidSpecies_2_multipleRefProtTaxid_dict:
+        #     self.TaxidSpecies_2_multipleRefProtTaxid_dict = pickle.load(fh_TaxidSpecies_2_multipleRefProtTaxid_dict)
 
         ### DEPRECATED
         # if variables.VERBOSE:
@@ -1459,24 +1459,20 @@ def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dic
     if taxid in pqo.taxid_2_proteome_count:
         return taxid, True # taxid is part of UniProt Ref Prots
     else:
+        # try to find a parent that is in of UniProt Ref Prots
+        for taxid_parent in pqo.ncbi.iter_direct_parent(taxid):  # relevant for e.g. Taxid 511145; Escherichia coli str. K-12 substr. MG1655 --> should match to 83333 not 83334!
+            taxid_parent = int(taxid_parent)
+            if taxid_parent in pqo.taxid_2_proteome_count:
+                return taxid_parent, True  # taxid is part of UniProt Ref Prots
+            elif pqo.TaxidSpecies_2_TaxidProteome_dict.get(taxid_parent, False):
+                taxid = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_parent]
+                return taxid, True
         try:
             taxid_mapped = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid]
-            return taxid_mapped, True # taxid can easily be mapped un-ambiguously
+            return taxid_mapped, True # taxid can easily be mapped, if ambiguous will be mapped to the reference proteome with the highest number of proteins
         except KeyError:
-            if taxid in pqo.TaxidSpecies_2_multipleRefProtTaxid_dict: # ambiguous matches, report Error
-                args_dict["ERROR TaxID"] = "The Taxid '{}' you've provided is not a valid UniProt Reference Proteome TaxID (https://www.uniprot.org/proteomes). We found multiple potential valid Taxids {}. Please select one of these or another valid UniProt Reference Proteome Taxid that is suitable for your data.".format(taxid, pqo.TaxidSpecies_2_multipleRefProtTaxid_dict[taxid])
-                # print(args_dict)
-                return taxid, False
-            else:
-                # try to find a parent that is in of UniProt Ref Prots
-                for taxid_parent in pqo.ncbi.iter_direct_parent(taxid): # relevant for e.g. Taxid 511145; Escherichia coli str. K-12 substr. MG1655 --> should match to 83333 not 83334!
-                    taxid_parent = int(taxid_parent)
-                    if taxid_parent in pqo.taxid_2_proteome_count:
-                        return taxid_parent, True  # taxid is part of UniProt Ref Prots
-                    elif pqo.TaxidSpecies_2_TaxidProteome_dict.get(taxid_parent, False):
-                        taxid = pqo.TaxidSpecies_2_TaxidProteome_dict[taxid_parent]
-                        return taxid, True
-    args_dict["ERROR TaxID"] = "taxid: '{}' does not exist in our data base, thus enrichment_method 'genome' can't be run. Please change to a NCBI taxonomic identifier supported by UniProt Reference Proteomes (https://www.uniprot.org/proteomes) that is suitable for your data.".format(taxid)
+            pass
+    args_dict["ERROR TaxID"] = "The Taxid '{}' you've provided is not a valid UniProt Reference Proteome TaxID (https://www.uniprot.org/proteomes). Unfortunately, we can't map your taxid input to an NCBI taxid that has a UniProt Reference Proteome. Please use a valid taxid and try again.".format(taxid)
     return taxid, False
 
 def get_last_updated_text():
