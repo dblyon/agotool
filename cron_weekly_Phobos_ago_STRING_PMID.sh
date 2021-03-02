@@ -62,14 +62,14 @@ check_exit_status
 rsync -av "$TAR_GED_ALL_CURRENT" "$TAR_GED_ALL_BAK"
 check_exit_status
 
-### copy files to production servers
-printf "\n### copy files to Aquarius (production server)\n"
-### San --> does pull instead of push via cronjob, data on Aquarius
-### Aquarius
-rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
-check_exit_status
-rsync -av "$TABLES_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@aquarius.meringlab.org:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
-check_exit_status
+#### copy files to production servers
+#printf "\n### copy files to Aquarius (production server)\n"
+#### San --> does pull instead of push via cronjob, data on Aquarius
+#### Aquarius
+#rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
+#check_exit_status
+#rsync -av "$TABLES_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@aquarius.meringlab.org:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
+#check_exit_status
 
 printf "\n### copy files to Pisces (production server)\n"
 ### Pisces
