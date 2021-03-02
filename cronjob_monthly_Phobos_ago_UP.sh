@@ -77,7 +77,7 @@ rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/
 check_exit_status
 ### on production server, decompress files, populate DB, restart service
 echo "now attempting to run script on production server cronjob_update_Pisces_ago_UP.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-ssh dblyon@pisces.meringlab.org '/home/dblyon/agotool/cronjob_update_Pisces_ago_UP.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
+ssh dblyon@pisces.meringlab.org '/home/dblyon/agotool/cronjob_monthly_Pisces_ago_UP.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
 
 printf "\n --- finished Cronjob --- \n"
