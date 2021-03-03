@@ -9,7 +9,7 @@ variables:
 
 before_script:
     - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
-    - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
+    - export TAR_FILE_NAME="aGOtool_PMID_pickle_current.tar.gz"
 
 test_flat_files:
   stage: test_flat_files
