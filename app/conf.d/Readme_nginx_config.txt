@@ -226,8 +226,10 @@ sudo vim /etc/nginx/sites-available/agotool_STRING_zerg.conf
 
 # BEGINNING
 ### @ San
+/home/dblyon/install/nginx-1.18.0/deployed/conf/nginx.conf
 # /etc/nginx/sites-available/agotool_zerg.conf
 # /etc/nginx/sites-available/agotool_STRING_zerg.conf
+#
 # nginx.conf
 # configuration of the server
 server {

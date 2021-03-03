@@ -16,7 +16,7 @@ GED_DIR=/san/DB/dblyon/global_enrichment_v11
 GED_DIR_Pisces=/home/dblyon/global_enrichment_v11
 UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 
-echo "--- running script cron_weekly_San_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+echo "--- running script cron_weekly_San_ago_STRING_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 #### pull files from Aquarius instead of pushing from Atlas
 #printf "\n### pull files from Aquarius\n"
 #rsync -av dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
