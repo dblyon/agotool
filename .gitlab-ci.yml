@@ -1,7 +1,7 @@
 stages:
   - test_flat_files
   - test_API
-  -
+
 variables:
   PYTHON: "/home/gitlab-runner/anaconda3/envs/snake/bin/python"
   PYTEST: "/home/dblyon/anaconda3/envs/agotool/bin/pytest"
@@ -10,7 +10,6 @@ variables:
 before_script:
     - export DATE=$(date +"%Y_%m_%d_%I_%M_%p")
     - export TAR_FILE_NAME="bak_aGOtool_flatfiles_$DATE.tar"
-
 
 test_flat_files:
   stage: test_flat_files
