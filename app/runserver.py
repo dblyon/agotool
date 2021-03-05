@@ -19,16 +19,16 @@ sys.path.insert(0, os.path.abspath(os.path.realpath('python')))
 import query, userinput, run, variables, taxonomy, plot_and_table
 import colnames as cn
 
-version_temp = "0"
-try:
-    with open("version_temp.txt", "r") as fh:
-        for line in fh:
-            version_temp = str( int(line.strip()) + 1 )
-except:
-    pass
-with open("version_temp.txt", "w") as fh:
-    fh.write(version_temp)
-print("loading version ", version_temp)
+# version_temp = "0"
+# try:
+#     with open("version_temp.txt", "r") as fh:
+#         for line in fh:
+#             version_temp = str( int(line.strip()) + 1 )
+# except:
+#     pass
+# with open("version_temp.txt", "w") as fh:
+#     fh.write(version_temp)
+# print("loading version ", version_temp)
 
 ###############################################################################
 variables.makedirs_()
@@ -194,8 +194,8 @@ parser = reqparse.RequestParser()
 ################################################################################
 ### API arguments/parameters
 parser.add_argument("taxid", type=int,help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).", default=9606)
-parser.add_argument("species", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
-parser.add_argument("organism", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=None)
+parser.add_argument("species", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=9606)
+parser.add_argument("organism", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=9606)
 parser.add_argument("output_format", type=str, help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}", default="tsv")
 ### Boolean arguments encoded as str on purpose
 parser.add_argument("filter_parents", type=str,
@@ -209,13 +209,20 @@ parser.add_argument("caller_identity", type=str, help="Your identifier for us e.
 parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)
 parser.add_argument("p_value_cutoff", type=float, help="Apply a filter (value between 0 and 1) for maximum cutoff value of the uncorrected p value. '1' means nothing will be filtered, '0.01' means all uncorected p_values <= 0.01 will be removed from the results (but still tested for multiple correction).", default=1)
 parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment analysis to a specific or multiple entity types, e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords).", default=None) # -53 missing for UniProt version # "-20;-21;-22;-23;-51;-52;-54;-55;-56;-57;-58"
-parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment) "
+parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment)"
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
+# parser.add_argument("identifiers", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment)"
+#          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
+#     default=None)
 parser.add_argument("background", type=str,
     help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "
          "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
+# parser.add_argument("background_string_identifiers", type=str,
+#     help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "
+#          "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
+#     default=None)
 parser.add_argument("background_intensity", type=str,
     help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "
          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
@@ -229,7 +236,7 @@ parser.add_argument("enrichment_method", type=str,
     'compare_samples': Foreground vs Background (no abundance correction); 
     'characterize_foreground': list all functional annotations for provided foreground;
     'abundance_correction': Foreground vs Background abundance corrected""",
-    default="characterize_foreground")
+    default="genome")
 parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic, agr, aspergillus, candida, chembl, flybase_ribbon, metagenomics, mouse, pir, plant, pombe, synapse, yeast}. Choose between the full Gene Ontology ('basic') or one of the GO slim subsets (e.g. 'generic' or 'mouse'). GO slim is a subset of GO terms that are less fine grained. 'basic' does not exclude anything, select 'generic' for a subset of broad GO terms, the other subsets are tailor made for a specific taxons / analysis (see http://geneontology.org/docs/go-subset-guide)", default="basic")
 parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="both")
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
@@ -237,7 +244,10 @@ parser.add_argument("STRING_beta", type=str, default="False")
 parser.add_argument("translate", type=str, help="""Map/Translate one of: ENSP_2_UniProtAC, ENSP_2_UniProtEntryName, UniProtAC_2_ENSP, UniProtEntryName_2_ENSP, UniProtAC_2_UniProtEntryName, UniProtEntryName_2_UniProtAC""", default="ENSP_2_UniProtAC")
 # parser.add_argument("IDs_2_translate", type=str, help="identifiers to translate/map. Separate the list of e.g. ENSPs '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'", default=None)
 
-class API_STRING(Resource):
+######################################################
+### REST API
+
+class API_orig(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
     """
@@ -295,14 +305,199 @@ class API_STRING(Resource):
             print("returning help page")
             return help_page(args_dict)
         else:
-            # if variables.VERBOSE:
-                # print(results_all_function_types[:500])
-                # print("-" * 50)
-                # print("Version: ", version_temp)
-                # print("-" * 50)
-            return format_multiple_results(args_dict, results_all_function_types, pqo)
+            # return format_multiple_results(args_dict, results_all_function_types, pqo)
+            return format_multiple_results(args_dict["output_format"], results_all_function_types)
 
-api.add_resource(API_STRING, "/api", "/api_string", "/api_agotool", "/api_string/<output_format>", "/api_string/<output_format>/enrichment")
+api.add_resource(API_orig, "/api_orig")
+## apiv0 is the previous version, kept for backwards compatibility
+
+### valid STRING format
+# https://string-db.org/api/[output_format]/enrichment?identifiers=[your_identifiers]&[optional_parameters]
+# https://string-db.org/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
+# https://string-db.org/api/tsv-no-header/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
+# https://string-db.org/api/json/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
+# https://string-db.org/api/xml/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
+
+# localhost:5912/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
+# https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&foreground=P69905%0dP68871%0dP02042%0dP02100
+# http://localhost:5912/api_orig?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&foreground=P69905%0dP68871%0dP02042%0dP02100
+# localhost:5912/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100
+# localhost:5912/api/tsv/enrichment?identifiers=P69905%0dP68871%0dP02042%0dP02100
+
+def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="genome"):
+    """
+    this REST API is analogous to STRING's REST API
+    for
+        'genome' or
+        'compare_samples' if background_string_identifiers provided
+    if 'functional_annotation' called --> enrichment_method='characterize_foreground'
+    """
+    args_dict = defaultdict(lambda: None)
+    args_dict["taxid"] = request.form.get("taxid")
+    args_dict.update(parser.parse_args())
+    args_dict = convert_string_2_bool(args_dict)
+    args_dict["output_format"] = output_format
+    args_dict["enrichment_method"] = enrichment_method
+    args_dict["STRING_beta"] = False
+    args_dict["STRING_API"] = True
+    query_parameters = request.args
+    identifiers = "%0d".join(query_parameters.get("identifiers").split())
+    if identifiers:
+        args_dict["foreground"] = identifiers
+    else:
+        args_dict["foreground"] = request.form.get("foreground")
+
+    background_string_identifiers = query_parameters.get("background_string_identifiers")
+    if background_string_identifiers:
+        args_dict["background"] = background_string_identifiers
+        args_dict["enrichment_method"] = "compare_samples"
+    else:
+        args_dict["background"] = request.form.get("background")
+
+    species = query_parameters.get("species")
+    if species:
+        args_dict["taxid"] = species
+
+    caller_identity = query_parameters.get("caller_identity")
+    if caller_identity:
+        args_dict["caller_identity"] = caller_identity
+    if variables.VERBOSE:
+        print("-" * 50)
+        print("API_tsv")
+        for key, val in sorted(args_dict.items()):
+            print(key, val, type(val))
+
+    ui = userinput.REST_API_input(pqo, args_dict)
+    args_dict = ui.args_dict
+    if not ui.check:
+        args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
+        return help_page(args_dict)
+
+    if args_dict["enrichment_method"] == "genome":
+        taxid_orig = args_dict["taxid"]
+        taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(args_dict["taxid"], pqo, args_dict)
+        if is_taxid_valid:
+            args_dict["taxid"] = taxid
+            if variables.VERBOSE:
+                if taxid_orig != taxid:
+                    print("taxid changed from {} to {}".format(taxid_orig, taxid))
+                else:
+                    print("valid taxid {}".format(taxid))
+                print("-" * 50)
+        else:
+            return help_page(args_dict)
+
+    ### DEBUG start
+    if variables.DEBUG_HTML:
+        df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+        results_all_function_types = df_all_etypes.groupby(cn.etype).head(20)
+    # debug stop
+    else:
+        results_all_function_types = run.run_UniProt_enrichment(pqo, ui, args_dict, api_call=True)
+
+    if results_all_function_types is False:
+        print("returning help page")
+        return help_page(args_dict)
+    else:
+        return format_multiple_results(output_format, results_all_function_types)
+
+
+class API_tsv_enrichment(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="tsv")
+
+api.add_resource(API_tsv_enrichment, "/api/tsv/enrichment")
+
+
+class API_tsv_no_header_enrichment(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="tsv_no_header")
+
+api.add_resource(API_tsv_no_header_enrichment, "/api/tsv-no-header/enrichment")
+
+
+class API_json_enrichment(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="json")
+
+api.add_resource(API_json_enrichment, "/api/json/enrichment")
+
+
+class API_xml_enrichment(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="xml")
+
+api.add_resource(API_xml_enrichment, "/api/xml/enrichment")
+
+
+class API_tsv_functional_annotation(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="characterize_foreground")
+
+api.add_resource(API_tsv_functional_annotation, "/api/tsv/functional_annotation")
+
+
+class API_tsv_no_header_functional_annotation(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="tsv_no_header", enrichment_method="characterize_foreground")
+
+api.add_resource(API_tsv_no_header_functional_annotation, "/api/tsv-no-header/functional_annotation")
+
+
+class API_json_functional_annotation(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="json", enrichment_method="characterize_foreground")
+
+api.add_resource(API_json_functional_annotation, "/api/json/functional_annotation")
+
+
+class API_xml_functional_annotation(Resource):
+
+    def get(self):
+        return self.post()
+
+    @staticmethod
+    def post():
+        return parse_STRING_style_REST_API_call(output_format="xml", enrichment_method="characterize_foreground")
+
+api.add_resource(API_xml_functional_annotation, "/api/xml/functional_annotation")
+
+
 
 resources_last_updated_time = query.get_last_updated_text()
 current_time_and_date_nicely_formatted = query.get_current_time_and_date()
@@ -412,9 +607,7 @@ def write2file(fn, tsv):
         f.write(tsv)
 
 class API_STRING_HELP(Resource):
-    """
-    get enrichment for all available functional associations not 'just' one category
-    """
+
     @staticmethod
     def get():
         args_dict = defaultdict(lambda: None)
@@ -423,12 +616,15 @@ class API_STRING_HELP(Resource):
         args_dict["1_INFO"] = "INFO: default values are are shown unless you've provided arguments"
         args_dict["2_INFO_Name_2_EntityType"] = variables.functionType_2_entityType_dict
         args_dict["3_INFO_limit_2_entity_type"] = "comma separate desired entity_types e.g. '-21;-51;-52' (for GO biological process; UniProt keyword; SMART), default get all available."
+        args_dict["Example of a valid query"] = "curl 'agotool.org/api/tsv/enrichment?" #!!! ToDo
+
         return help_page(args_dict)
 
     def post(self):
         return self.get()
 
-api.add_resource(API_STRING_HELP, "/api_help", "/api_string_help")
+api.add_resource(API_STRING_HELP, "/api_help")
+
 
 def help_page(args_dict):
     try:
@@ -437,8 +633,9 @@ def help_page(args_dict):
         pass
     return jsonify(args_dict)
 
-def format_multiple_results(args_dict, results_all_entity_types, pqo):
-    output_format = args_dict["output_format"]
+# def format_multiple_results(args_dict, results_all_entity_types, pqo):
+def format_multiple_results(output_format, results_all_entity_types):
+    # output_format = args_dict["output_format"]
     if output_format in {"tsv", "tsv_no_header", "tsv-no-header"}:
         return Response(results_all_entity_types, mimetype='text')
     elif output_format == "json":

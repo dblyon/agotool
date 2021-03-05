@@ -24,7 +24,7 @@ VERBOSE = True # print stuff to stdout
 PD_WARNING_OFF = True # turn off pandas warning about chained assignment (pd.options.mode.chained_assignment = None)
 VERSION_ = "UniProt" # switch between "STRING" and "UniProt" versions of the program
 temp_dont_run_analysis = False
-ARGPARSE = False
+ARGPARSE = True
 ############################
 entity_types = {-20, -21, -22, -23, -25, -26, -51, -52, -53, -54, -55, -56, -57, -58} # SMART is missing in UniProt version
 alpha = 0.05
@@ -110,10 +110,8 @@ goslims_subsets_dict = { # key: abbreviation val: description
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 
-# api_url_ = r"http://aquarius.meringlab.org:5911/api" # aquarius
-# api_url = r"http://agotool.meringlab.org/api"  # atlas
-api_url = "http://0.0.0.0:5911/api" # local
-pytest_url_local = r"http://127.0.0.1:5911/api" # agotool.org Aquarius, Phobos
+api_url = "http://0.0.0.0:5911/api" # STRING style API
+pytest_url_local = r"http://127.0.0.1:5911/api_orig" # agotool.org Phobos and Pisces --> for PyTest
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if DOCKER:

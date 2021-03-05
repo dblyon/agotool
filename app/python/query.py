@@ -1446,7 +1446,6 @@ def get_funcName_2_funcEnum_dict():
             funcName_2_funcEnum_dict[funcName] = int(funcEnum)
     return funcName_2_funcEnum_dict
 
-
 def check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(taxid, pqo, args_dict=dict()):
     """
     figure out if given taxid is part of UniProt Reference Proteomes

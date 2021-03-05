@@ -31,31 +31,6 @@ from scipy import stats
 import variables, query
 import colnames as cn
 
-### debug for merge conflict --> this stems from 'plotly' branch
-
-### only used at the end of run_enrichment_cy and run_charcterize_foreground
-# etype = colnames.etype
-# term = colnames.term
-# funcEnum = colnames.funcEnum
-# description = colnames.description
-# p_value = colnames.p_value
-# FDR = colnames.FDR
-# effect_size = colnames.effect_size
-# over_under = colnames.over_under
-# hierarchical_level = colnames.hierarchical_level
-# s_value = colnames.s_value
-# ratio_in_FG = colnames.ratio_in_FG
-# ratio_in_BG = colnames.ratio_in_BG
-# FG_IDs = colnames.FG_IDs
-# BG_IDs = colnames.BG_IDs
-# FG_count = colnames.FG_count
-# BG_count = colnames.BG_count
-# FG_n = colnames.FG_n
-# BG_n = colnames.BG_n
-# rank = colnames.rank
-# year = colnames.year
-# category = colnames.category
-
 
 ### profiling of calc_pvalues_v4 vs calc_pvalues needed
 # @cdivision(True) # doesn't work as expected
@@ -407,7 +382,8 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
                             cn.over_under: over_under_arr_of_string[cond_2_return].view(),
                             cn.funcEnum: indices_arr[cond_2_return].view()})
 
-    cols_2_return_sort_order = cn.cols_2_return_run_enrichment_cy[:]
+    # cols_2_return_sort_order = cn.cols_2_return_run_enrichment_cy[:]
+    cols_2_return_sort_order = list(cn.cols_2_return_run_enrichment_cy)
     if em in {"compare_samples"}:
         df_2_return[cn.BG_IDs] = background_ids_arr_of_string[cond_2_return].view()
     else:
@@ -427,9 +403,11 @@ def run_enrichment_cy(ncbi, ui, preloaded_objects_per_analysis, static_preloaded
     df_2_return[cn.ratio_in_FG] = df_2_return[cn.FG_count] / df_2_return[cn.FG_n]
     df_2_return[cn.ratio_in_BG] = df_2_return[cn.BG_count] / df_2_return[cn.BG_n]
     if args_dict["STRING_beta"]:
-        # df_2_return = df_2_return.rename(columns={"BG_count": 'background_count', "FG_count": 'foreground_count', "FG_IDs": 'foreground_ids'})
-        # return df_2_return[variables.cols_sort_order_STRING_API]
-        return df_2_return[cn.cols_sort_order_STRING_API].rename(columns=cn.colnames_2_rename_dict_STRING)
+        return df_2_return.rename(columns=cn.colnames_2_rename_dict_STRING_beta)[list(cn.cols_sort_order_STRING_beta)]
+    elif args_dict["STRING_API"]:
+        df_2_return["ncbiTaxonId"] = taxid
+        df_2_return["preferredNames"] = ""
+        return df_2_return.rename(columns=cn.colnames_2_rename_dict_STRING_API)[list(cn.cols_sort_order_STRING_API_genome_or_compare_samples)]
     return df_2_return[cols_2_return_sort_order]
 
 @boundscheck(False)
@@ -1516,12 +1494,15 @@ def run_characterize_foreground_cy(ui, preloaded_objects_per_analysis, static_pr
     # debug delete me --> df_2_return = df_2_return.sort_values([cn.etype, "s_value_abs", cn.hierarchical_level, cn.year], ascending=[False, False, False, False])
 
     if args_dict["STRING_beta"]:
-        # df_2_return = df_2_return.rename(columns={"FG_count": 'foreground_count', "FG_IDs": 'foreground_ids', "ratio_in_FG": "ratio_in_foreground"})
-        # return df_2_return[variables.cols_sort_order_characterize_foreground_STRING_API]df_2_return = df_2_return.rename(columns={"FG_count": 'foreground_count', "FG_IDs": 'foreground_ids', "ratio_in_FG": "ratio_in_foreground"})
-        return df_2_return[variables.cols_sort_order_characterize_foreground_STRING_API].rename(columns=cn.cols_sort_order_characterize_foreground_STRING_API)
+        # return df_2_return[list(cn.cols_sort_order_characterize_foreground_STRING_beta)].rename(columns=cn.colnames_2_rename_dict_STRING_beta)
+        return df_2_return.rename(columns=cn.colnames_2_rename_dict_STRING_beta)[list(cn.cols_sort_order_characterize_foreground_STRING_beta)]
+    elif args_dict["STRING_API"]:
+        df_2_return["ncbiTaxonId"] = args_dict["taxid"]
+        df_2_return["preferredNames"] = ""
+        return df_2_return.rename(columns=cn.colnames_2_rename_dict_STRING_API)[list(cn.cols_sort_order_STRING_API_functional_annotation)]
     cond_PMIDs = df_2_return[cn.etype] == -56
     df_2_return.loc[~cond_PMIDs, cn.rank] = df_2_return[~cond_PMIDs].groupby(cn.etype)[cn.FG_count].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
     df_2_return.loc[cond_PMIDs, cn.rank] = df_2_return[cond_PMIDs].groupby(cn.etype)[cn.year].rank(ascending=False, method="first").fillna(value=df_2_return.shape[0])
     df_2_return[cn.rank] = df_2_return[cn.rank].astype(int)
-    cols_2_return_sort_order = cn.cols_2_return_run_characterize_foreground_cy[:]
-    return df_2_return[cols_2_return_sort_order]
+    # cols_2_return_sort_order = cn.cols_2_return_run_characterize_foreground_cy[:]
+    return df_2_return[list(cn.cols_2_return_run_characterize_foreground_cy)]

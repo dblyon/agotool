@@ -63,7 +63,7 @@ echo Q > pytest.fifo
 check_exit_status
 
 ### copy files to Pisces (production server)
-echo "\n### copy files to Pisces (production server)\n"
+echo "\n ### copy files to Pisces \n"
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
 ### on production server, decompress files, populate DB, restart service
