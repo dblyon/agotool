@@ -338,7 +338,7 @@ def get_secondary_2_primaryTerm_dict_and_obsolete_terms_set(DAG):
                 secondary_2_primaryTerm_dict[term] = consider_
     return secondary_2_primaryTerm_dict, obsolete_terms_set
 
-def replace_obsolete_term_or_False(term, obsolete_terms, secondary_2_primaryTerm_dict, DAG):
+def replace_obsolete_term_or_False(term, obsolete_terms, secondary_2_primaryTerm_dict):
     try:
         term_new = secondary_2_primaryTerm_dict[term]
     except KeyError:
@@ -1766,7 +1766,7 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
                         if len(GOterm_list) > 0: # do backtracking, split GO into 3 categories and add etype
                             GOterm_list_clean = []
                             for term in GOterm_list:
-                                term_new, has_changed, is_obsolete = replace_obsolete_term_or_False(term, obsolete_terms_set, secondary_2_primaryTerm_dict, DAG)
+                                term_new, has_changed, is_obsolete = replace_obsolete_term_or_False(term, obsolete_terms_set, secondary_2_primaryTerm_dict)
                                 if not is_obsolete:
                                     GOterm_list_clean.append(term_new)
                             if len(GOterm_list_clean) == 0:
@@ -3060,12 +3060,16 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
 
     return funcName_2_score_list_backtracked, set(without_lineage)
 
-def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs,
+def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, GO_obo, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled,
         Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized,
-        Protein_2_Function_DOID_BTO_GOCC_UPS, GO_CC_textmining_additional_etype=True,
+        Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized_backtracked,
+        Protein_2_Function_DOID_BTO_GOCC_UPS,
+        DOID_BTO_GOCC_without_lineage,
+        GO_CC_textmining_additional_etype=True,
+        minimum_score = 1.5,
         alpha_22=0.5, beta_22=3, alpha_25=0.5, beta_25=3, alpha_26=0.5, beta_26=3):
     """
     discretize TextMining scores
@@ -3099,13 +3103,16 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     ### backtracking
     alternative_2_current_ID_dict = {}
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(GO_obo_Jensenlab, upk=False))
-    # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens later
+    alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(GO_obo, upk=False))
+    # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens at second backtracking step
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(BTO_obo_Jensenlab, upk=True))
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(DOID_obo_current, upk=True))
     DAG = obo_parser.GODag(obo_file=GO_obo_Jensenlab, upk=False)
     DAG.load_obo_file(obo_file=DOID_obo_current, upk=True)
     DAG.load_obo_file(obo_file=BTO_obo_Jensenlab, upk=True)
-    lineage_dict_direct_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=GO_CC_textmining_additional_etype, direct_parents_only=True)
+    # GO_CC_textmining_additional_etype should always be False here --> replaces "GO" with "GOCC". Not necessary yet since, all terms still -22 not -20.
+    lineage_dict_direct_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False, direct_parents_only=True)
+    # backtracking with smart logic to propagate scores
     backtrack_scores(df, lineage_dict_direct_parents, alternative_2_current_ID_dict, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked)
 
     ### rescale Score per genome, per etype
@@ -3123,21 +3130,28 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, DOID_obo_current, BTO
     df_22 = df[df["Etype"] == -22]
     df_25 = df[df["Etype"] == -25]
     df_26 = df[df["Etype"] == -26]
-    df_22 = df_22[(df_22["Score"] >= 1.5) & (df_22["Rescaled_score"] <= beta_22)]
-    df_25 = df_25[(df_25["Score"] >= 1.5) & (df_25["Rescaled_score"] <= beta_25)]
-    df_26 = df_26[(df_26["Score"] >= 1.5) & (df_26["Rescaled_score"] <= beta_26)]
+    df_22 = df_22[(df_22["Score"] >= minimum_score) & (df_22["Rescaled_score"] <= beta_22)]
+    df_25 = df_25[(df_25["Score"] >= minimum_score) & (df_25["Rescaled_score"] <= beta_25)]
+    df_26 = df_26[(df_26["Score"] >= minimum_score) & (df_26["Rescaled_score"] <= beta_26)]
     df = pd.concat([df_22, df_25, df_26])
     df = df[["Taxid", "Etype", "ENSP", "funcName"]]
     df.to_csv(Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized, sep='\t', header=True, index=False)
 
+    # backtrack a second time, simple backtracking this time, since already discretized
+    # GOCC is etype -22, is changed to -20 at this point. GO_CC_textmining_additional_etype should be True (since GO is changed to GOCC before backtracking)
+    lineage_dict_all_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=True, direct_parents_only=False)
+    DAG.load_obo_file(obo_file=GO_obo, upk=False)
+    secondary_2_primaryTerm_dict, obsolete_terms_set = get_secondary_2_primaryTerm_dict_and_obsolete_terms_set(DAG)
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs)
-    with open(Protein_2_Function_DOID_BTO_GOCC_UPS, "w") as fh_out_UniProtID:
-        for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
-            taxid, etype, ENSP = taxid_etype_ENSP
-            funcName_list_backtracked = group.funcName.values
-            UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
-            for UniProtID in UniProtID_list:
-                fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked)), etype))
+    backtrack_funcNames(df, lineage_dict_all_parents, secondary_2_primaryTerm_dict, obsolete_terms_set, ENSP_2_UniProtID_dict, Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, GO_CC_textmining_additional_etype=GO_CC_textmining_additional_etype)
+
+    # with open(Protein_2_Function_DOID_BTO_GOCC_UPS, "w") as fh_out_UniProtID:
+    #     for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
+    #         taxid, etype, ENSP = taxid_etype_ENSP
+    #         funcName_list_backtracked = group.funcName.values
+    #         UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
+    #         for UniProtID in UniProtID_list:
+    #             fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked)), etype))
 
 def rescale_scores(df, alpha=0.5, max_score=5):
     """
@@ -3173,39 +3187,39 @@ def rescale_scores(df, alpha=0.5, max_score=5):
     df = df.reset_index(drop=True)
     return df
 
-# def backtrack_funcNames(df, lineage_dict_all_parents, secondary_2_primaryTerm_dict, obsolete_terms_set, DAG, ENSP_2_UniProtID_dict, fn_out_ENSP, fn_out_UniProtID, without_lineage, GO_CC_textmining_additional_etype=True):
-#     """
-#     df with ENSP, DOID, and Score column
-#     """
-#     if GO_CC_textmining_additional_etype:
-#         df["Etype"] = df["Etype"].astype(int)
-#         cond_GOCC = df["Etype"] == -22
-#         df.loc[cond_GOCC, "Etype"] = -20
-#         df.loc[cond_GOCC, "funcName"] = df.loc[cond_GOCC, "funcName"].apply(lambda x: x.replace("GO:", "GOCC:"))
-#
-#     terms_without_lineage = set()
-#     with open(fn_out_ENSP, "w") as fh_out_ENSP:
-#         with open(fn_out_UniProtID, "w") as fh_out_UniProtID:
-#             for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
-#                 taxid, etype, ENSP = taxid_etype_ENSP
-#                 UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
-#                 funcName_list_backtracked = set(group.funcName.values)
-#                 for funcName in group.funcName.values:
-#                     funcName, has_changed, is_obsolete = replace_obsolete_term_or_False(funcName, obsolete_terms_set, secondary_2_primaryTerm_dict, DAG)
-#                     if is_obsolete:
-#                         continue
-#                     try:
-#                         funcName_list_backtracked |= lineage_dict_all_parents[funcName]
-#                     except KeyError:
-#                         terms_without_lineage |= {funcName}
-#                 for funcName in funcName_list_backtracked:
-#                     fh_out_ENSP.write("{}\t{}\n".format(ENSP, funcName))
-#
-#                 for UniProtID in UniProtID_list:
-#                     fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked)), etype))
-#     with open(without_lineage, "w") as fh_without_lineage:
-#         for term in sorted(terms_without_lineage):
-#             fh_without_lineage.write(term + "\n")
+def backtrack_funcNames(df, lineage_dict_all_parents, secondary_2_primaryTerm_dict, obsolete_terms_set, ENSP_2_UniProtID_dict, Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, GO_CC_textmining_additional_etype=True):
+    """
+    df with ["Taxid", "Etype", "ENSP", "funcName"]
+    """
+    if GO_CC_textmining_additional_etype:
+        df["Etype"] = df["Etype"].astype(int)
+        cond_GOCC = df["Etype"] == -22
+        df.loc[cond_GOCC, "Etype"] = -20
+        df.loc[cond_GOCC, "funcName"] = df.loc[cond_GOCC, "funcName"].apply(lambda x: x.replace("GO:", "GOCC:"))
+
+    terms_without_lineage = set()
+    with open(Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized_backtracked, "w") as fh_out_ENSP:
+        with open(Protein_2_Function_DOID_BTO_GOCC_UPS, "w") as fh_out_UniProtID:
+            for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
+                taxid, etype, ENSP = taxid_etype_ENSP
+                UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
+                funcName_list_backtracked = set(group.funcName.values)
+                for funcName in group.funcName.values:
+                    funcName, has_changed, is_obsolete = replace_obsolete_term_or_False(funcName, obsolete_terms_set, secondary_2_primaryTerm_dict)
+                    if is_obsolete:
+                        continue
+                    try:
+                        funcName_list_backtracked |= lineage_dict_all_parents[funcName]
+                    except KeyError:
+                        terms_without_lineage |= {funcName}
+                for funcName in funcName_list_backtracked:
+                    fh_out_ENSP.write("{}\t{}\n".format(ENSP, funcName))
+
+                for UniProtID in UniProtID_list:
+                    fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked)), etype))
+    with open(DOID_BTO_GOCC_without_lineage, "w") as fh_without_lineage:
+        for term in sorted(terms_without_lineage):
+            fh_without_lineage.write(term + "\n")
 
 def get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs):
     """

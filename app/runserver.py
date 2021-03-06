@@ -66,11 +66,8 @@ if ARGPARSE:
         variables.VERBOSE = True
 ###############################################################################
 # ToDo
-# - change to chain reloading for ago_UP
-# - change uwsgi.ini files --> to ago_STRINGv11 in PMID_autoupdate
+# Content-Disposition: attachment; filename=“cool.html” --> download file vs display in browser
 # - pytest of flatfiles, only for big files (remove all the small AFC/KS files)
-# - zerg mode
-# - emperor mode?
 # - create log of usage
 # - test if there is any downtime between reload of vassals
 # - check if Viruses work for UniProt Reference Proteomes
@@ -204,6 +201,7 @@ parser.add_argument("filter_parents", type=str,
 parser.add_argument("filter_foreground_count_one", type=str, help="Keep only those terms with foreground_count > 1", default="True")
 parser.add_argument("privileged", type=str, default="False")
 parser.add_argument("multiple_testing_per_etype", type=str, help="If True calculate multiple testing correction separately per entity type (functional category), in contrast to performing the correction together for all results.", default="True")
+parser.add_argument("multiple_testing_stringency", type=str, help="Provide either 'A' or 'B' A.) Given the set of proteins and GO terms assigned to it, what is the probability of finding these GO terms by chance. B.) What is the probability of having any enrichment given your set of protein is drawn randomly from all proteins.", default="B")
 parser.add_argument("filter_PMID_top_n", type=int, default=100, help="Filter the top n PMIDs (e.g. 100, default=100), sorting by low p value and recent publication date.")
 parser.add_argument("caller_identity", type=str, help="Your identifier for us e.g. www.my_awesome_app.com", default=None) # ? do I need default value ?
 parser.add_argument("FDR_cutoff", type=float, help="False Discovery Rate cutoff (cutoff for multiple testing corrected p values) e.g. 0.05, default=0.05 meaning 5%. Set to 1 for no cutoff.", default=0.05)
@@ -212,17 +210,10 @@ parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment 
 parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment)"
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
-# parser.add_argument("identifiers", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment)"
-#          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
-#     default=None)
 parser.add_argument("background", type=str,
     help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "
          "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
-# parser.add_argument("background_string_identifiers", type=str,
-#     help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "
-#          "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
-#     default=None)
 parser.add_argument("background_intensity", type=str,
     help="Protein abundance (intensity) for all proteins (copy number, iBAQ, or any other measure of abundance). "
          "Separate the list using '%0d'. The number of items should correspond to the number of Accession Numbers of the 'background'"
@@ -241,9 +232,7 @@ parser.add_argument("goslim", type=str, help="GO basic or a slim subset {generic
 parser.add_argument("o_or_u_or_both", type=str, help="over- or under-represented or both, one of {overrepresented, underrepresented, both}. Choose to only test and report overrepresented or underrepresented GO-terms, or to report both of them.", default="both")
 parser.add_argument("num_bins", type=int, help="The number of bins created based on the abundance values provided. Only relevant if 'Abundance correction' is selected.", default=100)
 parser.add_argument("STRING_beta", type=str, default="False")
-parser.add_argument("translate", type=str, help="""Map/Translate one of: ENSP_2_UniProtAC, ENSP_2_UniProtEntryName, UniProtAC_2_ENSP, UniProtEntryName_2_ENSP, UniProtAC_2_UniProtEntryName, UniProtEntryName_2_UniProtAC""", default="ENSP_2_UniProtAC")
-# parser.add_argument("IDs_2_translate", type=str, help="identifiers to translate/map. Separate the list of e.g. ENSPs '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'", default=None)
-
+# parser.add_argument("translate", type=str, help="""Map/Translate one of: ENSP_2_UniProtAC, ENSP_2_UniProtEntryName, UniProtAC_2_ENSP, UniProtEntryName_2_ENSP, UniProtAC_2_UniProtEntryName, UniProtEntryName_2_UniProtAC""", default="ENSP_2_UniProtAC")
 ######################################################
 ### REST API
 
@@ -318,6 +307,8 @@ api.add_resource(API_orig, "/api_orig")
 # https://string-db.org/api/json/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 # https://string-db.org/api/xml/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 
+
+# https://agotool.org/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 # localhost:5912/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 # https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&foreground=P69905%0dP68871%0dP02042%0dP02100
 # http://localhost:5912/api_orig?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&foreground=P69905%0dP68871%0dP02042%0dP02100
