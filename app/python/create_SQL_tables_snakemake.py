@@ -2966,7 +2966,7 @@ def helper_select_higher_score_if_redundant(funcEnum_2_score_per_ENSP):
                 pass # keep current score, since higher
     return [[funcEnum, funcEnum_2_score_dict[funcEnum]] for funcEnum in funcEnum_2_score_dict.keys()]
 
-def backtrack_scores(df, lineage_dict_direct_parents_current, alternative_2_current_ID_dict, fn_out):
+def backtrack_TM_scores(df, lineage_dict_direct_parents_current, alternative_2_current_ID_dict, fn_out):
     """
     df with ENSP, DOID, and Score column
     """
@@ -3113,7 +3113,7 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, GO_obo, DOID_obo_curr
     # GO_CC_textmining_additional_etype should always be False here --> replaces "GO" with "GOCC". Not necessary yet since, all terms still -22 not -20.
     lineage_dict_direct_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False, direct_parents_only=True)
     # backtracking with smart logic to propagate scores
-    backtrack_scores(df, lineage_dict_direct_parents, alternative_2_current_ID_dict, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked)
+    backtrack_TM_scores(df, lineage_dict_direct_parents, alternative_2_current_ID_dict, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked)
 
     ### rescale Score per genome, per etype
     df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked, sep="\t")
@@ -3144,14 +3144,6 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, GO_obo, DOID_obo_curr
     secondary_2_primaryTerm_dict, obsolete_terms_set = get_secondary_2_primaryTerm_dict_and_obsolete_terms_set(DAG)
     ENSP_2_UniProtID_dict = get_ENSP_2_UniProtID_dict(Taxid_UniProtID_2_ENSPs_2_KEGGs)
     backtrack_funcNames(df, lineage_dict_all_parents, secondary_2_primaryTerm_dict, obsolete_terms_set, ENSP_2_UniProtID_dict, Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized_backtracked, Protein_2_Function_DOID_BTO_GOCC_UPS, DOID_BTO_GOCC_without_lineage, GO_CC_textmining_additional_etype=GO_CC_textmining_additional_etype)
-
-    # with open(Protein_2_Function_DOID_BTO_GOCC_UPS, "w") as fh_out_UniProtID:
-    #     for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
-    #         taxid, etype, ENSP = taxid_etype_ENSP
-    #         funcName_list_backtracked = group.funcName.values
-    #         UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
-    #         for UniProtID in UniProtID_list:
-    #             fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked)), etype))
 
 def rescale_scores(df, alpha=0.5, max_score=5):
     """
@@ -3213,7 +3205,7 @@ def backtrack_funcNames(df, lineage_dict_all_parents, secondary_2_primaryTerm_di
                     except KeyError:
                         terms_without_lineage |= {funcName}
                 for funcName in funcName_list_backtracked:
-                    fh_out_ENSP.write("{}\t{}\n".format(ENSP, funcName))
+                    fh_out_ENSP.write("{}\t{}\t{}\t{}\n".format(taxid, etype, ENSP, funcName))
 
                 for UniProtID in UniProtID_list:
                     fh_out_UniProtID.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, format_list_of_string_2_postgres_array(sorted(funcName_list_backtracked)), etype))
