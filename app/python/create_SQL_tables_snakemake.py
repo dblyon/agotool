@@ -3192,6 +3192,7 @@ def backtrack_funcNames(df, lineage_dict_all_parents, secondary_2_primaryTerm_di
     terms_without_lineage = set()
     with open(Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized_backtracked, "w") as fh_out_ENSP:
         with open(Protein_2_Function_DOID_BTO_GOCC_UPS, "w") as fh_out_UniProtID:
+            fh_out_ENSP.write("Taxid\tEtype\tENSP\tfuncName\n")
             for taxid_etype_ENSP, group in df.groupby(["Taxid", "Etype", "ENSP"]):
                 taxid, etype, ENSP = taxid_etype_ENSP
                 UniProtID_list = ENSP_2_UniProtID_dict[ENSP]  # defaultdict
