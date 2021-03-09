@@ -29,7 +29,7 @@ cd "$TESTING_DIR" || exit
 "$PYTEST_EXE" test_flatfiles.py
 check_exit_status
 
-### start uWSGI and PyTest (agotool not running by default)
+### start uWSGI and PyTest (agotool not running by default on Phobos)
 printf "\n start uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
 "$UWSGI_EXE" pytest_agotool_STRING.ini &
@@ -38,7 +38,7 @@ sleep 4m
 ## test API
 printf "\n PyTest REST API \n"
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE" test_API_sanity.py
+"$PYTEST_EXE" test_API_sanity.py --url testing
 # -p no:cacheprovider
 check_exit_status
 
@@ -63,32 +63,19 @@ check_exit_status
 rsync -av "$TAR_GED_ALL_CURRENT" "$TAR_GED_ALL_BAK"
 check_exit_status
 
-#### copy files to production servers
-#printf "\n### copy files to Aquarius (production server)\n"
-#### San --> does pull instead of push via cronjob, data on Aquarius
-#### Aquarius
-#rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
-#check_exit_status
-#rsync -av "$TABLES_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@aquarius.meringlab.org:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
-#check_exit_status
-
-printf "\n### copy files to Pisces (production server)\n"
-### Pisces
+#### Production server, decompress files and restart service
+printf "\n### copy files to Pisces\n"
+### copy files
 rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/"$TAR_FILE_NAME"
 check_exit_status
 rsync -av "$TABLES_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@pisces.meringlab.org:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
 check_exit_status
-
-#### Production server, decompress files and restart service
-#### Aquarius
-#echo "run script on production server cron_weekly_Aquarius_ago_STRING_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-#ssh dblyon@aquarius.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Aquarius_ago_STRING_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
-#check_exit_status
-### Pisces
-echo "run script on Pisces production server cron_weekly_Pisces_ago_STRING_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
+### run update
+echo "run script on Pisces cron_weekly_Pisces_ago_STRING_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ssh dblyon@pisces.meringlab.org '/home/dblyon/PMID_autoupdate/agotool/cron_weekly_Pisces_ago_STRING_PMID.sh &>> /home/dblyon/PMID_autoupdate/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
-printf "\n--- finished Cronjob ---\n"
+printf "\n --- finished Cronjob --- \n"
+
 ############################################################
 ### Overview
 # cronjob on Phobos

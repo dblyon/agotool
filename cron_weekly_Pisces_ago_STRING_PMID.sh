@@ -33,16 +33,34 @@ cd "$TESTING_DIR" || exit
 "$PYTEST_EXE" test_flatfiles.py
 check_exit_status
 
-### restart uWSGI
+### start a uWSGI testing app (additional sanity check, since switching back to chain-reloading)
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-"$UWSGI_EXE" vassal_agotool_STRING.ini
+"$UWSGI_EXE" pytest_agotool_STRING.ini &
+sleep 4m
+### test API
+printf "\n PyTest REST API \n"
+cd "$TESTING_DIR" || exit
+"$PYTEST_EXE" test_API_sanity.py --url testing
+check_exit_status
+## shutdown uWSGI flask app
+cd "$APP_DIR" || exit
+echo q > pytest.fifo
+check_exit_status
+
+### restart uWSGI production app
+printf "\n restart uWSGI and PyTest \n"
+cd "$APP_DIR" || exit
+# zerg-mode
+#"$UWSGI_EXE" vassal_agotool_STRING.ini
+# chain-reloading
+echo c > ago_STRING_vassal.fifo
 sleep 4m
 
 ## test API
 printf "\n PyTest REST API \n"
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE" test_API_sanity.py
+"$PYTEST_EXE" test_API_sanity.py --url production
 check_exit_status
 
 ### push files to Digamma

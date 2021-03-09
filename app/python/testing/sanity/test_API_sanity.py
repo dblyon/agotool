@@ -2,21 +2,20 @@ import sys, os #, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 import pandas as pd
 from pandas import testing as pd_testing
-import pytest, random
+import pytest
 import math
 from scipy import stats
-# import numpy as np
-# from itertools import islice
 from io import StringIO
 import requests
 import conftest
 
-import variables #, query
+import variables
 
 
 #### settings / parameters
 # url_local = r"http://127.0.0.1:10114/api"
-url_local = variables.pytest_url_local
+# url_local = variables.pytest_url_local
+url_local = conftest.get_url()
 # url_local = r"http://agotool.meringlab.org/api"
 correlation_coefficient_min_threhold = 0.99
 p_value_min_threshold = 1e-20
@@ -46,6 +45,7 @@ def test_FG_count_not_larger_than_FG_n():
         assert df.shape[0] > 0
     df["FG_n"] = num_ENSPs
     cond = df["foreground_count"] <= df["FG_n"]
+    assert cond.all()
 
 def test_FG_count_not_larger_than_BG_count():
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=200, UniProt_ID=False, contiguous=True, joined_for_web=True)

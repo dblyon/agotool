@@ -14,6 +14,21 @@ import query, userinput, variables
 # ENSP_2_tuple_funcEnum_score_dict = query.get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=True, fn=Protein_2_FunctionEnum_and_Score_table_UPS)
 
 
+def pytest_addoption(parser):
+    parser.addoption("--url", action="store")
+
+@pytest.fixture(scope='session')
+def get_url(request):
+    url_value = request.config.option.url
+    if url_value is None:
+        url_value = variables.url_testing
+    if url_value == "testing":
+        url_value = variables.url_testing
+    elif url_value == "production":
+        url_value = variables.url_production
+    return url_value
+
+
 @pytest.fixture(scope='session')
 def get_something():
     """A session scope fixture."""
