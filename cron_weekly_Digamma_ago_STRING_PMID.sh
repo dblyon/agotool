@@ -53,7 +53,8 @@ check_exit_status
 ### restart uWSGI
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-"$UWSGI_EXE" vassal_agotool_STRING.ini
+#"$UWSGI_EXE" vassal_agotool_STRING.ini
+echo c > ago_STRING_vassal.fifo
 sleep 4m
 
 ## test API

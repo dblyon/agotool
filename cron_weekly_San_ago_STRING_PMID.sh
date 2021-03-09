@@ -17,12 +17,7 @@ GED_DIR_Pisces=/home/dblyon/global_enrichment_v11
 UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 
 echo "--- running script cron_weekly_San_ago_STRING_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-#### pull files from Aquarius instead of pushing from Atlas
-#printf "\n### pull files from Aquarius\n"
-#rsync -av dblyon@aquarius.meringlab.org:/home/dblyon/PMID_autoupdate/agotool/data/PostgreSQL/tables/aGOtool_PMID_pickle_current.tar.gz "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
-#check_exit_status
-#rsync -av dblyon@aquarius.meringlab.org:/home/dblyon/global_enrichment_v11/"$TAR_GED_ALL_CURRENT" "$GED_DIR"/"$TAR_GED_ALL_CURRENT"
-#check_exit_status
+
 ### pull files from Pisces instead of pushing from Phobos
 printf "\n### pull files from Pisces\n"
 rsync -av dblyon@pisces.meringlab.org:"$TABLES_DIR_Pisces"/aGOtool_PMID_pickle_current.tar.gz "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
@@ -48,10 +43,26 @@ cd "$TESTING_DIR" || exit
 "$PYTEST_EXE" test_flatfiles.py
 check_exit_status
 
+### start a uWSGI testing app (additional sanity check, since switching back to chain-reloading)
+printf "\n restart uWSGI and PyTest \n"
+cd "$APP_DIR" || exit
+"$UWSGI_EXE" pytest_agotool_STRING.ini &
+sleep 4m
+### test API
+printf "\n PyTest REST API \n"
+cd "$TESTING_DIR" || exit
+"$PYTEST_EXE" test_API_sanity.py --url testing
+check_exit_status
+## shutdown uWSGI flask app
+cd "$APP_DIR" || exit
+echo q > pytest.fifo
+check_exit_status
+
 ### restart uWSGI
 printf "\n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-"$UWSGI_EXE" vassal_agotool_STRING.ini
+#"$UWSGI_EXE" vassal_agotool_STRING.ini
+echo c > ago_STRING_vassal.fifo
 sleep 4m
 
 ## test API
