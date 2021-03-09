@@ -259,16 +259,16 @@ server {
 # END
 
 ### @ Phobos
-# /etc/nginx/sites-available/agotool_zerg.conf
+# /etc/nginx/sites-available/agotool_PMID_branch_zerg.conf
 # nginx.conf
 # configuration of the server
 server {
     # the port your site will be served on
+
+    # PMID_autoupdates branch for string-db.org
     listen      10114;
-    listen      5911;
     server_name localhost;
 
-    # the domain name it will serve for
     charset     utf-8;
 
     large_client_header_buffers 4 8m;
@@ -276,18 +276,47 @@ server {
     client_body_buffer_size     10M;
     client_max_body_size        10M;
 
+    # string-db.org PMID_autoupdates
     location ^~ /static {
-      root /home/dblyon/PMID_autoupdate/agotool/app;
+      root /home/dblyon/agotool_PMID_autoupdate/agotool/app;
       expires 2h;
       access_log off;
       }
 
     location / {
-      include /home/dblyon/PMID_autoupdate/agotool/app/conf.d/uwsgi_params;
-      uwsgi_pass unix:/home/dblyon/PMID_autoupdate/agotool/app/app.sock;
+      include /home/dblyon/agotool_PMID_autoupdate/agotool/app/conf.d/uwsgi_params;
+      uwsgi_pass unix:/home/dblyon/agotool_PMID_autoupdate/agotool/app/app.sock;
     }
 }
 
+server {
+    # the port your site will be served on
+
+    # PMID_autoupdates branch for string-db.org
+    listen      10116;
+    server_name localhost;
+
+    charset     utf-8;
+
+    large_client_header_buffers 4 8m;
+    client_header_buffer_size 1k;
+    client_body_buffer_size     10M;
+    client_max_body_size        10M;
+
+    # string-db.org PMID_autoupdates
+    location ^~ /static {
+      root /home/dblyon/agotool_PMID_autoupdate/agotool/app;
+      expires 2h;
+      access_log off;
+      }
+
+    location / {
+      include /home/dblyon/agotool_PMID_autoupdate/agotool/app/conf.d/uwsgi_params;
+      uwsgi_pass unix:/home/dblyon/agotool_PMID_autoupdate/agotool/app/app_pytest.sock;
+    }
+}
+
+sudo ln -s /etc/nginx/sites-available/agotool_PMID_branch_zerg_pytest.conf /etc/nginx/sites-enabled/
 
 # create symlink
 sudo ln -s /etc/nginx/sites-available/agotool_STRING_zerg.conf /etc/nginx/sites-enabled/

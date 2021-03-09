@@ -18,7 +18,7 @@ def pytest_addoption(parser):
     parser.addoption("--url", action="store")
 
 @pytest.fixture(scope='session')
-def get_url(request):
+def url_local(request):
     url_value = request.config.option.url
     if url_value is None:
         url_value = variables.url_testing

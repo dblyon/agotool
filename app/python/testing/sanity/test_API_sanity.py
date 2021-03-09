@@ -15,12 +15,12 @@ import variables
 #### settings / parameters
 # url_local = r"http://127.0.0.1:10114/api"
 # url_local = variables.pytest_url_local
-url_local = conftest.get_url()
+# url_local = conftest.get_url()
 # url_local = r"http://agotool.meringlab.org/api"
 correlation_coefficient_min_threhold = 0.99
 p_value_min_threshold = 1e-20
 
-def test_random_contiguous_input_yields_results():
+def test_random_contiguous_input_yields_results(url_local):
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=100, UniProt_ID=False, contiguous=True, joined_for_web=True)
     response = requests.post(url_local, params={"output_format": "tsv", "foreground": fg_string, "enrichment_method": "genome", "taxid": 9606})
     df = pd.read_csv(StringIO(response.text), sep='\t')
@@ -31,7 +31,7 @@ def test_random_contiguous_input_yields_results():
         assert df.shape[0] > 0
 
 ### tests for enrichment_method genome
-def test_FG_count_not_larger_than_FG_n():
+def test_FG_count_not_larger_than_FG_n(url_local):
     num_ENSPs = 100
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=num_ENSPs, UniProt_ID=False, contiguous=True, joined_for_web=True)
     response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606},
@@ -47,7 +47,7 @@ def test_FG_count_not_larger_than_FG_n():
     cond = df["foreground_count"] <= df["FG_n"]
     assert cond.all()
 
-def test_FG_count_not_larger_than_BG_count():
+def test_FG_count_not_larger_than_BG_count(url_local):
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=200, UniProt_ID=False, contiguous=True, joined_for_web=True)
     response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606},
         data={"foreground": fg_string})
@@ -62,7 +62,7 @@ def test_FG_count_not_larger_than_BG_count():
     assert cond.all()
 
 @pytest.mark.parametrize("i", range(25, 425, 25))
-def test_genome_random_inputs(i):
+def test_genome_random_inputs(i, url_local):
     """
     genome sanity checks
     """
@@ -83,7 +83,7 @@ def test_genome_random_inputs(i):
     cond = df["foreground_count"] <= df["FG_n"]
     assert cond.all()
 
-def test_expected_terms_in_output():
+def test_expected_terms_in_output(url_local):
     """
     check expected terms for specific input (e.g. reviewer query on Haemoglobin)
     # KW-0561, Oxygen transport
@@ -105,7 +105,7 @@ def test_expected_terms_in_output():
 #### STRING_example_MultipleProteins
 ###  - check valid result
 ###  - check result simlilar to expected static outcome of STRING v11.3 (includes PMID autoupdates) compare with stats.pearsonr
-def test_STRING_example_MultipleProteins_1():
+def test_STRING_example_MultipleProteins_1(url_local):
     """
     Escherichia coli str. K-12 substr. MG1655
     Taxonomy ID: 511145 (for references in articles please use NCBI:txid511145)
@@ -149,7 +149,7 @@ def test_STRING_example_MultipleProteins_1():
     test_suceeded = helper_compare_DataFrames_p_values(df_string_orig, df_agotool)
     assert test_suceeded
 
-def test_STRING_example_MultipleProteins_2():
+def test_STRING_example_MultipleProteins_2(url_local):
     """
     Proteins/Genes:
     ANP1_YEAST
@@ -179,7 +179,7 @@ def test_STRING_example_MultipleProteins_2():
     test_suceeded = helper_compare_DataFrames_p_values(df_string_orig, df_agotool)
     assert test_suceeded
 
-def test_STRING_example_MultipleProteins_3():
+def test_STRING_example_MultipleProteins_3(url_local):
     """
     Proteins/Genes:
     smoothened
@@ -208,7 +208,7 @@ def test_STRING_example_MultipleProteins_3():
     test_suceeded = helper_compare_DataFrames_p_values(df_string_orig, df_agotool)
     assert test_suceeded
 
-def test_Christian_example_1():
+def test_Christian_example_1(url_local):
     """
     ENSP_list = ['9606.ENSP00000228682', '9606.ENSP00000249373', '9606.ENSP00000296575', '9606.ENSP00000297261', '9606.ENSP00000332353', '9606.ENSP00000379258']
     r = requests.post("https://string-db.org/api/tsv/enrichment",
@@ -258,7 +258,7 @@ def helper_compare_DataFrames_p_values(df_string_orig, df_agotool):
 
     return True
 
-def test_tsv_and_json_results_are_equal():
+def test_tsv_and_json_results_are_equal(url_local):
     ENSP_list = ["511145.b1260", "511145.b1261", "511145.b1262", "511145.b1263"]
     fg = "%0d".join(ENSP_list)
     result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 511145}, data={"foreground": fg})
@@ -267,7 +267,7 @@ def test_tsv_and_json_results_are_equal():
     df_json = pd.read_json(result.text)
     pd_testing.assert_frame_equal(df_tsv, df_json)
 
-def test_json_precision():
+def test_json_precision(url_local):
     fg = "9606.ENSP00000228682%0d9606.ENSP00000332353%0d9606.ENSP00000297261%0d9606.ENSP00000379258%0d9606.ENSP00000296575%0d9606.ENSP00000249373"
     result = requests.post(url_local, params={"output_format": "json", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
     term = "GO:0007224"
@@ -284,7 +284,7 @@ def test_json_precision():
 #     lineage_dict_v2 = query.get_lineage_dict_enum(as_array=False, read_from_flat_files=True, from_pickle=False)
 #     assert lineage_dict_v1 == lineage_dict_v2
 
-def test_filter_parents_redundancy_STRING_clusters():
+def test_filter_parents_redundancy_STRING_clusters(url_local):
     fg = '9606.ENSP00000228872%0d9606.ENSP00000262643%0d9606.ENSP00000266970%0d9606.ENSP00000267163%0d9606.ENSP00000274026%0d9606.ENSP00000311083%0d9606.ENSP00000362082%0d9606.ENSP00000384849%0d9606.ENSP00000429089' # cdk2 homo sapiens
     result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
     df = pd.read_csv(StringIO(result.text), sep='\t')
