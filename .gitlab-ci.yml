@@ -35,7 +35,7 @@ test_API:
     - ls -lah $TAR_FILE_NAME
     - $PYTHON -V
     - $PYTEST --version
-    - $PYTEST /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity/test_API_sanity.py -p no:cacheprovider
+    - $PYTEST /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity/test_API_sanity.py -p no:cacheprovider --url production
 
 job:on-schedule:
   only:
@@ -49,4 +49,4 @@ job:on-schedule:
     - echo $DATE
     - $PYTHON -V
     - $PYTEST --version
-    - $PYTEST /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity/test_API_sanity.py -p no:cacheprovider
+    - $PYTEST /home/dblyon/PMID_autoupdate/agotool/app/python/testing/sanity/test_API_sanity.py -p no:cacheprovider --url production

@@ -21,7 +21,7 @@ def pytest_addoption(parser):
 def url_local(request):
     url_value = request.config.option.url
     if url_value is None:
-        url_value = variables.url_testing
+        url_value = variables.url_production
     if url_value == "testing":
         url_value = variables.url_testing
     elif url_value == "production":

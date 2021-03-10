@@ -14,10 +14,10 @@ global_enrichment_data_current=global_enrichment_data_current.tar.gz
 GED_DIR=/home/dblyon/global_enrichment_v11
 UWSGI_EXE=/home/dblyon/anaconda3/envs/agotoolv2/bin/uwsgi
 
-echo '--- running script cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---'
+echo "--- running script cron_weekly_Pisces_update_aGOtool_PMID.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 
 ### decompress files
-echo "\n ### unpacking tar.gz files \n"
+printf "\n ### unpacking tar.gz files \n"
 cd "$TABLES_DIR" || exit
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz
 check_exit_status
@@ -64,7 +64,7 @@ cd "$TESTING_DIR" || exit
 check_exit_status
 
 ### push files to Digamma
-printf "\n rsync push files from Pisces to Digamma"
+printf "\n rsync push files from Pisces to Digamma \n"
 rsync -av "$TABLES_DIR"/aGOtool_PMID_pickle_current.tar.gz dblyon@digamma.embl.de:"$TABLES_DIR_Digamma"/aGOtool_PMID_pickle_current.tar.gz
 rsync -av "$GED_DIR"/"$TAR_GED_ALL_CURRENT" dblyon@digamma.embl.de:"$GED_DIR"/"$TAR_GED_ALL_CURRENT"
 
@@ -72,4 +72,4 @@ echo "now attempting to run update script on Digamma cron_weekly_Digamma_update_
 ssh dblyon@digamma.embl.de '/home/dblyon/agotool/cron_weekly_Digamma_ago_STRING_PMID.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
 
-printf " --- done --- "
+printf " --- done --- \n "

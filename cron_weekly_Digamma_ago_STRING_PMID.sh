@@ -60,7 +60,7 @@ sleep 4m
 ## test API
 printf "\n PyTest REST API \n"
 cd "$TESTING_DIR" || exit
-"$PYTEST_EXE" test_API_sanity.py
+"$PYTEST_EXE" test_API_sanity.py --url production
 check_exit_status
 
 printf " --- done --- "
