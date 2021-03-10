@@ -44,7 +44,7 @@ cd "$TESTING_DIR" || exit
 check_exit_status
 
 ### start a uWSGI testing app (additional sanity check, since switching back to chain-reloading)
-printf "\n restart uWSGI and PyTest \n"
+printf " \n restart uWSGI and PyTest \n "
 cd "$APP_DIR" || exit
 "$UWSGI_EXE" pytest_agotool_STRING.ini &
 sleep 4m
@@ -59,7 +59,7 @@ echo q > pytest.fifo
 check_exit_status
 
 ### restart uWSGI
-printf "\n restart uWSGI and PyTest \n"
+printf " \n restart uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
 #"$UWSGI_EXE" vassal_agotool_STRING.ini
 echo c > ago_STRING_vassal.fifo
@@ -71,4 +71,4 @@ cd "$TESTING_DIR" || exit
 "$PYTEST_EXE" test_API_sanity.py --url production
 check_exit_status
 
-printf " --- done --- "
+printf " --- done --- \n "
