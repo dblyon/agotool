@@ -695,12 +695,18 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS: #!!!
         DOID_BTO_GOCC_without_lineage = DOID_BTO_GOCC_without_lineage
     params:
         minimum_score = 1.5,
+        # alpha_22 = 0.2,
+        # beta_22 = 0.7,
+        # alpha_25 = 0.3,
+        # beta_25 = 1.2,
+        # alpha_26 = 0.3,
+        # beta_26 = 1.4,
         alpha_22 = 0.2,
+        beta_22 = 1.5,
         alpha_25 = 0.3,
+        beta_25 = 1.6,
         alpha_26 = 0.3,
-        beta_22 = 0.7,
-        beta_25 = 1.2,
-        beta_26 = 1.4,
+        beta_26 = 0.8,
         GO_CC_textmining_additional_etype = True
     log: log_snakemake
     run:

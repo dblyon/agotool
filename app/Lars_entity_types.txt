@@ -17,3 +17,20 @@ any > 0	Proteins of species with this NCBI tax id
 -30	MPheno phenotypes
 -31	NBO behaviors
 -36	mammalian phenotypes
+
+
+-20: "Gene Ontology cellular component TEXTMINING",
+-21: "Gene Ontology biological process",
+-22: "Gene Ontology cellular component",
+-23: "Gene Ontology molecular function",
+-25: "Brenda Tissue Ontology",
+-26: "Disease Ontology",
+-51: "UniProt keywords",
+-52: "KEGG (Kyoto Encyclopedia of Genes and Genomes)",
+-53: "SMART (Simple Modular Architecture Research Tool)",
+-54: "INTERPRO",
+-55: "PFAM (Protein FAMilies)",
+-56: "PMID (PubMed IDentifier)",
+-57: "Reactome",
+-58: "WikiPathways"
+-78: STRING_clusters

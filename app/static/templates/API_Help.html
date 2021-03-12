@@ -13,7 +13,7 @@
 <h1 class="row">Application Programming Interface</h1>
 <div class="row">
     <div class="col-md-12">
-        aGOtool has two application programming interfaces(APIs) which enables you to get data without using the graphical user interface of the web page. The API is convenient if you need programmatic access. Please have a look at the examples. One is analogous to <a href="https://string-db.org/help//api/#getting-functional-enrichment">STRING's API</a> and
+        aGOtool has two application programming interfaces(APIs) which enables you to get data without using the graphical user interface of the web page. The API is convenient if you need programmatic access. Please have a look at the examples. One is analogous to <a href="https://string-db.org/help/api/#getting-functional-enrichment">STRING's API</a> and
     </div>
 </div>
 <br>
@@ -62,7 +62,7 @@ import requests
 from io import StringIO
 import pandas as pd
 
-url_ = r"https://agotool.org/api"
+url_ = r"https://agotool.org/api_orig"
 ENSPs = ['4932.YAR019C', '4932.YFR028C', '4932.YGR092W', '4932.YHR152W', '4932.YIL106W', '4932.YJL076W',
      '4932.YLR079W', '4932.YML064C', '4932.YMR055C', '4932.YOR373W', '4932.YPR119W']
 fg = "%0d".join(ENSPs)
@@ -80,7 +80,7 @@ print(df.head())
         <pre><code class="language-python">
 import requests
 
-url_ = r"https://agotool.org/api"
+url_ = r"https://agotool.org/api_orig"
 ENSPs = ['10090.ENSMUSP00000001812', '10090.ENSMUSP00000002708', '10090.ENSMUSP00000021921',
      '10090.ENSMUSP00000025791', '10090.ENSMUSP00000026474', '10090.ENSMUSP00000030443',
      '10090.ENSMUSP00000054837', '10090.ENSMUSP00000084430', '10090.ENSMUSP00000099623',
@@ -108,7 +108,7 @@ from io import StringIO
 import pandas as pd
 import requests
 
-url_ = r"https://agotool.org/api"
+url_ = r"https://agotool.org/api_orig"
 ENSPs = ["9606.ENSP00000266970"]
 fg = "%0d".join(ENSPs)
 result = requests.post(url_,

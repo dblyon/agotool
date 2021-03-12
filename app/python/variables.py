@@ -66,6 +66,7 @@ entityType_2_functionType_dict = {-20: "Gene Ontology cellular component TEXTMIN
                                   -56: "PMID (PubMed IDentifier)",
                                   -57: "Reactome",
                                   -58: "WikiPathways"}
+# -78 STRING_clusters
 
 id_2_entityTypeNumber_dict = {'GOCC:0005575': "-20",  # 'Cellular Component TEXTMINING',
                               'GO:0003674': "-23",  # 'Molecular Function',
