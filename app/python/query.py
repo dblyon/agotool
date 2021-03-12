@@ -989,9 +989,9 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
             # but what about 2 arrays: arr_1 (uint32) with funenum_index_positions, arr_2 (uint16) with counts
             shape_ = len(background_counts_list)
             index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            index_positions_arr[:] = np.nan
+            # index_positions_arr[:] = np.nan
             counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            counts_arr[:] = np.nan
+            # counts_arr[:] = np.nan
             for enum, index_count in enumerate(background_counts_list):
                 index_, count = index_count
                 index_positions_arr[enum] = index_
@@ -1009,9 +1009,9 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
                 background_counts_list.append([int(ele) for ele in sublist.split(",")])
             shape_ = len(background_counts_list)
             index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            index_positions_arr[:] = np.nan
+            # index_positions_arr[:] = np.nan
             counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            counts_arr[:] = np.nan
+            # counts_arr[:] = np.nan
             for enum, index_count in enumerate(background_counts_list):
                 index_, count = index_count
                 index_positions_arr[enum] = index_
