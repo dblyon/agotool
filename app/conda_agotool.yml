@@ -53,7 +53,7 @@ dependencies:
   - line_profiler
 
 # conda env create -n agotool -f conda_agotool.yml
-# conda activate agotool && python -m ipykernel install --user --name agotool --display-name "Python agotool"
+# conda activate agotool && python -m ipykernel install --user --name agotool --display-name "agotoolv2"
 
 # jupyter kernelspec list
-# jupyter kernelspec remove bubu_env
+# jupyter kernelspec remove agotoolvs

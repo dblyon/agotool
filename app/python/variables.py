@@ -37,6 +37,24 @@ entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontolo
 enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}
 # all except for TM scores "-21;-22;-23;-51;-52;-53;-54;-55;-56-57;-58"
 
+
+### things should be named like this
+# etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
+#                               -21: "GO biological process",
+#                               -22: "GO cellular component",
+#                               -23: "GO molecular function",
+#                               -25: "Brenda Tissue Ontology",
+#                               -26: "Disease Ontology",
+#                               -51: "UniProt keywords",
+#                               -52: "KEGG pathways",
+#                               -53: "SMART domains",
+#                               -54: "InterPro domains",
+#                               -55: "Pfam domains",
+#                               -56: "Publications",
+#                               -57: "Reactome",
+#                               -58: "WikiPathways"}
+
+
 functionType_2_entityType_dict = {"Gene Ontology cellular component TEXTMINING": -20,
                                   "Gene Ontology biological process": -21,
                                   "Gene Ontology cellular component": -22,

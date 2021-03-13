@@ -43,16 +43,17 @@ etype_2_categoryRenamed_dict = {-20: "GO cellular component TextMining",
 
 def ready_df_for_plot(df, lineage_dict, enrichment_method):
     sizeref = 2.0 * max(df[cn.FG_count]) / (max_marker_size ** 2)
-    ### rename categories
-    category_renamed_list = []
-    value_counts_series = df[cn.etype].value_counts(sort=False) # this depends on row sort order of run_cythonized df, if etype is sorted in ascending True instead of False --> wrong category assignments
-    for etype_, count in zip(value_counts_series.index, value_counts_series.values):
-        try:
-            categoryName = etype_2_categoryRenamed_dict[etype_]
-        except KeyError:
-            categoryName = ""
-        category_renamed_list += [categoryName] * count
-    df[cn.category] = category_renamed_list
+    # ### rename categories
+    # category_renamed_list = []
+    # value_counts_series = df[cn.etype].value_counts(sort=False) # this depends on row sort order of run_cythonized df, if etype is sorted in ascending True instead of False --> wrong category assignments
+    # for etype_, count in zip(value_counts_series.index, value_counts_series.values):
+    #     try:
+    #         categoryName = etype_2_categoryRenamed_dict[etype_]
+    #     except KeyError:
+    #         categoryName = ""
+    #     category_renamed_list += [categoryName] * count
+    # df[cn.category] = category_renamed_list
+    df[cn.category] = df[cn.etype].apply(lambda x: etype_2_categoryRenamed_dict[x])
 
     ### prioritize category with strongest signal
     if enrichment_method in {"genome", "compare_samples", "abundance_correction"}:
@@ -60,7 +61,7 @@ def ready_df_for_plot(df, lineage_dict, enrichment_method):
             category_rank_arr = df.groupby(cn.category)[cn.s_value].max().sort_values(ascending=False).index.values
         else:
             category_rank_arr = df.groupby(cn.category)[cn.s_value].min().sort_values(ascending=True).index.values
-        df[cn.logFDR] = np.log(df[cn.FDR]) * -1
+        df[cn.logFDR] = np.log10(df[cn.FDR]) * -1
     elif enrichment_method == "characterize_foreground":
         category_rank_arr = df.groupby(cn.category)[cn.ratio_in_FG].max().sort_values(ascending=False).index.values
     else:
@@ -171,15 +172,21 @@ def get_data_bars_dict_characterizeFG(df, colName):
     return term_2_style_dict
 
 def get_linkout_template(category_name):
-    if category_name in {"GO cellular component TextMining", "GO cellular component", "GO biological process", "GO molecular function"}:
+    # if category_name in {"GO cellular component TextMining", "GO cellular component", "GO biological process", "GO molecular function"}:
+    if category_name in {"GO cellular component", "GO biological process", "GO molecular function"}:
         linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
+    elif category_name == "GO cellular component TextMining": # https://compartments.jensenlab.org/Entity?order=textmining,knowledge,predictions&knowledge=10&textmining=10&predictions=10&type1=-22&type2=10090&id1=GO:0070516
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://compartments.jensenlab.org/Entity?order=textmining,knowledge,predictions&knowledge=10&textmining=10&predictions=10&type1=-22&type2={}&id1={}">{}</a></td>'''
     elif category_name == "UniProt keywords":
         linkout_template = r'''<td id="linkout_dbl"><a href="https://www.uniprot.org/keywords/{}">{}</a></td>'''
     # alternative: https://www.ebi.ac.uk/ols/ontologies/doid/terms?DOID_863
-    elif category_name == "Brenda Tissue Ontology":
-        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
-    elif category_name == "Disease Ontology": # https://www.ebi.ac.uk/ols/ontologies/doid/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FDOID_863
-        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/doid/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
+    elif category_name == "Brenda Tissue Ontology": # https://tissues.jensenlab.org/Entity?order=textmining,knowledge,experiments&knowledge=10&experiments=10&textmining=10&type1=-25&type2=9606&id1=BTO:0004216
+        # linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://tissues.jensenlab.org/Entity?order=textmining,knowledge,experiments&knowledge=10&experiments=10&textmining=10&type1=-25&type2={}&id1={}">{}</a></td>'''
+    # elif category_name == "Disease Ontology": # https://www.ebi.ac.uk/ols/ontologies/doid/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FDOID_863
+        # linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/ols/ontologies/doid/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F{}">{}</a></td>'''
+    elif category_name == "Disease Ontology": # https://diseases.jensenlab.org/Entity?order=textmining,knowledge,experiments&textmining=10&knowledge=10&experiments=10&type1=-26&type2=9606&id1=DOID:1933
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://diseases.jensenlab.org/Entity?order=textmining,knowledge,experiments&textmining=10&knowledge=10&experiments=10&type1=-26&type2=9606&id1={}">{}</a></td>'''
     elif category_name == "KEGG pathways":  # https://www.genome.jp/dbget-bin/www_bget?pathway:map04914
         linkout_template = r'''<td id="linkout_dbl"><a href="https://www.genome.jp/dbget-bin/www_bget?pathway:{}">{}</a></td>'''
     elif category_name == "InterPro domains":  # https://www.ebi.ac.uk/interpro/entry/InterPro/IPR002471/
@@ -191,18 +198,21 @@ def get_linkout_template(category_name):
     elif category_name == "Reactome":  # https://reactome.org/content/detail/R-BTA-9034793
         linkout_template = r'''<td id="linkout_dbl"><a href="https://reactome.org/content/detail/{}">{}</a></td>'''
     elif category_name == "WikiPathways":  # https://www.wikipathways.org/index.php/Pathway:WP78
-        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.wikipathways.org/index.php/Pathway:/{}">{}</a></td>'''
+        linkout_template = r'''<td id="linkout_dbl"><a href="https://www.wikipathways.org/index.php/Pathway:{}">{}</a></td>'''
     else:
         linkout_template = r'''<td id="linkout_dbl"><a href="https://www.ebi.ac.uk/QuickGO/term/{}">{}</a></td>'''
     return linkout_template
 
-def format_term_for_linkout(category_name, linkout_template, term_name):
+def format_term_for_linkout(category_name, linkout_template, term_name, taxid="9606"):
     if category_name == "GO cellular component TextMining":
-        table_as_text = linkout_template.format(term_name.replace("GOCC:", "GO:"), term_name)
+        # table_as_text = linkout_template.format(term_name.replace("GOCC:", "GO:"), term_name)
+        table_as_text = linkout_template.format(taxid, term_name.replace("GOCC:", "GO:"), term_name)
     elif category_name == "Brenda Tissue Ontology":
-        table_as_text = linkout_template.format(term_name.replace("BTO:", "BTO_"), term_name)
+        # table_as_text = linkout_template.format(term_name.replace("BTO:", "BTO_"), term_name)
+        table_as_text = linkout_template.format(taxid, term_name, term_name)
     elif category_name == "Disease Ontology":
-        table_as_text = linkout_template.format(term_name.replace("DOID:", "DOID_"), term_name)
+    #     table_as_text = linkout_template.format(term_name.replace("DOID:", "DOID_"), term_name)
+        table_as_text = linkout_template.format(term_name, term_name)
     elif category_name == "Publications":
         table_as_text = linkout_template.format(term_name.replace("PMID:", ""), term_name)
     elif category_name == "Reactome":
@@ -211,13 +221,13 @@ def format_term_for_linkout(category_name, linkout_template, term_name):
         table_as_text = linkout_template.format(term_name, term_name)
     return table_as_text
 
-def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, session_id, session_folder_absolute):
+def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, taxid="9606"): #, session_id, session_folder_absolute):
     # linkout_style = """#linkout_dbl a:link { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:visited { color:#000000; TEXT-DECORATION: none; font-weight: normal} #linkout_dbl a:active { color:#0000EE; } #linkout_dbl a:hover { color:#0000EE; font-weight: normal; text-decoration: underline; } """
-    file_name = "results_orig" + session_id + ".tsv"
-    fn_results_orig_absolute = os.path.join(session_folder_absolute, file_name)
+    # file_name = "results_orig" + session_id + ".tsv"
+    # fn_results_orig_absolute = os.path.join(session_folder_absolute, file_name)
     # remaining columns are omitted for csv file, but needed for plot
-    df_2_file = df[cols_sort_order_csv].rename(columns=cn.colnames_2_rename_dict_aGOtool_file)
-    df_2_file.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
+    # df_2_file = df[cols_sort_order_csv].rename(columns=cn.colnames_2_rename_dict_aGOtool_file)
+    # df_2_file.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
     if enrichment_method != "characterize_foreground":
         term_2_style_dict = get_data_bars_dict(df, cn.s_value)
     else:
@@ -258,7 +268,7 @@ def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, s
                     style = "{}"
                 table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
                 table_as_text += '''<td class="legible_text_shadow" id="{}">{:.2f}</td>'''.format(term_id, s_value_)
-                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name)
+                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name, taxid)
                 table_as_text += '''<td>{}</td>'''.format(description)
                 table_as_text += '''<td>{:.2E}</td>'''.format(fdr)
                 table_as_text += '''<td>{:.2f}</td>'''.format(effectsize)
@@ -306,7 +316,7 @@ def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, s
                     style = "{}"
                 table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
                 table_as_text += '''<td class="legible_text_shadow" id="{}">{:.3f}</td>'''.format(term_id, ratioinfg)
-                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name)
+                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name, taxid)
                 table_as_text += '''<td>{}</td>'''.format(description)
                 table_as_text += '''<td>{}</td>'''.format(category)
                 table_as_text += '''<td>{}</td>'''.format(hierarchicallevel)
@@ -355,7 +365,7 @@ def df_2_html_table_with_data_bars(df, cols_sort_order_csv, enrichment_method, s
                     style = "{}"
                 table_as_text += '''<tr> <style type="text/css"> #{}{} </style>'''.format(term_id, style)
                 table_as_text += '''<td class="legible_text_shadow" id="{}">{:.2f}</td>'''.format(term_id, s_value_)
-                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name)
+                table_as_text += format_term_for_linkout(category_name, linkout_template, term_name, taxid)
                 table_as_text += '''<td>{}</td>'''.format(description)
                 table_as_text += '''<td>{:.2E}</td>'''.format(fdr)
                 table_as_text += '''<td>{:.2f}</td>'''.format(effectsize)

@@ -25,10 +25,9 @@ ctypedef np.uint8_t uint8
 from functools import reduce
 import math
 from cython cimport boundscheck, wraparound, cdivision
-cimport cython
+# cimport cython
 from collections import defaultdict
 from fisher import pvalue
-from scipy import stats
 import variables, query
 import colnames as cn
 
