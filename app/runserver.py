@@ -885,21 +885,12 @@ cols = ['term', 'category', 'etype']
 def generate_interactive_result_page(df, args_dict, session_id, form, errors=()):
     file_name = "results_orig" + session_id + ".tsv"
     fn_results_orig_absolute = os.path.join(SESSION_FOLDER_ABSOLUTE, file_name)
-    if variables.DEBUG:
-        print(" *** generate_interactive_result_page *** ")
-        print("#### 1")
-        print(df[cols])
-    # df.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
     enrichment_method = args_dict["enrichment_method"]
     df, term_2_edges_dict_json, sizeref = plot_and_table.ready_df_for_plot(df, lineage_dict, enrichment_method)
     cols_sort_order = list(cn.enrichmentMethod_2_colsSortOrder_dict[enrichment_method])
     df_2_file = df[cols_sort_order].rename(columns=cn.colnames_2_rename_dict_aGOtool_file)
     df_2_file.to_csv(fn_results_orig_absolute, sep="\t", header=True, index=False)
-    if variables.DEBUG:
-        print("#### 2")
-        print(df_2_file[['term', 'category']])
     dict_per_category, term_2_positionInArr_dict, term_2_category_dict = plot_and_table.df_2_dict_per_category_for_traces(df, enrichment_method)
-    print(args_dict)
     try:
         taxid = args_dict["taxid"] # works for "genome" but not for compare_samples
     except KeyError: # ToDo either autodetect taxid or provide possibility to select the parameter in the GUI

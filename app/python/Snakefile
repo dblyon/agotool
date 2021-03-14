@@ -701,12 +701,20 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS: #!!!
         # beta_25 = 1.2,
         # alpha_26 = 0.3,
         # beta_26 = 1.4,
+
+        # alpha_22 = 0.2,
+        # beta_22 = 1.5,
+        # alpha_25 = 0.3,
+        # beta_25 = 1.6,
+        # alpha_26 = 0.3,
+        # beta_26 = 0.8,
+        
         alpha_22 = 0.2,
-        beta_22 = 1.5,
+        beta_22 = 1.3,
         alpha_25 = 0.3,
         beta_25 = 1.6,
         alpha_26 = 0.3,
-        beta_26 = 0.8,
+        beta_26 = 1.0,
         GO_CC_textmining_additional_etype = True
     log: log_snakemake
     run:
