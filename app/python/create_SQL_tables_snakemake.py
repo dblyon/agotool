@@ -3041,7 +3041,8 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
                     print("helper_backtrack_funcName_2_score_list", parent, funcName_2_score_dict_backtracked[parent], " type not known")
                     raise StopIteration
 
-    # now calc median if multiple values exist
+    # now calc median if multiple values exist --> deprecated
+    # now use max
     funcName_2_score_list_backtracked = []
     if scale_by_1e6:
         for funcName in funcName_2_score_dict_backtracked:
@@ -3049,14 +3050,16 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
             if isinstance(val, float):
                 funcName_2_score_list_backtracked.append([funcName, int(val * 1e6)])
             else:
-                funcName_2_score_list_backtracked.append([funcName, int(median(val) * 1e6)])
+                # funcName_2_score_list_backtracked.append([funcName, int(median(val) * 1e6)])
+                funcName_2_score_list_backtracked.append([funcName, int(max(val) * 1e6)])
     else:
         for funcName in funcName_2_score_dict_backtracked:
             val = funcName_2_score_dict_backtracked[funcName]
             if isinstance(val, float):
                 funcName_2_score_list_backtracked.append([funcName, val])
             else:
-                funcName_2_score_list_backtracked.append([funcName, median(val)])
+                # funcName_2_score_list_backtracked.append([funcName, median(val)])
+                funcName_2_score_list_backtracked.append([funcName, max(val)])
 
     return funcName_2_score_list_backtracked, set(without_lineage)
 
@@ -3127,12 +3130,13 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, GO_obo, DOID_obo_curr
     df.to_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked_rescaled, sep="\t", header=True, index=False)
 
     ### rescaled, backtracked, and filtered
+    df = df[df["Score"] >= minimum_score]
     df_22 = df[df["Etype"] == -22]
     df_25 = df[df["Etype"] == -25]
     df_26 = df[df["Etype"] == -26]
-    df_22 = df_22[(df_22["Score"] >= minimum_score) & (df_22["Rescaled_score"] <= beta_22)]
-    df_25 = df_25[(df_25["Score"] >= minimum_score) & (df_25["Rescaled_score"] <= beta_25)]
-    df_26 = df_26[(df_26["Score"] >= minimum_score) & (df_26["Rescaled_score"] <= beta_26)]
+    df_22 = df_22[df_22["Rescaled_score"] <= beta_22]
+    df_25 = df_25[df_25["Rescaled_score"] <= beta_25]
+    df_26 = df_26[df_26["Rescaled_score"] <= beta_26]
     df = pd.concat([df_22, df_25, df_26])
     df = df[["Taxid", "Etype", "ENSP", "funcName"]]
     df.to_csv(Protein_2_Function_DOID_BTO_GOCC_STS_backtracked_discretized, sep='\t', header=True, index=False)

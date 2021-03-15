@@ -15,24 +15,24 @@ POSTGRES_DIR=/home/dblyon/agotool/data/PostgreSQL
 
 ### decompress files
 echo "running script on production server cronjob_montly_Pisces_ago_UP.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-printf "\n### unpacking tar.gz files\n"
+printf "\n ### unpacking tar.gz files \n"
 cd "$TABLES_DIR" || exit
 tar --overwrite -xvzf "$TABLES_DIR"/aGOtool_flatfiles_current.tar.gz
 check_exit_status
 
 ### PyTest file sizes and line numbers
-printf "\n### PyTest test_flatfiles.py checking updated files for size and line numbers\n"
+printf "\n ### PyTest test_flatfiles.py checking updated files for size and line numbers \n"
 "$PYTEST_EXE" "$TESTING_DIR"/test_flatfiles.py -p no:cacheprovider
 check_exit_status
 
 ### populate PostgreSQL
-echo "\n### populate PostgreSQL\n"
+printf "\n ### populate PostgreSQL \n"
 cd "$POSTGRES_DIR" || exit
 check_exit_status
 psql -d agotool -p 8001 -f copy_from_file_and_index.psql
 check_exit_status
 ### drop old tables and rename temp tables
-printf "\n### drop and rename PostgreSQL\n"
+printf "\n ### drop and rename PostgreSQL \n"
 cd "$POSTGRES_DIR" || exit
 psql -d agotool -p 8001 -f drop_and_rename.psql
 check_exit_status
@@ -41,7 +41,7 @@ check_exit_status
 # check_exit_status
 
 ### restart uWSGI and PyTest
-printf "\n### chain reloading of uWSGI flaskapp, sleep 4min and PyTest\n"
+printf "\n ### chain reloading of uWSGI flaskapp, sleep 4min and PyTest \n"
 cd "$APP_DIR" || exit
 # "$UWSGI_EXE" vassal_agotool.ini
 echo c > agotool_UniProt_master.fifo
