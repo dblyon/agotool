@@ -1139,8 +1139,7 @@ if __name__ == "__main__":
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "127.0.0.1:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "0.0.0.0:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
-    # curl "localhost:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
-    # curl "http://localhost:5911/api?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
+    # curl "localhost:5911/api_orig?taxid=9606&output_format=tsv&enrichment_method=genome&caller_identity=bubu&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     ### Corona example of 13 UniProt ENSPs
     # import requests
     # from io import StringIO

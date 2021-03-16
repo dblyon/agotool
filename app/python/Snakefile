@@ -1,4 +1,4 @@
-import os, sys
+import os
 # sys.path.insert(0, os.path.join(os.getcwd(), "python"))
 # import variables_snakemake as variables
 import variables
@@ -510,7 +510,7 @@ rule r_Functions_table_all:
                        Functions_table_DOID_BTO_GOCC,
                        Functions_table_WikiPathways]
     output:
-        Functions_table_all = Functions_table_all,
+        Functions_table_all = Functions_table_all
     threads: NUMBER_OF_PROCESSES_sorting
     log: log_snakemake
     run:
@@ -603,7 +603,7 @@ rule r_Protein_2_Function_table_UniProtDump_UPS:
         interpro_parent_2_child_tree = interpro_parent_2_child_tree,
         RCTM_hierarchy = RCTM_hierarchy
     output:
-        Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, Pfam
+        Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS # UPK, GO, RCTM, Interpro, Pfam
         # Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs, # from UniProtIDmapping from now on
         # Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
     params:
@@ -674,11 +674,7 @@ rule r_Protein_2_FunctionEnum_table_UPS_FIN:
     run:
         cst.Protein_2_FunctionEnum_table_UPS_FIN(input.Functions_table_UPS_FIN, input.Protein_2_Function_table_UPS, output.Protein_2_FunctionEnum_table_UPS_FIN, output.Protein_2_FunctionEnum_table_UPS_removed, threads)
 
-rule r_Protein_2_Function_DOID_BTO_GOCC_UPS: #!!!
-    """
-    decision point to have GOCC -22 as a separate category GOCC TM -20 
-    GOCC is etype -22 and changes to etype -20 at this point
-    """
+rule r_Protein_2_Function_DOID_BTO_GOCC_UPS:
     input:
         GO_obo_Jensenlab = GO_obo_Jensenlab,
         GO_obo = GO_obo,
@@ -699,8 +695,8 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS: #!!!
         beta_22 = 1.65,
         alpha_25 = 0.3,
         beta_25 = 1.4,
-        alpha_26 = 0.175,
-        beta_26 = 0.8,
+        alpha_26 = 0.15,
+        beta_26 = 0.75,
         GO_CC_textmining_additional_etype = True
     log: log_snakemake
     run:
@@ -709,14 +705,13 @@ rule r_Protein_2_Function_DOID_BTO_GOCC_UPS: #!!!
 rule r_Functions_table_UPS_FIN:
     input:
         Functions_table_all = Functions_table_all, # superset
-        Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced, # include all prefiltered functions
+        Function_2_Protein_table_UPS_reduced = Function_2_Protein_table_UPS_reduced # include all prefiltered functions
         # Protein_2_Function_DOID_BTO_GOCC_UPS = Protein_2_Function_DOID_BTO_GOCC_UPS #!!! not needed ???
     output:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         Functions_table_UPS_removed = Functions_table_UPS_removed # removed if description, hierarchy, etc. but not associated with more than 1 protein per function per taxid (in any taxid)
     log: log_snakemake
     run:
-        # cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, input.Protein_2_Function_DOID_BTO_GOCC_UPS, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
         cst.Functions_table_UPS_FIN(input.Functions_table_all, input.Function_2_Protein_table_UPS_reduced, output.Functions_table_UPS_FIN, output.Functions_table_UPS_removed)
 
 rule r_Create_goslimtype_2_cond_arrays:
