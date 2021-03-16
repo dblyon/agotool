@@ -921,10 +921,13 @@ def get_lineage_dict_enum(as_array=False, read_from_flat_files=False, cast_2_int
     return lineage_dict
 
 def get_lineage_dict_hr(read_from_flat_files=True):
+    """
+    child 2 all parents dict
+    """
     # fn = r"/home/dblyon/agotool/data/PostgreSQL/tables/Lineage_table_hr.txt"
     lineage_dict = {} # key: function name, value: set of function names (all parents)
     if read_from_flat_files:
-        fn = os.path.join(variables.TABLES_DIR, "Lineage_table_hr.txt")
+        fn = os.path.join(variables.TABLES_DIR, "Lineage_table_UPS_hr.txt")
         # fn = variables.tables_dict["Lineage_table_hr"]
         results = get_results_of_statement_from_flat_file(fn)
         for res in results:

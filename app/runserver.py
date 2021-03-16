@@ -1134,6 +1134,7 @@ if __name__ == "__main__":
     else:
         app.run(processes=1, port=5911, debug=variables.DEBUG)
 
+    # https://agotool.org/api?output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100
     # curl "https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
     # curl "https://agotool.org/api?STRING_beta=True&taxid=9606&output_format=tsv&enrichment_method=characterize_foreground&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100" > response.txt
@@ -1154,3 +1155,47 @@ if __name__ == "__main__":
 ### PyTest on Pisces --> could fix permissions
 # -o cache_dir=/home/dblyon/pytest_cache
 # -p no:cacheprovider
+
+### Heart example
+# 9606.ENSP00000347055
+# 9606.ENSP00000290378
+# 9606.ENSP00000386041
+# 9606.ENSP00000426119
+# 9606.ENSP00000236918
+# 9606.ENSP00000264231
+# 9606.ENSP00000355166
+# 9606.ENSP00000380037
+# 9606.ENSP00000366326
+# 9606.ENSP00000327758
+# 9606.ENSP00000350132
+# 9606.ENSP00000365663
+# 9606.ENSP00000070846
+# 9606.ENSP00000274625
+# 9606.ENSP00000455397
+# 9606.ENSP00000410257
+# 9606.ENSP00000341838
+# 9606.ENSP00000455434
+# 9606.ENSP00000355533
+# 9606.ENSP00000365651
+# 9606.ENSP00000370607
+# 9606.ENSP00000223364
+# 9606.ENSP00000295379
+# 9606.ENSP00000442795
+# 9606.ENSP00000322251
+# 9606.ENSP00000436848
+# 9606.ENSP00000483467
+# 9606.ENSP00000349678
+# 9606.ENSP00000348645
+
+# #!!!
+# check that Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked.txt has no redundant ENSP 2 function associations with different Scores
+# ENSP = "9606.ENSP00000340944"
+# funcName = "GO:0016020" # membrane
+# # PTPN11 (ENSP00000340944), is associated with a “Membrane” term with 3 stars.
+# # original table
+# cond = (df1["ENSP"] == ENSP) & (df1["funcName"] == funcName)
+# df1[cond]
+# Taxid 	Etype 	ENSP 	funcName 	Score
+# 21974650 	9606 	-22 	9606.ENSP00000340944 	GO:0016020 	3.067805
+# 21975146 	9606 	-22 	9606.ENSP00000340944 	GO:0016020 	2.145024
+# 21975155 	9606 	-22 	9606.ENSP00000340944 	GO:0016020 	2.081105

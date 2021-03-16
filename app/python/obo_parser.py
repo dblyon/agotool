@@ -22,8 +22,8 @@ def after_colon(line):
 def relationship_part_of(line):
     return line[21:].split()[0]
 
-def relationship_develops_from(line):
-    return line[28:].split()[0]
+# def relationship_develops_from(line):
+#     return line[28:].split()[0]
 
 def read_until(handle, start):
     # read each line until it has a certain start, and then puts
@@ -106,9 +106,9 @@ class OBOReader:
             elif line.startswith("relationship: part_of"):
                 parents = relationship_part_of(line)
                 rec._parents.append(parents)
-            elif line.startswith("relationship: develops_from"):
-                parents = relationship_develops_from(line)
-                rec._parents.append(parents)
+            # elif line.startswith("relationship: develops_from"):
+            #     parents = relationship_develops_from(line)
+            #     rec._parents.append(parents)
             elif (line.startswith("is_obsolete:") and
                   after_colon(line) == "true"):
                 rec.is_obsolete = True

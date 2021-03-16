@@ -2966,7 +2966,7 @@ def helper_select_higher_score_if_redundant(funcEnum_2_score_per_ENSP):
                 pass # keep current score, since higher
     return [[funcEnum, funcEnum_2_score_dict[funcEnum]] for funcEnum in funcEnum_2_score_dict.keys()]
 
-def backtrack_TM_scores(df, lineage_dict_direct_parents_current, alternative_2_current_ID_dict, fn_out):
+def backtrack_TM_scores(df, lineage_dict_direct_parents_current, fn_out):
     """
     df with ENSP, DOID, and Score column
     """
@@ -2978,10 +2978,6 @@ def backtrack_TM_scores(df, lineage_dict_direct_parents_current, alternative_2_c
             taxid, etype, ENSP = taxid_etype_ENSP
             for funcName_score in funcName_2_score_list_backtracked_current:
                 funcName, score = funcName_score
-                try: # translate from alternative/alias to main name (synonym or obsolete funcName to current name)
-                    funcName = alternative_2_current_ID_dict[funcName]
-                except KeyError:
-                    pass
                 fh_out.write("{}\t{}\t{}\t{}\t{}\n".format(taxid, etype, ENSP, funcName, score))
 
 def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_direct_parents, scale_by_1e6=True):
@@ -3041,8 +3037,7 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
                     print("helper_backtrack_funcName_2_score_list", parent, funcName_2_score_dict_backtracked[parent], " type not known")
                     raise StopIteration
 
-    # now calc median if multiple values exist --> deprecated
-    # now use max
+    # now calc median if multiple values exist --> deprecated --> use max
     funcName_2_score_list_backtracked = []
     if scale_by_1e6:
         for funcName in funcName_2_score_dict_backtracked:
@@ -3110,13 +3105,18 @@ def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, GO_obo, DOID_obo_curr
     # GOCC not needed yet, lineage_dict has GOCC terms but output file has normal GO terms, conversion happens at second backtracking step
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(BTO_obo_Jensenlab, upk=True))
     alternative_2_current_ID_dict.update(get_alternative_2_current_ID_dict(DOID_obo_current, upk=True))
+    # translate from alternative/alias to main name (synonym or obsolete funcName to current name)
+    df["funcName"] = df["funcName"].apply(lambda x: alternative_2_current_ID_dict.get(x, x))
+    # in case of redundant function 2 ENSP associations (with different scores) --> pick max score, drop rest
+    df = df.loc[df.groupby(["Taxid", "Etype", "funcName", "ENSP"])["Score"].idxmax()]
+
     DAG = obo_parser.GODag(obo_file=GO_obo_Jensenlab, upk=False)
     DAG.load_obo_file(obo_file=DOID_obo_current, upk=True)
     DAG.load_obo_file(obo_file=BTO_obo_Jensenlab, upk=True)
     # GO_CC_textmining_additional_etype should always be False here --> replaces "GO" with "GOCC". Not necessary yet since, all terms still -22 not -20.
     lineage_dict_direct_parents = get_lineage_dict_for_DOID_BTO_GO(GO_obo_Jensenlab, DOID_obo_current, BTO_obo_Jensenlab, GO_CC_textmining_additional_etype=False, direct_parents_only=True)
     # backtracking with smart logic to propagate scores
-    backtrack_TM_scores(df, lineage_dict_direct_parents, alternative_2_current_ID_dict, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked)
+    backtrack_TM_scores(df, lineage_dict_direct_parents, Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked)
 
     ### rescale Score per genome, per etype
     df = pd.read_csv(Protein_2_Function_and_Score_DOID_BTO_GOCC_STS_backtracked, sep="\t")

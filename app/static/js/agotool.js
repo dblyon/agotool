@@ -294,15 +294,15 @@ let results_page_plotly = (function () {
                     {"visible": true, "width": "100px"}, // term
                     {"visible": true, "width": "200px"}, // description
                     {"visible": true, "width": "136px"}, // FDR
+                    {"visible": true, "width": "80px"}, // effect size
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
+                    {"visible": true, "width": "60px"}, // FG_count
                     {"visible": false},
-                    {"visible": false},
-                    {"visible": false},
-                    {"visible": false},
+                    {"visible": true, "width": "60px"}, // BG_count
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
@@ -318,16 +318,16 @@ let results_page_plotly = (function () {
                     {"visible": true, "width": "100px"}, // term
                     {"visible": true, "width": "200px"}, // description
                     {"visible": true, "width": "136px"}, // FDR
+                    {"visible": true, "width": "80px"}, // effect size
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
+                    {"visible": true, "width": "60px"}, // FG_count
                     {"visible": false},
-                    {"visible": false},
-                    {"visible": false},
-                    {"visible": false},
+                    {"visible": true, "width": "60px"}, // BG_count
                     {"visible": false},
                     {"visible": false},
                     {"visible": false},
@@ -347,7 +347,7 @@ let results_page_plotly = (function () {
                     {"visible": false},
                     {"visible": false},
                     {"visible": true}, // foreground_count
-                    {"visible": false},
+                    {"visible": false}, // FG_n
                     {"visible": false},
                     {"visible": false},]; // category_rank
                 break;
