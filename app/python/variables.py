@@ -129,8 +129,8 @@ goslims_subsets_dict = { # key: abbreviation val: description
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 
-url_local_API_STRING_style = "http://0.0.0.0:5912/api" # STRING style API
-url_local_API_orig = r"http://127.0.0.1:5912/api_orig" # agotool.org Phobos and Pisces --> for PyTest
+url_local_API_STRING_style = "http://0.0.0.0:5911/api" # STRING style API
+url_local_API_orig = r"http://127.0.0.1:5911/api_orig" # agotool.org Phobos and Pisces --> for PyTest
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if DOCKER:
