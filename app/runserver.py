@@ -172,9 +172,9 @@ api = Api(app)
 parser = reqparse.RequestParser()
 ################################################################################
 ### API arguments/parameters
-parser.add_argument("taxid", type=int,help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).", default=9606)
-parser.add_argument("species", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=9606)
-parser.add_argument("organism", type=int,help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).",default=9606)
+parser.add_argument("taxid", type=int, help="NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).", default=9606)
+parser.add_argument("species", type=int, help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).", default=9606)
+parser.add_argument("organism", type=int, help="deprecated please use 'taxid' instead, NCBI taxon identifiers (e.g. Human is 9606, see: STRING organisms).", default=9606)
 parser.add_argument("output_format", type=str, help="The desired format of the output, one of {tsv, tsv-no-header, json, xml}", default="tsv")
 ### Boolean arguments encoded as str on purpose
 parser.add_argument("filter_parents", type=str,
@@ -233,17 +233,18 @@ class API_orig(Resource):
         - or parameters of form
         """
         args_dict = defaultdict(lambda: None)
-        args_dict["foreground"] = request.form.get("foreground") # ? what about the background ?
+        args_dict["foreground"] = request.form.get("foreground")
         args_dict["background"] = request.form.get("background")
         args_dict["output_format"] = request.form.get("output_format")
         args_dict["enrichment_method"] = request.form.get("enrichment_method")
-        args_dict["taxid"] = request.form.get("taxid")
+        # args_dict["taxid"] = request.form.get("taxid") ## no effect
         args_dict.update(parser.parse_args())
         args_dict = convert_string_2_bool(args_dict)
         if variables.VERBOSE:
             print("-" * 50)
             for key, val in sorted(args_dict.items()):
-                print(key, val, type(val))
+                print(key, type(val), val)
+            print("-" * 50)
         ui = userinput.REST_API_input(pqo, args_dict)
         args_dict = ui.args_dict
         if not ui.check:
@@ -289,7 +290,7 @@ api.add_resource(API_orig, "/api_orig")
 # https://string-db.org/api/json/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 # https://string-db.org/api/xml/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 
-
+# https://agotool.org/api/json/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 # https://agotool.org/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 # localhost:5912/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
 # https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&foreground=P69905%0dP68871%0dP02042%0dP02100
@@ -297,7 +298,7 @@ api.add_resource(API_orig, "/api_orig")
 # localhost:5912/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100
 # localhost:5912/api/tsv/enrichment?identifiers=P69905%0dP68871%0dP02042%0dP02100
 
-def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="genome", filter_foreground_count_one="True"):
+def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="genome", filter_foreground_count_one=None):
     """
     this REST API is analogous to STRING's REST API
     for
@@ -306,16 +307,28 @@ def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="gen
     if 'functional_annotation' called --> enrichment_method='characterize_foreground'
     """
     args_dict = defaultdict(lambda: None)
-    args_dict["taxid"] = request.form.get("taxid")
+    query_parameters = request.args
     args_dict.update(parser.parse_args())
+
+    ## if not from functional_annotation call --> genome/abundance_correction --> default True
+    if filter_foreground_count_one == False: # passed by functional_annotation call
+        args_dict["filter_foreground_count_one"] = filter_foreground_count_one
+    else: # default for genome should be True
+        args_dict["filter_foreground_count_one"] = True
+    ## if passed as parameter to REST API
+    filter_foreground_count_one = query_parameters.get("filter_foreground_count_one")  # returns a String
+    if filter_foreground_count_one is not None:
+        args_dict["filter_foreground_count_one"] = filter_foreground_count_one
+
     args_dict = convert_string_2_bool(args_dict)
     args_dict["output_format"] = output_format
     args_dict["enrichment_method"] = enrichment_method
-    args_dict["filter_foreground_count_one"] = filter_foreground_count_one
     args_dict["STRING_beta"] = False
     args_dict["STRING_API"] = True
-    query_parameters = request.args
-    identifiers = "%0d".join(query_parameters.get("identifiers").split())
+
+    identifiers = query_parameters.get("identifiers")
+    if identifiers is not None:
+        identifiers = "%0d".join(identifiers.split())
     if identifiers:
         args_dict["foreground"] = identifiers
     else:
@@ -328,21 +341,25 @@ def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="gen
     else:
         args_dict["background"] = request.form.get("background")
 
-    species = query_parameters.get("species")
+    species = query_parameters.get("species") # returns a String
     if species:
-        args_dict["taxid"] = species
+        try:
+            args_dict["taxid"] = int(species)
+        except ValueError:
+            args_dict["taxid"] = species
 
     caller_identity = query_parameters.get("caller_identity")
     if caller_identity:
         args_dict["caller_identity"] = caller_identity
     if variables.VERBOSE:
         print("-" * 50)
-        print("API_tsv")
         for key, val in sorted(args_dict.items()):
-            print(key, val, type(val))
+            print(key, type(val), val)
+        print("-" * 50)
 
     ui = userinput.REST_API_input(pqo, args_dict)
     args_dict = ui.args_dict
+
     if not ui.check:
         args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
         return help_page(args_dict)
@@ -431,7 +448,7 @@ class API_tsv_functional_annotation(Resource):
 
     @staticmethod
     def post():
-        return parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="characterize_foreground", filter_foreground_count_one="False")
+        return parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="characterize_foreground", filter_foreground_count_one=False)
 
 api.add_resource(API_tsv_functional_annotation, "/api/tsv/functional_annotation")
 
@@ -443,7 +460,7 @@ class API_tsv_no_header_functional_annotation(Resource):
 
     @staticmethod
     def post():
-        return parse_STRING_style_REST_API_call(output_format="tsv_no_header", enrichment_method="characterize_foreground", filter_foreground_count_one="False")
+        return parse_STRING_style_REST_API_call(output_format="tsv_no_header", enrichment_method="characterize_foreground", filter_foreground_count_one=False)
 
 api.add_resource(API_tsv_no_header_functional_annotation, "/api/tsv-no-header/functional_annotation")
 
@@ -455,7 +472,7 @@ class API_json_functional_annotation(Resource):
 
     @staticmethod
     def post():
-        return parse_STRING_style_REST_API_call(output_format="json", enrichment_method="characterize_foreground", filter_foreground_count_one="False")
+        return parse_STRING_style_REST_API_call(output_format="json", enrichment_method="characterize_foreground", filter_foreground_count_one=False)
 
 api.add_resource(API_json_functional_annotation, "/api/json/functional_annotation")
 
@@ -467,7 +484,7 @@ class API_xml_functional_annotation(Resource):
 
     @staticmethod
     def post():
-        return parse_STRING_style_REST_API_call(output_format="xml", enrichment_method="characterize_foreground", filter_foreground_count_one="False")
+        return parse_STRING_style_REST_API_call(output_format="xml", enrichment_method="characterize_foreground", filter_foreground_count_one=False)
 
 api.add_resource(API_xml_functional_annotation, "/api/xml/functional_annotation")
 

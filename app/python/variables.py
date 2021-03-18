@@ -16,7 +16,7 @@ DOCKER = False # app and data directory, within image or shared with local host,
 LOW_MEMORY = True # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect to local Postgres or dockerized-Postgres
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
-DEBUG = False # for flask and some internals for printing, set to False in production
+DEBUG = True # for flask and some internals for printing, set to False in production
 DEBUG_HTML = False # if True: always load example results on submit
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
 TESTING = False # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
@@ -129,8 +129,8 @@ goslims_subsets_dict = { # key: abbreviation val: description
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])
 
-api_url = "http://0.0.0.0:5911/api" # STRING style API
-pytest_url_local = r"http://127.0.0.1:5911/api_orig" # agotool.org Phobos and Pisces --> for PyTest
+url_local_API_STRING_style = "http://0.0.0.0:5912/api" # STRING style API
+url_local_API_orig = r"http://127.0.0.1:5912/api_orig" # agotool.org Phobos and Pisces --> for PyTest
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if DOCKER:
