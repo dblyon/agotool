@@ -162,6 +162,10 @@ def format_results(df, output_format, args_dict):
     elif output_format == "tsv-no-header" or output_format == "tsv_no_header":
         return df.to_csv(sep="\t", header=False, index=False)
     elif output_format == "json":
+        if args_dict["STRING_API"]:
+            colname = colnames.colnames_2_rename_dict_STRING_API[colnames.FG_IDs]
+            df[colname] = df[colname].apply(lambda x: x.split(";"))
+            df["preferredNames"] = "[""]"
         return json.dumps(df.to_dict(orient='records'))
     elif output_format == "xml": # xml gets formatted in runserver.py
         dict_2_return = {}

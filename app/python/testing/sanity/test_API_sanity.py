@@ -433,13 +433,20 @@ def test_json_precision():
 
 def test_STRING_style_API_species_gets_mapped_to_taxid():
     response = requests.post(url_local_API_STRING_style + "/json/enrichment?species=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=pytest")
-    df_json = pd.read_json(response.text)
-    del df_json["preferredNames"]
+    df1 = pd.read_json(response.text)
+    del df1["preferredNames"]
+    response = requests.post(url_local_API_STRING_style + "/json/enrichment?taxid=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=pytest")
+    df2 = pd.read_json(response.text)
+    del df2["preferredNames"]
+    pd_testing.assert_frame_equal(df1, df2, check_dtype=False)
+    assert df1.shape[0] > 10  # should get a lot more rows
+
     response = requests.post(url_local_API_STRING_style + "/tsv/enrichment?taxid=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=pytest")
-    df_tsv = pd.read_csv(StringIO(response.text), sep='\t')
-    del df_tsv["preferredNames"]
-    pd_testing.assert_frame_equal(df_tsv, df_json, check_dtype=False)
-    assert df_tsv.shape[0] > 10  # should get a lot more rows
+    df3 = pd.read_csv(StringIO(response.text), sep='\t')
+    del df3["preferredNames"]
+    del df3["inputGenes"]
+    del df2["inputGenes"]
+    pd_testing.assert_frame_equal(df3, df2, check_dtype=False)
 
 @pytest.mark.xfail
 def test_STRING_style_API_species_gets_mapped_to_taxid_2():

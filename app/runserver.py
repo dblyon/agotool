@@ -1,4 +1,4 @@
-import os, sys, logging, time, argparse, json
+import os, sys, logging, time, argparse #, json
 from collections import defaultdict
 import numpy as np
 import pandas as pd
@@ -192,6 +192,7 @@ parser.add_argument("limit_2_entity_type", type=str, help="Limit the enrichment 
 parser.add_argument("foreground", type=str, help="ENSP identifiers for all proteins in the test group (the foreground, the sample, the group you want to examine for GO term enrichment)"
          "separate the list of Accession Number using '%0d' e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
     default=None)
+parser.add_argument("identifiers", type=str, help="alias to 'foreground' for STRING style API", default=None)
 parser.add_argument("background", type=str,
     help="ENSP identifiers for all proteins in the background (the population, the group you want to compare your foreground to) "
          "separate the list of Accession Number using '%0d'e.g. '4932.YAR019C%0d4932.YFR028C%0d4932.YGR092W'",
@@ -283,21 +284,6 @@ class API_orig(Resource):
 api.add_resource(API_orig, "/api_orig")
 ## apiv0 is the previous version, kept for backwards compatibility
 
-### valid STRING format
-# https://string-db.org/api/[output_format]/enrichment?identifiers=[your_identifiers]&[optional_parameters]
-# https://string-db.org/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
-# https://string-db.org/api/tsv-no-header/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
-# https://string-db.org/api/json/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
-# https://string-db.org/api/xml/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
-
-# https://agotool.org/api/json/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
-# https://agotool.org/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
-# localhost:5912/api/tsv/enrichment?identifiers=9606.ENSP00000221566%0d9606.ENSP00000252593%0d9606.ENSP00000332973%0d9606.ENSP00000349252%0d9606.ENSP00000357470
-# https://agotool.org/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&foreground=P69905%0dP68871%0dP02042%0dP02100
-# http://localhost:5912/api_orig?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&foreground=P69905%0dP68871%0dP02042%0dP02100
-# localhost:5912/api?taxid=9606&output_format=tsv&enrichment_method=genome&taxid=9606&caller_identity=test&foreground=P69905%0dP68871%0dP02042%0dP02100
-# localhost:5912/api/tsv/enrichment?identifiers=P69905%0dP68871%0dP02042%0dP02100
-
 def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="genome", filter_foreground_count_one=None):
     """
     this REST API is analogous to STRING's REST API
@@ -308,48 +294,28 @@ def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="gen
     """
     args_dict = defaultdict(lambda: None)
     query_parameters = request.args
-    # print("query_parameters start")
-    # print(query_parameters)
-    # print("query_parameters stop")
-    # print("args_dict start")
     args_dict.update(parser.parse_args())
-    # print(args_dict)
-    # print("args_dict stop")
 
     ## if not from functional_annotation call --> genome/abundance_correction --> default True
-    # print("filter_foreground_count_one: ", type(filter_foreground_count_one), filter_foreground_count_one)
     if not filter_foreground_count_one: # passed by functional_annotation call
         args_dict["filter_foreground_count_one"] = filter_foreground_count_one
-        # print("filter_foreground_count_one 1: ", type(filter_foreground_count_one), filter_foreground_count_one)
     else: # default for genome should be True
         args_dict["filter_foreground_count_one"] = True
-        # print("filter_foreground_count_one 2: ", type(filter_foreground_count_one), filter_foreground_count_one)
     ## if passed as parameter to REST API
     filter_foreground_count_one = query_parameters.get("filter_foreground_count_one", False)  # returns a String
-    # print("filter_foreground_count_one 3: ", type(filter_foreground_count_one), filter_foreground_count_one)
     if filter_foreground_count_one:
         args_dict["filter_foreground_count_one"] = filter_foreground_count_one
-        # print("filter_foreground_count_one 4: ", type(filter_foreground_count_one), filter_foreground_count_one)
 
     args_dict = convert_string_2_bool(args_dict)
     args_dict["output_format"] = output_format
     args_dict["enrichment_method"] = enrichment_method
     args_dict["STRING_beta"] = False
     args_dict["STRING_API"] = True
-
-    identifiers = query_parameters.get("identifiers", False).strip().replace("\r\n", "%0d").replace("\r", "%0d").replace("\n", "%0d")
-    # print("BUBU")
-    # print("identifiers 1: ", type(identifiers))
-    # print("identifiers 1: ", type(identifiers), identifiers[:10])
-    # if identifiers is not None:
-    #     identifiers = "%0d".join(identifiers.split()) # %0d
-    # if identifiers:
-    if identifiers:
+    identifiers = args_dict["identifiers"]
+    if identifiers is not None:
+        identifiers = identifiers.strip().replace("\r\n", "%0d").replace("\r", "%0d").replace("\n", "%0d")
         args_dict["foreground"] = identifiers
-        # print("foreground 1: ", type(args_dict["foreground"]), args_dict["foreground"])
-    else:
-        args_dict["foreground"] = request.form.get("foreground")
-        # print("foreground 2: ", type(args_dict["foreground"]), args_dict["foreground"])
+        args_dict["identifiers"] = "were set to 'foreground'"
 
     background_string_identifiers = query_parameters.get("background_string_identifiers")
     if background_string_identifiers:
@@ -379,6 +345,9 @@ def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="gen
 
     if not ui.check:
         args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
+        if variables.VERBOSE:
+            print("ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples.")
+            print(args_dict)
         return help_page(args_dict)
 
     if args_dict["enrichment_method"] == "genome":
