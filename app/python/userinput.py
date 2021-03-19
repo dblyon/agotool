@@ -597,7 +597,7 @@ class REST_API_input(Userinput):
     @staticmethod
     def _replace_and_split(string_):
         try:
-            return string_.replace("\r", "%0d").split("%0d")
+            return string_.replace("\r\n", "%0d").replace("\r", "%0d").replace("\n", "%0d").split("%0d")
         except AttributeError: # None
             return None
 

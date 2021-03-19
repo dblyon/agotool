@@ -137,6 +137,7 @@ def test_expected_terms_in_output():
     fg_string = "%0d".join(fg_list)
     response = requests.post(url_local_API_orig, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
+    # expected_terms = ["KW-0561", "KW-0349", "GO:0005344", "GO:0019825", "GO:0020037", "GO:0005833"]
     expected_terms = ["KW-0561", "KW-0349", "GO:0005344", "GO:0019825", "GO:0020037", "GO:0005833"]
     cond = df[cn.term].isin(expected_terms)
     assert len(expected_terms) == sum(cond)
@@ -472,8 +473,16 @@ def test_STRING_style_API_foreground_count_one_genome():
     df2 = pd.read_csv(StringIO(response.text), sep='\t')
     pd_testing.assert_frame_equal(df1, df2)
 
+def test_STRING_style_API_Nadya_example_1():
+    """
+    %0A and %0d should both work as separators
+    """
+    response = requests.post(url_local_API_STRING_style + "/json/enrichment?species=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=pytest")
+    df1 = pd.read_json(response.text)
+    response = requests.post(url_local_API_STRING_style + "/json/enrichment?species=9606&identifiers=9606.ENSP00000326366%0d9606.ENSP00000263094%0d9606.ENSP00000340820%0d9606.ENSP00000260408%0d9606.ENSP00000252486%0d9606.ENSP00000355747%0d9606.ENSP00000338345%0d9606.ENSP00000260197%0d9606.ENSP00000315130%0d9606.ENSP00000284981&caller_identity=pytest")
+    df2 = pd.read_json(response.text)
+    pd_testing.assert_frame_equal(df1, df2)
 
-# https://agotool.org/api/json/enrichment?taxid=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=string_app_v1_7_0
 
 # http://0.0.0.0:5912/api/json/enrichment?species=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=string_app_v1_7_0
 #

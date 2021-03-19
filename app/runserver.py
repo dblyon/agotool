@@ -233,10 +233,10 @@ class API_orig(Resource):
         - or parameters of form
         """
         args_dict = defaultdict(lambda: None)
-        args_dict["foreground"] = request.form.get("foreground")
-        args_dict["background"] = request.form.get("background")
-        args_dict["output_format"] = request.form.get("output_format")
-        args_dict["enrichment_method"] = request.form.get("enrichment_method")
+        # args_dict["foreground"] = request.form.get("foreground")
+        # args_dict["background"] = request.form.get("background")
+        # args_dict["output_format"] = request.form.get("output_format")
+        # args_dict["enrichment_method"] = request.form.get("enrichment_method")
         # args_dict["taxid"] = request.form.get("taxid") ## no effect
         args_dict.update(parser.parse_args())
         args_dict = convert_string_2_bool(args_dict)
@@ -252,16 +252,16 @@ class API_orig(Resource):
             return help_page(args_dict)
 
         if args_dict["enrichment_method"] == "genome":
-            taxid_orig = args_dict["taxid"]
+            # taxid_orig = args_dict["taxid"]
             taxid, is_taxid_valid = query.check_if_TaxID_valid_for_GENOME_and_try_2_map_otherwise(args_dict["taxid"], pqo, args_dict)
             if is_taxid_valid:
                 args_dict["taxid"] = taxid
-                if variables.VERBOSE:
-                    if taxid_orig != taxid:
-                        print("taxid changed from {} to {}".format(taxid_orig, taxid))
-                    else:
-                        print("valid taxid {}".format(taxid))
-                    print("-" * 50)
+                # if variables.VERBOSE:
+                #     if taxid_orig != taxid:
+                #         print("taxid changed from {} to {}".format(taxid_orig, taxid))
+                #     else:
+                #         print("valid taxid {}".format(taxid))
+                #     print("-" * 50)
             else:
                 return help_page(args_dict)
 
@@ -308,17 +308,28 @@ def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="gen
     """
     args_dict = defaultdict(lambda: None)
     query_parameters = request.args
+    # print("query_parameters start")
+    # print(query_parameters)
+    # print("query_parameters stop")
+    # print("args_dict start")
     args_dict.update(parser.parse_args())
+    # print(args_dict)
+    # print("args_dict stop")
 
     ## if not from functional_annotation call --> genome/abundance_correction --> default True
-    if filter_foreground_count_one == False: # passed by functional_annotation call
+    # print("filter_foreground_count_one: ", type(filter_foreground_count_one), filter_foreground_count_one)
+    if not filter_foreground_count_one: # passed by functional_annotation call
         args_dict["filter_foreground_count_one"] = filter_foreground_count_one
+        # print("filter_foreground_count_one 1: ", type(filter_foreground_count_one), filter_foreground_count_one)
     else: # default for genome should be True
         args_dict["filter_foreground_count_one"] = True
+        # print("filter_foreground_count_one 2: ", type(filter_foreground_count_one), filter_foreground_count_one)
     ## if passed as parameter to REST API
-    filter_foreground_count_one = query_parameters.get("filter_foreground_count_one")  # returns a String
-    if filter_foreground_count_one is not None:
+    filter_foreground_count_one = query_parameters.get("filter_foreground_count_one", False)  # returns a String
+    # print("filter_foreground_count_one 3: ", type(filter_foreground_count_one), filter_foreground_count_one)
+    if filter_foreground_count_one:
         args_dict["filter_foreground_count_one"] = filter_foreground_count_one
+        # print("filter_foreground_count_one 4: ", type(filter_foreground_count_one), filter_foreground_count_one)
 
     args_dict = convert_string_2_bool(args_dict)
     args_dict["output_format"] = output_format
@@ -326,13 +337,19 @@ def parse_STRING_style_REST_API_call(output_format="tsv", enrichment_method="gen
     args_dict["STRING_beta"] = False
     args_dict["STRING_API"] = True
 
-    identifiers = query_parameters.get("identifiers")
-    if identifiers is not None:
-        identifiers = "%0d".join(identifiers.split())
+    identifiers = query_parameters.get("identifiers", False).strip().replace("\r\n", "%0d").replace("\r", "%0d").replace("\n", "%0d")
+    # print("BUBU")
+    # print("identifiers 1: ", type(identifiers))
+    # print("identifiers 1: ", type(identifiers), identifiers[:10])
+    # if identifiers is not None:
+    #     identifiers = "%0d".join(identifiers.split()) # %0d
+    # if identifiers:
     if identifiers:
         args_dict["foreground"] = identifiers
+        # print("foreground 1: ", type(args_dict["foreground"]), args_dict["foreground"])
     else:
         args_dict["foreground"] = request.form.get("foreground")
+        # print("foreground 2: ", type(args_dict["foreground"]), args_dict["foreground"])
 
     background_string_identifiers = query_parameters.get("background_string_identifiers")
     if background_string_identifiers:
@@ -1002,9 +1019,9 @@ def results():
         else:
             ### old version with compact and comprehensive results
             # return generate_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
-            if variables.DEBUG:
-                cols = ['term', 'category', 'etype']
-                print(df_all_etypes[cols])
+            # if variables.DEBUG:
+            #     cols = ['term', 'category', 'etype']
+            #     print(df_all_etypes[cols])
             return generate_interactive_result_page(df_all_etypes, args_dict, generate_session_id(), form=Results_Form())
     return render_template('enrichment.html', form=form, last_updated_text=last_updated_text,  NCBI_autocomplete_list=NCBI_autocomplete_list, taxid="")
 
@@ -1168,6 +1185,11 @@ if __name__ == "__main__":
     # result = requests.post(url_, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606}, data={"foreground": fg})
     # df = pd.read_csv(StringIO(result.text), sep='\t')
     # print(df.groupby("etype")["term"].count())
+
+
+    #### Debugging with Nadya
+    # http://agotool.org/api/json/enrichment?species=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=testing
+    # https://agotool.org/api_orig?taxid=9606&output_format=json&enrichment_method=genome&taxid=9606&caller_identity=testing&foreground=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981
 
 ### PyTest on Pisces --> could fix permissions
 # -o cache_dir=/home/dblyon/pytest_cache
