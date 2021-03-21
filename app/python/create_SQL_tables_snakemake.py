@@ -9,9 +9,10 @@ from collections import defaultdict, deque
 sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
 from ast import literal_eval
 import tarfile
-from statistics import median
+# from statistics import median
 import datetime
 # from shutil import copyfile
+from pathlib import Path
 
 import taxonomy, obo_parser, tools, query, variables
 
@@ -3893,25 +3894,23 @@ def _helper_yield_gen_AC_2_ID(fn):
             taxid, UniProtAC, UniProtID = line.split("\t")
             yield taxid, UniProtAC, UniProtID.strip()
 
-# def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_order, download_GO_slim_subsets_placeholder_for_execution_order):
-def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_order, GO_slim_subsets_file):
+def create_goslimtype_2_cond_arrays(Functions_table_placeholder_for_execution_order, GO_slim_subsets_file, goslim_generic_placeholder):
     """
     read obo files
     parse all terms and add to dict (key: obo file name, val: list of GO terms)
     translate GOterm function names to bool array
     """
-    # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr = query.get_lookup_arrays(read_from_flat_files=variables.READ_FROM_FLAT_FILES)
+    assert os.path.exists(Functions_table_placeholder_for_execution_order)
     year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr = query.get_lookup_arrays(read_from_flat_files=True)
-    #GO_slim_subsets_file = variables.tables_dict["goslim_subsets_file"]
     files = []
     with open(GO_slim_subsets_file, "r") as fh_in:
         for line in fh_in:
             fn_basename = line.strip()
             fn_absolute = os.path.join(DOWNLOADS_DIR, fn_basename)
             files.append([fn_basename, fn_absolute])
-            # go_dag = obo_parser.GODag(obo_file=fn_absolute)
-            # list_of_go_terms = list(set([go_term_name for go_term_name in go_dag]))
-            # np.save(os.path.join(TABLES_DIR, fn_basename.replace(".obo", ".npy")), np.isin(functionalterm_arr, list_of_go_terms))
+
+    Path(goslim_generic_placeholder).touch() # placeholder for Snakemake execution order
+
     for file_base_absolute in files:
         fn_basename, fn_absolute = file_base_absolute
         go_dag = obo_parser.GODag(obo_file=fn_absolute)
@@ -4010,7 +4009,7 @@ def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_tabl
     Taxid_2_FunctionEnum_2_Scores_dict = query.get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=True, as_array_or_as_list="array", taxid_2_proteome_count=None)
     pickle.dump(Taxid_2_FunctionEnum_2_Scores_dict, open(Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, "wb"))
 
-def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN):    
+def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, description_arr_UPS_FIN_placeholder, goslim_generic_placeholder):
     """
     LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
     taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
@@ -4020,6 +4019,9 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
     :return: None
     """
     assert os.path.exists(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+    assert os.path.exists(description_arr_UPS_FIN_placeholder)
+    assert os.path.exists(goslim_generic_placeholder)
+
     # read old table and add data to it
     df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")
 

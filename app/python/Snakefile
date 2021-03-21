@@ -160,7 +160,7 @@ interpro_AN_2_name = os.path.join(DOWNLOADS_DIR, "interpro_AN_2_name.txt") # Int
 interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
 map_name_2_an_PFAM = os.path.join(TABLES_DIR, "map_name_2_an_PFAM.txt")
 year_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["year_arr"]
-
+goslim_generic_placeholder = os.path.join(TABLES_DIR, "goslim_generic.npy")
 # Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
 # ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
 # Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
@@ -718,9 +718,11 @@ rule r_Create_goslimtype_2_cond_arrays:
     input:
         Functions_table_UPS_FIN = Functions_table_UPS_FIN,
         goslim_subsets_file = goslim_subsets_file
+    output:
+        goslim_generic_placeholder = goslim_generic_placeholder
     log: log_snakemake
     run:
-        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN, input.goslim_subsets_file)
+        cst.create_goslimtype_2_cond_arrays(input.Functions_table_UPS_FIN, input.goslim_subsets_file, output.goslim_generic_placeholder)
 
 rule r_ENSP_2_UniProtID_without_translation:
     input:
@@ -824,10 +826,12 @@ rule r_TaxidSpecies_2_TaxidProteome_dict_p:
 rule r_add_2_DF_file_dimensions_log:
     input:
         LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
-        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN
+        taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN,
+        description_arr_UPS_FIN = description_arr_UPS_FIN,
+        goslim_generic_placeholder = goslim_generic_placeholder
     log: log_snakemake
     run:
-        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
+        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, input.description_arr_UPS_FIN, input.goslim_generic_placeholder)
         # add_2_DF_file_dimensions_log(variables.LOG_DF_FILE_DIMENSIONS, TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"])
 
 
