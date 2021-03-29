@@ -4,10 +4,6 @@ import variables
 import create_SQL_tables_snakemake as cst
 import download_resources_snakemake as drs
 import tools
-from importlib import reload
-reload(cst)
-reload(drs)
-reload(tools)
 
 import socket
 hostname = socket.gethostname()
@@ -29,7 +25,6 @@ log_snakemake = os.path.join(variables.LOG_DIRECTORY, "log_snakemake.log")
 # ToDo
 # - check global_enrichment_lineage /hierarchy --> that lineage still exists also for terms that were obsolete
 # - profile code --> maybe change ast.literal_eval, and or flat file style from "{...}" to simple ";" as delimiter
-# - run PMID_autoupdates on Aquarius
 # - fix bug: after running pipeline DF should be updated and also transferred to where pytest runs
 
 ### Parameters
@@ -47,7 +42,8 @@ Protein_2_Function_table_PMID = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_
 Entity_types_table_STRING = os.path.join(TABLES_DIR, "Entity_types_table_STRING.txt")
 Functions_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Functions_table_STRING_all_but_PMID.txt")
 Protein_2_Function_table_STRING_all_but_PMID = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_all_but_PMID.txt")
-Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+# Taxid_2_Proteins_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING.txt")
+Taxid_2_Proteins_table_STRING = TABLES_DICT_SNAKEMAKE["Taxid_2_Proteins_table_STRING"]
 KEGG_Taxid_2_acronym_table = TABLES_DICT_SNAKEMAKE["kegg_taxid_2_acronym_table"]
 Protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 GO_basic_obo = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
@@ -59,16 +55,8 @@ fn_tree_STRING_clusters = os.path.join(DOWNLOADS_DIR, "clusters.tree.v11.0.txt.g
 ### STRING_clusters
 Protein_2_Function_table_STRING_clusters = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_clusters.txt")
 Functions_table_STRING_clusters = os.path.join(TABLES_DIR, "Functions_table_STRING_clusters.txt")
-Lineage_table_STRING = os.path.join(TABLES_DIR, "Lineage_table_STRING.txt") # created with every update since funcEnums change due to PMIDs
 Lineage_table_STRING_hr = os.path.join(TABLES_DIR, "Lineage_table_STRING_hr.txt")
 Lineage_table_STRING_no_translation = os.path.join(TABLES_DIR, "Lineage_table_STRING_no_translation.txt")
-
-### files to be created STRING final
-Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt") # final table
-Functions_table_STRING_reduced = os.path.join(TABLES_DIR, "Functions_table_STRING.txt") # final table
-Protein_2_FunctionEnum_table_STRING = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STRING.txt")
-Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt") # final
-Taxid_2_FunctionCountArray_table_STRING = os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STRING.txt")
 
 ### intermediate temp files
 Functions_table_STRING_all = os.path.join(TABLES_DIR, "Functions_table_STRING_all.txt")
@@ -83,24 +71,36 @@ Protein_2_Function_table_STRING_removed = os.path.join(TABLES_DIR, "Protein_2_Fu
 global_enrichment_data_current_tar_gz = TABLES_DICT_SNAKEMAKE["global_enrichment_data_current_tar_gz"]
 populate_classification_schema_current_sql_gz = TABLES_DICT_SNAKEMAKE["populate_classification_schema_current_sql_gz"]
 
+Function_2_ENSP_table_STRING_reduced = os.path.join(TABLES_DIR, "Function_2_ENSP_table_STRING.txt")
+Protein_2_Function_table_STRING_reduced = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING.txt")
+
+### final files needed for app, STRING final, STS_FIN
+# Taxid_2_Proteins_table_STRING --> defined above, since static file
+Functions_table_STRING_reduced = TABLES_DICT_SNAKEMAKE["Functions_table_STRING"]
+Lineage_table_STRING = TABLES_DICT_SNAKEMAKE["Lineage_table_STRING"]
+Protein_2_FunctionEnum_table_STRING = TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_table_STRING"]
+Taxid_2_FunctionCountArray_table_STRING = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionCountArray_table_STRING"]
+
+
+
 ### pickled results
-taxid_2_proteome_count_dict = TABLES_DICT_SNAKEMAKE["taxid_2_proteome_count_dict"]
-kegg_taxid_2_acronym_dict = TABLES_DICT_SNAKEMAKE["kegg_taxid_2_acronym_dict"]
-year_arr = TABLES_DICT_SNAKEMAKE["year_arr"]
-hierlevel_arr = TABLES_DICT_SNAKEMAKE["hierlevel_arr"]
-entitytype_arr = TABLES_DICT_SNAKEMAKE["entitytype_arr"]
-functionalterm_arr = TABLES_DICT_SNAKEMAKE["functionalterm_arr"]
-indices_arr = TABLES_DICT_SNAKEMAKE["indices_arr"]
-description_arr = TABLES_DICT_SNAKEMAKE["description_arr"]
-category_arr = TABLES_DICT_SNAKEMAKE["category_arr"]
-lineage_dict_enum = TABLES_DICT_SNAKEMAKE["lineage_dict_enum"]
-blacklisted_terms_bool_arr = TABLES_DICT_SNAKEMAKE["blacklisted_terms_bool_arr"]
-ENSP_2_functionEnumArray_dict = TABLES_DICT_SNAKEMAKE["ENSP_2_functionEnumArray_dict"]
-taxid_2_tuple_funcEnum_index_2_associations_counts = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
-etype_2_minmax_funcEnum = TABLES_DICT_SNAKEMAKE["etype_2_minmax_funcEnum"]
-etype_cond_dict = TABLES_DICT_SNAKEMAKE["etype_cond_dict"]
-cond_etypes_with_ontology = TABLES_DICT_SNAKEMAKE["cond_etypes_with_ontology"]
-cond_etypes_rem_foreground_ids = TABLES_DICT_SNAKEMAKE["cond_etypes_rem_foreground_ids"]
+# taxid_2_proteome_count_dict = TABLES_DICT_SNAKEMAKE["taxid_2_proteome_count_dict"]
+# kegg_taxid_2_acronym_dict = TABLES_DICT_SNAKEMAKE["kegg_taxid_2_acronym_dict"]
+# year_arr = TABLES_DICT_SNAKEMAKE["year_arr"]
+# hierlevel_arr = TABLES_DICT_SNAKEMAKE["hierlevel_arr"]
+# entitytype_arr = TABLES_DICT_SNAKEMAKE["entitytype_arr"]
+# functionalterm_arr = TABLES_DICT_SNAKEMAKE["functionalterm_arr"]
+# indices_arr = TABLES_DICT_SNAKEMAKE["indices_arr"]
+# description_arr = TABLES_DICT_SNAKEMAKE["description_arr"]
+# category_arr = TABLES_DICT_SNAKEMAKE["category_arr"]
+# lineage_dict_enum = TABLES_DICT_SNAKEMAKE["lineage_dict_enum"]
+# blacklisted_terms_bool_arr = TABLES_DICT_SNAKEMAKE["blacklisted_terms_bool_arr"]
+# ENSP_2_functionEnumArray_dict = TABLES_DICT_SNAKEMAKE["ENSP_2_functionEnumArray_dict"]
+# taxid_2_tuple_funcEnum_index_2_associations_counts = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
+# etype_2_minmax_funcEnum = TABLES_DICT_SNAKEMAKE["etype_2_minmax_funcEnum"]
+# etype_cond_dict = TABLES_DICT_SNAKEMAKE["etype_cond_dict"]
+# cond_etypes_with_ontology = TABLES_DICT_SNAKEMAKE["cond_etypes_with_ontology"]
+# cond_etypes_rem_foreground_ids = TABLES_DICT_SNAKEMAKE["cond_etypes_rem_foreground_ids"]
 
 LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
 LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = variables.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT
@@ -242,29 +242,29 @@ rule r_Lineage_table_STRING:
     run:
         cst.Lineage_table_STRING_v2_STRING_clusters(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced, input.fn_tree_STRING_clusters, output.Lineage_table_STRING, output.Lineage_table_STRING_hr, output.Lineage_table_STRING_no_translation)
 
-rule r_pickle_final_results:
-    input:
-        Lineage_table_STRING = Lineage_table_STRING,
-        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
-    output:
-        taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
-        kegg_taxid_2_acronym_dict = kegg_taxid_2_acronym_dict,
-        year_arr = year_arr,
-        hierlevel_arr = hierlevel_arr,
-        entitytype_arr = entitytype_arr,
-        functionalterm_arr = functionalterm_arr,
-        indices_arr = indices_arr,
-        description_arr = description_arr,
-        category_arr = category_arr,
-        lineage_dict_enum = lineage_dict_enum,
-        blacklisted_terms_bool_arr = blacklisted_terms_bool_arr,
-        ENSP_2_functionEnumArray_dict = ENSP_2_functionEnumArray_dict,
-        taxid_2_tuple_funcEnum_index_2_associations_counts = taxid_2_tuple_funcEnum_index_2_associations_counts,
-        etype_2_minmax_funcEnum = etype_2_minmax_funcEnum,
-        etype_cond_dict = etype_cond_dict,
-    log: log_snakemake
-    run:
-        cst.pickle_PMID_autoupdates(input.Lineage_table_STRING, input.Taxid_2_FunctionCountArray_table_STRING, output)
+# rule r_pickle_final_results:
+#     input:
+#         Lineage_table_STRING = Lineage_table_STRING,
+#         Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
+#     output:
+#         taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
+#         kegg_taxid_2_acronym_dict = kegg_taxid_2_acronym_dict,
+#         year_arr = year_arr,
+#         hierlevel_arr = hierlevel_arr,
+#         entitytype_arr = entitytype_arr,
+#         functionalterm_arr = functionalterm_arr,
+#         indices_arr = indices_arr,
+#         description_arr = description_arr,
+#         category_arr = category_arr,
+#         lineage_dict_enum = lineage_dict_enum,
+#         blacklisted_terms_bool_arr = blacklisted_terms_bool_arr,
+#         ENSP_2_functionEnumArray_dict = ENSP_2_functionEnumArray_dict,
+#         taxid_2_tuple_funcEnum_index_2_associations_counts = taxid_2_tuple_funcEnum_index_2_associations_counts,
+#         etype_2_minmax_funcEnum = etype_2_minmax_funcEnum,
+#         etype_cond_dict = etype_cond_dict,
+#     log: log_snakemake
+#     run:
+#         cst.pickle_PMID_autoupdates(input.Lineage_table_STRING, input.Taxid_2_FunctionCountArray_table_STRING, output)
 
 rule r_AFC_KS_enrichment_terms_flat_files:
     input:
@@ -288,9 +288,9 @@ rule r_add_2_DF_file_dimensions_log:
     input:
         LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
         LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT,
-        taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
+        # taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
         global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
         populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz
     log: log_snakemake
     run:
-        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, input.taxid_2_proteome_count_dict, input.global_enrichment_data_current_tar_gz, input.populate_classification_schema_current_sql_gz)
+        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, input.global_enrichment_data_current_tar_gz, input.populate_classification_schema_current_sql_gz)

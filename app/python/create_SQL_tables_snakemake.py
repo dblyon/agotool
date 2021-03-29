@@ -569,6 +569,9 @@ def format_list_of_string_2_postgres_array(list_of_string):
     """
     return "{" + str(sorted(set(list_of_string)))[1:-1].replace(" ", "").replace("'", '"') + "}"
 
+def format_list_of_string_2_comma_separated(list_of_string):
+    return ",".join(sorted(set(list_of_string)))
+
 def get_function_an_2_enum__and__enum_2_function_an_dict_from_flat_file(fn_Functions_table_STRING):
     function_2_enum_dict, enum_2_function_dict = {}, {}
     with open(fn_Functions_table_STRING, "r") as fh_in:
@@ -597,11 +600,13 @@ def Protein_2_FunctionEnum_table_STRING(fn_Functions_table_STRING, fn_in_Protein
                     functionEnum_list += _helper_format_array(function_arr, function_2_enum_dict)
                 else:
                     if len(functionEnum_list) > 0:
-                        fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n") # etype is removed
+                        # fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(functionEnum_list) + "\n") # etype is removed
+                        fh_out.write(ENSP_last + "\t" + format_list_of_string_2_comma_separated(functionEnum_list) + "\n") # etype is removed
                     functionEnum_list = _helper_format_array(function_arr, function_2_enum_dict)
 
                 ENSP_last = ENSP
-            fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(sorted(functionEnum_list)) + "\n")  # etype is removed
+            # fh_out.write(ENSP_last + "\t" + format_list_of_string_2_postgres_array(functionEnum_list) + "\n")  # etype is removed
+            fh_out.write(ENSP_last + "\t" + format_list_of_string_2_comma_separated(functionEnum_list) + "\n")  # etype is removed
 
 def _helper_format_array(function_arr, function_2_enum_dict):
     functionEnum_list = []
@@ -678,11 +683,13 @@ def Lineage_table_STRING_v2_STRING_clusters(fn_in_go_basic, fn_in_keywords, fn_i
 
     with open(fn_out_lineage_table, "w") as fh_out:
         for key in sorted(lineage_dict_enum.keys()):
-            fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict_enum[key])))[1:-1].replace("'", '"') + "}\n")
+            # fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict_enum[key])))[1:-1].replace("'", '"') + "}\n")
+            fh_out.write(str(key) + "\t" + ",".join(sorted(set(lineage_dict_enum[key]))) + "\n")
 
     with open(fn_out_lineage_table_hr, "w") as fh_out:
         for key in sorted(lineage_dict.keys()):
-            fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict[key])))[1:-1].replace("'", '"') + "}\n")
+            # fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict[key])))[1:-1].replace("'", '"') + "}\n")
+            fh_out.write(str(key) + "\t" + ",".join(sorted(set(lineage_dict[key]))) + "\n")
 
     with open(fn_out_no_translation, "w") as fh_out_no_trans:
         for term in term_no_translation_because_obsolete:
@@ -690,7 +697,7 @@ def Lineage_table_STRING_v2_STRING_clusters(fn_in_go_basic, fn_in_keywords, fn_i
 
 def get_child_2_parent_dict_STRING_clusters(fn_tree):
     child_2_parent_dict = {} # direct parents
-    #ncbi_taxid     child_cluster_id        parent_cluster_id
+    # ncbi_taxid     child_cluster_id        parent_cluster_id
     gen = tools.yield_line_uncompressed_or_gz_file(fn_tree)
     _ = next(gen)
     for line in gen:
@@ -927,8 +934,10 @@ def Taxid_2_FunctionCountArray_table_STRING(Protein_2_FunctionEnum_table_STRING,
     print("Taxid_2_FunctionCountArray_table_STRING done :)")
 
 def helper_parse_line_Protein_2_FunctionEnum_table_STRING(line):
-    ENSP, funcEnum_set = line.split("\t")
-    funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())}
+    # ENSP, funcEnum_set = line.split("\t")
+    # funcEnum_set = {int(num) for num in literal_eval(funcEnum_set.strip())}
+    ENSP, funcEnum_set = line.strip().split("\t")
+    funcEnum_set = {int(num) for num in funcEnum_set.split(",")}
     taxid = ENSP.split(".")[0]
     return taxid, ENSP, funcEnum_set
 
@@ -938,15 +947,15 @@ def helper_count_funcEnum(funcEnum_count, funcEnum_set):
     return funcEnum_count
 
 def helper_format_funcEnum(funcEnum_count_background):
-    # background_n = str(np.count_nonzero(funcEnum_count_background)) # wrong count
     enumeration_arr = np.arange(0, funcEnum_count_background.shape[0])
     cond = funcEnum_count_background > 0
     funcEnum_count_background = funcEnum_count_background[cond]
     enumeration_arr = enumeration_arr[cond]
     string_2_write = ""
-    for ele in zip(enumeration_arr, funcEnum_count_background):
-        string_2_write += "{{{0},{1}}},".format(ele[0], ele[1])
-    index_backgroundCount_array_string = "{" + string_2_write[:-1] + "}"
+    # for ele in zip(enumeration_arr, funcEnum_count_background):
+    #     string_2_write += "{{{0},{1}}},".format(ele[0], ele[1])
+    # index_backgroundCount_array_string = "{" + string_2_write[:-1] + "}"
+    index_backgroundCount_array_string = np.array2string(enumeration_arr, separator=",")[1:-1].replace(" ", "") + "\t" + np.array2string(funcEnum_count_background, separator=",")[1:-1].replace(" ", "")
     return index_backgroundCount_array_string
 
 def Protein_2_Function_table_KEGG(fn_in_kegg_benchmarking, fn_out_Protein_2_Function_table_KEGG, fn_out_KEGG_TaxID_2_acronym_table, number_of_processes=1):
@@ -1561,10 +1570,8 @@ def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_en
                     fh_out.write(line)
                 else:
                     PMID_not_relevant.append(PMID_including_prefix)
-    # os.remove(fn_temp)
 
 def Protein_2_Function_table_STRING(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
-    # fn_list = fn_list_str.split(" ")
     fn_list = [fn for fn in fn_list]
     ### concatenate files
     fn_out_Protein_2_Function_table_STRING_temp = fn_out_Protein_2_Function_table_STRING + "_temp"
@@ -1610,7 +1617,11 @@ def parse_taxid_2_proteins_get_all_ENSPs(fn_Taxid_2_Proteins_table_STRING):
     ENSP_set = set()
     with open(fn_Taxid_2_Proteins_table_STRING, "r") as fh:
         for line in fh:
-            ENSP_set |= literal_eval(line.split("\t")[1])  # reduce DF to ENSPs in DB
+            # ENSP_set |= literal_eval(line.split("\t")[1])  # reduce DF to ENSPs in DB
+            taxid, num_ensps, ensp_arr = line.strip().split("\t")
+            ensp_list = ensp_arr.split(",")
+            assert num_ensps == len(ensp_list)
+            ENSP_set |= set(ensp_list)
     return ENSP_set
 
 def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins_table, fn_in_Functions_table,
@@ -1642,11 +1653,11 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
                                     etype = function_2_etype_dict[function_an]
                                 except KeyError: # for blacklisted terms in variables.py
                                     etype = "-1"
-                                fh_out.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
+                                fh_out.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + num_ENSPs_total_for_taxid + "\t" + arr_of_ENSPs + "\n")
                                 if num_ENSPs > min_count:
-                                    fh_out_reduced.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
+                                    fh_out_reduced.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + num_ENSPs_total_for_taxid + "\t" + arr_of_ENSPs + "\n")
                                 else:
-                                    fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
+                                    fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + num_ENSPs_total_for_taxid + "\t" + arr_of_ENSPs + "\n")
                             function_2_ENSPs_dict = defaultdict(list)
                         else:
                             for function in function_an_set:
@@ -1662,11 +1673,11 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
                             etype = function_2_etype_dict[function_an]
                         except KeyError:  # for blacklisted terms in variables.py
                             etype = "-1"
-                        fh_out.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
+                        fh_out.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + num_ENSPs_total_for_taxid + "\t" + arr_of_ENSPs + "\n")
                         if num_ENSPs > min_count:
-                            fh_out_reduced.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
+                            fh_out_reduced.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + num_ENSPs_total_for_taxid + "\t" + arr_of_ENSPs + "\n")
                         else:
-                            fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + str(num_ENSPs_total_for_taxid) + "\t" + arr_of_ENSPs + "\n")
+                            fh_out_removed.write(taxid_last + "\t" + etype + "\t" + function_an + "\t" + str(num_ENSPs) + "\t" + num_ENSPs_total_for_taxid + "\t" + arr_of_ENSPs + "\n")
     tools.sort_file(fn_out_Function_2_ENSP_table_reduced, fn_out_Function_2_ENSP_table_reduced)
     if verbose:
         print("finished creating \n{}\nand\n{}".format(fn_out_Function_2_ENSP_table_all, fn_out_Function_2_ENSP_table_reduced))
@@ -1706,12 +1717,9 @@ def _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table_ST
     taxid_2_total_protein_count_dict = {}
     with open(fn_in_Taxid_2_Proteins_table_STRING, "r") as fh_in:
         for line in fh_in:
-            taxid, ENSP_arr_str, count = line.split("\t")
-            # count = int(count.strip())
-            count = count.strip()
-            # ENSP_arr = literal_eval(ENSP_arr_str)
-            # assert len(ENSP_arr) == count
-            taxid_2_total_protein_count_dict[taxid] = count
+            # taxid, ENSP_arr_str, count = line.split("\t")
+            taxid, count, ENSP_arr_str = line.split("\t")
+            taxid_2_total_protein_count_dict[taxid] = count # count is a String not an Int (since needs to be written to file)
     return taxid_2_total_protein_count_dict
 
 def _helper_get_function_2_funcEnum_dict__and__function_2_etype_dict(fn_in_Functions_table):
@@ -1781,71 +1789,6 @@ def reduce_Protein_2_Function_table(fn_in_protein_2_function, fn_in_function_2_e
                         if assoc_rest:
                             fh_out_rest.write(ENSP + "\t" + "{" + str(sorted(assoc_rest))[1:-1].replace(" ", "").replace("'", '"') + "}\t" + etype + "\n")
     print("finished with reduce_Protein_2_Function_by_subtracting_Function_2_ENSP_rest")
-
-# def AFC_KS_enrichment_terms_flat_files_old(fn_in_Protein_shorthands, fn_in_Functions_table_STRING_reduced, fn_in_Function_2_ENSP_table_STRING_reduced, KEGG_TaxID_2_acronym_table, fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree, fn_out_AFC_KS_DIR, verbose=True):
-#     parent_2_direct_children_dict = get_parent_2_direct_children_dict(fn_go_basic_obo, fn_keywords_obo, fn_rctm_hierarchy, fn_in_interpro_parent_2_child_tree)
-#     print("AFC_KS_enrichment_terms_flat_files start")
-#     ENSP_2_internalID_dict = {}
-#     with open(fn_in_Protein_shorthands, "r") as fh:
-#         for line in fh:
-#             ENSP, internalID = line.split()
-#             internalID = internalID.strip()
-#             ENSP_2_internalID_dict[ENSP] = internalID
-#
-#     association_2_description_dict = {}
-#     with open(fn_in_Functions_table_STRING_reduced, "r") as fh:
-#         for line in fh:
-#             enum, etype, an, description, year, level = line.split("\t")
-#             association_2_description_dict[an] = description
-#
-#     taxid_2_acronym_dict = {}
-#     with open(KEGG_TaxID_2_acronym_table, "r") as fh:
-#         for line in fh:
-#             taxid, acronym = line.split("\t")
-#             acronym = acronym.strip()
-#             taxid_2_acronym_dict[taxid] = acronym
-#
-#     fn_out_prefix = os.path.join(fn_out_AFC_KS_DIR + "{}_AFC_KS_all_terms.tsv")
-#     with open(fn_in_Function_2_ENSP_table_STRING_reduced, "r") as fh_in:
-#         taxid_last, etype, association, background_count, background_n, an_array = fh_in.readline().split()
-#         fn_out = fn_out_prefix.format(taxid_last)
-#         fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
-#         fh_out = open(fn_out, "w")
-#         fh_out_lineage = open(fn_out_lineage, "w")
-#         fh_in.seek(0)
-#         for line in fh_in:
-#             taxid, etype, association, background_count, background_n, an_array = line.split()
-#             an_array = literal_eval(an_array.strip())
-#             try:
-#                 description = association_2_description_dict[association]
-#             except KeyError: # since removed due to e.g. blacklisting
-#                 continue
-#             number_of_ENSPs = str(len(an_array))
-#             array_of_ENSPs_with_internal_IDS = " ".join(sorted(map_ENSPs_2_internalIDs(an_array, ENSP_2_internalID_dict)))
-#             if taxid != taxid_last:
-#                 fh_out.close()
-#                 fh_out_lineage.close()
-#                 fn_out = fn_out_prefix.format(taxid)
-#                 fn_out_lineage = fn_out.replace(".tsv", "_lineage.tsv")
-#                 fh_out = open(fn_out, "w")
-#                 fh_out_lineage = open(fn_out_lineage, "w")
-#             if etype == "-52": # KEGG
-#                 try:
-#                     acronym = taxid_2_acronym_dict[taxid]
-#                 except KeyError:
-#                     # print("no KEGG acronym translation for TaxID: {}".format(taxid))
-#                     acronym = "map"
-#                 association = association.replace("map", acronym)
-#             fh_out.write(association + "\t" + etype + "\t" + description + "\t" + number_of_ENSPs + "\t" + array_of_ENSPs_with_internal_IDS + "\n")
-#             taxid_last = taxid
-#             try:
-#                 children_list = parent_2_direct_children_dict[association]
-#             except KeyError:
-#                 continue
-#             fh_out_lineage.write(association + "\t" + "\t".join(children_list) + "\n")
-#         fh_out.close()
-#         fh_out_lineage.close()
-#     print("AFC_KS_enrichment_terms_flat_files done :)")
 
 def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG_TaxID_2_acronym_table, Function_2_ENSP_table_STRING, GO_basic_obo, UPK_obo, RCTM_hierarchy, interpro_parent_2_child_tree, tree_STRING_clusters, global_enrichment_data_current_tar_gz, populate_classification_schema_current_sql_gz):
     print("creating AFC_KS files")
@@ -2156,13 +2099,13 @@ def pickle_PMID_autoupdates(Lineage_table_STRING, Taxid_2_FunctionCountArray_tab
     pickle.dump(pqo.etype_cond_dict, open(etype_cond_dict, "wb"))
     print("done :)")
 
-def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, taxid_2_proteome_count_dict, global_enrichment_data_current_tar_gz, populate_classification_schema_current_sql_gz):
+def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, global_enrichment_data_current_tar_gz, populate_classification_schema_current_sql_gz):
     """
     read old log and add number of lines of flat files and bytes of data for binary files to log,
     write to disk
     :return: None
     """
-    assert os.path.exists(taxid_2_proteome_count_dict)
+    # assert os.path.exists(taxid_2_proteome_count_dict)
     assert os.path.exists(global_enrichment_data_current_tar_gz)
     assert os.path.exists(populate_classification_schema_current_sql_gz)
 
@@ -2172,12 +2115,12 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_
     fn_list, binary_list, size_list, num_lines_list, date_list, checksum_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(TABLES_DIR)):
         fn_abs_path = os.path.join(TABLES_DIR, fn)
-        # if fn.endswith("STS_FIN.txt"): ## not needed since only static file from STRING_v11 kegg_taxid_2_acronym_table_STS_FIN.txt
-        #     binary_list.append(False)
-        #     num_lines_list.append(tools.line_numbers(fn_abs_path))
-        if fn.endswith("STS_FIN.p"):
-            binary_list.append(True)
-            num_lines_list.append(np.nan)
+        if fn.endswith("STS_FIN.txt"): ## not needed since only static file from STRING_v11 kegg_taxid_2_acronym_table_STS_FIN.txt
+            binary_list.append(False)
+            num_lines_list.append(tools.line_numbers(fn_abs_path))
+        # if fn.endswith("STS_FIN.p"):
+        #     binary_list.append(True)
+        #     num_lines_list.append(np.nan)
         else:
             continue
         fn_list.append(fn)

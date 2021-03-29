@@ -53,40 +53,13 @@ if ARGPARSE:
     args_verbose = args.verbose
     if args_verbose == "verbose":
         variables.VERBOSE = True
-###############################################################################
 
-# ToDo 2018
-# - buy goliath domain?
-# - use cProfile on compiled cython --> done but not that great to inspect
-# - replace bool array with uint8 array and casting to bool & using prange with nogil
-
-# go_slim_or_basic --> filter for slim terms
-# check out DF sorting before returning results, year and FDR not sorted correctly
-# - consistency with single and double quotes
-# - return unused identifiers
-# - adapt functions_table_STRING.txt:
-#      GO name from OBO as definition
-# - multiple entity type results to be displayed
-# - debug copy&paste fields
-# - debug file upload field
-# - replace example file
-# - http://geneontology.org/page/download-ontology --> slim set for Metagenomics --> offer various kinds of slim sets?
-# - update "info_check_input.html" with REST API usage infos
-# - offer option to omit testing GO-terms with few associations (e.g. 10)
-# - offer to user Pax-DB background proteomes
-# - offer example to be set automatically
-# - graphical output of enrichment
-# - update bootstrap version
-# - update documentation specifically about foreground and background
-# ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
-# ? - protein-groups: is there different functional information for isoforms
-###############################################################################
-###############################################################################
 def getitem(obj, item, default):
     if item not in obj:
         return default
     else:
         return obj[item]
+
 ###############################################################################
 ### Create the Flask application
 app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)

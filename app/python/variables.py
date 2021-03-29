@@ -15,7 +15,7 @@ DOCKER = False # app and data directory, within image or shared with local host,
 LOW_MEMORY = False # load function_an_2_description_dict or query DB
 DB_DOCKER = False # connect via local port vs via docker, in query.py
 READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from PostgreSQL # set "DOCKER" to True!
-FROM_PICKLE = True # read PQO data from pickle instead of flatfiles
+FROM_PICKLE = False # read PQO data from pickle instead of flatfiles
 DEBUG = False # for flask and some internals for printing, set to False in production
 LOG_USERINPUT_DEBUG = False # turn logging for userinput (args_dict) on or off. False in production
 PROFILING = False # profiling flaskapp --> check stdout, set to False in production
@@ -235,6 +235,11 @@ tables_dict = {"taxid_2_proteome_count_dict": os.path.join(TABLES_DIR, "taxid_2_
                "populate_classification_schema_current_sql_gz": os.path.join(TABLES_DIR, "populate_classification_schema_current.sql.gz"),
                "global_enrichment_data_DIR": os.path.join(TABLES_DIR, "global_enrichment_data"),
                "global_enrichment_data_current_tar_gz": os.path.join(TABLES_DIR, "global_enrichment_data_current.tar.gz"),
+               "Taxid_2_Proteins_table_STRING": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STS_FIN.txt"),
+               "Functions_table_STRING": os.path.join(TABLES_DIR, "Functions_table_STS_FIN.txt"),
+               "Lineage_table_STRING": os.path.join(TABLES_DIR, "Lineage_table_STS_FIN.txt"),
+               "Protein_2_FunctionEnum_table_STRING": os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_STS_FIN.txt"),
+               "Taxid_2_FunctionCountArray_table_STRING": os.path.join(TABLES_DIR, "Taxid_2_FunctionCountArray_table_STS_FIN.txt"),
                }
                # "Taxid_2_Proteins_table": os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_{}.txt".format(appendix)),
                # "blacklisted_enum_terms": os.path.join(TABLES_DIR, "blacklisted_enum_terms_{}.p".format(appendix)),
