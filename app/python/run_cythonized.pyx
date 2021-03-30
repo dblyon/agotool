@@ -39,34 +39,6 @@ cdef create_funcEnum_count_background_v2(unsigned int[::1] funcEnum_count_backgr
         count = funcEnum_index_2_associations[i][1]
         funcEnum_count_background[index_] = count
 
-# @boundscheck(False)
-# @wraparound(False)
-# cdef create_funcEnum_count_background_v4(unsigned int[::1] funcEnum_count_background, # uint32
-#                                          const unsigned int[::1] funcEnum_index_arr, # uint32
-#                                          const unsigned short[::1] count_arr): # uint16
-#     """
-#     create_funcEnum_count_background_v3(funcEnum_count_background, index_positions_arr, counts_arr)
-#     without returning 'funcEnum_count' the function does inplace change of 'funcEnum_count'
-#     :param funcEnum_array: np.array (of variable length, with functional enumeration
-#     values, uint32,
-#     i.e. which functional associations
-#     are given for provided user input proteins)
-#     :param funcEnum_count: np.array (shape of array from 0 to max enumeration of
-#     functional-terms,
-#     uint32, each position codes for a
-#     specific functional term, the value is a count for the given user input)
-#     :return: None
-#     """
-#     cdef:
-#         int i, N = funcEnum_index_arr.shape[0]
-#         unsigned short index_
-#         unsigned short count
-
-#     for i in range(N):
-#         index_ = funcEnum_index_arr[i]
-#         count = count_arr[i]
-#         funcEnum_count_background[index_] = count
-
 @boundscheck(False)
 @wraparound(False)
 cdef create_funcEnum_count_background_v5(unsigned int[::1] funcEnum_count_background, # uint32

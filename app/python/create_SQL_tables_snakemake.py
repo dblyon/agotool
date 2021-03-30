@@ -1571,6 +1571,13 @@ def Protein_2_Function_table_PMID__and__reduce_Functions_table_PMID(fn_in_all_en
                 else:
                     PMID_not_relevant.append(PMID_including_prefix)
 
+def Protein_2_Function_table_PMID(Protein_2_Function_table_PMID_STS_gz, Protein_2_Function_table_PMID):
+    with open(Protein_2_Function_table_PMID, "w") as fh_out:
+        for line in tools.yield_line_uncompressed_or_gz_file(Protein_2_Function_table_PMID_STS_gz):
+            ensp, func_arr, etype = line.split("\t")
+            func_arr = func_arr[1:-1].replace('"', "")
+            fh_out.write("{}\t{}\t{}\n".format(ensp, func_arr, etype))
+
 def Protein_2_Function_table_STRING(fn_list, fn_in_Taxid_2_Proteins_table_STRING, fn_out_Protein_2_Function_table_STRING, number_of_processes=1):
     fn_list = [fn for fn in fn_list]
     ### concatenate files
@@ -1712,7 +1719,8 @@ def _helper_parse_line_prot_2_func(line):
     taxid_ENSP, function_an_set_str, etype = line.split("\t")
     taxid = taxid_ENSP.split(".")[0]
     etype = etype.strip()
-    function_an_set = literal_eval(function_an_set_str)
+    # function_an_set = literal_eval(function_an_set_str)
+    function_an_set = set(function_an_set_str.split(","))
     return taxid_ENSP, taxid, etype, function_an_set
 
 def _helper_get_taxid_2_total_protein_count_dict(fn_in_Taxid_2_Proteins_table_STRING):

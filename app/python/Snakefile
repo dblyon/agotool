@@ -36,6 +36,7 @@ URL_protein_2_function_PMID = r"http://download.jensenlab.org/aGOtool/documents_
 URL_Function_2_Description_PMID = r"http://download.jensenlab.org/aGOtool/documents_function2description.tsv.gz"
 Functions_table_PMID_all = os.path.join(DOWNLOADS_DIR, "Functions_table_PMID_all.txt.gz")
 Functions_table_PMID = os.path.join(TABLES_DIR, "Functions_table_PMID.txt")
+Protein_2_Function_table_PMID_STS_gz = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID.txt.gz")
 Protein_2_Function_table_PMID = os.path.join(DOWNLOADS_DIR, "Protein_2_Function_table_PMID.txt")
 
 ### static files from STRING v11
@@ -113,15 +114,23 @@ LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = variables.LOG_DF_FILE_DIMENSIONS_GLOB
 
 rule download_Protein_2_Function_PMID:
     output:
-        Protein_2_Function_table_PMID_STS_gz = Protein_2_Function_table_PMID + ".gz",
-        Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
+        Protein_2_Function_table_PMID_STS_gz = Protein_2_Function_table_PMID_STS_gz
+        # Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
     params:
         URL_protein_2_function_PMID = URL_protein_2_function_PMID,
         verbose = verbose
     log: log_snakemake
     run:
         drs.download_requests(params.URL_protein_2_function_PMID, output.Protein_2_Function_table_PMID_STS_gz, params.verbose)
-        tools.gunzip_file(output.Protein_2_Function_table_PMID_STS_gz, output.Protein_2_Function_table_PMID)
+        # tools.gunzip_file(output.Protein_2_Function_table_PMID_STS_gz, output.Protein_2_Function_table_PMID)
+
+rule r_Protein_2_Function_table_PMID:
+    input:
+        Protein_2_Function_table_PMID_STS_gz = Protein_2_Function_table_PMID_STS_gz
+    output:
+        Protein_2_Function_table_PMID = Protein_2_Function_table_PMID
+    run:
+        cst.Protein_2_Function_table_PMID(input.Protein_2_Function_table_PMID_STS_gz, output.Protein_2_Function_table_PMID)
 
 rule download_Functions_2_Descriptions_PMID:
     output:
