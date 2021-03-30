@@ -37,9 +37,12 @@ entity_types_with_ontology = {-21, -22, -23, -51, -57, -78} # turn InterPro filt
 # entity_types_rem_foreground_ids = {-52, -53, -54, -55}
 entity_types_rem_foreground_ids = entity_types - PMID - entity_types_with_ontology # all_etypes - PMID - ontologies
 enrichment_methods = {"abundance_correction", "compare_samples", "characterize_foreground", "genome", "compare_groups"}
-functionType_2_entityType_dict = {"GOBP": -21, # Gene Ontology biological process
+functionType_2_entityType_dict = {"GOCC TextMining": -20,
+                                  "GOBP": -21, # Gene Ontology biological process
                                   "GOCC": -22, # Gene Ontology cellular component
                                   "GOMF": -23, # Gene Ontology molecular function
+                                  "Brenda Tissue Ontology": -25,
+                                  "Disease Ontology": -26,
                                   "UniProt keywords": -51,
                                   "KEGG": -52, #  (Kyoto Encyclopedia of Genes and Genomes)
                                   "SMART": -53, #  (Simple Modular Architecture Research Tool)
@@ -47,10 +50,14 @@ functionType_2_entityType_dict = {"GOBP": -21, # Gene Ontology biological proces
                                   "PFAM": -55, #  (Protein FAMilies)
                                   "PMID": -56,
                                   "Reactome": -57,
+                                  "WikiPathways": -58,
                                   "STRING_clusters": -78}
 
-entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
+entityType_2_functionType_dict = {-20: "GOCC TextMining",
+                                  -21: "Gene Ontology biological process",
                                   -22: "Gene Ontology cellular component",
+                                  -25: "Brenda Tissue Ontology",
+                                  -26: "Disease Ontology",
                                   -23: "Gene Ontology molecular function",
                                   -51: "UniProt keywords",
                                   -52: "KEGG (Kyoto Encyclopedia of Genes and Genomes)",
@@ -59,6 +66,7 @@ entityType_2_functionType_dict = {-21: "Gene Ontology biological process",
                                   -55: "PFAM (Protein FAMilies)",
                                   -56: "PMID (PubMed IDentifier)",
                                   -57: "Reactome",
+                                  -58: "WikiPathways",
                                   -78: "STRING_clusters"}
 
 limit_2_entity_types_ALL = ";".join([str(ele) for ele in entity_types_with_data_in_functions_table])

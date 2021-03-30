@@ -684,12 +684,12 @@ def Lineage_table_STRING_v2_STRING_clusters(fn_in_go_basic, fn_in_keywords, fn_i
     with open(fn_out_lineage_table, "w") as fh_out:
         for key in sorted(lineage_dict_enum.keys()):
             # fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict_enum[key])))[1:-1].replace("'", '"') + "}\n")
-            fh_out.write(str(key) + "\t" + ",".join(sorted(set(lineage_dict_enum[key]))) + "\n")
+            fh_out.write(str(key) + "\t" + ",".join(str(ele) for ele in sorted(set(lineage_dict_enum[key]))) + "\n")
 
     with open(fn_out_lineage_table_hr, "w") as fh_out:
         for key in sorted(lineage_dict.keys()):
             # fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict[key])))[1:-1].replace("'", '"') + "}\n")
-            fh_out.write(str(key) + "\t" + ",".join(sorted(set(lineage_dict[key]))) + "\n")
+            fh_out.write(str(key) + "\t" + ",".join(str(ele) for ele in sorted(set(lineage_dict[key]))) + "\n")
 
     with open(fn_out_no_translation, "w") as fh_out_no_trans:
         for term in term_no_translation_because_obsolete:
@@ -1620,7 +1620,7 @@ def parse_taxid_2_proteins_get_all_ENSPs(fn_Taxid_2_Proteins_table_STRING):
             # ENSP_set |= literal_eval(line.split("\t")[1])  # reduce DF to ENSPs in DB
             taxid, num_ensps, ensp_arr = line.strip().split("\t")
             ensp_list = ensp_arr.split(",")
-            assert num_ensps == len(ensp_list)
+            assert int(num_ensps) == len(ensp_list)
             ENSP_set |= set(ensp_list)
     return ENSP_set
 
@@ -1648,7 +1648,8 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
                             num_ENSPs_total_for_taxid = taxid_2_total_protein_count_dict[taxid_last]
                             for function_an, ENSPs in function_2_ENSPs_dict.items():
                                 num_ENSPs = len(ENSPs)
-                                arr_of_ENSPs = format_list_of_string_2_postgres_array(ENSPs)
+                                # arr_of_ENSPs = format_list_of_string_2_postgres_array(ENSPs)
+                                arr_of_ENSPs = ",".join(sorted(set(ENSPs)))
                                 try:
                                     etype = function_2_etype_dict[function_an]
                                 except KeyError: # for blacklisted terms in variables.py
@@ -1668,7 +1669,8 @@ def Function_2_ENSP_table(fn_in_Protein_2_Function_table, fn_in_Taxid_2_Proteins
                     num_ENSPs_total_for_taxid = taxid_2_total_protein_count_dict[taxid]
                     for function_an, ENSPs in function_2_ENSPs_dict.items():
                         num_ENSPs = len(ENSPs)
-                        arr_of_ENSPs = format_list_of_string_2_postgres_array(ENSPs)
+                        # arr_of_ENSPs = format_list_of_string_2_postgres_array(ENSPs)
+                        arr_of_ENSPs = ",".join(sorted(set(ENSPs)))
                         try:
                             etype = function_2_etype_dict[function_an]
                         except KeyError:  # for blacklisted terms in variables.py
@@ -1888,7 +1890,8 @@ def AFC_KS_enrichment_terms_flat_files(functions_table, protein_shorthands, KEGG
             taxid, etype, term, background_count, background_n, an_array = line.split()
             taxid = int(taxid)
             etype = int(etype)
-            ENSP_list = an_array.strip()[1:-1].replace('"', "").split(",")
+            # ENSP_list = an_array.strip()[1:-1].replace('"', "").split(",")
+            ENSP_list = an_array.strip().split(",")
             if term not in functionalterm_set:
                 continue
             try:
@@ -2173,6 +2176,82 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, LOG_DF_FILE_DIMENSIONS_
     df["version"] = max(df_old["version"]) + 1
     df = pd.concat([df_old, df])
     df.to_csv(LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, sep="\t", header=True, index=False)
+
+def get_EntrezGeneID_2_ENSP(fn):
+    """
+    taxid   entrez  ENSP
+    1217658 23003381        1217658.F987_00645
+    1217658 23003382        1217658.F987_00644
+    """
+    df = pd.read_csv(fn, sep='\t')
+    EntrezGeneID_2_ENSP_dict = {entrez: [ENSP] for entrez, ENSP in zip(df["entrez"], df["ENSP"])}
+    return EntrezGeneID_2_ENSP_dict
+
+def Protein_2_Function__and__Functions_table_WikiPathways_STS(fn_in_WikiPathways_organisms_metadata, fn_in_STRING_EntrezGeneID_2_STRING, Human_WikiPathways_gmt, fn_out_Functions_table_WikiPathways, fn_out_Protein_2_Function_table_WikiPathways, verbose=True): # fn_in_STRING_EntrezGeneID_2_STRING, fn_in_Taxid_2_Proteins_table_STS
+    """
+    DOWNLOADS_DIR = "/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/downloads"
+    TABLES_DIR = "/home/dblyon/agotool_PMID_autoupdate/agotool/data/PostgreSQL/tables"
+    WikiPathways_organisms_metadata = os.path.join(DOWNLOADS_DIR, "WikiPathways_organisms_metadata.tsv") # ancient
+    STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv")
+    Human_WikiPathways_gmt = r"/scratch/dblyon/agotool/data/PostgreSQL/downloads/wikipathways-Homo_sapiens.gmt"
+    Functions_table_WikiPathways = os.path.join(TABLES_DIR, "Functions_table_WikiPathways.txt")
+    Protein_2_Function_table_WikiPathways_STS = os.path.join(TABLES_DIR, "Protein_2_Function_table_WikiPathways_STS.txt")
+    Protein_2_Function__and__Functions_table_WikiPathways_STS(WikiPathways_organisms_metadata, STRING_EntrezGeneID_2_STRING, Human_WikiPathways_gmt, Functions_table_WikiPathways, Protein_2_Function_table_WikiPathways_STS)
+
+    link http://data.wikipathways.org
+    use gmt = Gene Matrix Transposed, lists of datanodes per pathway, unified to Entrez Gene identifiers.
+    map Entrez Gene IDs to UniProt using ftp://ftp.expasy.org/databases/uniprot/current_release/knowledgebase/idmapping/idmapping_selected.tab.gz
+    """
+    if verbose:
+        print("creating Functions_table_WikiPathways and Protein_2_Function_table_WikiPathways")
+    df_wiki_meta = pd.read_csv(fn_in_WikiPathways_organisms_metadata, sep="\t")
+    df_wiki_meta["Genus species"] = df_wiki_meta["Genus species"].apply(lambda s: "_".join(s.split(" ")))
+    TaxName_2_Taxid_dict = pd.Series(df_wiki_meta["Taxid"].values, index=df_wiki_meta["Genus species"]).to_dict()
+    year, level = "-1", "-1"
+    etype = "-58"
+    EntrezGeneID_2_ENSP_dict = get_EntrezGeneID_2_ENSP(fn_in_STRING_EntrezGeneID_2_STRING) # previously fn_in_UniProt_ID_mapping
+    WikiPathways_dir = os.path.dirname(Human_WikiPathways_gmt)
+    fn_list = [os.path.join(WikiPathways_dir, fn) for fn in os.listdir(WikiPathways_dir) if fn.endswith(".gmt")]
+    already_written = []
+    with open(fn_out_Functions_table_WikiPathways, "w") as fh_out_functions:  # etype | an | description | year | level
+        with open(fn_out_Protein_2_Function_table_WikiPathways, "w") as fh_out_protein_2_function:  # an | func_array | etype
+            for fn_wiki in fn_list:
+                taxname = fn_wiki.split("-")[-1].replace(".gmt", "")
+                try:
+                    taxid = TaxName_2_Taxid_dict[taxname]  # taxid is an integer
+                except KeyError:
+                    print("WikiPathways, couldn't translate TaxName from file: {}".format(fn_wiki))
+                    continue
+                with open(fn_wiki, "r") as fh_in: # remove dupliates
+                    # remember pathway to proteins mapping --> then translate to ENSP to func_array
+                    WikiPathwayID_2_EntrezGeneIDList_dict = {}
+                    for line in fh_in:  # DNA Replication%WikiPathways_20190310%WP1223%Anopheles gambiae	http://www.wikipathways.org/instance/WP1223_r68760	1275918	1275917	1282031	3290537	1276035	1280711	1281887
+                        pathwayName_version_pathwayID_TaxName, url_, *entrez_ids = line.strip().split("\t")  # 'DNA Replication', 'WikiPathways_20190310', 'WP1223', 'Anopheles gambiae', ['1275918', ... ]
+                        pathwayName, version, pathwayID, TaxName = pathwayName_version_pathwayID_TaxName.split("%")
+                        description = pathwayName
+                        an = pathwayID
+                        WikiPathwayID_2_EntrezGeneIDList_dict[pathwayID] = entrez_ids
+                        line_2_write = etype + "\t" + an + "\t" + description + "\t" + year + "\t" + level + "\n"
+                        if line_2_write not in already_written:
+                            fh_out_functions.write(line_2_write) # check for uniqueness of names/ IDs later
+                            already_written.append(line_2_write)
+
+                    # map to UniProt and to STRING, single pathway to multiple entrez_ids translate to ENSP/UniProtAN to multiple pathways
+                    ENSP_2_wiki_dict = {}
+                    for WikiPathwayID, EntrezGeneID_list in WikiPathwayID_2_EntrezGeneIDList_dict.items():
+                        for EntrezGeneID in EntrezGeneID_list:
+                            try:
+                                ENSP_list = EntrezGeneID_2_ENSP_dict[EntrezGeneID]
+                            except KeyError:
+                                ENSP_list = []
+                            for ENSP in ENSP_list:
+                                if ENSP not in ENSP_2_wiki_dict:
+                                    ENSP_2_wiki_dict[ENSP] = [WikiPathwayID]
+                                else:
+                                    ENSP_2_wiki_dict[ENSP].append(WikiPathwayID)
+                    for ENSP, wiki_list in ENSP_2_wiki_dict.items():
+                        func_array = ",".join(sorted(set(wiki_list)))
+                        fh_out_protein_2_function.write(str(taxid) + "\t" + ENSP + "\t" + func_array + "\t" + etype + "\n")
 
 
 if __name__ == "__main__":

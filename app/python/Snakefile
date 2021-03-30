@@ -52,6 +52,11 @@ RCTM_hierarchy = os.path.join(DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
 interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_child_tree.txt")
 fn_tree_STRING_clusters = os.path.join(DOWNLOADS_DIR, "clusters.tree.v11.0.txt.gz")
 
+
+### static files frozen on 2021 March 29
+# Protein_2_Function_table_WikiPathways_STS = os.path.join(TABLES_DIR,"Protein_2_Function_table_WikiPathways_STS.txt") --> integrated into Protein_2_Function_table_STRING_all_but_PMID.txt
+# Functions_table_WikiPathways = os.path.join(TABLES_DIR,"Functions_table_WikiPathways.txt") --> integrated into Functions_table_STRING_all_but_PMID.txt
+
 ### STRING_clusters
 Protein_2_Function_table_STRING_clusters = os.path.join(TABLES_DIR, "Protein_2_Function_table_STRING_clusters.txt")
 Functions_table_STRING_clusters = os.path.join(TABLES_DIR, "Functions_table_STRING_clusters.txt")
