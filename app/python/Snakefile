@@ -217,8 +217,8 @@ rule r_Protein_2_Function_table_reduced:
 
 rule r_Protein_2_FunctionEnum_table_STRING:
     input:
-        Protein_2_Function_table_STRING_reduced = Protein_2_Function_table_STRING_reduced,
-        Functions_table_STRING_reduced = Functions_table_STRING_reduced
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+        Protein_2_Function_table_STRING_reduced = Protein_2_Function_table_STRING_reduced
     output:
         Protein_2_FunctionEnum_table_STRING = Protein_2_FunctionEnum_table_STRING
     threads: NUMBER_OF_PROCESSES_sorting
