@@ -139,12 +139,12 @@ def test_checksum():
     fn_list, binary_list, size_list, num_lines_list, date_list, checksum_list = [], [], [], [], [], []
     for fn in sorted(os.listdir(variables.TABLES_DIR)):
         fn_abs_path = os.path.join(variables.TABLES_DIR, fn)
-        # if fn.endswith("STS_FIN.txt"):
-        #     binary_list.append(False)
-        #     num_lines_list.append(tools.line_numbers(fn_abs_path))
-        if fn.endswith("STS_FIN.p"):
-            binary_list.append(True)
-            num_lines_list.append(np.nan)
+        if fn.endswith("STS_FIN.txt"):
+            binary_list.append(False)
+            num_lines_list.append(tools.line_numbers(fn_abs_path))
+        # if fn.endswith("STS_FIN.p"):
+        #     binary_list.append(True)
+        #     num_lines_list.append(np.nan)
         else:
             continue
         fn_list.append(fn)

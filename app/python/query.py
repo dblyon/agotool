@@ -4,7 +4,7 @@ import pandas as pd
 import datetime, time
 import os, sys
 from collections import defaultdict
-import psycopg2
+# import psycopg2
 from contextlib import contextmanager
 import pickle
 
@@ -627,33 +627,57 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         else:
             result = get_results_of_statement("SELECT * FROM functions")
         shape_ = len(result)
-        year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
-        entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
-        if not low_memory:
-            description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
-            category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
-        functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
-        hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
-        indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
-        indices_arr.flags.writeable = False
+        # year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
+        # entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
+        # if not low_memory:
+        #     description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
+        #     category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+        # functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
+        # hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
+        # indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
+        # indices_arr.flags.writeable = False
+        # for i, res in enumerate(result):
+        #     func_enum, etype, term, description, year, hierlevel = res
+        #     func_enum = int(func_enum)
+        #     etype = int(etype)
+        #     try:
+        #         year = int(year)
+        #     except ValueError: # e.g. "...."
+        #         year = -1
+        #     hierlevel = int(hierlevel)
+        #     entitytype_arr[func_enum] = etype
+        #     functionalterm_arr[func_enum] = term
+        #     year_arr[func_enum] = year
+        #     hierlevel_arr[func_enum] = hierlevel
+        #     if not low_memory:
+        #         description_arr[func_enum] = description
+        #         category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
 
+        func_enum_l, etype_l, term_l, description_l, year_l, hierlevel_l, category_l = [], [], [], [], [], [], []
         for i, res in enumerate(result):
             func_enum, etype, term, description, year, hierlevel = res
-            func_enum = int(func_enum)
+            assert i == int(func_enum)
             etype = int(etype)
             try:
                 year = int(year)
             except ValueError: # e.g. "...."
                 year = -1
-            hierlevel = int(hierlevel)
-            entitytype_arr[func_enum] = etype
-            functionalterm_arr[func_enum] = term
-            year_arr[func_enum] = year
-            hierlevel_arr[func_enum] = hierlevel
+            etype_l.append(etype)
+            term_l.append(term)
+            year_l.append(year)
+            hierlevel_l.append(int(hierlevel))
             if not low_memory:
-                description_arr[func_enum] = description
-                category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
-
+                description_l.append(description)
+                category_l.append(variables.entityType_2_functionType_dict[etype])
+        year_arr = np.array(year_l, dtype="int16")  # Integer (-32768 to 32767)
+        entitytype_arr = np.array(etype_l, dtype="int8")
+        if not low_memory:
+            description_arr = np.array(description_l, dtype=object) # ""U261"))
+            category_arr = np.array(category_l, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+        functionalterm_arr = np.array(term_l, dtype=object) #np.dtype("U13"))
+        hierlevel_arr = np.array(hierlevel_l, dtype="int8")  # Byte (-128 to 127)
+        indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
+        indices_arr.flags.writeable = False
         year_arr.flags.writeable = False # make it immutable
         hierlevel_arr.flags.writeable = False
         entitytype_arr.flags.writeable = False
@@ -999,19 +1023,14 @@ def get_background_taxid_2_funcEnum_index_2_associations(read_from_flat_files=Fa
             # taxid, background_count, background_count_array = res
             taxid, background_count, enumeration_arr, funcEnum_count_background = res
             taxid = int(taxid)
-            background_counts_list = []
-            # for sublist in background_count_array[2:-2].split("},{"):
-            #     background_counts_list.append([int(ele) for ele in sublist.split(",")])
-            shape_ = len(background_counts_list)
             enumeration_arr = np.fromstring(enumeration_arr, dtype=np.dtype("uint32"), sep=",")
             funcEnum_count_background = np.fromstring(funcEnum_count_background, dtype=np.dtype("uint32"), sep=",")
             shape_ = len(enumeration_arr)
             index_positions_arr = np.zeros(shape_, dtype=np.dtype("uint32"))
-            # index_positions_arr[:] = np.nan
             counts_arr = np.zeros(shape_, dtype=np.dtype("uint16"))
-            # counts_arr[:] = np.nan
-            for enum, index_count in enumerate(background_counts_list):
-                index_, count = index_count
+            for enum in range(shape_):
+                index_ = enumeration_arr[enum]
+                count = funcEnum_count_background[enum]
                 index_positions_arr[enum] = index_
                 counts_arr[enum] = count
             index_positions_arr.flags.writeable = False

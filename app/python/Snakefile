@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.join(os.getcwd(), "python"))
 import variables
 import create_SQL_tables_snakemake as cst
 import download_resources_snakemake as drs
-import tools
+# import tools
 
 import socket
 hostname = socket.gethostname()
@@ -21,11 +21,6 @@ verbose = variables.VERBOSE
 TABLES_DICT_SNAKEMAKE = variables.TABLES_DICT_SNAKEMAKE
 
 log_snakemake = os.path.join(variables.LOG_DIRECTORY, "log_snakemake.log")
-
-# ToDo
-# - check global_enrichment_lineage /hierarchy --> that lineage still exists also for terms that were obsolete
-# - profile code --> maybe change ast.literal_eval, and or flat file style from "{...}" to simple ";" as delimiter
-# - fix bug: after running pipeline DF should be updated and also transferred to where pytest runs
 
 ### Parameters
 max_len_description = 250
@@ -87,8 +82,6 @@ Lineage_table_STRING = TABLES_DICT_SNAKEMAKE["Lineage_table_STRING"]
 Protein_2_FunctionEnum_table_STRING = TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_table_STRING"]
 Taxid_2_FunctionCountArray_table_STRING = TABLES_DICT_SNAKEMAKE["Taxid_2_FunctionCountArray_table_STRING"]
 
-
-
 ### pickled results
 # taxid_2_proteome_count_dict = TABLES_DICT_SNAKEMAKE["taxid_2_proteome_count_dict"]
 # kegg_taxid_2_acronym_dict = TABLES_DICT_SNAKEMAKE["kegg_taxid_2_acronym_dict"]
@@ -110,7 +103,6 @@ Taxid_2_FunctionCountArray_table_STRING = TABLES_DICT_SNAKEMAKE["Taxid_2_Functio
 
 LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
 LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = variables.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT
-
 
 rule download_Protein_2_Function_PMID:
     output:
@@ -256,6 +248,35 @@ rule r_Lineage_table_STRING:
     run:
         cst.Lineage_table_STRING_v2_STRING_clusters(input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.Functions_table_STRING_reduced, input.fn_tree_STRING_clusters, output.Lineage_table_STRING, output.Lineage_table_STRING_hr, output.Lineage_table_STRING_no_translation)
 
+rule r_AFC_KS_enrichment_terms_flat_files:
+    input:
+        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
+        Protein_shorthands = Protein_shorthands,
+        KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
+        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
+        GO_basic_obo = GO_basic_obo,
+        UPK_obo = UPK_obo,
+        RCTM_hierarchy = RCTM_hierarchy,
+        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
+        fn_tree_STRING_clusters = fn_tree_STRING_clusters
+    output:
+        global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
+        populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz
+    log: log_snakemake
+    run:
+        cst.AFC_KS_enrichment_terms_flat_files(input.Functions_table_STRING_reduced, input.Protein_shorthands, input.KEGG_Taxid_2_acronym_table, input.Function_2_ENSP_table_STRING_reduced,input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.fn_tree_STRING_clusters, output.global_enrichment_data_current_tar_gz, output.populate_classification_schema_current_sql_gz)
+
+rule r_add_2_DF_file_dimensions_log:
+    input:
+        LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
+        LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT,
+        global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
+        populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz,
+        Taxid_2_FunctionCountArray_table_STRING = Taxid_2_FunctionCountArray_table_STRING
+    log: log_snakemake
+    run:
+        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, input.global_enrichment_data_current_tar_gz, input.populate_classification_schema_current_sql_gz, input.Taxid_2_FunctionCountArray_table_STRING)
+
 # rule r_pickle_final_results:
 #     input:
 #         Lineage_table_STRING = Lineage_table_STRING,
@@ -279,32 +300,3 @@ rule r_Lineage_table_STRING:
 #     log: log_snakemake
 #     run:
 #         cst.pickle_PMID_autoupdates(input.Lineage_table_STRING, input.Taxid_2_FunctionCountArray_table_STRING, output)
-
-rule r_AFC_KS_enrichment_terms_flat_files:
-    input:
-        Functions_table_STRING_reduced = Functions_table_STRING_reduced,
-        Protein_shorthands = Protein_shorthands,
-        KEGG_Taxid_2_acronym_table = KEGG_Taxid_2_acronym_table,
-        Function_2_ENSP_table_STRING_reduced = Function_2_ENSP_table_STRING_reduced,
-        GO_basic_obo = GO_basic_obo,
-        UPK_obo = UPK_obo,
-        RCTM_hierarchy = RCTM_hierarchy,
-        interpro_parent_2_child_tree = interpro_parent_2_child_tree,
-        fn_tree_STRING_clusters = fn_tree_STRING_clusters
-    output:
-        global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
-        populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz
-    log: log_snakemake
-    run:
-        cst.AFC_KS_enrichment_terms_flat_files(input.Functions_table_STRING_reduced, input.Protein_shorthands, input.KEGG_Taxid_2_acronym_table, input.Function_2_ENSP_table_STRING_reduced,input.GO_basic_obo, input.UPK_obo, input.RCTM_hierarchy, input.interpro_parent_2_child_tree, input.fn_tree_STRING_clusters, output.global_enrichment_data_current_tar_gz, output.populate_classification_schema_current_sql_gz)
-
-rule r_add_2_DF_file_dimensions_log:
-    input:
-        LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
-        LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT = LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT,
-        # taxid_2_proteome_count_dict = taxid_2_proteome_count_dict,
-        global_enrichment_data_current_tar_gz = global_enrichment_data_current_tar_gz,
-        populate_classification_schema_current_sql_gz = populate_classification_schema_current_sql_gz
-    log: log_snakemake
-    run:
-        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.LOG_DF_FILE_DIMENSIONS_GLOBAL_ENRICHMENT, input.global_enrichment_data_current_tar_gz, input.populate_classification_schema_current_sql_gz)
