@@ -465,6 +465,12 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory, read_from_flat_files, from_pickle)
         self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
+        self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
+        # self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
+        self.etype_2_num_functions_dict = {}
+        for etype, min_max in self.etype_2_minmax_funcEnum.items():
+            self.etype_2_num_functions_dict["cond_{}".format(str(etype)[1:])] = min_max[1] - min_max[0] + 1
+
         if variables.VERBOSE:
             print("getting lineage dict")
         self.lineage_dict_enum = get_lineage_dict_enum(False, read_from_flat_files, from_pickle) # default is as set not array, check if this is necessary later
@@ -542,7 +548,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.description_arr, self.category_arr, self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.ENSP_2_functionEnumArray_dict, self.taxid_2_proteome_count_dict,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.etype_2_num_functions_dict)
         else:
             # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
             # year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids
@@ -550,7 +556,7 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
                                         self.etype_2_minmax_funcEnum, self.function_enumeration_len,
                                         self.etype_cond_dict, self.taxid_2_proteome_count_dict,
                                         self.taxid_2_tuple_funcEnum_index_2_associations_counts, self.lineage_dict_enum, self.blacklisted_terms_bool_arr,
-                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict)
+                                        self.cond_etypes_with_ontology, self.cond_etypes_rem_foreground_ids, self.kegg_taxid_2_acronym_dict, self.etype_2_num_functions_dict)
         return static_preloaded_objects
 
     def get_blacklisted_terms_bool_arr(self, from_pickle=False):

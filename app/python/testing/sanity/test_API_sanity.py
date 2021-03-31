@@ -17,7 +17,7 @@ import variables
 # url_local = variables.pytest_url_local
 # url_local = conftest.get_url()
 # url_local = r"http://agotool.meringlab.org/api"
-correlation_coefficient_min_threhold = 0.99
+correlation_coefficient_min_threhold = 0.95
 p_value_min_threshold = 1e-20
 
 def test_random_contiguous_input_yields_results(url_local):
@@ -302,10 +302,16 @@ def test_STRING_v115(url_local):
     assert -20 not in etype_set
     assert -25 not in etype_set
     assert -26 not in etype_set
-    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606, "limit_2_entity_type": None}, data={"foreground": "%0d".join(ensps)})
-    df = pd.read_csv(StringIO(result.text), sep='\t')
-    etype_set = set(df["etype"].unique())
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606, "limit_2_entity_type": "-78;-58;-57;-56;-55;-54;-53;-52;-51;-26;-25;-23;-22;-21;-20"}, data={"foreground": "%0d".join(ensps)})
+    df1 = pd.read_csv(StringIO(result.text), sep='\t')
+    etype_set = set(df1["etype"].unique())
     assert -58 in etype_set
     assert -20 in etype_set
     assert -25 in etype_set
     assert -26 in etype_set
+    result = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606, "limit_2_entity_type": False}, data={"foreground": "%0d".join(ensps)})
+    df2 = pd.read_csv(StringIO(result.text), sep='\t')
+    pd_testing.assert_frame_equal(df1, df2)
+
+
+

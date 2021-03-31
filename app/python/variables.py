@@ -3,7 +3,7 @@ import os, sys, multiprocessing
 # import pickle
 ############################
 ### settings
-PRELOAD = False  # set True in production for STRING_v11 (not for UniProt)
+PRELOAD = True # set True in production for STRING_v11 (not for UniProt)
 # pre-load objects DB connection necessary, set to False while testing with pytest
 skip_slow_downloads = True # 2 large slow downloads that take >= 30 min to download
 skip_downloads_completely = True # don't download anything
@@ -77,7 +77,8 @@ cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR
 
 # api_url = "http://0.0.0.0:5911/api" # local
 url_production = r"http://127.0.0.1:10114/api" # 10114 for PMID autoupdates SAN, Aquarius, Pisces
-url_testing = r"http://127.0.0.1:10116/api" # used for testing before chain-reloading
+# url_testing = r"http://127.0.0.1:10116/api" # used for testing before chain-reloading
+url_testing = r"http://127.0.0.1:5000/api" # used for testing before chain-reloading
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if DOCKER:

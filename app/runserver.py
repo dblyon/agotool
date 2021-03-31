@@ -261,6 +261,14 @@ parser.add_argument("p_value_uncorrected", type=float, # #!!! not called p_value
     help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
     default=0)
 
+parser.add_argument("multiple_testing_stringency", type=str, help="Provide either 'A' or 'B' A.) Given the set of proteins and GO terms assigned to it, what is the probability of finding these GO terms by chance. B.) What is the probability of having any enrichment given your set of protein is drawn randomly from all proteins.", default="A")
+
+parser.add_argument("STRING_version", type=str,
+    help="Select one of the following versions of STRING: {'v11', 'v11.5'}. Default is 'v11', which excludes etypes {-58, -20, -25, -26} and uses version A. of multiple_testing_stringency",
+    default="v11")
+# STRING version 11 "-78;-57;-56;-55;-54;-53;-52;-51;-23;-22;-21"
+# STRING version 11.5 "-78;-58;-57;-56;-55;-54;-53;-52;-51;-26;-25;-23;-22;-21;-20"
+
 class API_STRING(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
@@ -280,16 +288,13 @@ class API_STRING(Resource):
         args_dict.update(parser.parse_args())
         args_dict = convert_string_2_bool(args_dict)
         FDR_cutoff = args_dict["FDR_cutoff"]
-        query_parameters = request.args
-        limit_2_entity_type = query_parameters.get("limit_2_entity_type", False)  # doesn't return default, return value provided by user or False as defined locally
-        # query_parameters.get() doesn't return default, return value provided by user or False as defined locally
-        if limit_2_entity_type is False:
-            # user has not provided the 'limit_2_entity_type' argument --> use the default or whatever the user has provided
-            pass
-        else:
-            args_dict["limit_2_entity_type"] = limit_2_entity_type
         limit_2_entity_type = args_dict["limit_2_entity_type"]
-        print("3 limit_2_entity_type: ", type(limit_2_entity_type), limit_2_entity_type)
+        STRING_version = args_dict["STRING_version"]
+        if STRING_version == "v11.5":
+            args_dict["limit_2_entity_type"] = None # "-78;-58;-57;-56;-55;-54;-53;-52;-51;-26;-25;-23;-22;-21;-20"
+            args_dict["multiple_testing_stringency"] = "B" # otherwise default --> 'A'
+        if limit_2_entity_type is False:
+            args_dict["limit_2_entity_type"] = None
 
         filter_PMID_top_n = args_dict["filter_PMID_top_n"]
         if FDR_cutoff == 0 or FDR_cutoff >= 1 or FDR_cutoff == "None":

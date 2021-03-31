@@ -262,16 +262,15 @@ cdef filter_parents_if_same_foreground(uint8[::1] blacklisted_terms_bool_arr_tem
                 for lineage_term in lineage:
                     blacklisted_terms_bool_arr_temp[lineage_term] = 1 # True
 
-
 def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=False):
     """
     get_preloaded_objects_for_single_analysis --> funcEnum_count_foreground, foreground_ids_arr_of_string
     get_static_preloaded_objects --> year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count_dict, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict
     """
     if not low_memory:
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_funcEnum_index_2_associations, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_funcEnum_index_2_associations, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, etype_2_num_functions_dict = static_preloaded_objects
     else: # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, etype_2_num_functions_dict = static_preloaded_objects
 
     foreground_n = len(protein_ans)
     funcEnum_count_foreground, foreground_ids_arr_of_string = preloaded_objects_per_analysis
@@ -340,9 +339,9 @@ def run_characterize_foreground_cy(protein_ans, preloaded_objects_per_analysis, 
 
 def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=False):
     if not low_memory:
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, etype_2_num_functions_dict = static_preloaded_objects
     else: # missing: description_arr, category_arr, ENSP_2_functionEnumArray_dict
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, etype_2_num_functions_dict = static_preloaded_objects
     foreground_ids_arr_of_string, background_ids_arr_of_string, funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, cond_filter, cond_PMIDs = preloaded_objects_per_analysis
 
     foreground_n = len(protein_ans_fg)
@@ -373,19 +372,34 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)
 
+    # ### multiple testing per entity type, save results preformed p_values_corrected
+    # for etype_name, cond_etype in etype_cond_dict.items():
+    #     # select indices for given entity type and if multiple testing needs to be applied
+    #     cond = cond_etype & cond_multitest
+    #     # select p_values for BenjaminiHochberg
+    #     p_values_2_BH = p_values[cond]
+    #     num_total_tests = p_values_2_BH.shape[0]
+    #     # select indices for BH
+    #     indices_2_BH = indices_arr[cond]
+    #     # sort p_values and remember indices sort order
+    #     p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
+    #     indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
+    #     BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
     ### multiple testing per entity type, save results preformed p_values_corrected
-    for etype_name, cond_etype in etype_cond_dict.items():
-        # select indices for given entity type and if multiple testing needs to be applied
-        cond = cond_etype & cond_multitest
-        # select p_values for BenjaminiHochberg
-        p_values_2_BH = p_values[cond]
-        num_total_tests = p_values_2_BH.shape[0]
-        # select indices for BH
-        indices_2_BH = indices_arr[cond]
-        # sort p_values and remember indices sort order
-        p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
-        indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
-        BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
+    if args_dict["multiple_testing_per_etype"]:
+        for etype_name, cond_etype in etype_cond_dict.items():
+            if args_dict["multiple_testing_stringency"] == "A":
+                num_total_tests = p_values[cond_etype & cond_multitest].shape[0]  # sum(cond_etype & cond_multitest) is prohibitively slow!
+            else:
+                num_total_tests = etype_2_num_functions_dict[etype_name]
+            multiple_testing_per_entity_type(cond_etype, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
+    else:
+        cond_all = np.ones(function_enumeration_len, dtype=bool)
+        if args_dict["multiple_testing_stringency"] == "A":
+            num_total_tests = sum(cond_multitest)
+        else:
+            num_total_tests = cond_all.shape[0]
+        multiple_testing_per_entity_type(cond_all, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
 
     ### FILTER
     FDR_cutoff = args_dict["FDR_cutoff"]
@@ -485,9 +499,9 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
 
 def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analysis, static_preloaded_objects, args_dict, low_memory=False, debug=False):
     if not low_memory:
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, ENSP_2_functionEnumArray_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, etype_2_num_functions_dict = static_preloaded_objects
     else:
-        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict = static_preloaded_objects
+        year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, etype_2_minmax_funcEnum, function_enumeration_len, etype_cond_dict, taxid_2_proteome_count, taxid_2_tuple_funcEnum_index_2_associations_counts, lineage_dict_enum, blacklisted_terms_bool_arr, cond_etypes_with_ontology, cond_etypes_rem_foreground_ids, kegg_taxid_2_acronym_dict, etype_2_num_functions_dict = static_preloaded_objects
     funcEnum_count_foreground, funcEnum_count_background, p_values, p_values_corrected, cond_multitest, blacklisted_terms_bool_arr_temp, cond_terms_reduced_with_ontology, foreground_ids_arr_of_string, cond_filter, cond_PMIDs = preloaded_objects_per_analysis
     foreground_n = len(protein_ans)
     ## count background
@@ -523,18 +537,34 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)
     ### multiple testing per entity type, save results preformed p_values_corrected
-    for etype_name, cond_etype in etype_cond_dict.items():
-        # select indices for given entity type and if multiple testing needs to be applied
-        cond = cond_etype & cond_multitest
-        # select p_values for BenjaminiHochberg
-        p_values_2_BH = p_values[cond]
-        num_total_tests = p_values_2_BH.shape[0]
-        # select indices for BH
-        indices_2_BH = indices_arr[cond]
-        # sort p_values and remember indices sort order
-        p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
-        indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
-        BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
+    # for etype_name, cond_etype in etype_cond_dict.items():
+    #     # select indices for given entity type and if multiple testing needs to be applied
+    #     cond = cond_etype & cond_multitest
+    #     # select p_values for BenjaminiHochberg
+    #     p_values_2_BH = p_values[cond]
+    #     num_total_tests = p_values_2_BH.shape[0]
+    #     # select indices for BH
+    #     indices_2_BH = indices_arr[cond]
+    #     # sort p_values and remember indices sort order
+    #     p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
+    #     indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
+    #     BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
+    ### multiple testing per entity type, save results preformed p_values_corrected
+    if args_dict["multiple_testing_per_etype"]:
+        for etype_name, cond_etype in etype_cond_dict.items():
+            if args_dict["multiple_testing_stringency"] == "A":
+                num_total_tests = p_values[cond_etype & cond_multitest].shape[0]  # sum(cond_etype & cond_multitest) is prohibitively slow!
+            else:
+                num_total_tests = etype_2_num_functions_dict[etype_name]
+            multiple_testing_per_entity_type(cond_etype, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
+    else:
+        cond_all = np.ones(function_enumeration_len, dtype=bool)
+        if args_dict["multiple_testing_stringency"] == "A":
+            num_total_tests = sum(cond_multitest)
+        else:
+            num_total_tests = cond_all.shape[0]
+        multiple_testing_per_entity_type(cond_all, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
+
 
     ### FILTER
     FDR_cutoff = args_dict["FDR_cutoff"]
@@ -623,3 +653,16 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     cond_STRING_clusters = df_2_return["etype"] == variables.functionType_2_entityType_dict["STRING_clusters"] #-78 # STRING_cluters, remove taxid prefix
     df_2_return.loc[cond_STRING_clusters, "term"] = df_2_return.loc[cond_STRING_clusters, "term"].apply(lambda s: s.split("_")[1])
     return df_2_return[variables.cols_sort_order_genome]
+
+def multiple_testing_per_entity_type(cond_etype, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests):
+    # select indices for given entity type and if multiple testing needs to be applied
+    cond = cond_etype & cond_multitest
+    # select p_values for BenjaminiHochberg
+    p_values_2_BH = p_values[cond]
+    # previously: num_total_tests = p_values_2_BH.shape[0]
+    # select indices for BH
+    indices_2_BH = indices_arr[cond]
+    # sort p_values and remember indices sort order
+    p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
+    indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
+    BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
