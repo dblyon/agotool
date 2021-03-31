@@ -14,7 +14,6 @@ import variables, query
 
 
 ##################################################################
-
 @boundscheck(False)
 @wraparound(False)
 cdef create_funcEnum_count_background_v2(unsigned int[::1] funcEnum_count_background,
@@ -372,34 +371,22 @@ def run_compare_samples_cy(protein_ans_fg, protein_ans_bg, preloaded_objects_per
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)
 
-    # ### multiple testing per entity type, save results preformed p_values_corrected
-    # for etype_name, cond_etype in etype_cond_dict.items():
-    #     # select indices for given entity type and if multiple testing needs to be applied
-    #     cond = cond_etype & cond_multitest
-    #     # select p_values for BenjaminiHochberg
-    #     p_values_2_BH = p_values[cond]
-    #     num_total_tests = p_values_2_BH.shape[0]
-    #     # select indices for BH
-    #     indices_2_BH = indices_arr[cond]
-    #     # sort p_values and remember indices sort order
-    #     p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
-    #     indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
-    #     BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
     ### multiple testing per entity type, save results preformed p_values_corrected
-    if args_dict["multiple_testing_per_etype"]:
-        for etype_name, cond_etype in etype_cond_dict.items():
-            if args_dict["multiple_testing_stringency"] == "A":
-                num_total_tests = p_values[cond_etype & cond_multitest].shape[0]  # sum(cond_etype & cond_multitest) is prohibitively slow!
-            else:
-                num_total_tests = etype_2_num_functions_dict[etype_name]
-            multiple_testing_per_entity_type(cond_etype, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
-    else:
-        cond_all = np.ones(function_enumeration_len, dtype=bool)
+    for etype_name, cond_etype in etype_cond_dict.items():
+        # select indices for given entity type and if multiple testing needs to be applied
+        cond = cond_etype & cond_multitest
+        # select p_values for BenjaminiHochberg
+        p_values_2_BH = p_values[cond]
+        # select indices for BH
+        indices_2_BH = indices_arr[cond]
+        # sort p_values and remember indices sort order
+        p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
+        indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
         if args_dict["multiple_testing_stringency"] == "A":
-            num_total_tests = sum(cond_multitest)
+            num_total_tests = p_values_2_BH.shape[0]
         else:
-            num_total_tests = cond_all.shape[0]
-        multiple_testing_per_entity_type(cond_all, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
+            num_total_tests = etype_2_num_functions_dict[etype_name]
+        BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
 
     ### FILTER
     FDR_cutoff = args_dict["FDR_cutoff"]
@@ -537,44 +524,27 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     ### calculate p-values and get bool array for multiple testing
     cond_multitest = calc_pvalues(funcEnum_count_foreground, funcEnum_count_background, foreground_n, background_n, p_values, cond_multitest)
     ### multiple testing per entity type, save results preformed p_values_corrected
-    # for etype_name, cond_etype in etype_cond_dict.items():
-    #     # select indices for given entity type and if multiple testing needs to be applied
-    #     cond = cond_etype & cond_multitest
-    #     # select p_values for BenjaminiHochberg
-    #     p_values_2_BH = p_values[cond]
-    #     num_total_tests = p_values_2_BH.shape[0]
-    #     # select indices for BH
-    #     indices_2_BH = indices_arr[cond]
-    #     # sort p_values and remember indices sort order
-    #     p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
-    #     indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
-    #     BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
-    ### multiple testing per entity type, save results preformed p_values_corrected
-    if args_dict["multiple_testing_per_etype"]:
-        for etype_name, cond_etype in etype_cond_dict.items():
-            if args_dict["multiple_testing_stringency"] == "A":
-                num_total_tests = p_values[cond_etype & cond_multitest].shape[0]  # sum(cond_etype & cond_multitest) is prohibitively slow!
-            else:
-                num_total_tests = etype_2_num_functions_dict[etype_name]
-            multiple_testing_per_entity_type(cond_etype, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
-    else:
-        cond_all = np.ones(function_enumeration_len, dtype=bool)
+    for etype_name, cond_etype in etype_cond_dict.items():
+        # select indices for given entity type and if multiple testing needs to be applied
+        cond = cond_etype & cond_multitest
+        # select p_values for BenjaminiHochberg
+        p_values_2_BH = p_values[cond]
+        # select indices for BH
+        indices_2_BH = indices_arr[cond]
+        # sort p_values and remember indices sort order
+        p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
+        indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
         if args_dict["multiple_testing_stringency"] == "A":
-            num_total_tests = sum(cond_multitest)
+            num_total_tests = p_values_2_BH.shape[0]
         else:
-            num_total_tests = cond_all.shape[0]
-        multiple_testing_per_entity_type(cond_all, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests)
-
+            num_total_tests = etype_2_num_functions_dict[etype_name]
+        BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)
 
     ### FILTER
     FDR_cutoff = args_dict["FDR_cutoff"]
     filter_foreground_count_one = args_dict["filter_foreground_count_one"]
     filter_PMID_top_n = args_dict["filter_PMID_top_n"]
     filter_parents = args_dict["filter_parents"]
-    # if FDR_cutoff is not None:
-    #     cond_filter = p_values_corrected <= FDR_cutoff
-    # elif filter_foreground_count_one is not None and FDR_cutoff is None:
-    #     cond_filter = funcEnum_count_foreground > 1
     if FDR_cutoff is not None:
         cond_filter = p_values_corrected <= FDR_cutoff
 
@@ -653,16 +623,3 @@ def run_genome_cy(taxid, protein_ans, background_n, preloaded_objects_per_analys
     cond_STRING_clusters = df_2_return["etype"] == variables.functionType_2_entityType_dict["STRING_clusters"] #-78 # STRING_cluters, remove taxid prefix
     df_2_return.loc[cond_STRING_clusters, "term"] = df_2_return.loc[cond_STRING_clusters, "term"].apply(lambda s: s.split("_")[1])
     return df_2_return[variables.cols_sort_order_genome]
-
-def multiple_testing_per_entity_type(cond_etype, cond_multitest, p_values, p_values_corrected, indices_arr, num_total_tests):
-    # select indices for given entity type and if multiple testing needs to be applied
-    cond = cond_etype & cond_multitest
-    # select p_values for BenjaminiHochberg
-    p_values_2_BH = p_values[cond]
-    # previously: num_total_tests = p_values_2_BH.shape[0]
-    # select indices for BH
-    indices_2_BH = indices_arr[cond]
-    # sort p_values and remember indices sort order
-    p_values_2_BH_sort_order = np.argsort(p_values_2_BH) # index positions of a reduced set
-    indices_2_BH_of_superset = indices_2_BH[p_values_2_BH_sort_order]
-    BenjaminiHochberg_cy(p_values, num_total_tests, p_values_corrected, indices_2_BH_of_superset)

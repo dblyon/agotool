@@ -18,7 +18,7 @@ READ_FROM_FLAT_FILES = True # get data for PQO from flat files instead of from P
 FROM_PICKLE = False # read PQO data from pickle instead of flatfiles
 DEBUG = False # for flask and some internals for printing, set to False in production
 LOG_USERINPUT_DEBUG = False # turn logging for userinput (args_dict) on or off. False in production
-PROFILING = False # profiling flaskapp --> check stdout, set to False in production
+PROFILING = True # profiling flaskapp --> check stdout, set to False in production
 TESTING = False
 # use small testing subset of files for DB import, checking settings when intilizing everything for the first time
 VERBOSE = True # print stuff to stdout
@@ -276,5 +276,3 @@ TABLES_DICT_SNAKEMAKE = {tablename: os.path.join(TABLES_DIR_SNAKEMAKE, os.path.b
 # fn_functions_table = os.path.join(TABLES_DIR, "Functions_table_STRING.txt")
 # blacklisted_enum_terms = get_blacklisted_enum_terms(fn_functions_table, blacklisted_terms)
 # blacklisted_enum_terms = np.array([45826, 3348, 29853, 44962, 45487, 34225, 45240, 46138, 46149, 46150, 46151, 46152, 45513, 45769, 45130, 46156, 46157, 46158, 46153, 45777, 46056, 45302, 45692], dtype=np.dtype("uint32"))
-
-

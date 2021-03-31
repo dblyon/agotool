@@ -10,6 +10,7 @@ import requests
 import conftest
 
 import variables
+import query
 
 
 #### settings / parameters
@@ -17,8 +18,8 @@ import variables
 # url_local = variables.pytest_url_local
 # url_local = conftest.get_url()
 # url_local = r"http://agotool.meringlab.org/api"
-correlation_coefficient_min_threhold = 0.85
-p_value_min_threshold = 1e-5
+correlation_coefficient_min_threhold = 0.95
+p_value_min_threshold = 1e-20
 
 def test_random_contiguous_input_yields_results(url_local):
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=100, UniProt_ID=False, contiguous=True, joined_for_web=True)

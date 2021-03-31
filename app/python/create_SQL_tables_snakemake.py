@@ -682,12 +682,12 @@ def Lineage_table_STRING_v2_STRING_clusters(fn_in_go_basic, fn_in_keywords, fn_i
 
     with open(fn_out_lineage_table, "w") as fh_out:
         for key in sorted(lineage_dict_enum.keys()):
-            # fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict_enum[key])))[1:-1].replace("'", '"') + "}\n")
-            fh_out.write(str(key) + "\t" + ",".join(str(ele) for ele in sorted(set(lineage_dict_enum[key]))) + "\n")
+            lineage = lineage_dict_enum[key]
+            if len(lineage) > 0:
+                fh_out.write(str(key) + "\t" + ",".join(str(ele) for ele in sorted(set(lineage))) + "\n")
 
     with open(fn_out_lineage_table_hr, "w") as fh_out:
         for key in sorted(lineage_dict.keys()):
-            # fh_out.write(str(key) + "\t" + "{" + str(sorted(set(lineage_dict[key])))[1:-1].replace("'", '"') + "}\n")
             fh_out.write(str(key) + "\t" + ",".join(str(ele) for ele in sorted(set(lineage_dict[key]))) + "\n")
 
     with open(fn_out_no_translation, "w") as fh_out_no_trans:

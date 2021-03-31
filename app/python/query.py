@@ -812,13 +812,12 @@ def get_lineage_dict_enum(as_array=False, read_from_flat_files=False, from_pickl
         for res in results:
             term, lineage = res
             term = int(term)
-            lineage = lineage[1:-1].split(",")
+            lineage = lineage.strip().split(",")
             if len(lineage[0]) > 0:
-                lineage = [int(ele) for ele in lineage]
                 if as_array:
-                    lineage_dict[term] = np.array(sorted(lineage), dtype=np.dtype("uint32"))
+                    lineage_dict[term] = np.array(sorted([int(ele) for ele in lineage]), dtype=np.dtype("uint32"))
                 else:
-                    lineage_dict[term] = set(lineage)
+                    lineage_dict[term] = {int(ele) for ele in lineage}
     else:
         results = get_results_of_statement("SELECT * FROM funcenum_2_lineage;")
         for res in results:

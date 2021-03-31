@@ -66,14 +66,15 @@ app = flask.Flask(__name__, template_folder=TEMPLATES_FOLDER_ABSOLUTE)
 Markdown(app)
 
 if PROFILING:
-    from werkzeug.contrib.profiler import ProfilerMiddleware
+    # from werkzeug.contrib.profiler import ProfilerMiddleware
+    from werkzeug.middleware.profiler import ProfilerMiddleware
     app.config['PROFILE'] = True
     # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[50]) # to view profiled code in shell
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir=variables.DATA_DIR) # use qcachegrind to visualize
     ## iterm: "qcachegrind"
     ## source activate agotool
-    ## pyprof2calltree -i somethingsomething.prof -o something.prof
-    ## open "something.prof" with qcachegrind -o something.prof
+    ## pyprof2calltree -i somethingsomething.prof -o debug.prof
+    ## open "something.prof" with qcachegrind -o debug.prof
 
 app.config['EXAMPLE_FOLDER'] = EXAMPLE_FOLDER
 app.config['SESSION_FOLDER'] = SESSION_FOLDER_ABSOLUTE
