@@ -33,7 +33,7 @@ check_exit_status
 ### start uWSGI and PyTest (agotool not running by default on Phobos)
 printf "\n start uWSGI and PyTest \n"
 cd "$APP_DIR" || exit
-"$UWSGI_EXE" pytest_agotool_STRING.ini &
+"$UWSGI_EXE" vassal_agotool_STRING_pytest.ini &
 sleep 4m
 
 ## test API
@@ -52,7 +52,7 @@ check_exit_status
 printf "\n ### tar and compress new files for transfer and backup \n"
 cd "$TABLES_DIR" || exit
 #### create tar.gz of relevant flat files
-find . -maxdepth 1 -name "*_STS_FIN.p" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt" | xargs tar --overwrite -cvzf "$TAR_CURRENT"
+find . -maxdepth 1 -name "*_STS_FIN.txt" -o -name "DF_file_dimensions_log.txt" -o -name "DF_global_enrichment_file_stats_log.txt" | xargs tar --overwrite -cvzf "$TAR_CURRENT"
 check_exit_status
 rsync -av "$TAR_CURRENT" "$TAR_BAK"
 check_exit_status

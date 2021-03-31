@@ -465,8 +465,9 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory, read_from_flat_files, from_pickle)
         self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
+        if variables.VERBOSE:
+            print("getting etype_2_minmax_funcEnum")
         self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
-        # self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
         self.etype_2_num_functions_dict = {}
         for etype, min_max in self.etype_2_minmax_funcEnum.items():
             self.etype_2_num_functions_dict["cond_{}".format(str(etype)[1:])] = min_max[1] - min_max[0] + 1
@@ -610,81 +611,20 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         :param read_from_flat_files: Bool flag to get data from DB or flat files
         :return: immutable numpy array of int
         """
-        if from_pickle:
-            with open(variables.tables_dict["year_arr"], "rb") as fh:
-                year_arr = pickle.load(fh)
-            with open(variables.tables_dict["hierlevel_arr"], "rb") as fh:
-                hierlevel_arr = pickle.load(fh)
-            with open(variables.tables_dict["entitytype_arr"], "rb") as fh:
-                entitytype_arr = pickle.load(fh)
-            with open(variables.tables_dict["functionalterm_arr"], "rb") as fh:
-                functionalterm_arr = pickle.load(fh)
-            with open(variables.tables_dict["indices_arr"], "rb") as fh:
-                indices_arr = pickle.load(fh)
-            with open(variables.tables_dict["description_arr"], "rb") as fh:
-                description_arr = pickle.load(fh)
-            with open(variables.tables_dict["category_arr"], "rb") as fh:
-                category_arr = pickle.load(fh)
-            return year_arr, hierlevel_arr, entitytype_arr, functionalterm_arr, indices_arr, description_arr, category_arr
-
-        if read_from_flat_files:
-            result = get_results_of_statement_from_flat_file(variables.tables_dict["Functions_table_STRING"])
-            result = list(result)
-        else:
-            result = get_results_of_statement("SELECT * FROM functions")
-        shape_ = len(result)
-        # year_arr = np.full(shape=shape_, fill_value=-1, dtype="int16")  # Integer (-32768 to 32767)
-        # entitytype_arr = np.full(shape=shape_, fill_value=0, dtype="int8")
-        # if not low_memory:
-        #     description_arr = np.empty(shape=shape_, dtype=object) # ""U261"))
-        #     category_arr = np.empty(shape=shape_, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
-        # functionalterm_arr = np.empty(shape=shape_, dtype=object) #np.dtype("U13"))
-        # hierlevel_arr = np.full(shape=shape_, fill_value=-1, dtype="int8")  # Byte (-128 to 127)
-        # indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
-        # indices_arr.flags.writeable = False
-        # for i, res in enumerate(result):
-        #     func_enum, etype, term, description, year, hierlevel = res
-        #     func_enum = int(func_enum)
-        #     etype = int(etype)
-        #     try:
-        #         year = int(year)
-        #     except ValueError: # e.g. "...."
-        #         year = -1
-        #     hierlevel = int(hierlevel)
-        #     entitytype_arr[func_enum] = etype
-        #     functionalterm_arr[func_enum] = term
-        #     year_arr[func_enum] = year
-        #     hierlevel_arr[func_enum] = hierlevel
-        #     if not low_memory:
-        #         description_arr[func_enum] = description
-        #         category_arr[func_enum] = variables.entityType_2_functionType_dict[etype]
-
-        func_enum_l, etype_l, term_l, description_l, year_l, hierlevel_l, category_l = [], [], [], [], [], [], []
-        for i, res in enumerate(result):
-            func_enum, etype, term, description, year, hierlevel = res
-            assert i == int(func_enum)
-            etype = int(etype)
-            try:
-                year = int(year)
-            except ValueError: # e.g. "...."
-                year = -1
-            etype_l.append(etype)
-            term_l.append(term)
-            year_l.append(year)
-            hierlevel_l.append(int(hierlevel))
-            if not low_memory:
-                description_l.append(description)
-                category_l.append(variables.entityType_2_functionType_dict[etype])
-        year_arr = np.array(year_l, dtype="int16")  # Integer (-32768 to 32767)
-        entitytype_arr = np.array(etype_l, dtype="int8")
+        df = pd.read_csv(variables.tables_dict["Functions_table_STRING"], sep='\t', names=["funcEnum", "etype", "term", "description", "year", "hierlevel"])
+        df["category"] = ""
+        for etype in df["etype"].unique():
+            df.loc[df["etype"] == etype, "category"] = variables.entityType_2_functionType_dict[etype]
+        year_arr = np.array(df["year"].values, dtype="int16")  # Integer (-32768 to 32767)
+        entitytype_arr = np.array(df["etype"].values, dtype="int8")
         if not low_memory:
-            description_arr = np.array(description_l, dtype=object) # ""U261"))
-            category_arr = np.array(category_l, dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
-        functionalterm_arr = np.array(term_l, dtype=object) #np.dtype("U13"))
-        hierlevel_arr = np.array(hierlevel_l, dtype="int8")  # Byte (-128 to 127)
-        indices_arr = np.arange(shape_, dtype=np.dtype("uint32"))
+            description_arr = np.array(df["description"].values, dtype=object)  # ""U261"))
+            category_arr = np.array(df["category"], dtype=object)  # description of functional category (e.g. "Gene Ontology biological process")
+        functionalterm_arr = np.array(df["term"].values, dtype=object)  # np.dtype("U13"))
+        hierlevel_arr = np.array(df["hierlevel"].values, dtype="int8")  # Byte (-128 to 127)
+        indices_arr = np.arange(df.shape[0], dtype=np.dtype("uint32"))
         indices_arr.flags.writeable = False
-        year_arr.flags.writeable = False # make it immutable
+        year_arr.flags.writeable = False  # make it immutable
         hierlevel_arr.flags.writeable = False
         entitytype_arr.flags.writeable = False
         functionalterm_arr.flags.writeable = False

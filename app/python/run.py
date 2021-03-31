@@ -23,10 +23,6 @@ def run_STRING_enrichment(pqo, ui, args_dict):
         args_dict["ERROR_enrichment_method"] = "ERROR: enrichment_method {} is not implemented. Please check the input parameters and examples.".format(enrichment_method)
         return False
 
-    # ToDo:
-    # go_slim_or_basic = args_dict["go_slim_or_basic"]
-    # indent = args_dict["indent"]
-
     enrichment_method = args_dict["enrichment_method"]
     static_preloaded_objects = pqo.get_static_preloaded_objects(variables.LOW_MEMORY)
     #with pqo.get_preloaded_objects_per_analysis_contextmanager(method=enrichment_method) as preloaded_objects_per_analysis:
@@ -50,13 +46,7 @@ def run_STRING_enrichment(pqo, ui, args_dict):
     output_format = args_dict["output_format"]
     return format_results(df_2_return, output_format, args_dict)
 
-# @profile
 def run_STRING_enrichment_genome(pqo, ui, background_n, args_dict):
-    # import time
-    # time.sleep(20)
-    # print(args_dict)
-    # return "Bubu"
-
     taxid = check_taxids(args_dict)
     if variables.LOG_USERINPUT_DEBUG:
         with open(variables.LOG_FN_USERINPUT_DEBUG, "a") as fh_log:

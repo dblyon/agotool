@@ -38,7 +38,7 @@ check_exit_status
 ### start a uWSGI testing app (additional sanity check, since switching back to chain-reloading)
 printf "\n restart uWSGI and PyTest REST API \n"
 cd "$APP_DIR" || exit
-"$UWSGI_EXE" pytest_agotool_STRING.ini &
+"$UWSGI_EXE" vassal_agotool_STRING_pytest.ini &
 sleep 4m
 ### test API
 printf "\n PyTest REST API \n"

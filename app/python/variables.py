@@ -77,8 +77,7 @@ cols_sort_order_compare_samples = ["term", "hierarchical_level", "p_value", "FDR
 
 # api_url = "http://0.0.0.0:5911/api" # local
 url_production = r"http://127.0.0.1:10114/api" # 10114 for PMID autoupdates SAN, Aquarius, Pisces
-# url_testing = r"http://127.0.0.1:10116/api" # used for testing before chain-reloading
-url_testing = r"http://127.0.0.1:5000/api" # used for testing before chain-reloading
+url_testing = r"http://127.0.0.1:10116/api" # used for testing before chain-reloading
 
 PYTHON_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if DOCKER:
