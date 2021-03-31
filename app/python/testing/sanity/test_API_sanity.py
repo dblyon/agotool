@@ -17,8 +17,8 @@ import variables
 # url_local = variables.pytest_url_local
 # url_local = conftest.get_url()
 # url_local = r"http://agotool.meringlab.org/api"
-correlation_coefficient_min_threhold = 0.95
-p_value_min_threshold = 1e-20
+correlation_coefficient_min_threhold = 0.85
+p_value_min_threshold = 1e-5
 
 def test_random_contiguous_input_yields_results(url_local):
     fg_string = conftest.get_random_human_ENSP(num_ENSPs=100, UniProt_ID=False, contiguous=True, joined_for_web=True)
@@ -55,6 +55,21 @@ def test_FG_count_not_larger_than_BG_count(url_local):
     is_true = df.shape[0] > 0
     if not is_true:
         response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606, "FDR_cutoff": 1, "p_value_uncorrected": 1},
+            data={"foreground": fg_string})
+        df = pd.read_csv(StringIO(response.text), sep='\t')
+    assert df.shape[0] > 0
+    cond = df["foreground_count"] <= df["background_count"]
+    assert cond.all()
+
+def test_FG_count_not_larger_than_BG_count_v2(url_local):
+    ENSP_list = ["511145.b1260", "511145.b1261", "511145.b1262", "511145.b1263"]
+    fg_string = "%0d".join(ENSP_list)
+    response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 511145},
+        data={"foreground": fg_string})
+    df = pd.read_csv(StringIO(response.text), sep='\t')
+    is_true = df.shape[0] > 0
+    if not is_true:
+        response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 511145, "FDR_cutoff": 1, "p_value_uncorrected": 1},
             data={"foreground": fg_string})
         df = pd.read_csv(StringIO(response.text), sep='\t')
     assert df.shape[0] > 0
@@ -313,5 +328,42 @@ def test_STRING_v115(url_local):
     df2 = pd.read_csv(StringIO(result.text), sep='\t')
     pd_testing.assert_frame_equal(df1, df2)
 
+
+def test_genome_and_compare_samples_are_identical(url_local):
+    ENSP_list = ["511145.b1260", "511145.b1261", "511145.b1262", "511145.b1263"]
+    fg_string = "%0d".join(ENSP_list)
+    bg_string = "%0d".join(query.get_ENSPs_of_taxid("511145"))
+    response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 511145},
+        data={"foreground": fg_string})
+    df1 = pd.read_csv(StringIO(response.text), sep='\t')
+    response = requests.post(url_local, params={"output_format": "tsv", "enrichment_method": "compare_samples", "taxid": 511145},
+        data={"foreground": fg_string, "background": bg_string})
+    df2 = pd.read_csv(StringIO(response.text), sep='\t')
+
+    correlation_coefficient_min_threhold = 0.99
+    p_value_min_threshold = 1e-20
+
+    df1["log_p_value"] = df1["p_value"].apply(lambda x: math.log(x) * -1)
+    df2["log_p_value"] = df2["p_value"].apply(lambda x: math.log(x) * -1)
+
+    df1["log_FDR"] = df1["FDR"].apply(lambda x: math.log(x) * -1)
+    df2["log_FDR"] = df2["FDR"].apply(lambda x: math.log(x) * -1)
+    dfm = df1[["term", "p_value", "log_p_value", "log_FDR", "FDR"]].merge(df2[["term", "p_value", "log_p_value", "log_FDR", "FDR"]], on="term")
+
+    correlation_coefficient, p_value = stats.pearsonr(dfm["p_value_x"], dfm["p_value_y"])
+    assert correlation_coefficient > correlation_coefficient_min_threhold
+    assert p_value <= p_value_min_threshold
+
+    correlation_coefficient, p_value = stats.pearsonr(dfm["FDR_x"], dfm["FDR_y"])
+    assert correlation_coefficient > correlation_coefficient_min_threhold
+    assert p_value <= p_value_min_threshold
+
+    correlation_coefficient, p_value = stats.pearsonr(dfm["log_FDR_x"], dfm["log_FDR_y"])
+    assert correlation_coefficient > correlation_coefficient_min_threhold
+    assert p_value <= p_value_min_threshold
+
+    correlation_coefficient, p_value = stats.pearsonr(dfm["log_p_value_x"], dfm["log_p_value_y"])
+    assert correlation_coefficient > correlation_coefficient_min_threhold
+    assert p_value <= p_value_min_threshold
 
 

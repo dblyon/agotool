@@ -1187,6 +1187,14 @@ def get_last_updated_text():
 def get_current_time_and_date():
     return time.strftime('%l:%M%p %Z on %b %d, %Y') # ' 1:36PM EDT on Oct 18, 2010'
 
+def get_ENSPs_of_taxid(taxid):
+    taxid = str(taxid)
+    with open(variables.tables_dict["Taxid_2_Proteins_table_STRING"], "r") as fh_in:
+        for line in fh_in:
+            taxid_, count, ensp_arr = line.split("\t")
+            if taxid_ == taxid:
+                return set(ensp_arr.strip().split(","))
+    return set()
 
 if __name__ == "__main__":
     pqo = PersistentQueryObject_STRING(low_memory=True)
