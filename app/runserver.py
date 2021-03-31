@@ -159,18 +159,18 @@ parser.add_argument("filter_foreground_count_one", type=str,
     default="True")
 
 parser.add_argument("LOW_MEMORY", type=str, default="True")
+
 parser.add_argument("filter_PMID_top_n", type=int, default=10000, help="Filter the top n PMIDs (e.g. 100, default=0 meaning report everything), sorting by low p-value and recent publication date.")
+
 parser.add_argument("caller_identity", type=str,
     help="Your identifier for us e.g. www.my_awesome_app.com",
-    default=None) # ? do I need default value ?
-
-# parser.add_argument("filter_PMID", type=float,
-#     help="Filter the top n PMID (PubMed IDs) sorted by lowest FDR and newest publication date; e.g. 100, default=100.",
-#     default=100)
+    default=None)
 
 parser.add_argument("limit_2_entity_type", type=str,
     help="Limit the enrichment analysis to a specific or multiple entity types. e.g. '-21' (for GO molecular function) or '-21;-22;-23;-51' (for all GO terms as well as UniProt Keywords). default is '-78;-57;-56;-55;-54;-53;-52;-51;-23;-22;-21' for all STRING v11 types. Use 'None' to also get WikiPathways, Diseases, Tissues, and GOCC TextMining",
     default="-78;-57;-56;-55;-54;-53;-52;-51;-23;-22;-21")
+# STRING version 11 "-78;-57;-56;-55;-54;-53;-52;-51;-23;-22;-21"
+# STRING version 11.5 "-78;-58;-57;-56;-55;-54;-53;-52;-51;-26;-25;-23;-22;-21;-20"
 
 parser.add_argument("privileged", type=str,
     default="False")
@@ -261,7 +261,6 @@ parser.add_argument("p_value_uncorrected", type=float, # #!!! not called p_value
     help="Apply a filter (value between 0 and 1) for maximum threshold value of the uncorrected p-value.",
     default=0)
 
-
 class API_STRING(Resource):
     """
     get enrichment for all available functional associations not 'just' one category
@@ -278,19 +277,20 @@ class API_STRING(Resource):
         - or parameters of form
         """
         args_dict = defaultdict(lambda: None)
-        args_dict["foreground"] = request.form.get("foreground")
-        args_dict["output_format"] = request.form.get("output_format")
-        args_dict["enrichment_method"] = request.form.get("enrichment_method")
-        args_dict["taxid"] = request.form.get("taxid")
         args_dict.update(parser.parse_args())
-        args_dict["indent"] = string_2_bool(args_dict["indent"])
-        args_dict["privileged"] = string_2_bool(args_dict["privileged"])
-        args_dict["filter_parents"] = string_2_bool(args_dict["filter_parents"])
-        args_dict["filter_foreground_count_one"] = string_2_bool(args_dict["filter_foreground_count_one"])
-        args_dict["LOW_MEMORY"] = string_2_bool(args_dict["LOW_MEMORY"])
+        args_dict = convert_string_2_bool(args_dict)
         FDR_cutoff = args_dict["FDR_cutoff"]
-        args_dict["compare_2_ratios_only"] = string_2_bool(args_dict["compare_2_ratios_only"])
-        # args_dict["session_id"] = generate_session_id()
+        query_parameters = request.args
+        limit_2_entity_type = query_parameters.get("limit_2_entity_type", False)  # doesn't return default, return value provided by user or False as defined locally
+        # query_parameters.get() doesn't return default, return value provided by user or False as defined locally
+        if limit_2_entity_type is False:
+            # user has not provided the 'limit_2_entity_type' argument --> use the default or whatever the user has provided
+            pass
+        else:
+            args_dict["limit_2_entity_type"] = limit_2_entity_type
+        limit_2_entity_type = args_dict["limit_2_entity_type"]
+        print("3 limit_2_entity_type: ", type(limit_2_entity_type), limit_2_entity_type)
+
         filter_PMID_top_n = args_dict["filter_PMID_top_n"]
         if FDR_cutoff == 0 or FDR_cutoff >= 1 or FDR_cutoff == "None":
             args_dict["FDR_cutoff"] = None
@@ -305,9 +305,6 @@ class API_STRING(Resource):
                     print(key, val)
             print("-"*80)
 
-        # if variables.temp_dont_run_analysis:
-        #     results_all_function_types = run.run_STRING_enrichment_genome(None, None, 100, args_dict)
-        #     return help_page(args_dict)
         ui = userinput.REST_API_input(pqo, args_dict)
         if not ui.check:
             args_dict["ERROR_UserInput"] = "ERROR_UserInput: Something went wrong parsing your input, please check your input and/or compare it to the examples."
@@ -434,14 +431,25 @@ class API_status(Resource):
 api.add_resource(API_status, "/status", "/info")
 
 
-def string_2_bool(string_):
-    string_ = string_.strip().lower()
-    if string_.lower() == "true" or string_ == "1":
-        return True
-    elif string_.lower() == "false" or string_ == "0":
-        return False
-    else:
-        raise NotImplementedError
+# def string_2_bool(string_):
+#     string_ = string_.strip().lower()
+#     if string_.lower() == "true" or string_ == "1":
+#         return True
+#     elif string_.lower() == "false" or string_ == "0":
+#         return False
+#     else:
+#         raise
+
+def convert_string_2_bool(args_dict):
+    for key, val in args_dict.items():
+        if isinstance(val, str):
+            if val.lower() == "true":
+                args_dict[key] = True
+            elif val.lower() == "false":
+                args_dict[key] = False
+            else:
+                pass
+    return args_dict
 
 def help_page(args_dict):
     try:
@@ -639,7 +647,7 @@ If "Abundance correction" is deselected "background_int" can be omitted.""")
                                               ("-55", "PFAM domains"),
                                               ("-56", "PMID (PubMed IDs"),
                                               ("-57", "Reactome"),
-                                              ("-21;-22;-23;-51;-52;-53;-54;-55;-56;-57", "All available")),
+                                              ("-20;-21;-22;-23;-25;-26;-51;-52;-53;-54;-55;-56;-57;-58;-78", "All available")),
                                    description="""Select either one or all three GO categories (molecular function, biological process, cellular component), UniProt keywords, or KEGG pathways.""")
     enrichment_method = fields.SelectField("Select one of the following methods",
                                    choices = (("genome", "genome"),
@@ -834,88 +842,6 @@ def results_back():
     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
     header, results = read_results_file(fn_results_orig_absolute)
     return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=Results_Form())
-
-################################################################################
-# results_filtered.html
-################################################################################
-# @app.route('/results_filtered', methods=["GET", "POST"])
-# def results_filtered():
-#     indent = request.form['indent']
-#     limit_2_entity_type = request.form['limit_2_entity_type']
-#     # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
-#     session_id = request.form['session_id']
-#
-#     # original unfiltered/clustered results
-#     file_name_orig, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
-#     header, results = read_results_file(fn_results_orig_absolute)
-#
-#     if limit_2_entity_type: # in {-21, -22, -23}: # ToDo replace with proper check
-#         results_filtered = filter_.filter_term_lineage(header, results, indent)
-#
-#         # filtered results
-#         file_name_filtered, fn_results_filtered_absolute, fn_results_filtered_relative = fn_suffix2abs_rel_path("filtered", session_id)
-#         tsv = (u'%s\n%s\n' % (header, u'\n'.join(results_filtered)))
-#         with open(fn_results_filtered_absolute, 'w') as fh:
-#             fh.write(tsv)
-#         header = header.split("\t")
-#         ellipsis_indices = elipsis(header)
-#         results2display = []
-#         for res in results_filtered:
-#             results2display.append(res.split('\t'))
-#         ip = request.environ['REMOTE_ADDR']
-#         string2log = "ip: " + ip + "\n" + "Request: results_filtered" + "\n"
-#         string2log += """limit_2_entity_type: {}\nindent: {}\n""".format(limit_2_entity_type, indent)
-#         log_activity(string2log)
-#         return render_template('results_filtered.html', header=header, results=results2display, errors=[],
-#                                file_path_orig=file_name_orig, file_path_filtered=file_name_filtered,
-#                                ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id)
-#     else:
-#         return render_template('index.html')
-
-################################################################################
-# results_clustered.html
-################################################################################
-# @app.route('/results_clustered', methods=["GET", "POST"])
-# def results_clustered():
-#     form = Results_Form(request.form)
-#     inflation_factor = form.inflation_factor.data
-#     session_id = request.form['session_id']
-#     limit_2_entity_type = request.form['limit_2_entity_type']
-#     # limit_2_entity_type = {int(ele) for ele in form.limit_2_entity_type.data.split(";")}
-#     indent = request.form['indent']
-#     file_name, fn_results_orig_absolute, fn_results_orig_relative = fn_suffix2abs_rel_path("orig", session_id)
-#     header, results = read_results_file(fn_results_orig_absolute)
-#     if not form.validate():
-#         return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form)
-#     try:
-#         mcl = cluster_filter.MCL(SESSION_FOLDER_ABSOLUTE, MAX_TIMEOUT)
-#         cluster_list = mcl.calc_MCL_get_clusters(session_id, fn_results_orig_absolute, inflation_factor)
-#     except cluster_filter.TimeOutException:
-#         return generate_result_page(header, results, limit_2_entity_type, indent, session_id, form=form, errors=['MCL timeout: The maximum time ({} min) for clustering has exceeded. Your original results are being displayed.'.format(MAX_TIMEOUT)])
-#
-#     num_clusters = len(cluster_list)
-#     file_name, fn_results_clustered_absolute, fn_results_clustered_relative = fn_suffix2abs_rel_path("clustered", session_id)
-#     results2display = []
-#     with open(fn_results_clustered_absolute, 'w') as fh:
-#         fh.write(header)
-#         for cluster in cluster_list:
-#             results_one_cluster = []
-#             for res_index in cluster:
-#                 res = results[res_index]
-#                 fh.write(res + '\n')
-#                 results_one_cluster.append(res.split('\t'))
-#             fh.write('#'*80)
-#             results2display.append(results_one_cluster)
-#     header = header.split("\t")
-#     ellipsis_indices = elipsis(header)
-#     ip = request.environ['REMOTE_ADDR']
-#     string2log = "ip: " + ip + "\n" + "Request: results_clustered" + "\n"
-#     string2log += """limit_2_entity_type: {}\nindent: {}\nnum_clusters: {}\ninflation_factor: {}\n""".format(limit_2_entity_type, indent, num_clusters, inflation_factor)
-#     log_activity(string2log)
-#     return render_template('results_clustered.html', header=header, results2display=results2display, errors=[],
-#                            file_path_orig=fn_results_orig_relative, file_path_mcl=file_name, #fn_results_clustered_relative
-#                            ellipsis_indices=ellipsis_indices, limit_2_entity_type=limit_2_entity_type, indent=indent, session_id=session_id,
-#                            num_clusters=num_clusters, inflation_factor=inflation_factor)
 
 def fn_suffix2abs_rel_path(suffix, session_id):
     file_name = "results_" + suffix + session_id + ".tsv"
