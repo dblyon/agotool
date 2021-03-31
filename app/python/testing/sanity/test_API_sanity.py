@@ -329,7 +329,6 @@ def test_STRING_v115(url_local):
     df2 = pd.read_csv(StringIO(result.text), sep='\t')
     pd_testing.assert_frame_equal(df1, df2)
 
-
 def test_genome_and_compare_samples_are_identical(url_local):
     ENSP_list = ["511145.b1260", "511145.b1261", "511145.b1262", "511145.b1263"]
     fg_string = "%0d".join(ENSP_list)
