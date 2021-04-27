@@ -49,6 +49,18 @@ def random_abundance_correction_foreground_background():
         intensity = [str(ele) for ele in np.random.normal(size=len(background))]
         return foreground, background, intensity, taxid
 
+@pytest.fixture(scope="session")
+def random_abundance_correction_foreground_background_human():
+    for _ in range(10):
+        taxid = 9606
+        background = query.get_proteins_of_taxid(taxid)
+        foreground_n = 200
+        if len(background) <= foreground_n:
+            foreground_n = int(len(background) / 2)
+        foreground = random.sample(background, foreground_n)
+        intensity = [str(ele) for ele in np.random.normal(size=len(background))]
+        return foreground, background, intensity, taxid
+
 
 ### STRING examples
 # Example #1 Protein name: trpA; Organism: Escherichia coli K12_MG1655

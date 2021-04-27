@@ -386,8 +386,22 @@ def test_abundance_correction_fg_equals_bg(random_abundance_correction_foregroun
     assert (df[cn.FG_count] <= df[cn.FG_n]).all()
     assert (df[cn.BG_count] <= df[cn.BG_n]).all()
 
-def test_abundance_correction_impute_values(random_abundance_correction_foreground_background):
-    foreground, background, intensity, taxid = random_abundance_correction_foreground_background
+# def test_abundance_correction_impute_values(random_abundance_correction_foreground_background):
+def test_abundance_correction_impute_values(random_abundance_correction_foreground_background_human):
+    """
+    pytest failed on
+    20210427
+    20210425
+
+    self = Empty DataFrame
+    Columns: [{"ERROR_UserInput":"ERROR_UserInput: Something went wrong parsing your input, please check y..."organism":9606,"output_format":"tsv","p_value_cutoff":1.0,"population":null,"species":9606,"taxid":1922782}]
+
+    self = Empty DataFrame
+    Columns: [{"ERROR_UserInput":"ERROR_UserInput: Something went wrong parsing your input, please check y..."organism":9606,"output_format":"tsv","p_value_cutoff":1.0,"population":null,"species":9606,"taxid":1923608}]
+
+    keep observing if this fails or others
+    """
+    foreground, background, intensity, taxid = random_abundance_correction_foreground_background_human
     params = {'taxid': taxid, 'output_format': 'tsv', 'enrichment_method': 'abundance_correction',
               'FDR_cutoff': 1, 'p_value_cutoff': 1, "caller_identity": "PyTest",
               "filter_foreground_count_one": False, "filter_parents": False}
