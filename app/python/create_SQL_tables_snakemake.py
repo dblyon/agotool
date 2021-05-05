@@ -4009,7 +4009,7 @@ def Pickle_Taxid_2_FunctionEnum_2_Scores_dict(Taxid_2_FunctionEnum_2_Scores_tabl
     Taxid_2_FunctionEnum_2_Scores_dict = query.get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=True, as_array_or_as_list="array", taxid_2_proteome_count=None)
     pickle.dump(Taxid_2_FunctionEnum_2_Scores_dict, open(Taxid_2_FunctionEnum_2_Scores_dict_UPS_FIN, "wb"))
 
-def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, description_arr_UPS_FIN_placeholder, goslim_generic_placeholder):
+def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, description_arr_UPS_FIN_placeholder, goslim_generic_placeholder, Secondary_2_Primary_ID_UPS_FIN):
     """
     LOG_DF_FILE_DIMENSIONS = variables.LOG_DF_FILE_DIMENSIONS
     taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
@@ -4021,6 +4021,7 @@ def add_2_DF_file_dimensions_log(LOG_DF_FILE_DIMENSIONS, taxid_2_tuple_funcEnum_
     assert os.path.exists(taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN)
     assert os.path.exists(description_arr_UPS_FIN_placeholder)
     assert os.path.exists(goslim_generic_placeholder)
+    assert os.path.exists(Secondary_2_Primary_ID_UPS_FIN)
 
     # read old table and add data to it
     df_old = pd.read_csv(LOG_DF_FILE_DIMENSIONS, sep="\t")

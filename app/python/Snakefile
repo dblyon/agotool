@@ -828,10 +828,11 @@ rule r_add_2_DF_file_dimensions_log:
         LOG_DF_FILE_DIMENSIONS = LOG_DF_FILE_DIMENSIONS,
         taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN,
         description_arr_UPS_FIN = description_arr_UPS_FIN,
-        goslim_generic_placeholder = goslim_generic_placeholder
+        goslim_generic_placeholder = goslim_generic_placeholder,
+        Secondary_2_Primary_ID_UPS_FIN = Secondary_2_Primary_ID_UPS_FIN
     log: log_snakemake
     run:
-        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, input.description_arr_UPS_FIN, input.goslim_generic_placeholder)
+        cst.add_2_DF_file_dimensions_log(input.LOG_DF_FILE_DIMENSIONS, input.taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN, input.description_arr_UPS_FIN, input.goslim_generic_placeholder, input.Secondary_2_Primary_ID_UPS_FIN)
         # add_2_DF_file_dimensions_log(variables.LOG_DF_FILE_DIMENSIONS, TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"])
 
 
