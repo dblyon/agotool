@@ -2,14 +2,27 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))) # to get to python directory
 import random
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
 from itertools import islice
 
-import query, userinput, variables
+import query, userinput, variables, taxonomy
 
 
+def get_random_taxids_within_eukaryota(num_taxids):
+    ncbi = taxonomy.NCBI_taxonomy()
+    eurkaryota = 2759
+    random_taxids_2_test = [] # restricted to Eukaryota
+    all_taxids = query.get_taxids()
+    np.random.shuffle(all_taxids)
+    for taxid in all_taxids:
+        if len(random_taxids_2_test) == num_taxids:
+            return random_taxids_2_test
+        if ncbi.is_taxid_child_of_parent_taxid(taxid, eurkaryota):
+            random_taxids_2_test.append(taxid)
+
+taxids_2_test = get_random_taxids_within_eukaryota(num_taxids=10)
 
 
 @pytest.fixture(scope='session')
@@ -31,16 +44,18 @@ def get_something():
 
 @pytest.fixture(scope="session")
 def random_foreground_background(): # used TaxIDs fixture previously, but now it is random on TaxID level as well
-    for _ in range(10):
-        taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
+    # for _ in range(10):
+    #     taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
+    for taxid in taxids_2_test:
         background = query.get_proteins_of_taxid(taxid)
         foreground = random.sample(background, 200)
         return foreground, background, taxid
 
 @pytest.fixture(scope="session")
 def random_abundance_correction_foreground_background():
-    for _ in range(10):
-        taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
+    # for _ in range(10):
+    #     taxid = random.choice(query.get_taxids()) # read_from_flat_files=True
+    for taxid in taxids_2_test:
         background = query.get_proteins_of_taxid(taxid)
         foreground_n = 200
         if len(background) <= foreground_n:
@@ -51,9 +66,9 @@ def random_abundance_correction_foreground_background():
 
 @pytest.fixture(scope="session")
 def random_abundance_correction_foreground_background_human():
+    taxid = 9606
+    background = query.get_proteins_of_taxid(taxid)
     for _ in range(10):
-        taxid = 9606
-        background = query.get_proteins_of_taxid(taxid)
         foreground_n = 200
         if len(background) <= foreground_n:
             foreground_n = int(len(background) / 2)

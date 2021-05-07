@@ -58,7 +58,7 @@ class NCBI_taxonomy(object):
         :param taxdump_directory: String
         :return: None
         """
-        homedir = os.path.expanduser("~")
+        # homedir = os.path.expanduser("~")
         self.for_SQL = for_SQL
         if self.for_SQL:
             self.taxname_2_scientificname = {}
