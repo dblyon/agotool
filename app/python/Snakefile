@@ -574,14 +574,20 @@ rule r_Lineage_table_UPS_FIN:
 
 rule r_lineage_dict_direct_funcName_UPS_FIN:
     input:
-        GO_obo = GO_obo
+        GO_obo = GO_obo,
+        GO_obo_Jensenlab=GO_obo_Jensenlab,
+        UPK_obo=UPK_obo,
+        RCTM_hierarchy=RCTM_hierarchy,
+        DOID_obo_Jensenlab=DOID_obo_Jensenlab,
+        BTO_obo_Jensenlab = BTO_obo_Jensenlab
     output:
         lineage_dict_direct = lineage_dict_direct
     params:
         direct_or_allParents = "direct"
     log: log_snakemake
     run:
-        cst.lineage_dict_direct_funcName_UPS_FIN(input.GO_obo, params.direct_or_allParents, output.lineage_dict_direct)
+        cst.lineage_dict_direct_funcName_UPS_FIN(input.GO_obo, input.GO_obo_Jensenlab, input.UPK_obo, input.RCTM_hierarchy,
+            input.DOID_obo_Jensenlab, input.BTO_obo_Jensenlab, params.direct_or_allParents, output.lineage_dict_direct)
         # lineage_dict = cst.get_lineage_dict_for_all_entity_types_with_ontologies(direct_or_allParents="direct")
 
 rule r_KEGG_Taxid_2_acronym_table_UPS_FIN:
