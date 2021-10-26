@@ -27,7 +27,8 @@ log_snakemake = os.path.join(variables.LOG_DIRECTORY_SNAKEMAKE, "log_snakemake.l
 max_len_description = 250
 min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID for a each functional_association
 ### static mapping_files
-damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
+# previous to 202111: damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
+damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.tsv")
 Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING_v11.txt")
 protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 ################################################## URLs & Downloads

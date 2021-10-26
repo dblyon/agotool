@@ -6,7 +6,7 @@ WTForms==2.1
 Flask==1.0.2
 flask-restful==0.3.6
 networkx==2.1
-lxml==4.6.2
+lxml==4.6.3
 pytest==3.6.3
 pytest-cov==2.5.1
 markdown==2.6.11

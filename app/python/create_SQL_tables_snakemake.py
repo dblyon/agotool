@@ -2743,17 +2743,17 @@ def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_o
     term_2_level_dict.update(term_2_level_dict_bto)
     term_2_level_dict.update(term_2_level_dict_gocc)
     # get blacklisted terms to exclude them
-    blacklisted_ans = []
-    with open(Blacklisted_terms_Jensenlab, "r") as fh:
-        for line in fh:
-            etype, an = line.split("\t")
-            # don't include Lars' blacklisted GO terms
-            # Lars' blacklist is for a subcellular localization resource, so telling that the protein is part of complex X is not
-            # really the information that you are after. But for the enrichment, the situation is different.
-            if etype != "-22":
-                blacklisted_ans.append(an.strip())
-    blacklisted_ans = set(blacklisted_ans)
-    blacklisted_ans.update(variables.blacklisted_terms) # exclude top level terms, and manually curated
+    # blacklisted_ans = []
+    # with open(Blacklisted_terms_Jensenlab, "r") as fh:
+    #     for line in fh:
+    #         etype, an = line.split("\t")
+    #         # don't include Lars' blacklisted GO terms
+    #         # Lars' blacklist is for a subcellular localization resource, so telling that the protein is part of complex X is not
+    #         # really the information that you are after. But for the enrichment, the situation is different.
+    #         if etype != "-22":
+    #             blacklisted_ans.append(an.strip())
+    # blacklisted_ans = set(blacklisted_ans)
+    # blacklisted_ans.update(variables.blacklisted_terms) # exclude top level terms, and manually curated
 
     year = "-1" # placeholder
     with open(Functions_table_DOID_BTO_GOCC, "w") as fh_out:
@@ -2764,8 +2764,8 @@ def Functions_table_DOID_BTO_GOCC(Function_2_Description_DOID_BTO_GO_down, BTO_o
                     etype = "-20"
                     function_an = function_an.replace("GO:", "GOCC:")
             description = description.strip()
-            if function_an in blacklisted_ans:
-                continue
+            # if function_an in blacklisted_ans:
+            #     continue
             try:
                 level = term_2_level_dict[function_an] # level is an integer
             except KeyError:
@@ -2993,6 +2993,84 @@ def backtrack_TM_scores(df, lineage_dict_direct_parents_current, fn_out):
                 funcName, score = funcName_score
                 fh_out.write("{}\t{}\t{}\t{}\t{}\n".format(taxid, etype, ENSP, funcName, score))
 
+# def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_direct_parents, scale_by_1e6=True):
+#     """
+#     backtrack and propage text mining scores from Jensenlab without creating redundancy
+#     backtrack functions to root and propagate scores
+#         - only if there is no score for that term
+#         - if different scores exist for various children then
+#     convert scores from float to int (by scaling 1e6 and cutting)
+#     funcName_2_score_list = [['DOID:11613', 0.686827], ['DOID:1923', 0.817843], ['DOID:4', 1.982001], ['DOID:7', 1.815976]]
+#     lineage_dict["DOID:11613"] = {'DOID:11613', 'DOID:1923', 'DOID:2277', 'DOID:28', 'DOID:4', 'DOID:7'}
+#     funcName_2_score_list_backtracked = [['DOID:11613', 686827], ['DOID:1923', 817843], ['DOID:4', 1982001], ['DOID:7', 1815976], # previously set
+#     ['DOID:28', 686827], ['DOID:2277', 686827]} # backtracked new
+#     ['DOID:28', 817843], ['DOID:2277', 817843]} # backtracked new corrected
+#     set score directly that stem from textmining, propagate from child to parent term(s), if term has multiple children then the average of the scores is used
+#     visit all
+#     """
+#     funcName_2_score_dict_backtracked, without_lineage = {}, []
+#     # funcName_2_score_dict_backtracked: key=String, val=Float(if unique), List of Float(if averaged)
+#     # fill dict with all given values, these should be unique (funcName has only single value)
+#     for funcName_2_score in funcName_2_score_list:
+#         funcName, score = funcName_2_score
+#         if funcName not in funcName_2_score_dict_backtracked:
+#             funcName_2_score_dict_backtracked[funcName] = score
+#         else:
+#             print("helper_backtrack_funcName_2_score_list", funcName, funcName_2_score_dict_backtracked[funcName], score, " duplicates")
+#
+#     # add all funcNames to iterable and extend with all parents
+#     visit_plan = deque()
+#     for child, score in funcName_2_score_list:
+#         visit_plan.append(child)
+#
+#     while visit_plan:
+#         funcName = visit_plan.pop()
+#         try:
+#             direct_parents = lineage_dict_direct_parents[funcName]
+#         except KeyError:
+#             without_lineage.append(funcName)
+#             direct_parents = []
+#         score = funcName_2_score_dict_backtracked[funcName]
+#         for parent in direct_parents:
+#             if parent not in funcName_2_score_dict_backtracked: # propagate score, mark as such by using a list instead of float
+#                 if isinstance(score, list):  # score is a list because it was propagated
+#                     funcName_2_score_dict_backtracked[parent] = score
+#                 else:
+#                     funcName_2_score_dict_backtracked[parent] = [score]
+#                 visit_plan.append(parent)
+#             else:
+#                 if isinstance(funcName_2_score_dict_backtracked[parent], float):
+#                     continue  # don't change the value, since it is the original value
+#                 elif isinstance(funcName_2_score_dict_backtracked[parent], list):  # add to it
+#                     if isinstance(score, list): # score is a list because it was propagated
+#                         funcName_2_score_dict_backtracked[parent] += score
+#                     else: # score is a float since original TM score
+#                         funcName_2_score_dict_backtracked[parent].append(score)
+#                 else:
+#                     print("helper_backtrack_funcName_2_score_list", parent, funcName_2_score_dict_backtracked[parent], " type not known")
+#                     raise StopIteration
+#
+#     # now calc median if multiple values exist --> deprecated --> use max
+#     funcName_2_score_list_backtracked = []
+#     if scale_by_1e6:
+#         for funcName in funcName_2_score_dict_backtracked:
+#             val = funcName_2_score_dict_backtracked[funcName]
+#             if isinstance(val, float):
+#                 funcName_2_score_list_backtracked.append([funcName, int(val * 1e6)])
+#             else:
+#                 # funcName_2_score_list_backtracked.append([funcName, int(median(val) * 1e6)])
+#                 funcName_2_score_list_backtracked.append([funcName, int(max(val) * 1e6)])
+#     else:
+#         for funcName in funcName_2_score_dict_backtracked:
+#             val = funcName_2_score_dict_backtracked[funcName]
+#             if isinstance(val, float):
+#                 funcName_2_score_list_backtracked.append([funcName, val])
+#             else:
+#                 # funcName_2_score_list_backtracked.append([funcName, median(val)])
+#                 funcName_2_score_list_backtracked.append([funcName, max(val)])
+#
+#     return funcName_2_score_list_backtracked, set(without_lineage)
+
 def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_direct_parents, scale_by_1e6=True):
     """
     backtrack and propage text mining scores from Jensenlab without creating redundancy
@@ -3017,12 +3095,10 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
             funcName_2_score_dict_backtracked[funcName] = score
         else:
             print("helper_backtrack_funcName_2_score_list", funcName, funcName_2_score_dict_backtracked[funcName], score, " duplicates")
-
     # add all funcNames to iterable and extend with all parents
     visit_plan = deque()
     for child, score in funcName_2_score_list:
         visit_plan.append(child)
-
     while visit_plan:
         funcName = visit_plan.pop()
         try:
@@ -3034,7 +3110,7 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
         for parent in direct_parents:
             if parent not in funcName_2_score_dict_backtracked: # propagate score, mark as such by using a list instead of float
                 if isinstance(score, list):  # score is a list because it was propagated
-                    funcName_2_score_dict_backtracked[parent] = score
+                    funcName_2_score_dict_backtracked[parent] = score.copy()
                 else:
                     funcName_2_score_dict_backtracked[parent] = [score]
                 visit_plan.append(parent)
@@ -3070,6 +3146,7 @@ def helper_backtrack_funcName_2_score_list(funcName_2_score_list, lineage_dict_d
                 funcName_2_score_list_backtracked.append([funcName, max(val)])
 
     return funcName_2_score_list_backtracked, set(without_lineage)
+
 
 def Protein_2_Function_DOID_BTO_GOCC_UPS(GO_obo_Jensenlab, GO_obo, DOID_obo_current, BTO_obo_Jensenlab, Taxid_UniProtID_2_ENSPs_2_KEGGs,
         Protein_2_Function_and_Score_DOID_BTO_GOCC_STS,
@@ -3186,7 +3263,8 @@ def rescale_scores(df, alpha=0.5, max_score=5):
         for start_stop, num_genes in zip(start_stop_index_list, count):
             start, stop = start_stop
             if num_genes > 1:
-                rescaled_score_equal_ranks_group += [np.median(rescaled_score_group[start:stop])] * num_genes
+                # rescaled_score_equal_ranks_group += [np.median(rescaled_score_group[start:stop])] * num_genes
+                rescaled_score_equal_ranks_group += [np.maximum(rescaled_score_group[start:stop])] * num_genes
             else:
                 rescaled_score_equal_ranks_group.append(rescaled_score_group[start])
         rescaled_score_equal_ranks_list += rescaled_score_equal_ranks_group
@@ -3632,11 +3710,11 @@ def ENSP_2_UniProt_all(damian_uniprot_2_string, UniProt_ID_mapping, fn_out_ENSP_
 
                     for ENSP in ENSP_list:
                         fh_out_ENSP_2_UniProtID_all.write(ENSP + "\t" + UniProtAC + "\t" + UniProtID + "\t" + source + "\n")
-                    if taxid in {"559292", "284812"}:
-                        if taxid == "559292":
-                            taxid = "4932"
-                        elif taxid == "284812":
-                            taxid = "4896"
+                    # if taxid in {"559292", "284812"}:
+                    if taxid == "559292":
+                        taxid = "4932"
+                    elif taxid == "284812":
+                        taxid = "4896"
                     fh_out_Taxid_UniProtID_2_ENSPs_2_KEGGs.write("{}\t{}\t{}\t{}\n".format(taxid, UniProtID, ";".join(ENSP_list), ";".join(KEGG_list)))
                     if taxid == "-1" or UniProtID == "-1":
                         pass

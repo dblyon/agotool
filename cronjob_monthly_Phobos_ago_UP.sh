@@ -72,3 +72,6 @@ ssh dblyon@pisces.meringlab.org '/home/dblyon/agotool/cronjob_monthly_Pisces_ago
 check_exit_status
 
 printf "\n --- finished Cronjob --- \n"
+
+# 1 1 1 * * /scratch/dblyon/agotool/cronjob_monthly_Phobos_ago_UP.sh >> /scratch/dblyon/agotool/data/logs/cron_monthly_snakemake_log.txt 2>&1
+# 1 20 * * 0 /home/dblyon/agotool_PMID_autoupdate/agotool/cron_weekly_Phobos_ago_STRING_PMID.sh >> /home/dblyon/agotool_PMID_autoupdate/agotool/data/logs/cron_weekly_sna    kemake_log.txt 2>&1
