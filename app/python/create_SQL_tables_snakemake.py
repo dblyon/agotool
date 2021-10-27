@@ -3264,7 +3264,7 @@ def rescale_scores(df, alpha=0.5, max_score=5):
             start, stop = start_stop
             if num_genes > 1:
                 # rescaled_score_equal_ranks_group += [np.median(rescaled_score_group[start:stop])] * num_genes
-                rescaled_score_equal_ranks_group += [np.maximum(rescaled_score_group[start:stop])] * num_genes
+                rescaled_score_equal_ranks_group += [max(rescaled_score_group[start:stop])] * num_genes
             else:
                 rescaled_score_equal_ranks_group.append(rescaled_score_group[start])
         rescaled_score_equal_ranks_list += rescaled_score_equal_ranks_group

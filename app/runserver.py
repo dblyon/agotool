@@ -495,46 +495,6 @@ class API_status(Resource):
 api.add_resource(API_status, "/status", "/info")
 
 
-# class API_translate(Resource):
-#     """
-#     translate one of:
-#     ENSP_2_UniProtAC
-#     ENSP_2_UniProtEntryName
-#     UniProtAC_2_ENSP
-#     UniProtEntryName_2_ENSP
-#     UniProtAC_2_UniProtEntryName
-#     UniProtEntryName_2_UniProtAC
-#     """
-#     def get(self):
-#         return self.post()
-#
-#     def post(self):
-#         args_dict = defaultdict(lambda: None)
-#         args_dict.update(parser.parse_args())
-#         args_dict = convert_string_2_bool(args_dict)
-#         args_dict["foreground"] = request.form.get("foreground") # ? what about the background ?
-#         IDs_2_translate = args_dict["foreground"]
-#         translate = args_dict["translate"]
-#
-#         if translate == "ENSP_2_UniProtEntryName":
-#             dict_2_return = query.map_secondary_2_primary_ANs(ids_2_map=IDs_2_translate)
-#         elif translate == "UniProtEntryName_2_UniProtAC":
-#             dict_2_return = query.map_primary_2_secondary_ANs(ids_2_map=IDs_2_translate, no_ENSPs=True)
-#         elif translate == "UniProtEntryName_2_ENSP":
-#             dict_2_return = query.map_primary_2_secondary_ANs(ids_2_map=IDs_2_translate, ENSPs_only=True)
-#
-#         elif translate == "UniProtAC_2_ENSP":
-#             # dict_2_return = query.
-#             pass
-#         elif translate == "ENSP_2_UniProtAC":
-#             tempDict_ENSP_2_UniProtEntryName = query.map_secondary_2_primary_ANs(ids_2_map=IDs_2_translate)
-#             tempDict_UniProtEntryName_2_UniProtAC_and_ENSP = query.map_primary_2_secondary_ANs(ids_2_map=tempDict_ENSP_2_UniProtEntryName.values())
-#
-#         return jsonify(dict_2_return)
-#
-# api.add_resource(API_translate, "/translate")
-
-
 def PMID_description_to_year(string_):
     try:
         return int(string_[1:5])
@@ -961,22 +921,23 @@ def results():
             for key, val in args_dict.items():
                 print(key, val, type(val))
             print("-" * 80)
-        if variables.DEBUG_HTML:
-            ui.check = True # ToDo comment #!!! DEBUG
+        # if variables.DEBUG_HTML:
+        #     ui.check = True
         if ui.check:
-            ip = request.environ['REMOTE_ADDR']
-            string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
-            string2log += """limit_2_entity_type: {}\ngo_slim_or_basic: {}\no_or_u_or_both: {}\np_value_cutoff: {}\np_value_mulitpletesting: {}\n""".format(form.limit_2_entity_type.data, form.go_slim_or_basic.data, form.o_or_u_or_both.data, form.p_value_cutoff.data, form.FDR_cutoff.data, form.enrichment_method.data)
+            # ip = request.environ['REMOTE_ADDR']
+            # string2log = "ip: " + ip + "\n" + "Request: results" + "\n"
+            string2log = f"limit_2_entity_type: {form.limit_2_entity_type.data}\ngo_slim_or_basic: {form.go_slim_or_basic.data}\no_or_u_or_both: {form.o_or_u_or_both.data}\np_value_cutoff: {form.p_value_cutoff.data}\np_value_mulitpletesting: {form.FDR_cutoff.data}\nenrichment_method: {form.enrichment_method.data}\nfg_n: {ui.foreground_n}\n"
             if not app.debug:
                 log_activity(string2log)
-            ## DEBUG start
-            if variables.DEBUG_HTML:
-                df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
-                df_all_etypes = df_all_etypes.groupby(cn.etype).head(20)
-                args_dict["enrichment_method"] = "genome"
-            else:
-                df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)
-            ### DEBUG stop
+            # ## DEBUG start
+            # if variables.DEBUG_HTML:
+            #     df_all_etypes = pd.read_csv(variables.fn_example, sep="\t")
+            #     df_all_etypes = df_all_etypes.groupby(cn.etype).head(20)
+            #     args_dict["enrichment_method"] = "genome"
+            # else:
+            #     df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)
+            # ### DEBUG stop
+            df_all_etypes = run.run_UniProt_enrichment(pqo, ui, args_dict)
         else:
             errors_dict, args_dict_minus_errors = helper_split_errors_from_dict(args_dict)
             return render_template('info_check_input.html', args_dict=args_dict_minus_errors, errors_dict=errors_dict)
