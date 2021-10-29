@@ -64,7 +64,7 @@ def test_compare_file_size():
         try:
             assert size_current >= size_previous
         except AssertionError: # at least 95% of previous
-            assert int(100 * size_current / size_previous) >= 95
+            assert int(100 * size_current / size_previous) >= 94
 
 def test_checksum():
     """
