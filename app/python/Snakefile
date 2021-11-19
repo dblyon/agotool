@@ -29,7 +29,7 @@ min_count = 1 # Function_2_Proteins_table: minimum number of Proteins per TaxID 
 ### static mapping_files
 # previous to 202111: damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.jan_2018.clean.tsv")
 damian_uniprot_2_string = os.path.join(DOWNLOADS_DIR, "full_uniprot_2_string.tsv")
-Taxid_2_Proteins_table_STS = os.path.join(TABLES_DIR, "Taxid_2_Proteins_table_STRING_v11.txt")
+Taxid_2_Proteins_table_STS = os.path.join(DOWNLOADS_DIR, "Taxid_2_Proteins_table_STRING_v11.txt")
 protein_shorthands = os.path.join(DOWNLOADS_DIR, "protein.shorthands.v11.txt")
 ################################################## URLs & Downloads
 URL_GO_obo = r"http://purl.obolibrary.org/obo/go/go-basic.obo"
@@ -77,16 +77,21 @@ GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
 taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
-if hostname in {"ody", "MLS-M-DALY.local"}:
+if hostname == "Davids-MacBook-Pro.local": # MRT schleppi
+    KEGG_dir = os.path.join(DOWNLOADS_DIR, "STRING_freeze_v11/kegg")
+    # KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
+    KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, "taxonomic_rank")
+    KEGG_pathway = os.path.join(KEGG_dir, "pathway.list")
+elif hostname in {"ody", "MLS-M-DALY.local"}:
     KEGG_dir = DOWNLOADS_DIR # fake mock
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
     KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, "taxonomic_rank")
     KEGG_pathway = os.path.join(KEGG_dir, "pathway.list")
 elif hostname in {"atlas", "gaia", "phobos", "deimos"}:
     KEGG_dir = r"/mnt/mnemo5/dblyon/STRING_freeze_v11/kegg"
-    KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms")
-    KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, r"genes/misc/taxonomic_rank")
-    KEGG_pathway = os.path.join(KEGG_dir, "pathway/pathway.list")
+    KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms") # /mnt/mnemo5/dblyon/STRING_freeze_v11/kegg/pathway/organisms
+    KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, r"genes/misc/taxonomic_rank") # /mnt/mnemo5/dblyon/STRING_freeze_v11/kegg/genes/misc/taxonomic_rank
+    KEGG_pathway = os.path.join(KEGG_dir, "pathway/pathway.list") # /mnt/mnemo5/dblyon/STRING_freeze_v11/kegg/pathway/pathway.list
 else:
     raise StopIteration
 DOID_BTO_GOCC_without_lineage = os.path.join(TABLES_DIR, "DOID_BTO_GOCC_without_lineage.txt")
@@ -123,7 +128,8 @@ Lineage_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Lineage_table"]
 lineage_dict_direct = TABLES_DICT_SNAKEMAKE["lineage_dict_direct"]
 Lineage_table_UPS_hr = os.path.join(TABLES_DIR, "Lineage_table_UPS_hr.txt") # Human Readable
 Lineage_table_UPS_no_translation = os.path.join(TABLES_DIR, "Lineage_table_UPS_no_translation.txt")
-PFAM_clans = os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv")
+URL_PFAM_clans = r"http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz"
+PFAM_clans = os.path.join(DOWNLOADS_DIR, "Pfam-A.clans.tsv.gz")
 Protein_2_FunctionEnum_table_UPS_FIN = TABLES_DICT_SNAKEMAKE["Protein_2_FunctionEnum_table"]
 Protein_2_FunctionEnum_table_UPS_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_for_Taxid_count.txt")
 Protein_2_FunctionEnum_table_UPS_removed = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_removed.txt")
@@ -178,6 +184,16 @@ goslim_generic_placeholder = os.path.join(TABLES_DIR, "goslim_generic.npy")
 # STRING_EntrezGeneID_2_STRING = os.path.join(DOWNLOADS_DIR, "STRING_v11_all_organisms_entrez_2_string_2018.tsv.gz") # https://string-db.org/mapping_files/entrez/all_organisms.entrez_2_string.2018.tsv.gz
 ###################################################################################################
 ### download resources
+rule download_Pfam_clans:
+    output:
+        PFAM_clans = PFAM_clans
+    params:
+        URL_PFAM_clans = URL_PFAM_clans,
+        verbose = verbose
+    log: log_snakemake
+    run:
+        drs.download_requests(params.URL_PFAM_clans, output.PFAM_clans, params.verbose)
+
 rule download_descriptions_PMID:
     output:
         Function_2_Description_PMID = Function_2_Description_PMID
@@ -619,17 +635,17 @@ rule r_Protein_2_Function_table_UniProtDump_UPS:
     run:
         cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, params.verbose)
 
-rule r_Protein_2_Function_table_KEGG_UPS:
-    input:
-        KEGG_organisms_dir = KEGG_organisms_dir,
-        Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
-    output:
-        Protein_2_Function_table_KEGG_UPS = Protein_2_Function_table_KEGG_UPS,
-        Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = Protein_2_Function_table_KEGG_UPS_ENSP_benchmark,
-        KEGG_entry_no_pathway_annotation = KEGG_entry_no_pathway_annotation
-    log: log_snakemake
-    run:
-        cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_organisms_dir, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
+# rule r_Protein_2_Function_table_KEGG_UPS: # static
+#     input:
+#         KEGG_organisms_dir = KEGG_organisms_dir,
+#         Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs
+#     output:
+#         Protein_2_Function_table_KEGG_UPS = Protein_2_Function_table_KEGG_UPS,
+#         Protein_2_Function_table_KEGG_UPS_ENSP_benchmark = Protein_2_Function_table_KEGG_UPS_ENSP_benchmark,
+#         KEGG_entry_no_pathway_annotation = KEGG_entry_no_pathway_annotation
+#     log: log_snakemake
+#     run:
+#         cst.Protein_2_Function_table_KEGG_UPS_and_ENSP_2_KEGG_benchmark(input.KEGG_organisms_dir, input.Taxid_UniProtID_2_ENSPs_2_KEGGs, output.Protein_2_Function_table_KEGG_UPS, output.Protein_2_Function_table_KEGG_UPS_ENSP_benchmark, output.KEGG_entry_no_pathway_annotation)
 
 rule r_Protein_2_Function__and__Functions_table_WikiPathways:
     input:

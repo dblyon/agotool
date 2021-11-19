@@ -567,7 +567,7 @@ def Functions_table_PFAM(fn_in, fn_out_functions_table_PFAM, fn_out_map_name_2_a
     # fn = r"/home/dblyon/agotool/data/PostgreSQL/downloads/Pfam-A.clans.tsv"
     # fn_out = r"/home/dblyon/agotool/data/PostgreSQL/tables/Functions_table_PFAM.txt"
     columns = ['an', 'clan_an', 'HOMSTRAD', 'name', 'description']
-    df = pd.read_csv(fn_in, sep="\t", names=columns)
+    df = pd.read_csv(fn_in, sep="\t", names=columns, compression="gzip")
     df["etype"] = variables.id_2_entityTypeNumber_dict["PFAM"]
     df["year"] = "-1"
     df["level"] = "-1"
