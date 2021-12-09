@@ -1735,7 +1735,7 @@ def parse_uniprot_dat_dump_yield_entry(fn_in):
         Keywords_list = [cleanup_Keyword(keyword) for keyword in Keywords_list if len(keyword) > 0]
         yield (UniProtAN_list, Keywords_list)
 
-def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, verbose=True):
+def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_obo_GO, fn_in_obo_UPK, fn_in_list_uniprot_dumps, fn_in_interpro_parent_2_child_tree, fn_in_hierarchy_reactome, fn_out_Protein_2_Function_table_UniProt_dump, fn_out_an_2_description, fn_out_an_2_gene, verbose=True):
     if verbose:
         print("\nparsing UniProt dumps: creating output file \n{}".format(fn_out_Protein_2_Function_table_UniProt_dump))
     etype_UniProtKeywords = variables.id_2_entityTypeNumber_dict["UniProtKeywords"]
@@ -1758,10 +1758,12 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
     secondary_2_primaryTerm_dict, obsolete_terms_set = get_secondary_2_primaryTerm_dict_and_obsolete_terms_set(DAG)
 
     with open(fn_out_Protein_2_Function_table_UniProt_dump, "w") as fh_out:
+        with open(fn_out_an_2_description, "w") as fh_out_an_2_description:
+            with open(fn_out_an_2_gene, "w") as fh_out_an_2_gene:
                 for uniprot_dump_fn in fn_in_list_uniprot_dumps:
                     if verbose:
                         print("parsing {}".format(uniprot_dump_fn))
-                    for UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
+                    for geneName, UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome, full_record_name, function in parse_uniprot_dat_dump_yield_entry_v2(uniprot_dump_fn):
                         # ['Complete proteome', 'Reference proteome', 'Transcription', 'Activator', 'Transcription regulation', ['GO:0046782'], ['IPR007031'], ['PF04947'], ['vg:2947773'], [], [], ['UP000008770']]
                         # for UniProtAN in UniProtAC_and_ID_list:
                         if NCBI_Taxid in {"559292", "284812"}:
@@ -1808,6 +1810,11 @@ def Protein_2_Function_table_UniProtDump_UPS(fn_in_Functions_table_UPK, fn_in_ob
                             for term in reactome_list:
                                 reactome_list += list(get_parents_iterative(term, child_2_parent_dict_reactome))
                             fh_out.write(NCBI_Taxid + "\t" + UniProtID + "\t" + format_list_of_string_2_postgres_array(sorted(set(reactome_list))) + "\t" + etype_reactome + "\n")
+                        primary = 1 # first accession is primary
+                        for an in UniProtAC_list:
+                            fh_out_an_2_description.write(f"{NCBI_Taxid}\t{an}\t{full_record_name}\t{function}\t{primary}\n")
+                            fh_out_an_2_gene.write(f"{NCBI_Taxid}\t{UniProtID}\t{an}\t{geneName}\t{primary}\n")
+                            primary = 0
 
 def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
     """
@@ -1823,10 +1830,12 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
         hsa:7529    path:hsa04114
         hsa:7529    path:hsa04722)
     """
-    for entry in yield_entry_UniProt_dat_dump(fn_in):
-        UniProtAC_list, Keywords_string, functions_2_return = [], "", []
-        Functions_other_list = []
-        UniProtID, NCBI_Taxid = "-1", "-1"
+    # for entry in yield_entry_UniProt_dat_dump(fn_in):
+    UniProtAC_list, Keywords_string, functions_2_return = [], "", []
+    Functions_other_list = []
+    UniProtID, NCBI_Taxid = "-1", "-1"
+    CC_lines = []
+    with open(fn_in, "r") as entry:
         for line in entry:
             try:
                 line_code, rest = line.split(maxsplit=1)
@@ -1835,8 +1844,13 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
 
             if line_code == "ID":
                 UniProtID = rest.split()[0]
+            elif line_code == "GN":
+                geneName = rest.split(";")[0].replace("Name=", "").strip()
+            elif line_code == "DE":
+                if rest.startswith("RecName: Full="):
+                    full_record_name = rest.split("RecName: Full=")[1].strip()[:-1]
             elif line_code == "AC":
-                UniProtAC_list += [UniProtAN.strip() for UniProtAN in rest.split(";") if len(UniProtAN) > 0]
+                UniProtAC_list += [UniProtAN.strip() for UniProtAN in rest.strip().split(";") if len(UniProtAN) > 0]
             elif line_code == "KW":
                 Keywords_string += rest
             elif line_code == "DR":
@@ -1846,16 +1860,63 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
                 # OX   NCBI_Taxid=418404 {ECO:0000313|EMBL:QAB05112.1};
                 if rest.startswith("NCBI_TaxID="):
                     NCBI_Taxid = rest.replace("NCBI_TaxID=", "").split(";")[0].split()[0]
+            elif line_code == "CC":
+                CC_lines.append(rest.strip())
 
-        # UniProtAC_list = sorted(set(UniProtAC_list))Taxid_2_funcEnum_2_scores_table_FIN
+        function = helper_parse_function_from_uniprot_dump_entry(CC_lines)
         Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
-        # other_functions = helper_parse_UniProt_dump_other_functions(Functions_other_list)
         GOterm_list, InterPro, Pfam, Reactome = helper_parse_UniProt_dump_other_functions(Functions_other_list)
-        # GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes
-        # functions_2_return.append(Keywords_list)
-        # functions_2_return += other_functions # GO, InterPro, Pfam, Reactome
-        # yield UniProtID, UniProtAC_list, NCBI_Taxid, functions_2_return
-        yield UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome
+        yield geneName, UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome, full_record_name, function
+
+def helper_parse_function_from_uniprot_dump_entry(CC_lines):
+    """
+    CC   -!- FUNCTION: Involved in translation termination in response to the
+    CC       termination codons UAA, UAG and UGA (By similarity). Stimulates the
+    CC       activity of ETF1 (By similarity). Involved in regulation of mammalian
+    CC       cell growth (PubMed:2511002). Component of the transient SURF complex
+    CC       which recruits UPF1 to stalled ribosomes in the context of nonsense-
+    CC       mediated decay (NMD) of mRNAs containing premature stop codons
+    CC       (PubMed:24486019). Required for SHFL-mediated translation termination
+    CC       which inhibits programmed ribosomal frameshifting (-1PRF) of mRNA from
+    CC       viruses and cellular genes (PubMed:30682371).
+    CC       {ECO:0000250|UniProtKB:Q8IYD1, ECO:0000269|PubMed:24486019,
+    CC       ECO:0000269|PubMed:2511002, ECO:0000269|PubMed:30682371}.
+    CC   -!- SUBUNIT: Component of the transient SURF (SMG1-UPF1-eRF1-eRF3) complex
+    CC       (PubMed:19417104). The ETF1-GSPT1 complex interacts with JMJD4
+    CC       (PubMed:24486019). Interacts with PABPC1 (By similarity). Interacts
+    CC       with SHFL (PubMed:30682371). {ECO:0000250|UniProtKB:Q8R050,
+    CC       ECO:0000269|PubMed:19417104, ECO:0000269|PubMed:24486019,
+    CC       ECO:0000269|PubMed:30682371}.
+    CC   -!- INTERACTION:
+    CC       P15170; P62495: ETF1; NbExp=3; IntAct=EBI-948993, EBI-750990;
+    CC       P15170; Q92900: UPF1; NbExp=2; IntAct=EBI-948993, EBI-373471;
+    CC       P15170-2; P11940: PABPC1; NbExp=2; IntAct=EBI-9094806, EBI-81531;
+    CC   -!- ALTERNATIVE PRODUCTS:
+    CC       Event=Alternative splicing; Named isoforms=3;
+    CC       Name=1;
+    CC         IsoId=P15170-1; Sequence=Displayed;
+    CC       Name=2;
+    CC         IsoId=P15170-2; Sequence=VSP_042198, VSP_042199;
+    CC       Name=3;
+    CC         IsoId=P15170-3; Sequence=VSP_042198;
+    CC   -!- SIMILARITY: Belongs to the TRAFAC class translation factor GTPase
+    CC       superfamily. Classic translation factor GTPase family. ERF3 subfamily.
+    CC       {ECO:0000255|PROSITE-ProRule:PRU01059}.
+    CC   -!- CAUTION: eRF3 antibodies used in PubMed:19417104 do not differentiate
+    CC       between GSPT1/ERF3A and GSPT2/ERF3B. {ECO:0000305}.
+    CC   ---------------------------------------------------------------------------
+    CC   Copyrighted by the UniProt Consortium, see https://www.uniprot.org/terms
+    CC   Distributed under the Creative Commons Attribution (CC BY 4.0) License
+    CC   ---------------------------------------------------------------------------
+    """
+    for ele in " ".join(CC_lines).split("-!-"):
+        ele = ele.strip()
+        if ele.startswith("FUNCTION:"):
+            ele = ele[10:]
+            index_stop = ele.index("{ECO:")
+            function = ele[:index_stop].strip()
+            return function
+    return ""
 
 def helper_parse_UniProt_dump_other_functions(list_of_string):
     """
@@ -1872,7 +1933,6 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
      ['Pfam; PF04947; Pox_VLTF3; 1.']]
      EnsemblPlants; AT3G09880.1; AT3G09880.1; AT3G09880.
     """
-    # GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes = [], [], [], [], [], [], []
     GO, InterPro, Pfam, Reactome = [], [], [], []
     for row in list_of_string:
         row_split = row.split(";")
@@ -1881,8 +1941,6 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
             annotation = row_split[1].strip()
         except IndexError:
             continue
-        # if func_type == "KEGG":
-        #     KEGG.append(annotation)
         if func_type == "GO":
             GO.append(annotation)
         elif func_type == "InterPro":
@@ -1893,21 +1951,6 @@ def helper_parse_UniProt_dump_other_functions(list_of_string):
             if annotation.startswith("R-"):  # R-DME-6799198 --> DME-6799198
                 annotation = annotation[2:]
             Reactome.append(annotation)
-        # elif func_type == "STRING":
-        #     funcs_2_return = []
-        #     try:
-        #         for func in [func.strip() for func in row_split[1:]]:
-        #             if func.endswith("."):
-        #                 func = func[:-1]
-        #             if func == "-":
-        #                 continue
-        #             funcs_2_return.append(func)
-        #     except IndexError:
-        #         continue
-        #     STRING += funcs_2_return
-        # elif func_type == "Proteomes":
-        #     Proteomes.append(annotation)
-    # return [GO, InterPro, Pfam, KEGG, Reactome, STRING, Proteomes]
     return GO, InterPro, Pfam, Reactome
 
 def KEGG_Taxid_2_acronym_table_UPS(fn_in_KEGG_taxonomic_rank_file, fn_out_KEGG_Taxid_2_acronym_table_UP):

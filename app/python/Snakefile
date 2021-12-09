@@ -168,6 +168,9 @@ interpro_parent_2_child_tree = os.path.join(DOWNLOADS_DIR, "interpro_parent_2_ch
 map_name_2_an_PFAM = os.path.join(TABLES_DIR, "map_name_2_an_PFAM.txt")
 year_arr_UPS_FIN = variables.TABLES_DICT_SNAKEMAKE["year_arr"]
 goslim_generic_placeholder = os.path.join(TABLES_DIR, "goslim_generic.npy")
+AN_2_description = os.path.join(TABLES_DIR, "AN_2_description.txt")
+AN_2_gene = os.path.join(TABLES_DIR, "AN_2_gene.txt")
+
 # Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
 # ENSP_2_UniProtID_without_translation_2 = os.path.join(TABLES_DIR, "ENSP_2_UniProtID_without_translation_2.txt")
 # Taxid_without_mapping_2_species_rank = os.path.join(TABLES_DIR, "Taxid_without_mapping_2_species_rank.txt")
@@ -626,14 +629,16 @@ rule r_Protein_2_Function_table_UniProtDump_UPS:
         interpro_parent_2_child_tree = interpro_parent_2_child_tree,
         RCTM_hierarchy = RCTM_hierarchy
     output:
-        Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS # UPK, GO, RCTM, Interpro, Pfam
+        Protein_2_Function_table_UniProtDump_UPS = Protein_2_Function_table_UniProtDump_UPS, # UPK, GO, RCTM, Interpro, Pfam
         # Taxid_UniProtID_2_ENSPs_2_KEGGs = Taxid_UniProtID_2_ENSPs_2_KEGGs, # from UniProtIDmapping from now on
         # Taxid_UniProt_AC_2_ID = Taxid_UniProt_AC_2_ID
+        AN_2_description = AN_2_description,
+        AN_2_gene = AN_2_gene
     params:
         verbose = verbose
     log: log_snakemake
     run:
-        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, params.verbose)
+        cst.Protein_2_Function_table_UniProtDump_UPS(input.Functions_table_UPK, input.GO_obo, input.UPK_obo, [input.SwissProt_dump, input.TrEMBL_dump], input.interpro_parent_2_child_tree, input.RCTM_hierarchy,  output.Protein_2_Function_table_UniProtDump_UPS, output.AN_2_description, output.AN_2_gene, params.verbose)
 
 # rule r_Protein_2_Function_table_KEGG_UPS: # static
 #     input:
