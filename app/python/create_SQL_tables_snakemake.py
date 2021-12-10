@@ -1830,12 +1830,12 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
         hsa:7529    path:hsa04114
         hsa:7529    path:hsa04722)
     """
-    # for entry in yield_entry_UniProt_dat_dump(fn_in):
-    UniProtAC_list, Keywords_string, functions_2_return = [], "", []
-    Functions_other_list = []
-    UniProtID, NCBI_Taxid = "-1", "-1"
-    CC_lines = []
-    with open(fn_in, "r") as entry:
+    for entry in yield_entry_UniProt_dat_dump(fn_in):
+        UniProtAC_list, Keywords_string, functions_2_return = [], "", []
+        Functions_other_list = []
+        UniProtID, NCBI_Taxid = "-1", "-1"
+        CC_lines = []
+        geneName, full_record_name, function = "", "", ""
         for line in entry:
             try:
                 line_code, rest = line.split(maxsplit=1)
@@ -1845,10 +1845,10 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
             if line_code == "ID":
                 UniProtID = rest.split()[0]
             elif line_code == "GN":
-                geneName = rest.split(";")[0].replace("Name=", "").strip()
+                geneName = remove_trailing_ECO(rest.split(";")[0].replace("Name=", "").strip())
             elif line_code == "DE":
                 if rest.startswith("RecName: Full="):
-                    full_record_name = rest.split("RecName: Full=")[1].strip()[:-1]
+                    full_record_name = remove_trailing_ECO(rest.split("RecName: Full=")[1].strip()[:-1])
             elif line_code == "AC":
                 UniProtAC_list += [UniProtAN.strip() for UniProtAN in rest.strip().split(";") if len(UniProtAN) > 0]
             elif line_code == "KW":
@@ -1867,6 +1867,13 @@ def parse_uniprot_dat_dump_yield_entry_v2(fn_in):
         Keywords_list = [cleanup_Keyword(keyword) for keyword in sorted(set(Keywords_string.split(";"))) if len(keyword) > 0]  # remove empty strings from keywords_list
         GOterm_list, InterPro, Pfam, Reactome = helper_parse_UniProt_dump_other_functions(Functions_other_list)
         yield geneName, UniProtID, UniProtAC_list, NCBI_Taxid, Keywords_list, GOterm_list, InterPro, Pfam, Reactome, full_record_name, function
+
+def remove_trailing_ECO(s):
+    try:
+        index_stop = s.index("{ECO:")
+    except ValueError:
+        return s.strip()
+    return s[:index_stop].strip()
 
 def helper_parse_function_from_uniprot_dump_entry(CC_lines):
     """
@@ -1913,9 +1920,7 @@ def helper_parse_function_from_uniprot_dump_entry(CC_lines):
         ele = ele.strip()
         if ele.startswith("FUNCTION:"):
             ele = ele[10:]
-            index_stop = ele.index("{ECO:")
-            function = ele[:index_stop].strip()
-            return function
+            return remove_trailing_ECO(ele)
     return ""
 
 def helper_parse_UniProt_dump_other_functions(list_of_string):
