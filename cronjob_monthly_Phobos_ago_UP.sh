@@ -64,11 +64,11 @@ check_exit_status
 
 ### copy files to Pisces (production server)
 echo "\n ### copy files to Pisces \n"
-rsync -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
+rsync "ssh -i /mnt/mnemo4/dblyon/.ssh/id_rsa_phobos" -av "$TABLES_DIR"/"$TAR_CURRENT" dblyon@pisces.meringlab.org:/home/dblyon/agotool/data/PostgreSQL/tables/"$TAR_CURRENT"
 check_exit_status
 ### on production server, decompress files, populate DB, restart service
 echo "now attempting to run script on production server cronjob_update_Pisces_ago_UP.sh @ "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
-ssh dblyon@pisces.meringlab.org '/home/dblyon/agotool/cronjob_monthly_Pisces_ago_UP.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
+ssh -i /mnt/mnemo4/dblyon/.ssh/id_rsa_phobos dblyon@pisces.meringlab.org '/home/dblyon/agotool/cronjob_monthly_Pisces_ago_UP.sh &> /home/dblyon/agotool/data/logs/log_updates.txt & disown'
 check_exit_status
 
 printf "\n --- finished Cronjob --- \n"
