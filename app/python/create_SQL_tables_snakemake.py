@@ -487,7 +487,7 @@ def get_child_2_direct_parents_and_term_2_level_dict_interpro(fn):
                     if term not in child_2_parent_dict:
                         child_2_parent_dict[term] = child_2_parent_dict[term_previous]
                     else:
-                        child_2_parent_dict[term].update({child_2_parent_dict[term_previous]})
+                        child_2_parent_dict[term].update(child_2_parent_dict[term_previous])
                 elif level < level_previous:
                     term_previous, level_previous = helper_get_previous_term_and_level(child_2_parent_dict, term_2_level_dict, term_previous, level)
                     if term not in child_2_parent_dict:
