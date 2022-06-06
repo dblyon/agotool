@@ -56,6 +56,7 @@ def test_compare_file_size():
         cond_fnc = cond_current & cond_fn
         if sum(cond_fnp) == 0:
             print("{} not present in previous version".format(fn))
+            continue
         if sum(cond_fnc) == 0:
             print("{} not present in current version".format(fn))
         size_previous = df.loc[cond_fnp, "size"].values[0]
