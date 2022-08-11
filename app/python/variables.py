@@ -403,27 +403,27 @@ taxids_2_preload = [9606, 10090, 10116, 3702, 4932, 7227, 6239, 4896]
 #
 # Docker_incoming_PostgreSQL_port = get_Docker_PostgreSQL_port_from_yml()
 
-def parse_env_file(fn):
-    """
-    fn = r'/Users/dblyon/modules/cpr/agotool/app/env_file'
-    :param fn: String
-    :return: Dict
-    """
-    param_2_val_dict = {}
-    with open(fn, "r") as fh:
-        for line in fh:
-            if not line.startswith("#"):
-                try:
-                    key, val = line.strip().split("=")
-                    param_2_val_dict[key] = val
-                except ValueError: # whitespace, empty lines
-                    pass
-    return param_2_val_dict
-
-fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
-try:
-    param_2_val_dict = parse_env_file(fn)
-except:
-    print("#"*50)
-    print("env_file missing")
-    print("#" * 50)
+# def parse_env_file(fn):
+#     """
+#     fn = r'/Users/dblyon/modules/cpr/agotool/app/env_file'
+#     :param fn: String
+#     :return: Dict
+#     """
+#     param_2_val_dict = {}
+#     with open(fn, "r") as fh:
+#         for line in fh:
+#             if not line.startswith("#"):
+#                 try:
+#                     key, val = line.strip().split("=")
+#                     param_2_val_dict[key] = val
+#                 except ValueError: # whitespace, empty lines
+#                     pass
+#     return param_2_val_dict
+#
+# fn = os.path.abspath(os.path.join(PYTHON_DIR, os.pardir, "env_file"))
+# try:
+#     param_2_val_dict = parse_env_file(fn)
+# except:
+#     print("#"*50)
+#     print("env_file missing")
+#     print("#" * 50)
