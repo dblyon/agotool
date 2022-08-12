@@ -135,9 +135,8 @@ def test_expected_terms_in_output():
     """
     fg_list = ["P69905", "P68871", "P02042", "P02100"]
     fg_string = "%0d".join(fg_list)
-    response = requests.post(url_local_API_orig, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606, "caller_identity": "PyTest"}, data={"foreground": fg_string})
+    response = requests.post(url_local_API_orig, params={"output_format": "tsv", "enrichment_method": "genome", "taxid": 9606, "caller_identity": "PyTest", "filter_parents": False}, data={"foreground": fg_string})
     df = pd.read_csv(StringIO(response.text), sep='\t')
-    # expected_terms = ["KW-0561", "KW-0349", "GO:0005344", "GO:0019825", "GO:0020037", "GO:0005833"]
     expected_terms = ["KW-0561", "KW-0349", "GO:0005344", "GO:0019825", "GO:0020037", "GO:0005833"]
     cond = df[cn.term].isin(expected_terms)
     assert len(expected_terms) == sum(cond)
