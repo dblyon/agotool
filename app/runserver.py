@@ -92,6 +92,16 @@ if ARGPARSE:
 # ? - background proteome with protein groups --> does it get mapped to single protein in foreground ?
 # - version of tool/ dates of files downloaded
 # - one version per year that is fixed. if you need that particular annotation extra submission with some wait time and email results?
+
+### extend documentation
+# fg = "%0d".join(df.loc[df["foreground"].notnull(), "foreground"])
+# bg = "%0d".join(df["background"])
+# bg_intensity = "%0d".join(df["intensity"].astype(str))
+#
+# result = requests.post(url, params={"output_format": "json", "enrichment_method": "abundance_correction", "limit_2_entity_type": "-56;-51;-57", "p_value_cutoff": 1, "FDR_cutoff": 1, "taxid": 9606}, data={"foreground": fg, "background": bg, "background_intensity": bg_intensity})
+# result_json = result.json()
+# print(result_json[0])
+
 ###############################################################################
 ###############################################################################
 def getitem(obj, item, default):

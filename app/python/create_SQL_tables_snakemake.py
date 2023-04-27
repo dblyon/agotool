@@ -3614,6 +3614,7 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_re
     with open(Function_2_Protein_table_UPS_reduced, "r") as fh_in:
     # 1000565 -51     KW-0003 5       3926    {"1000565.METUNv1_01117","1000565.METUNv1_02206","1000565.METUNv1_02527","1000565.METUNv1_03205","1000565.METUNv1_03227"}
     # 654924  -51     KW-1185 7       -1      014R_FRG3G;015R_FRG3G;017L_FRG3G;018L_FRG3G;019R_FRG3G;020R_FRG3G;021L_FRG3G
+    # 200451  -23     GO:0016740      2       -1      A0A2S9DVA6_9PSED;A0A2S9ETC1_9PSED
         for line in fh_in:
             functions_2_include.update({line.split("\t")[2]})
 
@@ -4185,6 +4186,7 @@ def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, Tax
                 rank_of_species_list.append(taxid_mapped)
 
     df_UP_proteomes["species_rank"] = rank_of_species_list
+    df_UP_proteomes["species_rank"] = df_UP_proteomes["species_rank"].astype(int)
 
     ### for each species select the reference proteome with the largest proteome count, this will be used to automatically map to
     df_UP_proteomes = df_UP_proteomes.sort_values(["species_rank", "num_proteins"], ascending=[True, False]).reset_index(drop=True)
