@@ -1,4 +1,4 @@
-import sys, re, os, subprocess, pickle #, json
+Gimport sys, re, os, subprocess, pickle #, json
 from scipy import sparse
 import gzip
 import pandas as pd
@@ -4186,7 +4186,6 @@ def create_speciesTaxid_2_proteomeTaxid_dict(Taxid_2_Proteins_table_UPS_FIN, Tax
                 rank_of_species_list.append(taxid_mapped)
 
     df_UP_proteomes["species_rank"] = rank_of_species_list
-    df_UP_proteomes["species_rank"] = df_UP_proteomes["species_rank"].astype(int)
 
     ### for each species select the reference proteome with the largest proteome count, this will be used to automatically map to
     df_UP_proteomes = df_UP_proteomes.sort_values(["species_rank", "num_proteins"], ascending=[True, False]).reset_index(drop=True)
