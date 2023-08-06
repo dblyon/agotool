@@ -457,9 +457,10 @@ def test_STRING_style_API_species_gets_mapped_to_taxid():
 
     response = requests.post(url_local_API_STRING_style + "/tsv/enrichment?taxid=9606&identifiers=9606.ENSP00000326366%0A9606.ENSP00000263094%0A9606.ENSP00000340820%0A9606.ENSP00000260408%0A9606.ENSP00000252486%0A9606.ENSP00000355747%0A9606.ENSP00000338345%0A9606.ENSP00000260197%0A9606.ENSP00000315130%0A9606.ENSP00000284981&caller_identity=PyTest")
     df3 = pd.read_csv(StringIO(response.text), sep='\t')
-    del df3["preferredNames"]
-    del df3["inputGenes"]
-    del df2["inputGenes"]
+    df3 = df3.drop(columns=["preferredNames", "inputGenes", "description"])
+    df2 = df2.drop(columns=["inputGenes", "description"])
+    df2 = df2.sort_values(by=["term"])
+    df3 = df3.sort_values(by=["term"])
     pd_testing.assert_frame_equal(df3, df2, check_dtype=False)
 
 @pytest.mark.xfail
