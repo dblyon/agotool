@@ -4,14 +4,14 @@ check_exit_status () {
 }
 TAR_CURRENT=aGOtool_flatfiles_current.tar.gz
 TAR_BAK=bak_aGOtool_flatfiles_$(date +"%Y_%m_%d_%I_%M_%p").tar.gz
-PYTEST_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/pytest
-SNAKEMAKE_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/snakemake
+PYTEST_EXE=/home/dlyon/mambaforge/envs/snake/bin/pytest
+SNAKEMAKE_EXE=/home/dlyon/mambaforge/envs/snake/bin/snakemake
 UWSGI_EXE=/mnt/mnemo4/dblyon/install/anaconda3/envs/cron/bin/uwsgi
-TESTING_DIR=/scratch/dblyon/agotool/app/python/testing/sanity
-APP_DIR=/scratch/dblyon/agotool/app
-TABLES_DIR=/scratch/dblyon/agotool/data/PostgreSQL/tables
-PYTHON_DIR=/scratch/dblyon/agotool/app/python
-POSTGRES_DIR=/scratch/dblyon/agotool/data/PostgreSQL
+TESTING_DIR=/efs/dlyon/agotool/app/python/testing/sanity
+APP_DIR=/efs/dlyon/agotool/app
+TABLES_DIR=/efs/dlyon/agotool/data/PostgreSQL/tables
+PYTHON_DIR=/efs/dlyon/agotool/app/python
+POSTGRES_DIR=/efs/dlyon/agotool/data/PostgreSQL
 
 echo "--- Cronjob starting "$(date +"%Y_%m_%d_%I_%M_%p")" ---"
 ### run snakemake pipeline
