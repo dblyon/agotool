@@ -41,17 +41,8 @@ humanName_2_functionAN_dict = {u"BP": u"GO:0008150",
 functionType_term_2_an_dict = {"UPK": upkTerm_2_functionAN_dict,
                                "GO": humanName_2_functionAN_dict}
 
-# id_2_entityTypeNumber_dict = variables.id_2_entityTypeNumber_dict
 
-
-def get_cursor(env_dict=None):
-    # if env_dict is not None:
-    #     USER = env_dict['POSTGRES_USER']
-    #     PWD = env_dict['POSTGRES_PASSWORD']
-    #     DBNAME = env_dict['POSTGRES_DB']
-    #     PORT = '5432'
-    #     HOST = 'db'
-    #     return get_cursor_connect(host=HOST, dbname=DBNAME, user=USER, port=PORT, password=PWD)
+def get_cursor():
 
     if hostname in {"aquarius.meringlab.org", "atlas", "gaia", "phobos", "deimos", "pisces"}: # use agotool/app/env_file, which isn't in git repo for security, using local Postgres
         env_dict = variables.param_2_val_dict
@@ -93,23 +84,6 @@ def get_cursor(env_dict=None):
         print("query.get_cursor() doesn't know how to connect to Postgres")
         raise StopIteration
 
-# def get_cursor_docker(host, dbname, user, password, port):
-#     """
-#     e.g.
-#     import os
-#     user = os.environ['POSTGRES_USER']
-#     pwd = os.environ['POSTGRES_PASSWORD']
-#     db = os.environ['POSTGRES_DB']
-#     host = 'db'
-#     port = '5432'
-#     cursor = get_cursor_docker(user=user, password=pwd, host=host, port=port, dbname=db)
-#     # Sqlalchemy version: engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db))
-#     """
-#     conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(host, dbname, user, password, port)
-#     conn = psycopg2.connect(conn_string)
-#     cursor = conn.cursor()
-#     return cursor
-
 def get_cursor_ody(dbname='agotool'):
     """
     :param dbname:
@@ -149,24 +123,6 @@ def get_function_type_id_2_name_dict(function_type):
         id_2_name_dict[id_] = name
     return id_2_name_dict
 
-# def map_secondary_2_primary_ANs(ans_list):
-#     """
-#     map secondary UniProt ANs to primary ANs,
-#     AN only in dict if mapping exists
-#     :param ans_list: ListOfString
-#     :return: Dict (key: String(Secondary AN), val: String(Primary AN))
-#     """
-#     ans_list = str(ans_list)[1:-1]
-#     result = get_results_of_statement("SELECT protein_secondary_2_primary_an.sec, protein_secondary_2_primary_an.pri FROM protein_secondary_2_primary_an WHERE protein_secondary_2_primary_an.sec IN({})".format(ans_list))
-#     secondary_2_primary_dict = {}
-#     for res in result:
-#         secondary = res[0]
-#         primary = res[1]
-#         secondary_2_primary_dict[secondary] = primary
-#     cursor.close()
-#     return secondary_2_primary_dict
-
-
 class PersistentQueryObject:
     """
     aGOtool version
@@ -175,17 +131,11 @@ class PersistentQueryObject:
     everything else is in memory but still deposited in the DB any way
     """
     def __init__(self):
-        # self.version_ = VERSION_
-        # if self.version_ == "aGOtool":
         self.secondary_2_primary_an_dict = self.get_secondary_2_primary_an_dict()
-        # else:
-        #     self.secondary_2_primary_an_dict = None
         self.type_2_association_dict = self.get_type_2_association_dict()
         self.go_slim_set = self.get_go_slim_terms()
         self.KEGG_functions_set = self.get_functions_set_from_functions(function_type="KEGG")
         self.DOM_functions_set = self.get_functions_set_from_functions(function_type="DOM")
-        # precompute set of functions to restrict funtional associations to
-        #  might need speed overhaul #!!!
         self.UPK_functions_set = self.get_ontology_set_of_type("UPK", "")
         self.BP_basic_functions_set = self.get_ontology_set_of_type("BP", "basic")
         self.MF_basic_functions_set = self.get_ontology_set_of_type("MF", "basic")
@@ -253,23 +203,6 @@ class PersistentQueryObject:
         for res in result:
             functions_set.update([res[0]])
         return functions_set
-
-    # def map_secondary_2_primary_ANs(self, ans_list):
-    #     """
-    #     def map_secondary_2_primary_ANs_v1_slow(self, ans_list):
-    #         secondary_ans_2_replace = set(self.secondary_2_primary_an_dict.keys()).intersection(set(ans_list))
-    #         return dict((secondary_an, self.secondary_2_primary_an_dict[secondary_an]) for secondary_an in secondary_ans_2_replace)
-    #
-    #     :param ans_list: List of String
-    #     :return: secondary_2_primary_dict (key: String(Secondary AN), val: String(Primary AN))
-    #     """
-    #     secondary_2_primary_dict_temp = {}
-    #     for secondary in ans_list:
-    #         try:
-    #             secondary_2_primary_dict_temp[secondary] = self.secondary_2_primary_an_dict[secondary]
-    #         except KeyError:
-    #             continue
-    #     return secondary_2_primary_dict_temp
 
     def get_ontology_set_of_type(self, function_type, go_slim_or_basic):
         """
@@ -438,28 +371,10 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         with open(variables.tables_dict["TaxidSpecies_2_TaxidProteome_dict"], "rb") as fh_TaxidSpecies_2_TaxidProteome_dict:
             self.TaxidSpecies_2_TaxidProteome_dict = pickle.load(fh_TaxidSpecies_2_TaxidProteome_dict)
 
-        # with open(variables.tables_dict["TaxidSpecies_2_multipleRefProtTaxid_dict"], "rb") as fh_TaxidSpecies_2_multipleRefProtTaxid_dict:
-        #     self.TaxidSpecies_2_multipleRefProtTaxid_dict = pickle.load(fh_TaxidSpecies_2_multipleRefProtTaxid_dict)
-
-        ### DEPRECATED
-        # if variables.VERBOSE:
-        #     print("getting CSC_ENSPencoding_2_FuncEnum and ENSP_2_rowIndex_dict")
-        ### deprecated --> self.ENSP_2_tuple_funcEnum_score_dict = get_proteinAN_2_tuple_funcEnum_score_dict(read_from_flat_files=read_from_flat_files)
-        # with open(variables.tables_dict["ENSP_2_rowIndex_dict"], "rb") as fh_ENSP_2_rowIndex_dict:
-        #     self.ENSP_2_rowIndex_dict = pickle.load(fh_ENSP_2_rowIndex_dict)
-        # with open(variables.tables_dict["rowIndex_2_ENSP_dict"], "rb") as fh_rowIndex_2_ENSP_dict:
-        #     self.rowIndex_2_ENSP_dict = pickle.load(fh_rowIndex_2_ENSP_dict)
-        # self.CSC_ENSPencoding_2_FuncEnum = sparse.load_npz(variables.tables_dict["CSC_ENSPencoding_2_FuncEnum"])
-        # self.CSR_ENSPencoding_2_FuncEnum = self.CSC_ENSPencoding_2_FuncEnum.tocsr()
-
         if not low_memory:
             if variables.VERBOSE:
                 print("getting Secondary_2_Primary_IDs_dict")
             self.Secondary_2_Primary_IDs_dict = get_Secondary_2_Primary_IDs_dict(read_from_flat_files=read_from_flat_files)
-
-        # if variables.VERBOSE: # DEPRECATED
-        #     print("getting Taxid_2_FunctionEnum_2_Scores_dict")
-        # self.Taxid_2_FunctionEnum_2_Scores_dict = get_Taxid_2_FunctionEnum_2_Scores_dict(read_from_flat_files=read_from_flat_files, as_array_or_as_list="array", taxid_2_proteome_count=None, from_pickle=True)
 
             print("getting KEGG Taxid 2 TaxName acronym translation")
         self.kegg_taxid_2_acronym_dict = get_KEGG_Taxid_2_acronym_dict(read_from_flat_files=True) # small file doesn't make sense to keep in DB for now
@@ -468,8 +383,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
             print("getting lookup arrays")
         # if not low_memory: # override variables if "low_memory" passed to query initialization
         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = get_lookup_arrays(read_from_flat_files, from_pickle=True)
-        # else:
-            # self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = get_lookup_arrays(low_memory, read_from_flat_files)
         self.function_enumeration_len = self.functionalterm_arr.shape[0]
 
         if variables.VERBOSE:
@@ -507,10 +420,6 @@ class PersistentQueryObject_STRING(PersistentQueryObject):
         if variables.VERBOSE:
             print("getting preloaded objects per analysis")
         self.reset_preloaded_objects_per_analysis()
-
-
-        # cond_KS_etypes = self.etype_cond_dict["cond_25"] | self.etype_cond_dict["cond_26"] | self.etype_cond_dict["cond_20"]
-        # self.KS_funcEnums_arr = self.indices_arr[cond_KS_etypes]
 
         if variables.VERBOSE:
             print("finished with PQO init")
@@ -1497,7 +1406,6 @@ def get_UniProt_NCBI_TaxID_and_TaxName_for_autocomplete_list():
     return list_of_autocomplete_tags
 
 
-
 if __name__ == "__main__":
     # pass
     pqo = PersistentQueryObject()
@@ -1552,73 +1460,3 @@ if __name__ == "__main__":
     # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs(ans_list)
     # # print(len(secondary_2_primary_dict))
     # # secondary_2_primary_dict = pqo.map_secondary_2_primary_ANs_v2(ans_list)
-
-
-# def __init__(self, low_memory=False):
-    #     print("initializing PQO")
-    #     # super(PersistentQueryObject, self).__init__() # py2 and py3
-    #     # super().__init__() # py3
-    #     # self.type_2_association_dict = self.get_type_2_association_dict()
-    #     # self.go_slim_set = self.get_go_slim_terms()
-    #     # ##### pre-load go_dag and goslim_dag (obo files) for speed, also filter objects
-    #     # ### --> obsolete since using functerm_2_level_dict
-    #     # self.go_dag = obo_parser.GODag(obo_file=FN_GO_BASIC)
-    #     # self.upk_dag = obo_parser.GODag(obo_file=FN_KEYWORDS, upk=True)
-    #     #blacklisted_terms_bool_arr
-    #     # self.lineage_dict = {}
-    #     # # key=GO-term, val=set of GO-terms (parents)
-    #     # for go_term_name in self.go_dag:
-    #     #     GOTerm_instance = self.go_dag[go_term_name]
-    #     #     self.lineage_dict[go_term_name] = GOTerm_instance.get_all_parents().union(GOTerm_instance.get_all_children())
-    #     # for term_name in self.upk_dag:
-    #     #     Term_instance = self.upk_dag[term_name]
-    #     #     self.lineage_dict[term_name] = Term_instance.get_all_parents().union(Term_instance.get_all_children())
-    #     #
-    #     # fn_hierarchy = os.path.join(variables.DOWNLOADS_DIR, "RCTM_hierarchy.tsv")
-    #     # self.lineage_dict.update(get_lineage_Reactome(fn_hierarchy))
-    #
-    #     # self.goslim_dag = obo_parser.GODag(obo_file=FN_GO_SLIM)
-    #     # self.kegg_pseudo_dag = obo_parser.Pseudo_dag(etype="-52")
-    #     # self.smart_pseudo_dag = obo_parser.Pseudo_dag(etype="-53")
-    #     # self.interpro_pseudo_dag = obo_parser.Pseudo_dag(etype="-54")
-    #     # self.pfam_pseudo_dag = obo_parser.Pseudo_dag(etype="-55")
-    #     # self.pmid_pseudo_dag = obo_parser.Pseudo_dag(etype="-56")
-    #     self.taxid_2_proteome_count = get_Taxid_2_proteome_count_dict()
-    #
-    #     ### lineage_dict: key: functional_association_term_name val: set of parent terms
-    #     ### functional term 2 hierarchical level dict
-    #     # self.functerm_2_level_dict = defaultdict(lambda: np.nan)
-    #     # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.go_dag))
-    #     # self.functerm_2_level_dict.update(self.get_functional_term_2_level_dict_from_dag(self.upk_dag))
-    #     # del self.go_dag # needed for cluster_filter
-    #     # del self.upk_dag
-    #     # self.functerm_2_level_dict = self.get_functional_term_2_level_dict()
-    #     if not low_memory: # override variables if "low_memory" passed to query initialization
-    #         # low_memory = variables.LOW_MEMORY
-    #     # if not low_memory:
-    #         ### taxid_2_etype_2_association_2_count_dict[taxid][etype][association] --> count of ENSPs of background proteome from Function_2_ENSP_table_STRING.txt
-    #         # self.taxid_2_etype_2_association_2_count_dict_background = get_association_2_counts_split_by_entity() # cf. if association is string
-    #         # self.function_an_2_description_dict = defaultdict(lambda: np.nan)
-    #         # an_2_name_dict, an_2_description_dict = get_function_an_2_name__an_2_description_dict()
-    #         # an_2_description_dict = get_function_an_2_description_dict()
-    #         # self.function_an_2_description_dict.update(an_2_description_dict)
-    #
-    #         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr, self.description_arr, self.category_arr = self.get_lookup_arrays(low_memory)
-    #     else:
-    #         self.year_arr, self.hierlevel_arr, self.entitytype_arr, self.functionalterm_arr, self.indices_arr = self.get_lookup_arrays(low_memory)
-    #
-    #     self.etype_2_minmax_funcEnum = self.get_etype_2_minmax_funcEnum(self.entitytype_arr)
-    #     self.function_enumeration_len = self.functionalterm_arr.shape[0]
-    #     if not low_memory:
-    #         #foreground
-    #         self.ENSP_2_functionEnumArray_dict = get_ENSP_2_functionEnumArray_dict()
-    #         #background
-    #         self.taxid_2_tuple_funcEnum_index_2_associations_counts = get_background_taxid_2_funcEnum_index_2_associations()
-    #
-    #     self.etype_cond_dict = get_etype_cond_dict(self.etype_2_minmax_funcEnum, self.function_enumeration_len)
-    #     # self.cond_etypes_with_ontology = self.get_cond_bool_array_of_etypes(variables.entity_types_with_ontology)
-    #     # self.cond_etypes_rem_foreground_ids = self.get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids)
-    #     self.cond_etypes_with_ontology = get_cond_bool_array_of_etypes(variables.entity_types_with_ontology, self.function_enumeration_len, self.etype_cond_dict)
-    #     self.cond_etypes_rem_foreground_ids = get_cond_bool_array_of_etypes(variables.entity_types_rem_foreground_ids, self.function_enumeration_len, self.etype_cond_dict)
-    #     self.lineage_dict_enum = get_lineage_dict_enum()
-    #     self.blacklisted_terms_bool_arr = self.get_blacklisted_terms_bool_arr()

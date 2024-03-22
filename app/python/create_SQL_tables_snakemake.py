@@ -487,7 +487,7 @@ def get_child_2_direct_parents_and_term_2_level_dict_interpro(fn):
                     if term not in child_2_parent_dict:
                         child_2_parent_dict[term] = child_2_parent_dict[term_previous]
                     else:
-                        child_2_parent_dict[term].update({child_2_parent_dict[term_previous]})
+                        child_2_parent_dict[term].update(child_2_parent_dict[term_previous])
                 elif level < level_previous:
                     term_previous, level_previous = helper_get_previous_term_and_level(child_2_parent_dict, term_2_level_dict, term_previous, level)
                     if term not in child_2_parent_dict:
@@ -579,7 +579,12 @@ def Functions_table_PFAM(fn_in, fn_out_functions_table_PFAM, fn_out_map_name_2_a
 def Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=False, GO_CC_textmining_additional_etype=False):
     """
     # fn_in_go_basic = os.path.join(DOWNLOADS_DIR, "go-basic.obo")
-    # fn_out_funcs = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
+    # fn_out_functions = os.path.join(TABLES_DIR, "Functions_table_GO.txt")
+
+    fn_in_go_basic = r"/Users/dlyon/modules/uni/agotool/data/PostgreSQL/downloads/keywords-all.obo"
+    fn_out_functions = r"/Users/dlyon/modules/uni/agotool/data/PostgreSQL/tables/Functions_table_UPK.txt"
+    Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=True, GO_CC_textmining_additional_etype=False)
+
     # ### functions [Functions_table_STRING.txt]
     # | enum | etype | an | description | year | level |
     id_, name --> Functions_table.txt
@@ -3657,6 +3662,7 @@ def Functions_table_UPS_FIN(Functions_table_all, Function_2_Protein_table_UPS_re
     with open(Function_2_Protein_table_UPS_reduced, "r") as fh_in:
     # 1000565 -51     KW-0003 5       3926    {"1000565.METUNv1_01117","1000565.METUNv1_02206","1000565.METUNv1_02527","1000565.METUNv1_03205","1000565.METUNv1_03227"}
     # 654924  -51     KW-1185 7       -1      014R_FRG3G;015R_FRG3G;017L_FRG3G;018L_FRG3G;019R_FRG3G;020R_FRG3G;021L_FRG3G
+    # 200451  -23     GO:0016740      2       -1      A0A2S9DVA6_9PSED;A0A2S9ETC1_9PSED
         for line in fh_in:
             functions_2_include.update({line.split("\t")[2]})
 
@@ -4251,6 +4257,10 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(os.path.realpath(__file__))))
     import variables
 
+    fn_in_go_basic = r"/Users/dlyon/modules/uni/agotool/data/PostgreSQL/downloads/keywords-all.obo"
+    fn_out_functions = r"/Users/dlyon/modules/uni/agotool/data/PostgreSQL/tables/Functions_table_UPK.txt"
+    Functions_table_GO_or_UPK(fn_in_go_basic, fn_out_functions, is_upk=True, GO_CC_textmining_additional_etype=False)
+
     # Protein_2_Function_table_UPS_orig_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS_orig.txt")  # original unmodified version
     # Protein_2_Function_table_UPS_fn = os.path.join(TABLES_DIR, "Protein_2_Function_table_UPS.txt")  # taxids pushed to rank species
     # Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS = os.path.join(TABLES_DIR, "Protein_2_Function_withoutScore_DOID_BTO_GOCC_UPS.txt")
@@ -4280,9 +4290,9 @@ if __name__ == "__main__":
     # Protein_2_FunctionEnum_table_UPS_for_Taxid_count = os.path.join(TABLES_DIR, "Protein_2_FunctionEnum_table_UPS_for_Taxid_count.txt")
 
     # run single rule Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN
-    Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
-    Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
-    Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
+    # Protein_2_FunctionEnum_and_Score_table_UPS_FIN = variables.tables_dict["Protein_2_FunctionEnum_and_Score_table"]
+    # Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN = os.path.join(TABLES_DIR, "Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN.txt")
+    # Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN(Protein_2_FunctionEnum_and_Score_table_UPS_FIN, Taxid_2_FunctionEnum_2_Scores_table_UPS_FIN)
 
     # e.g. funcEnum = 69816 with lots of 500000 scores
         # {500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500000, 500057, 500070, 500102, 500125, 500190, 50027
