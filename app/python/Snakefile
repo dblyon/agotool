@@ -78,11 +78,11 @@ GO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "go_Jensenlab.obo")
 DOID_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "doid_Jensenlab.obo")
 BTO_obo_Jensenlab = os.path.join(DOWNLOADS_DIR, "bto_Jensenlab.obo") # static file
 taxid_2_tuple_funcEnum_index_2_associations_counts_pickle_UPS_FIN = TABLES_DICT_SNAKEMAKE["taxid_2_tuple_funcEnum_index_2_associations_counts"]
-if hostname in {"ody", "MLS-M-DALY.local", "Davids-MacBook-Pro.local", "MRTX-DLYON-MBP"}:
-    KEGG_dir = DOWNLOADS_DIR # fake mock
+if hostname in {"ip-10-3-5-225", "ody", "MLS-M-DALY.local", "Davids-MacBook-Pro.local", "MRTX-DLYON-MBP"}:
+    KEGG_dir = DOWNLOADS_DIR # fake mock, KEGG would need to be purchased, MRT doesn't have a licence
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"kegg/pathway/organisms")
     KEGG_taxonomic_rank_file = os.path.join(KEGG_dir, "taxonomic_rank")
-    KEGG_pathway = os.path.join(KEGG_dir, "pathway.list")
+    KEGG_pathway = os.path.join(KEGG_dir, "pathway.list")    
 elif hostname in {"atlas", "gaia", "phobos", "deimos"}:
     KEGG_dir = r"/mnt/mnemo5/dblyon/STRING_freeze_v11/kegg"
     KEGG_organisms_dir = os.path.join(KEGG_dir, r"pathway/organisms") # /mnt/mnemo5/dblyon/STRING_freeze_v11/kegg/pathway/organisms
